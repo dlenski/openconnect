@@ -345,3 +345,24 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	/* Work is not done if we just got rid of packets off the queue */
 	return work_done;
 }
+
+int ssl_bye(struct anyconnect_info *vpninfo, char *reason)
+{
+	unsigned char *bye_pkt;
+	int reason_len = strlen(reason);
+	bye_pkt = malloc(reason_len + 8);
+	if (!bye_pkt)
+		return -ENOMEM;
+	
+	memcpy(bye_pkt, data_hdr, 8);
+	memcpy(bye_pkt + 8, reason, strlen(reason));
+
+	bye_pkt[4] = reason_len >> 8;
+	bye_pkt[5] = reason_len & 0xff;
+	bye_pkt[6] = 5;
+
+	SSL_write(vpninfo->https_ssl, bye_pkt, reason_len + 8);
+
+	free(bye_pkt);
+	return 0;
+}
