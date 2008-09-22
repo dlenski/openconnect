@@ -36,42 +36,6 @@ void queue_packet(struct pkt **q, struct pkt *new)
 	*q = new;
 }
 
-int inflate_and_queue_packet(struct anyconnect_info *vpninfo, int type, void *buf, int len)
-{
-	struct pkt *new = malloc(sizeof(struct pkt) + vpninfo->mtu);
-
-	if (!new)
-		return -ENOMEM;
-
-	new->type = type;
-	new->next = NULL;
-
-	vpninfo->inflate_strm.next_in = buf;
-	vpninfo->inflate_strm.avail_in = len - 4;
-
-	vpninfo->inflate_strm.next_out = new->data;
-	vpninfo->inflate_strm.avail_out = vpninfo->mtu;
-	vpninfo->inflate_strm.total_out = 0;
-
-	if (inflate(&vpninfo->inflate_strm, Z_SYNC_FLUSH)) {
-		fprintf(stderr, "inflate failed\n");
-		free(new);
-		return -EINVAL;
-	}
-
-	new->len = vpninfo->inflate_strm.total_out;
-
-	vpninfo->inflate_adler32 = adler32(vpninfo->inflate_adler32,
-					   new->data, new->len);
-
-	if (vpninfo->inflate_adler32 != ntohl( *(uint32_t *)(buf + len - 4))) {
-		vpninfo->quit_reason = "Compression (inflate) adler32 failure";
-	}
-
-	queue_packet(&vpninfo->incoming_queue, new);
-	return 0;
-}
-
 int queue_new_packet(struct pkt **q, int type, void *buf, int len)
 {
 	struct pkt *new = malloc(sizeof(struct pkt) + len);

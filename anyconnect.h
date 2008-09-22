@@ -102,4 +102,3 @@ int vpn_add_pollfd(struct anyconnect_info *vpninfo, int fd, short events);
 int vpn_mainloop(struct anyconnect_info *vpninfo);
 int queue_new_packet(struct pkt **q, int type, void *buf, int len);
 void queue_packet(struct pkt **q, struct pkt *new);
-int inflate_and_queue_packet(struct anyconnect_info *vpninfo, int type, void *buf, int len);

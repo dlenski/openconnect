@@ -78,9 +78,7 @@ static int my_SSL_gets(SSL *ssl, char *buf, size_t len)
 	return i?:ret;
 }
 
-
-
-int open_https(struct anyconnect_info *vpninfo)
+static int open_https(struct anyconnect_info *vpninfo)
 {
 	SSL_METHOD *ssl3_method;
 	SSL_CTX *https_ctx;
@@ -153,7 +151,7 @@ int open_https(struct anyconnect_info *vpninfo)
 }
 
 
-int start_ssl_connection(struct anyconnect_info *vpninfo)
+static int start_ssl_connection(struct anyconnect_info *vpninfo)
 {
 	char buf[65536];
 	int i;
@@ -279,6 +277,43 @@ void vpn_init_openssl(void)
 	SSL_load_error_strings ();
 	OpenSSL_add_all_algorithms ();
 }
+
+static int inflate_and_queue_packet(struct anyconnect_info *vpninfo, int type, void *buf, int len)
+{
+	struct pkt *new = malloc(sizeof(struct pkt) + vpninfo->mtu);
+
+	if (!new)
+		return -ENOMEM;
+
+	new->type = type;
+	new->next = NULL;
+
+	vpninfo->inflate_strm.next_in = buf;
+	vpninfo->inflate_strm.avail_in = len - 4;
+
+	vpninfo->inflate_strm.next_out = new->data;
+	vpninfo->inflate_strm.avail_out = vpninfo->mtu;
+	vpninfo->inflate_strm.total_out = 0;
+
+	if (inflate(&vpninfo->inflate_strm, Z_SYNC_FLUSH)) {
+		fprintf(stderr, "inflate failed\n");
+		free(new);
+		return -EINVAL;
+	}
+
+	new->len = vpninfo->inflate_strm.total_out;
+
+	vpninfo->inflate_adler32 = adler32(vpninfo->inflate_adler32,
+					   new->data, new->len);
+
+	if (vpninfo->inflate_adler32 != ntohl( *(uint32_t *)(buf + len - 4))) {
+		vpninfo->quit_reason = "Compression (inflate) adler32 failure";
+	}
+
+	queue_packet(&vpninfo->incoming_queue, new);
+	return 0;
+}
+
 
 static char data_hdr[8] = {'S', 'T', 'F', 1, 0, 0, 0, 0};
 
