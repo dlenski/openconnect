@@ -1,0 +1,17 @@
+
+Authentication tool:
+ - Do we want a separate tool which fetches the WebVPN cookie?
+ - Implement login support (once we have the server side working)
+ - TPM support for certificate authentication
+ - NetworkManager integration
+
+Connectivity:
+ - Fix tun.c to actually configure device and routes
+ - Allow use of lwip + SOCKS server instead of tun
+
+VPN issues:
+ - DTLS
+ - Rekeying
+ - Automatic Configuration update
+
+
