@@ -271,6 +271,12 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	int len;
 	int work_done = 0;
 	
+	/* FIXME: The poll() handling here is fairly simplistic. Actually,
+	   if the SSL connection stalls it could return a WANT_WRITE error
+	   on _either_ of the SSL_read() or SSL_write() calls. In that case,
+	   we should probably remove POLLIN from the events we're looking for,
+	   and add POLLOUT. As it is, though, it'll just chew CPU time in that
+	   fairly unlikely situation, until the write backlog clears. */
 	while ( (len = SSL_read(vpninfo->https_ssl, buf, sizeof(buf))) > 0) {
 
 		if (buf[0] != 'S' || buf[1] != 'T' ||
