@@ -320,6 +320,28 @@ static int inflate_and_queue_packet(struct anyconnect_info *vpninfo, int type, v
 }
 
 
+/*
+ * Data packets are encapsulated in the SSL stream as follows:
+ * 
+ * 0000: Magic "STF\x1"
+ * 0004: Big-endian 16-bit length (not including 8-byte header)
+ * 0006: Byte packet type. Known types are:
+ *		0 - uncompressed data
+ *		1 - 
+ *		2 - 
+ *		3 - keepalive (client->server)
+ *		4 - keepalive response (server->client)
+ *		5 - disconnect notice (client->server).
+ *			Payload is a string, not NUL-terminated
+ *		6 - 
+ *		7 - 
+ *		8 - compressed data
+ *			deflated payload followed by rolling adler32
+ *		9 - disconnect notice (server->client)
+ *
+ * Not sure if there's a distinction between IPv4 and IPv6 data.
+ */
+
 static char data_hdr[8] = {'S', 'T', 'F', 1, 0, 0, 0, 0};
 
 int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
