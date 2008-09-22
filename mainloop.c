@@ -22,6 +22,8 @@
 #include <poll.h>
 #include <limits.h>
 #include <sys/select.h>
+#include <signal.h>
+
 #include "anyconnect.h"
 
 int queue_new_packet(struct pkt **q, int type, void *buf, int len)
@@ -54,9 +56,21 @@ int vpn_add_pollfd(struct anyconnect_info *vpninfo, int fd, short events)
 	return vpninfo->nfds - 1;
 }
 
+static int killed;
+
+static void handle_sigint(int sig)
+{
+	killed = 1;
+}
+
 int vpn_mainloop(struct anyconnect_info *vpninfo)
 {
-	while (1) {
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = handle_sigint;
+	
+	sigaction(SIGINT, &sa, NULL);
+	while (!killed) {
 		int did_work = 0;
 		int timeout = INT_MAX;
 
@@ -73,6 +87,8 @@ int vpn_mainloop(struct anyconnect_info *vpninfo)
 			printf("Did no work; sleeping for %d ms...\n", timeout);
 
 		poll(vpninfo->pfds, vpninfo->nfds, timeout);
-	}	
+	}
+	ssl_bye(vpninfo, "Client received SIGINT\n");
+
 	return 0;
 }

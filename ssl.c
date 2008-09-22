@@ -362,7 +362,10 @@ int ssl_bye(struct anyconnect_info *vpninfo, char *reason)
 	bye_pkt[6] = 5;
 
 	SSL_write(vpninfo->https_ssl, bye_pkt, reason_len + 8);
-
 	free(bye_pkt);
+
+	if (verbose)
+		printf("Send BYE packet: %s\n", reason);
+
 	return 0;
 }
