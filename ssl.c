@@ -297,6 +297,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			printf("%02x %02x %02x %02x %02x %02x %02x %02x\n",
 			       buf[0], buf[1], buf[2], buf[3],
 			       buf[4], buf[5], buf[6], buf[7]);
+			continue;
 		}
 		if (buf[6] == 4) {
 			/* Keepalive response */
