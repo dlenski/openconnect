@@ -8,16 +8,16 @@ endif
 CFLAGS += -I/usr/include/openssl #-I/usr/include/libxml2
 LDFLAGS += -lssl
 
-OBJECTS := cisco.o tun.o dtls.o ssl.o
+OBJECTS := main.o tun.o dtls.o ssl.o
 
-cisco: $(OBJECTS)
+anyconnect: $(OBJECTS)
 	$(CC) -o $@ $(LDFLAGS) $^
 
 %.o: %.c
 	$(CC) -c -o $@ $(CFLAGS) $< -MD -MF .$@.dep
 
 clean:
-	rm -f $(OBJECTS) cisco $(wildcard .*.o.dep)
+	rm -f $(OBJECTS) anyconnect $(wildcard .*.o.dep)
 
 include /dev/null $(wildcard .*.o.dep)
 
