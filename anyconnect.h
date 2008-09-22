@@ -21,12 +21,12 @@
 #include <openssl/ssl.h>
 #include <poll.h>
 #include <zlib.h>
+#include <stdint.h>
 
 struct pkt {
 	int type;
 	int len;
 	struct pkt *next;
-	unsigned char hdr[8];
 	unsigned char data[];
 };
 	
@@ -51,7 +51,9 @@ struct anyconnect_info {
 	time_t last_ssl_tx;
 
 	z_stream inflate_strm;
+	uint32_t inflate_adler32;
 	z_stream deflate_strm;
+	uint32_t deflate_adler32;
 
 	unsigned char dtls_secret[48];
 	SSL_CTX *dtls_ctx;
@@ -74,6 +76,8 @@ struct anyconnect_info {
 
 	int deflate;
 	const char *useragent;
+
+	char *quit_reason;
 };
 
 /* tun.c */
@@ -97,4 +101,4 @@ extern int verbose;
 int vpn_add_pollfd(struct anyconnect_info *vpninfo, int fd, short events);
 int vpn_mainloop(struct anyconnect_info *vpninfo);
 int queue_new_packet(struct pkt **q, int type, void *buf, int len);
-
+int inflate_and_queue_packet(struct anyconnect_info *vpninfo, int type, void *buf, int len);

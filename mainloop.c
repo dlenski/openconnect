@@ -23,8 +23,49 @@
 #include <limits.h>
 #include <sys/select.h>
 #include <signal.h>
+#include <arpa/inet.h>
 
 #include "anyconnect.h"
+
+int inflate_and_queue_packet(struct anyconnect_info *vpninfo, int type, void *buf, int len)
+{
+	struct pkt **q = &vpninfo->incoming_queue;
+
+	while (*q)
+		q = &(*q)->next;
+
+	*q = malloc(sizeof(struct pkt) + vpninfo->mtu);
+	if (!*q)
+		return -ENOMEM;
+
+	(*q)->type = type;
+	(*q)->next = NULL;
+
+	vpninfo->inflate_strm.next_in = buf;
+	vpninfo->inflate_strm.avail_in = len - 4;
+
+	vpninfo->inflate_strm.next_out = (*q)->data;
+	vpninfo->inflate_strm.avail_out = vpninfo->mtu;
+	vpninfo->inflate_strm.total_out = 0;
+
+	if (inflate(&vpninfo->inflate_strm, Z_SYNC_FLUSH)) {
+		fprintf(stderr, "inflate failed\n");
+		free(*q);
+		*q = NULL;
+		return -EINVAL;
+	}
+
+	(*q)->len = vpninfo->inflate_strm.total_out;
+
+	vpninfo->inflate_adler32 = adler32(vpninfo->inflate_adler32,
+					   (*q)->data, (*q)->len);
+
+	if (vpninfo->inflate_adler32 != ntohl( *(uint32_t *)(buf + len - 4))) {
+		vpninfo->quit_reason = "Compression (inflate) adler32 failure";
+	}
+
+	return 0;
+}
 
 int queue_new_packet(struct pkt **q, int type, void *buf, int len)
 {
@@ -70,7 +111,7 @@ int vpn_mainloop(struct anyconnect_info *vpninfo)
 	sa.sa_handler = handle_sigint;
 	
 	sigaction(SIGINT, &sa, NULL);
-	while (!killed) {
+	while (!killed && !vpninfo->quit_reason) {
 		int did_work = 0;
 		int timeout = INT_MAX;
 
@@ -87,8 +128,16 @@ int vpn_mainloop(struct anyconnect_info *vpninfo)
 			printf("Did no work; sleeping for %d ms...\n", timeout);
 
 		poll(vpninfo->pfds, vpninfo->nfds, timeout);
+		if (vpninfo->pfds[vpninfo->ssl_pfd].revents & POLL_HUP) {
+			fprintf(stderr, "Server closed connection!\n");
+			/* OpenSSL doesn't seem to cope properly with this... */
+			exit(1);
+		}
 	}
-	ssl_bye(vpninfo, "Client received SIGINT\n");
+	if (!vpninfo->quit_reason)
+		vpninfo->quit_reason = "Client received SIGINT";
+
+	ssl_bye(vpninfo, vpninfo->quit_reason);
 
 	return 0;
 }

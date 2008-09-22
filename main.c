@@ -114,8 +114,7 @@ int main(int argc, char **argv)
 			break;
 
 		case 'd':
-			fprintf(stderr, "Deflate not yet supported\n");
-			//vpninfo->deflate = 1;
+			vpninfo->deflate = 1;
 			break;
 		}
 	}
@@ -123,6 +122,17 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Need -h hostname, -c cookie\n");
 		exit(1);
 	}
+
+	if (vpninfo->deflate) {
+		if (inflateInit2(&vpninfo->inflate_strm, -12) ||
+		    deflateInit2(&vpninfo->deflate_strm, Z_DEFAULT_COMPRESSION,
+				 Z_DEFLATED, -12, 9, Z_DEFAULT_STRATEGY)) {
+			fprintf(stderr, "Compression setup failed\n");
+			vpninfo->deflate = 0;
+		}
+	}
+	vpninfo->deflate_adler32 = 1;
+	vpninfo->inflate_adler32 = 1;
 
 	if (make_ssl_connection(vpninfo)) {
 		fprintf(stderr, "Creating SSL connection failed\n");
