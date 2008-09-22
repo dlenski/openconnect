@@ -21,6 +21,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <time.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -221,6 +222,9 @@ int start_ssl_connection(struct anyconnect_info *vpninfo)
 			return -ENOMEM;
 		}
 
+		if (!strcmp(buf, "X-CSTP-Keepalive"))
+			vpninfo->ssl_keepalive = atol(colon);
+		    
 		if (!strncmp(buf, "X-DTLS-", 7)) {
 			*next_dtls_option = new_option;
 			next_dtls_option = &new_option->next;
@@ -239,7 +243,7 @@ int start_ssl_connection(struct anyconnect_info *vpninfo)
 	fcntl(vpninfo->ssl_fd, F_SETFL, fcntl(vpninfo->ssl_fd, F_GETFL) | O_NONBLOCK);
 
 	vpninfo->ssl_pfd = vpn_add_pollfd(vpninfo, vpninfo->ssl_fd, POLLIN);
-
+	vpninfo->last_ssl_tx = time(NULL);
 	return 0;
 }
 
@@ -270,7 +274,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	unsigned char buf[16384];
 	int len;
 	int work_done = 0;
-	
+
 	/* FIXME: The poll() handling here is fairly simplistic. Actually,
 	   if the SSL connection stalls it could return a WANT_WRITE error
 	   on _either_ of the SSL_read() or SSL_write() calls. In that case,
@@ -280,8 +284,8 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	while ( (len = SSL_read(vpninfo->https_ssl, buf, sizeof(buf))) > 0) {
 
 		if (buf[0] != 'S' || buf[1] != 'T' ||
-		    buf[2] != 'F' || buf[3] != 1 ||
-		    buf[6] != 0   || buf[7] != 0) {
+		    buf[2] != 'F' || buf[3] != 1 || buf[7]) {
+		unknown_pkt:
 			printf("Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n",
 			       buf[0], buf[1], buf[2], buf[3],
 			       buf[4], buf[5], buf[6], buf[7]);
@@ -294,6 +298,15 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			       buf[0], buf[1], buf[2], buf[3],
 			       buf[4], buf[5], buf[6], buf[7]);
 		}
+		if (buf[6] == 4) {
+			/* Keepalive response */
+			if (verbose)
+				printf("Got keepalive response\n");
+			continue;
+		}
+		if (buf[6] != 0) /* Data */
+			goto unknown_pkt;
+		
 		queue_new_packet(&vpninfo->incoming_queue, AF_INET, buf + 8,
 				 (buf[4] << 8) + buf[5]);
 		work_done = 1;
@@ -307,7 +320,27 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		this->hdr[5] = this->len & 0xff;
 		      
 		SSL_write(vpninfo->https_ssl, this->hdr, this->len + 8);
+		vpninfo->last_ssl_tx = time(NULL);
 	}
+
+	if (vpninfo->ssl_keepalive) {
+		time_t now = time(NULL);
+		time_t due = vpninfo->last_ssl_tx + vpninfo->ssl_keepalive;
+		if (now >= due) {
+			static unsigned char cstp_keepalive[8] = 
+				{'S', 'T', 'F', 1, 0, 0, 3, 0};
+		
+			SSL_write(vpninfo->https_ssl, cstp_keepalive, 8);
+			vpninfo->last_ssl_tx = now;
+			due = now + vpninfo->ssl_keepalive;
+			if (verbose)
+				printf("Sent keepalive\n");
+		}
+
+		if (*timeout > (due - now) * 1000)
+			*timeout = (due - now) * 1000;
+	}
+
 	/* Work is not done if we just got rid of packets off the queue */
 	return work_done;
 }
