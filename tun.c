@@ -77,6 +77,9 @@ int tun_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		work_done = 1;
 	}
 
+	/* The kernel returns -ENOMEM when the queue is full, so theoretically
+	   we could handle that and retry... but it doesn't let us poll() for
+	   the no-longer-full situation, so let's not bother. */
 	while (vpninfo->incoming_queue) {
 		struct pkt *this = vpninfo->incoming_queue;
 		vpninfo->incoming_queue = this->next;
