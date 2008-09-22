@@ -66,7 +66,9 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 	memset(vpninfo, 0, sizeof(*vpninfo));
+
 	/* Set up some defaults */
+	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = -1;
 	vpninfo->useragent = "Open AnyConnect VPN Agent v0.01";
 	vpninfo->mtu = 1406;
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
@@ -133,53 +135,9 @@ int main(int argc, char **argv)
 	}
 
 	if (setup_dtls(vpninfo))
-		fprintf(stderr, "Set up DTLS failed\n");
+		fprintf(stderr, "Set up DTLS failedd; using SSL instead\n");
 
 	printf("Connected\n");
+	vpn_mainloop(vpninfo);
 	exit(1);
-
-#if 0
-
-	if (fork()) {
-		while (1) {
-			size_t len;
-
-			buf[0] = 'S';
-			buf[1] = 'T';
-			buf[2] = 'F';
-			buf[3] = 1;
-			buf[4] = 0;
-			buf[5] = 0;
-			buf[6] = 0;
-			buf[7] = 0;
-				
-			len = read(tun_fd, &buf[8], 65536);
-			if (len >= 0) {
-				buf[4] = len >> 8;
-				buf[5] = len & 0xff;
-			}
-			SSL_write(https_info->https_ssl, buf, len + 8);
-		}
-	} else {
-		while (1) {
-			int len;
-			SSL_read(https_info->https_ssl, buf, 8);
-			
-			len = (buf[4] << 8) + buf [5];
-			SSL_read(https_info->https_ssl, buf + 8, len);
-			if (buf[0] != 'S' ||
-			    buf[1] != 'T' ||
-			    buf[2] != 'F' ||
-			    buf[3] != 1 ||
-			    buf[6] != 0 ||
-			    buf[7] != 0) {
-				printf("Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n",
-				       buf[0], buf[1], buf[2], buf[3],
-				       buf[4], buf[5], buf[6], buf[7]);
-			} else {
-				write(tun_fd, buf + 8, len);
-			}
-		}
-	}
-#endif
 }

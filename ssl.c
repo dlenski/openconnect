@@ -20,75 +20,18 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
 #include "anyconnect.h"
 
-SSL *open_https(struct anyconnect_info *vpninfo)
-{
-	SSL_METHOD *ssl3_method;
-	SSL_CTX *https_ctx;
-	SSL *https_ssl;
-	BIO *https_bio;
-	int ssl_sock;
-	int err;
-	struct addrinfo hints, *result, *rp;
+/* Helper functions for reading/writing lines over SSL.
+   We could use cURL for the HTTP stuff, but it's overkill */
 
-	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
-	hints.ai_socktype = SOCK_STREAM; /* Datagram socket */
-	hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
-	hints.ai_protocol = 0;          /* Any protocol */
-	hints.ai_canonname = NULL;
-	hints.ai_addr = NULL;
-	hints.ai_next = NULL;
-
-	err = getaddrinfo(vpninfo->hostname, "https", &hints, &result);
-	if (err) {
-		fprintf(stderr, "getaddrinfo failed: %s\n", gai_strerror(err));
-		return NULL;
-	}
-
-	for (rp = result; rp ; rp = rp->ai_next) {
-		ssl_sock = socket(rp->ai_family, rp->ai_socktype,
-				  rp->ai_protocol);
-		if (ssl_sock < 0)
-			continue;
-
-		if (connect(ssl_sock, rp->ai_addr, rp->ai_addrlen) >= 0)
-			break;
-
-		close(ssl_sock);
-	}
-	freeaddrinfo(result);
-
-	if (!rp) {
-		fprintf(stderr, "Failed to connect to host %s\n", vpninfo->hostname);
-		return NULL;
-	}
-
-	ssl3_method = SSLv23_client_method();
-	https_ctx = SSL_CTX_new(ssl3_method);
-	https_ssl = SSL_new(https_ctx);
-		
-	https_bio = BIO_new_socket(ssl_sock, BIO_NOCLOSE);
-	SSL_set_bio(https_ssl, https_bio, https_bio);
-
-	if (SSL_connect(https_ssl) <= 0) {
-		fprintf(stderr, "SSL connection failure\n");
-		ERR_print_errors_fp(stderr);
-		SSL_free(https_ssl);
-		SSL_CTX_free(https_ctx);
-		return NULL;
-	}
-
-	return https_ssl;
-}
-
-
-int  __attribute__ ((format (printf, 2, 3))) my_SSL_printf(SSL *ssl, const char *fmt, ...) 
+static int  __attribute__ ((format (printf, 2, 3)))
+	my_SSL_printf(SSL *ssl, const char *fmt, ...) 
 {
 	char buf[1024];
 	va_list args;
@@ -105,7 +48,7 @@ int  __attribute__ ((format (printf, 2, 3))) my_SSL_printf(SSL *ssl, const char 
 
 }
 
-int my_SSL_gets(SSL *ssl, char *buf, size_t len)
+static int my_SSL_gets(SSL *ssl, char *buf, size_t len)
 {
 	int i = 0;
 	int ret;
@@ -133,6 +76,81 @@ int my_SSL_gets(SSL *ssl, char *buf, size_t len)
 	buf[i] = 0;
 	return i?:ret;
 }
+
+
+
+int open_https(struct anyconnect_info *vpninfo)
+{
+	SSL_METHOD *ssl3_method;
+	SSL_CTX *https_ctx;
+	SSL *https_ssl;
+	BIO *https_bio;
+	int ssl_sock;
+	int err;
+	struct addrinfo hints, *result, *rp;
+
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+	hints.ai_protocol = 0;
+	hints.ai_canonname = NULL;
+	hints.ai_addr = NULL;
+	hints.ai_next = NULL;
+
+	err = getaddrinfo(vpninfo->hostname, "https", &hints, &result);
+	if (err) {
+		fprintf(stderr, "getaddrinfo failed: %s\n", gai_strerror(err));
+		return -EINVAL;
+	}
+
+	for (rp = result; rp ; rp = rp->ai_next) {
+		ssl_sock = socket(rp->ai_family, rp->ai_socktype,
+				  rp->ai_protocol);
+		if (ssl_sock < 0)
+			continue;
+
+		if (connect(ssl_sock, rp->ai_addr, rp->ai_addrlen) >= 0) {
+			/* Store the peer address we actually used, so that DTLS can 
+			   use it again later */
+			vpninfo->peer_addr = malloc(rp->ai_addrlen);
+			if (!vpninfo->peer_addr) {
+				fprintf(stderr, "Failed to allocate sockaddr storage\n");
+				close(ssl_sock);
+				return -ENOMEM;
+			}
+			memcpy(vpninfo->peer_addr, rp->ai_addr, rp->ai_addrlen);
+			break;
+		}
+		close(ssl_sock);
+	}
+	freeaddrinfo(result);
+
+	if (!rp) {
+		fprintf(stderr, "Failed to connect to host %s\n", vpninfo->hostname);
+		return -EINVAL;
+	}
+
+	ssl3_method = SSLv23_client_method();
+	https_ctx = SSL_CTX_new(ssl3_method);
+	https_ssl = SSL_new(https_ctx);
+		
+	https_bio = BIO_new_socket(ssl_sock, BIO_NOCLOSE);
+	SSL_set_bio(https_ssl, https_bio, https_bio);
+
+	if (SSL_connect(https_ssl) <= 0) {
+		fprintf(stderr, "SSL connection failure\n");
+		ERR_print_errors_fp(stderr);
+		SSL_free(https_ssl);
+		SSL_CTX_free(https_ctx);
+		return -EINVAL;
+	}
+
+	vpninfo->ssl_fd = ssl_sock;
+	vpninfo->https_ssl = https_ssl;
+	return 0;
+}
+
 
 int start_ssl_connection(struct anyconnect_info *vpninfo)
 {
@@ -214,18 +232,25 @@ int start_ssl_connection(struct anyconnect_info *vpninfo)
 
 	if (verbose)
 		printf("Connected!\n");
+
+	BIO_set_nbio(SSL_get_rbio(vpninfo->https_ssl),1);
+	BIO_set_nbio(SSL_get_wbio(vpninfo->https_ssl),1);
+
+	fcntl(vpninfo->ssl_fd, F_SETFL, fcntl(vpninfo->ssl_fd, F_GETFL) | O_NONBLOCK);
+
+	vpninfo->ssl_pfd = vpn_add_pollfd(vpninfo, vpninfo->ssl_fd, POLLIN);
+
 	return 0;
 }
 
 int make_ssl_connection(struct anyconnect_info *vpninfo)
 {
-	SSL *https_ssl = open_https(vpninfo);
-	if (!https_ssl)
+	if (open_https(vpninfo))
 		exit(1);
 
-	vpninfo->https_ssl = https_ssl;
 	if (start_ssl_connection(vpninfo))
 		exit(1);
+
 	return 0;
 }
 
@@ -236,4 +261,47 @@ void vpn_init_openssl(void)
 	ERR_clear_error ();
 	SSL_load_error_strings ();
 	OpenSSL_add_all_algorithms ();
+}
+
+static char data_hdr[8] = {'S', 'T', 'F', 1, 0, 0, 0, 0};
+
+int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
+{
+	unsigned char buf[16384];
+	int len;
+	int work_done = 0;
+	
+	while ( (len = SSL_read(vpninfo->https_ssl, buf, sizeof(buf))) > 0) {
+
+		if (buf[0] != 'S' || buf[1] != 'T' ||
+		    buf[2] != 'F' || buf[3] != 1 ||
+		    buf[6] != 0   || buf[7] != 0) {
+			printf("Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n",
+			       buf[0], buf[1], buf[2], buf[3],
+			       buf[4], buf[5], buf[6], buf[7]);
+			continue;
+		}
+		if (len != 8 + (buf[4] << 8) + buf[5]) {
+			printf("Unexpected packet length. SSL_read returned %d but packet is\n",
+			       len);
+			printf("%02x %02x %02x %02x %02x %02x %02x %02x\n",
+			       buf[0], buf[1], buf[2], buf[3],
+			       buf[4], buf[5], buf[6], buf[7]);
+		}
+		queue_new_packet(&vpninfo->incoming_queue, AF_INET, buf + 8,
+				 (buf[4] << 8) + buf[5]);
+		work_done = 1;
+	}
+
+	while (vpninfo->outgoing_queue) {
+		struct pkt *this = vpninfo->outgoing_queue;
+		vpninfo->outgoing_queue = this->next;
+		memcpy(this->hdr, data_hdr, 8);
+		this->hdr[4] = this->len >> 8;
+		this->hdr[5] = this->len & 0xff;
+		      
+		SSL_write(vpninfo->https_ssl, this->hdr, this->len + 8);
+	}
+	/* Work is not done if we just got rid of packets off the queue */
+	return work_done;
 }

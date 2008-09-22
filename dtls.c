@@ -34,3 +34,9 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 	return -EINVAL;
 }
 
+int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
+{
+	return 0;
+}
+
+

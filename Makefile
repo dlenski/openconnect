@@ -8,7 +8,7 @@ endif
 CFLAGS += -I/usr/include/openssl #-I/usr/include/libxml2
 LDFLAGS += -lssl
 
-OBJECTS := main.o tun.o dtls.o ssl.o
+OBJECTS := main.o tun.o dtls.o ssl.o mainloop.o
 
 anyconnect: $(OBJECTS)
 	$(CC) -o $@ $(LDFLAGS) $^
