@@ -310,6 +310,11 @@ static int inflate_and_queue_packet(struct anyconnect_info *vpninfo, int type, v
 		vpninfo->quit_reason = "Compression (inflate) adler32 failure";
 	}
 
+	if (verbose) {
+		printf("Received compressed data packet of %ld bytes\n",
+		       vpninfo->inflate_strm.total_out);
+	}
+
 	queue_packet(&vpninfo->incoming_queue, new);
 	return 0;
 }
@@ -349,6 +354,10 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			continue;
 
 		case 0: /* Uncompressed Data */
+			if (verbose) {
+				printf("Received uncompressed data packet of %d bytes\n",
+				       (buf[4] << 8) + buf[5]);
+			}
 			queue_new_packet(&vpninfo->incoming_queue, AF_INET, buf + 8,
 					 (buf[4] << 8) + buf[5]);
 			work_done = 1;
@@ -416,12 +425,20 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 
 			SSL_write(vpninfo->https_ssl, buf, 
 				  vpninfo->deflate_strm.total_out + 12);
+			if (verbose) {
+				printf("Sent compressed data packet of %d bytes\n",
+				       this->len);
+			}
 		} else {
 		uncompr:
 			buf[4] = this->len >> 8;
 			buf[5] = this->len & 0xff;
 			memcpy(buf + 8, this->data, this->len);
 			SSL_write(vpninfo->https_ssl, buf, this->len + 8);
+			if (verbose) {
+				printf("Sent uncompressed data packet of %d bytes\n",
+				       this->len);
+			}
 		}
 		vpninfo->last_ssl_tx = time(NULL);
 	}
