@@ -22,6 +22,23 @@
 
 #include "anyconnect.h"
 
+/*
+ * The master-secret is generated randomly by the client. The server
+ * responds with a DTLS Session-ID. These, done over the HTTPS
+ * connection, are enough to 'resume' a DTLS session, bypassing all
+ * the normal setup of a normal DTLS connection.
+ * 
+ * Cisco's own client uses an old version of OpenSSL, which implements
+ * the pre-RFC version of DTLS. I haven't been able to get it working 
+ * when I force it to link against any of my own builds of OpenSSL.
+ *
+ * Hopefully, it'll just work when I get round to implementing it
+ * here, either with the system OpenSSL, or linking against their
+ * library (which will at least be progress, and make it a little
+ * easier to debug.
+ */   
+
+
 int setup_dtls(struct anyconnect_info *vpninfo)
 {
 	struct vpn_option *dtls_opt = vpninfo->dtls_options;

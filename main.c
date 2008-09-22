@@ -35,11 +35,6 @@
 
 #include "anyconnect.h"
 
-/* The master-secret is generated randomly by the client. The server
-   responds with a DTLS Session-ID. These are enough to 'resume' the DTLS
-   session, bypassing all the initial setup of a normal DTLS connection.
-   Or you can just send traffic over the HTTPS connection... */
-
 int verbose = 0;
 
 static struct option long_options[] = {
