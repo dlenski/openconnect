@@ -335,11 +335,14 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	   and add POLLOUT. As it is, though, it'll just chew CPU time in that
 	   fairly unlikely situation, until the write backlog clears. */
 	while ( (len = SSL_read(vpninfo->https_ssl, buf, sizeof(buf))) > 0) {
+		int payload_len;
 
 		if (buf[0] != 'S' || buf[1] != 'T' ||
 		    buf[2] != 'F' || buf[3] != 1 || buf[7])
 			goto unknown_pkt;
-		if (len != 8 + (buf[4] << 8) + buf[5]) {
+
+		payload_len = (buf[4] << 8) + buf[5];
+		if (len != 8 + payload_len) {
 			printf("Unexpected packet length. SSL_read returned %d but packet is\n",
 			       len);
 			printf("%02x %02x %02x %02x %02x %02x %02x %02x\n",
@@ -356,10 +359,10 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		case 0: /* Uncompressed Data */
 			if (verbose) {
 				printf("Received uncompressed data packet of %d bytes\n",
-				       (buf[4] << 8) + buf[5]);
+				       payload_len);
 			}
 			queue_new_packet(&vpninfo->incoming_queue, AF_INET, buf + 8,
-					 (buf[4] << 8) + buf[5]);
+					 payload_len);
 			work_done = 1;
 			continue;
 
@@ -368,7 +371,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 				fprintf(stderr, "Compressed packet received in !deflate mode\n");
 				goto unknown_pkt;
 			}
-			inflate_and_queue_packet(vpninfo, AF_INET, buf + 8, len - 8);
+			inflate_and_queue_packet(vpninfo, AF_INET, buf + 8, payload_len);
 			work_done = 1;
 			continue;
 
