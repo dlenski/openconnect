@@ -51,6 +51,7 @@ struct anyconnect_info {
 	int ssl_dpd;
 	time_t last_ssl_tx;
 	time_t last_ssl_rx;
+	time_t last_ssl_dpd;
 	int ssl_pfd;
 
 	z_stream inflate_strm;
@@ -64,6 +65,7 @@ struct anyconnect_info {
 	int dtls_dpd;
 	time_t last_dtls_tx;
 	time_t last_dtls_rx;
+	time_t last_dtls_dpd;
 	unsigned char dtls_session_id[32];
 	unsigned char dtls_secret[48];
 
@@ -91,8 +93,8 @@ struct anyconnect_info {
 /* Packet types */
 
 #define AC_PKT_DATA		0	/* Uncompressed data */
-#define AC_PKT_DPD_OUT		3	/* DPD client->server */
-#define AC_PKT_DPD_RESP		4	/* DPD response server->client */
+#define AC_PKT_DPD_OUT		3	/* Dead Peer Detection */
+#define AC_PKT_DPD_RESP		4	/* DPD response */
 #define AC_PKT_DISCONN		5	/* Client disconnection notice */
 #define AC_PKT_KEEPALIVE	7	/* Keepalive */
 #define AC_PKT_COMPRESSED	8	/* Compressed data */
