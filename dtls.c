@@ -23,6 +23,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <openssl/err.h>
 
 #include "anyconnect.h"
 
@@ -57,6 +58,12 @@ static unsigned char hex(const char *data)
 
 static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 {
+	SSL_METHOD *dtls_method;
+	SSL_CTX *dtls_ctx;
+	SSL_SESSION *dtls_session;
+	SSL_CIPHER *https_cipher;
+	SSL *dtls_ssl;
+	BIO *dtls_bio;
 	int dtls_fd;
 
 	if (vpninfo->peer_addr->sa_family == AF_INET) {
@@ -79,6 +86,54 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 	
 	if (connect(dtls_fd, vpninfo->peer_addr, vpninfo->peer_addrlen)) {
 		perror("UDP (DTLS) connect:\n");
+		close(dtls_fd);
+		return -EINVAL;
+	}
+
+	dtls_method = DTLSv1_client_method();
+	dtls_ctx = SSL_CTX_new(dtls_method);
+	https_cipher = SSL_get_current_cipher(vpninfo->https_ssl);
+	printf("https cipher is %p (%s)\n", https_cipher, SSL_CIPHER_get_name(https_cipher));
+
+	dtls_ssl = SSL_new(dtls_ctx);
+	SSL_set_connect_state(dtls_ssl);
+	SSL_set_cipher_list(dtls_ssl, SSL_CIPHER_get_name(https_cipher));
+	
+	/* We're going to "resume" a session which never existed. Fake it... */
+	dtls_session = SSL_SESSION_new();
+
+	dtls_session->ssl_version = DTLS1_VERSION;
+
+	dtls_session->master_key_length = sizeof(vpninfo->dtls_secret);
+	memcpy(dtls_session->master_key, vpninfo->dtls_secret,
+	       sizeof(vpninfo->dtls_secret));
+
+	dtls_session->session_id_length = sizeof(vpninfo->dtls_session_id);
+	memcpy(dtls_session->session_id, vpninfo->dtls_session_id,
+	       sizeof(vpninfo->dtls_session_id));
+
+	dtls_session->cipher = https_cipher;
+	dtls_session->cipher_id = https_cipher->id;
+	printf("Cipher %p, id %lx\n", https_cipher, https_cipher->id);
+
+	/* Having faked a session, add it to the CTX and the SSL */
+	if (!SSL_CTX_add_session(dtls_ctx, dtls_session))
+		printf("SSL_CTX_add_session() failed\n");
+
+	if (!SSL_set_session(dtls_ssl, dtls_session))
+		printf("SSL_set_session() failed\n");
+
+	/* Go Go Go! */
+	dtls_bio = BIO_new_dgram(dtls_fd, BIO_NOCLOSE);
+	BIO_ctrl_set_connected(dtls_bio, 1, vpninfo->peer_addr);
+
+	SSL_set_bio(dtls_ssl, dtls_bio, dtls_bio);
+
+	if (SSL_do_handshake(dtls_ssl)) {
+		fprintf(stderr, "DTLS connection failure\n");
+		ERR_print_errors_fp(stderr);
+		SSL_free(dtls_ssl);
+		SSL_CTX_free(dtls_ctx);
 		close(dtls_fd);
 		return -EINVAL;
 	}
@@ -118,10 +173,12 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 	if (!sessid_found || !dtls_port)
 		return -EINVAL;
 
-	if (connect_dtls_socket(vpninfo, dtls_port))
+	if (1 || connect_dtls_socket(vpninfo, dtls_port))
 		return -EINVAL;
 
 	/* No idea how to do this yet */
+	close(vpninfo->dtls_fd);
+	vpninfo->dtls_fd = -1;
 	return -EINVAL;
 }
 
