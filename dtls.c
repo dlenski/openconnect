@@ -271,7 +271,10 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		if (now > overdue) {
 			fprintf(stderr, "DTLS Dead Peer Detection detected dead peer!\n");
 			/* FIXME: Can we call fack to SSL instead? */
-			vpninfo->quit_reason = "DTLS DPD detected dead peer";
+			SSL_free(vpninfo->dtls_ssl);
+			close(vpninfo->dtls_fd);
+			vpninfo->dtls_ssl = NULL;
+			vpninfo->dtls_fd = -1;
 			return 1;
 		}
 		if (now >= due) {
