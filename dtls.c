@@ -154,7 +154,7 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 		return -EINVAL;
 	}
 	printf("DTLS Connection successful!\n");
-	/* FIXME: implement data transfer over it! */
+
 	vpninfo->dtls_fd = dtls_fd;
 	vpninfo->dtls_ssl = dtls_ssl;
 	return 0;
