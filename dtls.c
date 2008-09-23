@@ -213,14 +213,26 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	int len;
 	int work_done = 0;
 
-	while ( (len = SSL_read(vpninfo->dtls_ssl, buf, sizeof(buf)) > 0) ) {
+	while ( (len = SSL_read(vpninfo->dtls_ssl, buf, sizeof(buf))) > 0 ) {
 		if (verbose) {
 			printf("Received DTLS packet of %d bytes\n", len);
 			printf("Packet starts %02x %02x %02x %02x %02x %02x %02x %02x\n",
 			       buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
 		}	
-		queue_new_packet(&vpninfo->incoming_queue, AF_INET, buf, len);
-		work_done = 1;
+		switch(buf[0]) {
+		case 0:
+			queue_new_packet(&vpninfo->incoming_queue, AF_INET, buf+1, len-1);
+			work_done = 1;
+			break;
+
+		case 4: /* keepalive response */
+			break;
+
+		default:
+			fprintf(stderr, "Unknown DTLS packet type %02x\n", buf[0]);
+			break;
+		}
+
 	}
 	while (vpninfo->outgoing_queue) {
 		struct pkt *this = vpninfo->outgoing_queue;
@@ -228,12 +240,17 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 
 		vpninfo->outgoing_queue = this->next;
 
-		ret = SSL_write(vpninfo->dtls_ssl, this->data, this->len);
+		buf[0] = 0;
+		memcpy(buf + 1, this->data, this->len);
+		
+		ret = SSL_write(vpninfo->dtls_ssl, buf, this->len + 1);
 		if (verbose) {
 			printf("Sent DTLS packet of %d bytes; SSL_write() returned %d\n",
 			       this->len, ret);
 		}
 	}
+
+	/* FIXME: Keepalive */
 	return work_done;
 }
 
