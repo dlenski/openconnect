@@ -55,12 +55,43 @@ static unsigned char hex(const char *data)
 	return (nybble(data[0]) << 4) | nybble(data[1]);
 }
 
+static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
+{
+	int dtls_fd;
+
+	if (vpninfo->peer_addr->sa_family == AF_INET) {
+		struct sockaddr_in *sin = (void *)vpninfo->peer_addr;
+		sin->sin_port = htons(dtls_port);
+	} else if (vpninfo->peer_addr->sa_family == AF_INET6) {
+		struct sockaddr_in6 *sin = (void *)vpninfo->peer_addr;
+		sin->sin6_port = htons(dtls_port);
+	} else {
+		fprintf(stderr, "Unknown protocol family %d. Cannot do DTLS\n",
+			vpninfo->peer_addr->sa_family);
+		return -EINVAL;
+	}
+
+	dtls_fd = socket(vpninfo->peer_addr->sa_family, SOCK_DGRAM, IPPROTO_UDP);
+	if (dtls_fd < 0) {
+		perror("Open UDP socket for DTLS:");
+		return -EINVAL;
+	}
+	
+	if (connect(dtls_fd, vpninfo->peer_addr, vpninfo->peer_addrlen)) {
+		perror("UDP (DTLS) connect:\n");
+		close(dtls_fd);
+		return -EINVAL;
+	}
+
+	vpninfo->dtls_fd = dtls_fd;
+	return 0;
+}
+
 int setup_dtls(struct anyconnect_info *vpninfo)
 {
 	struct vpn_option *dtls_opt = vpninfo->dtls_options;
 	int sessid_found = 0;
 	int dtls_port = 0;
-	int dtls_fd;
 	int i;
 
 	while (dtls_opt) {
@@ -87,29 +118,8 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 	if (!sessid_found || !dtls_port)
 		return -EINVAL;
 
-	if (vpninfo->peer_addr->sa_family == AF_INET) {
-		struct sockaddr_in *sin = (void *)vpninfo->peer_addr;
-		sin->sin_port = htons(dtls_port);
-	} else if (vpninfo->peer_addr->sa_family == AF_INET6) {
-		struct sockaddr_in6 *sin = (void *)vpninfo->peer_addr;
-		sin->sin6_port = htons(dtls_port);
-	} else {
-		fprintf(stderr, "Unknown protocol family %d. Cannot do DTLS\n",
-			vpninfo->peer_addr->sa_family);
+	if (connect_dtls_socket(vpninfo, dtls_port))
 		return -EINVAL;
-	}
-
-	dtls_fd = socket(vpninfo->peer_addr->sa_family, SOCK_DGRAM, IPPROTO_UDP);
-	if (dtls_fd < 0) {
-		perror("Open UDP socket for DTLS:");
-		return -EINVAL;
-	}
-	
-	if (connect(dtls_fd, vpninfo->peer_addr, vpninfo->peer_addrlen)) {
-		perror("UDP (DTLS) connect:\n");
-		close(dtls_fd);
-		return -EINVAL;
-	}
 
 	/* No idea how to do this yet */
 	return -EINVAL;
