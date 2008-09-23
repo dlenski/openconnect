@@ -159,7 +159,6 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 	vpninfo->dtls_ssl = dtls_ssl;
 	return 0;
 }
-static char start_dtls_hdr[8] = {'S', 'T', 'F', 1, 0, 0, 7, 0};
 
 int setup_dtls(struct anyconnect_info *vpninfo)
 {
@@ -181,10 +180,12 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 			for (i = 0; i < 64; i += 2)
 				vpninfo->dtls_session_id[i/2] = hex(dtls_opt->value + i);
 			sessid_found = 1;
-		} else if (!strcmp(dtls_opt->option, "X-DTLS-Port")) {
+		} else if (!strcmp(dtls_opt->option + 7, "Port")) {
 			dtls_port = atol(dtls_opt->value);
-		} else if (!strcmp(dtls_opt->option, "X-DTLS-Keepalive")) {
+		} else if (!strcmp(dtls_opt->option + 7, "Keepalive")) {
 			vpninfo->dtls_keepalive = atol(dtls_opt->value);
+		} else if (!strcmp(dtls_opt->option + 7, "DPD")) {
+			vpninfo->dtls_dpd = atol(dtls_opt->value);
 		}
 			
 		dtls_opt = dtls_opt->next;
@@ -201,9 +202,8 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 	fcntl(vpninfo->dtls_fd, F_SETFL, fcntl(vpninfo->dtls_fd, F_GETFL) | O_NONBLOCK);
 
 	vpn_add_pollfd(vpninfo, vpninfo->ssl_fd, POLLIN|POLLHUP|POLLERR);
-	vpninfo->last_ssl_tx = time(NULL);
+	vpninfo->last_ssl_tx = vpninfo->last_ssl_tx = time(NULL);
 
-	SSL_write(vpninfo->https_ssl, start_dtls_hdr, sizeof(start_dtls_hdr));
 	return 0;
 }
 

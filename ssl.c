@@ -234,6 +234,8 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 
 		if (!strcmp(buf + 7, "Keepalive")) {
 			vpninfo->ssl_keepalive = atol(colon);
+		} else if (!strcmp(buf + 7, "DPD")) {
+			vpninfo->ssl_dpd = atol(colon);
 		} else if (!strcmp(buf + 7, "Content-Encoding")) {
 			if (!strcmp(colon, "deflate"))
 				vpninfo->deflate = 1;
@@ -253,9 +255,9 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 	BIO_set_nbio(SSL_get_wbio(vpninfo->https_ssl),1);
 
 	fcntl(vpninfo->ssl_fd, F_SETFL, fcntl(vpninfo->ssl_fd, F_GETFL) | O_NONBLOCK);
-
 	vpninfo->ssl_pfd = vpn_add_pollfd(vpninfo, vpninfo->ssl_fd, POLLIN|POLLHUP|POLLERR);
-	vpninfo->last_ssl_tx = time(NULL);
+
+	vpninfo->last_ssl_tx = vpninfo->last_ssl_tx = time(NULL);
 	return 0;
 }
 
