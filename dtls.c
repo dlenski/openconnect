@@ -24,6 +24,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <openssl/err.h>
+#include <fcntl.h>
 
 #include "anyconnect.h"
 
@@ -155,8 +156,10 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 	printf("DTLS Connection successful!\n");
 	/* FIXME: implement data transfer over it! */
 	vpninfo->dtls_fd = dtls_fd;
+	vpninfo->dtls_ssl = dtls_ssl;
 	return 0;
 }
+static char start_dtls_hdr[8] = {'S', 'T', 'F', 1, 0, 0, 7, 0};
 
 int setup_dtls(struct anyconnect_info *vpninfo)
 {
@@ -192,15 +195,46 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 	if (connect_dtls_socket(vpninfo, dtls_port))
 		return -EINVAL;
 
-	/* No idea how to do this yet */
-	close(vpninfo->dtls_fd);
-	vpninfo->dtls_fd = -1;
-	return -EINVAL;
+	BIO_set_nbio(SSL_get_rbio(vpninfo->dtls_ssl),1);
+	BIO_set_nbio(SSL_get_wbio(vpninfo->dtls_ssl),1);
+
+	fcntl(vpninfo->dtls_fd, F_SETFL, fcntl(vpninfo->dtls_fd, F_GETFL) | O_NONBLOCK);
+
+	vpn_add_pollfd(vpninfo, vpninfo->ssl_fd, POLLIN|POLLHUP|POLLERR);
+	vpninfo->last_ssl_tx = time(NULL);
+
+	SSL_write(vpninfo->https_ssl, start_dtls_hdr, sizeof(start_dtls_hdr));
+	return 0;
 }
 
 int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 {
-	return 0;
+	char buf[2000];
+	int len;
+	int work_done = 0;
+
+	while ( (len = SSL_read(vpninfo->dtls_ssl, buf, sizeof(buf)) > 0) ) {
+		if (verbose) {
+			printf("Received DTLS packet of %d bytes\n", len);
+			printf("Packet starts %02x %02x %02x %02x %02x %02x %02x %02x\n",
+			       buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
+		}	
+		queue_new_packet(&vpninfo->incoming_queue, AF_INET, buf, len);
+		work_done = 1;
+	}
+	while (vpninfo->outgoing_queue) {
+		struct pkt *this = vpninfo->outgoing_queue;
+		int ret;
+
+		vpninfo->outgoing_queue = this->next;
+
+		ret = SSL_write(vpninfo->dtls_ssl, this->data, this->len);
+		if (verbose) {
+			printf("Sent DTLS packet of %d bytes; SSL_write() returned %d\n",
+			       this->len, ret);
+		}
+	}
+	return work_done;
 }
 
 
