@@ -48,19 +48,24 @@ struct anyconnect_info {
 	SSL_CTX *https_ctx;
 	SSL *https_ssl;
 	int ssl_keepalive;
+	int ssl_dpd;
 	time_t last_ssl_tx;
+	time_t last_ssl_rx;
+	int ssl_pfd;
 
 	z_stream inflate_strm;
 	uint32_t inflate_adler32;
 	z_stream deflate_strm;
 	uint32_t deflate_adler32;
 
-	int dtls_keepalive;
-	unsigned char dtls_session_id[32];
-	unsigned char dtls_secret[48];
 	SSL_CTX *dtls_ctx;
 	SSL *dtls_ssl;
-	int ssl_pfd;
+	int dtls_keepalive;
+	int dtls_dpd;
+	time_t last_dtls_tx;
+	time_t last_dtls_rx;
+	unsigned char dtls_session_id[32];
+	unsigned char dtls_secret[48];
 
 	int mtu;
 
