@@ -83,6 +83,17 @@ struct anyconnect_info {
 	char *quit_reason;
 };
 
+/* Packet types */
+
+#define AC_PKT_DATA		0	/* Uncompressed data */
+#define AC_PKT_DPD_OUT		3	/* DPD client->server */
+#define AC_PKT_DPD_RESP		4	/* DPD response server->client */
+#define AC_PKT_DISCONN		5	/* Client disconnection notice */
+#define AC_PKT_KEEPALIVE	7	/* Keepalive */
+#define AC_PKT_COMPRESSED	8	/* Compressed data */
+#define AC_PKT_TERM_SERVER	9	/* Server kick */
+
+
 /* tun.c */
 int setup_tun(struct anyconnect_info *vpninfo);
 int tun_mainloop(struct anyconnect_info *vpninfo, int *timeout);
