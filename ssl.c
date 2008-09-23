@@ -335,7 +335,7 @@ static int inflate_and_queue_packet(struct anyconnect_info *vpninfo, int type, v
  *		5 - disconnect notice (client->server).
  *			Payload is a string, not NUL-terminated
  *		6 - 
- *		7 - 
+ *		7 - Unknown, but gets sent occasionally. DPD?
  *		8 - compressed data
  *			deflated payload followed by rolling adler32
  *		9 - disconnect notice (server->client)
@@ -413,7 +413,8 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		return 1;
 	}
 
-	while (vpninfo->outgoing_queue) {
+	/* Don't send data over SSL if we have DTLS */
+	while (vpninfo->dtls_fd == -1 && vpninfo->outgoing_queue) {
 		struct pkt *this = vpninfo->outgoing_queue;
 		char buf[2048];
 
