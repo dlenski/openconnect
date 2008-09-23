@@ -19,6 +19,10 @@
  */
 
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <unistd.h>
 
 #include "anyconnect.h"
 
@@ -38,15 +42,75 @@
  * easier to debug.
  */   
 
+static unsigned char nybble(unsigned char n)
+{
+	if      (n >= '0' && n <= '9') return n - '0';
+	else if (n >= 'A' && n <= 'F') return n - ('A' - 10);
+	else if (n >= 'a' && n <= 'f') return n - ('a' - 10);
+	return 0;
+}
+
+static unsigned char hex(const char *data)
+{
+	return (nybble(data[0]) << 4) | nybble(data[1]);
+}
 
 int setup_dtls(struct anyconnect_info *vpninfo)
 {
 	struct vpn_option *dtls_opt = vpninfo->dtls_options;
+	int sessid_found = 0;
+	int dtls_port = 0;
+	int dtls_fd;
+	int i;
 
 	while (dtls_opt) {
-		printf("DTLS option %s : %s\n", dtls_opt->option, dtls_opt->value);
+		if (verbose)
+			printf("DTLS option %s : %s\n", dtls_opt->option, dtls_opt->value);
+
+		if (!strcmp(dtls_opt->option, "X-DTLS-Session-ID")) {
+			if (strlen(dtls_opt->value) != 64) {
+				fprintf(stderr, "X-DTLS-Session-ID not 64 characters\n");
+				fprintf(stderr, "Is: %s\n", dtls_opt->value);
+				return -EINVAL;
+			}
+			for (i = 0; i < 64; i += 2)
+				vpninfo->dtls_session_id[i/2] = hex(dtls_opt->value + i);
+			sessid_found = 1;
+		} else if (!strcmp(dtls_opt->option, "X-DTLS-Port")) {
+			dtls_port = atol(dtls_opt->value);
+		} else if (!strcmp(dtls_opt->option, "X-DTLS-Keepalive")) {
+			vpninfo->dtls_keepalive = atol(dtls_opt->value);
+		}
+			
 		dtls_opt = dtls_opt->next;
 	}
+	if (!sessid_found || !dtls_port)
+		return -EINVAL;
+
+	if (vpninfo->peer_addr->sa_family == AF_INET) {
+		struct sockaddr_in *sin = (void *)vpninfo->peer_addr;
+		sin->sin_port = htons(dtls_port);
+	} else if (vpninfo->peer_addr->sa_family == AF_INET6) {
+		struct sockaddr_in6 *sin = (void *)vpninfo->peer_addr;
+		sin->sin6_port = htons(dtls_port);
+	} else {
+		fprintf(stderr, "Unknown protocol family %d. Cannot do DTLS\n",
+			vpninfo->peer_addr->sa_family);
+		return -EINVAL;
+	}
+
+	dtls_fd = socket(vpninfo->peer_addr->sa_family, SOCK_DGRAM, IPPROTO_UDP);
+	if (dtls_fd < 0) {
+		perror("Open UDP socket for DTLS:");
+		return -EINVAL;
+	}
+	
+	if (connect(dtls_fd, vpninfo->peer_addr, vpninfo->peer_addrlen)) {
+		perror("UDP (DTLS) connect:\n");
+		close(dtls_fd);
+		return -EINVAL;
+	}
+
 	/* No idea how to do this yet */
 	return -EINVAL;
 }

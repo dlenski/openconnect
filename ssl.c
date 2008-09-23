@@ -118,6 +118,7 @@ static int open_https(struct anyconnect_info *vpninfo)
 				close(ssl_sock);
 				return -ENOMEM;
 			}
+			vpninfo->peer_addrlen = rp->ai_addrlen;
 			memcpy(vpninfo->peer_addr, rp->ai_addr, rp->ai_addrlen);
 			break;
 		}

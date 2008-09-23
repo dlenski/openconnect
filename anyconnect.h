@@ -55,6 +55,8 @@ struct anyconnect_info {
 	z_stream deflate_strm;
 	uint32_t deflate_adler32;
 
+	int dtls_keepalive;
+	unsigned char dtls_session_id[32];
 	unsigned char dtls_secret[48];
 	SSL_CTX *dtls_ctx;
 	SSL *dtls_ssl;
@@ -72,6 +74,7 @@ struct anyconnect_info {
 	struct pkt *incoming_queue;
 	struct pkt *outgoing_queue;
 
+	socklen_t peer_addrlen;
 	struct sockaddr *peer_addr;
 
 	int deflate;
