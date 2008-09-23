@@ -32,15 +32,21 @@
  * responds with a DTLS Session-ID. These, done over the HTTPS
  * connection, are enough to 'resume' a DTLS session, bypassing all
  * the normal setup of a normal DTLS connection.
- * 
- * Cisco's own client uses an old version of OpenSSL, which implements
- * the pre-RFC version of DTLS. I haven't been able to get it working 
- * when I force it to link against any of my own builds of OpenSSL.
  *
- * Hopefully, it'll just work when I get round to implementing it
- * here, either with the system OpenSSL, or linking against their
- * library (which will at least be progress, and make it a little
- * easier to debug.
+ * This code works when run against Cisco's own libssl.so.0.9.8, but
+ * fails (Bad Record MAC on receipt of the Server Hello) when run
+ * against my own build of OpenSSL-0.9.8f.
+ *
+ * It lookslike they've reverted _some_ of the changes beween 0.9.8e
+ * and 0.9.8f, but not all of them. In particular, they use
+ * DTLS1_BAD_VER for the protocol version.
+ *
+ * Using OpenSSL-0.9.8e, which was the last release of OpenSSL to use
+ * DTLS1_BAD_VER, also fails similarly.
+ *
+ * Hopefully they're just using something equivalent to a snapshot
+ * between 0.9.8e and 0.9.8f, and they don't have their own "special"
+ * changes on top.
  */   
 
 static unsigned char nybble(unsigned char n)
@@ -65,6 +71,7 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 	SSL *dtls_ssl;
 	BIO *dtls_bio;
 	int dtls_fd;
+	int ret;
 
 	if (vpninfo->peer_addr->sa_family == AF_INET) {
 		struct sockaddr_in *sin = (void *)vpninfo->peer_addr;
@@ -98,11 +105,11 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 	dtls_ssl = SSL_new(dtls_ctx);
 	SSL_set_connect_state(dtls_ssl);
 	SSL_set_cipher_list(dtls_ssl, SSL_CIPHER_get_name(https_cipher));
-	
+	printf("SSL_SESSION is %d bytes\n", sizeof(*dtls_session));
 	/* We're going to "resume" a session which never existed. Fake it... */
 	dtls_session = SSL_SESSION_new();
 
-	dtls_session->ssl_version = DTLS1_VERSION;
+	dtls_session->ssl_version = DTLS1_BAD_VER;
 
 	dtls_session->master_key_length = sizeof(vpninfo->dtls_secret);
 	memcpy(dtls_session->master_key, vpninfo->dtls_secret,
@@ -116,25 +123,37 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 	dtls_session->cipher_id = https_cipher->id;
 
 	/* Having faked a session, add it to the CTX and the SSL */
+	if (!SSL_set_session(dtls_ssl, dtls_session)) {
+		printf("SSL_set_session() failed with old protocol version 0x%x\n", dtls_session->ssl_version);
+		printf("Trying the official version %x\n", DTLS1_VERSION);
+		dtls_session->ssl_version = DTLS1_VERSION;
+		if (!SSL_set_session(dtls_ssl, dtls_session)) {
+			printf("SSL_set_session() failed still. Is your build ABI-comptible?\n");
+			return -EINVAL;
+		}
+	}
 	if (!SSL_CTX_add_session(dtls_ctx, dtls_session))
 		printf("SSL_CTX_add_session() failed\n");
 
-	if (!SSL_set_session(dtls_ssl, dtls_session))
-		printf("SSL_set_session() failed\n");
 
 	/* Go Go Go! */
 	dtls_bio = BIO_new_socket(dtls_fd, BIO_NOCLOSE);
 	SSL_set_bio(dtls_ssl, dtls_bio, dtls_bio);
 
-	if (SSL_do_handshake(dtls_ssl)) {
-		fprintf(stderr, "DTLS connection failure\n");
+	ret = SSL_do_handshake(dtls_ssl);
+	
+	if (ret != 1) {
+		fprintf(stderr, "DTLS connection returned %d\n", ret);
+		if (ret < 0)
+			fprintf(stderr, "DTLS handshake error: %d\n", SSL_get_error(dtls_ssl, ret));
 		ERR_print_errors_fp(stderr);
 		SSL_free(dtls_ssl);
 		SSL_CTX_free(dtls_ctx);
 		close(dtls_fd);
 		return -EINVAL;
 	}
-
+	printf("DTLS Connection successful!\n");
+	/* FIXME: implement data transfer over it! */
 	vpninfo->dtls_fd = dtls_fd;
 	return 0;
 }
