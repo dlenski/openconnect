@@ -128,7 +128,7 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 		printf("Trying the official version %x\n", DTLS1_VERSION);
 		dtls_session->ssl_version = DTLS1_VERSION;
 		if (!SSL_set_session(dtls_ssl, dtls_session)) {
-			printf("SSL_set_session() failed still. Is your build ABI-comptible?\n");
+			printf("SSL_set_session() failed still. Is your build ABI-compatible with your libssl?\n");
 			return -EINVAL;
 		}
 	}
