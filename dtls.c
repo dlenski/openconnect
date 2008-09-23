@@ -92,8 +92,8 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 
 	dtls_method = DTLSv1_client_method();
 	dtls_ctx = SSL_CTX_new(dtls_method);
+	SSL_CTX_set_read_ahead(dtls_ctx, 1);
 	https_cipher = SSL_get_current_cipher(vpninfo->https_ssl);
-	printf("https cipher is %p (%s)\n", https_cipher, SSL_CIPHER_get_name(https_cipher));
 
 	dtls_ssl = SSL_new(dtls_ctx);
 	SSL_set_connect_state(dtls_ssl);
@@ -114,7 +114,6 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 
 	dtls_session->cipher = https_cipher;
 	dtls_session->cipher_id = https_cipher->id;
-	printf("Cipher %p, id %lx\n", https_cipher, https_cipher->id);
 
 	/* Having faked a session, add it to the CTX and the SSL */
 	if (!SSL_CTX_add_session(dtls_ctx, dtls_session))
@@ -124,9 +123,7 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 		printf("SSL_set_session() failed\n");
 
 	/* Go Go Go! */
-	dtls_bio = BIO_new_dgram(dtls_fd, BIO_NOCLOSE);
-	BIO_ctrl_set_connected(dtls_bio, 1, vpninfo->peer_addr);
-
+	dtls_bio = BIO_new_socket(dtls_fd, BIO_NOCLOSE);
 	SSL_set_bio(dtls_ssl, dtls_bio, dtls_bio);
 
 	if (SSL_do_handshake(dtls_ssl)) {
@@ -173,7 +170,7 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 	if (!sessid_found || !dtls_port)
 		return -EINVAL;
 
-	if (1 || connect_dtls_socket(vpninfo, dtls_port))
+	if (connect_dtls_socket(vpninfo, dtls_port))
 		return -EINVAL;
 
 	/* No idea how to do this yet */
