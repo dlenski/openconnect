@@ -109,7 +109,7 @@ print_element_names(xmlNode * a_node, int depth)
 int connect_ssl(char *hostname, char *cert)
 {
 	CURL *curl;
-	char *curl_err;
+	char curl_err[CURL_ERROR_SIZE];
 	long respcode;
 	char url_buf[1024];
 	struct curl_slist *headers;
@@ -121,8 +121,6 @@ int connect_ssl(char *hostname, char *cert)
 	int xml_success = 0;
 
 	printf("Hostname %s, cert %s\n", hostname, cert);
-	if (!curl_err)
-		curl_err = malloc(CURL_ERROR_SIZE);
 	
 	LIBXML_TEST_VERSION;
 	if (curl_global_init(CURL_GLOBAL_SSL)) {
