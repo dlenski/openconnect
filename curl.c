@@ -7,27 +7,6 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
-struct cstp_option {
-	const char *option;
-	const char *value;
-	struct cstp_option *next;
-};
-
-struct anyconnect_info {
-	const char *hostname;
-	const char *cert;
-	const char *cookie;
-	struct cstp_option *cstp_options;
-	char *curl_err;
-
-	unsigned char dtls_secret[48];
-	CURL *curl;
-
-	int mtu;
-	
-};
-
-
 /* When certificate doesn't work, we get this...
 
 HTTP/1.1 200 OK
@@ -127,8 +106,10 @@ print_element_names(xmlNode * a_node, int depth)
 
 
 
-int connect_ssl(struct anyconnect_info *info)
+int connect_ssl(char *hostname, char *cert)
 {
+	CURL *curl;
+	char *curl_err;
 	long respcode;
 	char url_buf[1024];
 	struct curl_slist *headers;
@@ -139,8 +120,9 @@ int connect_ssl(struct anyconnect_info *info)
 	char *xml_message = NULL;
 	int xml_success = 0;
 
-	if (!info->curl_err)
-		info->curl_err = malloc(CURL_ERROR_SIZE);
+	printf("Hostname %s, cert %s\n", hostname, cert);
+	if (!curl_err)
+		curl_err = malloc(CURL_ERROR_SIZE);
 	
 	LIBXML_TEST_VERSION;
 	if (curl_global_init(CURL_GLOBAL_SSL)) {
@@ -148,34 +130,34 @@ int connect_ssl(struct anyconnect_info *info)
 		exit(1);
 	}
 
-	info->curl = curl_easy_init();
+	curl = curl_easy_init();
 	
 	url_buf[1023] = 0;
-	snprintf(url_buf, 1023, "https://%s/", info->hostname);
+	snprintf(url_buf, 1023, "https://%s/", hostname);
 
-	curl_easy_setopt(info->curl, CURLOPT_URL, url_buf);
-	curl_easy_setopt(info->curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-	curl_easy_setopt(info->curl, CURLOPT_ERRORBUFFER, info->curl_err);
-	curl_easy_setopt(info->curl, CURLOPT_SSL_VERIFYPEER, 0);
-	curl_easy_setopt(info->curl, CURLOPT_WRITEFUNCTION, &curl_write_cb);
-	curl_easy_setopt(info->curl, CURLOPT_WRITEDATA, &resp);
-	curl_easy_setopt(info->curl, CURLOPT_COOKIEFILE, "");
+	curl_easy_setopt(curl, CURLOPT_URL, url_buf);
+	curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_err);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_write_cb);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &resp);
+	curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "");
 
 	/* FIXME: We'll want to teach cURL about using the TPM for this */
-	if (info->cert)
-		curl_easy_setopt(info->curl, CURLOPT_SSLCERT, info->cert);
+	if (cert)
+		curl_easy_setopt(curl, CURLOPT_SSLCERT, cert);
 
 	headers = curl_slist_append(NULL, "X-Transcend-Version: 1");
-	curl_easy_setopt(info->curl, CURLOPT_HTTPHEADER, headers);
-	curl_easy_setopt(info->curl, CURLOPT_FOLLOWLOCATION, 1);
-	if (curl_easy_perform(info->curl)) {
-		fprintf(stderr, "Curl error: %s\n", info->curl_err);
-		curl_easy_cleanup(info->curl);
-		info->curl = NULL;
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+	if (curl_easy_perform(curl)) {
+		fprintf(stderr, "Curl error: %s\n", curl_err);
+		curl_easy_cleanup(curl);
+		curl = NULL;
 		return -EINVAL;
 	}
 
-	curl_easy_getinfo(info->curl, CURLINFO_RESPONSE_CODE, &respcode);
+	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &respcode);
 
 	if (respcode != 200) {
 		fprintf(stderr, "Curl fetch failed, response code %d\n", respcode);
@@ -191,8 +173,8 @@ int connect_ssl(struct anyconnect_info *info)
 			fprintf(stderr, "Response was:\n");
 			fprintf(stderr, resp.buf);
 		}
-		curl_easy_cleanup(info->curl);
-		info->curl = NULL;
+		curl_easy_cleanup(curl);
+		curl = NULL;
 		return -EINVAL;
 	}
 
@@ -202,8 +184,8 @@ int connect_ssl(struct anyconnect_info *info)
 	    strcmp(xml_node->name, "auth")) {
 		fprintf(stderr, "XML response didn't have \"auth\" as root node\n");
 		xmlFreeDoc(xml_doc);
-		curl_easy_cleanup(info->curl);
-		info->curl = NULL;
+		curl_easy_cleanup(curl);
+		curl = NULL;
 		return -EINVAL;
 	}
 
@@ -224,13 +206,13 @@ int connect_ssl(struct anyconnect_info *info)
 
 		/* FIXME: Handle the form (shown above), and try again. */
 
-		curl_easy_cleanup(info->curl);
-		info->curl = NULL;
+		curl_easy_cleanup(curl);
+		curl = NULL;
 		return -EINVAL;
 	};
 
 	/* Double-check that we have a webvpn cookie */
-	curl_easy_getinfo(info->curl, CURLINFO_COOKIELIST, &cookies);
+	curl_easy_getinfo(curl, CURLINFO_COOKIELIST, &cookies);
 
 	for (thiscookie = cookies; thiscookie; thiscookie = thiscookie->next) {
 		char *field = thiscookie->data;
@@ -246,13 +228,13 @@ int connect_ssl(struct anyconnect_info *info)
 		field += 8;
 		if (!strlen(field)) {
 			fprintf(stderr, "Cookie field is empty\n");
-			curl_easy_cleanup(info->curl);
-			info->curl = NULL;
+			curl_easy_cleanup(curl);
+			curl = NULL;
 			return -EINVAL;
 		}
 
 		printf("WebVPN cookie is %s\n", field);
-		info->cookie = strdup(field);
+		//cookie = strdup(field);
 	}
 
 	curl_slist_free_all(cookies);
@@ -261,11 +243,12 @@ int connect_ssl(struct anyconnect_info *info)
 
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
-	struct anyconnect_info i;
+	if (argc != 2 && argc != 3) {
+		fprintf(stderr, "usage: %s <host> [<cert.pem>]\n", argv[0]);
+		exit(1);
+	}
 
-	i.hostname = "vpntest";
-	i.cert = "/home/dwmw2/cert.pem";
-	return connect_ssl(&i);
+	return connect_ssl(argv[1], (argc==3)?argv[2]:NULL);
 }
