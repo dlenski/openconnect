@@ -65,6 +65,39 @@ X-Transcend-Version: 1
 
 
 
+Sometimes when we give it a good SecurID passcode, we get this... 
+
+HTTP/1.1 200 OK
+Server: Virata-EmWeb/R6_2_0
+Transfer-Encoding: chunked
+Content-Type: text/xml
+Cache-Control: max-age=0
+Set-Cookie: tg=1Layer3_ACE; expires=Thu, 25 Sep 2008 12:18:17 GMT; path=/
+X-Transcend-Version: 1
+
+<?xml version="1.0" encoding="UTF-8"?>
+<auth id="next_tokencode">
+<title>SSL VPN Service</title>
+
+<message id="54" param1="" param2="">Enter the next card code to complete authentication.</message>
+
+<form method="post" action="/+webvpn+/login/challenge.html">
+<input type="password" name="password" label="Token Code:" />
+
+<input type="submit" name="Continue" value="Continue" />
+<input type="submit" name="Cancel" value="Cancel" />
+
+<input type="hidden" name="auth_handle" value="1692" />
+<input type="hidden" name="status" value="2" />
+<input type="hidden" name="username" value="dwoodhou" />
+<input type="hidden" name="challenge_code" value="10" />
+</form>
+</auth>
+
+
+
+
+
 
 */
 
