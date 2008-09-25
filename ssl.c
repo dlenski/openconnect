@@ -133,6 +133,19 @@ static int open_https(struct anyconnect_info *vpninfo)
 
 	ssl3_method = SSLv23_client_method();
 	https_ctx = SSL_CTX_new(ssl3_method);
+	if (vpninfo->cert) {
+		printf("Using Certificate file %s\n", vpninfo->cert);
+		if (!SSL_CTX_use_certificate_file(https_ctx, vpninfo->cert,
+						  SSL_FILETYPE_PEM))
+			fprintf(stderr, "Certificate failed\n");
+
+		if (!SSL_CTX_use_RSAPrivateKey_file(https_ctx, vpninfo->cert,
+						    SSL_FILETYPE_PEM))
+			fprintf(stderr, "Private key failed\n");
+
+
+	}
+		
 	https_ssl = SSL_new(https_ctx);
 		
 	https_bio = BIO_new_socket(ssl_sock, BIO_NOCLOSE);
@@ -148,9 +161,101 @@ static int open_https(struct anyconnect_info *vpninfo)
 
 	vpninfo->ssl_fd = ssl_sock;
 	vpninfo->https_ssl = https_ssl;
+
+	if (verbose)
+		printf("Connected to HTTPS on %s\n", vpninfo->hostname);
+
 	return 0;
 }
 
+int obtain_cookie_cert(struct anyconnect_info *vpninfo)
+{
+	char buf[65536];
+	int i;
+
+	if (!vpninfo->cert)
+		return -ENOENT;
+
+	if (open_https(vpninfo)) {
+		fprintf(stderr, "Failed to open HTTPS connection to %s\n",
+			vpninfo->hostname);
+		exit(1);
+	}
+
+	/*
+	 * It would be nice to use cURL for this, but we really need to guarantee 
+	 * that we'll be using OpenSSL (for the TPM stuff), and it doesn't seem 
+	 * to have any way to let us provide our own socket read/write functions.
+	 * We can only provide a socket _open_ function. Which would require having
+	 * a socketpair() and servicing the "other" end of it. 
+	 *
+	 * So we process the HTTP for ourselves...
+	 */
+	
+	my_SSL_printf(vpninfo->https_ssl, "GET /+webvpn+/index.html HTTP/1.1\r\n");
+	my_SSL_printf(vpninfo->https_ssl, "Host: %s\r\n", vpninfo->hostname);
+	my_SSL_printf(vpninfo->https_ssl, "X-Transcend-Version: 1\r\n\r\n");
+
+	if (my_SSL_gets(vpninfo->https_ssl, buf, 65536) < 0) {
+		fprintf(stderr, "Error fetching HTTPS response\n");
+		exit(1);
+	}
+
+	if (strncmp(buf, "HTTP/1.1 200 ", 13)) {
+		fprintf(stderr, "Got inappropriate HTTP response: %s\n", buf);
+		exit(1);
+	}
+
+	if (verbose)
+		printf("Got HTTP response: %s\n", buf);
+
+	while ((i=my_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+		if (i < 0) {
+			fprintf(stderr, "Error processing HTTP response\n");
+			exit(1);
+		}
+		if (verbose)
+			printf("Header: %s\n", buf);
+		if (!strncmp(buf, "Set-Cookie: webvpn=", 19)) {
+			char *cookie = buf + 19, *semicolon = strchr(cookie, ';');
+
+			if (semicolon && semicolon != cookie) {
+				*semicolon = 0;
+				vpninfo->cookie = strdup(cookie);
+				if (verbose)
+					printf("Got cookie: %s\n", cookie);
+			} else {
+				if (verbose)
+					printf("No cookie; certificate failed\n");
+			}
+		}
+	}
+	/* That was the headers. Now we have to eat the (chunked) response body.
+	   This is the part where we _really_ wish we could just use cURL */
+
+	while ((i=my_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+		int chunklen, rdlen = 0;
+		if (i < 0) {
+			fprintf(stderr, "Error fetching chunk header\n");
+			exit(1);
+		}
+		chunklen = strtol(buf, NULL, 16);
+		while (chunklen &&
+		       (rdlen = SSL_read(vpninfo->https_ssl, buf, chunklen)) > 0) {
+				chunklen -= rdlen;
+		}
+		buf[0] = 0;
+		if ((i=my_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+			fprintf(stderr, "error, got %d and %s\n", i, buf);
+		}
+		if (!rdlen)
+			break;
+	}
+	if (!vpninfo->cookie)
+		return -EINVAL;
+	else
+		return 0;
+}
 
 static int start_ssl_connection(struct anyconnect_info *vpninfo)
 {
@@ -158,9 +263,6 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 	int i;
 	struct vpn_option **next_dtls_option = &vpninfo->dtls_options;
 	struct vpn_option **next_cstp_option = &vpninfo->cstp_options;
-
-	if (verbose)
-		printf("Connected to HTTPS on %s\n", vpninfo->hostname);
 
 	my_SSL_printf(vpninfo->https_ssl, "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
 	my_SSL_printf(vpninfo->https_ssl, "Host: %s\r\n", vpninfo->hostname);
@@ -182,14 +284,14 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	if (verbose)
-		printf("Got CONNECT response: %s\n", buf);
-
 	if (strncmp(buf, "HTTP/1.1 200 ", 13)) {
 		fprintf(stderr, "Got inappropriate HTTP CONNECT response: %s\n",
 			buf);
 		return -EINVAL;
 	}
+
+	if (verbose)
+		printf("Got CONNECT response: %s\n", buf);
 
 	/* We may have advertised it, but we only do it if the server agrees */
 	vpninfo->deflate = 0;
@@ -264,7 +366,7 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 
 int make_ssl_connection(struct anyconnect_info *vpninfo)
 {
-	if (open_https(vpninfo))
+	if (!vpninfo->https_ssl && open_https(vpninfo))
 		exit(1);
 
 	if (start_ssl_connection(vpninfo))

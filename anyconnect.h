@@ -114,6 +114,7 @@ int make_ssl_connection(struct anyconnect_info *vpninfo);
 void vpn_init_openssl(void);
 int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout);
 int ssl_bye(struct anyconnect_info *vpninfo, char *reason);
+int obtain_cookie_cert(struct anyconnect_info *vpninfo);
 
 /* main.c */
 extern int verbose;
@@ -123,3 +124,10 @@ int vpn_add_pollfd(struct anyconnect_info *vpninfo, int fd, short events);
 int vpn_mainloop(struct anyconnect_info *vpninfo);
 int queue_new_packet(struct pkt **q, int type, void *buf, int len);
 void queue_packet(struct pkt **q, struct pkt *new);
+
+/* curl.c */
+static inline int obtain_cookie_login(struct anyconnect_info *vpninfo)
+{
+	fprintf(stderr, "No login code yet. Hassle Marcel.\n");
+	return -1;
+}

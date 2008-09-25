@@ -38,7 +38,8 @@
 int verbose = 0;
 
 static struct option long_options[] = {
-	{"cookie", 1, 0, 'c'},
+	{"certificate", 1, 0, 'c'},
+	{"cookie", 1, 0, 'C'},
 	{"host", 1, 0, 'h'},
 	{"mtu", 1, 0, 'm'},
 	{"verbose", 1, 0, 'v'},
@@ -75,17 +76,17 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	/* While we get it working, make it slightly easier... and don't forget */
-	fprintf(stderr, "HACKING DTLS SECRET TO 0x5A5A5A...\n");
-	memset(vpninfo->dtls_secret, 0x5a, sizeof(vpninfo->dtls_secret));
-
-	while ((opt = getopt_long(argc, argv, "c:h:vdu:", long_options, &optind))) {
+	while ((opt = getopt_long(argc, argv, "C:c:h:vdu:", long_options, &optind))) {
 		if (opt < 0)
 			break;
 
 		switch (opt) {
-		case 'c':
+		case 'C':
 			vpninfo->cookie = optarg;
+			break;
+
+		case 'c':
+			vpninfo->cert = optarg;
 			break;
 
 		case 'h':
@@ -113,8 +114,8 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
-	if (!vpninfo->hostname || !vpninfo->cookie) {
-		fprintf(stderr, "Need -h hostname, -c cookie\n");
+	if (!vpninfo->hostname) {
+		fprintf(stderr, "Need hostname\n");
 		exit(1);
 	}
 
@@ -128,6 +129,12 @@ int main(int argc, char **argv)
 	}
 	vpninfo->deflate_adler32 = 1;
 	vpninfo->inflate_adler32 = 1;
+
+	if (!vpninfo->cookie && obtain_cookie_cert(vpninfo) &&
+	    obtain_cookie_login(vpninfo)) {
+		fprintf(stderr, "Failed to obtain WebVPN cookie\n");
+		exit(1);
+	}
 
 	if (make_ssl_connection(vpninfo)) {
 		fprintf(stderr, "Creating SSL connection failed\n");
