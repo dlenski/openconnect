@@ -26,41 +26,72 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "anyconnect.h"
+
+static const char *ifname = "cisco0";
 
 /* Set up a tuntap device. */
 int setup_tun(struct anyconnect_info *vpninfo)
 {
 	struct vpn_option *cstp_opt = vpninfo->cstp_options;
 	struct ifreq ifr;
-	int tun_fd;
+	struct sockaddr_in *addr;
+	int tun_fd, net_fd;
 	int pfd;
 
 	tun_fd = open("/dev/net/tun", O_RDWR);
-	if (tun_fd == -1) {
+	if (tun_fd < 0) {
 		perror("open tun");
 		exit(1);
 	}
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
-	strncpy(ifr.ifr_name, "cisco0", sizeof(ifr.ifr_name) - 1);
-	if (ioctl(tun_fd, TUNSETIFF, (void *) &ifr) < 0){
+	strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name) - 1);
+	if (ioctl(tun_fd, TUNSETIFF, (void *) &ifr) < 0) {
 		perror("TUNSETIFF");
 		exit(1);
 	}
 
-	/* FIXME: Configure it... */
+	net_fd = socket(PF_INET, SOCK_DGRAM, 0);
+	if (net_fd < 0) {
+		perror("open net");
+		goto proceed;
+	}
+	memset(&ifr, 0, sizeof(ifr));
+	strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name) - 1);
+	if (ioctl(net_fd, SIOCGIFFLAGS, &ifr) < 0)
+		perror("SIOCGIFFLAGS");
+	ifr.ifr_flags |= IFF_UP;
+	if (ioctl(net_fd, SIOCSIFFLAGS, &ifr) < 0)
+		perror("SIOCSIFFLAGS");
+
+	addr = (struct sockaddr_in *) &ifr.ifr_addr;
 	while (cstp_opt) {
 		printf("CSTP option %s : %s\n", cstp_opt->option, cstp_opt->value);
+		if (!strcmp(cstp_opt->option, "X-CSTP-Address")) {
+			addr->sin_family = AF_INET;
+			addr->sin_addr.s_addr = inet_addr(cstp_opt->value);
+			if (ioctl(net_fd, SIOCSIFADDR, &ifr) < 0)
+				perror("SIOCSIFADDR");
+		} else if (!strcmp(cstp_opt->option, "X-CSTP-Netmask")) {
+			addr->sin_family = AF_INET;
+			addr->sin_addr.s_addr = inet_addr(cstp_opt->value);
+			if (ioctl(net_fd, SIOCSIFNETMASK, &ifr) < 0)
+				perror("SIOCSIFNETMASK");
+		}
 		cstp_opt = cstp_opt->next;
 	}
+	close(net_fd);
 
+proceed:
 	/* Better still, use lwip and just provide a SOCKS server rather than
 	   telling the kernel about it at all */
 	vpninfo->tun_fd = tun_fd;
 	pfd = vpn_add_pollfd(vpninfo, vpninfo->tun_fd, POLLIN);
-	
+
 	fcntl(vpninfo->tun_fd, F_SETFL, fcntl(vpninfo->tun_fd, F_GETFL) | O_NONBLOCK);
 
 	return 0;
