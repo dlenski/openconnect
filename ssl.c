@@ -592,7 +592,8 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 				printf("Sent SSL DPD\n");
 		}
 
-		printf("Next SSL DPD due in %d seconds\n", (due - now));
+		if (verbose)
+			printf("Next SSL DPD due in %ld seconds\n", (due - now));
 		if (*timeout > (due - now) * 1000)
 			*timeout = (due - now) * 1000;
 	}
@@ -616,7 +617,8 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 				printf("Sent SSL Keepalive\n");
 		}
 
-		printf("Next SSL Keepalive due in %d seconds\n", (due - now));
+		if (verbose)
+			printf("Next SSL Keepalive due in %ld seconds\n", (due - now));
 		if (*timeout > (due - now) * 1000)
 			*timeout = (due - now) * 1000;
 	}

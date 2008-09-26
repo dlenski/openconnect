@@ -290,7 +290,8 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 				printf("Sent DTLS DPD\n");
 		}
 
-		printf("Next DTLS DPD due in %d seconds\n", (due - now));
+		if (verbose)
+			printf("Next DTLS DPD due in %ld seconds\n", (due - now));
 		if (*timeout > (due - now) * 1000)
 			*timeout = (due - now) * 1000;
 	}
@@ -313,7 +314,8 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 				printf("Sent DTLS Keepalive\n");
 		}
 
-		printf("Next DTLS Keepalive due in %d seconds\n", (due - now));
+		if (verbose)
+			printf("Next DTLS Keepalive due in %ld seconds\n", (due - now));
 		if (*timeout > (due - now) * 1000)
 			*timeout = (due - now) * 1000;
 	}
