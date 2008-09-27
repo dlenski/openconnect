@@ -80,41 +80,45 @@ static int my_SSL_gets(SSL *ssl, char *buf, size_t len)
 }
 
 
+/* OpenSSL UI method calls. These are just stubs, to show how it's done */
+/* While we can set user data on the calls from the TPM setup, we can't
+   set it on the calls for PEM certificate passphrases, AFAICT. */
 static int ui_open(UI *ui)
 {
+	/* Fall through to default OpenSSL UI */
 	return UI_method_get_opener(UI_OpenSSL())(ui);
 }
 
 static int ui_read(UI *ui, UI_STRING *uis)
 {
-	struct anyconnect_info *vpninfo = UI_get0_user_data(ui);
-	if (vpninfo->tpmpass)
-		return 1;
-
+	/* Fall through to default OpenSSL UI */
 	return UI_method_get_reader(UI_OpenSSL())(ui, uis);
-
 }
 static int ui_write(UI *ui, UI_STRING *uis)
 {
-	struct anyconnect_info *vpninfo = UI_get0_user_data(ui);
-	if (vpninfo->tpmpass) {
-		UI_set_result(ui, uis, vpninfo->tpmpass);
-		return 1;
-	}
-		
-
+	/* Fall through to default OpenSSL UI */
 	return UI_method_get_writer(UI_OpenSSL())(ui, uis);
 
 }
 static int ui_close(UI *ui)
 {
-	return 1;
+	/* Fall through to default OpenSSL UI */
 	return UI_method_get_closer(UI_OpenSSL())(ui);
 }
 
 static int load_certificate(struct anyconnect_info *vpninfo, 
 			    SSL_CTX *https_ctx)
 {
+	UI_METHOD *ui_method = UI_create_method("AnyConnect VPN UI");
+
+	/* Set up a UI method of our own for password/passphrase requests */
+	UI_method_set_opener(ui_method, ui_open);
+	UI_method_set_reader(ui_method, ui_read);
+	UI_method_set_writer(ui_method, ui_write);
+	UI_method_set_closer(ui_method, ui_close);
+
+	UI_set_default_method(ui_method);
+
 	if (verbose)
 		printf("Using Certificate file %s\n", vpninfo->cert);
 	if (!SSL_CTX_use_certificate_file(https_ctx, vpninfo->cert,
@@ -127,13 +131,6 @@ static int load_certificate(struct anyconnect_info *vpninfo,
 	if (vpninfo->tpmkey) {
 		ENGINE *e;
 		EVP_PKEY *key;
-		UI_METHOD *ui_method = UI_create_method("AnyConnect VPN UI");
-
-		UI_method_set_opener(ui_method, ui_open);
-		UI_method_set_reader(ui_method, ui_read);
-		UI_method_set_writer(ui_method, ui_write);
-		UI_method_set_closer(ui_method, ui_close);
-
 		ENGINE_load_builtin_engines();
 
 		e = ENGINE_by_id("tpm");
@@ -151,16 +148,15 @@ static int load_certificate(struct anyconnect_info *vpninfo,
 			return -EINVAL;
 		}     
 
-		if (0 && vpninfo->tpmpass) {
+		if (vpninfo->tpmpass) {
 			if (!ENGINE_ctrl_cmd(e, "PIN", strlen(vpninfo->tpmpass),
 					     vpninfo->tpmpass, NULL, 0)) {
 				fprintf(stderr, "Failed to set TPM SRK password\n");
 				ERR_print_errors_fp(stderr);
 			}
-			/* Try it manually */
 		}
 		key = ENGINE_load_private_key(e, vpninfo->tpmkey,
-					      ui_method, vpninfo);
+					      NULL, NULL);
 		if (!key) {
 			fprintf(stderr, 
 				"Failed to load TPM private key\n");
