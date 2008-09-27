@@ -106,7 +106,9 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 	dtls_ssl = SSL_new(dtls_ctx);
 	SSL_set_connect_state(dtls_ssl);
 	SSL_set_cipher_list(dtls_ssl, SSL_CIPHER_get_name(https_cipher));
-	printf("SSL_SESSION is %d bytes\n", sizeof(*dtls_session));
+
+	if (verbose)
+		printf("SSL_SESSION is %zd bytes\n", sizeof(*dtls_session));
 	/* We're going to "resume" a session which never existed. Fake it... */
 	dtls_session = SSL_SESSION_new();
 
