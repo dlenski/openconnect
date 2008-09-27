@@ -178,6 +178,7 @@ static int load_certificate(struct anyconnect_info *vpninfo,
 		}
 	} else {
 		/* Key should be in cert file too*/
+		/* FIXME: Can we do our own UI for PEM passphrase too? */
 		if (!SSL_CTX_use_RSAPrivateKey_file(https_ctx, vpninfo->cert,
 						    SSL_FILETYPE_PEM)) {
 			fprintf(stderr, "Private key failed\n");
