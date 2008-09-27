@@ -78,6 +78,8 @@ static int my_SSL_gets(SSL *ssl, char *buf, size_t len)
 	buf[i] = 0;
 	return i?:ret;
 }
+
+
 static int load_certificate(struct anyconnect_info *vpninfo, 
 			    SSL_CTX *https_ctx)
 {
@@ -110,6 +112,14 @@ static int load_certificate(struct anyconnect_info *vpninfo,
 			return -EINVAL;
 		}     
 
+		if (vpninfo->tpmpass) {
+			if (!ENGINE_ctrl_cmd(e, "PIN", strlen(vpninfo->tpmpass),
+					     vpninfo->tpmpass, NULL, 0)) {
+				fprintf(stderr, "Failed to set TPM SRK password\n");
+				ERR_print_errors_fp(stderr);
+			}
+			/* Try it manually */
+		}
 		key = ENGINE_load_private_key(e, vpninfo->tpmkey,
 						      NULL, NULL);
 		if (!key) {

@@ -47,6 +47,7 @@ static struct option long_options[] = {
 	{"useragent", 1, 0, 'u'},
 	{"interface", 1, 0, 'i'},
 	{"tpm-key", 1, 0, 't'},
+	{"tpm-password", 1, 0, 'p'},
 };
 
 int main(int argc, char **argv)
@@ -79,11 +80,15 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "C:c:h:vdu:i:t:", long_options, &optind))) {
+	while ((opt = getopt_long(argc, argv, "C:c:h:vdu:i:t:p:",
+				  long_options, &optind))) {
 		if (opt < 0)
 			break;
 
 		switch (opt) {
+		case 'p':
+			vpninfo->tpmpass = optarg;
+			break;
 		case 't':
 			vpninfo->tpmkey = optarg;
 			break;

@@ -41,6 +41,7 @@ struct anyconnect_info {
 	const char *hostname;
 	const char *cert;
 	const char *tpmkey;
+	char *tpmpass;
 
 	const char *cookie;
 	struct vpn_option *cstp_options;
