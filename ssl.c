@@ -25,6 +25,7 @@
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/engine.h>
 
 #include "anyconnect.h"
 
@@ -77,7 +78,67 @@ static int my_SSL_gets(SSL *ssl, char *buf, size_t len)
 	buf[i] = 0;
 	return i?:ret;
 }
+static int load_certificate(struct anyconnect_info *vpninfo, 
+			    SSL_CTX *https_ctx)
+{
+	printf("Using Certificate file %s\n", vpninfo->cert);
+	if (!SSL_CTX_use_certificate_file(https_ctx, vpninfo->cert,
+					  SSL_FILETYPE_PEM)) {
+		fprintf(stderr, "Certificate failed\n");
+		ERR_print_errors_fp(stderr);
+		return -EINVAL;
+	}
+	
+	if (vpninfo->tpmkey) {
+		ENGINE *e;
+		EVP_PKEY *key;
 
+		ENGINE_load_builtin_engines();
+
+		e = ENGINE_by_id("tpm");
+		if (!e) {
+			fprintf(stderr, "Can't load TPM engine.\n");
+			ERR_print_errors_fp(stderr);
+			return -EINVAL;
+		}
+		if (!ENGINE_init(e) || !ENGINE_set_default_RSA(e) ||
+		    !ENGINE_set_default_RAND(e)) {
+			fprintf(stderr, "Failed to init TPM engine\n");
+			ERR_print_errors_fp(stderr);
+			ENGINE_free(e);
+			ENGINE_finish(e);
+			return -EINVAL;
+		}     
+
+		key = ENGINE_load_private_key(e, vpninfo->tpmkey,
+						      NULL, NULL);
+		if (!key) {
+			fprintf(stderr, 
+				"Failed to load TPM private key\n");
+			ERR_print_errors_fp(stderr);
+			ENGINE_free(e);
+			ENGINE_finish(e);
+			return -EINVAL;
+		}
+		if (!SSL_CTX_use_PrivateKey(https_ctx, key)) {
+			fprintf(stderr, "Add key from TPM failed\n");
+			ERR_print_errors_fp(stderr);
+			ENGINE_free(e);
+			ENGINE_finish(e);
+			return -EINVAL;
+		}
+	} else {
+		/* Key should be in cert file too*/
+		if (!SSL_CTX_use_RSAPrivateKey_file(https_ctx, vpninfo->cert,
+						    SSL_FILETYPE_PEM)) {
+			fprintf(stderr, "Private key failed\n");
+			ERR_print_errors_fp(stderr);
+			return -EINVAL;
+		}
+	}
+	return 0;
+}
+ 
 static int open_https(struct anyconnect_info *vpninfo)
 {
 	SSL_METHOD *ssl3_method;
@@ -133,18 +194,10 @@ static int open_https(struct anyconnect_info *vpninfo)
 
 	ssl3_method = SSLv23_client_method();
 	https_ctx = SSL_CTX_new(ssl3_method);
-	if (vpninfo->cert) {
-		printf("Using Certificate file %s\n", vpninfo->cert);
-		if (!SSL_CTX_use_certificate_file(https_ctx, vpninfo->cert,
-						  SSL_FILETYPE_PEM))
-			fprintf(stderr, "Certificate failed\n");
 
-		if (!SSL_CTX_use_RSAPrivateKey_file(https_ctx, vpninfo->cert,
-						    SSL_FILETYPE_PEM))
-			fprintf(stderr, "Private key failed\n");
+	if (vpninfo->cert)
+		load_certificate(vpninfo, https_ctx);
 
-
-	}
 		
 	https_ssl = SSL_new(https_ctx);
 		
