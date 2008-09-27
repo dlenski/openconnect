@@ -80,10 +80,43 @@ static int my_SSL_gets(SSL *ssl, char *buf, size_t len)
 }
 
 
+static int ui_open(UI *ui)
+{
+	return UI_method_get_opener(UI_OpenSSL())(ui);
+}
+
+static int ui_read(UI *ui, UI_STRING *uis)
+{
+	struct anyconnect_info *vpninfo = UI_get0_user_data(ui);
+	if (vpninfo->tpmpass)
+		return 1;
+
+	return UI_method_get_reader(UI_OpenSSL())(ui, uis);
+
+}
+static int ui_write(UI *ui, UI_STRING *uis)
+{
+	struct anyconnect_info *vpninfo = UI_get0_user_data(ui);
+	if (vpninfo->tpmpass) {
+		UI_set_result(ui, uis, vpninfo->tpmpass);
+		return 1;
+	}
+		
+
+	return UI_method_get_writer(UI_OpenSSL())(ui, uis);
+
+}
+static int ui_close(UI *ui)
+{
+	return 1;
+	return UI_method_get_closer(UI_OpenSSL())(ui);
+}
+
 static int load_certificate(struct anyconnect_info *vpninfo, 
 			    SSL_CTX *https_ctx)
 {
-	printf("Using Certificate file %s\n", vpninfo->cert);
+	if (verbose)
+		printf("Using Certificate file %s\n", vpninfo->cert);
 	if (!SSL_CTX_use_certificate_file(https_ctx, vpninfo->cert,
 					  SSL_FILETYPE_PEM)) {
 		fprintf(stderr, "Certificate failed\n");
@@ -94,6 +127,12 @@ static int load_certificate(struct anyconnect_info *vpninfo,
 	if (vpninfo->tpmkey) {
 		ENGINE *e;
 		EVP_PKEY *key;
+		UI_METHOD *ui_method = UI_create_method("AnyConnect VPN UI");
+
+		UI_method_set_opener(ui_method, ui_open);
+		UI_method_set_reader(ui_method, ui_read);
+		UI_method_set_writer(ui_method, ui_write);
+		UI_method_set_closer(ui_method, ui_close);
 
 		ENGINE_load_builtin_engines();
 
@@ -112,7 +151,7 @@ static int load_certificate(struct anyconnect_info *vpninfo,
 			return -EINVAL;
 		}     
 
-		if (vpninfo->tpmpass) {
+		if (0 && vpninfo->tpmpass) {
 			if (!ENGINE_ctrl_cmd(e, "PIN", strlen(vpninfo->tpmpass),
 					     vpninfo->tpmpass, NULL, 0)) {
 				fprintf(stderr, "Failed to set TPM SRK password\n");
@@ -121,7 +160,7 @@ static int load_certificate(struct anyconnect_info *vpninfo,
 			/* Try it manually */
 		}
 		key = ENGINE_load_private_key(e, vpninfo->tpmkey,
-						      NULL, NULL);
+					      ui_method, vpninfo);
 		if (!key) {
 			fprintf(stderr, 
 				"Failed to load TPM private key\n");
