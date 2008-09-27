@@ -31,8 +31,6 @@
 
 #include "anyconnect.h"
 
-static const char *ifname = "cisco0";
-
 /* Set up a tuntap device. */
 int setup_tun(struct anyconnect_info *vpninfo)
 {
@@ -49,7 +47,7 @@ int setup_tun(struct anyconnect_info *vpninfo)
 	}
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
-	strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name) - 1);
+	strncpy(ifr.ifr_name, vpninfo->ifname, sizeof(ifr.ifr_name) - 1);
 	if (ioctl(tun_fd, TUNSETIFF, (void *) &ifr) < 0) {
 		perror("TUNSETIFF");
 		exit(1);
@@ -61,7 +59,7 @@ int setup_tun(struct anyconnect_info *vpninfo)
 		goto proceed;
 	}
 	memset(&ifr, 0, sizeof(ifr));
-	strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name) - 1);
+	strncpy(ifr.ifr_name, vpninfo->ifname, sizeof(ifr.ifr_name) - 1);
 	if (ioctl(net_fd, SIOCGIFFLAGS, &ifr) < 0)
 		perror("SIOCGIFFLAGS");
 	ifr.ifr_flags |= IFF_UP;

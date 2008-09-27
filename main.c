@@ -45,6 +45,7 @@ static struct option long_options[] = {
 	{"verbose", 1, 0, 'v'},
 	{"deflate", 0, 0, 'd'},
 	{"useragent", 1, 0, 'u'},
+	{"interface", 1, 0, 'i'},
 };
 
 int main(int argc, char **argv)
@@ -64,6 +65,7 @@ int main(int argc, char **argv)
 	memset(vpninfo, 0, sizeof(*vpninfo));
 
 	/* Set up some defaults */
+	vpninfo->ifname = "cisco0";
 	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = -1;
 	vpninfo->useragent = "Open AnyConnect VPN Agent v0.01";
 	vpninfo->mtu = 1406;
@@ -76,11 +78,15 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "C:c:h:vdu:", long_options, &optind))) {
+	while ((opt = getopt_long(argc, argv, "C:c:h:vdu:i:", long_options, &optind))) {
 		if (opt < 0)
 			break;
 
 		switch (opt) {
+		case 'i':
+			vpninfo->ifname = optarg;
+			break;
+
 		case 'C':
 			vpninfo->cookie = optarg;
 			break;

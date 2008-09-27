@@ -70,6 +70,7 @@ struct anyconnect_info {
 	unsigned char dtls_secret[48];
 
 	int mtu;
+	char *ifname;
 
 	struct pollfd *pfds;
 	int nfds;
