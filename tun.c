@@ -79,6 +79,10 @@ int setup_tun(struct anyconnect_info *vpninfo)
 			addr->sin_addr.s_addr = inet_addr(cstp_opt->value);
 			if (ioctl(net_fd, SIOCSIFNETMASK, &ifr) < 0)
 				perror("SIOCSIFNETMASK");
+		} else if (!strcmp(cstp_opt->option, "X-CSTP-MTU")) {
+			ifr.ifr_mtu = atol(cstp_opt->value);
+			if (ioctl(net_fd, SIOCSIFMTU, &ifr) < 0)
+				perror("SIOCSIFMTU");
 		}
 		cstp_opt = cstp_opt->next;
 	}
