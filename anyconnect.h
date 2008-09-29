@@ -54,7 +54,6 @@ struct anyconnect_info {
 	time_t last_ssl_tx;
 	time_t last_ssl_rx;
 	time_t last_ssl_dpd;
-	int ssl_pfd;
 
 	z_stream inflate_strm;
 	uint32_t inflate_adler32;
@@ -82,6 +81,8 @@ struct anyconnect_info {
 	int tun_fd;
 	int ssl_fd;
 	int dtls_fd;
+	int ssl_pfd;
+	int dtls_pfd;
 
 	struct pkt *incoming_queue;
 	struct pkt *outgoing_queue;

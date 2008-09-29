@@ -152,6 +152,11 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, SSL **ret_ssl,
 		return -EINVAL;
 	}
 
+	BIO_set_nbio(SSL_get_rbio(dtls_ssl),1);
+	BIO_set_nbio(SSL_get_wbio(dtls_ssl),1);
+
+	fcntl(dtls_fd, F_SETFL, fcntl(dtls_fd, F_GETFL) | O_NONBLOCK);
+
 	*ret_fd = dtls_fd;
 	*ret_ssl = dtls_ssl;
 
@@ -160,8 +165,22 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, SSL **ret_ssl,
 
 static int dtls_rekey(struct anyconnect_info *vpninfo)
 {
-	printf("FIXME: Implement DTLS rekey\n");
-	return -EINVAL;
+	SSL *dtls_ssl;
+	int dtls_fd;
+
+	/* To rekey, we just 'resume' the session again */
+	if (connect_dtls_socket(vpninfo, &dtls_ssl, &dtls_fd))
+		return -EINVAL;
+
+	vpninfo->pfds[vpninfo->dtls_pfd].fd = dtls_fd;
+
+	SSL_free(vpninfo->dtls_ssl);
+	close(vpninfo->dtls_fd);
+
+	vpninfo->dtls_ssl = dtls_ssl;
+	vpninfo->dtls_fd = dtls_fd;
+
+	return 0;
 }
 
 int setup_dtls(struct anyconnect_info *vpninfo)
@@ -214,12 +233,8 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 	if (connect_dtls_socket(vpninfo, &vpninfo->dtls_ssl, &vpninfo->dtls_fd))
 		return -EINVAL;
 
-	BIO_set_nbio(SSL_get_rbio(vpninfo->dtls_ssl),1);
-	BIO_set_nbio(SSL_get_wbio(vpninfo->dtls_ssl),1);
-
-	fcntl(vpninfo->dtls_fd, F_SETFL, fcntl(vpninfo->dtls_fd, F_GETFL) | O_NONBLOCK);
-
-	vpn_add_pollfd(vpninfo, vpninfo->dtls_fd, POLLIN|POLLHUP|POLLERR);
+	vpninfo->dtls_pfd = vpn_add_pollfd(vpninfo, vpninfo->dtls_fd,
+					   POLLIN|POLLHUP|POLLERR);
 	vpninfo->last_dtls_rekey = vpninfo->last_dtls_rx =
 		vpninfo->last_dtls_tx = time(NULL);
 
@@ -343,7 +358,7 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		time_t now = time(NULL);
 		time_t due = vpninfo->last_dtls_rekey + vpninfo->dtls_rekey;
 
-		if (now > due) {
+		if (now >= due) {
 			if (verbose)
 				printf("DTLS rekey due\n");
 			if (dtls_rekey(vpninfo)) {
