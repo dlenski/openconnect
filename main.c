@@ -40,22 +40,41 @@ int verbose = 0;
 static struct option long_options[] = {
 	{"certificate", 1, 0, 'c'},
 	{"cookie", 1, 0, 'C'},
-	{"host", 1, 0, 'h'},
-	{"mtu", 1, 0, 'm'},
-	{"verbose", 1, 0, 'v'},
 	{"deflate", 0, 0, 'd'},
-	{"useragent", 1, 0, 'u'},
+	{"no-deflate", 0, 0, 'D'},
+	{"help", 0, 0, 'h'},
 	{"interface", 1, 0, 'i'},
+	{"mtu", 1, 0, 'm'},
+	{"script", 1, 0, 's'},
 	{"tpm-key", 1, 0, 't'},
 	{"tpm-password", 1, 0, 'p'},
-	{"script", 1, 0, 's'},
+	{"useragent", 1, 0, 'u'},
+	{"verbose", 1, 0, 'v'},
 };
+
+void usage(void)
+{
+	printf("Usage:  anyconnect [options] <server>\n");
+	printf("Connect to Cisco AnyConnect server.\n\n");
+	printf("  -C, --cookie=COOKIE             Use WebVPN cookie COOKIE\n");
+	printf("  -D, --no-deflate                Disable compression\n");
+	printf("  -c, --certificate=CERT          Use SSL client certificate CERT\n");
+	printf("  -d, --deflate                   Enable compression (default)\n");
+	printf("  -h, --help                      Display help text\n");
+	printf("  -i, --interface=IFNAME          Use IFNAME for tunnel interface\n");
+	printf("  -m, --mtu=MTU                   Request MTU from server\n");
+	printf("  -p, --tpm-password=PASS         Set TPM SRK PIN\n");
+	printf("  -s, --script=SCRIPT             Use vpnc-compatible config script\n");
+	printf("  -t, --tpm-key=KEY               Use KEY as private key, with TPM\n");
+	printf("  -u, --useragent=AGENT           Set HTTP User-Agent AGENT\n");
+	printf("  -v, --verbose                   More output\n");
+	exit(1);
+}
 
 int main(int argc, char **argv)
 {
 	struct anyconnect_info *vpninfo;
 	struct utsname utsbuf;
-	int optind;
 	int opt;
 
 	vpn_init_openssl();
@@ -81,37 +100,29 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "C:c:h:vdu:i:t:p:",
-				  long_options, &optind))) {
+	while ((opt = getopt_long(argc, argv, "C:c:hvdDu:i:t:p:s:h",
+				  long_options, NULL))) {
 		if (opt < 0)
 			break;
 
 		switch (opt) {
-		case 's':
-			vpninfo->vpnc_script = optarg;
-			break;
-		case 'p':
-			vpninfo->tpmpass = optarg;
-			break;
-		case 't':
-			vpninfo->tpmkey = optarg;
-			break;
-		case 'i':
-			vpninfo->ifname = optarg;
-			break;
-
 		case 'C':
 			vpninfo->cookie = optarg;
 			break;
-
 		case 'c':
 			vpninfo->cert = optarg;
 			break;
-
-		case 'h':
-			vpninfo->hostname = optarg;
+		case 'd':
+			vpninfo->deflate = 1;
 			break;
-
+		case 'D':
+			vpninfo->deflate = 0;
+			break;
+		case 'h':
+			usage();
+		case 'i':
+			vpninfo->ifname = optarg;
+			break;
 		case 'm':
 			vpninfo->mtu = atol(optarg);
 			if (vpninfo->mtu < 576) {
@@ -119,24 +130,32 @@ int main(int argc, char **argv)
 				vpninfo->mtu = 576;
 			}
 			break;
-
+		case 'p':
+			vpninfo->tpmpass = optarg;
+			break;
+		case 's':
+			vpninfo->vpnc_script = optarg;
+			break;
+		case 't':
+			vpninfo->tpmkey = optarg;
+			break;
 		case 'u':
 			vpninfo->useragent = optarg;
 			break;
-
 		case 'v':
 			verbose = 1;
 			break;
-
-		case 'd':
-			vpninfo->deflate = 1;
-			break;
+		default:
+			usage();
 		}
 	}
-	if (!vpninfo->hostname) {
-		fprintf(stderr, "Need hostname\n");
-		exit(1);
+	if (optind != argc - 1) {
+		fprintf(stderr, "No server specified\n");
+		usage();
 	}
+
+	vpninfo->hostname = argv[optind];
+	/* FIXME: Allow lookup in XML config file, once we fetch that */
 
 	if (vpninfo->deflate) {
 		if (inflateInit2(&vpninfo->inflate_strm, -12) ||
