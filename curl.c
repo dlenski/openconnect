@@ -64,6 +64,9 @@ X-Transcend-Version: 1
 </auth>
 
 
+The fh: is a sha1sum of the xml profile file. I haven't yet worked out
+the URL from which to downloaad that file, if the sha1sum doesn't
+match.
 
 Sometimes when we give it a good SecurID passcode, we get this... 
 
