@@ -106,5 +106,11 @@ int vpn_mainloop(struct anyconnect_info *vpninfo)
 
 	ssl_bye(vpninfo, vpninfo->quit_reason);
 
+	if (vpninfo->vpnc_script) {
+		setenv("TUNDEV", vpninfo->ifname, 1);
+		setenv("reason", "disconnect", 1);
+		system(vpninfo->vpnc_script);
+	}
+
 	return 0;
 }

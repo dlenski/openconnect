@@ -77,10 +77,60 @@ int local_config_tun(struct anyconnect_info *vpninfo)
 	return 0;
 }
 
+int appendenv(const char *opt, const char *new)
+{
+	char buf[1024];
+	char *old = getenv(opt);
+
+	buf[1023] = 0;
+	if (old)
+		snprintf(buf, 1023, "%s %s", old, new);
+	else
+		snprintf(buf, 1023, "%s", new);
+
+	return setenv(opt, buf, 1);
+}
+
 int script_config_tun(struct anyconnect_info *vpninfo)
 {
-	fprintf(stderr, "FIXME: script config\n");
-	return -EINVAL;
+	struct vpn_option *cstp_opt = vpninfo->cstp_options;
+	struct sockaddr_in *sin = (void *)vpninfo->peer_addr;
+
+	if (vpninfo->peer_addr->sa_family != AF_INET) {
+		fprintf(stderr, "Script cannot handle anything but Legacy IP\n");
+		return -EINVAL;
+	}
+	
+	setenv("VPNGATEWAY", inet_ntoa(sin->sin_addr), 1);
+	setenv("TUNDEV", vpninfo->ifname, 1);
+	setenv("reason", "connect", 1);
+	unsetenv("MTU"); /* FIXME: vpnc-script doesn't handle this by default */
+        unsetenv("CISCO_BANNER");
+        unsetenv("CISCO_DEF_DOMAIN");
+        unsetenv("CISCO_SPLIT_INC");
+        unsetenv("INTERNAL_IP4_NBNS");
+        unsetenv("INTERNAL_IP4_DNS");
+        unsetenv("INTERNAL_IP4_NETMASK");
+        unsetenv("INTERNAL_IP4_ADDRESS");
+
+	while (cstp_opt) {
+		printf("CSTP option %s : %s\n", cstp_opt->option, cstp_opt->value);
+		if (!strcmp(cstp_opt->option, "X-CSTP-MTU"))
+			setenv("MTU", cstp_opt->value, 1);
+		else if (!strcmp(cstp_opt->option, "X-CSTP-Address"))
+			setenv("INTERNAL_IP4_ADDRESS", cstp_opt->value, 1);
+		else if (!strcmp(cstp_opt->option, "X-CSTP-Netmask"))
+			setenv("INTERNAL_IP4_NETMASK", cstp_opt->value, 1);
+		else if (!strcmp(cstp_opt->option, "X-CSTP-DNS"))
+			appendenv("INTERNAL_IP4_DNS", cstp_opt->value);
+		else if (!strcmp(cstp_opt->option, "X-CSTP-NBNS"))
+			appendenv("INTERNAL_IP4_NBNS", cstp_opt->value);
+
+		cstp_opt = cstp_opt->next;
+	}
+		
+	system(vpninfo->vpnc_script);
+	return 0;
 }
 
 
