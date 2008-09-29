@@ -65,6 +65,8 @@ struct anyconnect_info {
 	SSL *dtls_ssl;
 	int dtls_keepalive;
 	int dtls_dpd;
+	int dtls_rekey;
+	time_t last_dtls_rekey;
 	time_t last_dtls_tx;
 	time_t last_dtls_rx;
 	time_t last_dtls_dpd;

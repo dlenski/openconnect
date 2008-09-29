@@ -34,20 +34,23 @@
  * connection, are enough to 'resume' a DTLS session, bypassing all
  * the normal setup of a normal DTLS connection.
  *
- * This code works when run against Cisco's own libssl.so.0.9.8, but
- * fails (Bad Record MAC on receipt of the Server Hello) when run
- * against my own build of OpenSSL-0.9.8f.
+ * Cisco use a version of the protocol which predates RFC4347, but
+ * isn't quite the same as the pre-RFC version of the protocol which
+ * was in OpenSSL 0.9.8e -- it includes backports of some later
+ * OpenSSL patches.
  *
- * It lookslike they've reverted _some_ of the changes beween 0.9.8e
- * and 0.9.8f, but not all of them. In particular, they use
- * DTLS1_BAD_VER for the protocol version.
+ * The openssl/ directory of this source tree should contain both a 
+ * small patch against OpenSSL 0.9.8e to make it support Cisco's 
+ * snapshot of the protocol, and a larger patch against newer OpenSSL
+ * which gives us an option to use the old protocol again.
  *
- * Using OpenSSL-0.9.8e, which was the last release of OpenSSL to use
- * DTLS1_BAD_VER, also fails similarly.
- *
- * Hopefully they're just using something equivalent to a snapshot
- * between 0.9.8e and 0.9.8f, and they don't have their own "special"
- * changes on top.
+ * Cisco's server also seems to respond to the official version of the
+ * protocol, with a change in the ChangeCipherSpec packet which implies
+ * that it does know the difference and isn't just repeating the version
+ * number seen in the ClientHello. But although I can make the handshake
+ * complete by hacking tls1_mac() to use the _old_ protocol version
+ * number when calculating the MAC, the server still seems to be ignoring
+ * my subsequent data packets.
  */   
 
 static unsigned char nybble(unsigned char n)
@@ -63,7 +66,8 @@ static unsigned char hex(const char *data)
 	return (nybble(data[0]) << 4) | nybble(data[1]);
 }
 
-static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
+static int connect_dtls_socket(struct anyconnect_info *vpninfo, SSL **ret_ssl,
+			       int *ret_fd)
 {
 	SSL_METHOD *dtls_method;
 	SSL_CTX *dtls_ctx;
@@ -73,18 +77,6 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 	BIO *dtls_bio;
 	int dtls_fd;
 	int ret;
-
-	if (vpninfo->peer_addr->sa_family == AF_INET) {
-		struct sockaddr_in *sin = (void *)vpninfo->peer_addr;
-		sin->sin_port = htons(dtls_port);
-	} else if (vpninfo->peer_addr->sa_family == AF_INET6) {
-		struct sockaddr_in6 *sin = (void *)vpninfo->peer_addr;
-		sin->sin6_port = htons(dtls_port);
-	} else {
-		fprintf(stderr, "Unknown protocol family %d. Cannot do DTLS\n",
-			vpninfo->peer_addr->sa_family);
-		return -EINVAL;
-	}
 
 	dtls_fd = socket(vpninfo->peer_addr->sa_family, SOCK_DGRAM, IPPROTO_UDP);
 	if (dtls_fd < 0) {
@@ -160,10 +152,16 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 		return -EINVAL;
 	}
 
-	vpninfo->dtls_fd = dtls_fd;
-	vpninfo->dtls_ssl = dtls_ssl;
+	*ret_fd = dtls_fd;
+	*ret_ssl = dtls_ssl;
 
 	return 0;
+}
+
+static int dtls_rekey(struct anyconnect_info *vpninfo)
+{
+	printf("FIXME: Implement DTLS rekey\n");
+	return -EINVAL;
 }
 
 int setup_dtls(struct anyconnect_info *vpninfo)
@@ -192,6 +190,8 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 			vpninfo->dtls_keepalive = atol(dtls_opt->value);
 		} else if (!strcmp(dtls_opt->option + 7, "DPD")) {
 			vpninfo->dtls_dpd = atol(dtls_opt->value);
+		} else if (!strcmp(dtls_opt->option + 7, "Rekey-Time")) {
+			vpninfo->dtls_rekey = atol(dtls_opt->value);
 		}
 			
 		dtls_opt = dtls_opt->next;
@@ -199,7 +199,19 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 	if (!sessid_found || !dtls_port)
 		return -EINVAL;
 
-	if (connect_dtls_socket(vpninfo, dtls_port))
+	if (vpninfo->peer_addr->sa_family == AF_INET) {
+		struct sockaddr_in *sin = (void *)vpninfo->peer_addr;
+		sin->sin_port = htons(dtls_port);
+	} else if (vpninfo->peer_addr->sa_family == AF_INET6) {
+		struct sockaddr_in6 *sin = (void *)vpninfo->peer_addr;
+		sin->sin6_port = htons(dtls_port);
+	} else {
+		fprintf(stderr, "Unknown protocol family %d. Cannot do DTLS\n",
+			vpninfo->peer_addr->sa_family);
+		return -EINVAL;
+	}
+
+	if (connect_dtls_socket(vpninfo, &vpninfo->dtls_ssl, &vpninfo->dtls_fd))
 		return -EINVAL;
 
 	BIO_set_nbio(SSL_get_rbio(vpninfo->dtls_ssl),1);
@@ -208,7 +220,8 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 	fcntl(vpninfo->dtls_fd, F_SETFL, fcntl(vpninfo->dtls_fd, F_GETFL) | O_NONBLOCK);
 
 	vpn_add_pollfd(vpninfo, vpninfo->dtls_fd, POLLIN|POLLHUP|POLLERR);
-	vpninfo->last_dtls_rx = vpninfo->last_dtls_tx = time(NULL);
+	vpninfo->last_dtls_rekey = vpninfo->last_dtls_rx =
+		vpninfo->last_dtls_tx = time(NULL);
 
 	if (verbose)
 		printf("DTLS connected. DPD %d, Keepalive %d\n",
@@ -276,7 +289,7 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			
 		if (now > overdue) {
 			fprintf(stderr, "DTLS Dead Peer Detection detected dead peer!\n");
-			/* FIXME: Can we call fack to SSL instead? */
+			/* Fall back to SSL */
 			SSL_free(vpninfo->dtls_ssl);
 			close(vpninfo->dtls_fd);
 			vpninfo->dtls_ssl = NULL;
@@ -326,6 +339,30 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			*timeout = (due - now) * 1000;
 	}
 
+	if (vpninfo->dtls_rekey) {
+		time_t now = time(NULL);
+		time_t due = vpninfo->last_dtls_rekey + vpninfo->dtls_rekey;
+
+		if (now > due) {
+			if (verbose)
+				printf("DTLS rekey due\n");
+			if (dtls_rekey(vpninfo)) {
+				fprintf(stderr, "DTLS rekey failed\n");
+				/* Fall back to SSL */
+				SSL_free(vpninfo->dtls_ssl);
+				close(vpninfo->dtls_fd);
+				vpninfo->dtls_ssl = NULL;
+				vpninfo->dtls_fd = -1;
+				return 1;
+			}
+			vpninfo->last_dtls_rekey = time(NULL);
+			due = vpninfo->last_dtls_rekey + vpninfo->dtls_rekey;
+		}
+		if (verbose)
+			printf("Next DTLS rekey due in %ld seconds\n", (due - now));
+		if (*timeout > (due - now) * 1000)
+			*timeout = (due - now) * 1000;
+	}
 
 	/* FIXME: Keepalive */
 	return work_done;
