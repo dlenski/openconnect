@@ -112,7 +112,7 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 	/* We're going to "resume" a session which never existed. Fake it... */
 	dtls_session = SSL_SESSION_new();
 
-	dtls_session->ssl_version = DTLS1_BAD_VER;
+	dtls_session->ssl_version = 0x0100; //DTLS1_BAD_VER;
 
 	dtls_session->master_key_length = sizeof(vpninfo->dtls_secret);
 	memcpy(dtls_session->master_key, vpninfo->dtls_secret,
@@ -128,8 +128,8 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 	/* Having faked a session, add it to the CTX and the SSL */
 	if (!SSL_set_session(dtls_ssl, dtls_session)) {
 		printf("SSL_set_session() failed with old protocol version 0x%x\n", dtls_session->ssl_version);
-		printf("Trying the official version %x\n", DTLS1_VERSION);
-		dtls_session->ssl_version = DTLS1_VERSION;
+		printf("Trying the official version %x\n", 0xfeff);
+		dtls_session->ssl_version = 0xfeff;
 		if (!SSL_set_session(dtls_ssl, dtls_session)) {
 			printf("SSL_set_session() failed still. Is your build ABI-compatible with your libssl?\n");
 			return -EINVAL;
