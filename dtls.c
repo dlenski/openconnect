@@ -203,7 +203,7 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 
 	fcntl(vpninfo->dtls_fd, F_SETFL, fcntl(vpninfo->dtls_fd, F_GETFL) | O_NONBLOCK);
 
-	vpn_add_pollfd(vpninfo, vpninfo->ssl_fd, POLLIN|POLLHUP|POLLERR);
+	vpn_add_pollfd(vpninfo, vpninfo->dtls_fd, POLLIN|POLLHUP|POLLERR);
 	vpninfo->last_dtls_rx = vpninfo->last_dtls_tx = time(NULL);
 
 	if (verbose)
