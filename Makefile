@@ -5,8 +5,17 @@ else
 CFLAGS := -O2 -g -Wall
 endif
 
-CFLAGS += -I/usr/include/openssl #-I/usr/include/libxml2
-LDFLAGS += -lssl
+#M32 := -m32
+#OPENSSL := /home/dwmw2/working/openssl-0.9.8f
+
+ifdef OPENSSL
+CFLAGS += -I$(OPENSSL)/include $(M32)
+LDFLAGS += -lz $(OPENSSL)/libssl.so.* $(OPENSSL)/libcrypto.so.* $(M32)
+else
+CFLAGS += -I/usr/include/openssl $(M32)
+LDFLAGS += -lssl $(M32)
+endif
+
 
 OBJECTS := main.o tun.o dtls.o ssl.o mainloop.o
 
