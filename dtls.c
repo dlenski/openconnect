@@ -90,6 +90,8 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, SSL **ret_ssl,
 		return -EINVAL;
 	}
 
+	fcntl(dtls_fd, F_SETFD, FD_CLOEXEC);
+
 	dtls_method = DTLSv1_client_method();
 	dtls_ctx = SSL_CTX_new(dtls_method);
 	SSL_CTX_set_read_ahead(dtls_ctx, 1);

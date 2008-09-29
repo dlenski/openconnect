@@ -237,6 +237,7 @@ static int open_https(struct anyconnect_info *vpninfo)
 		fprintf(stderr, "Failed to connect to host %s\n", vpninfo->hostname);
 		return -EINVAL;
 	}
+	fcntl(ssl_sock, F_SETFD, FD_CLOEXEC);
 
 	ssl3_method = SSLv23_client_method();
 	https_ctx = SSL_CTX_new(ssl3_method);

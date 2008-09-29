@@ -53,6 +53,8 @@ int setup_tun(struct anyconnect_info *vpninfo)
 		exit(1);
 	}
 
+	fcntl(tun_fd, F_SETFD, FD_CLOEXEC);
+
 	net_fd = socket(PF_INET, SOCK_DGRAM, 0);
 	if (net_fd < 0) {
 		perror("open net");
