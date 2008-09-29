@@ -379,7 +379,6 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			*timeout = (due - now) * 1000;
 	}
 
-	/* FIXME: Keepalive */
 	return work_done;
 }
 
