@@ -1,3 +1,9 @@
+OpenSSL 0.9.8e was the last version of OpenSSL before the final standard 
+(RFC4347). Cisco's version includes a couple of later fixes 
+(modifications to the protocol), but not everything that changed before 
+the final release. This patch contains the changes that Cisco seem to 
+have included.
+
 Index: ssl/d1_clnt.c
 ===================================================================
 RCS file: /home/dwmw2/openssl-cvs/openssl/ssl/d1_clnt.c,v

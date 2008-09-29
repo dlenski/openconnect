@@ -1,3 +1,7 @@
+This patch, against OpenSSL 0.9.8h, enables client compatibility with 
+the old version of DTLS which is used by Cisco. You must set the 
+SSL_OP_CISCO_ANYCONNECT option to obtain this behaviour.
+
 Index: ssl/d1_clnt.c
 ===================================================================
 RCS file: /home/dwmw2/openssl-cvs/openssl/ssl/d1_clnt.c,v
