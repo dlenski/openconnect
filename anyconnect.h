@@ -72,6 +72,7 @@ struct anyconnect_info {
 	unsigned char dtls_session_id[32];
 	unsigned char dtls_secret[48];
 
+	char *vpnc_script;
 	int mtu;
 	char *ifname;
 

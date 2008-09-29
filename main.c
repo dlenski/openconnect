@@ -48,6 +48,7 @@ static struct option long_options[] = {
 	{"interface", 1, 0, 'i'},
 	{"tpm-key", 1, 0, 't'},
 	{"tpm-password", 1, 0, 'p'},
+	{"script", 1, 0, 's'},
 };
 
 int main(int argc, char **argv)
@@ -86,6 +87,9 @@ int main(int argc, char **argv)
 			break;
 
 		switch (opt) {
+		case 's':
+			vpninfo->vpnc_script = optarg;
+			break;
 		case 'p':
 			vpninfo->tpmpass = optarg;
 			break;

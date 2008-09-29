@@ -28,37 +28,21 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <errno.h>
 
 #include "anyconnect.h"
 
-/* Set up a tuntap device. */
-int setup_tun(struct anyconnect_info *vpninfo)
+int local_config_tun(struct anyconnect_info *vpninfo)
 {
 	struct vpn_option *cstp_opt = vpninfo->cstp_options;
 	struct ifreq ifr;
 	struct sockaddr_in *addr;
-	int tun_fd, net_fd;
-	int pfd;
-
-	tun_fd = open("/dev/net/tun", O_RDWR);
-	if (tun_fd < 0) {
-		perror("open tun");
-		exit(1);
-	}
-	memset(&ifr, 0, sizeof(ifr));
-	ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
-	strncpy(ifr.ifr_name, vpninfo->ifname, sizeof(ifr.ifr_name) - 1);
-	if (ioctl(tun_fd, TUNSETIFF, (void *) &ifr) < 0) {
-		perror("TUNSETIFF");
-		exit(1);
-	}
-
-	fcntl(tun_fd, F_SETFD, FD_CLOEXEC);
+	int net_fd;
 
 	net_fd = socket(PF_INET, SOCK_DGRAM, 0);
 	if (net_fd < 0) {
 		perror("open net");
-		goto proceed;
+		return -EINVAL;
 	}
 	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, vpninfo->ifname, sizeof(ifr.ifr_name) - 1);
@@ -90,7 +74,43 @@ int setup_tun(struct anyconnect_info *vpninfo)
 	}
 	close(net_fd);
 
-proceed:
+	return 0;
+}
+
+int script_config_tun(struct anyconnect_info *vpninfo)
+{
+	fprintf(stderr, "FIXME: script config\n");
+	return -EINVAL;
+}
+
+
+/* Set up a tuntap device. */
+int setup_tun(struct anyconnect_info *vpninfo)
+{
+	struct ifreq ifr;
+	int tun_fd;
+	int pfd;
+
+	tun_fd = open("/dev/net/tun", O_RDWR);
+	if (tun_fd < 0) {
+		perror("open tun");
+		exit(1);
+	}
+	memset(&ifr, 0, sizeof(ifr));
+	ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
+	strncpy(ifr.ifr_name, vpninfo->ifname, sizeof(ifr.ifr_name) - 1);
+	if (ioctl(tun_fd, TUNSETIFF, (void *) &ifr) < 0) {
+		perror("TUNSETIFF");
+		exit(1);
+	}
+
+	fcntl(tun_fd, F_SETFD, FD_CLOEXEC);
+
+	if (vpninfo->vpnc_script)
+		script_config_tun(vpninfo);
+	else
+		local_config_tun(vpninfo);
+
 	/* Better still, use lwip and just provide a SOCKS server rather than
 	   telling the kernel about it at all */
 	vpninfo->tun_fd = tun_fd;
