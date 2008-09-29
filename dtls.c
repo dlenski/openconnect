@@ -112,7 +112,7 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 	/* We're going to "resume" a session which never existed. Fake it... */
 	dtls_session = SSL_SESSION_new();
 
-	dtls_session->ssl_version = 0x0100; //DTLS1_BAD_VER;
+	dtls_session->ssl_version = 0x0100; // DTLS1_BAD_VER
 
 	dtls_session->master_key_length = sizeof(vpninfo->dtls_secret);
 	memcpy(dtls_session->master_key, vpninfo->dtls_secret,
@@ -143,6 +143,10 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, int dtls_port)
 	dtls_bio = BIO_new_socket(dtls_fd, BIO_NOCLOSE);
 	SSL_set_bio(dtls_ssl, dtls_bio, dtls_bio);
 
+#ifndef SSL_OP_CISCO_ANYCONNECT
+#define SSL_OP_CISCO_ANYCONNECT 0x8000
+#endif
+	SSL_set_options(dtls_ssl, SSL_OP_CISCO_ANYCONNECT);
 	ret = SSL_do_handshake(dtls_ssl);
 	
 	if (ret != 1) {
