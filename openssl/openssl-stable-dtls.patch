@@ -1,0 +1,179 @@
+Index: ssl/d1_clnt.c
+===================================================================
+RCS file: /home/dwmw2/openssl-cvs/openssl/ssl/d1_clnt.c,v
+retrieving revision 1.3.2.10
+diff -u -p -r1.3.2.10 d1_clnt.c
+--- ssl/d1_clnt.c	4 Jun 2008 18:35:25 -0000	1.3.2.10
++++ ssl/d1_clnt.c	29 Sep 2008 08:27:31 -0000
+@@ -130,7 +130,7 @@ static int dtls1_get_hello_verify(SSL *s
+ 
+ static SSL_METHOD *dtls1_get_client_method(int ver)
+ 	{
+-	if (ver == DTLS1_VERSION)
++	if (ver == DTLS1_VERSION || ver == DTLS1_BAD_VER)
+ 		return(DTLSv1_client_method());
+ 	else
+ 		return(NULL);
+@@ -181,7 +181,8 @@ int dtls1_connect(SSL *s)
+ 			s->server=0;
+ 			if (cb != NULL) cb(s,SSL_CB_HANDSHAKE_START,1);
+ 
+-			if ((s->version & 0xff00 ) != (DTLS1_VERSION & 0xff00))
++			if ((s->version & 0xff00 ) != (DTLS1_VERSION & 0xff00) &&
++			    (s->version & 0xff00 ) != (DTLS1_BAD_VER & 0xff00))
+ 				{
+ 				SSLerr(SSL_F_DTLS1_CONNECT, ERR_R_INTERNAL_ERROR);
+ 				ret = -1;
+Index: ssl/d1_lib.c
+===================================================================
+RCS file: /home/dwmw2/openssl-cvs/openssl/ssl/d1_lib.c,v
+retrieving revision 1.1.2.5
+diff -u -p -r1.1.2.5 d1_lib.c
+--- ssl/d1_lib.c	5 Oct 2007 21:05:27 -0000	1.1.2.5
++++ ssl/d1_lib.c	29 Sep 2008 08:38:49 -0000
+@@ -186,7 +186,10 @@ void dtls1_free(SSL *s)
+ void dtls1_clear(SSL *s)
+ 	{
+ 	ssl3_clear(s);
+-	s->version=DTLS1_VERSION;
++	if (s->options & SSL_OP_CISCO_ANYCONNECT)
++		s->version=DTLS1_BAD_VER;
++	else
++		s->version=DTLS1_VERSION;
+ 	}
+ 
+ /*
+Index: ssl/d1_pkt.c
+===================================================================
+RCS file: /home/dwmw2/openssl-cvs/openssl/ssl/d1_pkt.c,v
+retrieving revision 1.4.2.12
+diff -u -p -r1.4.2.12 d1_pkt.c
+--- ssl/d1_pkt.c	14 Sep 2008 17:57:03 -0000	1.4.2.12
++++ ssl/d1_pkt.c	29 Sep 2008 08:27:31 -0000
+@@ -986,15 +986,17 @@ start:
+ 	if (rr->type == SSL3_RT_CHANGE_CIPHER_SPEC)
+ 		{
+ 		struct ccs_header_st ccs_hdr;
++		int ccs_hdr_len = DTLS1_CCS_HEADER_LENGTH;
+ 
+ 		dtls1_get_ccs_header(rr->data, &ccs_hdr);
+ 
+ 		/* 'Change Cipher Spec' is just a single byte, so we know
+ 		 * exactly what the record payload has to look like */
+ 		/* XDTLS: check that epoch is consistent */
+-		if (	(s->client_version == DTLS1_BAD_VER && rr->length != 3) ||
+-			(s->client_version != DTLS1_BAD_VER && rr->length != DTLS1_CCS_HEADER_LENGTH) || 
+-			(rr->off != 0) || (rr->data[0] != SSL3_MT_CCS))
++		if (s->client_version == DTLS1_BAD_VER || s->version == DTLS1_BAD_VER)
++			ccs_hdr_len = 3;
++
++		if ((rr->length != ccs_hdr_len) || (rr->off != 0) || (rr->data[0] != SSL3_MT_CCS))
+ 			{
+ 			i=SSL_AD_ILLEGAL_PARAMETER;
+ 			SSLerr(SSL_F_DTLS1_READ_BYTES,SSL_R_BAD_CHANGE_CIPHER_SPEC);
+@@ -1310,7 +1312,7 @@ int do_dtls1_write(SSL *s, int type, con
+ #if 0
+ 	/* 'create_empty_fragment' is true only when this function calls itself */
+ 	if (!clear && !create_empty_fragment && !s->s3->empty_fragment_done
+-		&& SSL_version(s) != DTLS1_VERSION)
++	    && SSL_version(s) != DTLS1_VERSION && SSL_version(s) != DTLS1_BAD_VER)
+ 		{
+ 		/* countermeasure against known-IV weakness in CBC ciphersuites
+ 		 * (see http://www.openssl.org/~bodo/tls-cbc.txt) 
+Index: ssl/s3_clnt.c
+===================================================================
+RCS file: /home/dwmw2/openssl-cvs/openssl/ssl/s3_clnt.c,v
+retrieving revision 1.88.2.17
+diff -u -p -r1.88.2.17 s3_clnt.c
+--- ssl/s3_clnt.c	16 Jun 2008 16:56:41 -0000	1.88.2.17
++++ ssl/s3_clnt.c	29 Sep 2008 08:27:31 -0000
+@@ -708,7 +708,7 @@ int ssl3_get_server_hello(SSL *s)
+ 
+ 	if (!ok) return((int)n);
+ 
+-	if ( SSL_version(s) == DTLS1_VERSION)
++	if ( SSL_version(s) == DTLS1_VERSION || SSL_version(s) == DTLS1_BAD_VER)
+ 		{
+ 		if ( s->s3->tmp.message_type == DTLS1_MT_HELLO_VERIFY_REQUEST)
+ 			{
+Index: ssl/ssl.h
+===================================================================
+RCS file: /home/dwmw2/openssl-cvs/openssl/ssl/ssl.h,v
+retrieving revision 1.161.2.21
+diff -u -p -r1.161.2.21 ssl.h
+--- ssl/ssl.h	13 Aug 2008 19:44:44 -0000	1.161.2.21
++++ ssl/ssl.h	29 Sep 2008 08:39:24 -0000
+@@ -510,6 +510,8 @@ typedef struct ssl_session_st
+ #define SSL_OP_COOKIE_EXCHANGE              0x00002000L
+ /* Don't use RFC4507 ticket extension */
+ #define SSL_OP_NO_TICKET	            0x00004000L
++/* Use Cisco's "speshul" version of DTLS1_BAD_VER (as client)  */
++#define SSL_OP_CISCO_ANYCONNECT		    0x00008000L
+ 
+ /* As server, disallow session resumption on renegotiation */
+ #define SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION	0x00010000L
+Index: ssl/ssl_lib.c
+===================================================================
+RCS file: /home/dwmw2/openssl-cvs/openssl/ssl/ssl_lib.c,v
+retrieving revision 1.133.2.15
+diff -u -p -r1.133.2.15 ssl_lib.c
+--- ssl/ssl_lib.c	16 Jun 2008 16:56:42 -0000	1.133.2.15
++++ ssl/ssl_lib.c	29 Sep 2008 08:37:16 -0000
+@@ -993,7 +993,8 @@ long SSL_ctrl(SSL *s,int cmd,long larg,v
+ 		s->max_cert_list=larg;
+ 		return(l);
+ 	case SSL_CTRL_SET_MTU:
+-		if (SSL_version(s) == DTLS1_VERSION)
++		if (SSL_version(s) == DTLS1_VERSION ||
++		    SSL_version(s) == DTLS1_BAD_VER)
+ 			{
+ 			s->d1->mtu = larg;
+ 			return larg;
+Index: ssl/ssl_sess.c
+===================================================================
+RCS file: /home/dwmw2/openssl-cvs/openssl/ssl/ssl_sess.c,v
+retrieving revision 1.51.2.9
+diff -u -p -r1.51.2.9 ssl_sess.c
+--- ssl/ssl_sess.c	4 Jun 2008 18:35:27 -0000	1.51.2.9
++++ ssl/ssl_sess.c	29 Sep 2008 08:27:31 -0000
+@@ -211,6 +211,11 @@ int ssl_get_new_session(SSL *s, int sess
+ 			ss->ssl_version=TLS1_VERSION;
+ 			ss->session_id_length=SSL3_SSL_SESSION_ID_LENGTH;
+ 			}
++		else if (s->version == DTLS1_BAD_VER)
++			{
++			ss->ssl_version=DTLS1_BAD_VER;
++			ss->session_id_length=SSL3_SSL_SESSION_ID_LENGTH;
++			}
+ 		else if (s->version == DTLS1_VERSION)
+ 			{
+ 			ss->ssl_version=DTLS1_VERSION;
+Index: ssl/t1_enc.c
+===================================================================
+RCS file: /home/dwmw2/openssl-cvs/openssl/ssl/t1_enc.c,v
+retrieving revision 1.35.2.6
+diff -u -p -r1.35.2.6 t1_enc.c
+--- ssl/t1_enc.c	13 Sep 2008 18:25:36 -0000	1.35.2.6
++++ ssl/t1_enc.c	29 Sep 2008 08:35:54 -0000
+@@ -757,10 +757,10 @@ int tls1_mac(SSL *ssl, unsigned char *md
+ 	HMAC_CTX_init(&hmac);
+ 	HMAC_Init_ex(&hmac,mac_sec,EVP_MD_size(hash),hash,NULL);
+ 
+-	if (ssl->version == DTLS1_VERSION && ssl->client_version != DTLS1_BAD_VER)
++	if (ssl->version == DTLS1_BAD_VER ||
++	    (ssl->version == DTLS1_VERSION && ssl->client_version != DTLS1_BAD_VER))
+ 		{
+ 		unsigned char dtlsseq[8],*p=dtlsseq;
+-
+ 		s2n(send?ssl->d1->w_epoch:ssl->d1->r_epoch, p);
+ 		memcpy (p,&seq[2],6);
+ 
+@@ -785,7 +785,7 @@ printf("rec=");
+ {unsigned int z; for (z=0; z<rec->length; z++) printf("%02X ",buf[z]); printf("\n"); }
+ #endif
+ 
+-	if ( SSL_version(ssl) != DTLS1_VERSION)
++	if ( SSL_version(ssl) != DTLS1_VERSION && SSL_version(ssl) != DTLS1_BAD_VER)
+ 		{
+ 		for (i=7; i>=0; i--)
+ 			{
