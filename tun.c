@@ -107,11 +107,10 @@ static int script_config_tun(struct anyconnect_info *vpninfo)
 	setenv("VPNGATEWAY", inet_ntoa(sin->sin_addr), 1);
 	setenv("TUNDEV", vpninfo->ifname, 1);
 	setenv("reason", "connect", 1);
-	unsetenv("MTU"); /* FIXME: vpnc-script doesn't handle this by default */
 	unsetenv("CISCO_BANNER");
 	unsetenv("CISCO_SPLIT_INC");
 
-	setenv_int("MTU", vpninfo->mtu);
+	setenv_int("INTERNAL_IP4_MTU", vpninfo->mtu);
 
 	setenv("INTERNAL_IP4_ADDRESS", vpninfo->vpn_addr, 1);
 	setenv("INTERNAL_IP4_NETMASK", vpninfo->vpn_netmask, 1);
