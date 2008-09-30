@@ -16,8 +16,10 @@ CFLAGS += -I/usr/include/openssl $(M32)
 LDFLAGS += -lssl $(M32)
 endif
 
+CFLAGS += $(shell xml2-config --cflags) 
+LDFLAGS += $(shell xml2-config --libs)
 
-OBJECTS := main.o tun.o dtls.o ssl.o mainloop.o
+OBJECTS := main.o tun.o dtls.o ssl.o mainloop.o xml.o
 
 anyconnect: $(OBJECTS)
 	$(CC) -o $@ $(LDFLAGS) $^

@@ -53,6 +53,7 @@ static struct option long_options[] = {
 	{"verbose", 1, 0, 'v'},
 	{"cafile", 1, 0, '0'},
 	{"no-dtls", 0, 0, '1'},
+	{"xmlconfig", 1, 0, 'x'},
 };
 
 void usage(void)
@@ -72,6 +73,7 @@ void usage(void)
 	printf("  -t, --tpm                       Use TPM engine for private key\n");
 	printf("  -u, --useragent=AGENT           Set HTTP User-Agent AGENT\n");
 	printf("  -v, --verbose                   More output\n");
+	printf("  -x, --xmlconfig=CONFIG          XML config file\n");
 	printf("      --cafile=FILE               Cert file for server verification\n");
 	printf("      --no-dtls                   Disable DTLS\n");
 	exit(1);
@@ -109,7 +111,7 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "C:c:hvdDu:i:tk:p:s:h",
+	while ((opt = getopt_long(argc, argv, "C:c:hvdDu:i:tk:p:s:hx:",
 				  long_options, NULL))) {
 		if (opt < 0)
 			break;
@@ -163,6 +165,9 @@ int main(int argc, char **argv)
 		case 'v':
 			verbose = 1;
 			break;
+		case 'x':
+			vpninfo->xmlconfig = optarg;
+			break;
 		default:
 			usage();
 		}
@@ -175,8 +180,8 @@ int main(int argc, char **argv)
 	if (!vpninfo->sslkey)
 		vpninfo->sslkey = vpninfo->cert;
 
-	vpninfo->hostname = argv[optind];
-	/* FIXME: Allow lookup in XML config file, once we fetch that */
+	if (config_lookup_host(vpninfo, argv[optind]))
+		exit(1);
 
 	if (vpninfo->deflate) {
 		if (inflateInit2(&vpninfo->inflate_strm, -12) ||

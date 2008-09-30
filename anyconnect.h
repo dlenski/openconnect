@@ -44,6 +44,8 @@ struct anyconnect_info {
 	int tpm;
 	char *tpmpass;
 	const char *cafile;
+	const char *xmlconfig;
+	char xmlsha1[(SHA_DIGEST_LENGTH * 2) + 1];
 
 	const char *cookie;
 	struct vpn_option *cstp_options;
@@ -146,3 +148,6 @@ static inline int obtain_cookie_login(struct anyconnect_info *vpninfo)
 	fprintf(stderr, "No login code yet. Hassle Marcel.\n");
 	return -1;
 }
+
+/* xml.c */
+int config_lookup_host(struct anyconnect_info *vpninfo, const char *host);
