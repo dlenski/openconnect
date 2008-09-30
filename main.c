@@ -50,16 +50,17 @@ static struct option long_options[] = {
 	{"tpm-password", 1, 0, 'p'},
 	{"useragent", 1, 0, 'u'},
 	{"verbose", 1, 0, 'v'},
+	{"cafile", 1, 0, '0'},
 };
 
 void usage(void)
 {
 	printf("Usage:  anyconnect [options] <server>\n");
 	printf("Connect to Cisco AnyConnect server.\n\n");
-	printf("  -C, --cookie=COOKIE             Use WebVPN cookie COOKIE\n");
-	printf("  -D, --no-deflate                Disable compression\n");
 	printf("  -c, --certificate=CERT          Use SSL client certificate CERT\n");
+	printf("  -C, --cookie=COOKIE             Use WebVPN cookie COOKIE\n");
 	printf("  -d, --deflate                   Enable compression (default)\n");
+	printf("  -D, --no-deflate                Disable compression\n");
 	printf("  -h, --help                      Display help text\n");
 	printf("  -i, --interface=IFNAME          Use IFNAME for tunnel interface\n");
 	printf("  -m, --mtu=MTU                   Request MTU from server\n");
@@ -68,6 +69,7 @@ void usage(void)
 	printf("  -t, --tpm-key=KEY               Use KEY as private key, with TPM\n");
 	printf("  -u, --useragent=AGENT           Set HTTP User-Agent AGENT\n");
 	printf("  -v, --verbose                   More output\n");
+	printf("      --cafile=FILE               Cert file for server verification\n");
 	exit(1);
 }
 
@@ -106,6 +108,9 @@ int main(int argc, char **argv)
 			break;
 
 		switch (opt) {
+		case '0':
+			vpninfo->cafile = optarg;
+			break;
 		case 'C':
 			vpninfo->cookie = optarg;
 			break;
