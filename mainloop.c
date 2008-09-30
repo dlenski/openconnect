@@ -78,6 +78,8 @@ int vpn_mainloop(struct anyconnect_info *vpninfo)
 	sa.sa_handler = handle_sigint;
 	
 	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGHUP, &sa, NULL);
+
 	while (!killed && !vpninfo->quit_reason) {
 		int did_work = 0;
 		int timeout = INT_MAX;
