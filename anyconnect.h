@@ -73,12 +73,17 @@ struct anyconnect_info {
 	unsigned char dtls_secret[48];
 
 	char *vpnc_script;
-	int mtu;
 	char *ifname;
+
+	int mtu;
+	const char *vpn_addr;
+	const char *vpn_netmask;
+	const char *vpn_dns[3];
+	const char *vpn_nbns[3];
+	const char *vpn_domain;
 
 	struct pollfd *pfds;
 	int nfds;
-
 	int tun_fd;
 	int ssl_fd;
 	int dtls_fd;

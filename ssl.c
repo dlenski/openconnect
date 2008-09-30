@@ -373,7 +373,9 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 	if (vpninfo->deflate)
 		my_SSL_printf(vpninfo->https_ssl, "X-CSTP-Accept-Encoding: deflate;q=1.0\r\n");
 	my_SSL_printf(vpninfo->https_ssl, "X-CSTP-MTU: %d\r\n", vpninfo->mtu);
-	my_SSL_printf(vpninfo->https_ssl, "X-CSTP-Address-Type: IPv6,IPv4\r\n");
+	/* To enable IPv6, send 'IPv6,IPv4'.
+	   We don't know how most of that works yet though. */
+	my_SSL_printf(vpninfo->https_ssl, "X-CSTP-Address-Type: IPv4\r\n");
 	my_SSL_printf(vpninfo->https_ssl, "X-DTLS-Master-Secret: ");
 	for (i = 0; i < sizeof(vpninfo->dtls_secret); i++)
 		my_SSL_printf(vpninfo->https_ssl, "%02X", vpninfo->dtls_secret[i]);
@@ -447,9 +449,39 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 					colon);
 				return -EINVAL;
 			}
+		} else if (!strcmp(buf + 7, "MTU")) {
+			vpninfo->mtu = atol(colon);
+		} else if (!strcmp(buf + 7, "Address")) {
+			vpninfo->vpn_addr = new_option->value;
+		} else if (!strcmp(buf + 7, "Netmask")) {
+			vpninfo->vpn_netmask = new_option->value;
+		} else if (!strcmp(buf + 7, "DNS")) {
+			int j;
+			for (j = 0; j < 3; j++) {
+				if (!vpninfo->vpn_dns[j]) {
+					vpninfo->vpn_dns[j] = new_option->value;
+					break;
+				}
+			}
+		} else if (!strcmp(buf + 7, "NBNS")) {
+			int j;
+			for (j = 0; j < 3; j++) {
+				if (!vpninfo->vpn_nbns[j]) {
+					vpninfo->vpn_nbns[j] = new_option->value;
+					break;
+				}
+			}
+		} else if (!strcmp(buf + 7, "Default-Domain")) {
+			vpninfo->vpn_domain = new_option->value;
 		}
 	}
 
+	if (!vpninfo->vpn_addr) {
+		fprintf(stderr, "No IP address received. Aborting\n");
+		return -EINVAL;
+	}
+	if (!vpninfo->vpn_netmask)
+		vpninfo->vpn_netmask = "255.255.255.255";
 	if (verbose)
 		printf("SSL connected. DPD %d, Keepalive %d\n",
 		       vpninfo->ssl_dpd, vpninfo->ssl_keepalive);

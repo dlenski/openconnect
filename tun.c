@@ -32,11 +32,9 @@
 
 #include "anyconnect.h"
 
-int local_config_tun(struct anyconnect_info *vpninfo)
+static int local_config_tun(struct anyconnect_info *vpninfo, int mtu_only)
 {
-	struct vpn_option *cstp_opt = vpninfo->cstp_options;
 	struct ifreq ifr;
-	struct sockaddr_in *addr;
 	int net_fd;
 
 	net_fd = socket(PF_INET, SOCK_DGRAM, 0);
@@ -46,38 +44,44 @@ int local_config_tun(struct anyconnect_info *vpninfo)
 	}
 	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, vpninfo->ifname, sizeof(ifr.ifr_name) - 1);
-	if (ioctl(net_fd, SIOCGIFFLAGS, &ifr) < 0)
-		perror("SIOCGIFFLAGS");
-	ifr.ifr_flags |= IFF_UP;
-	if (ioctl(net_fd, SIOCSIFFLAGS, &ifr) < 0)
-		perror("SIOCSIFFLAGS");
 
-	addr = (struct sockaddr_in *) &ifr.ifr_addr;
-	while (cstp_opt) {
-		printf("CSTP option %s : %s\n", cstp_opt->option, cstp_opt->value);
-		if (!strcmp(cstp_opt->option, "X-CSTP-Address")) {
-			addr->sin_family = AF_INET;
-			addr->sin_addr.s_addr = inet_addr(cstp_opt->value);
-			if (ioctl(net_fd, SIOCSIFADDR, &ifr) < 0)
-				perror("SIOCSIFADDR");
-		} else if (!strcmp(cstp_opt->option, "X-CSTP-Netmask")) {
-			addr->sin_family = AF_INET;
-			addr->sin_addr.s_addr = inet_addr(cstp_opt->value);
-			if (ioctl(net_fd, SIOCSIFNETMASK, &ifr) < 0)
-				perror("SIOCSIFNETMASK");
-		} else if (!strcmp(cstp_opt->option, "X-CSTP-MTU")) {
-			ifr.ifr_mtu = atol(cstp_opt->value);
-			if (ioctl(net_fd, SIOCSIFMTU, &ifr) < 0)
-				perror("SIOCSIFMTU");
-		}
-		cstp_opt = cstp_opt->next;
+	if (!mtu_only) {
+		struct sockaddr_in *addr = (struct sockaddr_in *) &ifr.ifr_addr;
+
+		if (ioctl(net_fd, SIOCGIFFLAGS, &ifr) < 0)
+			perror("SIOCGIFFLAGS");
+
+		ifr.ifr_flags |= IFF_UP;
+		if (ioctl(net_fd, SIOCSIFFLAGS, &ifr) < 0)
+			perror("SIOCSIFFLAGS");
+
+		addr->sin_family = AF_INET;
+		addr->sin_addr.s_addr = inet_addr(vpninfo->vpn_addr);
+		if (ioctl(net_fd, SIOCSIFADDR, &ifr) < 0)
+			perror("SIOCSIFADDR");
+
+		addr->sin_addr.s_addr = inet_addr(vpninfo->vpn_netmask);
+		if (ioctl(net_fd, SIOCSIFNETMASK, &ifr) < 0)
+			perror("SIOCSIFNETMASK");
 	}
+
+	ifr.ifr_mtu = vpninfo->mtu;
+	if (ioctl(net_fd, SIOCSIFMTU, &ifr) < 0)
+		perror("SIOCSIFMTU");
+
 	close(net_fd);
 
 	return 0;
 }
 
-int appendenv(const char *opt, const char *new)
+static int setenv_int(const char *opt, int value)
+{
+	char buf[16];
+	sprintf(buf, "%d", value);
+	return setenv(opt, buf, 1);
+}
+
+static int appendenv(const char *opt, const char *new)
 {
 	char buf[1024];
 	char *old = getenv(opt);
@@ -91,44 +95,49 @@ int appendenv(const char *opt, const char *new)
 	return setenv(opt, buf, 1);
 }
 
-int script_config_tun(struct anyconnect_info *vpninfo)
+static int script_config_tun(struct anyconnect_info *vpninfo)
 {
-	struct vpn_option *cstp_opt = vpninfo->cstp_options;
 	struct sockaddr_in *sin = (void *)vpninfo->peer_addr;
 
 	if (vpninfo->peer_addr->sa_family != AF_INET) {
 		fprintf(stderr, "Script cannot handle anything but Legacy IP\n");
 		return -EINVAL;
 	}
-	
+
 	setenv("VPNGATEWAY", inet_ntoa(sin->sin_addr), 1);
 	setenv("TUNDEV", vpninfo->ifname, 1);
 	setenv("reason", "connect", 1);
 	unsetenv("MTU"); /* FIXME: vpnc-script doesn't handle this by default */
-        unsetenv("CISCO_BANNER");
-        unsetenv("CISCO_DEF_DOMAIN");
-        unsetenv("CISCO_SPLIT_INC");
-        unsetenv("INTERNAL_IP4_NBNS");
-        unsetenv("INTERNAL_IP4_DNS");
-        unsetenv("INTERNAL_IP4_NETMASK");
-        unsetenv("INTERNAL_IP4_ADDRESS");
+	unsetenv("CISCO_BANNER");
+	unsetenv("CISCO_SPLIT_INC");
 
-	while (cstp_opt) {
-		printf("CSTP option %s : %s\n", cstp_opt->option, cstp_opt->value);
-		if (!strcmp(cstp_opt->option, "X-CSTP-MTU"))
-			setenv("MTU", cstp_opt->value, 1);
-		else if (!strcmp(cstp_opt->option, "X-CSTP-Address"))
-			setenv("INTERNAL_IP4_ADDRESS", cstp_opt->value, 1);
-		else if (!strcmp(cstp_opt->option, "X-CSTP-Netmask"))
-			setenv("INTERNAL_IP4_NETMASK", cstp_opt->value, 1);
-		else if (!strcmp(cstp_opt->option, "X-CSTP-DNS"))
-			appendenv("INTERNAL_IP4_DNS", cstp_opt->value);
-		else if (!strcmp(cstp_opt->option, "X-CSTP-NBNS"))
-			appendenv("INTERNAL_IP4_NBNS", cstp_opt->value);
+	setenv_int("MTU", vpninfo->mtu);
 
-		cstp_opt = cstp_opt->next;
-	}
-		
+	setenv("INTERNAL_IP4_ADDRESS", vpninfo->vpn_addr, 1);
+	setenv("INTERNAL_IP4_NETMASK", vpninfo->vpn_netmask, 1);
+	
+	if (vpninfo->vpn_dns[0])
+		setenv("INTERNAL_IP4_DNS", vpninfo->vpn_dns[0], 1);
+	else
+		unsetenv("INTERNAL_IP4_DNS");
+	if (vpninfo->vpn_dns[1])
+		appendenv("INTERNAL_IP4_DNS", vpninfo->vpn_dns[1]);
+	if (vpninfo->vpn_dns[2])
+		appendenv("INTERNAL_IP4_DNS", vpninfo->vpn_dns[2]);
+
+	if (vpninfo->vpn_nbns[0])
+		setenv("INTERNAL_IP4_NBNS", vpninfo->vpn_nbns[0], 1);
+	else
+		unsetenv("INTERNAL_IP4_NBNS");
+	if (vpninfo->vpn_nbns[1])
+		appendenv("INTERNAL_IP4_NBNS", vpninfo->vpn_nbns[1]);
+	if (vpninfo->vpn_nbns[2])
+		appendenv("INTERNAL_IP4_NBNS", vpninfo->vpn_nbns[2]);
+
+	if (vpninfo->vpn_domain)
+		setenv("CISCO_DEF_DOMAIN", vpninfo->vpn_domain, 1);
+	else unsetenv ("CISCO_DEF_DOMAIN");
+
 	system(vpninfo->vpnc_script);
 	return 0;
 }
@@ -156,10 +165,12 @@ int setup_tun(struct anyconnect_info *vpninfo)
 
 	fcntl(tun_fd, F_SETFD, FD_CLOEXEC);
 
-	if (vpninfo->vpnc_script)
+	if (vpninfo->vpnc_script) {
 		script_config_tun(vpninfo);
-	else
-		local_config_tun(vpninfo);
+		/* We have to set the MTU for ourselves, because the script doesn't */
+		local_config_tun(vpninfo, 1);
+	} else
+		local_config_tun(vpninfo, 0);
 
 	/* Better still, use lwip and just provide a SOCKS server rather than
 	   telling the kernel about it at all */
