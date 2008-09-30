@@ -16,10 +16,10 @@ CFLAGS += -I/usr/include/openssl $(M32)
 LDFLAGS += -lssl $(M32)
 endif
 
-CFLAGS += $(shell xml2-config --cflags) 
-LDFLAGS += $(shell xml2-config --libs)
+CFLAGS += $(shell neon-config --cflags) 
+LDFLAGS += $(shell neon-config --libs)
 
-OBJECTS := main.o tun.o dtls.o ssl.o mainloop.o xml.o
+OBJECTS := main.o tun.o dtls.o ssl.o mainloop.o ne_xml.o
 
 all: anyconnect getwebvpn
 

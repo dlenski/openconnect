@@ -37,6 +37,9 @@ struct vpn_option {
 };
 
 struct anyconnect_info {
+	const char *hostarg;
+	int host_matched;
+
 	const char *localname;
 	const char *hostname;
 	const char *cert;

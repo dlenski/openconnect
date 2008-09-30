@@ -9,4 +9,5 @@ Connectivity:
 
 VPN issues:
  - Automatic Configuration update
-
+ - Continuously attempt DTLS connection, asynchronously.
+ - Reconnect SSL connection if it dies, using same cookie.
