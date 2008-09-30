@@ -108,6 +108,9 @@ int vpn_mainloop(struct anyconnect_info *vpninfo)
 			break;
 		}
 
+		if (did_work)
+			continue;
+
 		if (verbose)
 			printf("Did no work; sleeping for %d ms...\n", timeout);
 
