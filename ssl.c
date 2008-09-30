@@ -245,9 +245,10 @@ static int open_https(struct anyconnect_info *vpninfo)
 	if (vpninfo->cert)
 		load_certificate(vpninfo, https_ctx);
 
-	if (vpninfo->cafile)
+	if (vpninfo->cafile) {
 		SSL_CTX_load_verify_locations(https_ctx, vpninfo->cafile, NULL);
-				      
+		SSL_CTX_set_default_verify_paths(https_ctx);
+	}
 	https_ssl = SSL_new(https_ctx);
 
 	https_bio = BIO_new_socket(ssl_sock, BIO_NOCLOSE);
@@ -267,7 +268,8 @@ static int open_https(struct anyconnect_info *vpninfo)
 
 		/* FIXME: Show cert details, allow user to accept (and store?) */
 		if (vfy != X509_V_OK) {
-			fprintf(stderr, "Server certificate verify failed: %d\n", vfy);
+			fprintf(stderr, "Server certificate verify failed: %s\n",
+				X509_verify_cert_error_string(vfy));
 			SSL_free(https_ssl);
 			SSL_CTX_free(https_ctx);
 			close(ssl_sock);
