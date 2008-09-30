@@ -318,6 +318,8 @@ int obtain_cookie_cert(struct anyconnect_info *vpninfo)
 		exit(1);
 	}
 
+	/* FIXME: We need to handle redirects to a different server */
+
 	if (strncmp(buf, "HTTP/1.1 200 ", 13)) {
 		fprintf(stderr, "Got inappropriate HTTP response: %s\n", buf);
 		exit(1);
