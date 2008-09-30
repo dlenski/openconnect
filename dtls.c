@@ -249,17 +249,17 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 
 int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 {
-	char buf[2000];
+	unsigned char buf[2000];
 	int len;
 	int work_done = 0;
 
 	while ( (len = SSL_read(vpninfo->dtls_ssl, buf, sizeof(buf))) > 0 ) {
-		if (verbose) {
-			printf("Received DTLS packet of %d bytes\n", len);
-			printf("Packet starts %02x %02x %02x %02x %02x %02x %02x %02x\n",
-			       buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
-		}
+		if (verbose)
+			printf("Received DTLS packet 0x%02x of %d bytes\n",
+			       len, buf[0]);
+
 		vpninfo->last_dtls_rx = time(NULL);
+
 		switch(buf[0]) {
 		case 0:
 			queue_new_packet(&vpninfo->incoming_queue, AF_INET, buf+1, len-1);

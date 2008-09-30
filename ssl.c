@@ -436,6 +436,9 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 		*next_cstp_option = new_option;
 		next_cstp_option = &new_option->next;
 
+		if (verbose)
+			printf("DTLS option %s : %s\n", buf, colon);
+
 		if (!strcmp(buf + 7, "Keepalive")) {
 			vpninfo->ssl_keepalive = atol(colon);
 		} else if (!strcmp(buf + 7, "DPD")) {

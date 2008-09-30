@@ -187,7 +187,9 @@ int main(int argc, char **argv)
 	if (setup_dtls(vpninfo))
 		fprintf(stderr, "Set up DTLS failed; using SSL instead\n");
 
-	printf("Connected\n");
+	printf("Connected as %s, using %s\n", vpninfo->vpn_addr,
+	       (vpninfo->dtls_fd==-1)?"SSL":"DTLS");
+
 	vpn_mainloop(vpninfo);
 	exit(1);
 }
