@@ -61,6 +61,7 @@ struct anyconnect_info {
 	z_stream deflate_strm;
 	uint32_t deflate_adler32;
 
+	int trydtls;
 	SSL_CTX *dtls_ctx;
 	SSL *dtls_ssl;
 	int dtls_keepalive;

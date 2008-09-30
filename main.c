@@ -51,6 +51,7 @@ static struct option long_options[] = {
 	{"useragent", 1, 0, 'u'},
 	{"verbose", 1, 0, 'v'},
 	{"cafile", 1, 0, '0'},
+	{"no-dtls", 0, 0, '1'},
 };
 
 void usage(void)
@@ -70,6 +71,7 @@ void usage(void)
 	printf("  -u, --useragent=AGENT           Set HTTP User-Agent AGENT\n");
 	printf("  -v, --verbose                   More output\n");
 	printf("      --cafile=FILE               Cert file for server verification\n");
+	printf("      --no-dtls                   Disable DTLS\n");
 	exit(1);
 }
 
@@ -93,6 +95,9 @@ int main(int argc, char **argv)
 	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = -1;
 	vpninfo->useragent = "Open AnyConnect VPN Agent v0.01";
 	vpninfo->mtu = 1406;
+	vpninfo->deflate = 1;
+	vpninfo->trydtls = 1;
+
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
 		fprintf(stderr, "Failed to initialise DTLS secret\n");
 		exit(1);
@@ -110,6 +115,9 @@ int main(int argc, char **argv)
 		switch (opt) {
 		case '0':
 			vpninfo->cafile = optarg;
+			break;
+		case '1':
+			vpninfo->trydtls = 0;
 			break;
 		case 'C':
 			vpninfo->cookie = optarg;
@@ -189,11 +197,11 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	if (setup_dtls(vpninfo))
+	if (vpninfo->trydtls && setup_dtls(vpninfo))
 		fprintf(stderr, "Set up DTLS failed; using SSL instead\n");
 
 	printf("Connected as %s, using %s\n", vpninfo->vpn_addr,
-	       (vpninfo->dtls_fd==-1)?"SSL":"DTLS");
+	       (vpninfo->dtls_fd==-1)?(vpninfo->deflate?"SSL + deflate":"SSL"):"DTLS");
 
 	vpn_mainloop(vpninfo);
 	exit(1);
