@@ -68,7 +68,7 @@ static int killed;
 
 static void handle_sigint(int sig)
 {
-	killed = 1;
+	killed = sig;
 }
 
 int vpn_mainloop(struct anyconnect_info *vpninfo)
@@ -80,19 +80,34 @@ int vpn_mainloop(struct anyconnect_info *vpninfo)
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGHUP, &sa, NULL);
 
-	while (!killed && !vpninfo->quit_reason) {
+	while (!vpninfo->quit_reason) {
 		int did_work = 0;
 		int timeout = INT_MAX;
 
 		if (vpninfo->dtls_fd != -1)
 			did_work += dtls_mainloop(vpninfo, &timeout);
 
+		if (vpninfo->quit_reason)
+			break;
+
 		did_work += ssl_mainloop(vpninfo, &timeout);
+		if (vpninfo->quit_reason)
+			break;
+		
 		did_work += tun_mainloop(vpninfo, &timeout);
-		
-		if (did_work)
-			continue;
-		
+		if (vpninfo->quit_reason)
+			break;
+
+		if (killed) {
+			if (killed == SIGHUP)
+				vpninfo->quit_reason = "Client received SIGHUP";
+			else if (killed == SIGINT)
+				vpninfo->quit_reason = "Client received SIGINT";
+			else
+				vpninfo->quit_reason = "Client killed";
+			break;
+		}
+
 		if (verbose)
 			printf("Did no work; sleeping for %d ms...\n", timeout);
 
@@ -103,10 +118,9 @@ int vpn_mainloop(struct anyconnect_info *vpninfo)
 			exit(1);
 		}
 	}
-	if (!vpninfo->quit_reason)
-		vpninfo->quit_reason = "Client received SIGINT";
 
 	ssl_bye(vpninfo, vpninfo->quit_reason);
+	printf("Sent quit message: %s\n", vpninfo->quit_reason);
 
 	if (vpninfo->vpnc_script) {
 		setenv("TUNDEV", vpninfo->ifname, 1);

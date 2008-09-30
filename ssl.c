@@ -647,8 +647,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		case 9:
 			fprintf(stderr, "received server terminate packet\n");
 			vpninfo->quit_reason = "Server request";
-			/* Do not pass Go. Do not collect £200 */
-			exit(1);
+			return 1;
 		}
 
 	unknown_pkt:
