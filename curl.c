@@ -7,6 +7,9 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
+#define _GNU_SOURCE
+#include <getopt.h>
+
 /* When certificate doesn't work, we get this...
 
 HTTP/1.1 200 OK
@@ -104,13 +107,16 @@ X-Transcend-Version: 1
 
 */
 
-int verbose = 1;
+static int verbose = 0;
+static int dump = 0;
+
 struct response_buf {
 	size_t size;
 	char *buf;
 };
 
-size_t curl_write_cb(void *ptr, size_t size, size_t nmemb, struct response_buf *resp)
+static size_t curl_write_cb(void *ptr, size_t size, size_t nmemb,
+						struct response_buf *resp)
 {
 	size_t this_size = (size * nmemb);
 
@@ -119,55 +125,195 @@ size_t curl_write_cb(void *ptr, size_t size, size_t nmemb, struct response_buf *
 	resp->size += this_size;
 	resp->buf[resp->size] = 0;
 
-       	return this_size;
+	return this_size;
 }
 
-static void
-print_element_names(xmlNode * a_node, int depth)
+static int get_cookie(CURL *curl)
 {
-    xmlNode *cur_node = NULL;
+	struct curl_slist *cookies, *thiscookie;
 
-    for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
-        if (cur_node->type == XML_ELEMENT_NODE) {
-		char *prop;
-		printf("depth: %d, node type: Element, name: %s\n", depth, cur_node->name);
-		prop = xmlGetProp(cur_node, "id");
-		if (prop)
-			printf("id = %s\n", prop);
-        }
+	/* Double-check that we have a webvpn cookie */
+	curl_easy_getinfo(curl, CURLINFO_COOKIELIST, &cookies);
 
-	print_element_names(cur_node->children, depth + 1);
-    }
+	for (thiscookie = cookies; thiscookie; thiscookie = thiscookie->next) {
+		char *field = thiscookie->data;
+
+		if (!(field = strchr(field, '\t')) ||
+				!(field = strchr(field + 1, '\t')) ||
+				!(field = strchr(field + 1, '\t')) ||
+				!(field = strchr(field + 1, '\t')) ||
+				!(field = strchr(field + 1, '\t')) ||
+					strncmp(field + 1, "webvpn\t", 7))
+			continue;
+
+		field += 8;
+		if (!strlen(field)) {
+			fprintf(stderr, "Cookie field is empty\n");
+			return -EINVAL;
+		}
+
+		printf("WebVPN cookie is %s\n", field);
+		//cookie = strdup(field);
+	}
+
+	curl_slist_free_all(cookies);
+
+	return 0;
 }
 
+static int parse_response(CURL *curl, char *hostname,
+					char *username, char *password,
+						struct response_buf *resp);
 
+static int parse_form(CURL *curl, xmlNode *xml_node, char *hostname,
+				char *action, char *username, char *password)
+{
+	struct response_buf resp = { 0, NULL };
+	char curl_err[CURL_ERROR_SIZE];
+	char url_buf[1024], post_buf[1024];
+	long respcode;
 
-int connect_ssl(char *hostname, char *cert)
+	printf("Hostname %s%s, username %s\n", hostname, action, username);
+
+	memset(url_buf, 0, sizeof(url_buf));
+	snprintf(url_buf, sizeof(url_buf) - 1, "https://%s%s",
+							hostname, action);
+
+	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
+		if (xml_node->type != XML_ELEMENT_NODE)
+			continue;
+
+		if (!strcmp(xml_node->name, "input") ||
+					!strcmp(xml_node->name, "select")) {
+			char *name, *label;
+			name = xmlGetProp(xml_node, "name");
+			label = xmlGetProp(xml_node, "label");
+			if (verbose)
+				printf("%s %s\n", name, label);
+		}
+	}
+
+	memset(post_buf, 0, sizeof(post_buf));
+	snprintf(post_buf, sizeof(post_buf) - 1,
+			"group_list=Layer3_ACE&username=%s&password=%s",
+							username, password);
+
+	curl_easy_setopt(curl, CURLOPT_URL, url_buf);
+	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_err);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &resp);
+
+	curl_easy_setopt(curl, CURLOPT_POST, 1);
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_buf);
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(post_buf));
+
+	if (curl_easy_perform(curl)) {
+		fprintf(stderr, "Curl error: %s\n", curl_err);
+		return -EINVAL;
+	}
+
+	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &respcode);
+
+	if (respcode != 200) {
+		fprintf(stderr, "Curl fetch failed, response code %d\n",
+								respcode);
+		if (verbose) {
+			fprintf(stderr, "Response was:\n");
+			fprintf(stderr, resp.buf);
+		}
+		return -EINVAL;
+	}
+
+	if (dump)
+		printf("%s\n", resp.buf);
+
+	if (parse_response(curl, hostname, username, password, &resp) < 0)
+		return -EINVAL;
+
+	free(resp.buf);
+
+	return 0;
+}
+
+static int parse_response(CURL *curl, char *hostname,
+					char *username, char *password,
+						struct response_buf *resp)
+{
+	xmlDocPtr xml_doc;
+	xmlNode *xml_node;
+	char *page;
+
+	xml_doc = xmlReadMemory(resp->buf, resp->size, "noname.xml", NULL, 0);
+
+	if (!xml_doc) {
+		fprintf(stderr, "Failed to parse XML response\n");
+		if (verbose) {
+			fprintf(stderr, "Response was:\n");
+			fprintf(stderr, resp->buf);
+		}
+		return -EINVAL;
+	}
+
+	xml_node = xmlDocGetRootElement(xml_doc);
+	if (xml_node->type != XML_ELEMENT_NODE ||
+					strcmp(xml_node->name, "auth")) {
+		fprintf(stderr, "XML response has no \"auth\" root node\n");
+		xmlFreeDoc(xml_doc);
+		return -EINVAL;
+	}
+
+	page = xmlGetProp(xml_node, "id");
+	if (verbose)
+		printf("Page is %s\n", page);
+
+	if (!strcmp(page, "success"))
+		return 0;
+
+	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
+		if (xml_node->type != XML_ELEMENT_NODE)
+			continue;
+
+		if (!strcmp(xml_node->name, "message"))
+			printf("%s\n", xmlNodeGetContent(xml_node));
+		else if (!strcmp(xml_node->name, "error")) {
+			printf("%s\n", xmlNodeGetContent(xml_node));
+			return -EINVAL;
+		} else if (!strcmp(xml_node->name, "form")) {
+			char *method, *action;
+			method = xmlGetProp(xml_node, "method");
+			action = xmlGetProp(xml_node, "action");
+			if (verbose)
+				printf("%s %s\n", method, action);
+			parse_form(curl, xml_node, hostname, action,
+							username, password);
+		}
+	}
+
+	xmlFreeDoc(xml_doc);
+
+	return 0;
+}
+
+static int connect_ssl(char *hostname, char *cert,
+					char *username, char *password)
 {
 	CURL *curl;
 	char curl_err[CURL_ERROR_SIZE];
-	long respcode;
 	char url_buf[1024];
+	long respcode;
 	struct curl_slist *headers;
-	struct curl_slist *cookies, *thiscookie;
 	struct response_buf resp = { 0, NULL };
-	xmlDocPtr xml_doc;
-	xmlNode *xml_node;
-	char *xml_message = NULL;
-	int xml_success = 0;
 
 	printf("Hostname %s, cert %s\n", hostname, cert);
-	
-	LIBXML_TEST_VERSION;
+
 	if (curl_global_init(CURL_GLOBAL_SSL)) {
 		fprintf(stderr, "Curl initialisation failed\n");
 		exit(1);
 	}
 
 	curl = curl_easy_init();
-	
-	url_buf[1023] = 0;
-	snprintf(url_buf, 1023, "https://%s/", hostname);
+
+	memset(url_buf, 0, sizeof(url_buf));
+	snprintf(url_buf, sizeof(url_buf) - 1, "https://%s/", hostname);
 
 	curl_easy_setopt(curl, CURLOPT_URL, url_buf);
 	curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
@@ -184,105 +330,102 @@ int connect_ssl(char *hostname, char *cert)
 	headers = curl_slist_append(NULL, "X-Transcend-Version: 1");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+
 	if (curl_easy_perform(curl)) {
 		fprintf(stderr, "Curl error: %s\n", curl_err);
 		curl_easy_cleanup(curl);
-		curl = NULL;
 		return -EINVAL;
 	}
 
 	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &respcode);
 
 	if (respcode != 200) {
-		fprintf(stderr, "Curl fetch failed, response code %d\n", respcode);
-		goto dump_response;
-	}
-
-	xml_doc = xmlReadMemory(resp.buf, resp.size, "noname.xml", NULL, 0);
-	free(resp.buf);
-	if (!xml_doc) {
-		fprintf(stderr, "Failed to parse XML response\n");
-	dump_response:
+		fprintf(stderr, "Curl fetch failed, response code %d\n",
+								respcode);
 		if (verbose) {
 			fprintf(stderr, "Response was:\n");
 			fprintf(stderr, resp.buf);
 		}
 		curl_easy_cleanup(curl);
-		curl = NULL;
 		return -EINVAL;
 	}
 
-	xml_node = xmlDocGetRootElement(xml_doc);
-	
-	if (xml_node->type != XML_ELEMENT_NODE ||
-	    strcmp(xml_node->name, "auth")) {
-		fprintf(stderr, "XML response didn't have \"auth\" as root node\n");
-		xmlFreeDoc(xml_doc);
+	if (dump)
+		printf("%s\n", resp.buf);
+
+	if (parse_response(curl, hostname, username, password, &resp) < 0) {
 		curl_easy_cleanup(curl);
-		curl = NULL;
 		return -EINVAL;
 	}
 
-	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
-		if (xml_node->type == XML_ELEMENT_NODE) {
-			if (!strcmp(xml_node->name, "message"))
-				xml_message = xmlNodeGetContent(xml_node);
-			else if (!strcmp(xml_node->name, "success"))
-				xml_success = 1;
-		}
-	}
+	free(resp.buf);
 
-	xmlFreeDoc(xml_doc);
+	get_cookie(curl);
 
-	if (!xml_success) {
-		fprintf(stderr, "Server returned unsuccessful\nServer message: %s\n",
-			xml_message);
-
-		/* FIXME: Handle the form (shown above), and try again. */
-
-		curl_easy_cleanup(curl);
-		curl = NULL;
-		return -EINVAL;
-	};
-
-	/* Double-check that we have a webvpn cookie */
-	curl_easy_getinfo(curl, CURLINFO_COOKIELIST, &cookies);
-
-	for (thiscookie = cookies; thiscookie; thiscookie = thiscookie->next) {
-		char *field = thiscookie->data;
-
-		if (!(field = strchr(field, '\t')) ||
-		    !(field = strchr(field+1, '\t')) ||
-		    !(field = strchr(field+1, '\t')) ||
-		    !(field = strchr(field+1, '\t')) ||
-		    !(field = strchr(field+1, '\t')) ||
-		    strncmp(field+1, "webvpn\t", 7))
-			continue;
-
-		field += 8;
-		if (!strlen(field)) {
-			fprintf(stderr, "Cookie field is empty\n");
-			curl_easy_cleanup(curl);
-			curl = NULL;
-			return -EINVAL;
-		}
-
-		printf("WebVPN cookie is %s\n", field);
-		//cookie = strdup(field);
-	}
-
-	curl_slist_free_all(cookies);
+	curl_easy_cleanup(curl);
 
 	return 0;
+}
 
+static struct option long_options[] = {
+	{ "certificate", 1, 0, 'c'},
+	{ "username", 1, 0, 'u' },
+	{ "password", 1, 0, 'p' },
+	{ "verbose", 1, 0, 'v'},
+};
+
+static void usage(void)
+{
+	printf("Usage:  getwebvpn [options] <server>\n");
+	printf("Get webvpn cookie from server.\n\n");
+	printf("  -c, --certificate=CERT     Use SSL client certificate CERT\n");
+	printf("  -u, --username=USER        Username for authenticate\n");
+	printf("  -p, --password=PASS        Password for authenticate\n");
+	printf("  -v, --verbose              More output\n");
+	exit(1);
 }
 
 int main(int argc, char **argv)
 {
-	if (argc != 2 && argc != 3) {
-		fprintf(stderr, "usage: %s <host> [<cert.pem>]\n", argv[0]);
-		exit(1);
+	char *cert = NULL, *username = NULL, *password = NULL;
+	int opt;
+
+	while ((opt = getopt_long(argc, argv, "c:u:p:vh",
+				  long_options, NULL))) {
+		if (opt < 0)
+			break;
+
+		switch (opt) {
+		case 'c':
+			cert = optarg;
+			break;
+		case 'u':
+			username = optarg;
+			break;
+		case 'p':
+			password = optarg;
+			break;
+		case 'v':
+			verbose = 1;
+			break;
+		case 'h':
+			usage();
+			break;
+		default:
+			usage();
+		}
+	}
+	if (optind != argc - 1) {
+		fprintf(stderr, "No server specified\n");
+		usage();
 	}
 
-	return connect_ssl(argv[1], (argc==3)?argv[2]:NULL);
+	if (!cert && (!username || !password)) {
+		fprintf(stderr, "Either cert or user/pass must be specified\n");
+		usage();
+	}
+
+	LIBXML_TEST_VERSION;
+
+	return connect_ssl(argv[optind], cert, username, password);
 }

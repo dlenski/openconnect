@@ -10,7 +10,7 @@ endif
 
 ifdef OPENSSL
 CFLAGS += -I$(OPENSSL)/include $(M32)
-LDFLAGS += -lz $(OPENSSL)/libssl.so.* $(OPENSSL)/libcrypto.so.* $(M32)
+LDFLAGS += -lz $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a -ldl $(M32)
 else
 CFLAGS += -I/usr/include/openssl $(M32)
 LDFLAGS += -lssl $(M32)
@@ -21,14 +21,18 @@ LDFLAGS += $(shell xml2-config --libs)
 
 OBJECTS := main.o tun.o dtls.o ssl.o mainloop.o xml.o
 
+all: anyconnect getwebvpn
+
 anyconnect: $(OBJECTS)
-	$(CC) -o $@ $(LDFLAGS) $^
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 %.o: %.c
 	$(CC) -c -o $@ $(CFLAGS) $< -MD -MF .$@.dep
 
+getwebvpn: curl.c
+	$(CC) -o $@ -I/usr/include/libxml2 $< -lcurl -lxml2
+
 clean:
-	rm -f $(OBJECTS) anyconnect $(wildcard .*.o.dep)
+	rm -f $(OBJECTS) anyconnect getwebvpn $(wildcard .*.o.dep)
 
 include /dev/null $(wildcard .*.o.dep)
-
