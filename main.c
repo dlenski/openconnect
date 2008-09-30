@@ -39,6 +39,7 @@ int verbose = 0;
 
 static struct option long_options[] = {
 	{"certificate", 1, 0, 'c'},
+	{"sslkey", 1, 0, 'k'},
 	{"cookie", 1, 0, 'C'},
 	{"deflate", 0, 0, 'd'},
 	{"no-deflate", 0, 0, 'D'},
@@ -59,6 +60,7 @@ void usage(void)
 	printf("Usage:  anyconnect [options] <server>\n");
 	printf("Connect to Cisco AnyConnect server.\n\n");
 	printf("  -c, --certificate=CERT          Use SSL client certificate CERT\n");
+	printf("  -k, --sslkey=KEY                Use SSL private key file KEY\n");
 	printf("  -C, --cookie=COOKIE             Use WebVPN cookie COOKIE\n");
 	printf("  -d, --deflate                   Enable compression (default)\n");
 	printf("  -D, --no-deflate                Disable compression\n");
@@ -67,7 +69,7 @@ void usage(void)
 	printf("  -m, --mtu=MTU                   Request MTU from server\n");
 	printf("  -p, --tpm-password=PASS         Set TPM SRK PIN\n");
 	printf("  -s, --script=SCRIPT             Use vpnc-compatible config script\n");
-	printf("  -t, --tpm-key=KEY               Use KEY as private key, with TPM\n");
+	printf("  -t, --tpm                       Use TPM engine for private key\n");
 	printf("  -u, --useragent=AGENT           Set HTTP User-Agent AGENT\n");
 	printf("  -v, --verbose                   More output\n");
 	printf("      --cafile=FILE               Cert file for server verification\n");
@@ -107,7 +109,7 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "C:c:hvdDu:i:t:p:s:h",
+	while ((opt = getopt_long(argc, argv, "C:c:hvdDu:i:tk:p:s:h",
 				  long_options, NULL))) {
 		if (opt < 0)
 			break;
@@ -124,6 +126,9 @@ int main(int argc, char **argv)
 			break;
 		case 'c':
 			vpninfo->cert = optarg;
+			break;
+		case 'k':
+			vpninfo->sslkey = optarg;
 			break;
 		case 'd':
 			vpninfo->deflate = 1;
@@ -150,7 +155,7 @@ int main(int argc, char **argv)
 			vpninfo->vpnc_script = optarg;
 			break;
 		case 't':
-			vpninfo->tpmkey = optarg;
+			vpninfo->tpm = 1;
 			break;
 		case 'u':
 			vpninfo->useragent = optarg;
@@ -166,6 +171,9 @@ int main(int argc, char **argv)
 		fprintf(stderr, "No server specified\n");
 		usage();
 	}
+
+	if (!vpninfo->sslkey)
+		vpninfo->sslkey = vpninfo->cert;
 
 	vpninfo->hostname = argv[optind];
 	/* FIXME: Allow lookup in XML config file, once we fetch that */

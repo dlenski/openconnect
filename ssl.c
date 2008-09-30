@@ -128,7 +128,7 @@ static int load_certificate(struct anyconnect_info *vpninfo,
 		return -EINVAL;
 	}
 	
-	if (vpninfo->tpmkey) {
+	if (vpninfo->tpm) {
 		ENGINE *e;
 		EVP_PKEY *key;
 		ENGINE_load_builtin_engines();
@@ -155,8 +155,7 @@ static int load_certificate(struct anyconnect_info *vpninfo,
 				ERR_print_errors_fp(stderr);
 			}
 		}
-		key = ENGINE_load_private_key(e, vpninfo->tpmkey,
-					      NULL, NULL);
+		key = ENGINE_load_private_key(e, vpninfo->sslkey, NULL, NULL);
 		if (!key) {
 			fprintf(stderr, 
 				"Failed to load TPM private key\n");

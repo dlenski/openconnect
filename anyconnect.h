@@ -40,7 +40,8 @@ struct anyconnect_info {
 	const char *localname;
 	const char *hostname;
 	const char *cert;
-	const char *tpmkey;
+	const char *sslkey;
+	int tpm;
 	char *tpmpass;
 	const char *cafile;
 
