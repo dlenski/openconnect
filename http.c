@@ -658,10 +658,9 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 			}
 		}
 	}
-	if (vpninfo->cookie) {
-		printf("WebVPN cookie is %s\n", vpninfo->cookie);
+	if (vpninfo->cookie)
 		return 0;
-	}
 
+	fprintf(stderr, "Server claimed successful login, but no cookie!\n");
 	return -1;
 }
