@@ -101,6 +101,8 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 			if (!strncmp(colon, "webvpn=", 7)) {
 				vpninfo->cookie = strdup(colon + 7);
 			}
+			/* FIXME: Handle other cookies, including the webvpnc one
+			   which tells us whether to update the XML config file */
 					
 		}
 		if (!strcmp(buf, "Transfer-Encoding")) {
