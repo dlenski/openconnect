@@ -546,28 +546,29 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 	 *
 	 * So we process the HTTP for ourselves...
 	 */
-	my_SSL_printf(vpninfo->https_ssl, "%s %s HTTP/1.1\r\n", method, vpninfo->urlpath);
-	my_SSL_printf(vpninfo->https_ssl, "Host: %s\r\n", vpninfo->hostname);
-	my_SSL_printf(vpninfo->https_ssl, "Accept: */*\r\n");
-	my_SSL_printf(vpninfo->https_ssl, "Accept-Encoding: identity\r\n");
+	sprintf(buf, "%s %s HTTP/1.1\r\n", method, vpninfo->urlpath);
+	sprintf(buf + strlen(buf), "Host: %s\r\n", vpninfo->hostname);
+	sprintf(buf + strlen(buf),  "User-Agent: %s\r\n", vpninfo->useragent);
+	sprintf(buf + strlen(buf),  "Accept: */*\r\n");
+	sprintf(buf + strlen(buf),  "Accept-Encoding: identity\r\n");
+
 	if (vpninfo->cookies) {
-		my_SSL_printf(vpninfo->https_ssl, "Cookie: ");
+		sprintf(buf + strlen(buf),  "Cookie: ");
 		for (opt = vpninfo->cookies; opt; opt = opt->next)
-			my_SSL_printf(vpninfo->https_ssl, "%s=%s%s", opt->option,
+			sprintf(buf + strlen(buf),  "%s=%s%s", opt->option,
 				      opt->value, opt->next?"; ":"\r\n");
 	}
 	if (request_body_type) {
-		my_SSL_printf(vpninfo->https_ssl, "Content-Type: %s\r\n",
+		sprintf(buf + strlen(buf),  "Content-Type: %s\r\n",
 			      request_body_type);
-		my_SSL_printf(vpninfo->https_ssl, "Content-Length: %zd\r\n",
+		sprintf(buf + strlen(buf),  "Content-Length: %zd\r\n",
 			      strlen(request_body));
 	}
-	my_SSL_printf(vpninfo->https_ssl, "X-Transcend-Version: 1\r\n\r\n");
-	if (request_body_type) {
-		if (verbose)
-			printf("Sending content: %s\n", request_body);
-		SSL_write(vpninfo->https_ssl, request_body, strlen(request_body));
-	}
+	sprintf(buf + strlen(buf),  "X-Transcend-Version: 1\r\n\r\n");
+	if (request_body_type)
+		sprintf(buf + strlen(buf), "%s", request_body);
+
+	SSL_write(vpninfo->https_ssl, buf, strlen(buf));
 
 	buflen = process_http_response(vpninfo, &result, NULL, buf, 65536);
 	if (buflen < 0) {
@@ -600,7 +601,7 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 
 			for (opt = vpninfo->cookies; opt; opt = next) {
 				next = opt->next;
-				printf("Discard cookie %s\n", opt->option);
+
 				free(opt->option);
 				free(opt->value);
 				free(opt);
