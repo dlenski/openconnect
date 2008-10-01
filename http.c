@@ -246,9 +246,11 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 	return done;
 }
 
-int parse_form(struct anyconnect_info *vpninfo, xmlNode *xml_node, char *body)
+int parse_form(struct anyconnect_info *vpninfo, char *form_message, char *form_error,
+	       xmlNode *xml_node, char *body)
 {
 	UI *ui = UI_new();
+	char msg_buf[1024], err_buf[1024];
 	char username[80], token[80];
 	int ret;
 	username[0] = 0;
@@ -257,6 +259,16 @@ int parse_form(struct anyconnect_info *vpninfo, xmlNode *xml_node, char *body)
 	if (!ui) {
 		fprintf(stderr, "Failed to create UI\n");
 		return -EINVAL;
+	}
+	if (form_error) {
+		err_buf[1023] = 0;
+		snprintf(err_buf, 1023, "%s\n", form_error);
+		UI_add_error_string(ui, err_buf);
+	}
+	if (form_message) {
+		msg_buf[1023] = 0;
+		snprintf(msg_buf, 1023, "%s\n", form_message);
+		UI_add_info_string(ui, msg_buf);
 	}
 	if (!vpninfo->username)
 		UI_add_input_string(ui, "Enter username: ", UI_INPUT_FLAG_ECHO, username, 1, 80);
@@ -283,9 +295,9 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 	char request_body[2048];
 	char *request_body_type = NULL;
 	char *method = "GET";
+	char *form_message, *form_error;
 
 	request_body[0] = 0;
-
  retry:
 	if (!vpninfo->https_ssl && open_https(vpninfo)) {
 		fprintf(stderr, "Failed to open HTTPS connection to %s\n",
@@ -385,15 +397,15 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-
+	form_message = form_error = NULL;
 	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
 		if (xml_node->type != XML_ELEMENT_NODE)
 			continue;
 
 		if (!strcmp((char *)xml_node->name, "message"))
-			printf("Message: %s\n", xmlNodeGetContent(xml_node));
+			form_message = (char *)xmlNodeGetContent(xml_node);
 		else if (!strcmp((char *)xml_node->name, "error")) {
-			printf("Error: %s\n", xmlNodeGetContent(xml_node));
+			form_error = (char *)xmlNodeGetContent(xml_node);
 			/* Login failure. Forget the username */
 			if (vpninfo->username) {
 				free(vpninfo->username);
@@ -415,7 +427,7 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 				printf("WILL POST: %s %s\n", form_method, form_action);
 			request_body_type = "application/x-www-form-urlencoded";
 			
-			if (parse_form(vpninfo, xml_node, request_body))
+			if (parse_form(vpninfo, form_message, form_error, xml_node, request_body))
 				return -EINVAL;
 			goto retry;
 		}
@@ -443,8 +455,10 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 			}
 		}
 	}
-	if (vpninfo->cookie)
+	if (vpninfo->cookie) {
+		printf("WebVPN cookie is %s\n", vpninfo->cookie);
 		return 0;
+	}
 
 	return -1;
 }
