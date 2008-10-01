@@ -107,11 +107,14 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 			char *semicolon = strchr(colon, ';');
 			char *equals = strchr(colon, '=');
 
-			if (!semicolon || !equals) {
+			if (semicolon)
+				*semicolon = 0;
+
+			if (!equals) {
 				fprintf(stderr, "Invalid cookie offered: %s\n", buf);
 				return -EINVAL;
 			}
-			*semicolon = *(equals++) = 0;
+			*(equals++) = 0;
 
 			new = malloc(sizeof(*new));
 			if (!new) {
