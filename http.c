@@ -30,6 +30,14 @@
 
 #include "anyconnect.h"
 
+/*
+ * We didn't really want to have to do this for ourselves -- one might have 
+ * thought that it would be available in a library somewhere. But neither
+ * cURL nor Neon have reliable cross-platform ways of either using a cert
+ * from the TPM, or just reading from / writing to a transport which is
+ * provided by their caller.
+ */
+
 int process_http_response(struct anyconnect_info *vpninfo, int *result,
 			  int (*header_cb)(struct anyconnect_info *, char *, char *),
 			  char *body, int buf_len)
