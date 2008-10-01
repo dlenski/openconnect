@@ -49,7 +49,7 @@ static struct option long_options[] = {
 	{"script", 1, 0, 's'},
 	{"tpm-key", 1, 0, 't'},
 	{"tpm-password", 1, 0, 'p'},
-	{"useragent", 1, 0, 'u'},
+	{"user", 1, 0, 'u'},
 	{"verbose", 1, 0, 'v'},
 	{"cafile", 1, 0, '0'},
 	{"no-dtls", 0, 0, '1'},
@@ -71,7 +71,7 @@ void usage(void)
 	printf("  -p, --tpm-password=PASS         Set TPM SRK PIN\n");
 	printf("  -s, --script=SCRIPT             Use vpnc-compatible config script\n");
 	printf("  -t, --tpm                       Use TPM engine for private key\n");
-	printf("  -u, --useragent=AGENT           Set HTTP User-Agent AGENT\n");
+	printf("  -u, --user=NAME                 Set login username\n");
 	printf("  -v, --verbose                   More output\n");
 	printf("  -x, --xmlconfig=CONFIG          XML config file\n");
 	printf("      --cafile=FILE               Cert file for server verification\n");
@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 			vpninfo->tpm = 1;
 			break;
 		case 'u':
-			vpninfo->useragent = optarg;
+			vpninfo->username = optarg;
 			break;
 		case 'v':
 			verbose = 1;

@@ -50,6 +50,7 @@ struct anyconnect_info {
 	const char *cafile;
 	const char *xmlconfig;
 	char xmlsha1[(SHA_DIGEST_LENGTH * 2) + 1];
+	char *username;
 
 	const char *cookie;
 	struct vpn_option *cookies;
