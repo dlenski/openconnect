@@ -184,7 +184,7 @@ static int load_certificate(struct anyconnect_info *vpninfo)
 	return 0;
 }
  
-static int open_https(struct anyconnect_info *vpninfo)
+int open_https(struct anyconnect_info *vpninfo)
 {
 	SSL_METHOD *ssl3_method;
 	SSL *https_ssl;
@@ -282,104 +282,6 @@ static int open_https(struct anyconnect_info *vpninfo)
 		printf("Connected to HTTPS on %s\n", vpninfo->hostname);
 
 	return 0;
-}
-
-int obtain_cookie(struct anyconnect_info *vpninfo)
-{
-	struct vpn_option *opt, *next;
-	char buf[65536];
-	int result;
-
- retry:
-	if (!vpninfo->https_ssl && open_https(vpninfo)) {
-		fprintf(stderr, "Failed to open HTTPS connection to %s\n",
-			vpninfo->hostname);
-		exit(1);
-	}
-
-	/*
-	 * It would be nice to use cURL for this, but we really need to guarantee 
-	 * that we'll be using OpenSSL (for the TPM stuff), and it doesn't seem 
-	 * to have any way to let us provide our own socket read/write functions.
-	 * We can only provide a socket _open_ function. Which would require having
-	 * a socketpair() and servicing the "other" end of it. 
-	 *
-	 * So we process the HTTP for ourselves...
-	 */
-	my_SSL_printf(vpninfo->https_ssl, "GET %s HTTP/1.1\r\n", vpninfo->urlpath);
-	my_SSL_printf(vpninfo->https_ssl, "Host: %s\r\n", vpninfo->hostname);
-	my_SSL_printf(vpninfo->https_ssl, "X-Transcend-Version: 1\r\n\r\n");
-
-	if (process_http_response(vpninfo, &result, NULL, buf, 65536) < 0) {
-		exit(1);
-	}
-
-	if (result != 200 && vpninfo->redirect_url) {
-		if (!strncmp(vpninfo->redirect_url, "https://", 8)) {
-			/* New host. Tear down the existing connection and make a new one */
-			char *host = vpninfo->redirect_url + 8;
-			char *path = strchr(host, '/');
-			if (path)
-				*(path++) = 0;
-			free(vpninfo->urlpath);
-			if (path && path[0])
-				vpninfo->urlpath = strdup(path);
-			else
-				vpninfo->urlpath = strdup("/");
-			free(vpninfo->hostname);
-			vpninfo->hostname = strdup(host);
-			free(vpninfo->redirect_url);
-			vpninfo->redirect_url = NULL;
-			SSL_free(vpninfo->https_ssl);
-			vpninfo->https_ssl = NULL;
-
-			for (opt = vpninfo->cookies; opt; opt = next) {
-				next = opt->next;
-				printf("Discard cookie %s\n", opt->option);
-				free(opt->option);
-				free(opt->value);
-				free(opt);
-			}
-			vpninfo->cookies = NULL;
-			goto retry;
-		} else if (vpninfo->redirect_url[0] == '/') {
-			/* Absolute redirect within same host */
-			free(vpninfo->urlpath);
-			vpninfo->urlpath = vpninfo->redirect_url;
-			vpninfo->redirect_url = NULL;
-			goto retry;
-		} else {
-			fprintf(stderr, "Relative redirect (to '%s') not supported\n",
-				vpninfo->redirect_url);
-			return -EINVAL;
-		}
-	}
-
-	for (opt = vpninfo->cookies; opt; opt = opt->next) {
-
-		if (!strcmp(opt->option, "webvpn"))
-			vpninfo->cookie = opt->value;
-		else if (vpninfo->xmlconfig && !strcmp(opt->option, "webvpnc")) {
-			char *amp = opt->value;
-			
-			while ((amp = strchr(amp, '&'))) {
-				amp++;
-				if (!strncmp(amp, "fh:", 3)) {
-					if (strncasecmp(amp+3, vpninfo->xmlsha1,
-							SHA_DIGEST_LENGTH * 2)) {
-						/* FIXME. Obviously */
-						printf("SHA1 changed; need new config\n");
-						/* URL is $bu: + $fu: */
-					} else if (verbose)
-						printf("XML config SHA1 match\n");
-				}
-			}
-		}
-	}
-	if (vpninfo->cookie && vpninfo->cookie[0])
-		return 0;
-
-	return -1;
 }
 
 static int start_ssl_connection(struct anyconnect_info *vpninfo)

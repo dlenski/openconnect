@@ -139,6 +139,7 @@ int ssl_bye(struct anyconnect_info *vpninfo, char *reason);
 int  __attribute__ ((format (printf, 2, 3)))
 		my_SSL_printf(SSL *ssl, const char *fmt, ...);
 int my_SSL_gets(SSL *ssl, char *buf, size_t len);
+int open_https(struct anyconnect_info *vpninfo);
 
 /* main.c */
 extern int verbose;
