@@ -248,11 +248,27 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 
 int parse_form(struct anyconnect_info *vpninfo, xmlNode *xml_node, char *body)
 {
-	char *username = "lalala";
+	UI *ui = UI_new();
+	char username[80], token[80];
+	int ret;
+	username[0] = 0;
+	token[0] = 0;
+
+	if (!ui) {
+		fprintf(stderr, "Failed to create UI\n");
+		return -EINVAL;
+	}
+	UI_add_input_string(ui, "Enter username: ", 0, username, 1, 80);
+	UI_add_input_string(ui, "Enter SecurID token: ", 0, token, 1, 80);
+	ret = UI_process(ui);
+
+	printf("%d '%s' '%s'\n", ret, username, token);
+	if (ret)
+		return -EINVAL;
 
 	sprintf(body, "group_list=Layer3_ACE&username=%s&password=%s",
-		username, vpninfo->tpmpass);
-	return -EINVAL;
+		username, token);
+	return 0;
 }
 
 int obtain_cookie(struct anyconnect_info *vpninfo)
@@ -373,10 +389,9 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 			continue;
 
 		if (!strcmp((char *)xml_node->name, "message"))
-			printf("%s\n", xmlNodeGetContent(xml_node));
+			printf("Message: %s\n", xmlNodeGetContent(xml_node));
 		else if (!strcmp((char *)xml_node->name, "error")) {
-			printf("%s\n", xmlNodeGetContent(xml_node));
-			return -EINVAL;
+			printf("Error: %s\n", xmlNodeGetContent(xml_node));
 		} else if (!strcmp((char *)xml_node->name, "form")) {
 			char *form_method, *form_action;
 			form_method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
