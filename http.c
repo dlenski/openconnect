@@ -242,8 +242,17 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 		close(vpninfo->ssl_fd);
 		vpninfo->ssl_fd = -1;
 	}
-
+	body[done] = 0;
 	return done;
+}
+
+int parse_form(struct anyconnect_info *vpninfo, xmlNode *xml_node, char *body)
+{
+	char *username = "lalala";
+
+	sprintf(body, "group_list=Layer3_ACE&username=%s&password=%s",
+		username, vpninfo->tpmpass);
+	return -EINVAL;
 }
 
 int obtain_cookie(struct anyconnect_info *vpninfo)
@@ -358,6 +367,37 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
+
+	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
+		if (xml_node->type != XML_ELEMENT_NODE)
+			continue;
+
+		if (!strcmp((char *)xml_node->name, "message"))
+			printf("%s\n", xmlNodeGetContent(xml_node));
+		else if (!strcmp((char *)xml_node->name, "error")) {
+			printf("%s\n", xmlNodeGetContent(xml_node));
+			return -EINVAL;
+		} else if (!strcmp((char *)xml_node->name, "form")) {
+			char *form_method, *form_action;
+			form_method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
+			form_action = (char *)xmlGetProp(xml_node, (unsigned char *)"action");
+			if (strcasecmp(form_method, "POST")) {
+				fprintf(stderr, "Cannot handle form method '%s'\n",
+					form_method);
+				return -EINVAL;
+			}
+			method = "POST";
+			free(vpninfo->urlpath);
+			vpninfo->urlpath = strdup(form_action);
+			if (verbose)
+				printf("WILL POST: %s %s\n", form_method, form_action);
+			request_body_type = "application/x-www-form-urlencoded";
+			
+			if (parse_form(vpninfo, xml_node, request_body))
+				return -EINVAL;
+			goto retry;
+		}
+	}
 	xmlFreeDoc(xml_doc);
 
 	for (opt = vpninfo->cookies; opt; opt = opt->next) {
