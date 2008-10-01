@@ -253,7 +253,11 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 	xmlNode *xml_node;
 	char buf[65536];
 	int result, buflen;
+	char request_body[2048];
+	char *request_body_type = NULL;
 	char *method = "GET";
+
+	request_body[0] = 0;
 
  retry:
 	if (!vpninfo->https_ssl && open_https(vpninfo)) {
@@ -273,13 +277,23 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 	 */
 	my_SSL_printf(vpninfo->https_ssl, "%s %s HTTP/1.1\r\n", method, vpninfo->urlpath);
 	my_SSL_printf(vpninfo->https_ssl, "Host: %s\r\n", vpninfo->hostname);
+	my_SSL_printf(vpninfo->https_ssl, "Accept: */*\r\n");
+	my_SSL_printf(vpninfo->https_ssl, "Accept-Encoding: identity\r\n");
 	if (vpninfo->cookies) {
 		my_SSL_printf(vpninfo->https_ssl, "Cookie: ");
 		for (opt = vpninfo->cookies; opt; opt = opt->next)
 			my_SSL_printf(vpninfo->https_ssl, "%s=%s%s", opt->option,
 				      opt->value, opt->next?"; ":"\r\n");
 	}
+	if (request_body_type) {
+		my_SSL_printf(vpninfo->https_ssl, "Content-Type: %s\r\n",
+			      request_body_type);
+		my_SSL_printf(vpninfo->https_ssl, "Content-Length: %zd\r\n",
+			      strlen(request_body));
+	}
 	my_SSL_printf(vpninfo->https_ssl, "X-Transcend-Version: 1\r\n\r\n");
+	if (request_body_type)
+		SSL_write(vpninfo->https_ssl, request_body, strlen(request_body));
 
 	buflen = process_http_response(vpninfo, &result, NULL, buf, 65536);
 	if (buflen < 0) {
