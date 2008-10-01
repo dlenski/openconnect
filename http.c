@@ -293,7 +293,6 @@ int append_opt(char *body, int bodylen, char *opt, char *name)
  * and https://honor.trusecure.com/pipermail/firewall-wizards/2004-April/016420.html
  */
 
-/
 int add_securid_pin(char *pin)
 {
 	int i, j;
