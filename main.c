@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 			vpninfo->tpm = 1;
 			break;
 		case 'u':
-			vpninfo->username = optarg;
+			vpninfo->username = strdup(optarg);
 			break;
 		case 'v':
 			verbose = 1;
