@@ -528,7 +528,8 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 	}
 	my_SSL_printf(vpninfo->https_ssl, "X-Transcend-Version: 1\r\n\r\n");
 	if (request_body_type) {
-		printf("Sending content: %s\n", request_body);
+		if (verbose)
+			printf("Sending content: %s\n", request_body);
 		SSL_write(vpninfo->https_ssl, request_body, strlen(request_body));
 	}
 
@@ -554,8 +555,12 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 			vpninfo->hostname = strdup(host);
 			free(vpninfo->redirect_url);
 			vpninfo->redirect_url = NULL;
+
+			/* Kill the existing connection, and a new one will happen */
 			SSL_free(vpninfo->https_ssl);
 			vpninfo->https_ssl = NULL;
+			close(vpninfo->ssl_fd);
+			vpninfo->ssl_fd = -1;
 
 			for (opt = vpninfo->cookies; opt; opt = next) {
 				next = opt->next;
@@ -584,6 +589,13 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 	if (result > 0) {
 		method = "POST";
 		request_body_type = "application/x-www-form-urlencoded";
+		if (0) {
+			/* This doesn't make the second form work any better */
+			SSL_free(vpninfo->https_ssl);
+			vpninfo->https_ssl = NULL;
+			close(vpninfo->ssl_fd);
+			vpninfo->ssl_fd = -1;
+		}
 		goto retry;
 	} else if (result < 0)
 		return -EINVAL;
