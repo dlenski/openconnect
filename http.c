@@ -272,6 +272,12 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 	 */
 	my_SSL_printf(vpninfo->https_ssl, "GET %s HTTP/1.1\r\n", vpninfo->urlpath);
 	my_SSL_printf(vpninfo->https_ssl, "Host: %s\r\n", vpninfo->hostname);
+	if (vpninfo->cookies) {
+		my_SSL_printf(vpninfo->https_ssl, "Cookie: ");
+		for (opt = vpninfo->cookies; opt; opt = opt->next)
+			my_SSL_printf(vpninfo->https_ssl, "%s=%s%s", opt->option,
+				      opt->value, opt->next?"; ":"\r\n");
+	}
 	my_SSL_printf(vpninfo->https_ssl, "X-Transcend-Version: 1\r\n\r\n");
 
 	buflen = process_http_response(vpninfo, &result, NULL, buf, 65536);
