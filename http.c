@@ -253,6 +253,7 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 	xmlNode *xml_node;
 	char buf[65536];
 	int result, buflen;
+	char *method = "GET";
 
  retry:
 	if (!vpninfo->https_ssl && open_https(vpninfo)) {
@@ -270,7 +271,7 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 	 *
 	 * So we process the HTTP for ourselves...
 	 */
-	my_SSL_printf(vpninfo->https_ssl, "GET %s HTTP/1.1\r\n", vpninfo->urlpath);
+	my_SSL_printf(vpninfo->https_ssl, "%s %s HTTP/1.1\r\n", method, vpninfo->urlpath);
 	my_SSL_printf(vpninfo->https_ssl, "Host: %s\r\n", vpninfo->hostname);
 	if (vpninfo->cookies) {
 		my_SSL_printf(vpninfo->https_ssl, "Cookie: ");
