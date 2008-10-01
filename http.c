@@ -279,6 +279,46 @@ int append_opt(char *body, int bodylen, char *opt, char *name)
 	return 0;
 }
 
+/*
+ * People using hardware tokens may not have the ability to enter a
+ * PIN, so we can mangle it in for them...
+ *
+ * Actually, we should just do the whole of the SecurID nonsense here.
+ * We know how to do the 64-bit tokens, and working out the 128-bit
+ * version by reverse-engineering the Windows binary or the Java
+ * implementation really shouldn't be that hard. Find the AES
+ * implementation, and just see what the inputs are.
+ *
+ * cf. http://seclists.org/bugtraq/2000/Dec/0459.html
+ * and https://honor.trusecure.com/pipermail/firewall-wizards/2004-April/016420.html
+ */
+
+/
+int add_securid_pin(char *pin)
+{
+	int i, j;
+	int plus = 0;
+
+	for (i=0; pin[i]; i++) {
+		if (!plus && pin[i] == '+')
+			plus = i;
+		else if (!isdigit(pin[i]))
+			return 0;
+	}
+	if (!plus)
+		return 0;
+
+	j = strlen(pin+plus);
+	pin[plus++]=0;
+
+	for (i = plus; pin[i]; i++) {
+		pin[i-j] += pin[i] - '0';
+		if (pin[i-j] > '9')
+			pin[i-j] -= 10;
+	}
+	return 1;
+}
+
 int parse_auth_choice(struct anyconnect_info *vpninfo, xmlNode *xml_node,
 		      char *body, int bodylen)
 {
@@ -407,6 +447,7 @@ int parse_form(struct anyconnect_info *vpninfo, char *form_message, char *form_e
 		append_opt(body, bodylen, user_form_id,
 			   vpninfo->username?:username);
 
+	add_securid_pin(token);
 	append_opt(body, bodylen, pass_form_id, token);
 
 	return 0;
