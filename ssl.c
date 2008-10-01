@@ -284,14 +284,11 @@ static int open_https(struct anyconnect_info *vpninfo)
 	return 0;
 }
 
-int obtain_cookie_cert(struct anyconnect_info *vpninfo)
+int obtain_cookie(struct anyconnect_info *vpninfo)
 {
 	struct vpn_option *opt, *next;
 	char buf[65536];
 	int result;
-
-	if (!vpninfo->cert)
-		return -ENOENT;
 
  retry:
 	if (!vpninfo->https_ssl && open_https(vpninfo)) {
@@ -379,7 +376,7 @@ int obtain_cookie_cert(struct anyconnect_info *vpninfo)
 			}
 		}
 	}
-	if (vpninfo->cookie)
+	if (vpninfo->cookie && vpninfo->cookie[0])
 		return 0;
 
 	return -1;

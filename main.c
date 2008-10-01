@@ -198,8 +198,7 @@ int main(int argc, char **argv)
 	vpninfo->deflate_adler32 = 1;
 	vpninfo->inflate_adler32 = 1;
 
-	if (!vpninfo->cookie && obtain_cookie_cert(vpninfo) &&
-	    obtain_cookie_login(vpninfo)) {
+	if (!vpninfo->cookie && obtain_cookie(vpninfo)) {
 		fprintf(stderr, "Failed to obtain WebVPN cookie\n");
 		exit(1);
 	}

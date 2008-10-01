@@ -136,7 +136,6 @@ int make_ssl_connection(struct anyconnect_info *vpninfo);
 void vpn_init_openssl(void);
 int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout);
 int ssl_bye(struct anyconnect_info *vpninfo, char *reason);
-int obtain_cookie_cert(struct anyconnect_info *vpninfo);
 int  __attribute__ ((format (printf, 2, 3)))
 		my_SSL_printf(SSL *ssl, const char *fmt, ...);
 int my_SSL_gets(SSL *ssl, char *buf, size_t len);
@@ -150,13 +149,6 @@ int vpn_mainloop(struct anyconnect_info *vpninfo);
 int queue_new_packet(struct pkt **q, int type, void *buf, int len);
 void queue_packet(struct pkt **q, struct pkt *new);
 
-/* curl.c */
-static inline int obtain_cookie_login(struct anyconnect_info *vpninfo)
-{
-	fprintf(stderr, "No login code yet. Hassle Marcel.\n");
-	return -1;
-}
-
 /* xml.c */
 int config_lookup_host(struct anyconnect_info *vpninfo, const char *host);
 
@@ -164,3 +156,4 @@ int config_lookup_host(struct anyconnect_info *vpninfo, const char *host);
 int process_http_response(struct anyconnect_info *vpninfo, int *result,
 			  int (*header_cb)(struct anyconnect_info *, char *, char *),
 			  char *body, int buf_len);
+int obtain_cookie(struct anyconnect_info *vpninfo);
