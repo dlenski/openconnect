@@ -391,7 +391,8 @@ int parse_form(struct anyconnect_info *vpninfo, char *form_message, char *form_e
 			pass_form_id = input_name;
 	}
 			 
-	printf("Fixed options give %s\n", body);
+	if (verbose)
+		printf("Fixed options give %s\n", body);
 
 	if (user_form_id && !vpninfo->username)
 		UI_add_input_string(ui, "Enter username: ", UI_INPUT_FLAG_ECHO, username, 1, 80);
@@ -402,11 +403,10 @@ int parse_form(struct anyconnect_info *vpninfo, char *form_message, char *form_e
 		fprintf(stderr, "Invalid inputs\n");
 		return -EINVAL;
 	}
-	if (user_form_id) {
-		if (!vpninfo->username)
-			vpninfo->username = strdup(username);
-		append_opt(body, bodylen, user_form_id, vpninfo->username);
-	}
+	if (user_form_id)
+		append_opt(body, bodylen, user_form_id,
+			   vpninfo->username?:username);
+
 	append_opt(body, bodylen, pass_form_id, token);
 
 	return 0;
@@ -445,11 +445,6 @@ int parse_xml_response(struct anyconnect_info *vpninfo, char *response,
 			form_message = (char *)xmlNodeGetContent(xml_node);
 		else if (!strcmp((char *)xml_node->name, "error")) {
 			form_error = (char *)xmlNodeGetContent(xml_node);
-			/* Login failure. Forget the username */
-			if (vpninfo->username) {
-				free(vpninfo->username);
-				vpninfo->username = NULL;
-			}
 		} else if (!strcmp((char *)xml_node->name, "form")) {
 			char *form_method, *form_action;
 			form_method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
