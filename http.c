@@ -119,19 +119,27 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 			}
 			*(equals++) = 0;
 
-			new = malloc(sizeof(*new));
-			if (!new) {
-				fprintf(stderr, "No memory for allocating cookies\n");
-				return -ENOMEM;
+			if (*equals) {
+				new = malloc(sizeof(*new));
+				if (!new) {
+					fprintf(stderr, "No memory for allocating cookies\n");
+					return -ENOMEM;
+				}
+				new->next = NULL;
+				new->option = strdup(colon);
+				new->value = strdup(equals);
+			} else {
+				/* Kill cookie; don't replace it */
+				new = NULL;
 			}
-			new->next = NULL;
-			new->option = strdup(colon);
-			new->value = strdup(equals);
-			
 			for (this = &vpninfo->cookies; *this; this = &(*this)->next) {
-				if (!strcmp(new->option, (*this)->option)) {
+				if (!strcmp(colon, (*this)->option)) {
 					/* Replace existing cookie */
-					new->next = (*this)->next;
+					if (new)
+						new->next = (*this)->next;
+					else
+						new = (*this)->next;
+
 					free((*this)->option);
 					free((*this)->value);
 					free(*this);
@@ -139,7 +147,7 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 					break;
 				}
 			}
-			if (!*this) {
+			if (new && !*this) {
 				*this = new;
 				new->next = NULL;
 			}
@@ -352,7 +360,7 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 			}
 		}
 	}
-	if (vpninfo->cookie && vpninfo->cookie[0])
+	if (vpninfo->cookie)
 		return 0;
 
 	return -1;
