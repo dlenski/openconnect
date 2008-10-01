@@ -362,7 +362,7 @@ int obtain_cookie_cert(struct anyconnect_info *vpninfo)
 
 		if (!strcmp(opt->option, "webvpn"))
 			vpninfo->cookie = opt->value;
-		else if (!strcmp(opt->option, "webvpnc")) {
+		else if (vpninfo->xmlconfig && !strcmp(opt->option, "webvpnc")) {
 			char *amp = opt->value;
 			
 			while ((amp = strchr(amp, '&'))) {
