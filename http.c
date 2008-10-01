@@ -246,6 +246,73 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 	return done;
 }
 
+int append_opt(char *body, int bodylen, char *opt, char *name)
+{
+	int len = strlen(body);
+
+	/* FIXME: len handling. Escaping of chars other than '_' */
+	if (len && len < bodylen - 1)
+		body[len++] = '&';
+
+	while (*opt && len < bodylen - 1) {
+		if (*opt == '_') {
+			body[len++] = '%';
+			body[len++] = '5';
+			body[len++] = 'F';
+		} else
+			body[len++] = *opt;
+		opt++;
+	}
+	body[len++] = '=';
+
+	while (*name && len < bodylen - 1) {
+		if (*name == '_') {
+			body[len++] = '%';
+			body[len++] = '5';
+			body[len++] = 'F';
+		} else
+			body[len++] = *name;
+		name++;
+	}
+	body[len] = 0;
+
+	return 0;
+}
+
+int parse_auth_choice(struct anyconnect_info *vpninfo, xmlNode *xml_node,
+		      char *body, int bodylen)
+{
+	char *form_name = (char *)xmlGetProp(xml_node, (unsigned char *)"name");
+
+	if (!form_name) {
+		fprintf(stderr, "Form choice has no name\n");
+		return -EINVAL;
+	}
+	
+	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
+		char *authtype, *form_id;
+		if (xml_node->type != XML_ELEMENT_NODE)
+			continue;
+
+		if (strcmp((char *)xml_node->name, "option"))
+			continue;
+
+		form_id = (char *)xmlGetProp(xml_node, (unsigned char *)"value");
+		authtype = (char *)xmlGetProp(xml_node, (unsigned char *)"auth-type");
+		if (!form_id || !authtype)
+			continue;
+		if (strcmp(authtype, "sdi-via-proxy")) {
+			char *content = (char *)xmlNodeGetContent(xml_node);
+			fprintf(stderr, "Unrecognised auth type %s, label '%s'\n", authtype, content);
+		}
+		printf("appending %s %s\n", form_name, form_id);
+		append_opt(body, bodylen, form_name, form_id);
+		return 0;
+	}
+	fprintf(stderr, "Didn't find appropriate auth-type choice\n");
+	return -EINVAL;
+}
+
 int parse_form(struct anyconnect_info *vpninfo, char *form_message, char *form_error,
 	       xmlNode *xml_node, char *body, int bodylen)
 {
@@ -253,6 +320,9 @@ int parse_form(struct anyconnect_info *vpninfo, char *form_message, char *form_e
 	char msg_buf[1024], err_buf[1024];
 	char username[80], token[80];
 	int ret;
+	char *user_form_id = NULL;
+	char *pass_form_id = NULL;
+
 	username[0] = 0;
 	token[0] = 0;
 
@@ -271,20 +341,74 @@ int parse_form(struct anyconnect_info *vpninfo, char *form_message, char *form_e
 		UI_add_info_string(ui, msg_buf);
 	}
 
-	if (!vpninfo->username)
+	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
+		char *input_type;
+		char *input_name;
+
+		if (xml_node->type != XML_ELEMENT_NODE)
+			continue;
+
+		if (!strcmp((char *)xml_node->name, "select")) {
+			if (parse_auth_choice(vpninfo, xml_node, body, bodylen))
+				return -EINVAL;
+			continue;
+		}
+		if (strcmp((char *)xml_node->name, "input")) {
+			printf("name %s not input\n", xml_node->name);
+			continue;
+		}
+
+		input_type = (char *)xmlGetProp(xml_node, (unsigned char *)"type");
+		if (!input_type) {
+			printf("No input type\n");
+			continue;
+		}
+
+		input_name = (char *)xmlGetProp(xml_node, (unsigned char *)"name");
+		if (!input_name) {
+			printf("No input name\n");
+			continue;
+		}
+
+		if (!strcmp(input_type, "hidden")) {
+			char *name = (char *)xmlGetProp(xml_node, (unsigned char *)"name");
+			char *value = (char *)xmlGetProp(xml_node, (unsigned char *)"value");
+			if (!name || !value) {
+				printf("name %s val %s\n", name, value);
+				continue;
+			}
+
+			/* Add this to the request buffer directly */
+			if (append_opt(body, bodylen, name, value)) {
+				body[0] = 0;
+				return -1;
+			}
+			continue;
+		}
+		if (!strcmp(input_type, "text"))
+			user_form_id = input_name;
+		else if (!strcmp(input_type, "password"))
+			pass_form_id = input_name;
+	}
+			 
+	printf("Fixed options give %s\n", body);
+
+	if (user_form_id && !vpninfo->username)
 		UI_add_input_string(ui, "Enter username: ", UI_INPUT_FLAG_ECHO, username, 1, 80);
 	UI_add_input_string(ui, "Enter SecurID token: ", UI_INPUT_FLAG_ECHO, token, 1, 80);
-	ret = UI_process(ui);
 
+	ret = UI_process(ui);
 	if (ret) {
 		fprintf(stderr, "Invalid inputs\n");
 		return -EINVAL;
 	}
-	if (!vpninfo->username)
-		vpninfo->username = strdup(username);
+	if (user_form_id) {
+		if (!vpninfo->username)
+			vpninfo->username = strdup(username);
+		append_opt(body, bodylen, user_form_id, vpninfo->username);
+	}
+	append_opt(body, bodylen, pass_form_id, token);
 
-	sprintf(body, "group_list=Layer3_ACE&username=%s&password=%s",
-		vpninfo->username, token);
 	return 0;
 }
 
@@ -403,8 +527,10 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 			      strlen(request_body));
 	}
 	my_SSL_printf(vpninfo->https_ssl, "X-Transcend-Version: 1\r\n\r\n");
-	if (request_body_type)
+	if (request_body_type) {
+		printf("Sending content: %s\n", request_body);
 		SSL_write(vpninfo->https_ssl, request_body, strlen(request_body));
+	}
 
 	buflen = process_http_response(vpninfo, &result, NULL, buf, 65536);
 	if (buflen < 0) {
@@ -454,16 +580,13 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 	}
 
 	request_body[0] = 0;
-	if (parse_xml_response(vpninfo, buf, request_body, sizeof(request_body))) {
-		/* Failure, or a form response to submit. If the latter, we'll
-		   have a form to submit. */
-		if (request_body[0]) {
-			method = "POST";
-			request_body_type = "application/x-www-form-urlencoded";
-			goto retry;
-		}
+	result = parse_xml_response(vpninfo, buf, request_body, sizeof(request_body));
+	if (result > 0) {
+		method = "POST";
+		request_body_type = "application/x-www-form-urlencoded";
+		goto retry;
+	} else if (result < 0)
 		return -EINVAL;
-	}
 
 	for (opt = vpninfo->cookies; opt; opt = opt->next) {
 
