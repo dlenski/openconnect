@@ -258,8 +258,8 @@ int parse_form(struct anyconnect_info *vpninfo, xmlNode *xml_node, char *body)
 		fprintf(stderr, "Failed to create UI\n");
 		return -EINVAL;
 	}
-	UI_add_input_string(ui, "Enter username: ", 0, username, 1, 80);
-	UI_add_input_string(ui, "Enter SecurID token: ", 0, token, 1, 80);
+	UI_add_input_string(ui, "Enter username: ", UI_INPUT_FLAG_ECHO, username, 1, 80);
+	UI_add_input_string(ui, "Enter SecurID token: ", UI_INPUT_FLAG_ECHO, token, 1, 80);
 	ret = UI_process(ui);
 
 	printf("%d '%s' '%s'\n", ret, username, token);
@@ -392,6 +392,11 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 			printf("Message: %s\n", xmlNodeGetContent(xml_node));
 		else if (!strcmp((char *)xml_node->name, "error")) {
 			printf("Error: %s\n", xmlNodeGetContent(xml_node));
+			/* Login failure. Forget the username */
+			if (vpninfo->username) {
+				free(vpninfo->username);
+				vpninfo->username = NULL;
+			}
 		} else if (!strcmp((char *)xml_node->name, "form")) {
 			char *form_method, *form_action;
 			form_method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
