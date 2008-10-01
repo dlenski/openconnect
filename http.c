@@ -28,6 +28,9 @@
 #include <openssl/err.h>
 #include <openssl/engine.h>
 
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+
 #include "anyconnect.h"
 
 /*
@@ -238,8 +241,10 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 int obtain_cookie(struct anyconnect_info *vpninfo)
 {
 	struct vpn_option *opt, *next;
+	xmlDocPtr xml_doc;
+	xmlNode *xml_node;
 	char buf[65536];
-	int result;
+	int result, buflen;
 
  retry:
 	if (!vpninfo->https_ssl && open_https(vpninfo)) {
@@ -261,7 +266,9 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 	my_SSL_printf(vpninfo->https_ssl, "Host: %s\r\n", vpninfo->hostname);
 	my_SSL_printf(vpninfo->https_ssl, "X-Transcend-Version: 1\r\n\r\n");
 
-	if (process_http_response(vpninfo, &result, NULL, buf, 65536) < 0) {
+	buflen = process_http_response(vpninfo, &result, NULL, buf, 65536);
+	if (buflen < 0) {
+		/* We'll already have complained about whatever offended us */
 		exit(1);
 	}
 
@@ -305,6 +312,24 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 			return -EINVAL;
 		}
 	}
+
+	xml_doc = xmlReadMemory(buf, strlen(buf), "noname.xml", NULL, 0);
+	if (!xml_doc) {
+		fprintf(stderr, "Failed to parse server response\n");
+		if (verbose)
+			printf("Response was:%s\n", buf);
+		return -EINVAL;
+	}
+
+	xml_node = xmlDocGetRootElement(xml_doc);
+	if (xml_node->type != XML_ELEMENT_NODE ||
+	    strcmp((char *)xml_node->name, "auth")) {
+		fprintf(stderr, "XML response has no \"auth\" root node\n");
+		xmlFreeDoc(xml_doc);
+		return -EINVAL;
+	}
+
+	xmlFreeDoc(xml_doc);
 
 	for (opt = vpninfo->cookies; opt; opt = opt->next) {
 
