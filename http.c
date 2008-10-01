@@ -280,9 +280,11 @@ int parse_form(struct anyconnect_info *vpninfo, char *form_message, char *form_e
 		fprintf(stderr, "Invalid inputs\n");
 		return -EINVAL;
 	}
+	if (!vpninfo->username)
+		vpninfo->username = strdup(username);
 
 	sprintf(body, "group_list=Layer3_ACE&username=%s&password=%s",
-		vpninfo->username?:username, token);
+		vpninfo->username, token);
 	return 0;
 }
 
