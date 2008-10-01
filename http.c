@@ -258,16 +258,18 @@ int parse_form(struct anyconnect_info *vpninfo, xmlNode *xml_node, char *body)
 		fprintf(stderr, "Failed to create UI\n");
 		return -EINVAL;
 	}
-	UI_add_input_string(ui, "Enter username: ", UI_INPUT_FLAG_ECHO, username, 1, 80);
+	if (!vpninfo->username)
+		UI_add_input_string(ui, "Enter username: ", UI_INPUT_FLAG_ECHO, username, 1, 80);
 	UI_add_input_string(ui, "Enter SecurID token: ", UI_INPUT_FLAG_ECHO, token, 1, 80);
 	ret = UI_process(ui);
 
-	printf("%d '%s' '%s'\n", ret, username, token);
-	if (ret)
+	if (ret) {
+		fprintf(stderr, "Invalid inputs\n");
 		return -EINVAL;
+	}
 
 	sprintf(body, "group_list=Layer3_ACE&username=%s&password=%s",
-		username, token);
+		vpninfo->username?:username, token);
 	return 0;
 }
 
