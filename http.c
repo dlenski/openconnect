@@ -305,7 +305,8 @@ int parse_auth_choice(struct anyconnect_info *vpninfo, xmlNode *xml_node,
 			char *content = (char *)xmlNodeGetContent(xml_node);
 			fprintf(stderr, "Unrecognised auth type %s, label '%s'\n", authtype, content);
 		}
-		printf("appending %s %s\n", form_name, form_id);
+		if (verbose)
+			printf("choosing %s %s\n", form_name, form_id);
 		append_opt(body, bodylen, form_name, form_id);
 		return 0;
 	}
@@ -371,15 +372,14 @@ int parse_form(struct anyconnect_info *vpninfo, char *form_message, char *form_e
 		}
 
 		if (!strcmp(input_type, "hidden")) {
-			char *name = (char *)xmlGetProp(xml_node, (unsigned char *)"name");
 			char *value = (char *)xmlGetProp(xml_node, (unsigned char *)"value");
-			if (!name || !value) {
-				printf("name %s val %s\n", name, value);
+			if (!value) {
+				printf("No value for hidden input %s\n", input_name);
 				continue;
 			}
 
 			/* Add this to the request buffer directly */
-			if (append_opt(body, bodylen, name, value)) {
+			if (append_opt(body, bodylen, input_name, value)) {
 				body[0] = 0;
 				return -1;
 			}
