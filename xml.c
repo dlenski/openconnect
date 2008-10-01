@@ -40,16 +40,13 @@ int config_lookup_host(struct anyconnect_info *vpninfo, const char *host)
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node, *xml_node2;
 	
-	if (!vpninfo->xmlconfig) {
-		vpninfo->hostname = host;
+	if (!vpninfo->xmlconfig)
 		return 0;
-	}
 
 	fd = open(vpninfo->xmlconfig, O_RDONLY);
 	if (fd < 0) {
 		perror("Open XML config file");
 		fprintf(stderr, "Treating host \"%s\" as a raw hostname\n", host);
-		vpninfo->hostname = host;
 		return 0;
 	}
 
@@ -86,7 +83,6 @@ int config_lookup_host(struct anyconnect_info *vpninfo, const char *host)
 	if (!xml_doc) {
 		fprintf(stderr, "Failed to parse XML config file %s\n", vpninfo->xmlconfig);
 		fprintf(stderr, "Treating host \"%s\" as a raw hostname\n", host);
-		vpninfo->hostname = host;
 		return 0;
 	}
 	xml_node = xmlDocGetRootElement(xml_doc);
@@ -136,7 +132,6 @@ int config_lookup_host(struct anyconnect_info *vpninfo, const char *host)
 	if (!vpninfo->hostname) {
 		fprintf(stderr, "Host \"%s\" not listed in config; treating as raw hostname\n",
 			host);
-		vpninfo->hostname = host;
 	}
 		
 	return 0;

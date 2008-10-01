@@ -32,12 +32,11 @@
 /* Helper functions for reading/writing lines over SSL.
    We could use cURL for the HTTP stuff, but it's overkill */
 
-static int  __attribute__ ((format (printf, 2, 3)))
+int  __attribute__ ((format (printf, 2, 3)))
 	my_SSL_printf(SSL *ssl, const char *fmt, ...) 
 {
 	char buf[1024];
 	va_list args;
-
 	
 	buf[1023] = 0;
 
@@ -50,7 +49,7 @@ static int  __attribute__ ((format (printf, 2, 3)))
 
 }
 
-static int my_SSL_gets(SSL *ssl, char *buf, size_t len)
+int my_SSL_gets(SSL *ssl, char *buf, size_t len)
 {
 	int i = 0;
 	int ret;
@@ -74,7 +73,9 @@ static int my_SSL_gets(SSL *ssl, char *buf, size_t len)
 			return i;
 		}
 	}
-
+	if (ret == 0) {
+		ret = -SSL_get_error(ssl, ret);
+	}
 	buf[i] = 0;
 	return i?:ret;
 }
@@ -106,8 +107,7 @@ static int ui_close(UI *ui)
 	return UI_method_get_closer(UI_OpenSSL())(ui);
 }
 
-static int load_certificate(struct anyconnect_info *vpninfo, 
-			    SSL_CTX *https_ctx)
+static int load_certificate(struct anyconnect_info *vpninfo)
 {
 	UI_METHOD *ui_method = UI_create_method("AnyConnect VPN UI");
 
@@ -121,7 +121,7 @@ static int load_certificate(struct anyconnect_info *vpninfo,
 
 	if (verbose)
 		printf("Using Certificate file %s\n", vpninfo->cert);
-	if (!SSL_CTX_use_certificate_file(https_ctx, vpninfo->cert,
+	if (!SSL_CTX_use_certificate_file(vpninfo->https_ctx, vpninfo->cert,
 					  SSL_FILETYPE_PEM)) {
 		fprintf(stderr, "Certificate failed\n");
 		ERR_print_errors_fp(stderr);
@@ -164,7 +164,7 @@ static int load_certificate(struct anyconnect_info *vpninfo,
 			ENGINE_finish(e);
 			return -EINVAL;
 		}
-		if (!SSL_CTX_use_PrivateKey(https_ctx, key)) {
+		if (!SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key)) {
 			fprintf(stderr, "Add key from TPM failed\n");
 			ERR_print_errors_fp(stderr);
 			ENGINE_free(e);
@@ -174,7 +174,7 @@ static int load_certificate(struct anyconnect_info *vpninfo,
 	} else {
 		/* Key should be in cert file too*/
 		/* FIXME: Can we do our own UI for PEM passphrase too? */
-		if (!SSL_CTX_use_RSAPrivateKey_file(https_ctx, vpninfo->cert,
+		if (!SSL_CTX_use_RSAPrivateKey_file(vpninfo->https_ctx, vpninfo->cert,
 						    SSL_FILETYPE_PEM)) {
 			fprintf(stderr, "Private key failed\n");
 			ERR_print_errors_fp(stderr);
@@ -187,7 +187,6 @@ static int load_certificate(struct anyconnect_info *vpninfo,
 static int open_https(struct anyconnect_info *vpninfo)
 {
 	SSL_METHOD *ssl3_method;
-	SSL_CTX *https_ctx;
 	SSL *https_ssl;
 	BIO *https_bio;
 	int ssl_sock;
@@ -239,16 +238,18 @@ static int open_https(struct anyconnect_info *vpninfo)
 	fcntl(ssl_sock, F_SETFD, FD_CLOEXEC);
 
 	ssl3_method = SSLv23_client_method();
-	https_ctx = SSL_CTX_new(ssl3_method);
+	if (!vpninfo->https_ctx) {
+		vpninfo->https_ctx = SSL_CTX_new(ssl3_method);
 
-	if (vpninfo->cert)
-		load_certificate(vpninfo, https_ctx);
+		if (vpninfo->cert)
+			load_certificate(vpninfo);
 
-	if (vpninfo->cafile) {
-		SSL_CTX_load_verify_locations(https_ctx, vpninfo->cafile, NULL);
-		SSL_CTX_set_default_verify_paths(https_ctx);
+		if (vpninfo->cafile) {
+			SSL_CTX_load_verify_locations(vpninfo->https_ctx, vpninfo->cafile, NULL);
+			SSL_CTX_set_default_verify_paths(vpninfo->https_ctx);
+		}
 	}
-	https_ssl = SSL_new(https_ctx);
+	https_ssl = SSL_new(vpninfo->https_ctx);
 
 	https_bio = BIO_new_socket(ssl_sock, BIO_NOCLOSE);
 	SSL_set_bio(https_ssl, https_bio, https_bio);
@@ -257,7 +258,6 @@ static int open_https(struct anyconnect_info *vpninfo)
 		fprintf(stderr, "SSL connection failure\n");
 		ERR_print_errors_fp(stderr);
 		SSL_free(https_ssl);
-		SSL_CTX_free(https_ctx);
 		close(ssl_sock);
 		return -EINVAL;
 	}
@@ -270,7 +270,6 @@ static int open_https(struct anyconnect_info *vpninfo)
 			fprintf(stderr, "Server certificate verify failed: %s\n",
 				X509_verify_cert_error_string(vfy));
 			SSL_free(https_ssl);
-			SSL_CTX_free(https_ctx);
 			close(ssl_sock);
 			return -EINVAL;
 		}
@@ -288,12 +287,13 @@ static int open_https(struct anyconnect_info *vpninfo)
 int obtain_cookie_cert(struct anyconnect_info *vpninfo)
 {
 	char buf[65536];
-	int i;
+	int result;
 
 	if (!vpninfo->cert)
 		return -ENOENT;
 
-	if (open_https(vpninfo)) {
+ retry:
+	if (!vpninfo->https_ssl && open_https(vpninfo)) {
 		fprintf(stderr, "Failed to open HTTPS connection to %s\n",
 			vpninfo->hostname);
 		exit(1);
@@ -308,81 +308,62 @@ int obtain_cookie_cert(struct anyconnect_info *vpninfo)
 	 *
 	 * So we process the HTTP for ourselves...
 	 */
-	
-	my_SSL_printf(vpninfo->https_ssl, "GET /+webvpn+/index.html HTTP/1.1\r\n");
+	my_SSL_printf(vpninfo->https_ssl, "GET %s HTTP/1.1\r\n", vpninfo->urlpath);
 	my_SSL_printf(vpninfo->https_ssl, "Host: %s\r\n", vpninfo->hostname);
 	my_SSL_printf(vpninfo->https_ssl, "X-Transcend-Version: 1\r\n\r\n");
 
-	if (my_SSL_gets(vpninfo->https_ssl, buf, 65536) < 0) {
-		fprintf(stderr, "Error fetching HTTPS response\n");
+	if (process_http_response(vpninfo, &result, NULL, buf, 65536) < 0) {
 		exit(1);
 	}
 
-	/* FIXME: We need to handle redirects to a different server */
+	if (result != 200 && vpninfo->redirect_url) {
+		if (!strncmp(vpninfo->redirect_url, "https://", 8)) {
+			/* New host. Tear down the existing connection and make a new one */
+			char *host = vpninfo->redirect_url + 8;
+			char *path = strchr(host, '/');
+			if (path)
+				*(path++) = 0;
+			free(vpninfo->urlpath);
+			if (path && path[0])
+				vpninfo->urlpath = strdup(path);
+			else
+				vpninfo->urlpath = strdup("/");
+			free(vpninfo->hostname);
+			vpninfo->hostname = strdup(host);
+			free(vpninfo->redirect_url);
+			vpninfo->redirect_url = NULL;
+			SSL_free(vpninfo->https_ssl);
+			vpninfo->https_ssl = NULL;
 
-	if (strncmp(buf, "HTTP/1.1 200 ", 13)) {
-		fprintf(stderr, "Got inappropriate HTTP response: %s\n", buf);
-		exit(1);
+			goto retry;
+		} else if (vpninfo->redirect_url[0] == '/') {
+			/* Absolute redirect within same host */
+			free(vpninfo->urlpath);
+			vpninfo->urlpath = vpninfo->redirect_url;
+			vpninfo->redirect_url = NULL;
+			goto retry;
+		} else {
+			fprintf(stderr, "Relative redirect (to '%s') not supported\n",
+				vpninfo->redirect_url);
+			return -EINVAL;
+		}
 	}
-
-	if (verbose)
-		printf("Got HTTP response: %s\n", buf);
-
-	while ((i=my_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
-		if (i < 0) {
-			fprintf(stderr, "Error processing HTTP response\n");
-			exit(1);
-		}
-		if (verbose)
-			printf("Header: %s\n", buf);
-		if (!strncmp(buf, "Set-Cookie: webvpn=", 19)) {
-			char *cookie = buf + 19, *semicolon = strchr(cookie, ';');
-
-			if (semicolon && semicolon != cookie) {
-				*semicolon = 0;
-				vpninfo->cookie = strdup(cookie);
-				if (verbose)
-					printf("Got cookie: %s\n", cookie);
-			} else {
-				if (verbose)
-					printf("No cookie; certificate failed\n");
-			}
-		}
-	}
-	/* That was the headers. Now we have to eat the (chunked) response body.
-	   This is the part where we _really_ wish we could just use cURL */
-
-	while ((i=my_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
-		int chunklen, rdlen = 0;
-		if (i < 0) {
-			fprintf(stderr, "Error fetching chunk header\n");
-			exit(1);
-		}
-		chunklen = strtol(buf, NULL, 16);
-		while (chunklen &&
-		       (rdlen = SSL_read(vpninfo->https_ssl, buf, chunklen)) > 0) {
-				chunklen -= rdlen;
-		}
-		buf[0] = 0;
-		if ((i=my_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
-			fprintf(stderr, "error, got %d and %s\n", i, buf);
-		}
-		if (!rdlen)
-			break;
-	}
-	if (!vpninfo->cookie)
-		return -EINVAL;
-	else
+	if (vpninfo->cookie) {
 		return 0;
+	}
+	return -1;
 }
 
 static int start_ssl_connection(struct anyconnect_info *vpninfo)
 {
 	char buf[65536];
 	int i;
+	int retried = 0;
+
 	struct vpn_option **next_dtls_option = &vpninfo->dtls_options;
 	struct vpn_option **next_cstp_option = &vpninfo->cstp_options;
 
+ retry:
 	my_SSL_printf(vpninfo->https_ssl, "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
 	my_SSL_printf(vpninfo->https_ssl, "Host: %s\r\n", vpninfo->hostname);
 	my_SSL_printf(vpninfo->https_ssl, "User-Agent: %s\r\n", vpninfo->useragent);
@@ -402,12 +383,25 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 
 	if (my_SSL_gets(vpninfo->https_ssl, buf, 65536) < 0) {
 		fprintf(stderr, "Error fetching HTTPS response\n");
+		if (!retried) {
+			retried = 1;
+			SSL_free(vpninfo->https_ssl);
+			close(vpninfo->ssl_fd);
+		
+			if (open_https(vpninfo)) {
+				fprintf(stderr, "Failed to open HTTPS connection to %s\n",
+					vpninfo->hostname);
+				exit(1);
+			}
+			goto retry;
+		}
 		return -EINVAL;
 	}
 
 	if (strncmp(buf, "HTTP/1.1 200 ", 13)) {
 		fprintf(stderr, "Got inappropriate HTTP CONNECT response: %s\n",
 			buf);
+		my_SSL_gets(vpninfo->https_ssl, buf, 65536);
 		return -EINVAL;
 	}
 

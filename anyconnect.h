@@ -22,6 +22,7 @@
 #include <poll.h>
 #include <zlib.h>
 #include <stdint.h>
+#include <sys/socket.h>
 
 struct pkt {
 	int type;
@@ -37,11 +38,11 @@ struct vpn_option {
 };
 
 struct anyconnect_info {
-	const char *hostarg;
-	int host_matched;
-
+	char *redirect_url;
+	
 	const char *localname;
-	const char *hostname;
+	char *hostname;
+	char *urlpath;
 	const char *cert;
 	const char *sslkey;
 	int tpm;
@@ -135,6 +136,9 @@ void vpn_init_openssl(void);
 int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout);
 int ssl_bye(struct anyconnect_info *vpninfo, char *reason);
 int obtain_cookie_cert(struct anyconnect_info *vpninfo);
+int  __attribute__ ((format (printf, 2, 3)))
+		my_SSL_printf(SSL *ssl, const char *fmt, ...);
+int my_SSL_gets(SSL *ssl, char *buf, size_t len);
 
 /* main.c */
 extern int verbose;
@@ -154,3 +158,8 @@ static inline int obtain_cookie_login(struct anyconnect_info *vpninfo)
 
 /* xml.c */
 int config_lookup_host(struct anyconnect_info *vpninfo, const char *host);
+
+/* http.c */
+int process_http_response(struct anyconnect_info *vpninfo, int *result,
+			  int (*header_cb)(struct anyconnect_info *, char *, char *),
+			  char *body, int buf_len);

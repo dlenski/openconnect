@@ -183,6 +183,10 @@ int main(int argc, char **argv)
 	if (config_lookup_host(vpninfo, argv[optind]))
 		exit(1);
 
+	if (!vpninfo->hostname)
+		vpninfo->hostname = strdup(argv[optind]);
+	vpninfo->urlpath = strdup("/");
+
 	if (vpninfo->deflate) {
 		if (inflateInit2(&vpninfo->inflate_strm, -12) ||
 		    deflateInit2(&vpninfo->deflate_strm, Z_DEFAULT_COMPRESSION,
