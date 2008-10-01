@@ -103,15 +103,40 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 			}
 		}
 		if (!strcmp(buf, "Set-Cookie")) {
+			struct vpn_option *new, **this;
 			char *semicolon = strchr(colon, ';');
-			if (semicolon)
-				*semicolon = 0;
-			if (!strncmp(colon, "webvpn=", 7)) {
-				vpninfo->cookie = strdup(colon + 7);
+			char *equals = strchr(colon, '=');
+
+			if (!semicolon || !equals) {
+				fprintf(stderr, "Invalid cookie offered: %s\n", buf);
+				return -EINVAL;
 			}
-			/* FIXME: Handle other cookies, including the webvpnc one
-			   which tells us whether to update the XML config file */
-					
+			*semicolon = *(equals++) = 0;
+
+			new = malloc(sizeof(*new));
+			if (!new) {
+				fprintf(stderr, "No memory for allocating cookies\n");
+				return -ENOMEM;
+			}
+			new->next = NULL;
+			new->option = strdup(colon);
+			new->value = strdup(equals);
+			
+			for (this = &vpninfo->cookies; *this; this = &(*this)->next) {
+				if (!strcmp(new->option, (*this)->option)) {
+					/* Replace existing cookie */
+					new->next = (*this)->next;
+					free((*this)->option);
+					free((*this)->value);
+					free(*this);
+					*this = new;
+					break;
+				}
+			}
+			if (!*this) {
+				*this = new;
+				new->next = NULL;
+			}
 		}
 		if (!strcmp(buf, "Transfer-Encoding")) {
 			if (!strcmp(colon, "chunked"))

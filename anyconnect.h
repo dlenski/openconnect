@@ -32,8 +32,8 @@ struct pkt {
 };
 	
 struct vpn_option {
-	const char *option;
-	const char *value;
+	char *option;
+	char *value;
 	struct vpn_option *next;
 };
 
@@ -52,6 +52,7 @@ struct anyconnect_info {
 	char xmlsha1[(SHA_DIGEST_LENGTH * 2) + 1];
 
 	const char *cookie;
+	struct vpn_option *cookies;
 	struct vpn_option *cstp_options;
 	struct vpn_option *dtls_options;
 

@@ -286,6 +286,7 @@ static int open_https(struct anyconnect_info *vpninfo)
 
 int obtain_cookie_cert(struct anyconnect_info *vpninfo)
 {
+	struct vpn_option *opt, *next;
 	char buf[65536];
 	int result;
 
@@ -335,6 +336,14 @@ int obtain_cookie_cert(struct anyconnect_info *vpninfo)
 			SSL_free(vpninfo->https_ssl);
 			vpninfo->https_ssl = NULL;
 
+			for (opt = vpninfo->cookies; opt; opt = next) {
+				next = opt->next;
+				printf("Discard cookie %s\n", opt->option);
+				free(opt->option);
+				free(opt->value);
+				free(opt);
+			}
+			vpninfo->cookies = NULL;
 			goto retry;
 		} else if (vpninfo->redirect_url[0] == '/') {
 			/* Absolute redirect within same host */
@@ -348,9 +357,31 @@ int obtain_cookie_cert(struct anyconnect_info *vpninfo)
 			return -EINVAL;
 		}
 	}
-	if (vpninfo->cookie) {
-		return 0;
+
+	for (opt = vpninfo->cookies; opt; opt = opt->next) {
+
+		if (!strcmp(opt->option, "webvpn"))
+			vpninfo->cookie = opt->value;
+		else if (!strcmp(opt->option, "webvpnc")) {
+			char *amp = opt->value;
+			
+			while ((amp = strchr(amp, '&'))) {
+				amp++;
+				if (!strncmp(amp, "fh:", 3)) {
+					if (strncasecmp(amp+3, vpninfo->xmlsha1,
+							SHA_DIGEST_LENGTH * 2)) {
+						/* FIXME. Obviously */
+						printf("SHA1 changed; need new config\n");
+						/* URL is $bu: + $fu: */
+					} else if (verbose)
+						printf("XML config SHA1 match\n");
+				}
+			}
+		}
 	}
+	if (vpninfo->cookie)
+		return 0;
+
 	return -1;
 }
 
