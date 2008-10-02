@@ -572,6 +572,11 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 				printf("Got CSTP DPD response\n");
 			continue;
 
+		case AC_PKT_KEEPALIVE:
+			if (verbose)
+				printf("Got CSTP Keepalive\n");
+			continue;
+
 		case AC_PKT_DATA:
 			if (verbose) {
 				printf("Received uncompressed data packet of %d bytes\n",

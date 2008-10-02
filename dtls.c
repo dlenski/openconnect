@@ -273,6 +273,11 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 				printf("Got DTLS DPD response\n");
 			break;
 
+		case AC_PKT_KEEPALIVE:
+			if (verbose)
+				printf("Got DTLS Keepalive\n");
+			break;
+
 		default:
 			fprintf(stderr, "Unknown DTLS packet type %02x\n", buf[0]);
 			vpninfo->quit_reason = "Unknown packet received";
