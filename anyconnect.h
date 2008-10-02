@@ -65,6 +65,8 @@ struct anyconnect_info {
 	time_t last_ssl_tx;
 	time_t last_ssl_rx;
 	time_t last_ssl_dpd;
+	struct pkt *deflate_pkt;
+	struct pkt *current_ssl_pkt;
 
 	z_stream inflate_strm;
 	uint32_t inflate_adler32;

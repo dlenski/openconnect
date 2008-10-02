@@ -532,7 +532,7 @@ static int inflate_and_queue_packet(struct anyconnect_info *vpninfo, int type, v
 int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 {
 	unsigned char buf[16384];
-	int len;
+	int len, ret;
 	int work_done = 0;
 
 	/* FIXME: The poll() handling here is fairly simplistic. Actually,
@@ -597,6 +597,41 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		return 1;
 	}
 
+
+	/* If SSL_write() fails we are expected to try again. With exactly
+	   the same data, at exactly the same location. So we keep the 
+	   packet we had before.... */
+	if (vpninfo->current_ssl_pkt) {
+	handle_outgoing:
+		vpninfo->last_ssl_tx = time(NULL);
+		ret = SSL_write(vpninfo->https_ssl,
+				vpninfo->current_ssl_pkt->hdr,
+				vpninfo->current_ssl_pkt->len + 8);
+		if (ret <= 0) {
+			ret = SSL_get_error(vpninfo->https_ssl, ret);
+			switch (ret) {
+			case SSL_ERROR_WANT_READ:
+			case SSL_ERROR_WANT_WRITE:
+				/* FIXME: Set pollfd flags accordingly */
+				return work_done;
+			default:
+				fprintf(stderr, "SSL_write failed: %d", ret);
+				ERR_print_errors_fp(stderr);
+				vpninfo->quit_reason = "SSL write error";
+				return 1;
+			}
+		}
+		if (ret != vpninfo->current_ssl_pkt->len + 8) {
+			fprintf(stderr, "SSL wrote too few bytes! Asked for %d, sent %d\n",
+				vpninfo->current_ssl_pkt->len + 8, ret);
+			vpninfo->quit_reason = "Internal error";
+			return 1;
+		}
+		if (vpninfo->current_ssl_pkt != vpninfo->deflate_pkt)
+			free(vpninfo->current_ssl_pkt);
+		vpninfo->current_ssl_pkt = NULL;
+	}
+
 	/* Don't send data over SSL if we have DTLS */
 	while (vpninfo->dtls_fd == -1 && vpninfo->outgoing_queue) {
 		struct pkt *this = vpninfo->outgoing_queue;
@@ -633,25 +668,24 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 
 			vpninfo->deflate_pkt->len = vpninfo->deflate_strm.total_out + 4;
 
-			SSL_write(vpninfo->https_ssl, vpninfo->deflate_pkt->hdr, 
-				  vpninfo->deflate_strm.total_out + 12);
 			if (verbose) {
-				printf("Sent compressed data packet of %d bytes\n",
+				printf("Sending compressed data packet of %d bytes\n",
 				       this->len);
 			}
+			vpninfo->current_ssl_pkt = vpninfo->deflate_pkt;
 		} else {
 		uncompr:
 			memcpy(this->hdr, data_hdr, 8);
 			this->hdr[4] = this->len >> 8;
 			this->hdr[5] = this->len & 0xff;
 
-			SSL_write(vpninfo->https_ssl, this->hdr, this->len + 8);
 			if (verbose) {
-				printf("Sent uncompressed data packet of %d bytes\n",
+				printf("Sending uncompressed data packet of %d bytes\n",
 				       this->len);
 			}
+			vpninfo->current_ssl_pkt = this;
 		}
-		vpninfo->last_ssl_tx = time(NULL);
+		goto handle_outgoing;
 	}
 
 	/* DPD is bidirectional -- PKT 3 out, PKT 4 back */
