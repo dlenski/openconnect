@@ -567,12 +567,12 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		}
 		vpninfo->ssl_times.last_rx = time(NULL);
 		switch(buf[6]) {
-		case 4: /* Keepalive response */
+		case AC_PKT_DPD_RESP:
 			if (verbose)
 				printf("Got CSTP DPD response\n");
 			continue;
 
-		case 0: /* Uncompressed Data */
+		case AC_PKT_DATA:
 			if (verbose) {
 				printf("Received uncompressed data packet of %d bytes\n",
 				       payload_len);
@@ -582,7 +582,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			work_done = 1;
 			continue;
 
-		case 8: /* Compressed data */
+		case AC_PKT_COMPRESSED:
 			if (!vpninfo->deflate) {
 				fprintf(stderr, "Compressed packet received in !deflate mode\n");
 				goto unknown_pkt;
@@ -591,7 +591,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			work_done = 1;
 			continue;
 
-		case 9:
+		case AC_PKT_TERM_SERVER:
 			fprintf(stderr, "received server terminate packet\n");
 			vpninfo->quit_reason = "Server request";
 			return 1;

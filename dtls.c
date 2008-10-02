@@ -263,12 +263,12 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		vpninfo->dtls_times.last_rx = time(NULL);
 
 		switch(buf[0]) {
-		case 0:
+		case AC_PKT_DATA:
 			queue_new_packet(&vpninfo->incoming_queue, AF_INET, buf+1, len-1);
 			work_done = 1;
 			break;
 
-		case 4: /* DPD response */
+		case AC_PKT_DPD_RESP:
 			if (verbose)
 				printf("Got DTLS DPD response\n");
 			break;
