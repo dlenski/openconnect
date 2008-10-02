@@ -54,6 +54,7 @@ static struct option long_options[] = {
 	{"cafile", 1, 0, '0'},
 	{"no-dtls", 0, 0, '1'},
 	{"cookieonly", 0, 0, '2'},
+	{"printcookie", 0, 0, '3'},
 	{"xmlconfig", 1, 0, 'x'},
 };
 
@@ -76,6 +77,7 @@ void usage(void)
 	printf("  -v, --verbose                   More output\n");
 	printf("  -x, --xmlconfig=CONFIG          XML config file\n");
 	printf("      --fetchcookie               Fetch webvpn cookie only; don't connect\n");
+	printf("      --printcookie               Print webvpn cookie before connecting\n");
 	printf("      --cafile=FILE               Cert file for server verification\n");
 	printf("      --no-dtls                   Disable DTLS\n");
 	exit(1);
@@ -85,7 +87,7 @@ int main(int argc, char **argv)
 {
 	struct anyconnect_info *vpninfo;
 	struct utsname utsbuf;
-	int cookieonly;
+	int cookieonly = 0;
 	int opt;
 
 	vpn_init_openssl();
@@ -128,6 +130,9 @@ int main(int argc, char **argv)
 			break;
 		case '2':
 			cookieonly = 1;
+			break;
+		case '3':
+			cookieonly = 2;
 			break;
 		case 'C':
 			vpninfo->cookie = optarg;
@@ -211,7 +216,9 @@ int main(int argc, char **argv)
 
 	if (cookieonly) {
 		printf("%s\n", vpninfo->cookie);
-		exit(0);
+		if (cookieonly == 1)
+			/* We use cookieonly=2 for 'print it and continue' */
+			exit(0);
 	}
 
 	if (make_ssl_connection(vpninfo)) {
