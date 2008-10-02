@@ -49,8 +49,8 @@ include /dev/null $(wildcard .*.o.dep)
 
 ifdef VERSION
 tag:
-	@if git diff-index --name-only HEAD; then echo Uncommitted changes in above files;\
-						 exit 1; fi
+	@if git diff-index --name-only HEAD | grep ^ ; then \
+		echo Uncommitted changes in above files; exit 1; fi
 	sed 's/^v=.*/v="v$(VERSION)"/' -i version.sh
 	git commit -m "Tag version $(VERSION)" version.sh
 	git tag v$(VERSION)
