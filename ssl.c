@@ -512,7 +512,12 @@ static int inflate_and_queue_packet(struct anyconnect_info *vpninfo, int type, v
  * 0008: data payload
  */
 
-static char data_hdr[8] = {'S', 'T', 'F', 1, 0, 0, 0, 0};
+static char data_hdr[8] = {
+	'S', 'T', 'F', 1,
+	0, 0,		/* Length */
+	AC_PKT_DATA,	/* Type */
+	0		/* Unknown */
+};
 
 int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 {
@@ -585,14 +590,14 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	/* Don't send data over SSL if we have DTLS */
 	while (vpninfo->dtls_fd == -1 && vpninfo->outgoing_queue) {
 		struct pkt *this = vpninfo->outgoing_queue;
-		char buf[2048];
-
-		memcpy(buf, data_hdr, 8);
-
 		vpninfo->outgoing_queue = this->next;
 
 		if (vpninfo->deflate) {
+			char buf[2048];
 			int ret;
+
+			memcpy(buf, data_hdr, 8);
+
 			vpninfo->deflate_strm.next_in = this->data;
 			vpninfo->deflate_strm.avail_in = this->len;
 			vpninfo->deflate_strm.next_out = (void *)buf + 8;
@@ -605,7 +610,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 				goto uncompr;
 			}
 
-			buf[6] = 8;
+			buf[6] = AC_PKT_COMPRESSED;
 			buf[4] = (vpninfo->deflate_strm.total_out + 4) >> 8;
 			buf[5] = (vpninfo->deflate_strm.total_out + 4) & 0xff;
 
@@ -626,10 +631,11 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			}
 		} else {
 		uncompr:
-			buf[4] = this->len >> 8;
-			buf[5] = this->len & 0xff;
-			memcpy(buf + 8, this->data, this->len);
-			SSL_write(vpninfo->https_ssl, buf, this->len + 8);
+			memcpy(this->hdr, data_hdr, 8);
+			this->hdr[4] = this->len >> 8;
+			this->hdr[5] = this->len & 0xff;
+
+			SSL_write(vpninfo->https_ssl, this->hdr, this->len + 8);
 			if (verbose) {
 				printf("Sent uncompressed data packet of %d bytes\n",
 				       this->len);
