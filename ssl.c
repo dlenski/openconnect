@@ -304,9 +304,18 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 	char buf[65536];
 	int i;
 	int retried = 0;
-
 	struct vpn_option **next_dtls_option = &vpninfo->dtls_options;
 	struct vpn_option **next_cstp_option = &vpninfo->cstp_options;
+	struct vpn_option *old_cstp_opts = vpninfo->cstp_options;
+	struct vpn_option *old_dtls_opts = vpninfo->dtls_options;
+	const char *old_addr = vpninfo->vpn_addr;
+	const char *old_netmask = vpninfo->vpn_netmask;
+
+	/* Clear old options which will be overwritten */
+	vpninfo->vpn_addr = vpninfo->vpn_netmask = NULL;
+	vpninfo->cstp_options = vpninfo->dtls_options = NULL;
+	for (i=0; i<3; i++)
+		vpninfo->vpn_dns[i] = vpninfo->vpn_nbns[i] = NULL;
 
  retry:
 	my_SSL_printf(vpninfo->https_ssl, "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
@@ -373,7 +382,7 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 
 		new_option = malloc(sizeof(*new_option));
 		if (!new_option) {
-			fprintf(stderr, "No memory for allocation options\n");
+			fprintf(stderr, "No memory for options\n");
 			return -ENOMEM;
 		}
 		new_option->option = strdup(buf);
@@ -381,9 +390,12 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 		new_option->next = NULL;
 
 		if (!new_option->option || !new_option->value) {
-			fprintf(stderr, "No memory for allocation options\n");
+			fprintf(stderr, "No memory for options\n");
 			return -ENOMEM;
 		}
+
+		if (verbose)
+			printf("%s: %s\n", buf, colon);
 
 		if (!strncmp(buf, "X-DTLS-", 7)) {
 			*next_dtls_option = new_option;
@@ -394,8 +406,6 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 		*next_cstp_option = new_option;
 		next_cstp_option = &new_option->next;
 
-		if (verbose)
-			printf("DTLS option %s : %s\n", buf, colon);
 
 		if (!strcmp(buf + 7, "Keepalive")) {
 			vpninfo->ssl_times.keepalive = atol(colon);
@@ -443,6 +453,35 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 	}
 	if (!vpninfo->vpn_netmask)
 		vpninfo->vpn_netmask = "255.255.255.255";
+	if (old_addr) {
+		if (strcmp(old_addr, vpninfo->vpn_addr)) {
+			fprintf(stderr, "Reconnect gave different IP address (%s != %s)\n",
+				vpninfo->vpn_addr, old_addr);
+			return -EINVAL;
+		}
+	}
+	if (old_netmask) {
+		if (strcmp(old_netmask, vpninfo->vpn_netmask)) {
+			fprintf(stderr, "Reconnect gave different netmask (%s != %s)\n",
+				vpninfo->vpn_netmask, old_netmask);
+			return -EINVAL;
+		}
+	}
+
+	while (old_dtls_opts) {
+		struct vpn_option *tmp = old_dtls_opts;
+		old_dtls_opts = old_dtls_opts->next;
+		free(tmp->value);
+		free(tmp->option);
+		free(tmp);
+	}
+	while (old_cstp_opts) {
+		struct vpn_option *tmp = old_cstp_opts;
+		old_cstp_opts = old_cstp_opts->next;
+		free(tmp->value);
+		free(tmp->option);
+		free(tmp);
+	}
 	if (verbose)
 		printf("SSL connected. DPD %d, Keepalive %d\n",
 		       vpninfo->ssl_times.dpd, vpninfo->ssl_times.keepalive);
@@ -486,7 +525,7 @@ int make_ssl_connection(struct anyconnect_info *vpninfo)
 	}
 
 	if (start_ssl_connection(vpninfo))
-		exit(1);
+		return -EINVAL;
 
 	return 0;
 }
@@ -711,7 +750,8 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			vpninfo->quit_reason = "SSL DPD detected dead peer; reconnect failed";
 			return 1;
 		}
-		/* FIXME: Reconnect DTLS? */
+		/* I think we can leave DTLS to its own devices; when we reconnect
+		   with the same master secret, we do seem to get the same sessid */
 		return 1;
 
 	case KA_DPD:
