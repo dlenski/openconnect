@@ -643,15 +643,20 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	if (vpninfo->ssl_dpd) {
 		time_t now = time(NULL);
 		time_t due = vpninfo->last_ssl_rx + vpninfo->ssl_dpd;
-		time_t overdue = vpninfo->last_ssl_rx + (5 * vpninfo->ssl_dpd);
+		time_t overdue = vpninfo->last_ssl_rx + (2 * vpninfo->ssl_dpd);
 
 		/* If we already have DPD outstanding, don't flood */
-		if (vpninfo->last_ssl_dpd > vpninfo->last_ssl_rx)
+		if (vpninfo->last_ssl_dpd > vpninfo->last_ssl_rx) {
+			if (verbose) {
+				printf("DTLS DPD outstanding. Will kill in %ld seconds\n",
+				       overdue - now);
+			}
 			due = vpninfo->last_ssl_dpd + vpninfo->ssl_dpd;
-
+		}
 		if (now > overdue) {
 			fprintf(stderr, "SSL Dead Peer Detection detected dead peer!\n");
 			vpninfo->quit_reason = "SSL DPD detected dead peer";
+			/* FIXME: We should try to reconnect with the same cookie */
 			return 1;
 		}
 		
@@ -662,14 +667,14 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			   Check if it's still there */
 			/* FIXME: If isn't, we should act on that */
 			SSL_write(vpninfo->https_ssl, cstp_dpd, 8);
-			vpninfo->last_ssl_tx = now;
+			vpninfo->last_ssl_dpd = vpninfo->last_ssl_tx = now;
 
 			due = now + vpninfo->ssl_dpd;
 			if (verbose)
 				printf("Sent SSL DPD\n");
 		}
 
-		if (verbose)
+		if (verbose && due < overdue)
 			printf("Next SSL DPD due in %ld seconds\n", (due - now));
 		if (*timeout > (due - now) * 1000)
 			*timeout = (due - now) * 1000;
