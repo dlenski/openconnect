@@ -28,6 +28,7 @@ struct pkt {
 	int type;
 	int len;
 	struct pkt *next;
+	unsigned char hdr[8];
 	unsigned char data[];
 };
 	

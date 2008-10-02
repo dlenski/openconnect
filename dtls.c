@@ -284,10 +284,13 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 
 		vpninfo->outgoing_queue = this->next;
 
-		buf[0] = 0;
-		memcpy(buf + 1, this->data, this->len);
+		/* One byte of header */
+		this->hdr[7] = AC_PKT_DATA;
 		
-		ret = SSL_write(vpninfo->dtls_ssl, buf, this->len + 1);
+		ret = SSL_write(vpninfo->dtls_ssl, &this->hdr[7], this->len + 1);
+		/* There's not a lot we can do if the write fails. If the link is
+		   really dead, DPD will kick in and we should fall back to SSL,
+		   if that's still working */
 		vpninfo->last_dtls_tx = time(NULL);
 		if (verbose) {
 			printf("Sent DTLS packet of %d bytes; SSL_write() returned %d\n",
