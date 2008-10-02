@@ -309,8 +309,8 @@ int append_opt(char *body, int bodylen, char *opt, char *name)
 
 int add_securid_pin(char *pin)
 {
-	int i, j;
-	int plus = 0;
+	char *longer, *shorter;
+	int i, plus = 0;
 
 	for (i=0; pin[i]; i++) {
 		if (!plus && pin[i] == '+')
@@ -321,14 +321,23 @@ int add_securid_pin(char *pin)
 	if (!plus)
 		return 0;
 
-	j = strlen(pin+plus);
-	pin[plus++]=0;
-
-	for (i = plus; pin[i]; i++) {
-		pin[i-j] += pin[i] - '0';
-		if (pin[i-j] > '9')
-			pin[i-j] -= 10;
+	pin[plus] = 0;
+	if (strlen(pin + plus + 1) > strlen(pin)) {
+		longer = pin + plus + 1;
+		shorter = pin;
+	} else {
+		shorter = pin + plus + 1;
+		longer = pin;
 	}
+	plus = strlen(longer) - strlen(shorter);
+
+	for (i=0; i < strlen(shorter); i++) {
+		longer[i+plus] += shorter[i] - '0';
+		if (longer[i+plus] > '9')
+			longer[i+plus] -= 10;
+	}
+	if (shorter == pin)
+		memmove(pin, longer, strlen(longer)+1);
 	return 1;
 }
 
