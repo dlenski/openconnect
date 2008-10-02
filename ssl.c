@@ -462,15 +462,27 @@ int make_ssl_connection(struct anyconnect_info *vpninfo)
 	if (!vpninfo->https_ssl && open_https(vpninfo))
 		exit(1);
 
-	if (vpninfo->deflate && !vpninfo->deflate_pkt) {
-		vpninfo->deflate_pkt = malloc(sizeof(struct pkt) + 2048);
-		if (!vpninfo->deflate_pkt) {
-			fprintf(stderr, "Allocation of deflate buffer failed\n");
-			return -ENOMEM;
+	if (vpninfo->deflate) {
+		vpninfo->deflate_adler32 = 1;
+		vpninfo->inflate_adler32 = 1;
+
+		if (inflateInit2(&vpninfo->inflate_strm, -12) ||
+		    deflateInit2(&vpninfo->deflate_strm, Z_DEFAULT_COMPRESSION,
+				 Z_DEFLATED, -12, 9, Z_DEFAULT_STRATEGY)) {
+			fprintf(stderr, "Compression setup failed\n");
+			vpninfo->deflate = 0;
 		}
-		memset(vpninfo->deflate_pkt, 0, sizeof(struct pkt));
-		memcpy(vpninfo->deflate_pkt->hdr, data_hdr, 8);
-		vpninfo->deflate_pkt->hdr[6] = AC_PKT_COMPRESSED;
+
+		if (!vpninfo->deflate_pkt) {
+			vpninfo->deflate_pkt = malloc(sizeof(struct pkt) + 2048);
+			if (!vpninfo->deflate_pkt) {
+				fprintf(stderr, "Allocation of deflate buffer failed\n");
+				vpninfo->deflate = 0;
+			}
+			memset(vpninfo->deflate_pkt, 0, sizeof(struct pkt));
+			memcpy(vpninfo->deflate_pkt->hdr, data_hdr, 8);
+			vpninfo->deflate_pkt->hdr[6] = AC_PKT_COMPRESSED;
+		}
 	}
 
 	if (start_ssl_connection(vpninfo))
@@ -639,10 +651,8 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 				   probably stalled, and/or the buffers are full */
 				vpninfo->pfds[vpninfo->ssl_pfd].events |= POLLOUT;
 			case SSL_ERROR_WANT_READ:
-				if (ka_stalled_dpd_time(&vpninfo->ssl_times, timeout)) {
-					vpninfo->quit_reason = "SSL DPD detected dead peer";
-					return 1;
-				}
+				if (ka_stalled_dpd_time(&vpninfo->ssl_times, timeout))
+					goto peer_dead;
 				return work_done;
 			default:
 				fprintf(stderr, "SSL_write failed: %d", ret);
@@ -685,9 +695,23 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		break;
 
 	case KA_DPD_DEAD:
+	peer_dead:
 		fprintf(stderr, "CSTP Dead Peer Detection detected dead peer!\n");
-		vpninfo->quit_reason = "SSL DPD detected dead peer";
-		/* FIXME: We should try to reconnect with the same cookie */
+		SSL_free(vpninfo->https_ssl);
+		vpninfo->https_ssl = NULL;
+		close(vpninfo->ssl_fd);
+
+		/* It's already deflated in the old stream. Extremely 
+		   non-trivial to reconstitute it; just throw it away */
+		if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt)
+			vpninfo->current_ssl_pkt = NULL;
+
+		if (make_ssl_connection(vpninfo)) {
+			fprintf(stderr, "Reconnect failed\n");
+			vpninfo->quit_reason = "SSL DPD detected dead peer; reconnect failed";
+			return 1;
+		}
+		/* FIXME: Reconnect DTLS? */
 		return 1;
 
 	case KA_DPD:

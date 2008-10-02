@@ -58,6 +58,7 @@ static struct option long_options[] = {
 	{"cookieonly", 0, 0, '2'},
 	{"printcookie", 0, 0, '3'},
 	{"xmlconfig", 1, 0, 'x'},
+	{NULL, 0, 0, 0},
 };
 
 void usage(void)
@@ -203,17 +204,6 @@ int main(int argc, char **argv)
 	if (!vpninfo->hostname)
 		vpninfo->hostname = strdup(argv[optind]);
 	vpninfo->urlpath = strdup("/");
-
-	if (vpninfo->deflate) {
-		if (inflateInit2(&vpninfo->inflate_strm, -12) ||
-		    deflateInit2(&vpninfo->deflate_strm, Z_DEFAULT_COMPRESSION,
-				 Z_DEFLATED, -12, 9, Z_DEFAULT_STRATEGY)) {
-			fprintf(stderr, "Compression setup failed\n");
-			vpninfo->deflate = 0;
-		}
-	}
-	vpninfo->deflate_adler32 = 1;
-	vpninfo->inflate_adler32 = 1;
 
 	if (!vpninfo->cookie && obtain_cookie(vpninfo)) {
 		fprintf(stderr, "Failed to obtain WebVPN cookie\n");
