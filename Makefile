@@ -49,3 +49,16 @@ install:
 	install -m0755 anyconnect $(DESTDIR)/usr/bin
 
 include /dev/null $(wildcard .*.o.dep)
+
+ifdef VERSION
+tag:
+	@if git diff-index --name-only HEAD; then echo Uncommitted changes in above files;\
+						 exit 1; fi
+	sed 's/^v=.*/v="v$(VERSION)"/' -i version.sh
+	git commit -m "Tag version $(VERSION)" version.sh
+	git tag v$(VERSION)
+
+tarball:
+	git archive --format=tar --prefix=anyconnect-$(VERSION)/ v$(VERSION) | gzip -9 > anyconnect-$(VERSION).tar.gz
+endif
+
