@@ -521,6 +521,70 @@ int parse_xml_response(struct anyconnect_info *vpninfo, char *response,
 	return -EINVAL;
 }
 
+int fetch_config(struct anyconnect_info *vpninfo, char *fu, char *bu, char *server_sha1)
+{
+	struct vpn_option *opt;
+	char buf[65536];
+	int result, buflen;
+	unsigned char local_sha1_bin[SHA_DIGEST_LENGTH];
+	char local_sha1_ascii[(SHA_DIGEST_LENGTH * 2)+1];
+	EVP_MD_CTX c;
+	int i;
+	int config_fd;
+
+	sprintf(buf, "GET %s%s HTTP/1.1\r\n", fu, bu);
+	sprintf(buf + strlen(buf), "Host: %s\r\n", vpninfo->hostname);
+	sprintf(buf + strlen(buf),  "User-Agent: %s\r\n", vpninfo->useragent);
+	sprintf(buf + strlen(buf),  "Accept: */*\r\n");
+	sprintf(buf + strlen(buf),  "Accept-Encoding: identity\r\n");
+
+	if (vpninfo->cookies) {
+		sprintf(buf + strlen(buf),  "Cookie: ");
+		for (opt = vpninfo->cookies; opt; opt = opt->next)
+			sprintf(buf + strlen(buf),  "%s=%s%s", opt->option,
+				      opt->value, opt->next?"; ":"\r\n");
+	}
+	sprintf(buf + strlen(buf),  "X-Transcend-Version: 1\r\n\r\n");
+
+	SSL_write(vpninfo->https_ssl, buf, strlen(buf));
+
+	buflen = process_http_response(vpninfo, &result, NULL, buf, 65536);
+	if (buflen < 0) {
+		/* We'll already have complained about whatever offended us */
+		return -EINVAL;
+	}
+
+	if (result != 200)
+		return -EINVAL;
+
+	
+	EVP_MD_CTX_init(&c);
+	EVP_Digest(buf, buflen, local_sha1_bin, NULL, EVP_sha1(), NULL);
+	EVP_MD_CTX_cleanup(&c);
+
+	for (i = 0; i < SHA_DIGEST_LENGTH; i++)
+		sprintf(&local_sha1_ascii[i*2], "%02x", local_sha1_bin[i]);
+
+	if (strcasecmp(server_sha1, local_sha1_ascii)) {
+		fprintf(stderr, "Downloaded config file did not match intended SHA1\n");
+		return -EINVAL;
+	}
+
+	config_fd = open(vpninfo->xmlconfig, O_WRONLY|O_TRUNC|O_CREAT, 0644);
+	if (!config_fd) {
+		fprintf(stderr, "Failed to open %s for write: %s\n", 
+			vpninfo->xmlconfig, strerror(errno));
+		return -errno;
+	}
+
+	/* FIXME: We should actually write to a new tempfile, then rename */
+	write(config_fd, buf, buflen);
+
+	printf("Downloaded new config file %s\n", vpninfo->xmlconfig);
+
+	return 0;
+	
+}
 int obtain_cookie(struct anyconnect_info *vpninfo)
 {
 	struct vpn_option *opt, *next;
@@ -641,23 +705,32 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 
 		if (!strcmp(opt->option, "webvpn"))
 			vpninfo->cookie = opt->value;
-		else if (vpninfo->xmlconfig && !strcmp(opt->option, "webvpnc")) {
-			char *amp = opt->value;
-			
-			while ((amp = strchr(amp, '&'))) {
-				amp++;
-				if (!strncmp(amp, "fh:", 3)) {
-					if (strncasecmp(amp+3, vpninfo->xmlsha1,
-							SHA_DIGEST_LENGTH * 2)) {
-						/* FIXME. Obviously */
-						printf("SHA1 changed; need new config\n");
-						/* URL is $bu: + $fu: */
-					} else if (verbose)
-						printf("XML config SHA1 match\n");
+		else if (vpninfo->xmlconfig &&
+			 !strcmp(opt->option, "webvpnc")) {
+			char *tok = opt->value;
+			char *bu = NULL, *fu = NULL, *sha = NULL;
+
+			do {
+				if (tok != opt->value)
+					*(tok++) = 0;
+
+				if (!strncmp(tok, "bu:", 3))
+					bu = tok + 3;
+				else if (!strncmp(tok, "fu:", 3))
+					fu = tok + 3;
+				else if (!strncmp(tok, "fh:", 3)) {
+					if (!strncasecmp(tok, vpninfo->xmlsha1,
+							 SHA_DIGEST_LENGTH * 2))
+						break;
+					sha = tok + 3;
 				}
-			}
+			} while ((tok = strchr(tok, '&')));
+
+			if (bu && fu && sha)
+				fetch_config(vpninfo, bu, fu, sha);
 		}
 	}
+
 	if (vpninfo->cookie)
 		return 0;
 
