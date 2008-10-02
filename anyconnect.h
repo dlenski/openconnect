@@ -39,6 +39,9 @@ struct vpn_option {
 };
 
 struct keepalive_info {
+	int dpd;
+	int keepalive;
+	int rekey;
 	time_t last_rekey;
 	time_t last_tx;
 	time_t last_rx;
@@ -67,8 +70,6 @@ struct anyconnect_info {
 
 	SSL_CTX *https_ctx;
 	SSL *https_ssl;
-	int ssl_keepalive;
-	int ssl_dpd;
 	struct keepalive_info ssl_times;
 	struct pkt *deflate_pkt;
 	struct pkt *current_ssl_pkt;
@@ -81,9 +82,6 @@ struct anyconnect_info {
 	int trydtls;
 	SSL_CTX *dtls_ctx;
 	SSL *dtls_ssl;
-	int dtls_keepalive;
-	int dtls_dpd;
-	int dtls_rekey;
 	struct keepalive_info dtls_times;
 	unsigned char dtls_session_id[32];
 	unsigned char dtls_secret[48];

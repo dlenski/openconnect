@@ -398,9 +398,9 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 			printf("DTLS option %s : %s\n", buf, colon);
 
 		if (!strcmp(buf + 7, "Keepalive")) {
-			vpninfo->ssl_keepalive = atol(colon);
+			vpninfo->ssl_times.keepalive = atol(colon);
 		} else if (!strcmp(buf + 7, "DPD")) {
-			vpninfo->ssl_dpd = atol(colon);
+			vpninfo->ssl_times.dpd = atol(colon);
 		} else if (!strcmp(buf + 7, "Content-Encoding")) {
 			if (!strcmp(colon, "deflate"))
 				vpninfo->deflate = 1;
@@ -445,7 +445,7 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 		vpninfo->vpn_netmask = "255.255.255.255";
 	if (verbose)
 		printf("SSL connected. DPD %d, Keepalive %d\n",
-		       vpninfo->ssl_dpd, vpninfo->ssl_keepalive);
+		       vpninfo->ssl_times.dpd, vpninfo->ssl_times.keepalive);
 
 	BIO_set_nbio(SSL_get_rbio(vpninfo->https_ssl),1);
 	BIO_set_nbio(SSL_get_wbio(vpninfo->https_ssl),1);
@@ -689,10 +689,10 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	}
 
 	/* DPD is bidirectional -- PKT 3 out, PKT 4 back */
-	if (vpninfo->ssl_dpd) {
+	if (vpninfo->ssl_times.dpd) {
 		time_t now = time(NULL);
-		time_t due = vpninfo->ssl_times.last_rx + vpninfo->ssl_dpd;
-		time_t overdue = vpninfo->ssl_times.last_rx + (2 * vpninfo->ssl_dpd);
+		time_t due = vpninfo->ssl_times.last_rx + vpninfo->ssl_times.dpd;
+		time_t overdue = vpninfo->ssl_times.last_rx + (2 * vpninfo->ssl_times.dpd);
 
 		/* If we already have DPD outstanding, don't flood */
 		if (vpninfo->ssl_times.last_dpd > vpninfo->ssl_times.last_rx) {
@@ -700,7 +700,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 				printf("DTLS DPD outstanding. Will kill in %ld seconds\n",
 				       overdue - now);
 			}
-			due = vpninfo->ssl_times.last_dpd + vpninfo->ssl_dpd;
+			due = vpninfo->ssl_times.last_dpd + vpninfo->ssl_times.dpd;
 		}
 		if (now > overdue) {
 			fprintf(stderr, "SSL Dead Peer Detection detected dead peer!\n");
@@ -718,7 +718,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			SSL_write(vpninfo->https_ssl, cstp_dpd, 8);
 			vpninfo->ssl_times.last_dpd = vpninfo->ssl_times.last_tx = now;
 
-			due = now + vpninfo->ssl_dpd;
+			due = now + vpninfo->ssl_times.dpd;
 			if (verbose)
 				printf("Sent SSL DPD\n");
 		}
@@ -730,9 +730,9 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	}
 
 	/* Keepalive is just client -> server */
-	if (vpninfo->ssl_keepalive) {
+	if (vpninfo->ssl_times.keepalive) {
 		time_t now = time(NULL);
-		time_t due = vpninfo->ssl_times.last_tx + vpninfo->ssl_keepalive;
+		time_t due = vpninfo->ssl_times.last_tx + vpninfo->ssl_times.keepalive;
 
 		if (now >= due) {
 			static unsigned char cstp_keepalive[8] = 
@@ -743,7 +743,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			SSL_write(vpninfo->https_ssl, cstp_keepalive, 8);
 			vpninfo->ssl_times.last_tx = now;
 
-			due = now + vpninfo->ssl_keepalive;
+			due = now + vpninfo->ssl_times.keepalive;
 			if (verbose)
 				printf("Sent SSL Keepalive\n");
 		}
