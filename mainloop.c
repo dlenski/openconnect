@@ -134,6 +134,31 @@ int vpn_mainloop(struct anyconnect_info *vpninfo)
 	return 0;
 }
 
+/* Called when the socket is unwritable, to get the deadline for DPD.
+   Returns 1 if DPD deadline has already arrived. */
+int ka_stalled_dpd_time(struct keepalive_info *ka, int *timeout)
+{
+	time_t now, due;
+
+	if (!ka->dpd) {
+		printf("no dpd\n");
+		return 0;
+	}
+
+	time(&now);
+	due = ka->last_rx + (2 * ka->dpd);
+
+	if (now > due)
+		return 1;
+
+	printf("ka_stalled in %d seconds\n", (int)(due - now));
+	if (*timeout > (due - now) * 1000)
+		*timeout = (due - now) * 1000;
+
+	return 0;
+}
+
+
 int keepalive_action(struct keepalive_info *ka, int *timeout)
 {
 	time_t now = time(NULL);

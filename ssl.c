@@ -612,15 +612,23 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	if (vpninfo->current_ssl_pkt) {
 	handle_outgoing:
 		vpninfo->ssl_times.last_tx = time(NULL);
+		vpninfo->pfds[vpninfo->ssl_pfd].events &= ~POLLOUT;
 		ret = SSL_write(vpninfo->https_ssl,
 				vpninfo->current_ssl_pkt->hdr,
 				vpninfo->current_ssl_pkt->len + 8);
 		if (ret <= 0) {
 			ret = SSL_get_error(vpninfo->https_ssl, ret);
 			switch (ret) {
-			case SSL_ERROR_WANT_READ:
 			case SSL_ERROR_WANT_WRITE:
-				/* FIXME: Set pollfd flags accordingly */
+				/* Waiting for the socket to become writable -- it's
+				   probably stalled, and/or the buffers are full */
+				printf("SSL want write\n");
+				vpninfo->pfds[vpninfo->ssl_pfd].events |= POLLOUT;
+			case SSL_ERROR_WANT_READ:
+				if (ka_stalled_dpd_time(&vpninfo->ssl_times, timeout)) {
+					vpninfo->quit_reason = "SSL DPD detected dead peer";
+					return 1;
+				}
 				return work_done;
 			default:
 				fprintf(stderr, "SSL_write failed: %d", ret);
@@ -654,7 +662,6 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		time(&vpninfo->ssl_times.last_rekey);
 		work_done = 1;
 		break;
-
 
 	case KA_DPD_DEAD:
 		fprintf(stderr, "CSTP Dead Peer Detection detected dead peer!\n");
