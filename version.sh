@@ -35,4 +35,4 @@ echo "#endif" >> .build-version.h
 #    exit 0
 #fi
 
-mv .build-version.h version.h
+mv -f .build-version.h version.h
