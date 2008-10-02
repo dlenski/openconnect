@@ -101,8 +101,6 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, SSL **ret_ssl,
 	SSL_set_connect_state(dtls_ssl);
 	SSL_set_cipher_list(dtls_ssl, SSL_CIPHER_get_name(https_cipher));
 
-	if (verbose)
-		printf("SSL_SESSION is %zd bytes\n", sizeof(*dtls_session));
 	/* We're going to "resume" a session which never existed. Fake it... */
 	dtls_session = SSL_SESSION_new();
 
@@ -121,13 +119,12 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, SSL **ret_ssl,
 
 	/* Having faked a session, add it to the CTX and the SSL */
 	if (!SSL_set_session(dtls_ssl, dtls_session)) {
-		printf("SSL_set_session() failed with old protocol version 0x%x\n", dtls_session->ssl_version);
-		printf("Trying the official version %x\n", 0xfeff);
-		dtls_session->ssl_version = 0xfeff;
-		if (!SSL_set_session(dtls_ssl, dtls_session)) {
-			printf("SSL_set_session() failed still. Is your build ABI-compatible with your libssl?\n");
-			return -EINVAL;
-		}
+		printf("SSL_set_session() failed with old protocol version 0x%x\n",
+		       dtls_session->ssl_version);
+		printf("Your OpenSSL may lack Cisco compatibility support\n");
+		printf("See http://rt.openssl.org/Ticket/Display.html?id=1751\n");
+		printf("Use the --no-dtls command line option to avoid this message\n");
+		return -EINVAL;
 	}
 	if (!SSL_CTX_add_session(dtls_ctx, dtls_session))
 		printf("SSL_CTX_add_session() failed\n");
