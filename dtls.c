@@ -302,17 +302,22 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	if (vpninfo->dtls_dpd) {
 		time_t now = time(NULL);
 		time_t due = vpninfo->last_dtls_rx + vpninfo->dtls_dpd;
-		time_t overdue = vpninfo->last_dtls_rx + (5 * vpninfo->dtls_dpd);
+		time_t overdue = vpninfo->last_dtls_rx + (2 * vpninfo->dtls_dpd);
 
 		/* If we already have DPD outstanding, don't flood */
-		if (vpninfo->last_dtls_dpd > vpninfo->last_dtls_rx)
+		if (vpninfo->last_dtls_dpd > vpninfo->last_dtls_rx) {
+			if (verbose) {
+				printf("DTLS DPD outstanding. Will kill in %ld seconds\n",
+				       overdue - now);
+			}
 			due = vpninfo->last_dtls_dpd + vpninfo->dtls_dpd;
-			
+		}
 		if (now > overdue) {
 			fprintf(stderr, "DTLS Dead Peer Detection detected dead peer!\n");
 			/* Fall back to SSL */
 			SSL_free(vpninfo->dtls_ssl);
 			close(vpninfo->dtls_fd);
+			vpninfo->pfds[vpninfo->dtls_pfd].fd = -1;
 			vpninfo->dtls_ssl = NULL;
 			vpninfo->dtls_fd = -1;
 			return 1;
@@ -323,14 +328,14 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			   Check if it's still there */
 			/* FIXME: If isn't, we should act on that */
 			SSL_write(vpninfo->dtls_ssl, dtls_dpd_pkt, 1);
-			vpninfo->last_dtls_tx = now;
+			vpninfo->last_dtls_dpd = vpninfo->last_dtls_tx = now;
 
 			due = now + vpninfo->dtls_dpd;
 			if (verbose)
 				printf("Sent DTLS DPD\n");
 		}
 
-		if (verbose)
+		if (verbose && due < overdue)
 			printf("Next DTLS DPD due in %ld seconds\n", (due - now));
 		if (*timeout > (due - now) * 1000)
 			*timeout = (due - now) * 1000;
