@@ -27,6 +27,7 @@ all: anyconnect getwebvpn
 
 version.h: $(patsubst %.o,%.c,$(OBJECTS)) anyconnect.h $(wildcard .git/index) version.sh
 	@./version.sh
+	@echo New version.h: $(shell grep define version.h | cut -f2 -d\")
 
 anyconnect: $(OBJECTS)
 	$(CC) -o $@ $^ $(LDFLAGS)
