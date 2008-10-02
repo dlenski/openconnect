@@ -134,7 +134,7 @@ int vpn_mainloop(struct anyconnect_info *vpninfo)
 	return 0;
 }
 
-int keepalive_action(struct keepalive_info *ka, time_t *timeout)
+int keepalive_action(struct keepalive_info *ka, int *timeout)
 {
 	time_t now = time(NULL);
 
@@ -144,6 +144,8 @@ int keepalive_action(struct keepalive_info *ka, time_t *timeout)
 		if (now >= due)
 			return KA_REKEY;
 
+		if (verbose)
+			printf("Rekey in %d seconds\n", (int)(due - now));
 		if (*timeout > (due - now) * 1000)
 			*timeout = (due - now) * 1000;
 	}
@@ -169,6 +171,8 @@ int keepalive_action(struct keepalive_info *ka, time_t *timeout)
 			return KA_DPD;
 		}
 
+		if (verbose)
+			printf("DPD in %d seconds\n", (int)(due - now));
 		if (*timeout > (due - now) * 1000)
 			*timeout = (due - now) * 1000;
 	}
@@ -182,6 +186,8 @@ int keepalive_action(struct keepalive_info *ka, time_t *timeout)
 		if (now >= due)
 			return KA_KEEPALIVE;
 
+		if (verbose)
+			printf("KA in %d seconds\n", (int)(due - now));
 		if (*timeout > (due - now) * 1000)
 			*timeout = (due - now) * 1000;
 	}

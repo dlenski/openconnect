@@ -253,6 +253,7 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	unsigned char buf[2000];
 	int len;
 	int work_done = 0;
+	char magic_pkt;
 
 	while ( (len = SSL_read(vpninfo->dtls_ssl, buf, sizeof(buf))) > 0 ) {
 		if (verbose)
@@ -278,6 +279,66 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			return 1;
 		}
 	}
+
+	switch (keepalive_action(&vpninfo->dtls_times, timeout)) {
+	case KA_REKEY:
+		if (verbose)
+			printf("DTLS rekey due\n");
+		if (dtls_rekey(vpninfo)) {
+			fprintf(stderr, "DTLS rekey failed\n");
+			/* Fall back to SSL */
+			SSL_free(vpninfo->dtls_ssl);
+			close(vpninfo->dtls_fd);
+			vpninfo->pfds[vpninfo->dtls_pfd].fd = -1;
+			vpninfo->dtls_ssl = NULL;
+			vpninfo->dtls_fd = -1;
+			return 1;
+		}
+		time(&vpninfo->dtls_times.last_rekey);
+		work_done = 1;
+		break;
+
+
+	case KA_DPD_DEAD:
+		fprintf(stderr, "DTLS Dead Peer Detection detected dead peer!\n");
+		/* Fall back to SSL */
+		SSL_free(vpninfo->dtls_ssl);
+		close(vpninfo->dtls_fd);
+		vpninfo->pfds[vpninfo->dtls_pfd].fd = -1;
+		vpninfo->dtls_ssl = NULL;
+		vpninfo->dtls_fd = -1;
+		return 1;
+
+	case KA_DPD:
+		if (verbose)
+			printf("Send DTLS DPD\n");
+
+		magic_pkt = AC_PKT_DPD_OUT;
+		SSL_write(vpninfo->dtls_ssl, &magic_pkt, 1);
+		/* last_dpd will just have been set */
+		vpninfo->dtls_times.last_tx = vpninfo->dtls_times.last_dpd;
+		work_done = 1;
+		break;
+
+	case KA_KEEPALIVE:
+		if (verbose)
+			printf("Send DTLS Keepalive\n");
+
+		/* No need to send an explicit keepalive
+		   if we have real data to send */
+		if (vpninfo->outgoing_queue)
+			break;
+
+		magic_pkt = AC_PKT_KEEPALIVE;
+		SSL_write(vpninfo->dtls_ssl, &magic_pkt, 1);
+		time(&vpninfo->dtls_times.last_tx);
+		work_done = 1;
+		break;
+
+	case KA_NONE:
+		;
+	}
+
 	while (vpninfo->outgoing_queue) {
 		struct pkt *this = vpninfo->outgoing_queue;
 		int ret;
@@ -288,107 +349,11 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		this->hdr[7] = AC_PKT_DATA;
 		
 		ret = SSL_write(vpninfo->dtls_ssl, &this->hdr[7], this->len + 1);
-		/* There's not a lot we can do if the write fails. If the link is
-		   really dead, DPD will kick in and we should fall back to SSL,
-		   if that's still working */
-		vpninfo->dtls_times.last_tx = time(NULL);
+		time(&vpninfo->dtls_times.last_tx);
 		if (verbose) {
 			printf("Sent DTLS packet of %d bytes; SSL_write() returned %d\n",
 			       this->len, ret);
 		}
-	}
-
-	/* DPD is bidirectional -- PKT 3 out, PKT 4 back */
-	if (vpninfo->dtls_times.dpd) {
-		time_t now = time(NULL);
-		time_t due = vpninfo->dtls_times.last_rx + vpninfo->dtls_times.dpd;
-		time_t overdue = vpninfo->dtls_times.last_rx + (2 * vpninfo->dtls_times.dpd);
-
-		/* If we already have DPD outstanding, don't flood */
-		if (vpninfo->dtls_times.last_dpd > vpninfo->dtls_times.last_rx) {
-			if (verbose) {
-				printf("DTLS DPD outstanding. Will kill in %ld seconds\n",
-				       overdue - now);
-			}
-			due = vpninfo->dtls_times.last_dpd + vpninfo->dtls_times.dpd;
-		}
-		if (now > overdue) {
-			fprintf(stderr, "DTLS Dead Peer Detection detected dead peer!\n");
-			/* Fall back to SSL */
-			SSL_free(vpninfo->dtls_ssl);
-			close(vpninfo->dtls_fd);
-			vpninfo->pfds[vpninfo->dtls_pfd].fd = -1;
-			vpninfo->dtls_ssl = NULL;
-			vpninfo->dtls_fd = -1;
-			return 1;
-		}
-		if (now >= due) {
-			static unsigned char dtls_dpd_pkt[1] = { 3 };
-			/* Haven't heard anything from the other end for a while.
-			   Check if it's still there */
-			/* FIXME: If isn't, we should act on that */
-			SSL_write(vpninfo->dtls_ssl, dtls_dpd_pkt, 1);
-			vpninfo->dtls_times.last_dpd = vpninfo->dtls_times.last_tx = now;
-
-			due = now + vpninfo->dtls_times.dpd;
-			if (verbose)
-				printf("Sent DTLS DPD\n");
-		}
-
-		if (verbose && due < overdue)
-			printf("Next DTLS DPD due in %ld seconds\n", (due - now));
-		if (*timeout > (due - now) * 1000)
-			*timeout = (due - now) * 1000;
-	}
-
-	/* Keepalive is just client -> server */
-	if (vpninfo->dtls_times.keepalive) {
-		time_t now = time(NULL);
-		time_t due = vpninfo->dtls_times.last_tx + vpninfo->dtls_times.keepalive;
-
-		if (now >= due) {
-			static unsigned char dtls_keepalive_pkt[1] = { 7 };
-
-			/* Send something (which is discarded), to keep
-			   the connection alive. */
-			SSL_write(vpninfo->dtls_ssl, dtls_keepalive_pkt, 1);
-			vpninfo->dtls_times.last_tx = now;
-
-			due = now + vpninfo->dtls_times.keepalive;
-			if (verbose)
-				printf("Sent DTLS Keepalive\n");
-		}
-
-		if (verbose)
-			printf("Next DTLS Keepalive due in %ld seconds\n", (due - now));
-		if (*timeout > (due - now) * 1000)
-			*timeout = (due - now) * 1000;
-	}
-
-	if (vpninfo->dtls_times.rekey) {
-		time_t now = time(NULL);
-		time_t due = vpninfo->dtls_times.last_rekey + vpninfo->dtls_times.rekey;
-
-		if (now >= due) {
-			if (verbose)
-				printf("DTLS rekey due\n");
-			if (dtls_rekey(vpninfo)) {
-				fprintf(stderr, "DTLS rekey failed\n");
-				/* Fall back to SSL */
-				SSL_free(vpninfo->dtls_ssl);
-				close(vpninfo->dtls_fd);
-				vpninfo->pfds[vpninfo->dtls_pfd].fd = -1;
-				vpninfo->dtls_ssl = NULL;
-				vpninfo->dtls_fd = -1;
-				return 1;
-			}
-			vpninfo->dtls_times.last_rekey = time(NULL);
-			due = vpninfo->dtls_times.last_rekey + vpninfo->dtls_times.rekey;
-		}
-		if (verbose)
-			printf("Next DTLS rekey due in %ld seconds\n", (due - now));
-		if (*timeout > (due - now) * 1000)
-			*timeout = (due - now) * 1000;
 	}
 
 	return work_done;
