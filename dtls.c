@@ -50,7 +50,8 @@
  * number seen in the ClientHello. But although I can make the handshake
  * complete by hacking tls1_mac() to use the _old_ protocol version
  * number when calculating the MAC, the server still seems to be ignoring
- * my subsequent data packets.
+ * my subsequent data packets. So we use the old protocol, which is what
+ * their clients use anyway.
  */   
 
 static unsigned char nybble(unsigned char n)
@@ -66,15 +67,13 @@ static unsigned char hex(const char *data)
 	return (nybble(data[0]) << 4) | nybble(data[1]);
 }
 
-static int connect_dtls_socket(struct anyconnect_info *vpninfo, SSL **ret_ssl,
-			       int *ret_fd)
+int connect_dtls_socket(struct anyconnect_info *vpninfo)
 {
 	SSL_METHOD *dtls_method;
 	SSL_CIPHER *https_cipher;
 	SSL *dtls_ssl;
 	BIO *dtls_bio;
 	int dtls_fd;
-	int ret;
 
 	dtls_fd = socket(vpninfo->peer_addr->sa_family, SOCK_DGRAM, IPPROTO_UDP);
 	if (dtls_fd < 0) {
@@ -152,60 +151,95 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, SSL **ret_ssl,
 #define SSL_OP_CISCO_ANYCONNECT 0x8000
 #endif
 	SSL_set_options(dtls_ssl, SSL_OP_CISCO_ANYCONNECT);
-	ret = SSL_do_handshake(dtls_ssl);
-	
-	if (ret != 1) {
-		fprintf(stderr, "DTLS connection returned %d\n", ret);
-		if (ret < 0)
-			fprintf(stderr, "DTLS handshake error: %d\n", SSL_get_error(dtls_ssl, ret));
-		ERR_print_errors_fp(stderr);
-		SSL_free(dtls_ssl);
-		SSL_CTX_free(vpninfo->dtls_ctx);
-		vpninfo->dtls_ctx = NULL;
-		close(dtls_fd);
-		return -EINVAL;
-	}
 
+	/* Set non-blocking */
 	BIO_set_nbio(SSL_get_rbio(dtls_ssl),1);
 	BIO_set_nbio(SSL_get_wbio(dtls_ssl),1);
 
 	fcntl(dtls_fd, F_SETFL, fcntl(dtls_fd, F_GETFL) | O_NONBLOCK);
 
-	vpninfo->dtls_times.last_rekey = vpninfo->dtls_times.last_rx =
-		vpninfo->dtls_times.last_tx = time(NULL);
+	vpninfo->new_dtls_fd = dtls_fd;
+	vpninfo->new_dtls_ssl = dtls_ssl;
+	vpninfo->pfds[vpninfo->new_dtls_pfd].fd = vpninfo->new_dtls_fd;
 
-	*ret_fd = dtls_fd;
-	*ret_ssl = dtls_ssl;
-
-	return 0;
+	time(&vpninfo->new_dtls_started);
+	return dtls_try_handshake(vpninfo);
 }
 
-static int dtls_rekey(struct anyconnect_info *vpninfo)
+int dtls_try_handshake(struct anyconnect_info *vpninfo)
 {
-	SSL *dtls_ssl;
-	int dtls_fd;
+	int ret = SSL_do_handshake(vpninfo->new_dtls_ssl);
 
-	/* To rekey, we just 'resume' the session again */
-	if (connect_dtls_socket(vpninfo, &dtls_ssl, &dtls_fd)) {
-		/* Fall back to SSL */
+	if (ret == 1) {
+		printf("Established DTLS connection\n");
+
+		vpninfo->dtls_state = DTLS_RUNNING;
+
+		if (vpninfo->dtls_ssl) {
+			/* We are replacing an old connection */
+			SSL_free(vpninfo->dtls_ssl);
+			close(vpninfo->dtls_fd);
+		}
+		vpninfo->pfds[vpninfo->dtls_pfd].fd = vpninfo->new_dtls_fd;
+		vpninfo->dtls_ssl = vpninfo->new_dtls_ssl;
+		vpninfo->dtls_fd = vpninfo->new_dtls_fd;
+
+		vpninfo->pfds[vpninfo->new_dtls_pfd].fd = -1;
+		vpninfo->new_dtls_ssl = NULL;
+		vpninfo->new_dtls_fd = -1;
+
+		vpninfo->dtls_times.last_rekey = vpninfo->dtls_times.last_rx =
+			vpninfo->dtls_times.last_tx = time(NULL);
+
+		return 0;
+	}
+
+	ret = SSL_get_error(vpninfo->new_dtls_ssl, ret);
+	if (ret == SSL_ERROR_WANT_WRITE || ret == SSL_ERROR_WANT_READ) {
+		if (time(NULL) < vpninfo->new_dtls_started + 5)
+			return 0;
+		if (verbose)
+			printf("DTLS handshake timed out\n");
+	} else if (verbose) {
+		fprintf(stderr, "DTLS handshake failed: %d\n", ret);
+		ERR_print_errors_fp(stderr);
+	}
+
+	/* Kill the new (failed) connection... */
+	SSL_free(vpninfo->new_dtls_ssl);
+	vpninfo->pfds[vpninfo->new_dtls_pfd].fd = -1;
+	close(vpninfo->new_dtls_fd);
+	vpninfo->new_dtls_ssl = NULL;
+	vpninfo->new_dtls_fd = -1;
+
+	/* ... and kill the old one too. The only time there'll be a valid
+	   existing session is when it was a rekey, and in that case it's
+	   time for the old one to die. */
+	if (vpninfo->dtls_ssl) {
 		SSL_free(vpninfo->dtls_ssl);
 		close(vpninfo->dtls_fd);
 		vpninfo->pfds[vpninfo->dtls_pfd].fd = -1;
 		vpninfo->dtls_ssl = NULL;
 		vpninfo->dtls_fd = -1;
-		return -EINVAL;
 	}
 
-	vpninfo->pfds[vpninfo->dtls_pfd].fd = dtls_fd;
-
-	SSL_free(vpninfo->dtls_ssl);
-	close(vpninfo->dtls_fd);
-
-	vpninfo->dtls_ssl = dtls_ssl;
-	vpninfo->dtls_fd = dtls_fd;
-
-	return 0;
+	time(&vpninfo->new_dtls_started);
+	return -EINVAL;
 }
+
+static int dtls_restart(struct anyconnect_info *vpninfo)
+{
+	if (vpninfo->dtls_ssl) {
+		SSL_free(vpninfo->dtls_ssl);
+		close(vpninfo->dtls_fd);
+		vpninfo->pfds[vpninfo->dtls_pfd].fd = -1;
+		vpninfo->dtls_ssl = NULL;
+		vpninfo->dtls_fd = -1;
+	}
+
+	return connect_dtls_socket(vpninfo);
+}
+
 
 int setup_dtls(struct anyconnect_info *vpninfo)
 {
@@ -232,7 +266,7 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 		} else if (!strcmp(dtls_opt->option + 7, "Keepalive")) {
 			vpninfo->dtls_times.keepalive = atol(dtls_opt->value);
 		} else if (!strcmp(dtls_opt->option + 7, "DPD")) {
-			vpninfo->dtls_times.dpd = 10;//atol(dtls_opt->value);
+			vpninfo->dtls_times.dpd = atol(dtls_opt->value);
 		} else if (!strcmp(dtls_opt->option + 7, "Rekey-Time")) {
 			vpninfo->dtls_times.rekey = atol(dtls_opt->value);
 		}
@@ -254,11 +288,13 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	if (connect_dtls_socket(vpninfo, &vpninfo->dtls_ssl, &vpninfo->dtls_fd))
-		return -EINVAL;
-
-	vpninfo->dtls_pfd = vpn_add_pollfd(vpninfo, vpninfo->dtls_fd,
+	vpninfo->dtls_pfd = vpn_add_pollfd(vpninfo, -1,
 					   POLLIN|POLLHUP|POLLERR);
+	vpninfo->new_dtls_pfd = vpn_add_pollfd(vpninfo, -1,
+					   POLLIN|POLLHUP|POLLERR);
+
+	if (connect_dtls_socket(vpninfo))
+		return -EINVAL;
 
 	if (verbose)
 		printf("DTLS connected. DPD %d, Keepalive %d\n",
@@ -279,7 +315,7 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			printf("Received DTLS packet 0x%02x of %d bytes\n",
 			       buf[0], len);
 
-		//vpninfo->dtls_times.last_rx = time(NULL);
+		vpninfo->dtls_times.last_rx = time(NULL);
 
 		switch(buf[0]) {
 		case AC_PKT_DATA:
@@ -314,13 +350,12 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		}
 	}
 
-	if (verbose)
-		printf("Process DTLS keepalive...\n");
 	switch (keepalive_action(&vpninfo->dtls_times, timeout)) {
 	case KA_REKEY:
+		time(&vpninfo->dtls_times.last_rekey);
 		if (verbose)
 			printf("DTLS rekey due\n");
-		if (dtls_rekey(vpninfo)) {
+		if (connect_dtls_socket(vpninfo)) {
 			fprintf(stderr, "DTLS rekey failed\n");
 			return 1;
 		}
@@ -330,12 +365,9 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 
 	case KA_DPD_DEAD:
 		fprintf(stderr, "DTLS Dead Peer Detection detected dead peer!\n");
-		if (dtls_rekey(vpninfo)) {
-			fprintf(stderr, "DTLS reconnect failed\n");
-			return 1;
-		}
-		work_done = 1;
-		break;
+		/* Fall back to SSL, and start a new DTLS connection */
+		dtls_restart(vpninfo);
+		return 1;
 
 	case KA_DPD:
 		if (verbose)
@@ -378,6 +410,19 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		this->hdr[7] = AC_PKT_DATA;
 		
 		ret = SSL_write(vpninfo->dtls_ssl, &this->hdr[7], this->len + 1);
+		if (ret <= 0) {
+			ret = SSL_get_error(vpninfo->dtls_ssl, ret);
+
+			/* If it's a real error, kill the DTLS connection and
+			   requeue the packet to be sent over SSL */
+			if (ret != SSL_ERROR_WANT_READ && ret != SSL_ERROR_WANT_WRITE) {
+				fprintf(stderr, "DTLS got write error %d. Falling back to SSL\n", ret);
+				ERR_print_errors_fp(stderr);
+				dtls_restart(vpninfo);
+				vpninfo->outgoing_queue = this;
+			}
+			return 1;
+		}
 		time(&vpninfo->dtls_times.last_tx);
 		if (verbose) {
 			printf("Sent DTLS packet of %d bytes; SSL_write() returned %d\n",

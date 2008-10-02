@@ -91,9 +91,12 @@ struct anyconnect_info {
 	z_stream deflate_strm;
 	uint32_t deflate_adler32;
 
+	int dtls_attempt_period;
+	time_t new_dtls_started;
 	int dtls_state;
 	SSL_CTX *dtls_ctx;
 	SSL *dtls_ssl;
+	SSL *new_dtls_ssl;
 	SSL_SESSION *dtls_session;
 	struct keepalive_info dtls_times;
 	unsigned char dtls_session_id[32];
@@ -114,8 +117,10 @@ struct anyconnect_info {
 	int tun_fd;
 	int ssl_fd;
 	int dtls_fd;
+	int new_dtls_fd;
 	int ssl_pfd;
 	int dtls_pfd;
+	int new_dtls_pfd;
 
 	struct pkt *incoming_queue;
 	struct pkt *outgoing_queue;
@@ -147,6 +152,8 @@ int tun_mainloop(struct anyconnect_info *vpninfo, int *timeout);
 /* dtls.c */
 int setup_dtls(struct anyconnect_info *vpninfo);
 int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout);
+int dtls_try_handshake(struct anyconnect_info *vpninfo);
+int connect_dtls_socket(struct anyconnect_info *vpninfo);
 
 /* ssl.c */
 int make_ssl_connection(struct anyconnect_info *vpninfo);

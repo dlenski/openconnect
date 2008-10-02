@@ -84,7 +84,16 @@ int vpn_mainloop(struct anyconnect_info *vpninfo)
 		int did_work = 0;
 		int timeout = INT_MAX;
 
-		if (vpninfo->dtls_fd != -1)
+		if (vpninfo->new_dtls_ssl)
+			dtls_try_handshake(vpninfo);
+
+		if (!vpninfo->dtls_ssl && !vpninfo->new_dtls_ssl &&
+		    vpninfo->new_dtls_started + vpninfo->dtls_attempt_period < time(NULL)) {
+			if (verbose)
+				printf("Attempt new DTLS connection\n");
+			connect_dtls_socket(vpninfo);
+		}
+		if (vpninfo->dtls_ssl)
 			did_work += dtls_mainloop(vpninfo, &timeout);
 
 		if (vpninfo->quit_reason)
@@ -169,8 +178,6 @@ int keepalive_action(struct keepalive_info *ka, int *timeout)
 		if (now >= due)
 			return KA_REKEY;
 
-		if (verbose)
-			printf("Rekey in %d seconds\n", (int)(due - now));
 		if (*timeout > (due - now) * 1000)
 			*timeout = (due - now) * 1000;
 	}
@@ -195,9 +202,6 @@ int keepalive_action(struct keepalive_info *ka, int *timeout)
 			ka->last_dpd = now;
 			return KA_DPD;
 		}
-
-		if (verbose)
-			printf("DPD in %d seconds\n", (int)(due - now));
 		if (*timeout > (due - now) * 1000)
 			*timeout = (due - now) * 1000;
 	}
@@ -211,8 +215,6 @@ int keepalive_action(struct keepalive_info *ka, int *timeout)
 		if (now >= due)
 			return KA_KEEPALIVE;
 
-		if (verbose)
-			printf("KA in %d seconds\n", (int)(due - now));
 		if (*timeout > (due - now) * 1000)
 			*timeout = (due - now) * 1000;
 	}

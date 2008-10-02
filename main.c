@@ -105,10 +105,11 @@ int main(int argc, char **argv)
 
 	/* Set up some defaults */
 	vpninfo->ifname = "cisco0";
-	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = -1;
+	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = vpninfo->new_dtls_fd = -1;
 	vpninfo->useragent = "Open AnyConnect VPN Agent " ANYCONNECT_VERSION;
 	vpninfo->mtu = 1406;
 	vpninfo->deflate = 1;
+	vpninfo->dtls_attempt_period = 60;
 
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
 		fprintf(stderr, "Failed to initialise DTLS secret\n");

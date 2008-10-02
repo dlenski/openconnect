@@ -722,8 +722,6 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		goto handle_outgoing;
 	}
 
-	if (verbose)
-		printf("Process CSTP keepalive...\n");
 	switch (keepalive_action(&vpninfo->ssl_times, timeout)) {
 	case KA_REKEY:
 		/* Not that this will ever happen; we don't even process
