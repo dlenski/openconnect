@@ -268,6 +268,16 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			work_done = 1;
 			break;
 
+		case AC_PKT_DPD_OUT:
+			if (verbose)
+				printf("Got DTLS DPD request\n");
+
+			/* FIXME: What if the packet doesn't get through? */
+			magic_pkt = AC_PKT_DPD_RESP;
+			if (SSL_write(vpninfo->dtls_ssl, &magic_pkt, 1) != 1)
+				fprintf(stderr, "Failed to send DPD response. Expect disconnect\n");
+			continue;
+
 		case AC_PKT_DPD_RESP:
 			if (verbose)
 				printf("Got DTLS DPD response\n");

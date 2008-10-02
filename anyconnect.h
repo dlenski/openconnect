@@ -77,6 +77,7 @@ struct anyconnect_info {
 	SSL_CTX *https_ctx;
 	SSL *https_ssl;
 	struct keepalive_info ssl_times;
+	int owe_ssl_dpd_response;
 	struct pkt *deflate_pkt;
 	struct pkt *current_ssl_pkt;
 

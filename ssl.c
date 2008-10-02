@@ -537,6 +537,10 @@ static struct pkt dpd_pkt = {
 	.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_OUT, 0 },
 };
 
+static struct pkt dpd_resp_pkt = {
+	.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_RESP, 0 },
+};
+
 int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 {
 	unsigned char buf[16384];
@@ -567,6 +571,12 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		}
 		vpninfo->ssl_times.last_rx = time(NULL);
 		switch(buf[6]) {
+		case AC_PKT_DPD_OUT:
+			if (verbose)
+				printf("Got CSTP DPD request\n");
+			vpninfo->owe_ssl_dpd_response = 1;
+			continue;
+
 		case AC_PKT_DPD_RESP:
 			if (verbose)
 				printf("Got CSTP DPD response\n");
@@ -627,7 +637,6 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			case SSL_ERROR_WANT_WRITE:
 				/* Waiting for the socket to become writable -- it's
 				   probably stalled, and/or the buffers are full */
-				printf("SSL want write\n");
 				vpninfo->pfds[vpninfo->ssl_pfd].events |= POLLOUT;
 			case SSL_ERROR_WANT_READ:
 				if (ka_stalled_dpd_time(&vpninfo->ssl_times, timeout)) {
@@ -651,10 +660,17 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		/* Don't free the 'special' packets */
 		if (vpninfo->current_ssl_pkt != vpninfo->deflate_pkt &&
 		    vpninfo->current_ssl_pkt != &dpd_pkt &&
+		    vpninfo->current_ssl_pkt != &dpd_resp_pkt &&
 		    vpninfo->current_ssl_pkt != &keepalive_pkt)
 			free(vpninfo->current_ssl_pkt);
 
 		vpninfo->current_ssl_pkt = NULL;
+	}
+
+	if (vpninfo->owe_ssl_dpd_response) {
+		vpninfo->owe_ssl_dpd_response = 0;
+		vpninfo->current_ssl_pkt = &dpd_resp_pkt;
+		goto handle_outgoing;
 	}
 
 	if (verbose)
