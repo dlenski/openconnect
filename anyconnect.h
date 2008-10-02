@@ -38,6 +38,13 @@ struct vpn_option {
 	struct vpn_option *next;
 };
 
+struct keepalive_info {
+	time_t last_rekey;
+	time_t last_tx;
+	time_t last_rx;
+	time_t last_dpd;
+};
+
 struct anyconnect_info {
 	char *redirect_url;
 	
@@ -62,9 +69,7 @@ struct anyconnect_info {
 	SSL *https_ssl;
 	int ssl_keepalive;
 	int ssl_dpd;
-	time_t last_ssl_tx;
-	time_t last_ssl_rx;
-	time_t last_ssl_dpd;
+	struct keepalive_info ssl_times;
 	struct pkt *deflate_pkt;
 	struct pkt *current_ssl_pkt;
 
@@ -79,10 +84,7 @@ struct anyconnect_info {
 	int dtls_keepalive;
 	int dtls_dpd;
 	int dtls_rekey;
-	time_t last_dtls_rekey;
-	time_t last_dtls_tx;
-	time_t last_dtls_rx;
-	time_t last_dtls_dpd;
+	struct keepalive_info dtls_times;
 	unsigned char dtls_session_id[32];
 	unsigned char dtls_secret[48];
 

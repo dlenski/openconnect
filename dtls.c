@@ -238,8 +238,8 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 
 	vpninfo->dtls_pfd = vpn_add_pollfd(vpninfo, vpninfo->dtls_fd,
 					   POLLIN|POLLHUP|POLLERR);
-	vpninfo->last_dtls_rekey = vpninfo->last_dtls_rx =
-		vpninfo->last_dtls_tx = time(NULL);
+	vpninfo->dtls_times.last_rekey = vpninfo->dtls_times.last_rx =
+		vpninfo->dtls_times.last_tx = time(NULL);
 
 	if (verbose)
 		printf("DTLS connected. DPD %d, Keepalive %d\n",
@@ -259,7 +259,7 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			printf("Received DTLS packet 0x%02x of %d bytes\n",
 			       len, buf[0]);
 
-		vpninfo->last_dtls_rx = time(NULL);
+		vpninfo->dtls_times.last_rx = time(NULL);
 
 		switch(buf[0]) {
 		case 0:
@@ -291,7 +291,7 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		/* There's not a lot we can do if the write fails. If the link is
 		   really dead, DPD will kick in and we should fall back to SSL,
 		   if that's still working */
-		vpninfo->last_dtls_tx = time(NULL);
+		vpninfo->dtls_times.last_tx = time(NULL);
 		if (verbose) {
 			printf("Sent DTLS packet of %d bytes; SSL_write() returned %d\n",
 			       this->len, ret);
@@ -301,16 +301,16 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	/* DPD is bidirectional -- PKT 3 out, PKT 4 back */
 	if (vpninfo->dtls_dpd) {
 		time_t now = time(NULL);
-		time_t due = vpninfo->last_dtls_rx + vpninfo->dtls_dpd;
-		time_t overdue = vpninfo->last_dtls_rx + (2 * vpninfo->dtls_dpd);
+		time_t due = vpninfo->dtls_times.last_rx + vpninfo->dtls_dpd;
+		time_t overdue = vpninfo->dtls_times.last_rx + (2 * vpninfo->dtls_dpd);
 
 		/* If we already have DPD outstanding, don't flood */
-		if (vpninfo->last_dtls_dpd > vpninfo->last_dtls_rx) {
+		if (vpninfo->dtls_times.last_dpd > vpninfo->dtls_times.last_rx) {
 			if (verbose) {
 				printf("DTLS DPD outstanding. Will kill in %ld seconds\n",
 				       overdue - now);
 			}
-			due = vpninfo->last_dtls_dpd + vpninfo->dtls_dpd;
+			due = vpninfo->dtls_times.last_dpd + vpninfo->dtls_dpd;
 		}
 		if (now > overdue) {
 			fprintf(stderr, "DTLS Dead Peer Detection detected dead peer!\n");
@@ -328,7 +328,7 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			   Check if it's still there */
 			/* FIXME: If isn't, we should act on that */
 			SSL_write(vpninfo->dtls_ssl, dtls_dpd_pkt, 1);
-			vpninfo->last_dtls_dpd = vpninfo->last_dtls_tx = now;
+			vpninfo->dtls_times.last_dpd = vpninfo->dtls_times.last_tx = now;
 
 			due = now + vpninfo->dtls_dpd;
 			if (verbose)
@@ -344,7 +344,7 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	/* Keepalive is just client -> server */
 	if (vpninfo->dtls_keepalive) {
 		time_t now = time(NULL);
-		time_t due = vpninfo->last_dtls_tx + vpninfo->dtls_keepalive;
+		time_t due = vpninfo->dtls_times.last_tx + vpninfo->dtls_keepalive;
 
 		if (now >= due) {
 			static unsigned char dtls_keepalive_pkt[1] = { 7 };
@@ -352,7 +352,7 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			/* Send something (which is discarded), to keep
 			   the connection alive. */
 			SSL_write(vpninfo->dtls_ssl, dtls_keepalive_pkt, 1);
-			vpninfo->last_dtls_tx = now;
+			vpninfo->dtls_times.last_tx = now;
 
 			due = now + vpninfo->dtls_keepalive;
 			if (verbose)
@@ -367,7 +367,7 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 
 	if (vpninfo->dtls_rekey) {
 		time_t now = time(NULL);
-		time_t due = vpninfo->last_dtls_rekey + vpninfo->dtls_rekey;
+		time_t due = vpninfo->dtls_times.last_rekey + vpninfo->dtls_rekey;
 
 		if (now >= due) {
 			if (verbose)
@@ -382,8 +382,8 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 				vpninfo->dtls_fd = -1;
 				return 1;
 			}
-			vpninfo->last_dtls_rekey = time(NULL);
-			due = vpninfo->last_dtls_rekey + vpninfo->dtls_rekey;
+			vpninfo->dtls_times.last_rekey = time(NULL);
+			due = vpninfo->dtls_times.last_rekey + vpninfo->dtls_rekey;
 		}
 		if (verbose)
 			printf("Next DTLS rekey due in %ld seconds\n", (due - now));

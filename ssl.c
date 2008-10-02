@@ -453,7 +453,7 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 	fcntl(vpninfo->ssl_fd, F_SETFL, fcntl(vpninfo->ssl_fd, F_GETFL) | O_NONBLOCK);
 	vpninfo->ssl_pfd = vpn_add_pollfd(vpninfo, vpninfo->ssl_fd, POLLIN|POLLHUP|POLLERR);
 
-	vpninfo->last_ssl_rx = vpninfo->last_ssl_tx = time(NULL);
+	vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
 	return 0;
 }
 
@@ -557,7 +557,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			       buf[4], buf[5], buf[6], buf[7]);
 			continue;
 		}
-		vpninfo->last_ssl_rx = time(NULL);
+		vpninfo->ssl_times.last_rx = time(NULL);
 		switch(buf[6]) {
 		case 4: /* Keepalive response */
 			if (verbose)
@@ -603,7 +603,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	   packet we had before.... */
 	if (vpninfo->current_ssl_pkt) {
 	handle_outgoing:
-		vpninfo->last_ssl_tx = time(NULL);
+		vpninfo->ssl_times.last_tx = time(NULL);
 		ret = SSL_write(vpninfo->https_ssl,
 				vpninfo->current_ssl_pkt->hdr,
 				vpninfo->current_ssl_pkt->len + 8);
@@ -691,16 +691,16 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	/* DPD is bidirectional -- PKT 3 out, PKT 4 back */
 	if (vpninfo->ssl_dpd) {
 		time_t now = time(NULL);
-		time_t due = vpninfo->last_ssl_rx + vpninfo->ssl_dpd;
-		time_t overdue = vpninfo->last_ssl_rx + (2 * vpninfo->ssl_dpd);
+		time_t due = vpninfo->ssl_times.last_rx + vpninfo->ssl_dpd;
+		time_t overdue = vpninfo->ssl_times.last_rx + (2 * vpninfo->ssl_dpd);
 
 		/* If we already have DPD outstanding, don't flood */
-		if (vpninfo->last_ssl_dpd > vpninfo->last_ssl_rx) {
+		if (vpninfo->ssl_times.last_dpd > vpninfo->ssl_times.last_rx) {
 			if (verbose) {
 				printf("DTLS DPD outstanding. Will kill in %ld seconds\n",
 				       overdue - now);
 			}
-			due = vpninfo->last_ssl_dpd + vpninfo->ssl_dpd;
+			due = vpninfo->ssl_times.last_dpd + vpninfo->ssl_dpd;
 		}
 		if (now > overdue) {
 			fprintf(stderr, "SSL Dead Peer Detection detected dead peer!\n");
@@ -716,7 +716,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			   Check if it's still there */
 			/* FIXME: If isn't, we should act on that */
 			SSL_write(vpninfo->https_ssl, cstp_dpd, 8);
-			vpninfo->last_ssl_dpd = vpninfo->last_ssl_tx = now;
+			vpninfo->ssl_times.last_dpd = vpninfo->ssl_times.last_tx = now;
 
 			due = now + vpninfo->ssl_dpd;
 			if (verbose)
@@ -732,7 +732,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	/* Keepalive is just client -> server */
 	if (vpninfo->ssl_keepalive) {
 		time_t now = time(NULL);
-		time_t due = vpninfo->last_ssl_tx + vpninfo->ssl_keepalive;
+		time_t due = vpninfo->ssl_times.last_tx + vpninfo->ssl_keepalive;
 
 		if (now >= due) {
 			static unsigned char cstp_keepalive[8] = 
@@ -741,7 +741,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			/* Send something (which is discarded), to keep
 			   the connection alive. */
 			SSL_write(vpninfo->https_ssl, cstp_keepalive, 8);
-			vpninfo->last_ssl_tx = now;
+			vpninfo->ssl_times.last_tx = now;
 
 			due = now + vpninfo->ssl_keepalive;
 			if (verbose)
