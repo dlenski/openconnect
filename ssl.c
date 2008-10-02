@@ -144,7 +144,6 @@ static int load_certificate(struct anyconnect_info *vpninfo)
 			fprintf(stderr, "Failed to init TPM engine\n");
 			ERR_print_errors_fp(stderr);
 			ENGINE_free(e);
-			ENGINE_finish(e);
 			return -EINVAL;
 		}     
 
