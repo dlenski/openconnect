@@ -109,7 +109,6 @@ int main(int argc, char **argv)
 	vpninfo->useragent = "Open AnyConnect VPN Agent " ANYCONNECT_VERSION;
 	vpninfo->mtu = 1406;
 	vpninfo->deflate = 1;
-	vpninfo->trydtls = 1;
 
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
 		fprintf(stderr, "Failed to initialise DTLS secret\n");
@@ -130,7 +129,7 @@ int main(int argc, char **argv)
 			vpninfo->cafile = optarg;
 			break;
 		case '1':
-			vpninfo->trydtls = 0;
+			vpninfo->dtls_state = DTLS_NEVER;
 			break;
 		case '2':
 			cookieonly = 1;
@@ -227,7 +226,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	if (vpninfo->trydtls && setup_dtls(vpninfo))
+	if (!vpninfo->dtls_state && setup_dtls(vpninfo))
 		fprintf(stderr, "Set up DTLS failed; using SSL instead\n");
 
 	printf("Connected as %s, using %s\n", vpninfo->vpn_addr,

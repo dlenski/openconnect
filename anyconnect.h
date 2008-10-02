@@ -54,6 +54,11 @@ struct keepalive_info {
 	time_t last_dpd;
 };
 
+#define DTLS_NEVER	-1
+#define DTLS_CLOSED	0
+#define DTLS_HANDSHAKE	1
+#define DTLS_RUNNING	2
+
 struct anyconnect_info {
 	char *redirect_url;
 	
@@ -86,7 +91,7 @@ struct anyconnect_info {
 	z_stream deflate_strm;
 	uint32_t deflate_adler32;
 
-	int trydtls;
+	int dtls_state;
 	SSL_CTX *dtls_ctx;
 	SSL *dtls_ssl;
 	SSL_SESSION *dtls_session;
