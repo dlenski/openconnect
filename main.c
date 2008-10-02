@@ -34,6 +34,7 @@
 #include <getopt.h>
 
 #include "anyconnect.h"
+#include "version.h"
 
 int verbose = 0;
 
@@ -51,6 +52,7 @@ static struct option long_options[] = {
 	{"tpm-password", 1, 0, 'p'},
 	{"user", 1, 0, 'u'},
 	{"verbose", 1, 0, 'v'},
+	{"version", 1, 0, 'V'},
 	{"cafile", 1, 0, '0'},
 	{"no-dtls", 0, 0, '1'},
 	{"cookieonly", 0, 0, '2'},
@@ -61,7 +63,7 @@ static struct option long_options[] = {
 void usage(void)
 {
 	printf("Usage:  anyconnect [options] <server>\n");
-	printf("Connect to Cisco AnyConnect server.\n\n");
+	printf("Open client for Cisco AnyConnect VPN, version " ANYCONNECT_VERSION "\n\n");
 	printf("  -c, --certificate=CERT          Use SSL client certificate CERT\n");
 	printf("  -k, --sslkey=KEY                Use SSL private key file KEY\n");
 	printf("  -C, --cookie=COOKIE             Use WebVPN cookie COOKIE\n");
@@ -74,9 +76,10 @@ void usage(void)
 	printf("  -s, --script=SCRIPT             Use vpnc-compatible config script\n");
 	printf("  -t, --tpm                       Use TPM engine for private key\n");
 	printf("  -u, --user=NAME                 Set login username\n");
+	printf("  -V, --version                   Report version number\n");
 	printf("  -v, --verbose                   More output\n");
 	printf("  -x, --xmlconfig=CONFIG          XML config file\n");
-	printf("      --fetchcookie               Fetch webvpn cookie only; don't connect\n");
+	printf("      --cookieonly                Fetch webvpn cookie only; don't connect\n");
 	printf("      --printcookie               Print webvpn cookie before connecting\n");
 	printf("      --cafile=FILE               Cert file for server verification\n");
 	printf("      --no-dtls                   Disable DTLS\n");
@@ -102,7 +105,7 @@ int main(int argc, char **argv)
 	/* Set up some defaults */
 	vpninfo->ifname = "cisco0";
 	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = -1;
-	vpninfo->useragent = "Open AnyConnect VPN Agent v0.01";
+	vpninfo->useragent = "Open AnyConnect VPN Agent v" ANYCONNECT_VERSION;
 	vpninfo->mtu = 1406;
 	vpninfo->deflate = 1;
 	vpninfo->trydtls = 1;
@@ -116,7 +119,7 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "C:c:hvdDu:i:tk:p:s:hx:",
+	while ((opt = getopt_long(argc, argv, "C:c:hvdDu:i:tk:p:s:hx:V",
 				  long_options, NULL))) {
 		if (opt < 0)
 			break;
@@ -176,6 +179,9 @@ int main(int argc, char **argv)
 		case 'v':
 			verbose = 1;
 			break;
+		case 'V':
+			printf("Open AnyConnect version " ANYCONNECT_VERSION "\n");
+			exit(0);
 		case 'x':
 			vpninfo->xmlconfig = optarg;
 			break;
