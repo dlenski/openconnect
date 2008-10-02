@@ -29,6 +29,22 @@
 
 #include "anyconnect.h"
 
+/*
+ * Data packets are encapsulated in the SSL stream as follows:
+ * 
+ * 0000: Magic "STF\x1"
+ * 0004: Big-endian 16-bit length (not including 8-byte header)
+ * 0006: Byte packet type (see anyconnect.h)
+ * 0008: data payload
+ */
+
+static char data_hdr[8] = {
+	'S', 'T', 'F', 1,
+	0, 0,		/* Length */
+	AC_PKT_DATA,	/* Type */
+	0		/* Unknown */
+};
+
 /* Helper functions for reading/writing lines over SSL.
    We could use cURL for the HTTP stuff, but it's overkill */
 
@@ -446,6 +462,17 @@ int make_ssl_connection(struct anyconnect_info *vpninfo)
 	if (!vpninfo->https_ssl && open_https(vpninfo))
 		exit(1);
 
+	if (vpninfo->deflate) {
+		vpninfo->deflate_pkt = malloc(sizeof(struct pkt) + 2048);
+		if (!vpninfo->deflate_pkt) {
+			fprintf(stderr, "Allocation of deflate buffer failed\n");
+			return -ENOMEM;
+		}
+		memset(vpninfo->deflate_pkt, 0, sizeof(struct pkt));
+		memcpy(vpninfo->deflate_pkt->hdr, data_hdr, 8);
+		vpninfo->deflate_pkt->hdr[6] = AC_PKT_COMPRESSED;
+	}
+
 	if (start_ssl_connection(vpninfo))
 		exit(1);
 
@@ -501,23 +528,6 @@ static int inflate_and_queue_packet(struct anyconnect_info *vpninfo, int type, v
 	queue_packet(&vpninfo->incoming_queue, new);
 	return 0;
 }
-
-
-/*
- * Data packets are encapsulated in the SSL stream as follows:
- * 
- * 0000: Magic "STF\x1"
- * 0004: Big-endian 16-bit length (not including 8-byte header)
- * 0006: Byte packet type (see anyconnect.h)
- * 0008: data payload
- */
-
-static char data_hdr[8] = {
-	'S', 'T', 'F', 1,
-	0, 0,		/* Length */
-	AC_PKT_DATA,	/* Type */
-	0		/* Unknown */
-};
 
 int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 {
@@ -593,14 +603,12 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		vpninfo->outgoing_queue = this->next;
 
 		if (vpninfo->deflate) {
-			char buf[2048];
+			unsigned char *adler;
 			int ret;
-
-			memcpy(buf, data_hdr, 8);
 
 			vpninfo->deflate_strm.next_in = this->data;
 			vpninfo->deflate_strm.avail_in = this->len;
-			vpninfo->deflate_strm.next_out = (void *)buf + 8;
+			vpninfo->deflate_strm.next_out = (void *)vpninfo->deflate_pkt->data;
 			vpninfo->deflate_strm.avail_out = 2040;
 			vpninfo->deflate_strm.total_out = 0;
 
@@ -610,20 +618,22 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 				goto uncompr;
 			}
 
-			buf[6] = AC_PKT_COMPRESSED;
-			buf[4] = (vpninfo->deflate_strm.total_out + 4) >> 8;
-			buf[5] = (vpninfo->deflate_strm.total_out + 4) & 0xff;
+			vpninfo->deflate_pkt->hdr[4] = (vpninfo->deflate_strm.total_out + 4) >> 8;
+			vpninfo->deflate_pkt->hdr[5] = (vpninfo->deflate_strm.total_out + 4) & 0xff;
 
 			/* Add ongoing adler32 to tail of compressed packet */
 			vpninfo->deflate_adler32 = adler32(vpninfo->deflate_adler32,
 							   this->data, this->len);
 
-			buf[8 + vpninfo->deflate_strm.total_out] = vpninfo->deflate_adler32 >> 24;
-			buf[9 + vpninfo->deflate_strm.total_out] = (vpninfo->deflate_adler32 >> 16) & 0xff;
-			buf[10 + vpninfo->deflate_strm.total_out] = (vpninfo->deflate_adler32 >> 8) & 0xff;
-			buf[11 + vpninfo->deflate_strm.total_out] = vpninfo->deflate_adler32 & 0xff;
+			adler = &vpninfo->deflate_pkt->data[vpninfo->deflate_strm.total_out];
+			*(adler++) =  vpninfo->deflate_adler32 >> 24;
+			*(adler++) = (vpninfo->deflate_adler32 >> 16) & 0xff;
+			*(adler++) = (vpninfo->deflate_adler32 >> 8) & 0xff;
+			*(adler)   =  vpninfo->deflate_adler32 & 0xff;
 
-			SSL_write(vpninfo->https_ssl, buf, 
+			vpninfo->deflate_pkt->len = vpninfo->deflate_strm.total_out + 4;
+
+			SSL_write(vpninfo->https_ssl, vpninfo->deflate_pkt->hdr, 
 				  vpninfo->deflate_strm.total_out + 12);
 			if (verbose) {
 				printf("Sent compressed data packet of %d bytes\n",
