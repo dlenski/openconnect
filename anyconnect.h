@@ -89,6 +89,7 @@ struct anyconnect_info {
 	int trydtls;
 	SSL_CTX *dtls_ctx;
 	SSL *dtls_ssl;
+	SSL_SESSION *dtls_session;
 	struct keepalive_info dtls_times;
 	unsigned char dtls_session_id[32];
 	unsigned char dtls_secret[48];

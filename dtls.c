@@ -70,8 +70,6 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, SSL **ret_ssl,
 			       int *ret_fd)
 {
 	SSL_METHOD *dtls_method;
-	SSL_CTX *dtls_ctx;
-	SSL_SESSION *dtls_session;
 	SSL_CIPHER *https_cipher;
 	SSL *dtls_ssl;
 	BIO *dtls_bio;
@@ -91,36 +89,51 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, SSL **ret_ssl,
 	}
 
 	fcntl(dtls_fd, F_SETFD, FD_CLOEXEC);
-
-	dtls_method = DTLSv1_client_method();
-	dtls_ctx = SSL_CTX_new(dtls_method);
-	SSL_CTX_set_read_ahead(dtls_ctx, 1);
+	
 	https_cipher = SSL_get_current_cipher(vpninfo->https_ssl);
 
-	dtls_ssl = SSL_new(dtls_ctx);
+	if (!vpninfo->dtls_ctx) {
+		dtls_method = DTLSv1_client_method();
+		vpninfo->dtls_ctx = SSL_CTX_new(dtls_method);
+		if (!vpninfo->dtls_ctx) {
+			fprintf(stderr, "Initialise DTLSv1 CTX failed\n");
+			return -EINVAL;
+		}
+
+		/* If we don't readahead, then we do short reads and throw
+		   away the tail of data packets. */
+		SSL_CTX_set_read_ahead(vpninfo->dtls_ctx, 1);
+	}
+
+	if (!vpninfo->dtls_session) {
+		/* We're going to "resume" a session which never existed. Fake it... */
+		vpninfo->dtls_session = SSL_SESSION_new();
+		if (!vpninfo->dtls_session) {
+			fprintf(stderr, "Initialise DTLSv1 session failed\n");
+			return -EINVAL;
+		}			
+		vpninfo->dtls_session->ssl_version = 0x0100; // DTLS1_BAD_VER
+
+		vpninfo->dtls_session->master_key_length = sizeof(vpninfo->dtls_secret);
+		memcpy(vpninfo->dtls_session->master_key, vpninfo->dtls_secret,
+		       sizeof(vpninfo->dtls_secret));
+
+		vpninfo->dtls_session->session_id_length = sizeof(vpninfo->dtls_session_id);
+		memcpy(vpninfo->dtls_session->session_id, vpninfo->dtls_session_id,
+		       sizeof(vpninfo->dtls_session_id));
+
+		vpninfo->dtls_session->cipher = https_cipher;
+		vpninfo->dtls_session->cipher_id = https_cipher->id;
+	}
+
+	dtls_ssl = SSL_new(vpninfo->dtls_ctx);
 	SSL_set_connect_state(dtls_ssl);
 	SSL_set_cipher_list(dtls_ssl, SSL_CIPHER_get_name(https_cipher));
 
-	/* We're going to "resume" a session which never existed. Fake it... */
-	dtls_session = SSL_SESSION_new();
-
-	dtls_session->ssl_version = 0x0100; // DTLS1_BAD_VER
-
-	dtls_session->master_key_length = sizeof(vpninfo->dtls_secret);
-	memcpy(dtls_session->master_key, vpninfo->dtls_secret,
-	       sizeof(vpninfo->dtls_secret));
-
-	dtls_session->session_id_length = sizeof(vpninfo->dtls_session_id);
-	memcpy(dtls_session->session_id, vpninfo->dtls_session_id,
-	       sizeof(vpninfo->dtls_session_id));
-
-	dtls_session->cipher = https_cipher;
-	dtls_session->cipher_id = https_cipher->id;
-
 	/* Add the generated session to the SSL */
-	if (!SSL_set_session(dtls_ssl, dtls_session)) {
+	if (!SSL_set_session(dtls_ssl, vpninfo->dtls_session)) {
 		printf("SSL_set_session() failed with old protocol version 0x%x\n",
-		       dtls_session->ssl_version);
+		       vpninfo->dtls_session->ssl_version);
 		printf("Your OpenSSL may lack Cisco compatibility support\n");
 		printf("See http://rt.openssl.org/Ticket/Display.html?id=1751\n");
 		printf("Use the --no-dtls command line option to avoid this message\n");
@@ -147,7 +160,8 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, SSL **ret_ssl,
 			fprintf(stderr, "DTLS handshake error: %d\n", SSL_get_error(dtls_ssl, ret));
 		ERR_print_errors_fp(stderr);
 		SSL_free(dtls_ssl);
-		SSL_CTX_free(dtls_ctx);
+		SSL_CTX_free(vpninfo->dtls_ctx);
+		vpninfo->dtls_ctx = NULL;
 		close(dtls_fd);
 		return -EINVAL;
 	}
@@ -156,6 +170,9 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, SSL **ret_ssl,
 	BIO_set_nbio(SSL_get_wbio(dtls_ssl),1);
 
 	fcntl(dtls_fd, F_SETFL, fcntl(dtls_fd, F_GETFL) | O_NONBLOCK);
+
+	vpninfo->dtls_times.last_rekey = vpninfo->dtls_times.last_rx =
+		vpninfo->dtls_times.last_tx = time(NULL);
 
 	*ret_fd = dtls_fd;
 	*ret_ssl = dtls_ssl;
@@ -169,8 +186,15 @@ static int dtls_rekey(struct anyconnect_info *vpninfo)
 	int dtls_fd;
 
 	/* To rekey, we just 'resume' the session again */
-	if (connect_dtls_socket(vpninfo, &dtls_ssl, &dtls_fd))
+	if (connect_dtls_socket(vpninfo, &dtls_ssl, &dtls_fd)) {
+		/* Fall back to SSL */
+		SSL_free(vpninfo->dtls_ssl);
+		close(vpninfo->dtls_fd);
+		vpninfo->pfds[vpninfo->dtls_pfd].fd = -1;
+		vpninfo->dtls_ssl = NULL;
+		vpninfo->dtls_fd = -1;
 		return -EINVAL;
+	}
 
 	vpninfo->pfds[vpninfo->dtls_pfd].fd = dtls_fd;
 
@@ -208,7 +232,7 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 		} else if (!strcmp(dtls_opt->option + 7, "Keepalive")) {
 			vpninfo->dtls_times.keepalive = atol(dtls_opt->value);
 		} else if (!strcmp(dtls_opt->option + 7, "DPD")) {
-			vpninfo->dtls_times.dpd = atol(dtls_opt->value);
+			vpninfo->dtls_times.dpd = 10;//atol(dtls_opt->value);
 		} else if (!strcmp(dtls_opt->option + 7, "Rekey-Time")) {
 			vpninfo->dtls_times.rekey = atol(dtls_opt->value);
 		}
@@ -235,8 +259,6 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 
 	vpninfo->dtls_pfd = vpn_add_pollfd(vpninfo, vpninfo->dtls_fd,
 					   POLLIN|POLLHUP|POLLERR);
-	vpninfo->dtls_times.last_rekey = vpninfo->dtls_times.last_rx =
-		vpninfo->dtls_times.last_tx = time(NULL);
 
 	if (verbose)
 		printf("DTLS connected. DPD %d, Keepalive %d\n",
@@ -255,9 +277,9 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	while ( (len = SSL_read(vpninfo->dtls_ssl, buf, sizeof(buf))) > 0 ) {
 		if (verbose)
 			printf("Received DTLS packet 0x%02x of %d bytes\n",
-			       len, buf[0]);
+			       buf[0], len);
 
-		vpninfo->dtls_times.last_rx = time(NULL);
+		//vpninfo->dtls_times.last_rx = time(NULL);
 
 		switch(buf[0]) {
 		case AC_PKT_DATA:
@@ -300,28 +322,20 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			printf("DTLS rekey due\n");
 		if (dtls_rekey(vpninfo)) {
 			fprintf(stderr, "DTLS rekey failed\n");
-			/* Fall back to SSL */
-			SSL_free(vpninfo->dtls_ssl);
-			close(vpninfo->dtls_fd);
-			vpninfo->pfds[vpninfo->dtls_pfd].fd = -1;
-			vpninfo->dtls_ssl = NULL;
-			vpninfo->dtls_fd = -1;
 			return 1;
 		}
-		time(&vpninfo->dtls_times.last_rekey);
 		work_done = 1;
 		break;
 
 
 	case KA_DPD_DEAD:
 		fprintf(stderr, "DTLS Dead Peer Detection detected dead peer!\n");
-		/* Fall back to SSL */
-		SSL_free(vpninfo->dtls_ssl);
-		close(vpninfo->dtls_fd);
-		vpninfo->pfds[vpninfo->dtls_pfd].fd = -1;
-		vpninfo->dtls_ssl = NULL;
-		vpninfo->dtls_fd = -1;
-		return 1;
+		if (dtls_rekey(vpninfo)) {
+			fprintf(stderr, "DTLS reconnect failed\n");
+			return 1;
+		}
+		work_done = 1;
+		break;
 
 	case KA_DPD:
 		if (verbose)
