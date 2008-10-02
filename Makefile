@@ -23,7 +23,7 @@ LDFLAGS := $(SSL_LDFLAGS) $(XML2_LDFLAGS) $(EXTRA_LDFLAGS)
 
 OBJECTS := main.o tun.o dtls.o ssl.o mainloop.o xml.o http.o
 
-all: anyconnect getwebvpn
+all: anyconnect
 
 version.h: $(patsubst %.o,%.c,$(OBJECTS)) anyconnect.h $(wildcard .git/index .git/refs/tags) version.sh
 	@./version.sh
