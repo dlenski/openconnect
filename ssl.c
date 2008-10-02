@@ -462,7 +462,7 @@ int make_ssl_connection(struct anyconnect_info *vpninfo)
 	if (!vpninfo->https_ssl && open_https(vpninfo))
 		exit(1);
 
-	if (vpninfo->deflate) {
+	if (vpninfo->deflate && !vpninfo->deflate_pkt) {
 		vpninfo->deflate_pkt = malloc(sizeof(struct pkt) + 2048);
 		if (!vpninfo->deflate_pkt) {
 			fprintf(stderr, "Allocation of deflate buffer failed\n");
