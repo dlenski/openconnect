@@ -117,7 +117,7 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, SSL **ret_ssl,
 	dtls_session->cipher = https_cipher;
 	dtls_session->cipher_id = https_cipher->id;
 
-	/* Having faked a session, add it to the CTX and the SSL */
+	/* Add the generated session to the SSL */
 	if (!SSL_set_session(dtls_ssl, dtls_session)) {
 		printf("SSL_set_session() failed with old protocol version 0x%x\n",
 		       dtls_session->ssl_version);
@@ -126,9 +126,6 @@ static int connect_dtls_socket(struct anyconnect_info *vpninfo, SSL **ret_ssl,
 		printf("Use the --no-dtls command line option to avoid this message\n");
 		return -EINVAL;
 	}
-	if (!SSL_CTX_add_session(dtls_ctx, dtls_session))
-		printf("SSL_CTX_add_session() failed\n");
-
 
 	/* Go Go Go! */
 	dtls_bio = BIO_new_socket(dtls_fd, BIO_NOCLOSE);
