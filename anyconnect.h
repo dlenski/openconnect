@@ -38,6 +38,12 @@ struct vpn_option {
 	struct vpn_option *next;
 };
 
+#define KA_NONE		0
+#define KA_DPD		1
+#define KA_DPD_DEAD	2
+#define KA_KEEPALIVE	3
+#define KA_REKEY	4
+
 struct keepalive_info {
 	int dpd;
 	int keepalive;
