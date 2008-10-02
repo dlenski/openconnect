@@ -251,28 +251,41 @@ int append_opt(char *body, int bodylen, char *opt, char *name)
 {
 	int len = strlen(body);
 
-	/* FIXME: len handling. Escaping of chars other than '_' */
-	if (len && len < bodylen - 1)
+	if (len) {
+		if (len >= bodylen - 1)
+			return -ENOSPC;
 		body[len++] = '&';
+	}
 
-	while (*opt && len < bodylen - 1) {
-		if (*opt == '_') {
-			body[len++] = '%';
-			body[len++] = '5';
-			body[len++] = 'F';
-		} else
+	while (*opt) {
+		if (isalnum(*opt)) {
+			if (len >= bodylen - 1)
+				return -ENOSPC;
 			body[len++] = *opt;
+		} else {
+			if (len >= bodylen - 3)
+				return -ENOSPC;
+			sprintf(body+len, "%%%02x", *opt);
+			len += 3;
+		}
 		opt++;
 	}
+
+	if (len >= bodylen - 1)
+		return -ENOSPC;
 	body[len++] = '=';
 
-	while (*name && len < bodylen - 1) {
-		if (*name == '_') {
-			body[len++] = '%';
-			body[len++] = '5';
-			body[len++] = 'F';
-		} else
+	while (*name) {
+		if (isalnum(*name)) {
+			if (len >= bodylen - 1)
+				return -ENOSPC;
 			body[len++] = *name;
+		} else {
+			if (len >= bodylen - 3)
+				return -ENOSPC;
+			sprintf(body+len, "%%%02X", *name);
+			len += 3;
+		}
 		name++;
 	}
 	body[len] = 0;
