@@ -25,7 +25,7 @@ OBJECTS := main.o tun.o dtls.o ssl.o mainloop.o xml.o http.o
 
 all: anyconnect getwebvpn
 
-version.h: $(patsubst %.o,%.c,$(OBJECTS)) anyconnect.h $(wildcard .git/index) version.sh
+version.h: $(patsubst %.o,%.c,$(OBJECTS)) anyconnect.h $(wildcard .git/index .git/refs/tags) version.sh
 	@./version.sh
 	@echo -en New version.h: 
 	@grep define version.h | cut -f2 -d\"
