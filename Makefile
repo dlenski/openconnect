@@ -38,11 +38,8 @@ anyconnect: $(OBJECTS)
 %.o: %.c
 	$(CC) -c -o $@ $(CFLAGS) $< -MD -MF .$@.dep
 
-getwebvpn: curl.c
-	$(CC) -o $@ -I/usr/include/libxml2 $< -lcurl -lxml2
-
 clean:
-	rm -f $(OBJECTS) anyconnect getwebvpn $(wildcard .*.o.dep)
+	rm -f $(OBJECTS) anyconnect $(wildcard .*.o.dep)
 
 install:
 	mkdir -p $(DESTDIR)/usr/bin
