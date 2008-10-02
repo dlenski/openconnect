@@ -374,6 +374,7 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 				/* Fall back to SSL */
 				SSL_free(vpninfo->dtls_ssl);
 				close(vpninfo->dtls_fd);
+				vpninfo->pfds[vpninfo->dtls_pfd].fd = -1;
 				vpninfo->dtls_ssl = NULL;
 				vpninfo->dtls_fd = -1;
 				return 1;
