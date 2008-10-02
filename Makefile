@@ -25,7 +25,7 @@ OBJECTS := main.o tun.o dtls.o ssl.o mainloop.o xml.o http.o
 
 all: anyconnect getwebvpn
 
-version.h: $(patsubst %.o,%.c,$(OBJECTS)) anyconnect.h $(wildcard .git/index)
+version.h: $(patsubst %.o,%.c,$(OBJECTS)) anyconnect.h $(wildcard .git/index) version.sh
 	@./version.sh
 
 anyconnect: $(OBJECTS)
