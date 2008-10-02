@@ -280,6 +280,8 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		}
 	}
 
+	if (verbose)
+		printf("Process DTLS keepalive...\n");
 	switch (keepalive_action(&vpninfo->dtls_times, timeout)) {
 	case KA_REKEY:
 		if (verbose)
@@ -321,13 +323,13 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		break;
 
 	case KA_KEEPALIVE:
-		if (verbose)
-			printf("Send DTLS Keepalive\n");
-
 		/* No need to send an explicit keepalive
 		   if we have real data to send */
 		if (vpninfo->outgoing_queue)
 			break;
+
+		if (verbose)
+			printf("Send DTLS Keepalive\n");
 
 		magic_pkt = AC_PKT_KEEPALIVE;
 		SSL_write(vpninfo->dtls_ssl, &magic_pkt, 1);
@@ -339,6 +341,7 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		;
 	}
 
+	/* Service outgoing packet queue */
 	while (vpninfo->outgoing_queue) {
 		struct pkt *this = vpninfo->outgoing_queue;
 		int ret;

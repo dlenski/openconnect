@@ -529,6 +529,14 @@ static int inflate_and_queue_packet(struct anyconnect_info *vpninfo, int type, v
 	return 0;
 }
 
+static struct pkt keepalive_pkt = {
+	.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_KEEPALIVE, 0 },
+};
+
+static struct pkt dpd_pkt = {
+	.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_OUT, 0 },
+};
+
 int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 {
 	unsigned char buf[16384];
@@ -561,7 +569,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		switch(buf[6]) {
 		case 4: /* Keepalive response */
 			if (verbose)
-				printf("Got SSL DPD response\n");
+				printf("Got CSTP DPD response\n");
 			continue;
 
 		case 0: /* Uncompressed Data */
@@ -627,12 +635,57 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			vpninfo->quit_reason = "Internal error";
 			return 1;
 		}
-		if (vpninfo->current_ssl_pkt != vpninfo->deflate_pkt)
+		/* Don't free the 'special' packets */
+		if (vpninfo->current_ssl_pkt != vpninfo->deflate_pkt &&
+		    vpninfo->current_ssl_pkt != &dpd_pkt &&
+		    vpninfo->current_ssl_pkt != &keepalive_pkt)
 			free(vpninfo->current_ssl_pkt);
+
 		vpninfo->current_ssl_pkt = NULL;
 	}
 
-	/* Don't send data over SSL if we have DTLS */
+	if (verbose)
+		printf("Process CSTP keepalive...\n");
+	switch (keepalive_action(&vpninfo->ssl_times, timeout)) {
+	case KA_REKEY:
+		/* Not that this will ever happen; we don't even process
+		   the setting when we're asked for it. */
+		fprintf(stderr, "CSTP rekey due but we don't know how\n");
+		time(&vpninfo->ssl_times.last_rekey);
+		work_done = 1;
+		break;
+
+
+	case KA_DPD_DEAD:
+		fprintf(stderr, "CSTP Dead Peer Detection detected dead peer!\n");
+		vpninfo->quit_reason = "SSL DPD detected dead peer";
+		/* FIXME: We should try to reconnect with the same cookie */
+		return 1;
+
+	case KA_DPD:
+		if (verbose)
+			printf("Send CSTP DPD\n");
+
+		vpninfo->current_ssl_pkt = &dpd_pkt;
+		goto handle_outgoing;
+
+	case KA_KEEPALIVE:
+		/* No need to send an explicit keepalive
+		   if we have real data to send */
+		if (vpninfo->dtls_fd == -1 && vpninfo->outgoing_queue)
+			break;
+
+		if (verbose)
+			printf("Send CSTP Keepalive\n");
+
+		vpninfo->current_ssl_pkt = &keepalive_pkt;
+		goto handle_outgoing;
+
+	case KA_NONE:
+		;
+	}
+
+	/* Service outgoing packet queue, if no DTLS */
 	while (vpninfo->dtls_fd == -1 && vpninfo->outgoing_queue) {
 		struct pkt *this = vpninfo->outgoing_queue;
 		vpninfo->outgoing_queue = this->next;
@@ -686,72 +739,6 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 			vpninfo->current_ssl_pkt = this;
 		}
 		goto handle_outgoing;
-	}
-
-	/* DPD is bidirectional -- PKT 3 out, PKT 4 back */
-	if (vpninfo->ssl_times.dpd) {
-		time_t now = time(NULL);
-		time_t due = vpninfo->ssl_times.last_rx + vpninfo->ssl_times.dpd;
-		time_t overdue = vpninfo->ssl_times.last_rx + (2 * vpninfo->ssl_times.dpd);
-
-		/* If we already have DPD outstanding, don't flood */
-		if (vpninfo->ssl_times.last_dpd > vpninfo->ssl_times.last_rx) {
-			if (verbose) {
-				printf("DTLS DPD outstanding. Will kill in %ld seconds\n",
-				       overdue - now);
-			}
-			due = vpninfo->ssl_times.last_dpd + vpninfo->ssl_times.dpd;
-		}
-		if (now > overdue) {
-			fprintf(stderr, "SSL Dead Peer Detection detected dead peer!\n");
-			vpninfo->quit_reason = "SSL DPD detected dead peer";
-			/* FIXME: We should try to reconnect with the same cookie */
-			return 1;
-		}
-		
-		if (now >= due) {
-			static unsigned char cstp_dpd[8] = 
-				{'S', 'T', 'F', 1, 0, 0, 3, 0};
-			/* Haven't heard anything from the other end for a while.
-			   Check if it's still there */
-			/* FIXME: If isn't, we should act on that */
-			SSL_write(vpninfo->https_ssl, cstp_dpd, 8);
-			vpninfo->ssl_times.last_dpd = vpninfo->ssl_times.last_tx = now;
-
-			due = now + vpninfo->ssl_times.dpd;
-			if (verbose)
-				printf("Sent SSL DPD\n");
-		}
-
-		if (verbose && due < overdue)
-			printf("Next SSL DPD due in %ld seconds\n", (due - now));
-		if (*timeout > (due - now) * 1000)
-			*timeout = (due - now) * 1000;
-	}
-
-	/* Keepalive is just client -> server */
-	if (vpninfo->ssl_times.keepalive) {
-		time_t now = time(NULL);
-		time_t due = vpninfo->ssl_times.last_tx + vpninfo->ssl_times.keepalive;
-
-		if (now >= due) {
-			static unsigned char cstp_keepalive[8] = 
-				{'S', 'T', 'F', 1, 0, 0, 7, 0};
-
-			/* Send something (which is discarded), to keep
-			   the connection alive. */
-			SSL_write(vpninfo->https_ssl, cstp_keepalive, 8);
-			vpninfo->ssl_times.last_tx = now;
-
-			due = now + vpninfo->ssl_times.keepalive;
-			if (verbose)
-				printf("Sent SSL Keepalive\n");
-		}
-
-		if (verbose)
-			printf("Next SSL Keepalive due in %ld seconds\n", (due - now));
-		if (*timeout > (due - now) * 1000)
-			*timeout = (due - now) * 1000;
 	}
 
 	/* Work is not done if we just got rid of packets off the queue */
