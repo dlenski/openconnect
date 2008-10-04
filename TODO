@@ -1,13 +1,7 @@
 
 Authentication tool:
- - Do we want a separate tool which fetches the WebVPN cookie?
- - Implement login support
  - NetworkManager integration
 
 Connectivity:
  - Allow use of lwip + SOCKS server instead of tun
 
-VPN issues:
- - Automatic Configuration update
- - Continuously attempt DTLS connection, asynchronously.
- - Reconnect SSL connection if it dies, using same cookie.
