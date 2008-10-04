@@ -104,7 +104,6 @@ int main(int argc, char **argv)
 	memset(vpninfo, 0, sizeof(*vpninfo));
 
 	/* Set up some defaults */
-	vpninfo->ifname = "cisco0";
 	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = vpninfo->new_dtls_fd = -1;
 	vpninfo->useragent = "Open AnyConnect VPN Agent " ANYCONNECT_VERSION;
 	vpninfo->mtu = 1406;

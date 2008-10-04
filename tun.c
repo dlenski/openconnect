@@ -156,11 +156,15 @@ int setup_tun(struct anyconnect_info *vpninfo)
 	}
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
-	strncpy(ifr.ifr_name, vpninfo->ifname, sizeof(ifr.ifr_name) - 1);
+	if (vpninfo->ifname)
+		strncpy(ifr.ifr_name, vpninfo->ifname,
+			sizeof(ifr.ifr_name) - 1);
 	if (ioctl(tun_fd, TUNSETIFF, (void *) &ifr) < 0) {
 		perror("TUNSETIFF");
 		exit(1);
 	}
+	if (!vpninfo->ifname)
+		vpninfo->ifname = strdup(ifr.ifr_name);
 
 	fcntl(tun_fd, F_SETFD, FD_CLOEXEC);
 
