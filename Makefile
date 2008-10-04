@@ -51,7 +51,7 @@ anyconnect: $(OPENCONNECT_OBJS) $(CONNECTION_OBJS) libopenconnect.a
 	$(CC) -c -o $@ $(CFLAGS) $< -MD -MF .$@.dep
 
 clean:
-	rm -f $(OBJECTS) anyconnect $(wildcard .*.o.dep)
+	rm -f *.o anyconnect $(wildcard .*.o.dep)
 
 install:
 	mkdir -p $(DESTDIR)/usr/bin
