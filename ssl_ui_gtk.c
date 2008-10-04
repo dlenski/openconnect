@@ -40,6 +40,9 @@ static int ui_open(UI *ui)
 
 	dlg = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_QUESTION,
 				     GTK_BUTTONS_OK_CANCEL, "OpenConnect");
+	gtk_dialog_set_default_response(GTK_DIALOG(dlg), GTK_RESPONSE_OK);
+	
+
 	UI_add_user_data(ui, dlg);
 	ssl_ui = ui;
 	return 1;
@@ -48,6 +51,12 @@ static int ui_open(UI *ui)
 static void entry_changed_cb(GtkWidget *widget, gpointer user_data)
 {
 	UI_set_result(ssl_ui, user_data, gtk_entry_get_text(GTK_ENTRY(widget)));
+}
+
+static void entry_activate_cb(GtkWidget *widget, gpointer dlg)
+{
+        g_return_if_fail(GTK_IS_DIALOG(dlg));
+        gtk_dialog_response(GTK_DIALOG(dlg), GTK_RESPONSE_OK);
 }
 
 static int ui_write(UI *ui, UI_STRING *uis)
@@ -83,6 +92,7 @@ static int ui_write(UI *ui, UI_STRING *uis)
 		if (!(UI_get_input_flags(uis) & UI_INPUT_FLAG_ECHO))
 			gtk_entry_set_visibility(GTK_ENTRY(entry), FALSE);
 		g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(entry_changed_cb), uis);
+		g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(entry_activate_cb), dlg);
 		gtk_widget_show(entry);
 		break;
 
