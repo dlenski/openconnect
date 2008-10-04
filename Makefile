@@ -21,7 +21,7 @@ XML2_LDFLAGS += $(shell xml2-config --libs)
 CFLAGS := $(OPT_FLAGS) $(SSL_CFLAGS) $(XML2_CFLAGS) $(EXTRA_CFLAGS)
 LDFLAGS := $(SSL_LDFLAGS) $(XML2_LDFLAGS) $(EXTRA_LDFLAGS)
 
-OBJECTS := main.o tun.o dtls.o ssl.o mainloop.o xml.o http.o
+OBJECTS := main.o tun.o dtls.o ssl.o mainloop.o xml.o http.o cstp.o ssl_ui.o
 
 all: anyconnect
 

@@ -162,6 +162,7 @@ int connect_dtls_socket(struct anyconnect_info *vpninfo);
 int make_cstp_connection(struct anyconnect_info *vpninfo);
 int cstp_mainloop(struct anyconnect_info *vpninfo, int *timeout);
 int cstp_bye(struct anyconnect_info *vpninfo, char *reason);
+
 /* ssl.c */
 void vpn_init_openssl(void);
 int  __attribute__ ((format (printf, 2, 3)))
@@ -189,3 +190,6 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 			  int (*header_cb)(struct anyconnect_info *, char *, char *),
 			  char *body, int buf_len);
 int obtain_cookie(struct anyconnect_info *vpninfo);
+
+/* ssl_ui.c */
+int set_openssl_ui(void);

@@ -207,6 +207,8 @@ int main(int argc, char **argv)
 		vpninfo->hostname = strdup(argv[optind]);
 	vpninfo->urlpath = strdup("/");
 
+	set_openssl_ui();
+
 	if (!vpninfo->cookie && obtain_cookie(vpninfo)) {
 		fprintf(stderr, "Failed to obtain WebVPN cookie\n");
 		exit(1);
