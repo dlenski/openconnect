@@ -552,7 +552,6 @@ int fetch_config(struct anyconnect_info *vpninfo, char *fu, char *bu, char *serv
 	char local_sha1_ascii[(SHA_DIGEST_LENGTH * 2)+1];
 	EVP_MD_CTX c;
 	int i;
-	int config_fd;
 
 	sprintf(buf, "GET %s%s HTTP/1.1\r\n", fu, bu);
 	sprintf(buf + strlen(buf), "Host: %s\r\n", vpninfo->hostname);
@@ -592,21 +591,10 @@ int fetch_config(struct anyconnect_info *vpninfo, char *fu, char *bu, char *serv
 		return -EINVAL;
 	}
 
-	config_fd = open(vpninfo->xmlconfig, O_WRONLY|O_TRUNC|O_CREAT, 0644);
-	if (!config_fd) {
-		fprintf(stderr, "Failed to open %s for write: %s\n", 
-			vpninfo->xmlconfig, strerror(errno));
-		return -errno;
-	}
-
-	/* FIXME: We should actually write to a new tempfile, then rename */
-	write(config_fd, buf, buflen);
-
 	printf("Downloaded new config file %s\n", vpninfo->xmlconfig);
-
-	return 0;
-	
+	return write_new_config(vpninfo, buf, buflen);
 }
+
 int obtain_cookie(struct anyconnect_info *vpninfo)
 {
 	struct vpn_option *opt, *next;

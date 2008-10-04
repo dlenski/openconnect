@@ -167,6 +167,7 @@ int open_https(struct anyconnect_info *vpninfo);
 
 /* main.c */
 extern int verbose;
+int write_new_config(struct anyconnect_info *vpninfo, char *buf, int buflen);
 
 /* mainloop.c */
 int vpn_add_pollfd(struct anyconnect_info *vpninfo, int fd, short events);

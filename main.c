@@ -235,3 +235,20 @@ int main(int argc, char **argv)
 	vpn_mainloop(vpninfo);
 	exit(1);
 }
+
+int write_new_config(struct anyconnect_info *vpninfo, char *buf, int buflen)
+{
+	int config_fd;
+
+	config_fd = open(vpninfo->xmlconfig, O_WRONLY|O_TRUNC|O_CREAT, 0644);
+	if (!config_fd) {
+		fprintf(stderr, "Failed to open %s for write: %s\n", 
+			vpninfo->xmlconfig, strerror(errno));
+		return -errno;
+	}
+
+	/* FIXME: We should actually write to a new tempfile, then rename */
+	write(config_fd, buf, buflen);	
+	return 0;
+}
+
