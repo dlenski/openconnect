@@ -301,7 +301,16 @@ int open_https(struct anyconnect_info *vpninfo)
 	return 0;
 }
 
-static int start_ssl_connection(struct anyconnect_info *vpninfo)
+void vpn_init_openssl(void)
+{
+	SSL_library_init ();
+	ERR_clear_error ();
+	SSL_load_error_strings ();
+	OpenSSL_add_all_algorithms ();
+}
+
+
+static int start_cstp_connection(struct anyconnect_info *vpninfo)
 {
 	char buf[65536];
 	int i;
@@ -500,7 +509,8 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 	return 0;
 }
 
-int make_ssl_connection(struct anyconnect_info *vpninfo)
+
+int make_cstp_connection(struct anyconnect_info *vpninfo)
 {
 	if (!vpninfo->https_ssl && open_https(vpninfo))
 		exit(1);
@@ -528,20 +538,12 @@ int make_ssl_connection(struct anyconnect_info *vpninfo)
 		}
 	}
 
-	if (start_ssl_connection(vpninfo))
+	if (start_cstp_connection(vpninfo))
 		return -EINVAL;
 
 	return 0;
 }
 
-
-void vpn_init_openssl(void)
-{
-	SSL_library_init ();
-	ERR_clear_error ();
-	SSL_load_error_strings ();
-	OpenSSL_add_all_algorithms ();
-}
 
 static int inflate_and_queue_packet(struct anyconnect_info *vpninfo, int type, void *buf, int len)
 {
@@ -596,7 +598,7 @@ static struct pkt dpd_resp_pkt = {
 	.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_RESP, 0 },
 };
 
-int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
+int cstp_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 {
 	unsigned char buf[16384];
 	int len, ret;
@@ -747,7 +749,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 		if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt)
 			vpninfo->current_ssl_pkt = NULL;
 
-		if (make_ssl_connection(vpninfo)) {
+		if (make_cstp_connection(vpninfo)) {
 			fprintf(stderr, "Reconnect failed\n");
 			vpninfo->quit_reason = "SSL DPD detected dead peer; reconnect failed";
 			return 1;
@@ -839,7 +841,7 @@ int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	return work_done;
 }
 
-int ssl_bye(struct anyconnect_info *vpninfo, char *reason)
+int cstp_bye(struct anyconnect_info *vpninfo, char *reason)
 {
 	unsigned char *bye_pkt;
 	int reason_len = strlen(reason);

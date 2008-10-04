@@ -102,7 +102,7 @@ int vpn_mainloop(struct anyconnect_info *vpninfo)
 		if (vpninfo->quit_reason)
 			break;
 
-		did_work += ssl_mainloop(vpninfo, &timeout);
+		did_work += cstp_mainloop(vpninfo, &timeout);
 		if (vpninfo->quit_reason)
 			break;
 		
@@ -134,7 +134,7 @@ int vpn_mainloop(struct anyconnect_info *vpninfo)
 		}
 	}
 
-	ssl_bye(vpninfo, vpninfo->quit_reason);
+	cstp_bye(vpninfo, vpninfo->quit_reason);
 	printf("Sent quit message: %s\n", vpninfo->quit_reason);
 
 	if (vpninfo->vpnc_script) {

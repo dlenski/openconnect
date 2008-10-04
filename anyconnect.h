@@ -158,11 +158,12 @@ int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout);
 int dtls_try_handshake(struct anyconnect_info *vpninfo);
 int connect_dtls_socket(struct anyconnect_info *vpninfo);
 
+/* cstp.c */
+int make_cstp_connection(struct anyconnect_info *vpninfo);
+int cstp_mainloop(struct anyconnect_info *vpninfo, int *timeout);
+int cstp_bye(struct anyconnect_info *vpninfo, char *reason);
 /* ssl.c */
-int make_ssl_connection(struct anyconnect_info *vpninfo);
 void vpn_init_openssl(void);
-int ssl_mainloop(struct anyconnect_info *vpninfo, int *timeout);
-int ssl_bye(struct anyconnect_info *vpninfo, char *reason);
 int  __attribute__ ((format (printf, 2, 3)))
 		my_SSL_printf(SSL *ssl, const char *fmt, ...);
 int my_SSL_gets(SSL *ssl, char *buf, size_t len);
