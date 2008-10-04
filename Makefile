@@ -21,7 +21,9 @@ XML2_LDFLAGS += $(shell xml2-config --libs)
 CFLAGS := $(OPT_FLAGS) $(SSL_CFLAGS) $(XML2_CFLAGS) $(EXTRA_CFLAGS)
 LDFLAGS := $(SSL_LDFLAGS) $(XML2_LDFLAGS) $(EXTRA_LDFLAGS)
 
-OBJECTS := main.o tun.o dtls.o ssl.o mainloop.o xml.o http.o cstp.o ssl_ui.o
+OPENCONNECT_OBJS := main.o ssl_ui.o xml.o
+CONNECTION_OBJS := dtls.o cstp.o mainloop.o tun.o 
+AUTH_OBJECTS := ssl.o http.o
 
 all: anyconnect
 
@@ -32,7 +34,10 @@ version.h: $(patsubst %.o,%.c,$(OBJECTS)) anyconnect.h $(wildcard .git/index .gi
 
 main.o: version.h
 
-anyconnect: $(OBJECTS)
+libopenconnect.a: $(AUTH_OBJECTS)
+	$(AR) rcs $@ $^
+
+anyconnect: $(OPENCONNECT_OBJS) $(CONNECTION_OBJS) libopenconnect.a
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 %.o: %.c

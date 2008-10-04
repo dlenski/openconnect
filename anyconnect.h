@@ -164,11 +164,11 @@ int cstp_mainloop(struct anyconnect_info *vpninfo, int *timeout);
 int cstp_bye(struct anyconnect_info *vpninfo, char *reason);
 
 /* ssl.c */
-void vpn_init_openssl(void);
+void openconnect_init_openssl(void);
 int  __attribute__ ((format (printf, 2, 3)))
-		my_SSL_printf(SSL *ssl, const char *fmt, ...);
-int my_SSL_gets(SSL *ssl, char *buf, size_t len);
-int open_https(struct anyconnect_info *vpninfo);
+		openconnect_SSL_printf(SSL *ssl, const char *fmt, ...);
+int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len);
+int openconnect_open_https(struct anyconnect_info *vpninfo);
 
 /* main.c */
 extern int verbose;
@@ -186,10 +186,7 @@ int ka_stalled_dpd_time(struct keepalive_info *ka, int *timeout);
 int config_lookup_host(struct anyconnect_info *vpninfo, const char *host);
 
 /* http.c */
-int process_http_response(struct anyconnect_info *vpninfo, int *result,
-			  int (*header_cb)(struct anyconnect_info *, char *, char *),
-			  char *body, int buf_len);
-int obtain_cookie(struct anyconnect_info *vpninfo);
+int openconnect_obtain_cookie(struct anyconnect_info *vpninfo);
 
 /* ssl_ui.c */
 int set_openssl_ui(void);

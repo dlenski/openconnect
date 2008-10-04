@@ -35,7 +35,7 @@
    We could use cURL for the HTTP stuff, but it's overkill */
 
 int  __attribute__ ((format (printf, 2, 3)))
-	my_SSL_printf(SSL *ssl, const char *fmt, ...) 
+	openconnect_SSL_printf(SSL *ssl, const char *fmt, ...) 
 {
 	char buf[1024];
 	va_list args;
@@ -51,7 +51,7 @@ int  __attribute__ ((format (printf, 2, 3)))
 
 }
 
-int my_SSL_gets(SSL *ssl, char *buf, size_t len)
+int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len)
 {
 	int i = 0;
 	int ret;
@@ -148,7 +148,7 @@ static int load_certificate(struct anyconnect_info *vpninfo)
 	return 0;
 }
  
-int open_https(struct anyconnect_info *vpninfo)
+int openconnect_open_https(struct anyconnect_info *vpninfo)
 {
 	SSL_METHOD *ssl3_method;
 	SSL *https_ssl;
@@ -248,7 +248,7 @@ int open_https(struct anyconnect_info *vpninfo)
 	return 0;
 }
 
-void vpn_init_openssl(void)
+void openconnect_init_openssl(void)
 {
 	SSL_library_init ();
 	ERR_clear_error ();

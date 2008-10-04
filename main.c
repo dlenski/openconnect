@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 	int cookieonly = 0;
 	int opt;
 
-	vpn_init_openssl();
+	openconnect_init_openssl();
 
 	vpninfo = malloc(sizeof(*vpninfo));
 	if (!vpninfo) {
@@ -209,7 +209,7 @@ int main(int argc, char **argv)
 
 	set_openssl_ui();
 
-	if (!vpninfo->cookie && obtain_cookie(vpninfo)) {
+	if (!vpninfo->cookie && openconnect_obtain_cookie(vpninfo)) {
 		fprintf(stderr, "Failed to obtain WebVPN cookie\n");
 		exit(1);
 	}
@@ -220,7 +220,6 @@ int main(int argc, char **argv)
 			/* We use cookieonly=2 for 'print it and continue' */
 			exit(0);
 	}
-
 	if (make_cstp_connection(vpninfo)) {
 		fprintf(stderr, "Creating SSL connection failed\n");
 		exit(1);

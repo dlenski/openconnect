@@ -45,9 +45,9 @@
  * provided by their caller.
  */
 
-int process_http_response(struct anyconnect_info *vpninfo, int *result,
-			  int (*header_cb)(struct anyconnect_info *, char *, char *),
-			  char *body, int buf_len)
+static int process_http_response(struct anyconnect_info *vpninfo, int *result,
+				 int (*header_cb)(struct anyconnect_info *, char *, char *),
+				 char *body, int buf_len)
 {
 	char buf[65536];
 	int bodylen = 0;
@@ -55,7 +55,7 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 	int http10 = 0, closeconn = 0;
 	int i;
 
-	if (my_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)) < 0) {
+	if (openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)) < 0) {
 		fprintf(stderr, "Error fetching HTTPS response\n");
 		exit(1);
 	}
@@ -75,7 +75,7 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 		printf("Got HTTP response: %s\n", buf);
 
 	/* Eat headers... */
-	while ((i=my_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+	while ((i=openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
 		char *colon;
 
 		if (verbose)
@@ -199,7 +199,7 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 	}
 
 	/* ... else, chunked */
-	while ((i=my_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+	while ((i=openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
 		int chunklen, lastchunk = 0;
 
 		if (i < 0) {
@@ -226,7 +226,7 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 			done += i;
 		}
 	skip:
-		if ((i=my_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+		if ((i=openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
 			if (i < 0) {
 				fprintf(stderr, "Error fetching HTTP response body\n");
 			} else {
@@ -250,7 +250,7 @@ int process_http_response(struct anyconnect_info *vpninfo, int *result,
 	return done;
 }
 
-int append_opt(char *body, int bodylen, char *opt, char *name)
+static int append_opt(char *body, int bodylen, char *opt, char *name)
 {
 	int len = strlen(body);
 
@@ -310,7 +310,7 @@ int append_opt(char *body, int bodylen, char *opt, char *name)
  * and https://honor.trusecure.com/pipermail/firewall-wizards/2004-April/016420.html
  */
 
-int add_securid_pin(char *pin)
+static int add_securid_pin(char *pin)
 {
 	char *longer, *shorter;
 	int i, plus = 0;
@@ -344,8 +344,8 @@ int add_securid_pin(char *pin)
 	return 1;
 }
 
-int parse_auth_choice(struct anyconnect_info *vpninfo, xmlNode *xml_node,
-		      char *body, int bodylen)
+static int parse_auth_choice(struct anyconnect_info *vpninfo,
+			     xmlNode *xml_node, char *body, int bodylen)
 {
 	char *form_name = (char *)xmlGetProp(xml_node, (unsigned char *)"name");
 
@@ -379,8 +379,9 @@ int parse_auth_choice(struct anyconnect_info *vpninfo, xmlNode *xml_node,
 	return -EINVAL;
 }
 
-int parse_form(struct anyconnect_info *vpninfo, char *form_message, char *form_error,
-	       xmlNode *xml_node, char *body, int bodylen)
+static int parse_form(struct anyconnect_info *vpninfo, char *form_message,
+		      char *form_error, xmlNode *xml_node, char *body,
+		      int bodylen)
 {
 	UI *ui = UI_new();
 	char msg_buf[1024], err_buf[1024];
@@ -478,8 +479,8 @@ int parse_form(struct anyconnect_info *vpninfo, char *form_message, char *form_e
 	return 0;
 }
 
-int parse_xml_response(struct anyconnect_info *vpninfo, char *response,
-		       char *request_body, int req_len)
+static int parse_xml_response(struct anyconnect_info *vpninfo, char *response,
+			      char *request_body, int req_len)
 {
 	char *form_message, *form_error;
 	xmlDocPtr xml_doc;
@@ -546,7 +547,8 @@ int parse_xml_response(struct anyconnect_info *vpninfo, char *response,
 	return -EINVAL;
 }
 
-int fetch_config(struct anyconnect_info *vpninfo, char *fu, char *bu, char *server_sha1)
+static int fetch_config(struct anyconnect_info *vpninfo, char *fu, char *bu,
+			char *server_sha1)
 {
 	struct vpn_option *opt;
 	char buf[65536];
@@ -598,7 +600,7 @@ int fetch_config(struct anyconnect_info *vpninfo, char *fu, char *bu, char *serv
 	return write_new_config(vpninfo, buf, buflen);
 }
 
-int obtain_cookie(struct anyconnect_info *vpninfo)
+int openconnect_obtain_cookie(struct anyconnect_info *vpninfo)
 {
 	struct vpn_option *opt, *next;
 	char buf[65536];
@@ -608,7 +610,7 @@ int obtain_cookie(struct anyconnect_info *vpninfo)
 	char *method = "GET";
 
  retry:
-	if (!vpninfo->https_ssl && open_https(vpninfo)) {
+	if (!vpninfo->https_ssl && openconnect_open_https(vpninfo)) {
 		fprintf(stderr, "Failed to open HTTPS connection to %s\n",
 			vpninfo->hostname);
 		exit(1);
