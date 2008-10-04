@@ -21,7 +21,14 @@ XML2_LDFLAGS += $(shell xml2-config --libs)
 CFLAGS := $(OPT_FLAGS) $(SSL_CFLAGS) $(XML2_CFLAGS) $(EXTRA_CFLAGS)
 LDFLAGS := $(SSL_LDFLAGS) $(XML2_LDFLAGS) $(EXTRA_LDFLAGS)
 
-OPENCONNECT_OBJS := main.o ssl_ui.o xml.o
+ifdef GTK
+CFLAGS += $(shell pkg-config --cflags gtk+-x11-2.0)
+LDFLAGS += $(shell pkg-config --libs gtk+-x11-2.0)
+UI_OBJS := ssl_ui_gtk.o
+else
+UI_OBJS := ssl_ui.o
+endif
+OPENCONNECT_OBJS := main.o $(UI_OBJS) xml.o
 CONNECTION_OBJS := dtls.o cstp.o mainloop.o tun.o 
 AUTH_OBJECTS := ssl.o http.o
 
