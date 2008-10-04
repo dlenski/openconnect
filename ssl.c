@@ -354,6 +354,8 @@ static int start_ssl_connection(struct anyconnect_info *vpninfo)
 	if (strncmp(buf, "HTTP/1.1 200 ", 13)) {
 		fprintf(stderr, "Got inappropriate HTTP CONNECT response: %s\n",
 			buf);
+		if (!strncmp(buf, "HTTP/1.1 401 ", 13))
+			exit(2);
 		my_SSL_gets(vpninfo->https_ssl, buf, 65536);
 		return -EINVAL;
 	}
