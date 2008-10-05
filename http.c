@@ -57,7 +57,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 
 	if (openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)) < 0) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Error fetching HTTPS response\n");
-		exit(1);
+		return -EINVAL;
 	}
 
  cont:
