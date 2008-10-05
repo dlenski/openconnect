@@ -1,6 +1,9 @@
 
 Authentication tool:
  - Use a single persistent dialog box
+ - Handle failures and display something useful to user
+ - Make asynchronous
+
  - Use standalone (gopenconnect) as well as from NetworkManager
 
 Connectivity:
