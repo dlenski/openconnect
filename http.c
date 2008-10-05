@@ -596,7 +596,6 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 		return -EINVAL;
 	}
 
-	printf("Downloaded new config file\n");
 	return write_new_config(vpninfo, buf, buflen);
 }
 
