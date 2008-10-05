@@ -1,6 +1,7 @@
 
 Authentication tool:
- - NetworkManager integration
+ - Use a single persistent dialog box
+ - Use standalone (gopenconnect) as well as from NetworkManager
 
 Connectivity:
  - Allow use of lwip + SOCKS server instead of tun
