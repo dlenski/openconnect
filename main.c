@@ -116,7 +116,6 @@ int main(int argc, char **argv)
 	vpninfo->mtu = 1406;
 	vpninfo->deflate = 1;
 	vpninfo->dtls_attempt_period = 60;
-	vpninfo->write_new_config = write_new_config;
 	vpninfo->progress = write_progress;
 
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
@@ -196,6 +195,7 @@ int main(int argc, char **argv)
 			exit(0);
 		case 'x':
 			vpninfo->xmlconfig = optarg;
+			vpninfo->write_new_config = write_new_config;
 			break;
 		default:
 			usage();
