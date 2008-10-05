@@ -29,7 +29,6 @@
 #include <gconf/gconf-client.h>
 
 #include "auth-dlg-settings.h"
-#include "version.h"
 #include "openconnect.h"
 
 static char *get_config_path(GConfClient *gcl, const char *vpn_uuid)

@@ -37,7 +37,6 @@
 #include <getopt.h>
 
 #include "openconnect.h"
-#include "version.h"
 
 int verbose = 0;
 
@@ -183,7 +182,7 @@ int main(int argc, char **argv)
 			verbose = 1;
 			break;
 		case 'V':
-			printf("OpenConnect version " ANYCONNECT_VERSION "\n");
+			printf("OpenConnect version %s\n", openconnect_version);
 			exit(0);
 		case 'x':
 			vpninfo->xmlconfig = optarg;
