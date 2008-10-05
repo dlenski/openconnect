@@ -271,6 +271,7 @@ static int choose_vpnhost(struct openconnect_info *vpninfo)
 
 		vpninfo->hostname = host->hostaddress;
 	}
+	gtk_widget_destroy(dlg);
 	return 0;
 
 }
