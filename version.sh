@@ -24,15 +24,5 @@ if [ $? == 0 -a -d .git ]; then
     fi
 fi
 
-echo "#ifndef ANYCONNECT_VERSION" > .build-version.h
-echo "#define ANYCONNECT_VERSION \"$v\"" >> .build-version.h
-echo "#endif" >> .build-version.h
+echo "char openconnect_version[] = \"$v\";" > version.c
 
-#diff -q version.h .build-version.h >& /dev/null
-#
-#if [ $? == 0 ]; then
-#    rm .build-version.h
-#    exit 0
-#fi
-
-mv -f .build-version.h version.h

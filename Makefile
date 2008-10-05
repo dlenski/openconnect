@@ -35,16 +35,14 @@ CFLAGS_nm-auth-dialog.o += $(GTK_CFLAGS) $(GCONF_CFLAGS) $(GNOMEUI_CFLAGS)
 
 OPENCONNECT_OBJS := main.o ssl_ui.o xml.o
 CONNECTION_OBJS := dtls.o cstp.o mainloop.o tun.o 
-AUTH_OBJECTS := ssl.o http.o
+AUTH_OBJECTS := ssl.o http.o version.o
 
 all: anyconnect nm-openconnect-auth-dialog
 
-version.h: $(patsubst %.o,%.c,$(OBJECTS)) anyconnect.h $(wildcard .git/index .git/refs/tags) version.sh
+version.c: $(patsubst %.o,%.c,$(OBJECTS)) anyconnect.h $(wildcard .git/index .git/refs/tags) version.sh
 	@./version.sh
-	@echo -en "New version.h: "
-	@grep define version.h | cut -f2 -d\"
-
-main.o: version.h
+	@echo -en "New version.c: "
+	@cut -f2 -d\" version.c
 
 libopenconnect.a: $(AUTH_OBJECTS)
 	$(AR) rcs $@ $^

@@ -190,8 +190,12 @@ int config_lookup_host(struct anyconnect_info *vpninfo, const char *host);
 
 /* http.c */
 int openconnect_obtain_cookie(struct anyconnect_info *vpninfo);
+char *openconnect_create_useragent(char *base);
 
 /* ssl_ui.c */
 int set_openssl_ui(void);
+
+/* version.c */
+extern char openconnect_version[];
 
 #endif /* __OPENCONNECT_ANYCONNECT_H */
