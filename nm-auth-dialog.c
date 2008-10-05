@@ -226,7 +226,7 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	return 0;
 }
 
-static int choose_vpnhost(struct openconnect_info *vpninfo)
+static int choose_vpnhost(struct openconnect_info *vpninfo, const char *vpn_name)
 {
 	GtkWidget *dlg, *label, *combo;
 	struct vpnhost *host;
@@ -235,7 +235,7 @@ static int choose_vpnhost(struct openconnect_info *vpninfo)
 	if (!lasthost)
 		lasthost = vpninfo->hostname;
 
-	dlg = gtk_dialog_new_with_buttons("OpenConnect", NULL, GTK_DIALOG_MODAL,
+	dlg = gtk_dialog_new_with_buttons(vpn_name, NULL, GTK_DIALOG_MODAL,
 					  GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 					  GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
 					  NULL);
@@ -282,9 +282,9 @@ static int choose_vpnhost(struct openconnect_info *vpninfo)
 
 }
 
-static int get_cookie(const char *vpn_uuid, struct openconnect_info *vpninfo)
+static int get_cookie(struct openconnect_info *vpninfo, char *vpn_name)
 {
-	if (vpnhosts && choose_vpnhost(vpninfo))
+	if (vpnhosts && choose_vpnhost(vpninfo, vpn_name))
 		return -ENOENT;
 
 	openconnect_init_openssl();
@@ -395,10 +395,10 @@ int main (int argc, char **argv)
 		return 1;
 	}
 
-	if (get_cookie(vpn_uuid, vpninfo) || !vpninfo->hostname || !vpninfo->cookie) {
+	if (get_cookie(vpninfo, vpn_name) || !vpninfo->hostname || !vpninfo->cookie) {
 		if (last_message) {
 			GtkWidget *dlg = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_ERROR,
-								GTK_BUTTONS_CANCEL, "OpenConnect");
+								GTK_BUTTONS_CANCEL, vpn_name);
 			GtkWidget *label = gtk_label_new(last_message);
 			gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dlg)->vbox), label, FALSE, FALSE, 0);
 			gtk_widget_show(label);
