@@ -347,9 +347,17 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			break;
 
 		default:
-			fprintf(stderr, "Unknown DTLS packet type %02x\n", buf[0]);
+			/* We don't abort, because this actually does seem to happen
+			 * quite frequently with some endpoints. It can be triggered
+			 * by downloading a reasonably-sized web page. Dropping the 
+			 * offending packets doesn't even seem to stall the TCP 
+			 * connection when it's the only traffic on the link. */
+			fprintf(stderr, "Unknown DTLS packet type %02x, len %d\n", buf[0], len);
+			break;
+/*			
 			vpninfo->quit_reason = "Unknown packet received";
 			return 1;
+*/
 		}
 	}
 
