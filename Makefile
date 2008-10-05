@@ -60,8 +60,9 @@ clean:
 	rm -f *.o openconnect $(wildcard .*.o.dep)
 
 install:
-	mkdir -p $(DESTDIR)/usr/bin
+	mkdir -p $(DESTDIR)/usr/bin $(DESTDIR)/usr/libexec
 	install -m0755 openconnect $(DESTDIR)/usr/bin
+	install -m0755 nm-openconnect-auth-dialog $(DESTDIR)/usr/libexec
 
 include /dev/null $(wildcard .*.o.dep)
 
