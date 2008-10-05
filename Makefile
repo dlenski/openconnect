@@ -24,14 +24,11 @@ GTK_LDFLAGS += $(shell pkg-config --libs gtk+-x11-2.0)
 GCONF_CFLAGS += $(shell pkg-config --cflags gconf-2.0)
 GCONF_LDFLAGS += $(shell pkg-config --libs gconf-2.0)
 
-GNOMEUI_CFLAGS += $(shell pkg-config --cflags libgnomeui-2.0)
-GNOMEUI_LDFLAGS += $(shell pkg-config --libs libgnomeui-2.0)
-
 CFLAGS := $(OPT_FLAGS) $(SSL_CFLAGS) $(XML2_CFLAGS) $(EXTRA_CFLAGS)
 LDFLAGS := $(SSL_LDFLAGS) $(XML2_LDFLAGS) $(EXTRA_LDFLAGS)
 
 CFLAGS_ssl_ui_gtk.o += $(GTK_CFLAGS)	
-CFLAGS_nm-auth-dialog.o += $(GTK_CFLAGS) $(GCONF_CFLAGS) $(GNOMEUI_CFLAGS) $(XML2_CFLAGS)
+CFLAGS_nm-auth-dialog.o += $(GTK_CFLAGS) $(GCONF_CFLAGS) $(XML2_CFLAGS)
 
 OPENCONNECT_OBJS := main.o ssl_ui.o xml.o
 CONNECTION_OBJS := dtls.o cstp.o mainloop.o tun.o 
@@ -51,7 +48,7 @@ openconnect: $(OPENCONNECT_OBJS) $(CONNECTION_OBJS) libopenconnect.a
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 nm-openconnect-auth-dialog: nm-auth-dialog.o ssl_ui_gtk.o libopenconnect.a 
-	$(CC) -o $@ $^ $(LDFLAGS) $(GTK_LDFLAGS) $(GCONF_LDFLAGS) $(GNOMEUI_LDFLAGS) $(XML2_LDFLAGS)
+	$(CC) -o $@ $^ $(LDFLAGS) $(GTK_LDFLAGS) $(GCONF_LDFLAGS) $(XML2_LDFLAGS)
 
 %.o: %.c
 	$(CC) -c -o $@ $(CFLAGS) $(CFLAGS_$@) $< -MD -MF .$@.dep
