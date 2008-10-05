@@ -29,7 +29,7 @@
 #include <openssl/err.h>
 #include <fcntl.h>
 
-#include "anyconnect.h"
+#include "openconnect.h"
 
 /*
  * The master-secret is generated randomly by the client. The server
@@ -70,7 +70,7 @@ static unsigned char hex(const char *data)
 	return (nybble(data[0]) << 4) | nybble(data[1]);
 }
 
-int connect_dtls_socket(struct anyconnect_info *vpninfo)
+int connect_dtls_socket(struct openconnect_info *vpninfo)
 {
 	SSL_METHOD *dtls_method;
 	SSL_CIPHER *https_cipher;
@@ -169,7 +169,7 @@ int connect_dtls_socket(struct anyconnect_info *vpninfo)
 	return dtls_try_handshake(vpninfo);
 }
 
-int dtls_try_handshake(struct anyconnect_info *vpninfo)
+int dtls_try_handshake(struct openconnect_info *vpninfo)
 {
 	int ret = SSL_do_handshake(vpninfo->new_dtls_ssl);
 
@@ -230,7 +230,7 @@ int dtls_try_handshake(struct anyconnect_info *vpninfo)
 	return -EINVAL;
 }
 
-static int dtls_restart(struct anyconnect_info *vpninfo)
+static int dtls_restart(struct openconnect_info *vpninfo)
 {
 	if (vpninfo->dtls_ssl) {
 		SSL_free(vpninfo->dtls_ssl);
@@ -244,7 +244,7 @@ static int dtls_restart(struct anyconnect_info *vpninfo)
 }
 
 
-int setup_dtls(struct anyconnect_info *vpninfo)
+int setup_dtls(struct openconnect_info *vpninfo)
 {
 	struct vpn_option *dtls_opt = vpninfo->dtls_options;
 	int sessid_found = 0;
@@ -306,7 +306,7 @@ int setup_dtls(struct anyconnect_info *vpninfo)
 	return 0;
 }
 
-int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout)
+int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
 	unsigned char buf[2000];
 	int len;

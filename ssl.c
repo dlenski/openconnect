@@ -29,7 +29,7 @@
 #include <openssl/err.h>
 #include <openssl/engine.h>
 
-#include "anyconnect.h"
+#include "openconnect.h"
 
 /* Helper functions for reading/writing lines over SSL.
    We could use cURL for the HTTP stuff, but it's overkill */
@@ -83,7 +83,7 @@ int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len)
 }
 
 
-static int load_certificate(struct anyconnect_info *vpninfo)
+static int load_certificate(struct openconnect_info *vpninfo)
 {
 	if (verbose)
 		printf("Using Certificate file %s\n", vpninfo->cert);
@@ -148,7 +148,7 @@ static int load_certificate(struct anyconnect_info *vpninfo)
 	return 0;
 }
  
-int openconnect_open_https(struct anyconnect_info *vpninfo)
+int openconnect_open_https(struct openconnect_info *vpninfo)
 {
 	SSL_METHOD *ssl3_method;
 	SSL *https_ssl;

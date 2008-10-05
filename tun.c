@@ -33,9 +33,9 @@
 #include <arpa/inet.h>
 #include <errno.h>
 
-#include "anyconnect.h"
+#include "openconnect.h"
 
-static int local_config_tun(struct anyconnect_info *vpninfo, int mtu_only)
+static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
 {
 	struct ifreq ifr;
 	int net_fd;
@@ -98,7 +98,7 @@ static int appendenv(const char *opt, const char *new)
 	return setenv(opt, buf, 1);
 }
 
-static int script_config_tun(struct anyconnect_info *vpninfo)
+static int script_config_tun(struct openconnect_info *vpninfo)
 {
 	struct sockaddr_in *sin = (void *)vpninfo->peer_addr;
 
@@ -146,7 +146,7 @@ static int script_config_tun(struct anyconnect_info *vpninfo)
 
 
 /* Set up a tuntap device. */
-int setup_tun(struct anyconnect_info *vpninfo)
+int setup_tun(struct openconnect_info *vpninfo)
 {
 	struct ifreq ifr;
 	int tun_fd;
@@ -188,7 +188,7 @@ int setup_tun(struct anyconnect_info *vpninfo)
 	return 0;
 }
 
-int tun_mainloop(struct anyconnect_info *vpninfo, int *timeout)
+int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
 	char buf[2000];
 	int len;

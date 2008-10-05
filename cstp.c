@@ -28,14 +28,14 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-#include "anyconnect.h"
+#include "openconnect.h"
 
 /*
  * Data packets are encapsulated in the SSL stream as follows:
  * 
  * 0000: Magic "STF\x1"
  * 0004: Big-endian 16-bit length (not including 8-byte header)
- * 0006: Byte packet type (see anyconnect.h)
+ * 0006: Byte packet type (see openconnect.h)
  * 0008: data payload
  */
 
@@ -59,7 +59,7 @@ static struct pkt dpd_resp_pkt = {
 };
 
 
-static int start_cstp_connection(struct anyconnect_info *vpninfo)
+static int start_cstp_connection(struct openconnect_info *vpninfo)
 {
 	char buf[65536];
 	int i;
@@ -259,7 +259,7 @@ static int start_cstp_connection(struct anyconnect_info *vpninfo)
 }
 
 
-int make_cstp_connection(struct anyconnect_info *vpninfo)
+int make_cstp_connection(struct openconnect_info *vpninfo)
 {
 	if (!vpninfo->https_ssl && openconnect_open_https(vpninfo))
 		exit(1);
@@ -294,7 +294,7 @@ int make_cstp_connection(struct anyconnect_info *vpninfo)
 }
 
 
-static int inflate_and_queue_packet(struct anyconnect_info *vpninfo, int type, void *buf, int len)
+static int inflate_and_queue_packet(struct openconnect_info *vpninfo, int type, void *buf, int len)
 {
 	struct pkt *new = malloc(sizeof(struct pkt) + vpninfo->mtu);
 
@@ -335,7 +335,7 @@ static int inflate_and_queue_packet(struct anyconnect_info *vpninfo, int type, v
 	return 0;
 }
 
-int cstp_mainloop(struct anyconnect_info *vpninfo, int *timeout)
+int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
 	unsigned char buf[16384];
 	int len, ret;
@@ -578,7 +578,7 @@ int cstp_mainloop(struct anyconnect_info *vpninfo, int *timeout)
 	return work_done;
 }
 
-int cstp_bye(struct anyconnect_info *vpninfo, char *reason)
+int cstp_bye(struct openconnect_info *vpninfo, char *reason)
 {
 	unsigned char *bye_pkt;
 	int reason_len = strlen(reason);

@@ -35,7 +35,7 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
-#include "anyconnect.h"
+#include "openconnect.h"
 
 /*
  * We didn't really want to have to do this for ourselves -- one might have 
@@ -45,8 +45,8 @@
  * provided by their caller.
  */
 
-static int process_http_response(struct anyconnect_info *vpninfo, int *result,
-				 int (*header_cb)(struct anyconnect_info *, char *, char *),
+static int process_http_response(struct openconnect_info *vpninfo, int *result,
+				 int (*header_cb)(struct openconnect_info *, char *, char *),
 				 char *body, int buf_len)
 {
 	char buf[65536];
@@ -344,7 +344,7 @@ static int add_securid_pin(char *pin)
 	return 1;
 }
 
-static int parse_auth_choice(struct anyconnect_info *vpninfo,
+static int parse_auth_choice(struct openconnect_info *vpninfo,
 			     xmlNode *xml_node, char *body, int bodylen)
 {
 	char *form_name = (char *)xmlGetProp(xml_node, (unsigned char *)"name");
@@ -379,7 +379,7 @@ static int parse_auth_choice(struct anyconnect_info *vpninfo,
 	return -EINVAL;
 }
 
-static int parse_form(struct anyconnect_info *vpninfo, char *form_message,
+static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 		      char *form_error, xmlNode *xml_node, char *body,
 		      int bodylen)
 {
@@ -479,7 +479,7 @@ static int parse_form(struct anyconnect_info *vpninfo, char *form_message,
 	return 0;
 }
 
-static int parse_xml_response(struct anyconnect_info *vpninfo, char *response,
+static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			      char *request_body, int req_len)
 {
 	char *form_message, *form_error;
@@ -547,7 +547,7 @@ static int parse_xml_response(struct anyconnect_info *vpninfo, char *response,
 	return -EINVAL;
 }
 
-static int fetch_config(struct anyconnect_info *vpninfo, char *fu, char *bu,
+static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 			char *server_sha1)
 {
 	struct vpn_option *opt;
@@ -600,7 +600,7 @@ static int fetch_config(struct anyconnect_info *vpninfo, char *fu, char *bu,
 	return write_new_config(vpninfo, buf, buflen);
 }
 
-int openconnect_obtain_cookie(struct anyconnect_info *vpninfo)
+int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 {
 	struct vpn_option *opt, *next;
 	char buf[65536];
@@ -751,4 +751,11 @@ int openconnect_obtain_cookie(struct anyconnect_info *vpninfo)
 
 	fprintf(stderr, "Server claimed successful login, but no cookie!\n");
 	return -1;
+}
+
+char *openconnect_create_useragent(char *base)
+{
+	char *uagent = malloc(strlen(base) + 1 + strlen(openconnect_version));
+	sprintf(uagent, "%s%s", base, openconnect_version);
+	return uagent;
 }

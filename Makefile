@@ -37,9 +37,9 @@ OPENCONNECT_OBJS := main.o ssl_ui.o xml.o
 CONNECTION_OBJS := dtls.o cstp.o mainloop.o tun.o 
 AUTH_OBJECTS := ssl.o http.o version.o
 
-all: anyconnect nm-openconnect-auth-dialog
+all: openconnect nm-openconnect-auth-dialog
 
-version.c: $(patsubst %.o,%.c,$(OBJECTS)) anyconnect.h $(wildcard .git/index .git/refs/tags) version.sh
+version.c: $(patsubst %.o,%.c,$(OBJECTS)) openconnect.h $(wildcard .git/index .git/refs/tags) version.sh
 	@./version.sh
 	@echo -en "New version.c: "
 	@cut -f2 -d\" version.c
@@ -47,7 +47,7 @@ version.c: $(patsubst %.o,%.c,$(OBJECTS)) anyconnect.h $(wildcard .git/index .gi
 libopenconnect.a: $(AUTH_OBJECTS)
 	$(AR) rcs $@ $^
 
-anyconnect: $(OPENCONNECT_OBJS) $(CONNECTION_OBJS) libopenconnect.a
+openconnect: $(OPENCONNECT_OBJS) $(CONNECTION_OBJS) libopenconnect.a
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 nm-openconnect-auth-dialog: nm-auth-dialog.o ssl_ui_gtk.o libopenconnect.a 
@@ -57,11 +57,11 @@ nm-openconnect-auth-dialog: nm-auth-dialog.o ssl_ui_gtk.o libopenconnect.a
 	$(CC) -c -o $@ $(CFLAGS) $(CFLAGS_$@) $< -MD -MF .$@.dep
 
 clean:
-	rm -f *.o anyconnect $(wildcard .*.o.dep)
+	rm -f *.o openconnect $(wildcard .*.o.dep)
 
 install:
 	mkdir -p $(DESTDIR)/usr/bin
-	install -m0755 anyconnect $(DESTDIR)/usr/bin
+	install -m0755 openconnect $(DESTDIR)/usr/bin
 
 include /dev/null $(wildcard .*.o.dep)
 
@@ -74,6 +74,6 @@ tag:
 	git tag v$(VERSION)
 
 tarball:
-	git archive --format=tar --prefix=anyconnect-$(VERSION)/ v$(VERSION) | gzip -9 > anyconnect-$(VERSION).tar.gz
+	git archive --format=tar --prefix=openconnect-$(VERSION)/ v$(VERSION) | gzip -9 > openconnect-$(VERSION).tar.gz
 endif
 

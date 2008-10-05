@@ -28,7 +28,7 @@
 #include <signal.h>
 #include <arpa/inet.h>
 
-#include "anyconnect.h"
+#include "openconnect.h"
 
 void queue_packet(struct pkt **q, struct pkt *new)
 {
@@ -53,7 +53,7 @@ int queue_new_packet(struct pkt **q, int type, void *buf, int len)
 	return 0;
 }
 
-int vpn_add_pollfd(struct anyconnect_info *vpninfo, int fd, short events)
+int vpn_add_pollfd(struct openconnect_info *vpninfo, int fd, short events)
 {
 	vpninfo->nfds++;
 	vpninfo->pfds = realloc(vpninfo->pfds, sizeof(struct pollfd) * vpninfo->nfds);
@@ -74,7 +74,7 @@ static void handle_sigint(int sig)
 	killed = sig;
 }
 
-int vpn_mainloop(struct anyconnect_info *vpninfo)
+int vpn_mainloop(struct openconnect_info *vpninfo)
 {
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));

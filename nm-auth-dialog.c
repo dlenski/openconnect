@@ -30,7 +30,7 @@
 
 #include "auth-dlg-settings.h"
 #include "version.h"
-#include "anyconnect.h"
+#include "openconnect.h"
 
 static char *get_config_path(GConfClient *gcl, const char *vpn_uuid)
 {
@@ -87,7 +87,7 @@ static char *get_gconf_setting(GConfClient *gcl, char *config_path,
 static GConfClient *gcl;
 static char *config_path;
 
-static int get_config(char *vpn_uuid, struct anyconnect_info *vpninfo)
+static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 {
 	char *authtype;
 
@@ -139,7 +139,7 @@ static int get_config(char *vpn_uuid, struct anyconnect_info *vpninfo)
 }
 
 
-static int get_cookie(const char *vpn_uuid, struct anyconnect_info *vpninfo)
+static int get_cookie(const char *vpn_uuid, struct openconnect_info *vpninfo)
 {
 	openconnect_init_openssl();
 	openconnect_obtain_cookie(vpninfo);
@@ -148,7 +148,7 @@ static int get_cookie(const char *vpn_uuid, struct anyconnect_info *vpninfo)
 	return 0;
 }
 
-int write_new_config(struct anyconnect_info *vpninfo, char *buf, int buflen)
+int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
 {
 	char *key = g_strdup_printf("%s/vpn/%s", config_path,
 				    NM_OPENCONNECT_KEY_XMLCONFIG);
@@ -170,7 +170,7 @@ int main (int argc, char **argv)
 {
 	char *vpn_name = NULL, *vpn_uuid = NULL, *vpn_service = NULL;
 	int reprompt;
-	struct anyconnect_info *vpninfo;
+	struct openconnect_info *vpninfo;
 	int opt;
 	char read_buf;
 
@@ -222,7 +222,7 @@ int main (int argc, char **argv)
 
 	vpninfo->urlpath = strdup("/");
 	vpninfo->mtu = 1406;
-	vpninfo->useragent = "Open AnyConnect VPN Agent " ANYCONNECT_VERSION "(NetworkManager)";
+	vpninfo->useragent = openconnect_create_useragent("OpenConnect VPN Agent (NetworkManager)");
 	vpninfo->ssl_fd = -1;
 
 	set_openssl_ui();

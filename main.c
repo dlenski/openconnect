@@ -36,7 +36,7 @@
 #define _GNU_SOURCE
 #include <getopt.h>
 
-#include "anyconnect.h"
+#include "openconnect.h"
 #include "version.h"
 
 int verbose = 0;
@@ -66,8 +66,8 @@ static struct option long_options[] = {
 
 void usage(void)
 {
-	printf("Usage:  anyconnect [options] <server>\n");
-	printf("Open client for Cisco AnyConnect VPN, version " ANYCONNECT_VERSION "\n\n");
+	printf("Usage:  openconnect [options] <server>\n");
+	printf("Open client for Cisco AnyConnect VPN, version %s\n\n", openconnect_version);
 	printf("  -c, --certificate=CERT          Use SSL client certificate CERT\n");
 	printf("  -k, --sslkey=KEY                Use SSL private key file KEY\n");
 	printf("  -C, --cookie=COOKIE             Use WebVPN cookie COOKIE\n");
@@ -92,7 +92,7 @@ void usage(void)
 
 int main(int argc, char **argv)
 {
-	struct anyconnect_info *vpninfo;
+	struct openconnect_info *vpninfo;
 	struct utsname utsbuf;
 	int cookieonly = 0;
 	int opt;
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 
 	/* Set up some defaults */
 	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = vpninfo->new_dtls_fd = -1;
-	vpninfo->useragent = "Open AnyConnect VPN Agent " ANYCONNECT_VERSION;
+	vpninfo->useragent = openconnect_create_useragent("Open AnyConnect VPN Agent %s");
 	vpninfo->mtu = 1406;
 	vpninfo->deflate = 1;
 	vpninfo->dtls_attempt_period = 60;
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
 			verbose = 1;
 			break;
 		case 'V':
-			printf("Open AnyConnect version " ANYCONNECT_VERSION "\n");
+			printf("OpenConnect version " ANYCONNECT_VERSION "\n");
 			exit(0);
 		case 'x':
 			vpninfo->xmlconfig = optarg;
@@ -240,7 +240,7 @@ int main(int argc, char **argv)
 	exit(1);
 }
 
-int write_new_config(struct anyconnect_info *vpninfo, char *buf, int buflen)
+int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
 {
 	int config_fd;
 

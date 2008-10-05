@@ -65,7 +65,7 @@ struct keepalive_info {
 #define DTLS_HANDSHAKE	1
 #define DTLS_RUNNING	2
 
-struct anyconnect_info {
+struct openconnect_info {
 	char *redirect_url;
 	
 	const char *localname;
@@ -152,44 +152,44 @@ struct anyconnect_info {
 
 
 /* tun.c */
-int setup_tun(struct anyconnect_info *vpninfo);
-int tun_mainloop(struct anyconnect_info *vpninfo, int *timeout);
+int setup_tun(struct openconnect_info *vpninfo);
+int tun_mainloop(struct openconnect_info *vpninfo, int *timeout);
 
 /* dtls.c */
-int setup_dtls(struct anyconnect_info *vpninfo);
-int dtls_mainloop(struct anyconnect_info *vpninfo, int *timeout);
-int dtls_try_handshake(struct anyconnect_info *vpninfo);
-int connect_dtls_socket(struct anyconnect_info *vpninfo);
+int setup_dtls(struct openconnect_info *vpninfo);
+int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout);
+int dtls_try_handshake(struct openconnect_info *vpninfo);
+int connect_dtls_socket(struct openconnect_info *vpninfo);
 
 /* cstp.c */
-int make_cstp_connection(struct anyconnect_info *vpninfo);
-int cstp_mainloop(struct anyconnect_info *vpninfo, int *timeout);
-int cstp_bye(struct anyconnect_info *vpninfo, char *reason);
+int make_cstp_connection(struct openconnect_info *vpninfo);
+int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout);
+int cstp_bye(struct openconnect_info *vpninfo, char *reason);
 
 /* ssl.c */
 void openconnect_init_openssl(void);
 int  __attribute__ ((format (printf, 2, 3)))
 		openconnect_SSL_printf(SSL *ssl, const char *fmt, ...);
 int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len);
-int openconnect_open_https(struct anyconnect_info *vpninfo);
+int openconnect_open_https(struct openconnect_info *vpninfo);
 
 /* main.c */
 extern int verbose;
-int write_new_config(struct anyconnect_info *vpninfo, char *buf, int buflen);
+int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen);
 
 /* mainloop.c */
-int vpn_add_pollfd(struct anyconnect_info *vpninfo, int fd, short events);
-int vpn_mainloop(struct anyconnect_info *vpninfo);
+int vpn_add_pollfd(struct openconnect_info *vpninfo, int fd, short events);
+int vpn_mainloop(struct openconnect_info *vpninfo);
 int queue_new_packet(struct pkt **q, int type, void *buf, int len);
 void queue_packet(struct pkt **q, struct pkt *new);
 int keepalive_action(struct keepalive_info *ka, int *timeout);
 int ka_stalled_dpd_time(struct keepalive_info *ka, int *timeout);
 
 /* xml.c */
-int config_lookup_host(struct anyconnect_info *vpninfo, const char *host);
+int config_lookup_host(struct openconnect_info *vpninfo, const char *host);
 
 /* http.c */
-int openconnect_obtain_cookie(struct anyconnect_info *vpninfo);
+int openconnect_obtain_cookie(struct openconnect_info *vpninfo);
 char *openconnect_create_useragent(char *base);
 
 /* ssl_ui.c */

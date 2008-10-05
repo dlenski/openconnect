@@ -31,9 +31,9 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
-#include "anyconnect.h"
+#include "openconnect.h"
 
-int config_lookup_host(struct anyconnect_info *vpninfo, const char *host)
+int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 {
 	int fd, i;
 	struct stat st;
