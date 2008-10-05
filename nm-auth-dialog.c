@@ -88,7 +88,7 @@ static char *config_path;
 
 static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 {
-	char *authtype;
+	char *authtype, *xmlconfig;
 
 	gcl = gconf_client_get_default();
 	config_path = get_config_path(gcl, vpn_uuid);
@@ -134,6 +134,21 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	if (!vpninfo->sslkey)
 		vpninfo->sslkey = vpninfo->cert;
 
+	vpninfo->xmlsha1[0] = '0';
+
+	xmlconfig = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_XMLCONFIG);
+	if (xmlconfig) {
+		unsigned char sha1[SHA_DIGEST_LENGTH];
+		EVP_MD_CTX c;
+		int i;
+
+		EVP_MD_CTX_init(&c);
+		EVP_Digest(xmlconfig, strlen(xmlconfig), sha1, NULL, EVP_sha1(), NULL);
+		EVP_MD_CTX_cleanup(&c);
+
+		for (i = 0; i < SHA_DIGEST_LENGTH; i++)
+			sprintf(&vpninfo->xmlsha1[i*2], "%02x", sha1[i]);
+	}
 	return 0;
 }
 
