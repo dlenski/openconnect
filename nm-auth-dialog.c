@@ -36,6 +36,8 @@
 #include "auth-dlg-settings.h"
 #include "openconnect.h"
 
+static char *last_message;
+
 static char *get_config_path(GConfClient *gcl, const char *vpn_uuid)
 {
 	GSList *connections, *this;
@@ -258,8 +260,12 @@ static int choose_vpnhost(struct openconnect_info *vpninfo)
 	gtk_widget_show(combo);
 
 	result = gtk_dialog_run(GTK_DIALOG(dlg));
-	if (result == GTK_RESPONSE_CANCEL)
+	if (result == GTK_RESPONSE_CANCEL) {
+		if (last_message)
+			g_free(last_message);
+		last_message = NULL;
 		return -EINVAL;
+	}
 
 	result = gtk_combo_box_get_active(GTK_COMBO_BOX(combo));
 
@@ -302,9 +308,14 @@ void write_progress(struct openconnect_info *info, int level, const char *fmt, .
 	va_list args;
 
 	if (level <= PRG_INFO) {
+		/* FIXME: Put into dialog box as they happen */
+
+		if (last_message)
+			g_free(last_message);
 		va_start(args, fmt);
-		vfprintf(stderr, fmt, args);
+		last_message = g_strdup_vprintf(fmt, args);
 		va_end(args);
+		fprintf(stderr, "%s", last_message);
 	}
 }
 
@@ -384,9 +395,18 @@ int main (int argc, char **argv)
 		return 1;
 	}
 
-	if (get_cookie(vpn_uuid, vpninfo) || !vpninfo->hostname || !vpninfo->cookie)
+	if (get_cookie(vpn_uuid, vpninfo) || !vpninfo->hostname || !vpninfo->cookie) {
+		if (last_message) {
+			GtkWidget *dlg = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_ERROR,
+								GTK_BUTTONS_CANCEL, "OpenConnect");
+			GtkWidget *label = gtk_label_new(last_message);
+			gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dlg)->vbox), label, FALSE, FALSE, 0);
+			gtk_widget_show(label);
+			
+			gtk_dialog_run(GTK_DIALOG(dlg));
+		}
 		return 1;
-
+	}
 	printf("%s\n%s\n", NM_OPENCONNECT_KEY_GATEWAY, vpninfo->hostname);
 	printf("%s\n%s\n", NM_OPENCONNECT_KEY_COOKIE, vpninfo->cookie);
 	printf("\n\n");
