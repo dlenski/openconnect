@@ -26,7 +26,12 @@
 #define _GNU_SOURCE
 #include <getopt.h>
 
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+
 #include <gconf/gconf-client.h>
+
+#include <gtk/gtk.h>
 
 #include "auth-dlg-settings.h"
 #include "openconnect.h"
@@ -86,9 +91,72 @@ static char *get_gconf_setting(GConfClient *gcl, char *config_path,
 static GConfClient *gcl;
 static char *config_path;
 
+static char *lasthost;
+
+static struct vpnhost {
+	char *hostname;
+	char *hostaddress;
+	struct vpnhost *next;
+} *vpnhosts;
+
+static int parse_xmlconfig(char *xmlconfig)
+{
+	xmlDocPtr xml_doc;
+	xmlNode *xml_node, *xml_node2;
+	struct vpnhost *newhost, **list_end;
+
+	list_end = &vpnhosts;
+	xml_doc = xmlReadMemory(xmlconfig, strlen(xmlconfig), "noname.xml", NULL, 0);
+
+	xml_node = xmlDocGetRootElement(xml_doc);
+	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
+                if (xml_node->type == XML_ELEMENT_NODE &&
+                    !strcmp((char *)xml_node->name, "ServerList")) {
+
+                        for (xml_node = xml_node->children; xml_node;
+                             xml_node = xml_node->next) {
+
+                                if (xml_node->type == XML_ELEMENT_NODE &&
+                                    !strcmp((char *)xml_node->name, "HostEntry")) {
+                                        int match = 0;
+
+					newhost = malloc(sizeof(*newhost));
+					if (!newhost)
+						return -ENOMEM;
+
+					memset(newhost, 0, sizeof(newhost));
+                                        for (xml_node2 = xml_node->children;
+                                             match >= 0 && xml_node2; xml_node2 = xml_node2->next) {
+
+                                                if (xml_node2->type != XML_ELEMENT_NODE)
+                                                        continue;
+
+                                                if (!strcmp((char *)xml_node2->name, "HostName")) {
+                                                        char *content = (char *)xmlNodeGetContent(xml_node2);
+							newhost->hostname = content;
+						} else if (!strcmp((char *)xml_node2->name, "HostAddress")) {
+                                                        char *content = (char *)xmlNodeGetContent(xml_node2);
+							newhost->hostaddress = content;
+						}
+					}
+					if (newhost->hostname && newhost->hostaddress) {
+						*list_end = newhost;
+						list_end = &newhost->next;
+                                        } else
+						free(newhost);
+                                }
+                        }
+			break;
+                }
+        }
+        xmlFreeDoc(xml_doc);
+	return 0;
+}
+
 static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 {
-	char *authtype, *xmlconfig;
+	char *authtype;
+	char *xmlconfig;
 
 	gcl = gconf_client_get_default();
 	config_path = get_config_path(gcl, vpn_uuid);
@@ -101,6 +169,25 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	if (!vpninfo->hostname) {
 		fprintf(stderr, "No gateway configured\n");
 		return -EINVAL;
+	}
+
+	lasthost = get_gconf_setting(gcl, config_path, "lasthost");
+	vpninfo->xmlsha1[0] = '0';
+	xmlconfig = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_XMLCONFIG);
+	if (xmlconfig) {
+		unsigned char sha1[SHA_DIGEST_LENGTH];
+		EVP_MD_CTX c;
+		int i;
+
+		EVP_MD_CTX_init(&c);
+		EVP_Digest(xmlconfig, strlen(xmlconfig), sha1, NULL, EVP_sha1(), NULL);
+		EVP_MD_CTX_cleanup(&c);
+
+		for (i = 0; i < SHA_DIGEST_LENGTH; i++)
+			sprintf(&vpninfo->xmlsha1[i*2], "%02x", sha1[i]);
+
+		parse_xmlconfig(xmlconfig);
+		g_free(xmlconfig);
 	}
 
 	vpninfo->cafile = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_CACERT);
@@ -134,29 +221,68 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	if (!vpninfo->sslkey)
 		vpninfo->sslkey = vpninfo->cert;
 
-	vpninfo->xmlsha1[0] = '0';
-
-	xmlconfig = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_XMLCONFIG);
-	if (xmlconfig) {
-		unsigned char sha1[SHA_DIGEST_LENGTH];
-		EVP_MD_CTX c;
-		int i;
-
-		EVP_MD_CTX_init(&c);
-		EVP_Digest(xmlconfig, strlen(xmlconfig), sha1, NULL, EVP_sha1(), NULL);
-		EVP_MD_CTX_cleanup(&c);
-
-		for (i = 0; i < SHA_DIGEST_LENGTH; i++)
-			sprintf(&vpninfo->xmlsha1[i*2], "%02x", sha1[i]);
-	}
 	return 0;
 }
 
+static int choose_vpnhost(struct openconnect_info *vpninfo)
+{
+	GtkWidget *dlg, *label, *combo;
+	struct vpnhost *host;
+	int i, result;
+
+	if (!lasthost)
+		lasthost = vpninfo->hostname;
+
+	dlg = gtk_dialog_new_with_buttons("OpenConnect", NULL, GTK_DIALOG_MODAL,
+					  GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+					  GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
+					  NULL);
+
+	label = gtk_label_new("Choose host to connect to:");
+	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dlg)->vbox), label, FALSE, FALSE, 0);	
+	gtk_widget_show(label);
+	
+	combo = gtk_combo_box_new_text();
+	gtk_combo_box_append_text(GTK_COMBO_BOX(combo), vpninfo->hostname);
+	gtk_combo_box_set_active(GTK_COMBO_BOX(combo), 0);
+
+	for (host = vpnhosts; host; host = host->next) {
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), host->hostname);
+		i++;
+
+		if (!strcmp(host->hostaddress, lasthost))
+			gtk_combo_box_set_active(GTK_COMBO_BOX(combo), i);
+	}
+			
+	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dlg)->vbox), combo, FALSE, FALSE, 0);	
+	gtk_widget_show(combo);
+
+	result = gtk_dialog_run(GTK_DIALOG(dlg));
+	if (result == GTK_RESPONSE_CANCEL)
+		return -EINVAL;
+
+	result = gtk_combo_box_get_active(GTK_COMBO_BOX(combo));
+
+	if (result) {
+		host = vpnhosts;
+
+		for (i = 1; i < result; i++)
+			host = host->next;
+
+		vpninfo->hostname = host->hostaddress;
+	}
+	return 0;
+
+}
 
 static int get_cookie(const char *vpn_uuid, struct openconnect_info *vpninfo)
 {
+	if (vpnhosts && choose_vpnhost(vpninfo))
+		return -ENOENT;
+
 	openconnect_init_openssl();
 	openconnect_obtain_cookie(vpninfo);
+
 	if (!vpninfo->cookie)
 		return -ENOENT;
 	return 0;
