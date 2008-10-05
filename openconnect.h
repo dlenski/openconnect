@@ -138,6 +138,8 @@ struct openconnect_info {
 	const char *useragent;
 
 	char *quit_reason;
+
+	int (*write_new_config) (struct openconnect_info *vpninfo, char *buf, int buflen);	
 };
 
 /* Packet types */
@@ -175,7 +177,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo);
 
 /* main.c */
 extern int verbose;
-int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen);
 
 /* mainloop.c */
 int vpn_add_pollfd(struct openconnect_info *vpninfo, int fd, short events);

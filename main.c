@@ -38,6 +38,8 @@
 
 #include "openconnect.h"
 
+static int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen);
+
 int verbose = 0;
 
 static struct option long_options[] = {
@@ -111,6 +113,7 @@ int main(int argc, char **argv)
 	vpninfo->mtu = 1406;
 	vpninfo->deflate = 1;
 	vpninfo->dtls_attempt_period = 60;
+	vpninfo->write_new_config = write_new_config;
 
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
 		fprintf(stderr, "Failed to initialise DTLS secret\n");
@@ -239,7 +242,7 @@ int main(int argc, char **argv)
 	exit(1);
 }
 
-int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
+static int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
 {
 	int config_fd;
 
@@ -254,4 +257,3 @@ int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
 	write(config_fd, buf, buflen);	
 	return 0;
 }
-

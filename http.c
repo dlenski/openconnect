@@ -596,7 +596,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 		return -EINVAL;
 	}
 
-	return write_new_config(vpninfo, buf, buflen);
+	return vpninfo->write_new_config(vpninfo, buf, buflen);
 }
 
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
@@ -719,8 +719,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 
 		if (!strcmp(opt->option, "webvpn"))
 			vpninfo->cookie = opt->value;
-		else if (vpninfo->xmlsha1[0] &&
-			 !strcmp(opt->option, "webvpnc")) {
+		else if (vpninfo->write_new_config && !strcmp(opt->option, "webvpnc")) {
 			char *tok = opt->value;
 			char *bu = NULL, *fu = NULL, *sha = NULL;
 

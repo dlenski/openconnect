@@ -172,7 +172,7 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	}
 
 	lasthost = get_gconf_setting(gcl, config_path, "lasthost");
-	vpninfo->xmlsha1[0] = '0';
+
 	xmlconfig = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_XMLCONFIG);
 	if (xmlconfig) {
 		unsigned char sha1[SHA_DIGEST_LENGTH];
@@ -365,6 +365,7 @@ int main (int argc, char **argv)
 	vpninfo->mtu = 1406;
 	vpninfo->useragent = openconnect_create_useragent("OpenConnect VPN Agent (NetworkManager)");
 	vpninfo->ssl_fd = -1;
+	vpninfo->write_new_config = write_new_config;
 
 	set_openssl_ui();
 
