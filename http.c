@@ -734,7 +734,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 				else if (!strncmp(tok, "fu:", 3))
 					fu = tok + 3;
 				else if (!strncmp(tok, "fh:", 3)) {
-					if (!strncasecmp(tok, vpninfo->xmlsha1,
+					if (!strncasecmp(tok+3, vpninfo->xmlsha1,
 							 SHA_DIGEST_LENGTH * 2))
 						break;
 					sha = tok + 3;
