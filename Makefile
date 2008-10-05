@@ -18,21 +18,26 @@ endif
 XML2_CFLAGS += $(shell xml2-config --cflags) 
 XML2_LDFLAGS += $(shell xml2-config --libs)
 
+GTK_CFLAGS += $(shell pkg-config --cflags gtk+-x11-2.0)
+GTK_LDFLAGS += $(shell pkg-config --libs gtk+-x11-2.0)
+
+GCONF_CFLAGS += $(shell pkg-config --cflags gconf-2.0)
+GCONF_LDFLAGS += $(shell pkg-config --libs gconf-2.0)
+
+GNOMEUI_CFLAGS += $(shell pkg-config --cflags libgnomeui-2.0)
+GNOMEUI_LDFLAGS += $(shell pkg-config --libs libgnomeui-2.0)
+
 CFLAGS := $(OPT_FLAGS) $(SSL_CFLAGS) $(XML2_CFLAGS) $(EXTRA_CFLAGS)
 LDFLAGS := $(SSL_LDFLAGS) $(XML2_LDFLAGS) $(EXTRA_LDFLAGS)
 
-ifdef GTK
-CFLAGS += $(shell pkg-config --cflags gtk+-x11-2.0)
-LDFLAGS += $(shell pkg-config --libs gtk+-x11-2.0)
-UI_OBJS := ssl_ui_gtk.o
-else
-UI_OBJS := ssl_ui.o
-endif
-OPENCONNECT_OBJS := main.o $(UI_OBJS) xml.o
+CFLAGS_ssl_ui_gtk.o += $(GTK_CFLAGS)	
+CFLAGS_nm-auth-dialog.o += $(GTK_CFLAGS) $(GCONF_CFLAGS) $(GNOMEUI_CFLAGS)
+
+OPENCONNECT_OBJS := main.o ssl_ui.o xml.o
 CONNECTION_OBJS := dtls.o cstp.o mainloop.o tun.o 
 AUTH_OBJECTS := ssl.o http.o
 
-all: anyconnect
+all: anyconnect nm-openconnect-auth-dialog
 
 version.h: $(patsubst %.o,%.c,$(OBJECTS)) anyconnect.h $(wildcard .git/index .git/refs/tags) version.sh
 	@./version.sh
@@ -47,8 +52,11 @@ libopenconnect.a: $(AUTH_OBJECTS)
 anyconnect: $(OPENCONNECT_OBJS) $(CONNECTION_OBJS) libopenconnect.a
 	$(CC) -o $@ $^ $(LDFLAGS)
 
+nm-openconnect-auth-dialog: nm-auth-dialog.o ssl_ui_gtk.o libopenconnect.a 
+	$(CC) -o $@ $^ $(LDFLAGS) $(GTK_LDFLAGS) $(GCONF_LDFLAGS) $(GNOMEUI_LDFLAGS)
+
 %.o: %.c
-	$(CC) -c -o $@ $(CFLAGS) $< -MD -MF .$@.dep
+	$(CC) -c -o $@ $(CFLAGS) $(CFLAGS_$@) $< -MD -MF .$@.dep
 
 clean:
 	rm -f *.o anyconnect $(wildcard .*.o.dep)

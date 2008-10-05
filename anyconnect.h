@@ -21,6 +21,9 @@
  *   Boston, MA 02110-1301 USA
  */
 
+#ifndef __OPENCONNECT_ANYCONNECT_H
+#define __OPENCONNECT_ANYCONNECT_H
+
 #include <openssl/ssl.h>
 #include <poll.h>
 #include <zlib.h>
@@ -190,3 +193,5 @@ int openconnect_obtain_cookie(struct anyconnect_info *vpninfo);
 
 /* ssl_ui.c */
 int set_openssl_ui(void);
+
+#endif /* __OPENCONNECT_ANYCONNECT_H */
