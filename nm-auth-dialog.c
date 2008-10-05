@@ -297,7 +297,16 @@ int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
 	return 0;
 }
 
-int verbose = 0;
+void write_progress(struct openconnect_info *info, int level, const char *fmt, ...)
+{
+	va_list args;
+
+	if (level <= PRG_INFO) {
+		va_start(args, fmt);
+		vfprintf(stderr, fmt, args);
+		va_end(args);
+	}
+}
 
 static struct option long_options[] = {
 	{"reprompt", 0, 0, 'r'},
@@ -366,6 +375,7 @@ int main (int argc, char **argv)
 	vpninfo->useragent = openconnect_create_useragent("OpenConnect VPN Agent (NetworkManager)");
 	vpninfo->ssl_fd = -1;
 	vpninfo->write_new_config = write_new_config;
+	vpninfo->progress = write_progress;
 
 	set_openssl_ui();
 

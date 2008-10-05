@@ -103,7 +103,7 @@ static int script_config_tun(struct openconnect_info *vpninfo)
 	struct sockaddr_in *sin = (void *)vpninfo->peer_addr;
 
 	if (vpninfo->peer_addr->sa_family != AF_INET) {
-		fprintf(stderr, "Script cannot handle anything but Legacy IP\n");
+		vpninfo->progress(vpninfo, PRG_ERR, "Script cannot handle anything but Legacy IP\n");
 		return -EINVAL;
 	}
 

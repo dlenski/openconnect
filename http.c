@@ -56,7 +56,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	int i;
 
 	if (openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)) < 0) {
-		fprintf(stderr, "Error fetching HTTPS response\n");
+		vpninfo->progress(vpninfo, PRG_ERR, "Error fetching HTTPS response\n");
 		exit(1);
 	}
 
@@ -67,26 +67,25 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	}
 
 	if ((!http10 && strncmp(buf, "HTTP/1.1 ", 9)) || !(*result = atoi(buf+9))) {
-		fprintf(stderr, "Failed to parse HTTP response '%s'\n", buf);
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to parse HTTP response '%s'\n", buf);
 		return -EINVAL;
 	}
 
-	if (verbose || *result == 100)
-		printf("Got HTTP response: %s\n", buf);
+	vpninfo->progress(vpninfo, PRG_TRACE, "Got HTTP response: %s\n", buf);
 
 	/* Eat headers... */
 	while ((i=openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
 		char *colon;
 
-		if (verbose)
-			printf("%s\n", buf);
+		vpninfo->progress(vpninfo, PRG_TRACE, "%s\n", buf);
+
 		if (i < 0) {
-			fprintf(stderr, "Error processing HTTP response\n");
+			vpninfo->progress(vpninfo, PRG_ERR, "Error processing HTTP response\n");
 			return -EINVAL;
 		}
 		colon = strchr(buf, ':');
 		if (!colon) {
-			fprintf(stderr, "Ignoring unknown HTTP response line '%s'\n", buf);
+			vpninfo->progress(vpninfo, PRG_ERR, "Ignoring unknown HTTP response line '%s'\n", buf);
 			continue;
 		}
 		*(colon++) = 0;
@@ -104,7 +103,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		if (!strcmp(buf, "Content-Length")) {
 			bodylen = atoi(colon);
 			if (bodylen < 0 || bodylen > buf_len) {
-				fprintf(stderr, "Response body too large for buffer (%d > %d)\n",
+				vpninfo->progress(vpninfo, PRG_ERR, "Response body too large for buffer (%d > %d)\n",
 					bodylen, buf_len);
 				return -EINVAL;
 			}
@@ -118,7 +117,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				*semicolon = 0;
 
 			if (!equals) {
-				fprintf(stderr, "Invalid cookie offered: %s\n", buf);
+				vpninfo->progress(vpninfo, PRG_ERR, "Invalid cookie offered: %s\n", buf);
 				return -EINVAL;
 			}
 			*(equals++) = 0;
@@ -126,7 +125,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			if (*equals) {
 				new = malloc(sizeof(*new));
 				if (!new) {
-					fprintf(stderr, "No memory for allocating cookies\n");
+					vpninfo->progress(vpninfo, PRG_ERR, "No memory for allocating cookies\n");
 					return -ENOMEM;
 				}
 				new->next = NULL;
@@ -160,7 +159,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			if (!strcmp(colon, "chunked"))
 				bodylen = -1;
 			else {
-				fprintf(stderr, "Unknown Transfer-Encoding: %s\n", colon);
+				vpninfo->progress(vpninfo, PRG_ERR, "Unknown Transfer-Encoding: %s\n", colon);
 				return -EINVAL;
 			}
 		}
@@ -190,7 +189,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		while (done < bodylen) {
 			i = SSL_read(vpninfo->https_ssl, body + done, bodylen - done);
 			if (i < 0) {
-				fprintf(stderr, "Error reading HTTP response body\n");
+				vpninfo->progress(vpninfo, PRG_ERR, "Error reading HTTP response body\n");
 				return -EINVAL;
 			}
 			done += i;
@@ -203,7 +202,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		int chunklen, lastchunk = 0;
 
 		if (i < 0) {
-			fprintf(stderr, "Error fetching chunk header\n");
+			vpninfo->progress(vpninfo, PRG_ERR, "Error fetching chunk header\n");
 			exit(1);
 		}
 		chunklen = strtol(buf, NULL, 16);
@@ -212,14 +211,14 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			goto skip;
 		}
 		if (chunklen + done > buf_len) {
-			fprintf(stderr, "Response body too large for buffer (%d > %d)\n",
+			vpninfo->progress(vpninfo, PRG_ERR, "Response body too large for buffer (%d > %d)\n",
 				chunklen + done, buf_len);
 			return -EINVAL;
 		}
 		while (chunklen) {
 			i = SSL_read(vpninfo->https_ssl, body + done, chunklen);
 			if (i < 0) {
-				fprintf(stderr, "Error reading HTTP response body\n");
+				vpninfo->progress(vpninfo, PRG_ERR, "Error reading HTTP response body\n");
 				return -EINVAL;
 			}
 			chunklen -= i;
@@ -228,9 +227,9 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	skip:
 		if ((i=openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
 			if (i < 0) {
-				fprintf(stderr, "Error fetching HTTP response body\n");
+				vpninfo->progress(vpninfo, PRG_ERR, "Error fetching HTTP response body\n");
 			} else {
-				fprintf(stderr, "Error in chunked decoding. Expected '', got: '%s'",
+				vpninfo->progress(vpninfo, PRG_ERR, "Error in chunked decoding. Expected '', got: '%s'",
 					buf);
 			}
 			return -EINVAL;
@@ -350,7 +349,7 @@ static int parse_auth_choice(struct openconnect_info *vpninfo,
 	char *form_name = (char *)xmlGetProp(xml_node, (unsigned char *)"name");
 
 	if (!form_name) {
-		fprintf(stderr, "Form choice has no name\n");
+		vpninfo->progress(vpninfo, PRG_ERR, "Form choice has no name\n");
 		return -EINVAL;
 	}
 	
@@ -368,14 +367,13 @@ static int parse_auth_choice(struct openconnect_info *vpninfo,
 			continue;
 		if (strcmp(authtype, "sdi-via-proxy")) {
 			char *content = (char *)xmlNodeGetContent(xml_node);
-			fprintf(stderr, "Unrecognised auth type %s, label '%s'\n", authtype, content);
+			vpninfo->progress(vpninfo, PRG_ERR, "Unrecognised auth type %s, label '%s'\n", authtype, content);
 		}
-		if (verbose)
-			printf("choosing %s %s\n", form_name, form_id);
+		vpninfo->progress(vpninfo, PRG_TRACE, "choosing %s %s\n", form_name, form_id);
 		append_opt(body, bodylen, form_name, form_id);
 		return 0;
 	}
-	fprintf(stderr, "Didn't find appropriate auth-type choice\n");
+	vpninfo->progress(vpninfo, PRG_ERR, "Didn't find appropriate auth-type choice\n");
 	return -EINVAL;
 }
 
@@ -394,7 +392,7 @@ static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 	token[0] = 0;
 
 	if (!ui) {
-		fprintf(stderr, "Failed to create UI\n");
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to create UI\n");
 		return -EINVAL;
 	}
 	if (form_error) {
@@ -421,26 +419,28 @@ static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 			continue;
 		}
 		if (strcmp((char *)xml_node->name, "input")) {
-			printf("name %s not input\n", xml_node->name);
+			vpninfo->progress(vpninfo, PRG_TRACE, "name %s not input\n", xml_node->name);
 			continue;
 		}
 
 		input_type = (char *)xmlGetProp(xml_node, (unsigned char *)"type");
 		if (!input_type) {
-			printf("No input type\n");
+			vpninfo->progress(vpninfo, PRG_INFO, "No input type in form\n");
 			continue;
 		}
 
 		input_name = (char *)xmlGetProp(xml_node, (unsigned char *)"name");
 		if (!input_name) {
-			printf("No input name\n");
+			vpninfo->progress(vpninfo, PRG_INFO, "No input name in form\n");
 			continue;
 		}
 
 		if (!strcmp(input_type, "hidden")) {
 			char *value = (char *)xmlGetProp(xml_node, (unsigned char *)"value");
 			if (!value) {
-				printf("No value for hidden input %s\n", input_name);
+				vpninfo->progress(vpninfo, PRG_INFO, 
+						  "No value for hidden input %s\n",
+						  input_name);
 				continue;
 			}
 
@@ -457,8 +457,7 @@ static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 			pass_form_id = input_name;
 	}
 			 
-	if (verbose)
-		printf("Fixed options give %s\n", body);
+	vpninfo->progress(vpninfo, PRG_TRACE, "Fixed options give %s\n", body);
 
 	if (user_form_id && !vpninfo->username)
 		UI_add_input_string(ui, "Enter username: ", UI_INPUT_FLAG_ECHO, username, 1, 80);
@@ -466,7 +465,7 @@ static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 
 	ret = UI_process(ui);
 	if (ret) {
-		fprintf(stderr, "Invalid inputs\n");
+		vpninfo->progress(vpninfo, PRG_ERR, "Invalid inputs\n");
 		return -EINVAL;
 	}
 	if (user_form_id)
@@ -489,16 +488,15 @@ static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 
 	xml_doc = xmlReadMemory(response, strlen(response), "noname.xml", NULL, 0);
 	if (!xml_doc) {
-		fprintf(stderr, "Failed to parse server response\n");
-		if (verbose)
-			printf("Response was:%s\n", response);
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to parse server response\n");
+		vpninfo->progress(vpninfo, PRG_TRACE, "Response was:%s\n", response);
 		return -EINVAL;
 	}
 
 	xml_node = xmlDocGetRootElement(xml_doc);
 	if (xml_node->type != XML_ELEMENT_NODE ||
 	    strcmp((char *)xml_node->name, "auth")) {
-		fprintf(stderr, "XML response has no \"auth\" root node\n");
+		vpninfo->progress(vpninfo, PRG_ERR, "XML response has no \"auth\" root node\n");
 		xmlFreeDoc(xml_doc);
 		return -EINVAL;
 	}
@@ -517,7 +515,7 @@ static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			form_method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
 			form_action = (char *)xmlGetProp(xml_node, (unsigned char *)"action");
 			if (strcasecmp(form_method, "POST")) {
-				fprintf(stderr, "Cannot handle form method '%s'\n",
+				vpninfo->progress(vpninfo, PRG_ERR, "Cannot handle form method '%s'\n",
 					form_method);
 				xmlFreeDoc(xml_doc);
 				return -EINVAL;
@@ -542,8 +540,8 @@ static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	if (success)
 		return 0;
 
-	fprintf(stderr, "Response neither indicated success nor requested input\n");
-	printf("Response was:\n%s\n", response);
+	vpninfo->progress(vpninfo, PRG_ERR, "Response neither indicated success nor requested input\n");
+	vpninfo->progress(vpninfo, PRG_ERR, "Response was:\n%s\n", response);
 	return -EINVAL;
 }
 
@@ -592,7 +590,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 		sprintf(&local_sha1_ascii[i*2], "%02x", local_sha1_bin[i]);
 
 	if (strcasecmp(server_sha1, local_sha1_ascii)) {
-		fprintf(stderr, "Downloaded config file did not match intended SHA1\n");
+		vpninfo->progress(vpninfo, PRG_ERR, "Downloaded config file did not match intended SHA1\n");
 		return -EINVAL;
 	}
 
@@ -610,7 +608,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 
  retry:
 	if (!vpninfo->https_ssl && openconnect_open_https(vpninfo)) {
-		fprintf(stderr, "Failed to open HTTPS connection to %s\n",
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to open HTTPS connection to %s\n",
 			vpninfo->hostname);
 		exit(1);
 	}
@@ -693,7 +691,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			vpninfo->redirect_url = NULL;
 			goto retry;
 		} else {
-			fprintf(stderr, "Relative redirect (to '%s') not supported\n",
+			vpninfo->progress(vpninfo, PRG_ERR, "Relative redirect (to '%s') not supported\n",
 				vpninfo->redirect_url);
 			return -EINVAL;
 		}
@@ -747,7 +745,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	if (vpninfo->cookie)
 		return 0;
 
-	fprintf(stderr, "Server claimed successful login, but no cookie!\n");
+	vpninfo->progress(vpninfo, PRG_ERR, "Server claimed successful login, but no cookie!\n");
 	return -1;
 }
 

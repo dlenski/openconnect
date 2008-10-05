@@ -98,7 +98,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		dtls_method = DTLSv1_client_method();
 		vpninfo->dtls_ctx = SSL_CTX_new(dtls_method);
 		if (!vpninfo->dtls_ctx) {
-			fprintf(stderr, "Initialise DTLSv1 CTX failed\n");
+			vpninfo->progress(vpninfo, PRG_ERR, "Initialise DTLSv1 CTX failed\n");
 			return -EINVAL;
 		}
 
@@ -111,7 +111,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		/* We're going to "resume" a session which never existed. Fake it... */
 		vpninfo->dtls_session = SSL_SESSION_new();
 		if (!vpninfo->dtls_session) {
-			fprintf(stderr, "Initialise DTLSv1 session failed\n");
+			vpninfo->progress(vpninfo, PRG_ERR, "Initialise DTLSv1 session failed\n");
 			return -EINVAL;
 		}			
 		vpninfo->dtls_session->ssl_version = 0x0100; // DTLS1_BAD_VER
@@ -134,11 +134,12 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 
 	/* Add the generated session to the SSL */
 	if (!SSL_set_session(dtls_ssl, vpninfo->dtls_session)) {
-		printf("SSL_set_session() failed with old protocol version 0x%x\n",
-		       vpninfo->dtls_session->ssl_version);
-		printf("Your OpenSSL may lack Cisco compatibility support\n");
-		printf("See http://rt.openssl.org/Ticket/Display.html?id=1751\n");
-		printf("Use the --no-dtls command line option to avoid this message\n");
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "SSL_set_session() failed with old protocol version 0x%x\n"
+				  "Your OpenSSL may lack Cisco compatibility support\n"
+				  "See http://rt.openssl.org/Ticket/Display.html?id=1751\n"
+				  "Use the --no-dtls command line option to avoid this message\n",
+				  vpninfo->dtls_session->ssl_version);
 		return -EINVAL;
 	}
 
@@ -174,7 +175,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	int ret = SSL_do_handshake(vpninfo->new_dtls_ssl);
 
 	if (ret == 1) {
-		printf("Established DTLS connection\n");
+		vpninfo->progress(vpninfo, PRG_INFO, "Established DTLS connection\n");
 
 		vpninfo->dtls_state = DTLS_RUNNING;
 
@@ -201,12 +202,11 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	if (ret == SSL_ERROR_WANT_WRITE || ret == SSL_ERROR_WANT_READ) {
 		if (time(NULL) < vpninfo->new_dtls_started + 5)
 			return 0;
-		if (verbose)
-			printf("DTLS handshake timed out\n");
-	} else if (verbose) {
-		fprintf(stderr, "DTLS handshake failed: %d\n", ret);
-		ERR_print_errors_fp(stderr);
+		vpninfo->progress(vpninfo, PRG_TRACE, "DTLS handshake timed out\n");
 	}
+
+	vpninfo->progress(vpninfo, PRG_ERR, "DTLS handshake failed: %d\n", ret);
+	ERR_print_errors_fp(stderr);
 
 	/* Kill the new (failed) connection... */
 	SSL_free(vpninfo->new_dtls_ssl);
@@ -252,13 +252,14 @@ int setup_dtls(struct openconnect_info *vpninfo)
 	int i;
 
 	while (dtls_opt) {
-		if (verbose)
-			printf("DTLS option %s : %s\n", dtls_opt->option, dtls_opt->value);
+		vpninfo->progress(vpninfo, PRG_TRACE,
+				  "DTLS option %s : %s\n",
+				  dtls_opt->option, dtls_opt->value);
 
 		if (!strcmp(dtls_opt->option, "X-DTLS-Session-ID")) {
 			if (strlen(dtls_opt->value) != 64) {
-				fprintf(stderr, "X-DTLS-Session-ID not 64 characters\n");
-				fprintf(stderr, "Is: %s\n", dtls_opt->value);
+				vpninfo->progress(vpninfo, PRG_ERR, "X-DTLS-Session-ID not 64 characters\n");
+				vpninfo->progress(vpninfo, PRG_ERR, "Is: %s\n", dtls_opt->value);
 				return -EINVAL;
 			}
 			for (i = 0; i < 64; i += 2)
@@ -286,7 +287,7 @@ int setup_dtls(struct openconnect_info *vpninfo)
 		struct sockaddr_in6 *sin = (void *)vpninfo->peer_addr;
 		sin->sin6_port = htons(dtls_port);
 	} else {
-		fprintf(stderr, "Unknown protocol family %d. Cannot do DTLS\n",
+		vpninfo->progress(vpninfo, PRG_ERR, "Unknown protocol family %d. Cannot do DTLS\n",
 			vpninfo->peer_addr->sa_family);
 		return -EINVAL;
 	}
@@ -299,9 +300,9 @@ int setup_dtls(struct openconnect_info *vpninfo)
 	if (connect_dtls_socket(vpninfo))
 		return -EINVAL;
 
-	if (verbose)
-		printf("DTLS connected. DPD %d, Keepalive %d\n",
-		       vpninfo->dtls_times.dpd, vpninfo->dtls_times.keepalive);
+	vpninfo->progress(vpninfo, PRG_TRACE,
+			  "DTLS connected. DPD %d, Keepalive %d\n",
+			  vpninfo->dtls_times.dpd, vpninfo->dtls_times.keepalive);
 
 	return 0;
 }
@@ -314,9 +315,10 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	char magic_pkt;
 
 	while ( (len = SSL_read(vpninfo->dtls_ssl, buf, sizeof(buf))) > 0 ) {
-		if (verbose)
-			printf("Received DTLS packet 0x%02x of %d bytes\n",
-			       buf[0], len);
+
+		vpninfo->progress(vpninfo, PRG_TRACE,
+				  "Received DTLS packet 0x%02x of %d bytes\n",
+				  buf[0], len);
 
 		vpninfo->dtls_times.last_rx = time(NULL);
 
@@ -327,23 +329,20 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			break;
 
 		case AC_PKT_DPD_OUT:
-			if (verbose)
-				printf("Got DTLS DPD request\n");
+			vpninfo->progress(vpninfo, PRG_TRACE, "Got DTLS DPD request\n");
 
 			/* FIXME: What if the packet doesn't get through? */
 			magic_pkt = AC_PKT_DPD_RESP;
 			if (SSL_write(vpninfo->dtls_ssl, &magic_pkt, 1) != 1)
-				fprintf(stderr, "Failed to send DPD response. Expect disconnect\n");
+				vpninfo->progress(vpninfo, PRG_ERR, "Failed to send DPD response. Expect disconnect\n");
 			continue;
 
 		case AC_PKT_DPD_RESP:
-			if (verbose)
-				printf("Got DTLS DPD response\n");
+			vpninfo->progress(vpninfo, PRG_TRACE, "Got DTLS DPD response\n");
 			break;
 
 		case AC_PKT_KEEPALIVE:
-			if (verbose)
-				printf("Got DTLS Keepalive\n");
+			vpninfo->progress(vpninfo, PRG_TRACE, "Got DTLS Keepalive\n");
 			break;
 
 		default:
@@ -352,7 +351,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			 * by downloading a reasonably-sized web page. Dropping the 
 			 * offending packets doesn't even seem to stall the TCP 
 			 * connection when it's the only traffic on the link. */
-			fprintf(stderr, "Unknown DTLS packet type %02x, len %d\n", buf[0], len);
+			vpninfo->progress(vpninfo, PRG_ERR, "Unknown DTLS packet type %02x, len %d\n", buf[0], len);
 			break;
 /*			
 			vpninfo->quit_reason = "Unknown packet received";
@@ -364,10 +363,9 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	switch (keepalive_action(&vpninfo->dtls_times, timeout)) {
 	case KA_REKEY:
 		time(&vpninfo->dtls_times.last_rekey);
-		if (verbose)
-			printf("DTLS rekey due\n");
+		vpninfo->progress(vpninfo, PRG_TRACE, "DTLS rekey due\n");
 		if (connect_dtls_socket(vpninfo)) {
-			fprintf(stderr, "DTLS rekey failed\n");
+			vpninfo->progress(vpninfo, PRG_ERR, "DTLS rekey failed\n");
 			return 1;
 		}
 		work_done = 1;
@@ -375,14 +373,13 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 
 	case KA_DPD_DEAD:
-		fprintf(stderr, "DTLS Dead Peer Detection detected dead peer!\n");
+		vpninfo->progress(vpninfo, PRG_ERR, "DTLS Dead Peer Detection detected dead peer!\n");
 		/* Fall back to SSL, and start a new DTLS connection */
 		dtls_restart(vpninfo);
 		return 1;
 
 	case KA_DPD:
-		if (verbose)
-			printf("Send DTLS DPD\n");
+		vpninfo->progress(vpninfo, PRG_TRACE, "Send DTLS DPD\n");
 
 		magic_pkt = AC_PKT_DPD_OUT;
 		SSL_write(vpninfo->dtls_ssl, &magic_pkt, 1);
@@ -397,8 +394,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		if (vpninfo->outgoing_queue)
 			break;
 
-		if (verbose)
-			printf("Send DTLS Keepalive\n");
+		vpninfo->progress(vpninfo, PRG_TRACE, "Send DTLS Keepalive\n");
 
 		magic_pkt = AC_PKT_KEEPALIVE;
 		SSL_write(vpninfo->dtls_ssl, &magic_pkt, 1);
@@ -427,7 +423,8 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			/* If it's a real error, kill the DTLS connection and
 			   requeue the packet to be sent over SSL */
 			if (ret != SSL_ERROR_WANT_READ && ret != SSL_ERROR_WANT_WRITE) {
-				fprintf(stderr, "DTLS got write error %d. Falling back to SSL\n", ret);
+				vpninfo->progress(vpninfo, PRG_ERR, 
+						  "DTLS got write error %d. Falling back to SSL\n", ret);
 				ERR_print_errors_fp(stderr);
 				dtls_restart(vpninfo);
 				vpninfo->outgoing_queue = this;
@@ -435,10 +432,9 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			return 1;
 		}
 		time(&vpninfo->dtls_times.last_tx);
-		if (verbose) {
-			printf("Sent DTLS packet of %d bytes; SSL_write() returned %d\n",
-			       this->len, ret);
-		}
+		vpninfo->progress(vpninfo, PRG_TRACE,
+				  "Sent DTLS packet of %d bytes; SSL_write() returned %d\n",
+				  this->len, ret);
 	}
 
 	return work_done;

@@ -139,8 +139,16 @@ struct openconnect_info {
 
 	char *quit_reason;
 
-	int (*write_new_config) (struct openconnect_info *vpninfo, char *buf, int buflen);	
+	int (*write_new_config) (struct openconnect_info *vpninfo, char *buf, int buflen);
+
+	void __attribute__ ((format(printf, 3, 4)))
+	(*progress) (struct openconnect_info *vpninfo, int level, const char *fmt, ...);
 };
+
+#define PRG_ERR		0
+#define PRG_INFO	1
+#define PRG_DEBUG	2
+#define PRG_TRACE	3
 
 /* Packet types */
 

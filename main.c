@@ -39,8 +39,9 @@
 #include "openconnect.h"
 
 static int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen);
+static void write_progress(struct openconnect_info *info, int level, const char *fmt, ...);
 
-int verbose = 0;
+int verbose = PRG_INFO;
 
 static struct option long_options[] = {
 	{"certificate", 1, 0, 'c'},
@@ -61,6 +62,7 @@ static struct option long_options[] = {
 	{"no-dtls", 0, 0, '1'},
 	{"cookieonly", 0, 0, '2'},
 	{"printcookie", 0, 0, '3'},
+	{"quiet", 0, 0, 'q'},
 	{"xmlconfig", 1, 0, 'x'},
 	{NULL, 0, 0, 0},
 };
@@ -82,6 +84,7 @@ void usage(void)
 	printf("  -t, --tpm                       Use TPM engine for private key\n");
 	printf("  -u, --user=NAME                 Set login username\n");
 	printf("  -V, --version                   Report version number\n");
+	printf("  -q, --quiet                     Less output\n");
 	printf("  -v, --verbose                   More output\n");
 	printf("  -x, --xmlconfig=CONFIG          XML config file\n");
 	printf("      --cookieonly                Fetch webvpn cookie only; don't connect\n");
@@ -114,6 +117,7 @@ int main(int argc, char **argv)
 	vpninfo->deflate = 1;
 	vpninfo->dtls_attempt_period = 60;
 	vpninfo->write_new_config = write_new_config;
+	vpninfo->progress = write_progress;
 
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
 		fprintf(stderr, "Failed to initialise DTLS secret\n");
@@ -124,7 +128,7 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "C:c:hvdDu:i:tk:p:s:hx:V",
+	while ((opt = getopt_long(argc, argv, "C:c:hvdDu:i:tk:p:qs:hx:V",
 				  long_options, NULL))) {
 		if (opt < 0)
 			break;
@@ -181,8 +185,11 @@ int main(int argc, char **argv)
 		case 'u':
 			vpninfo->username = optarg;
 			break;
+		case 'q':
+			verbose = PRG_ERR;
+			break;
 		case 'v':
-			verbose = 1;
+			verbose = PRG_TRACE;
 			break;
 		case 'V':
 			printf("OpenConnect version %s\n", openconnect_version);
@@ -256,4 +263,16 @@ static int write_new_config(struct openconnect_info *vpninfo, char *buf, int buf
 	/* FIXME: We should actually write to a new tempfile, then rename */
 	write(config_fd, buf, buflen);	
 	return 0;
+}
+
+void write_progress(struct openconnect_info *info, int level, const char *fmt, ...)
+{
+	FILE *outf = level?stdout:stderr;
+	va_list args;
+
+	if (verbose >= level) {
+		va_start(args, fmt);
+		vfprintf(outf, fmt, args);
+		va_end(args);
+	}
 }

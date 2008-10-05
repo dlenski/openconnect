@@ -45,8 +45,6 @@ int  __attribute__ ((format (printf, 2, 3)))
 	va_start(args, fmt);
 	vsnprintf(buf, 1023, fmt, args);
 	va_end(args);
-	if (verbose)
-		printf("%s", buf);
 	return SSL_write(ssl, buf, strlen(buf));
 
 }
@@ -85,11 +83,13 @@ int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len)
 
 static int load_certificate(struct openconnect_info *vpninfo)
 {
-	if (verbose)
-		printf("Using Certificate file %s\n", vpninfo->cert);
+	vpninfo->progress(vpninfo, PRG_TRACE, 
+			  "Using certificate file %s\n", vpninfo->cert);
+
 	if (!SSL_CTX_use_certificate_file(vpninfo->https_ctx, vpninfo->cert,
 					  SSL_FILETYPE_PEM)) {
-		fprintf(stderr, "Certificate failed\n");
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Load certificate failed\n");
 		ERR_print_errors_fp(stderr);
 		return -EINVAL;
 	}
@@ -101,13 +101,13 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 		e = ENGINE_by_id("tpm");
 		if (!e) {
-			fprintf(stderr, "Can't load TPM engine.\n");
+			vpninfo->progress(vpninfo, PRG_ERR, "Can't load TPM engine.\n");
 			ERR_print_errors_fp(stderr);
 			return -EINVAL;
 		}
 		if (!ENGINE_init(e) || !ENGINE_set_default_RSA(e) ||
 		    !ENGINE_set_default_RAND(e)) {
-			fprintf(stderr, "Failed to init TPM engine\n");
+			vpninfo->progress(vpninfo, PRG_ERR, "Failed to init TPM engine\n");
 			ERR_print_errors_fp(stderr);
 			ENGINE_free(e);
 			return -EINVAL;
@@ -116,13 +116,13 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		if (vpninfo->tpmpass) {
 			if (!ENGINE_ctrl_cmd(e, "PIN", strlen(vpninfo->tpmpass),
 					     vpninfo->tpmpass, NULL, 0)) {
-				fprintf(stderr, "Failed to set TPM SRK password\n");
+				vpninfo->progress(vpninfo, PRG_ERR, "Failed to set TPM SRK password\n");
 				ERR_print_errors_fp(stderr);
 			}
 		}
 		key = ENGINE_load_private_key(e, vpninfo->sslkey, NULL, NULL);
 		if (!key) {
-			fprintf(stderr, 
+			vpninfo->progress(vpninfo, PRG_ERR, 
 				"Failed to load TPM private key\n");
 			ERR_print_errors_fp(stderr);
 			ENGINE_free(e);
@@ -130,7 +130,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			return -EINVAL;
 		}
 		if (!SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key)) {
-			fprintf(stderr, "Add key from TPM failed\n");
+			vpninfo->progress(vpninfo, PRG_ERR, "Add key from TPM failed\n");
 			ERR_print_errors_fp(stderr);
 			ENGINE_free(e);
 			ENGINE_finish(e);
@@ -140,7 +140,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		if (!SSL_CTX_use_RSAPrivateKey_file(vpninfo->https_ctx,
 						    vpninfo->sslkey,
 						    SSL_FILETYPE_PEM)) {
-			fprintf(stderr, "Private key failed\n");
+			vpninfo->progress(vpninfo, PRG_ERR, "Private key failed\n");
 			ERR_print_errors_fp(stderr);
 			return -EINVAL;
 		}
@@ -168,22 +168,24 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 	err = getaddrinfo(vpninfo->hostname, "https", &hints, &result);
 	if (err) {
-		fprintf(stderr, "getaddrinfo failed: %s\n", gai_strerror(err));
+		vpninfo->progress(vpninfo, PRG_ERR, "getaddrinfo failed: %s\n", gai_strerror(err));
 		return -EINVAL;
 	}
+
+	vpninfo->progress(vpninfo, PRG_INFO,
+			  "Attempting to connect to %s\n", vpninfo->hostname);
 
 	for (rp = result; rp ; rp = rp->ai_next) {
 		ssl_sock = socket(rp->ai_family, rp->ai_socktype,
 				  rp->ai_protocol);
 		if (ssl_sock < 0)
 			continue;
-
 		if (connect(ssl_sock, rp->ai_addr, rp->ai_addrlen) >= 0) {
 			/* Store the peer address we actually used, so that DTLS can 
 			   use it again later */
 			vpninfo->peer_addr = malloc(rp->ai_addrlen);
 			if (!vpninfo->peer_addr) {
-				fprintf(stderr, "Failed to allocate sockaddr storage\n");
+				vpninfo->progress(vpninfo, PRG_ERR, "Failed to allocate sockaddr storage\n");
 				close(ssl_sock);
 				return -ENOMEM;
 			}
@@ -196,7 +198,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	freeaddrinfo(result);
 
 	if (!rp) {
-		fprintf(stderr, "Failed to connect to host %s\n", vpninfo->hostname);
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to connect to host %s\n", vpninfo->hostname);
 		return -EINVAL;
 	}
 	fcntl(ssl_sock, F_SETFD, FD_CLOEXEC);
@@ -218,8 +220,11 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	https_bio = BIO_new_socket(ssl_sock, BIO_NOCLOSE);
 	SSL_set_bio(https_ssl, https_bio, https_bio);
 
+	vpninfo->progress(vpninfo, PRG_INFO,
+			  "SSL negotiation with %s\n", vpninfo->hostname);
+
 	if (SSL_connect(https_ssl) <= 0) {
-		fprintf(stderr, "SSL connection failure\n");
+		vpninfo->progress(vpninfo, PRG_ERR, "SSL connection failure\n");
 		ERR_print_errors_fp(stderr);
 		SSL_free(https_ssl);
 		close(ssl_sock);
@@ -231,7 +236,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 		/* FIXME: Show cert details, allow user to accept (and store?) */
 		if (vfy != X509_V_OK) {
-			fprintf(stderr, "Server certificate verify failed: %s\n",
+			vpninfo->progress(vpninfo, PRG_ERR, "Server certificate verify failed: %s\n",
 				X509_verify_cert_error_string(vfy));
 			SSL_free(https_ssl);
 			close(ssl_sock);
@@ -242,8 +247,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	vpninfo->ssl_fd = ssl_sock;
 	vpninfo->https_ssl = https_ssl;
 
-	if (verbose)
-		printf("Connected to HTTPS on %s\n", vpninfo->hostname);
+	vpninfo->progress(vpninfo, PRG_INFO, 
+			  "Connected to HTTPS on %s\n", vpninfo->hostname);
 
 	return 0;
 }

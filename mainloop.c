@@ -58,7 +58,7 @@ int vpn_add_pollfd(struct openconnect_info *vpninfo, int fd, short events)
 	vpninfo->nfds++;
 	vpninfo->pfds = realloc(vpninfo->pfds, sizeof(struct pollfd) * vpninfo->nfds);
 	if (!vpninfo->pfds) {
-		fprintf(stderr, "Failed to reallocate pfds\n");
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to reallocate pfds\n");
 		exit(1);
 	}
 	vpninfo->pfds[vpninfo->nfds - 1].fd = fd;
@@ -92,8 +92,7 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 
 		if (!vpninfo->dtls_ssl && !vpninfo->new_dtls_ssl &&
 		    vpninfo->new_dtls_started + vpninfo->dtls_attempt_period < time(NULL)) {
-			if (verbose)
-				printf("Attempt new DTLS connection\n");
+			vpninfo->progress(vpninfo, PRG_TRACE, "Attempt new DTLS connection\n");
 			connect_dtls_socket(vpninfo);
 		}
 		if (vpninfo->dtls_ssl)
@@ -123,19 +122,19 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 		if (did_work)
 			continue;
 
-		if (verbose)
-			printf("Did no work; sleeping for %d ms...\n", timeout);
+		vpninfo->progress(vpninfo, PRG_TRACE, 
+				  "Did no work; sleeping for %d ms...\n", timeout);
 
 		poll(vpninfo->pfds, vpninfo->nfds, timeout);
 		if (vpninfo->pfds[vpninfo->ssl_pfd].revents & POLL_HUP) {
-			fprintf(stderr, "Server closed connection!\n");
+			vpninfo->progress(vpninfo, PRG_ERR, "Server closed connection!\n");
 			/* OpenSSL doesn't seem to cope properly with this... */
 			exit(1);
 		}
 	}
 
 	cstp_bye(vpninfo, vpninfo->quit_reason);
-	printf("Sent quit message: %s\n", vpninfo->quit_reason);
+	vpninfo->progress(vpninfo, PRG_INFO, "Sent quit message: %s\n", vpninfo->quit_reason);
 
 	if (vpninfo->vpnc_script) {
 		setenv("TUNDEV", vpninfo->ifname, 1);
@@ -152,10 +151,8 @@ int ka_stalled_dpd_time(struct keepalive_info *ka, int *timeout)
 {
 	time_t now, due;
 
-	if (!ka->dpd) {
-		printf("no dpd\n");
+	if (!ka->dpd)
 		return 0;
-	}
 
 	time(&now);
 	due = ka->last_rx + (2 * ka->dpd);
@@ -163,7 +160,6 @@ int ka_stalled_dpd_time(struct keepalive_info *ka, int *timeout)
 	if (now > due)
 		return 1;
 
-	printf("ka_stalled in %d seconds\n", (int)(due - now));
 	if (*timeout > (due - now) * 1000)
 		*timeout = (due - now) * 1000;
 
