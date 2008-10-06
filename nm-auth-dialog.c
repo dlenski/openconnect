@@ -126,7 +126,7 @@ static int parse_xmlconfig(char *xmlconfig)
 					if (!newhost)
 						return -ENOMEM;
 
-					memset(newhost, 0, sizeof(newhost));
+					memset(newhost, 0, sizeof(*newhost));
                                         for (xml_node2 = xml_node->children;
                                              match >= 0 && xml_node2; xml_node2 = xml_node2->next) {
 
