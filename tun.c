@@ -173,6 +173,7 @@ int setup_tun(struct openconnect_info *vpninfo)
 			perror("execl");
 			exit(1);
 		}
+		close(fds[1]);
 		vpninfo->script_tun = child;
 		vpninfo->ifname = "(script)";
 	} else {
@@ -228,7 +229,11 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	while (vpninfo->incoming_queue) {
 		struct pkt *this = vpninfo->incoming_queue;
 		vpninfo->incoming_queue = this->next;
-		write(vpninfo->tun_fd, this->data, this->len);
+		if (write(vpninfo->tun_fd, this->data, this->len) < 0 &&
+		    errno == ENOTCONN) {
+			vpninfo->quit_reason = "Client connection terminated";
+			return 1;
+		}
 	}
 	/* Work is not done if we just got rid of packets off the queue */
 	return work_done;
