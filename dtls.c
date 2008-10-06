@@ -31,6 +31,34 @@
 
 #include "openconnect.h"
 
+#if 0
+/*
+ * Useful for catching test cases, where we want everything to be
+ * reproducible.  *NEVER* do this in the wild.
+ */
+time_t time(time_t *t)
+{
+	time_t x = 0x3ab2d948;
+	if (t) *t = x;
+	return x;
+}
+
+int RAND_pseudo_bytes(char *buf, int len)
+{
+	memset(buf, 0x5a, len);
+	printf("FAKE PSEUDO RANDOM!\n");
+	return 1;
+	
+}
+int RAND_bytes(char *buf, int len)
+{
+	static int foo = 0x5b;
+	printf("FAKE RANDOM!\n");
+	memset(buf, foo, len);
+	return 1;
+}
+#endif
+
 /*
  * The master-secret is generated randomly by the client. The server
  * responds with a DTLS Session-ID. These, done over the HTTPS
