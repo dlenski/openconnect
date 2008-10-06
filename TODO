@@ -2,6 +2,7 @@
 Authentication tool:
  - Use a single persistent dialog box
  - Make asynchronous
+ - Store server cert in gconf, prompt user to accept it
 
  - Use standalone (gopenconnect) as well as from NetworkManager
 
