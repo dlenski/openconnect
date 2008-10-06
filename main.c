@@ -65,6 +65,7 @@ static struct option long_options[] = {
 	{"printcookie", 0, 0, '3'},
 	{"quiet", 0, 0, 'q'},
 	{"xmlconfig", 1, 0, 'x'},
+	{"cookie-on-stdin", 0, 0, '4'},
 	{NULL, 0, 0, 0},
 };
 
@@ -75,6 +76,7 @@ void usage(void)
 	printf("  -c, --certificate=CERT          Use SSL client certificate CERT\n");
 	printf("  -k, --sslkey=KEY                Use SSL private key file KEY\n");
 	printf("  -C, --cookie=COOKIE             Use WebVPN cookie COOKIE\n");
+	printf("      --cookie-on-stdin           First line of standard input is cookie\n");
 	printf("  -d, --deflate                   Enable compression (default)\n");
 	printf("  -D, --no-deflate                Disable compression\n");
 	printf("  -h, --help                      Display help text\n");
@@ -94,6 +96,25 @@ void usage(void)
 	printf("      --cafile=FILE               Cert file for server verification\n");
 	printf("      --no-dtls                   Disable DTLS\n");
 	exit(1);
+}
+
+static void read_stdin_cookie(struct openconnect_info *vpninfo)
+{
+	char *c = malloc(100);
+	if (!c) {
+		fprintf(stderr, "Allocation failure for cookie\n");
+		exit(1);
+	}
+	if (!fgets(c, 100, stdin)) {
+		perror("fgets (cookie)");
+		exit(1);
+	}
+
+	vpninfo->cookie = c;
+
+	c = strchr(vpninfo->cookie, '\n');
+	if (c)
+		*c = 0;
 }
 
 int main(int argc, char **argv)
@@ -146,6 +167,9 @@ int main(int argc, char **argv)
 			break;
 		case '3':
 			cookieonly = 2;
+			break;
+		case '4':
+			read_stdin_cookie(vpninfo);
 			break;
 		case 'C':
 			vpninfo->cookie = optarg;
