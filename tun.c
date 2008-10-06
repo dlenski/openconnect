@@ -153,22 +153,45 @@ int setup_tun(struct openconnect_info *vpninfo)
 	int tun_fd;
 	int pfd;
 
-	tun_fd = open("/dev/net/tun", O_RDWR);
-	if (tun_fd < 0) {
-		perror("open tun");
-		exit(1);
-	}
-	memset(&ifr, 0, sizeof(ifr));
-	ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
-	if (vpninfo->ifname)
-		strncpy(ifr.ifr_name, vpninfo->ifname,
-			sizeof(ifr.ifr_name) - 1);
-	if (ioctl(tun_fd, TUNSETIFF, (void *) &ifr) < 0) {
-		perror("TUNSETIFF");
-		exit(1);
-	}
-	if (!vpninfo->ifname)
-		vpninfo->ifname = strdup(ifr.ifr_name);
+	if (vpninfo->script_tun) {
+		pid_t child;
+		int fds[2];
+
+		if (socketpair(AF_UNIX, SOCK_DGRAM, 0, fds)) {
+			perror("socketpair");
+			exit(1);
+		}
+		tun_fd = fds[0];
+		child = fork();
+		if (child < 0) {
+			perror("fork");
+			exit(1);
+		} else if (!child) {
+			close(tun_fd);
+			setenv_int("VPNFD", fds[1]);
+			execl("/bin/sh", "/bin/sh", "-c", vpninfo->vpnc_script, NULL);
+			perror("execl");
+			exit(1);
+		}
+		vpninfo->script_tun = child;
+		vpninfo->ifname = "(script)";
+	} else {
+		tun_fd = open("/dev/net/tun", O_RDWR);
+		if (tun_fd < 0) {
+			perror("open tun");
+			exit(1);
+		}
+		memset(&ifr, 0, sizeof(ifr));
+		ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
+		if (vpninfo->ifname)
+			strncpy(ifr.ifr_name, vpninfo->ifname,
+				sizeof(ifr.ifr_name) - 1);
+		if (ioctl(tun_fd, TUNSETIFF, (void *) &ifr) < 0) {
+			perror("TUNSETIFF");
+			exit(1);
+		}
+		if (!vpninfo->ifname)
+			vpninfo->ifname = strdup(ifr.ifr_name);
 
 	fcntl(tun_fd, F_SETFD, FD_CLOEXEC);
 
@@ -178,9 +201,8 @@ int setup_tun(struct openconnect_info *vpninfo)
 		local_config_tun(vpninfo, 1);
 	} else
 		local_config_tun(vpninfo, 0);
+	}
 
-	/* Better still, use lwip and just provide a SOCKS server rather than
-	   telling the kernel about it at all */
 	vpninfo->tun_fd = tun_fd;
 	pfd = vpn_add_pollfd(vpninfo, vpninfo->tun_fd, POLLIN);
 

@@ -53,6 +53,7 @@ static struct option long_options[] = {
 	{"interface", 1, 0, 'i'},
 	{"mtu", 1, 0, 'm'},
 	{"script", 1, 0, 's'},
+	{"script-tun", 1, 0, 'S'},
 	{"tpm-key", 1, 0, 't'},
 	{"tpm-password", 1, 0, 'p'},
 	{"user", 1, 0, 'u'},
@@ -81,6 +82,7 @@ void usage(void)
 	printf("  -m, --mtu=MTU                   Request MTU from server\n");
 	printf("  -p, --tpm-password=PASS         Set TPM SRK PIN\n");
 	printf("  -s, --script=SCRIPT             Use vpnc-compatible config script\n");
+	printf("  -S, --script-tun                Pass traffic to 'script' program, not tun\n");
 	printf("  -t, --tpm                       Use TPM engine for private key\n");
 	printf("  -u, --user=NAME                 Set login username\n");
 	printf("  -V, --version                   Report version number\n");
@@ -127,7 +129,7 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "C:c:hvdDu:i:tk:p:qs:hx:V",
+	while ((opt = getopt_long(argc, argv, "C:c:hvdDu:i:tk:p:qs:Shx:V",
 				  long_options, NULL))) {
 		if (opt < 0)
 			break;
@@ -177,6 +179,9 @@ int main(int argc, char **argv)
 			break;
 		case 's':
 			vpninfo->vpnc_script = optarg;
+			break;
+		case 'S':
+			vpninfo->script_tun = 1;
 			break;
 		case 't':
 			vpninfo->tpm = 1;

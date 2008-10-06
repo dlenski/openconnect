@@ -27,6 +27,7 @@
 #include <sys/select.h>
 #include <signal.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
 #include "openconnect.h"
 
@@ -137,9 +138,14 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 	vpninfo->progress(vpninfo, PRG_INFO, "Sent quit message: %s\n", vpninfo->quit_reason);
 
 	if (vpninfo->vpnc_script) {
-		setenv("TUNDEV", vpninfo->ifname, 1);
-		setenv("reason", "disconnect", 1);
-		system(vpninfo->vpnc_script);
+		if (vpninfo->script_tun) {
+			kill(vpninfo->script_tun, SIGHUP);
+			close(vpninfo->tun_fd);
+		} else {
+			setenv("TUNDEV", vpninfo->ifname, 1);
+			setenv("reason", "disconnect", 1);
+			system(vpninfo->vpnc_script);
+		}
 	}
 
 	return 0;

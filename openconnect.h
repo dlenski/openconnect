@@ -109,6 +109,7 @@ struct openconnect_info {
 	unsigned char dtls_secret[48];
 
 	char *vpnc_script;
+	int script_tun;
 	char *ifname;
 
 	int mtu;
