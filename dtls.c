@@ -346,17 +346,20 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			break;
 
 		default:
-			/* We don't abort, because this actually does seem to happen
-			 * quite frequently with some endpoints. It can be triggered
-			 * by downloading a reasonably-sized web page. Dropping the 
-			 * offending packets doesn't even seem to stall the TCP 
-			 * connection when it's the only traffic on the link. */
-			vpninfo->progress(vpninfo, PRG_ERR, "Unknown DTLS packet type %02x, len %d\n", buf[0], len);
-			break;
-/*			
-			vpninfo->quit_reason = "Unknown packet received";
-			return 1;
-*/
+			vpninfo->progress(vpninfo, PRG_ERR,
+					  "Unknown DTLS packet type %02x, len %d\n", buf[0], len);
+			if (1) {
+				/* Some versions of OpenSSL have bugs with receiving out-of-order
+				 * packets. Not only do they wrongly decide to drop packets if 
+				 * two packets get swapped in transit, but they also _fail_ to
+				 * drop the packet in non-blocking mode; instead they return
+				 * the appropriate length of garbage. So don't abort... for now. */
+				break;
+			} else {
+				vpninfo->quit_reason = "Unknown packet received";
+				return 1;
+			}
+
 		}
 	}
 
