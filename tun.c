@@ -54,7 +54,7 @@ static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
 		if (ioctl(net_fd, SIOCGIFFLAGS, &ifr) < 0)
 			perror("SIOCGIFFLAGS");
 
-		ifr.ifr_flags |= IFF_UP;
+		ifr.ifr_flags |= IFF_UP | IFF_POINTOPOINT; 
 		if (ioctl(net_fd, SIOCSIFFLAGS, &ifr) < 0)
 			perror("SIOCSIFFLAGS");
 
@@ -62,10 +62,6 @@ static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
 		addr->sin_addr.s_addr = inet_addr(vpninfo->vpn_addr);
 		if (ioctl(net_fd, SIOCSIFADDR, &ifr) < 0)
 			perror("SIOCSIFADDR");
-
-		addr->sin_addr.s_addr = inet_addr(vpninfo->vpn_netmask);
-		if (ioctl(net_fd, SIOCSIFNETMASK, &ifr) < 0)
-			perror("SIOCSIFNETMASK");
 	}
 
 	ifr.ifr_mtu = vpninfo->mtu;
