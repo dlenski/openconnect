@@ -94,14 +94,9 @@ static int appendenv(const char *opt, const char *new)
 	return setenv(opt, buf, 1);
 }
 
-static int script_config_tun(struct openconnect_info *vpninfo)
+static void set_script_env(struct openconnect_info *vpninfo)
 {
 	struct sockaddr_in *sin = (void *)vpninfo->peer_addr;
-
-	if (vpninfo->peer_addr->sa_family != AF_INET) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Script cannot handle anything but Legacy IP\n");
-		return -EINVAL;
-	}
 
 	setenv("VPNGATEWAY", inet_ntoa(sin->sin_addr), 1);
 	setenv("TUNDEV", vpninfo->ifname, 1);
@@ -135,6 +130,16 @@ static int script_config_tun(struct openconnect_info *vpninfo)
 	if (vpninfo->vpn_domain)
 		setenv("CISCO_DEF_DOMAIN", vpninfo->vpn_domain, 1);
 	else unsetenv ("CISCO_DEF_DOMAIN");
+}
+
+static int script_config_tun(struct openconnect_info *vpninfo)
+{
+	if (vpninfo->peer_addr->sa_family != AF_INET) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Script cannot handle anything but Legacy IP\n");
+		return -EINVAL;
+	}
+
+	set_script_env(vpninfo);
 
 	system(vpninfo->vpnc_script);
 	return 0;
