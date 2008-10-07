@@ -60,11 +60,6 @@ struct keepalive_info {
 	time_t last_dpd;
 };
 
-#define DTLS_NEVER	-1
-#define DTLS_CLOSED	0
-#define DTLS_HANDSHAKE	1
-#define DTLS_RUNNING	2
-
 struct openconnect_info {
 	char *redirect_url;
 	
@@ -99,7 +94,6 @@ struct openconnect_info {
 
 	int dtls_attempt_period;
 	time_t new_dtls_started;
-	int dtls_state;
 	SSL_CTX *dtls_ctx;
 	SSL *dtls_ssl;
 	SSL *new_dtls_ssl;

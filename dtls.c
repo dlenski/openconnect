@@ -205,8 +205,6 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	if (ret == 1) {
 		vpninfo->progress(vpninfo, PRG_INFO, "Established DTLS connection\n");
 
-		vpninfo->dtls_state = DTLS_RUNNING;
-
 		if (vpninfo->dtls_ssl) {
 			/* We are replacing an old connection */
 			SSL_free(vpninfo->dtls_ssl);

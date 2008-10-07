@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 			vpninfo->cafile = optarg;
 			break;
 		case '1':
-			vpninfo->dtls_state = DTLS_NEVER;
+			vpninfo->dtls_attempt_period = 0;
 			break;
 		case '2':
 			cookieonly = 1;
@@ -268,7 +268,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	if (!vpninfo->dtls_state && setup_dtls(vpninfo))
+	if (vpninfo->dtls_attempt_period && setup_dtls(vpninfo))
 		fprintf(stderr, "Set up DTLS failed; using SSL instead\n");
 
 	printf("Connected %s as %s, using %s\n", vpninfo->ifname, vpninfo->vpn_addr,
