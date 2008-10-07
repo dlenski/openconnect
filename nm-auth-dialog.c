@@ -230,7 +230,7 @@ static int choose_vpnhost(struct openconnect_info *vpninfo, const char *vpn_name
 {
 	GtkWidget *dlg, *label, *combo;
 	struct vpnhost *host;
-	int i, result;
+	int i = 0, result;
 
 	if (!lasthost)
 		lasthost = vpninfo->hostname;
