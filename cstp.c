@@ -391,6 +391,18 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			work_done = 1;
 			continue;
 
+		case AC_PKT_DISCONN: {
+			int i;
+			for (i = 0; i < payload_len; i++) {
+				if (!isprint(buf[payload_len + 8 + i]))
+					buf[payload_len + 8 + i] = '.';
+			}
+			buf[payload_len + 8] = 0;
+			vpninfo->progress(vpninfo, PRG_ERR,
+					  "Received server disconnect: '%s'\n", buf + 8);
+			vpninfo->quit_reason = "Server request";
+			return 1;
+		}
 		case AC_PKT_COMPRESSED:
 			if (!vpninfo->deflate) {
 				vpninfo->progress(vpninfo, PRG_ERR, "Compressed packet received in !deflate mode\n");
@@ -590,7 +602,7 @@ int cstp_bye(struct openconnect_info *vpninfo, char *reason)
 
 	bye_pkt[4] = reason_len >> 8;
 	bye_pkt[5] = reason_len & 0xff;
-	bye_pkt[6] = 5;
+	bye_pkt[6] = AC_PKT_DISCONN;
 
 	SSL_write(vpninfo->https_ssl, bye_pkt, reason_len + 8);
 	free(bye_pkt);
