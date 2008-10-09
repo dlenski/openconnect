@@ -1,3 +1,5 @@
+http://rt.openssl.org/Ticket/Display.html?id=1751 (guest/guest)
+
 This patch, against OpenSSL 0.9.8h, enables client compatibility with 
 the old version of DTLS which is used by Cisco. You must set the 
 SSL_OP_CISCO_ANYCONNECT option to obtain this behaviour.
