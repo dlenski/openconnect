@@ -6,7 +6,8 @@ OPT_FLAGS := -O2 -g -Wall
 endif
 
 # Allow people to override OpenSSL and build it statically, if they need
-# a special build for the DTLS support
+# a special build for the DTLS support. $(OPENSSL) points to the build 
+# dir; there's no need to install it anywhere (we link it statically).
 ifdef OPENSSL
 SSL_CFLAGS += -I$(OPENSSL)/include
 SSL_LDFLAGS += -lz $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a -ldl
