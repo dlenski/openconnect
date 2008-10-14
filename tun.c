@@ -194,15 +194,15 @@ int setup_tun(struct openconnect_info *vpninfo)
 		if (!vpninfo->ifname)
 			vpninfo->ifname = strdup(ifr.ifr_name);
 
-	fcntl(tun_fd, F_SETFD, FD_CLOEXEC);
-
-	if (vpninfo->vpnc_script) {
-		script_config_tun(vpninfo);
-		/* We have to set the MTU for ourselves, because the script doesn't */
-		local_config_tun(vpninfo, 1);
-	} else
-		local_config_tun(vpninfo, 0);
+		if (vpninfo->vpnc_script) {
+			script_config_tun(vpninfo);
+			/* We have to set the MTU for ourselves, because the script doesn't */
+			local_config_tun(vpninfo, 1);
+		} else 
+			local_config_tun(vpninfo, 0);
 	}
+
+	fcntl(tun_fd, F_SETFD, FD_CLOEXEC);
 
 	vpninfo->tun_fd = tun_fd;
 	pfd = vpn_add_pollfd(vpninfo, vpninfo->tun_fd, POLLIN);
