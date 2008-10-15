@@ -245,7 +245,7 @@ int main(int argc, char **argv)
 		vpninfo->hostname = strdup(argv[optind]);
 	vpninfo->urlpath = strdup("/");
 
-#ifndef __APPLE__
+#ifdef SSL_UI
 	set_openssl_ui();
 #endif
 

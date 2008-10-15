@@ -7,9 +7,11 @@
 #
 # don't build nm-openconnect-auth-dialog and the ssl UI on a Mac
 #
-ifeq ($(shell uname -a | grep Darwin),) 
+OS=$(shell uname -s)
+
+# Only build the NetworkManager part on Linux
+ifeq ($(OS),Linux)
 	NMAUTHDIALOG := nm-openconnect-auth-dialog
-	SSL_UI := ssl_ui.o
 endif
 
 ifdef RPM_OPT_FLAGS
@@ -41,6 +43,13 @@ GCONF_LDFLAGS += $(shell pkg-config --libs gconf-2.0)
 CFLAGS := $(OPT_FLAGS) $(SSL_CFLAGS) $(XML2_CFLAGS) $(EXTRA_CFLAGS)
 LDFLAGS := $(SSL_LDFLAGS) $(XML2_LDFLAGS) $(EXTRA_LDFLAGS)
 
+ifdef SSL_UI
+CFLAGS += -DSSL_UI
+endif
+
+ifeq ($(SSL_UI),ssl_ui_gtk.o)
+LDFLAGS += $(GTK_LDFLAGS)
+endif
 CFLAGS_ssl_ui_gtk.o += $(GTK_CFLAGS)	
 CFLAGS_nm-auth-dialog.o += $(GTK_CFLAGS) $(GCONF_CFLAGS) $(XML2_CFLAGS)
 
