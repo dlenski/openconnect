@@ -54,20 +54,6 @@ int queue_new_packet(struct pkt **q, int type, void *buf, int len)
 	return 0;
 }
 
-int vpn_add_pollfd(struct openconnect_info *vpninfo, int fd, short events)
-{
-	vpninfo->nfds++;
-	vpninfo->pfds = realloc(vpninfo->pfds, sizeof(struct pollfd) * vpninfo->nfds);
-	if (!vpninfo->pfds) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Failed to reallocate pfds\n");
-		exit(1);
-	}
-	vpninfo->pfds[vpninfo->nfds - 1].fd = fd;
-	vpninfo->pfds[vpninfo->nfds - 1].events = events;
-
-	return vpninfo->nfds - 1;
-}
-
 static int killed;
 
 static void handle_sigint(int sig)
@@ -87,6 +73,8 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 	while (!vpninfo->quit_reason) {
 		int did_work = 0;
 		int timeout = INT_MAX;
+		struct timeval tv;
+		fd_set rfds, wfds, efds;
 
 		if (vpninfo->new_dtls_ssl)
 			dtls_try_handshake(vpninfo);
@@ -125,9 +113,14 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 
 		vpninfo->progress(vpninfo, PRG_TRACE, 
 				  "Did no work; sleeping for %d ms...\n", timeout);
+		memcpy(&rfds, &vpninfo->select_rfds, sizeof(rfds));
+		memcpy(&wfds, &vpninfo->select_wfds, sizeof(wfds));
+		memcpy(&efds, &vpninfo->select_efds, sizeof(efds));
 
-		poll(vpninfo->pfds, vpninfo->nfds, timeout);
-		if (vpninfo->pfds[vpninfo->ssl_pfd].revents & POLL_HUP) {
+		tv.tv_sec = timeout / 1000;
+		tv.tv_usec = (timeout * 1000) % 1000000;
+		select(vpninfo->select_nfds, &rfds, &wfds, &efds, &tv);
+		if (FD_ISSET(vpninfo->ssl_fd, &efds)) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Server closed connection!\n");
 			/* OpenSSL doesn't seem to cope properly with this... */
 			exit(1);

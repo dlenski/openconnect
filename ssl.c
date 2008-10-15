@@ -253,6 +253,17 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	return 0;
 }
 
+void openconnect_close_https(struct openconnect_info *vpninfo)
+{
+	SSL_free(vpninfo->https_ssl);
+	vpninfo->https_ssl = NULL;
+	close(vpninfo->ssl_fd);
+	FD_CLR(vpninfo->ssl_fd, &vpninfo->select_rfds);
+	FD_CLR(vpninfo->ssl_fd, &vpninfo->select_wfds);
+	FD_CLR(vpninfo->ssl_fd, &vpninfo->select_efds);
+	vpninfo->ssl_fd = -1;
+}
+
 void openconnect_init_openssl(void)
 {
 	SSL_library_init ();

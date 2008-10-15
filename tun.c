@@ -154,7 +154,6 @@ int setup_tun(struct openconnect_info *vpninfo)
 {
 	struct ifreq ifr;
 	int tun_fd;
-	int pfd;
 
 	if (vpninfo->script_tun) {
 		pid_t child;
@@ -225,7 +224,11 @@ int setup_tun(struct openconnect_info *vpninfo)
 	fcntl(tun_fd, F_SETFD, FD_CLOEXEC);
 
 	vpninfo->tun_fd = tun_fd;
-	pfd = vpn_add_pollfd(vpninfo, vpninfo->tun_fd, POLLIN);
+	
+	if (vpninfo->select_nfds <= tun_fd)
+		vpninfo->select_nfds = tun_fd + 1;
+
+	FD_SET(tun_fd, &vpninfo->select_rfds);
 
 	fcntl(vpninfo->tun_fd, F_SETFL, fcntl(vpninfo->tun_fd, F_GETFL) | O_NONBLOCK);
 

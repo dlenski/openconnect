@@ -100,8 +100,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		vpninfo->progress(vpninfo, PRG_ERR, "Error fetching HTTPS response\n");
 		if (!retried) {
 			retried = 1;
-			SSL_free(vpninfo->https_ssl);
-			close(vpninfo->ssl_fd);
+			openconnect_close_https(vpninfo);
 		
 			if (openconnect_open_https(vpninfo)) {
 				vpninfo->progress(vpninfo, PRG_ERR,
@@ -253,7 +252,11 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	BIO_set_nbio(SSL_get_wbio(vpninfo->https_ssl),1);
 
 	fcntl(vpninfo->ssl_fd, F_SETFL, fcntl(vpninfo->ssl_fd, F_GETFL) | O_NONBLOCK);
-	vpninfo->ssl_pfd = vpn_add_pollfd(vpninfo, vpninfo->ssl_fd, POLLIN|POLLHUP|POLLERR);
+	if (vpninfo->select_nfds <= vpninfo->ssl_fd)
+		vpninfo->select_nfds = vpninfo->ssl_fd + 1;
+
+	FD_SET(vpninfo->ssl_fd, &vpninfo->select_rfds);
+	FD_SET(vpninfo->ssl_fd, &vpninfo->select_efds);
 
 	vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
 	return 0;
@@ -435,7 +438,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	if (vpninfo->current_ssl_pkt) {
 	handle_outgoing:
 		vpninfo->ssl_times.last_tx = time(NULL);
-		vpninfo->pfds[vpninfo->ssl_pfd].events &= ~POLLOUT;
+		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_wfds);
 		ret = SSL_write(vpninfo->https_ssl,
 				vpninfo->current_ssl_pkt->hdr,
 				vpninfo->current_ssl_pkt->len + 8);
@@ -445,7 +448,8 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			case SSL_ERROR_WANT_WRITE:
 				/* Waiting for the socket to become writable -- it's
 				   probably stalled, and/or the buffers are full */
-				vpninfo->pfds[vpninfo->ssl_pfd].events |= POLLOUT;
+				FD_SET(vpninfo->ssl_fd, &vpninfo->select_wfds);
+
 			case SSL_ERROR_WANT_READ:
 				if (ka_stalled_dpd_time(&vpninfo->ssl_times, timeout))
 					goto peer_dead;
@@ -491,9 +495,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	case KA_DPD_DEAD:
 	peer_dead:
 		vpninfo->progress(vpninfo, PRG_ERR, "CSTP Dead Peer Detection detected dead peer!\n");
-		SSL_free(vpninfo->https_ssl);
-		vpninfo->https_ssl = NULL;
-		close(vpninfo->ssl_fd);
+		openconnect_close_https(vpninfo);
 
 		/* It's already deflated in the old stream. Extremely 
 		   non-trivial to reconstitute it; just throw it away */

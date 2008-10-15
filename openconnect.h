@@ -25,10 +25,13 @@
 #define __OPENCONNECT_ANYCONNECT_H
 
 #include <openssl/ssl.h>
-#include <poll.h>
 #include <zlib.h>
 #include <stdint.h>
 #include <sys/socket.h>
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 struct pkt {
 	int type;
@@ -113,15 +116,15 @@ struct openconnect_info {
 	const char *vpn_nbns[3];
 	const char *vpn_domain;
 
-	struct pollfd *pfds;
-	int nfds;
+	int select_nfds;
+	fd_set select_rfds;
+	fd_set select_wfds;
+	fd_set select_efds;
+
 	int tun_fd;
 	int ssl_fd;
 	int dtls_fd;
 	int new_dtls_fd;
-	int ssl_pfd;
-	int dtls_pfd;
-	int new_dtls_pfd;
 
 	struct pkt *incoming_queue;
 	struct pkt *outgoing_queue;
@@ -177,6 +180,7 @@ int  __attribute__ ((format (printf, 2, 3)))
 		openconnect_SSL_printf(SSL *ssl, const char *fmt, ...);
 int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len);
 int openconnect_open_https(struct openconnect_info *vpninfo);
+void openconnect_close_https(struct openconnect_info *vpninfo);
 
 /* main.c */
 extern int verbose;

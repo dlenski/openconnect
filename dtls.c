@@ -189,7 +189,12 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 
 	vpninfo->new_dtls_fd = dtls_fd;
 	vpninfo->new_dtls_ssl = dtls_ssl;
-	vpninfo->pfds[vpninfo->new_dtls_pfd].fd = vpninfo->new_dtls_fd;
+	
+	if (vpninfo->select_nfds <= dtls_fd)
+		vpninfo->select_nfds = dtls_fd + 1;
+
+	FD_SET(dtls_fd, &vpninfo->select_rfds);
+	FD_SET(dtls_fd, &vpninfo->select_efds);
 
 	time(&vpninfo->new_dtls_started);
 	return dtls_try_handshake(vpninfo);
@@ -206,12 +211,13 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 			/* We are replacing an old connection */
 			SSL_free(vpninfo->dtls_ssl);
 			close(vpninfo->dtls_fd);
+			FD_CLR(vpninfo->dtls_fd, &vpninfo->select_rfds);
+			FD_CLR(vpninfo->dtls_fd, &vpninfo->select_wfds);
+			FD_CLR(vpninfo->dtls_fd, &vpninfo->select_efds);
 		}
-		vpninfo->pfds[vpninfo->dtls_pfd].fd = vpninfo->new_dtls_fd;
 		vpninfo->dtls_ssl = vpninfo->new_dtls_ssl;
 		vpninfo->dtls_fd = vpninfo->new_dtls_fd;
 
-		vpninfo->pfds[vpninfo->new_dtls_pfd].fd = -1;
 		vpninfo->new_dtls_ssl = NULL;
 		vpninfo->new_dtls_fd = -1;
 
@@ -233,7 +239,8 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 
 	/* Kill the new (failed) connection... */
 	SSL_free(vpninfo->new_dtls_ssl);
-	vpninfo->pfds[vpninfo->new_dtls_pfd].fd = -1;
+	FD_CLR(vpninfo->new_dtls_fd, &vpninfo->select_rfds);
+	FD_CLR(vpninfo->new_dtls_fd, &vpninfo->select_efds);
 	close(vpninfo->new_dtls_fd);
 	vpninfo->new_dtls_ssl = NULL;
 	vpninfo->new_dtls_fd = -1;
@@ -244,7 +251,9 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	if (vpninfo->dtls_ssl) {
 		SSL_free(vpninfo->dtls_ssl);
 		close(vpninfo->dtls_fd);
-		vpninfo->pfds[vpninfo->dtls_pfd].fd = -1;
+		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_rfds);
+		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_wfds);
+		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_efds);
 		vpninfo->dtls_ssl = NULL;
 		vpninfo->dtls_fd = -1;
 	}
@@ -258,7 +267,9 @@ static int dtls_restart(struct openconnect_info *vpninfo)
 	if (vpninfo->dtls_ssl) {
 		SSL_free(vpninfo->dtls_ssl);
 		close(vpninfo->dtls_fd);
-		vpninfo->pfds[vpninfo->dtls_pfd].fd = -1;
+		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_rfds);
+		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_wfds);
+		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_efds);
 		vpninfo->dtls_ssl = NULL;
 		vpninfo->dtls_fd = -1;
 	}
@@ -315,11 +326,7 @@ int setup_dtls(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	vpninfo->dtls_pfd = vpn_add_pollfd(vpninfo, -1,
-					   POLLIN|POLLHUP|POLLERR);
-	vpninfo->new_dtls_pfd = vpn_add_pollfd(vpninfo, -1,
-					   POLLIN|POLLHUP|POLLERR);
-
+	
 	if (connect_dtls_socket(vpninfo))
 		return -EINVAL;
 
