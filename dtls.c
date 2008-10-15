@@ -176,12 +176,6 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	dtls_bio = BIO_new_socket(dtls_fd, BIO_NOCLOSE);
 	SSL_set_bio(dtls_ssl, dtls_bio, dtls_bio);
 
-#ifndef __APPLE__
-	/* XXX Cargo cult programming. Other DTLS code does this, and it might
-	   avoid http://rt.openssl.org/Ticket/Display.html?id=1703 */
-        BIO_ctrl(dtls_bio, BIO_CTRL_DGRAM_MTU_DISCOVER, 0, NULL);
-#endif
-
 #ifndef SSL_OP_CISCO_ANYCONNECT
 #define SSL_OP_CISCO_ANYCONNECT 0x8000
 #endif
