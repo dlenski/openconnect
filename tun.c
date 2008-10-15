@@ -22,9 +22,12 @@
  */
 
 #include <string.h>
+#include <sys/socket.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
+#ifndef __APPLE__
 #include <linux/if_tun.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -177,6 +180,22 @@ int setup_tun(struct openconnect_info *vpninfo)
 		vpninfo->script_tun = child;
 		vpninfo->ifname = "(script)";
 	} else {
+#ifdef __APPLE__
+		static char tun_name[80];
+		int i;
+		for (i=0; i < 255; i++) {
+			sprintf(tun_name, "/dev/tun%d", i);
+			tun_fd = open(tun_name, O_RDWR);
+			if (tun_fd >= 0)
+				break;
+		}
+		if (tun_fd < 0) {
+			perror("open tun");
+			exit(1);
+		}
+		vpninfo->ifname = tun_name + 5;
+#else
+
 		tun_fd = open("/dev/net/tun", O_RDWR);
 		if (tun_fd < 0) {
 			perror("open tun");
@@ -194,6 +213,7 @@ int setup_tun(struct openconnect_info *vpninfo)
 		if (!vpninfo->ifname)
 			vpninfo->ifname = strdup(ifr.ifr_name);
 
+#endif
 		if (vpninfo->vpnc_script) {
 			script_config_tun(vpninfo);
 			/* We have to set the MTU for ourselves, because the script doesn't */
