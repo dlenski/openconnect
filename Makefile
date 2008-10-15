@@ -1,3 +1,16 @@
+#
+# in order to use a private copy of openssl instead of the installed one,
+# set OPENSSL to the path to the source directory that you built openssl in
+#
+# OPENSSL := ../openssl-0.9.8i
+
+#
+# don't build nm-openconnect-auth-dialog and the ssl UI on a Mac
+#
+ifeq ($(shell uname -a | grep Darwin),) 
+	NMAUTHDIALOG := nm-openconnect-auth-dialog
+	SSL_UI := ssl_ui.o
+endif
 
 ifdef RPM_OPT_FLAGS
 OPT_FLAGS := $(RPM_OPT_FLAGS)
@@ -31,11 +44,11 @@ LDFLAGS := $(SSL_LDFLAGS) $(XML2_LDFLAGS) $(EXTRA_LDFLAGS)
 CFLAGS_ssl_ui_gtk.o += $(GTK_CFLAGS)	
 CFLAGS_nm-auth-dialog.o += $(GTK_CFLAGS) $(GCONF_CFLAGS) $(XML2_CFLAGS)
 
-OPENCONNECT_OBJS := main.o ssl_ui.o xml.o
+OPENCONNECT_OBJS := main.o $(SSL_UI) xml.o
 CONNECTION_OBJS := dtls.o cstp.o mainloop.o tun.o 
 AUTH_OBJECTS := ssl.o http.o version.o
 
-all: openconnect nm-openconnect-auth-dialog
+all: openconnect $(NMAUTHDIALOG)
 
 version.c: $(patsubst %.o,%.c,$(OBJECTS)) openconnect.h $(wildcard .git/index .git/refs/tags) version.sh
 	@./version.sh
@@ -55,7 +68,7 @@ nm-openconnect-auth-dialog: nm-auth-dialog.o ssl_ui_gtk.o libopenconnect.a
 	$(CC) -c -o $@ $(CFLAGS) $(CFLAGS_$@) $< -MD -MF .$@.dep
 
 clean:
-	rm -f *.o openconnect $(wildcard .*.o.dep)
+	rm -f *.o *.a openconnect $(wildcard .*.o.dep)
 
 install:
 	mkdir -p $(DESTDIR)/usr/bin $(DESTDIR)/usr/libexec

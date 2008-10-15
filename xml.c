@@ -30,6 +30,7 @@
 #include <sys/mman.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
+#include <string.h>
 
 #include "openconnect.h"
 

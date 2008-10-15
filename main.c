@@ -245,7 +245,9 @@ int main(int argc, char **argv)
 		vpninfo->hostname = strdup(argv[optind]);
 	vpninfo->urlpath = strdup("/");
 
+#ifndef __APPLE__
 	set_openssl_ui();
+#endif
 
 	if (!vpninfo->cookie && openconnect_obtain_cookie(vpninfo)) {
 		fprintf(stderr, "Failed to obtain WebVPN cookie\n");
