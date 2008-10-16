@@ -119,10 +119,10 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 
 		tv.tv_sec = timeout / 1000;
 		tv.tv_usec = (timeout * 1000) % 1000000;
-		select(vpninfo->select_nfds, &rfds, &wfds, &efds, &tv);
-		if (FD_ISSET(vpninfo->ssl_fd, &efds)) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Server closed connection!\n");
+		if (select(vpninfo->select_nfds, &rfds, &wfds, &efds, &tv) >= 0
+		    && FD_ISSET(vpninfo->ssl_fd, &efds)) {
 			/* OpenSSL doesn't seem to cope properly with this... */
+			vpninfo->progress(vpninfo, PRG_ERR, "Server closed connection!\n");
 			exit(1);
 		}
 	}
