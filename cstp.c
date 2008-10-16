@@ -610,7 +610,7 @@ int cstp_bye(struct openconnect_info *vpninfo, char *reason)
 	SSL_write(vpninfo->https_ssl, bye_pkt, reason_len + 8);
 	free(bye_pkt);
 
-	vpninfo->progress(vpninfo, PRG_TRACE,
+	vpninfo->progress(vpninfo, PRG_INFO,
 			  "Send BYE packet: %s\n", reason);
 
 	return 0;

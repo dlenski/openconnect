@@ -128,7 +128,6 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 	}
 
 	cstp_bye(vpninfo, vpninfo->quit_reason);
-	vpninfo->progress(vpninfo, PRG_INFO, "Sent quit message: %s\n", vpninfo->quit_reason);
 
 	if (vpninfo->vpnc_script) {
 		if (vpninfo->script_tun) {
