@@ -29,6 +29,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <sys/syslog.h>
 #include <sys/utsname.h>
 #include <sys/types.h>
 #include <openssl/rand.h>
@@ -40,6 +41,7 @@
 
 static int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen);
 static void write_progress(struct openconnect_info *info, int level, const char *fmt, ...);
+static void syslog_progress(struct openconnect_info *info, int level, const char *fmt, ...);
 
 int verbose = PRG_INFO;
 
@@ -54,6 +56,7 @@ static struct option long_options[] = {
 	{"mtu", 1, 0, 'm'},
 	{"script", 1, 0, 's'},
 	{"script-tun", 1, 0, 'S'},
+	{"syslog", 0, 0, 'l'},
 	{"tpm-key", 1, 0, 't'},
 	{"tpm-password", 1, 0, 'p'},
 	{"user", 1, 0, 'u'},
@@ -81,6 +84,7 @@ void usage(void)
 	printf("  -D, --no-deflate                Disable compression\n");
 	printf("  -h, --help                      Display help text\n");
 	printf("  -i, --interface=IFNAME          Use IFNAME for tunnel interface\n");
+	printf("  -l, --syslog                    Use syslog for progress messages\n");
 	printf("  -m, --mtu=MTU                   Request MTU from server\n");
 	printf("  -p, --tpm-password=PASS         Set TPM SRK PIN\n");
 	printf("  -s, --script=SCRIPT             Use vpnc-compatible config script\n");
@@ -122,6 +126,7 @@ int main(int argc, char **argv)
 	struct openconnect_info *vpninfo;
 	struct utsname utsbuf;
 	int cookieonly = 0;
+	int use_syslog = 0;
 	int opt;
 
 	openconnect_init_openssl();
@@ -139,7 +144,6 @@ int main(int argc, char **argv)
 	vpninfo->mtu = 1406;
 	vpninfo->deflate = 1;
 	vpninfo->dtls_attempt_period = 60;
-	vpninfo->progress = write_progress;
 
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
 		fprintf(stderr, "Failed to initialise DTLS secret\n");
@@ -150,7 +154,7 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "C:c:hvdDu:i:tk:p:qs:Shx:V",
+	while ((opt = getopt_long(argc, argv, "C:c:hvldDu:i:tk:p:qs:Shx:V",
 				  long_options, NULL))) {
 		if (opt < 0)
 			break;
@@ -190,6 +194,9 @@ int main(int argc, char **argv)
 			usage();
 		case 'i':
 			vpninfo->ifname = optarg;
+			break;
+		case 'l':
+			use_syslog = 1;
 			break;
 		case 'm':
 			vpninfo->mtu = atol(optarg);
@@ -244,6 +251,13 @@ int main(int argc, char **argv)
 	if (!vpninfo->hostname)
 		vpninfo->hostname = strdup(argv[optind]);
 	vpninfo->urlpath = strdup("/");
+
+	if (use_syslog) {
+		openlog("openconnect", LOG_PID, LOG_DAEMON);
+		vpninfo->progress = syslog_progress;
+	} else {
+		vpninfo->progress = write_progress;
+	}
 
 #ifdef SSL_UI
 	set_openssl_ui();
@@ -304,6 +318,19 @@ void write_progress(struct openconnect_info *info, int level, const char *fmt, .
 	if (verbose >= level) {
 		va_start(args, fmt);
 		vfprintf(outf, fmt, args);
+		va_end(args);
+	}
+}
+
+void syslog_progress(struct openconnect_info *info, int level,
+		     const char *fmt, ...)
+{
+	int priority = level?LOG_INFO:LOG_NOTICE;
+	va_list args;
+
+	if (verbose >= level) {
+		va_start(args, fmt);
+		vsyslog(priority, fmt, args);
 		va_end(args);
 	}
 }
