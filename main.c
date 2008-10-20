@@ -54,6 +54,7 @@ static struct option long_options[] = {
 	{"help", 0, 0, 'h'},
 	{"interface", 1, 0, 'i'},
 	{"mtu", 1, 0, 'm'},
+	{"setuid", 1, 0, 'U'},
 	{"script", 1, 0, 's'},
 	{"script-tun", 1, 0, 'S'},
 	{"syslog", 0, 0, 'l'},
@@ -85,6 +86,7 @@ void usage(void)
 	printf("  -h, --help                      Display help text\n");
 	printf("  -i, --interface=IFNAME          Use IFNAME for tunnel interface\n");
 	printf("  -l, --syslog                    Use syslog for progress messages\n");
+	printf("  -U, --setuid=USER               Drop privileges after connecting\n");
 	printf("  -m, --mtu=MTU                   Request MTU from server\n");
 	printf("  -p, --tpm-password=PASS         Set TPM SRK PIN\n");
 	printf("  -s, --script=SCRIPT             Use vpnc-compatible config script\n");
@@ -127,6 +129,7 @@ int main(int argc, char **argv)
 	struct utsname utsbuf;
 	int cookieonly = 0;
 	int use_syslog = 0;
+	uid_t uid = getuid();
 	int opt;
 
 	openconnect_init_openssl();
@@ -154,7 +157,7 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "C:c:hvldDu:i:tk:p:qs:Shx:V",
+	while ((opt = getopt_long(argc, argv, "C:c:hvldDu:U:i:tk:p:qs:Shx:V",
 				  long_options, NULL))) {
 		if (opt < 0)
 			break;
@@ -220,6 +223,20 @@ int main(int argc, char **argv)
 		case 'u':
 			vpninfo->username = optarg;
 			break;
+		case 'U': {
+			char *strend;
+			uid = strtol(optarg, &strend, 0);
+			if (strend[0]) {
+				struct passwd *pw = getpwnam(optarg);
+				if (!pw) {
+					fprintf(stderr, "Invalid user \"%s\"\n",
+						optarg);
+					exit(1);
+				}
+				uid = pw->pw_uid;
+			}
+			break;
+		}
 		case 'q':
 			verbose = PRG_ERR;
 			break;
@@ -284,6 +301,13 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+	if (uid != getuid()) {
+		if (setuid(uid)) {
+			fprintf(stderr, "Failed to set uid %d\n", uid);
+			exit(1);
+		}
+	}
+		
 	if (vpninfo->dtls_attempt_period && setup_dtls(vpninfo))
 		fprintf(stderr, "Set up DTLS failed; using SSL instead\n");
 
