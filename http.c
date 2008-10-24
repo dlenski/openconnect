@@ -532,6 +532,10 @@ static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	}
 
 	auth_id = (char *)xmlGetProp(xml_node, (unsigned char *)"id");
+	if (!strcmp(auth_id, "success")) {
+		xmlFreeDoc(xml_doc);
+		return 0;
+	}
 
 	form_message = form_error = NULL;
 	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
@@ -565,14 +569,10 @@ static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			/* Let the caller know there's a form to be submitted */
 			return 1;
 			
-		} else if (!strcmp((char *)xml_node->name, "success")) {
-			success = 1;
 		}
 	}
 
 	xmlFreeDoc(xml_doc);
-	if (success)
-		return 0;
 
 	vpninfo->progress(vpninfo, PRG_ERR, "Response neither indicated success nor requested input\n");
 	vpninfo->progress(vpninfo, PRG_ERR, "Response was:\n%s\n", response);
