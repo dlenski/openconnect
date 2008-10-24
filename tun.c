@@ -83,6 +83,55 @@ static int setenv_int(const char *opt, int value)
 	return setenv(opt, buf, 1);
 }
 
+static int process_split_include(struct openconnect_info *vpninfo,
+				 char *route, int *nr_incs)
+{
+	struct in_addr addr;
+	int masklen;
+	char envname[80];
+	char *slash;
+
+	slash = strchr(route, '/');
+	if (!slash) {
+	badinc:
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Discard bad split include: \"%s\"\n",
+				  route);
+		return -EINVAL;
+	}
+
+	*slash = 0;
+	if (!inet_aton(route, &addr)) {
+		*slash = '/';
+		goto badinc;
+	}
+
+	envname[79] = 0;
+	snprintf(envname, 79, "CISCO_SPLIT_INC_%d_ADDR", *nr_incs);
+	setenv(envname, route, 1);
+
+	/* Put it back how we found it */
+	*slash = '/';
+
+	if (!inet_aton(slash+1, &addr))
+		goto badinc;
+
+	snprintf(envname, 79, "CISCO_SPLIT_INC_%d_MASK", *nr_incs);
+	setenv(envname, slash+1, 1);
+
+	for (masklen = 0; masklen < 32; masklen++) {
+		if (ntohl(addr.s_addr) >= (0xffffffff << masklen))
+			break;
+	}
+	masklen = 32 - masklen;
+		    
+	snprintf(envname, 79, "CISCO_SPLIT_INC_%d_MASKLEN", *nr_incs);
+	setenv_int(envname, masklen);
+
+	(*nr_incs)++;
+	return 0;
+}
+
 static int appendenv(const char *opt, const char *new)
 {
 	char buf[1024];
@@ -133,6 +182,20 @@ static void set_script_env(struct openconnect_info *vpninfo)
 	if (vpninfo->vpn_domain)
 		setenv("CISCO_DEF_DOMAIN", vpninfo->vpn_domain, 1);
 	else unsetenv ("CISCO_DEF_DOMAIN");
+
+	if (vpninfo->split_includes) {
+		struct split_include *this = vpninfo->split_includes;
+		int nr_split_includes = 0;
+
+		while (this) {
+			process_split_include(vpninfo, this->route,
+					      &nr_split_includes);
+			this = this->next;
+		}
+		setenv_int("CISCO_SPLIT_INC", nr_split_includes);
+	}			
+			
+			
 }
 
 static int script_config_tun(struct openconnect_info *vpninfo)

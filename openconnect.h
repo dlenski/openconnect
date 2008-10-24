@@ -63,6 +63,11 @@ struct keepalive_info {
 	time_t last_dpd;
 };
 
+struct split_include {
+	char *route;
+	struct split_include *next;
+};
+
 struct openconnect_info {
 	char *redirect_url;
 	
@@ -115,6 +120,7 @@ struct openconnect_info {
 	const char *vpn_dns[3];
 	const char *vpn_nbns[3];
 	const char *vpn_domain;
+	struct split_include *split_includes;
 
 	int select_nfds;
 	fd_set select_rfds;

@@ -71,6 +71,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	struct vpn_option *old_dtls_opts = vpninfo->dtls_options;
 	const char *old_addr = vpninfo->vpn_addr;
 	const char *old_netmask = vpninfo->vpn_netmask;
+	struct split_include *inc;
 
 	/* Clear old options which will be overwritten */
 	vpninfo->vpn_addr = vpninfo->vpn_netmask = NULL;
@@ -78,6 +79,11 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	for (i=0; i<3; i++)
 		vpninfo->vpn_dns[i] = vpninfo->vpn_nbns[i] = NULL;
 
+	for (inc = vpninfo->split_includes; inc; inc = inc->next) {
+		struct split_include *next = inc->next;
+		free(inc);
+		inc = next;
+	}
  retry:
 	openconnect_SSL_printf(vpninfo->https_ssl, "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
 	openconnect_SSL_printf(vpninfo->https_ssl, "Host: %s\r\n", vpninfo->hostname);
@@ -207,6 +213,13 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			}
 		} else if (!strcmp(buf + 7, "Default-Domain")) {
 			vpninfo->vpn_domain = new_option->value;
+		} else if (!strcmp(buf + 7, "Split-Include")) {
+			struct split_include *inc = malloc(sizeof(*inc));
+			if (!inc)
+				continue;
+			inc->route = new_option->value;
+			inc->next = vpninfo->split_includes;
+			vpninfo->split_includes = inc;
 		}
 	}
 
