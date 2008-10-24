@@ -107,6 +107,7 @@ static int ui_close(UI *ui)
 	GtkWidget *dlg = UI_get0_user_data(ui);
 
 	gtk_widget_destroy(dlg);
+	gdk_flush();
 	return 1;
 }
 
