@@ -344,7 +344,8 @@ static int add_securid_pin(char *pin)
 }
 
 static int parse_auth_choice(struct openconnect_info *vpninfo,
-			     xmlNode *xml_node, char *body, int bodylen)
+			     xmlNode *xml_node, char *body, int bodylen,
+			     char **user_prompt, char **pass_prompt)
 {
 	char *form_name = (char *)xmlGetProp(xml_node, (unsigned char *)"name");
 
@@ -354,7 +355,7 @@ static int parse_auth_choice(struct openconnect_info *vpninfo,
 	}
 	
 	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
-		char *authtype, *form_id;
+		char *authtype, *form_id, *override_name, *override_label;
 		if (xml_node->type != XML_ELEMENT_NODE)
 			continue;
 
@@ -363,6 +364,8 @@ static int parse_auth_choice(struct openconnect_info *vpninfo,
 
 		form_id = (char *)xmlGetProp(xml_node, (unsigned char *)"value");
 		authtype = (char *)xmlGetProp(xml_node, (unsigned char *)"auth-type");
+		override_name = (char *)xmlGetProp(xml_node, (unsigned char *)"override-name");
+		override_label = (char *)xmlGetProp(xml_node, (unsigned char *)"override-label");
 		if (!form_id || !authtype)
 			continue;
 		if (strcmp(authtype, "sdi-via-proxy")) {
@@ -371,6 +374,13 @@ static int parse_auth_choice(struct openconnect_info *vpninfo,
 		}
 		vpninfo->progress(vpninfo, PRG_TRACE, "choosing %s %s\n", form_name, form_id);
 		append_opt(body, bodylen, form_name, form_id);
+
+		if (override_name && override_label) {
+			if (!strcmp(override_name, "username"))
+				*user_prompt = override_label;
+			else if (!strcmp(override_name, "password"))
+				*pass_prompt = override_label;
+		}
 		return 0;
 	}
 	vpninfo->progress(vpninfo, PRG_ERR, "Didn't find appropriate auth-type choice\n");
@@ -383,13 +393,16 @@ static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 {
 	UI *ui = UI_new();
 	char msg_buf[1024], err_buf[1024];
-	char username[80], token[80];
+	char username[80], token[80], tpin[80];
 	int ret;
+	char *user_form_prompt = NULL;
 	char *user_form_id = NULL;
+	char *pass_form_prompt = NULL;
 	char *pass_form_id = NULL;
 
 	username[0] = 0;
 	token[0] = 0;
+	tpin[0] = 0;
 
 	if (!ui) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Failed to create UI\n");
@@ -407,14 +420,14 @@ static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 	}
 
 	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
-		char *input_type;
-		char *input_name;
-
+		char *input_type, *input_name, *input_label;
+		
 		if (xml_node->type != XML_ELEMENT_NODE)
 			continue;
 
 		if (!strcmp((char *)xml_node->name, "select")) {
-			if (parse_auth_choice(vpninfo, xml_node, body, bodylen))
+			if (parse_auth_choice(vpninfo, xml_node, body, bodylen,
+					      &user_form_prompt, &pass_form_prompt))
 				return -EINVAL;
 			continue;
 		}
@@ -434,7 +447,6 @@ static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 			vpninfo->progress(vpninfo, PRG_INFO, "No input name in form\n");
 			continue;
 		}
-
 		if (!strcmp(input_type, "hidden")) {
 			char *value = (char *)xmlGetProp(xml_node, (unsigned char *)"value");
 			if (!value) {
@@ -451,17 +463,23 @@ static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 			}
 			continue;
 		}
-		if (!strcmp(input_type, "text"))
+
+		input_label = (char *)xmlGetProp(xml_node, (unsigned char *)"label");
+
+		if (!strcmp(input_type, "text")) {
+			user_form_prompt = input_label?:"Username:";
 			user_form_id = input_name;
-		else if (!strcmp(input_type, "password"))
+		} else if (!strcmp(input_type, "password")) {
+			pass_form_prompt = input_label?:"Password:";
 			pass_form_id = input_name;
+		}
 	}
 			 
 	vpninfo->progress(vpninfo, PRG_TRACE, "Fixed options give %s\n", body);
 
 	if (user_form_id && !vpninfo->username)
-		UI_add_input_string(ui, "Enter username: ", UI_INPUT_FLAG_ECHO, username, 1, 80);
-	UI_add_input_string(ui, "Enter SecurID token: ", UI_INPUT_FLAG_ECHO, token, 1, 80);
+		UI_add_input_string(ui, user_form_prompt, UI_INPUT_FLAG_ECHO, username, 1, 80);
+	UI_add_input_string(ui, pass_form_prompt, UI_INPUT_FLAG_ECHO, token, 1, 80);
 
 	ret = UI_process(ui);
 	if (ret) {
