@@ -382,9 +382,9 @@ static int parse_auth_choice(struct openconnect_info *vpninfo,
 	return -EINVAL;
 }
 
-static int parse_form(struct openconnect_info *vpninfo, char *form_message,
-		      char *form_error, xmlNode *xml_node, char *body,
-		      int bodylen)
+static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
+		      char *form_message, char *form_error, xmlNode *xml_node,
+		      char *body, int bodylen)
 {
 	UI *ui = UI_new();
 	char msg_buf[1024], err_buf[1024];
@@ -398,6 +398,9 @@ static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 	username[0] = 0;
 	password[0] = 0;
 	tpin[0] = 0;
+
+	if (!strcmp(auth_id, "next_tokencode"))
+		is_securid = 1;
 
 	if (!ui) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Failed to create UI\n");
@@ -478,8 +481,8 @@ static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 	if (is_securid) {
 		/* FIXME: We should be able to generate the raw passcode directly.
 		   We know how to do it for 64-bit tokens, already. */
-		UI_add_input_string(ui, pass_form_prompt, UI_INPUT_FLAG_ECHO, password, 1, 80);
-		UI_add_input_string(ui, "SecurID PIN:", 0, tpin, 1, 80);
+		UI_add_input_string(ui, pass_form_prompt, UI_INPUT_FLAG_ECHO, password, 1, 9);
+		UI_add_input_string(ui, "SecurID PIN:", 0, tpin, 0, 9);
 	} else {
 		/* No echo */
 		UI_add_input_string(ui, pass_form_prompt, 0, password, 1, 80);
@@ -508,7 +511,7 @@ static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			      char *request_body, int req_len)
 {
-	char *form_message, *form_error;
+	char *form_message, *form_error, *auth_id;
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node;
 	int success = 0;
@@ -527,6 +530,8 @@ static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		xmlFreeDoc(xml_doc);
 		return -EINVAL;
 	}
+
+	auth_id = (char *)xmlGetProp(xml_node, (unsigned char *)"id");
 
 	form_message = form_error = NULL;
 	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
@@ -550,7 +555,9 @@ static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			free(vpninfo->urlpath);
 			vpninfo->urlpath = strdup(form_action);
 			
-			if (parse_form(vpninfo, form_message, form_error, xml_node, request_body, req_len)) {
+			if (parse_form(vpninfo, auth_id, form_message,
+				       form_error, xml_node, request_body,
+				       req_len)) {
 				xmlFreeDoc(xml_doc);
 				return -EINVAL;
 			}
