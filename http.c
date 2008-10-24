@@ -309,43 +309,33 @@ static int append_opt(char *body, int bodylen, char *opt, char *name)
  * and https://honor.trusecure.com/pipermail/firewall-wizards/2004-April/016420.html
  */
 
-static int add_securid_pin(char *pin)
+static int add_securid_pin(char *token, char *pin)
 {
-	char *longer, *shorter;
-	int i, plus = 0;
+	int i;
 
-	for (i=0; pin[i]; i++) {
-		if (!plus && pin[i] == '+')
-			plus = i;
-		else if (!isdigit(pin[i]))
-			return 0;
+	/* If PIN longer than original token, move token up to cope */
+	if (strlen(pin) > strlen(token)) {
+		int extend = strlen(token) - strlen(pin);
+		memmove(token, token + extend, strlen(token)+1);
+		for (i=0; i<extend; i++)
+			token[i] = '0';
 	}
-	if (!plus)
-		return 0;
+	token += strlen(token) - strlen(pin);
 
-	pin[plus] = 0;
-	if (strlen(pin + plus + 1) > strlen(pin)) {
-		longer = pin + plus + 1;
-		shorter = pin;
-	} else {
-		shorter = pin + plus + 1;
-		longer = pin;
-	}
-	plus = strlen(longer) - strlen(shorter);
+	for (i=0; token[i]; i++) {
+		if (!isdigit(token[i]) || !isdigit(pin[i]))
+			return -EINVAL;
 
-	for (i=0; i < strlen(shorter); i++) {
-		longer[i+plus] += shorter[i] - '0';
-		if (longer[i+plus] > '9')
-			longer[i+plus] -= 10;
+		token[i] += pin[i] - '0';
+		if (token[i] > '9')
+			token[i] -= 10;
 	}
-	if (shorter == pin)
-		memmove(pin, longer, strlen(longer)+1);
-	return 1;
+	return 0;
 }
 
 static int parse_auth_choice(struct openconnect_info *vpninfo,
 			     xmlNode *xml_node, char *body, int bodylen,
-			     char **user_prompt, char **pass_prompt)
+			     char **user_prompt, char **pass_prompt, int *is_securid)
 {
 	char *form_name = (char *)xmlGetProp(xml_node, (unsigned char *)"name");
 
@@ -355,7 +345,7 @@ static int parse_auth_choice(struct openconnect_info *vpninfo,
 	}
 	
 	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
-		char *authtype, *form_id, *override_name, *override_label;
+		char *authtype, *form_id, *override_name, *override_label, *auth_content;
 		if (xml_node->type != XML_ELEMENT_NODE)
 			continue;
 
@@ -381,6 +371,11 @@ static int parse_auth_choice(struct openconnect_info *vpninfo,
 			else if (!strcmp(override_name, "password"))
 				*pass_prompt = override_label;
 		}
+		auth_content = (char *)xmlNodeGetContent(xml_node);
+		if (auth_content && (!strcasecmp(auth_content, "SecureID") ||
+				     !strcasecmp(auth_content, "SecurID")))
+			*is_securid = 1;
+
 		return 0;
 	}
 	vpninfo->progress(vpninfo, PRG_ERR, "Didn't find appropriate auth-type choice\n");
@@ -393,15 +388,15 @@ static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 {
 	UI *ui = UI_new();
 	char msg_buf[1024], err_buf[1024];
-	char username[80], token[80], tpin[80];
-	int ret;
+	char username[80], password[80], tpin[80];
+	int ret, is_securid = 0;
 	char *user_form_prompt = NULL;
 	char *user_form_id = NULL;
 	char *pass_form_prompt = NULL;
 	char *pass_form_id = NULL;
 
 	username[0] = 0;
-	token[0] = 0;
+	password[0] = 0;
 	tpin[0] = 0;
 
 	if (!ui) {
@@ -427,7 +422,8 @@ static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 
 		if (!strcmp((char *)xml_node->name, "select")) {
 			if (parse_auth_choice(vpninfo, xml_node, body, bodylen,
-					      &user_form_prompt, &pass_form_prompt))
+					      &user_form_prompt, &pass_form_prompt,
+					      &is_securid))
 				return -EINVAL;
 			continue;
 		}
@@ -479,7 +475,15 @@ static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 
 	if (user_form_id && !vpninfo->username)
 		UI_add_input_string(ui, user_form_prompt, UI_INPUT_FLAG_ECHO, username, 1, 80);
-	UI_add_input_string(ui, pass_form_prompt, UI_INPUT_FLAG_ECHO, token, 1, 80);
+	if (is_securid) {
+		/* FIXME: We should be able to generate the raw passcode directly.
+		   We know how to do it for 64-bit tokens, already. */
+		UI_add_input_string(ui, pass_form_prompt, UI_INPUT_FLAG_ECHO, password, 1, 80);
+		UI_add_input_string(ui, "SecurID PIN:", 0, tpin, 1, 80);
+	} else {
+		/* No echo */
+		UI_add_input_string(ui, pass_form_prompt, 0, password, 1, 80);
+	}
 
 	ret = UI_process(ui);
 	if (ret) {
@@ -490,8 +494,13 @@ static int parse_form(struct openconnect_info *vpninfo, char *form_message,
 		append_opt(body, bodylen, user_form_id,
 			   vpninfo->username?:username);
 
-	add_securid_pin(token);
-	append_opt(body, bodylen, pass_form_id, token);
+	if (is_securid && tpin[0]) {
+		ret = add_securid_pin(password, tpin);
+		if (ret)
+			return ret;
+	}
+
+	append_opt(body, bodylen, pass_form_id, password);
 
 	return 0;
 }
