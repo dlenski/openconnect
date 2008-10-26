@@ -179,6 +179,10 @@ int main(int argc, char **argv)
 			break;
 		case '4':
 			read_stdin(&vpninfo->cookie);
+			/* If the cookie is empty, ignore it */
+			if (! *vpninfo->cookie) {
+				vpninfo->cookie = NULL;
+			}
 			break;
 		case '5':
 			read_stdin(&vpninfo->password);
