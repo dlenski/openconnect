@@ -93,7 +93,9 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 		did_work += cstp_mainloop(vpninfo, &timeout);
 		if (vpninfo->quit_reason)
 			break;
-		
+
+		/* Tun must be last because it will set/clear its bit
+		   in the select_rfds according to the queue length */
 		did_work += tun_mainloop(vpninfo, &timeout);
 		if (vpninfo->quit_reason)
 			break;

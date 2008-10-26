@@ -549,6 +549,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	while (vpninfo->dtls_fd == -1 && vpninfo->outgoing_queue) {
 		struct pkt *this = vpninfo->outgoing_queue;
 		vpninfo->outgoing_queue = this->next;
+		vpninfo->outgoing_qlen--;
 
 		if (vpninfo->deflate) {
 			unsigned char *adler;

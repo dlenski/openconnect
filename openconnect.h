@@ -53,6 +53,9 @@ struct vpn_option {
 #define KA_KEEPALIVE	3
 #define KA_REKEY	4
 
+
+#define MAX_Q_LEN 10
+
 struct keepalive_info {
 	int dpd;
 	int keepalive;
@@ -135,6 +138,7 @@ struct openconnect_info {
 
 	struct pkt *incoming_queue;
 	struct pkt *outgoing_queue;
+	int outgoing_qlen;
 
 	socklen_t peer_addrlen;
 	struct sockaddr *peer_addr;

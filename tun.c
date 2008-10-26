@@ -304,9 +304,20 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	int len;
 	int work_done = 0;
 
-	while ( (len = read(vpninfo->tun_fd, buf, sizeof(buf))) > 0) {
-		queue_new_packet(&vpninfo->outgoing_queue, AF_INET, buf, len);
-		work_done = 1;
+	if (FD_ISSET(vpninfo->tun_fd, &vpninfo->select_rfds)) {
+		while ((len = read(vpninfo->tun_fd, buf, sizeof(buf))) > 0) {
+			if (queue_new_packet(&vpninfo->outgoing_queue, AF_INET, buf, len))
+				break;
+
+			work_done = 1;
+			vpninfo->outgoing_qlen++;
+			if (vpninfo->outgoing_qlen == MAX_Q_LEN) {
+				FD_CLR(vpninfo->tun_fd, &vpninfo->select_rfds);
+				break;
+			}
+		}
+	} else if (vpninfo->outgoing_qlen < MAX_Q_LEN) {
+		FD_SET(vpninfo->tun_fd, &vpninfo->select_rfds);
 	}
 
 	/* The kernel returns -ENOMEM when the queue is full, so theoretically

@@ -445,6 +445,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		int ret;
 
 		vpninfo->outgoing_queue = this->next;
+		vpninfo->outgoing_qlen--;
 
 		/* One byte of header */
 		this->hdr[7] = AC_PKT_DATA;
@@ -461,6 +462,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				ERR_print_errors_fp(stderr);
 				dtls_restart(vpninfo);
 				vpninfo->outgoing_queue = this;
+				vpninfo->outgoing_qlen++;
 			}
 			return 1;
 		}
