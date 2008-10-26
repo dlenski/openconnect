@@ -68,6 +68,7 @@ static struct option long_options[] = {
 	{"cookieonly", 0, 0, '2'},
 	{"printcookie", 0, 0, '3'},
 	{"quiet", 0, 0, 'q'},
+	{"queue-len", 1, 0, 'Q'},
 	{"xmlconfig", 1, 0, 'x'},
 	{"cookie-on-stdin", 0, 0, '4'},
 	{"passwd-on-stdin", 0, 0, '5'},
@@ -90,12 +91,13 @@ void usage(void)
 	printf("  -U, --setuid=USER               Drop privileges after connecting\n");
 	printf("  -m, --mtu=MTU                   Request MTU from server\n");
 	printf("  -p, --tpm-password=PASS         Set TPM SRK PIN\n");
+	printf("  -q, --quiet                     Less output\n");
+	printf("  -Q, --queue-len=LEN             Set packet queue limit to LEN pkts\n");
 	printf("  -s, --script=SCRIPT             Use vpnc-compatible config script\n");
 	printf("  -S, --script-tun                Pass traffic to 'script' program, not tun\n");
 	printf("  -t, --tpm                       Use TPM engine for private key\n");
 	printf("  -u, --user=NAME                 Set login username\n");
 	printf("  -V, --version                   Report version number\n");
-	printf("  -q, --quiet                     Less output\n");
 	printf("  -v, --verbose                   More output\n");
 	printf("  -x, --xmlconfig=CONFIG          XML config file\n");
 	printf("      --cookieonly                Fetch webvpn cookie only; don't connect\n");
@@ -149,6 +151,7 @@ int main(int argc, char **argv)
 	vpninfo->mtu = 1406;
 	vpninfo->deflate = 1;
 	vpninfo->dtls_attempt_period = 60;
+	vpninfo->max_qlen = 10;
 
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
 		fprintf(stderr, "Failed to initialise DTLS secret\n");
@@ -159,7 +162,7 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "C:c:Ddhi:k:lp:qSs:tU:u:Vvx:",
+	while ((opt = getopt_long(argc, argv, "C:c:Ddhi:k:lp:Q:qSs:tU:u:Vvx:",
 				  long_options, NULL))) {
 		if (opt < 0)
 			break;
@@ -246,6 +249,13 @@ int main(int argc, char **argv)
 			}
 			break;
 		}
+		case 'Q':
+			vpninfo->max_qlen = atol(optarg);
+			if (!vpninfo->max_qlen) {
+				fprintf(stderr, "Queue length zero not permitted; using 1\n");
+				vpninfo->max_qlen = 1;
+			}
+			break;
 		case 'q':
 			verbose = PRG_ERR;
 			break;

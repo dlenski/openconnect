@@ -311,12 +311,12 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 			work_done = 1;
 			vpninfo->outgoing_qlen++;
-			if (vpninfo->outgoing_qlen == MAX_Q_LEN) {
+			if (vpninfo->outgoing_qlen == vpninfo->max_qlen) {
 				FD_CLR(vpninfo->tun_fd, &vpninfo->select_rfds);
 				break;
 			}
 		}
-	} else if (vpninfo->outgoing_qlen < MAX_Q_LEN) {
+	} else if (vpninfo->outgoing_qlen < vpninfo->max_qlen) {
 		FD_SET(vpninfo->tun_fd, &vpninfo->select_rfds);
 	}
 
