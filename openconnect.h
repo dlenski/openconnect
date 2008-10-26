@@ -82,8 +82,9 @@ struct openconnect_info {
 	const char *xmlconfig;
 	char xmlsha1[(SHA_DIGEST_LENGTH * 2) + 1];
 	char *username;
+	char *password;
 
-	const char *cookie;
+	char *cookie;
 	struct vpn_option *cookies;
 	struct vpn_option *cstp_options;
 	struct vpn_option *dtls_options;

@@ -483,7 +483,7 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 		   We know how to do it for 64-bit tokens, already. */
 		UI_add_input_string(ui, pass_form_prompt, UI_INPUT_FLAG_ECHO, password, 1, 9);
 		UI_add_input_string(ui, "SecurID PIN:", 0, tpin, 0, 9);
-	} else {
+	} else if (!vpninfo->password) {
 		/* No echo */
 		UI_add_input_string(ui, pass_form_prompt, 0, password, 1, 80);
 	}
@@ -503,7 +503,7 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 			return ret;
 	}
 
-	append_opt(body, bodylen, pass_form_id, password);
+	append_opt(body, bodylen, pass_form_id, vpninfo->password?:password);
 
 	return 0;
 }
