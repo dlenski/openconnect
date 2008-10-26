@@ -1,0 +1,38 @@
+
+When it detects that the server is asking for a SecurID token, the
+OpenConnect client will now ask for both tokencode _and_ PIN.
+
+You can still just enter your tokencode with the PIN already
+incorporated as before, and leave the PIN entry box blank.
+
+
+Adding the PIN to a generated tokencode is a simple operation -- we
+just add each digit modulo 10. So a code of 12345678 + PIN 246801
+would give a result of 12581479, for example.
+
+By entering your PIN into the 'Token View' in the Windows SoftID
+client, you are giving your PIN away to anyone who can see the nice
+big readout of digits both before and after. As so-called "two-factor"
+authentication, it's a complete fig leaf. That's why we now give you
+the option of entering your PIN into the OpenConnect client instead.
+
+It would be even better if we could script the SecurID token somehow
+so that you don't need to copy and paste that part at all. The Windows
+tool should be scriptable, or the Java one might be a better option.
+
+The generate_securid_tokencodes() function in securid.c is waiting for
+someone to implement something along those lines.
+
+Even better would be to just implement SecurID natively -- it
+shouldn't be particularly hard. We already know how the 64-bit tokens
+work: http://seclists.org/bugtraq/2000/Dec/0459.html
+
+For the 128-bit tokens, they just use a standard AES algorithm instead
+of their own 'speshul' hash. A basic description of it can be found at 
+http://archives.free.net.ph/message/20040426.120338.65a88fc6.en.html
+
+If we just work out how the input bits are fed into the hash, and work
+out how the token is stored in the file system, then we should be able
+to do that part transparently within the OpenConnect client (or, more
+usefully, in a generic library).
+

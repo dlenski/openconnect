@@ -295,44 +295,6 @@ static int append_opt(char *body, int bodylen, char *opt, char *name)
 	return 0;
 }
 
-/*
- * People using hardware tokens may not have the ability to enter a
- * PIN, so we can mangle it in for them...
- *
- * Actually, we should just do the whole of the SecurID nonsense here.
- * We know how to do the 64-bit tokens, and working out the 128-bit
- * version by reverse-engineering the Windows binary or the Java
- * implementation really shouldn't be that hard. Find the AES
- * implementation, and just see what the inputs are.
- *
- * cf. http://seclists.org/bugtraq/2000/Dec/0459.html
- * and https://honor.trusecure.com/pipermail/firewall-wizards/2004-April/016420.html
- */
-
-static int add_securid_pin(char *token, char *pin)
-{
-	int i;
-
-	/* If PIN longer than original token, move token up to cope */
-	if (strlen(pin) > strlen(token)) {
-		int extend = strlen(token) - strlen(pin);
-		memmove(token, token + extend, strlen(token)+1);
-		for (i=0; i<extend; i++)
-			token[i] = '0';
-	}
-	token += strlen(token) - strlen(pin);
-
-	for (i=0; token[i]; i++) {
-		if (!isdigit(token[i]) || !isdigit(pin[i]))
-			return -EINVAL;
-
-		token[i] += pin[i] - '0';
-		if (token[i] > '9')
-			token[i] -= 10;
-	}
-	return 0;
-}
-
 static int parse_auth_choice(struct openconnect_info *vpninfo,
 			     xmlNode *xml_node, char *body, int bodylen,
 			     char **user_prompt, char **pass_prompt, int *is_securid)
@@ -388,7 +350,7 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 {
 	UI *ui = UI_new();
 	char msg_buf[1024], err_buf[1024];
-	char username[80], password[80], tpin[80];
+	char username[80], password[80], tpin[80], *passresult = password;
 	int ret, is_securid = 0;
 	char *user_form_prompt = NULL;
 	char *user_form_id = NULL;
@@ -400,7 +362,7 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 	tpin[0] = 0;
 
 	if (!strcmp(auth_id, "next_tokencode"))
-		is_securid = 1;
+		is_securid = 2;
 
 	if (!ui) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Failed to create UI\n");
@@ -478,11 +440,33 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 
 	if (user_form_id && !vpninfo->username)
 		UI_add_input_string(ui, user_form_prompt, UI_INPUT_FLAG_ECHO, username, 1, 80);
+
+
+	/* This isn't ideal, because we the user could take an arbitrary length
+	   of time to enter the PIN, and we should use a tokencode generated
+	   _after_ they enter the PIN, not before. Once we have proper tokencode
+	   generation rather than evil script hacks, we can look at improving it. */
 	if (is_securid) {
-		/* FIXME: We should be able to generate the raw passcode directly.
-		   We know how to do it for 64-bit tokens, already. */
-		UI_add_input_string(ui, pass_form_prompt, UI_INPUT_FLAG_ECHO, password, 1, 9);
-		UI_add_input_string(ui, "SecurID PIN:", 0, tpin, 0, 9);
+		/*
+		 * If first tokencode being requested, try to generate them.
+		 * We generate the 'next tokencode' here too, in case it's needed.
+		 */
+		if (is_securid == 1) {
+			/* Forget any old tokencodes which evidently failed */
+			vpninfo->sid_tokencode[0] = vpninfo->sid_nexttokencode[0] = 0;
+			generate_securid_tokencodes(vpninfo);
+		}
+
+		/* If we couldn't generate them, we'll have to ask the user */
+		if (!vpninfo->sid_tokencode[0])
+			UI_add_input_string(ui, pass_form_prompt,
+					    UI_INPUT_FLAG_ECHO, password, 1, 9);
+
+		/* We need the PIN only the first time, if we already have the
+		   'next tokencode' -- we'll mangle the PIN in immediately.
+		   Or both times if we're asking the user for tokencodes. */
+		if (is_securid == 1 || !vpninfo->sid_tokencode[0])
+			UI_add_input_string(ui, "SecurID PIN:", 0, tpin, 0, 9);
 	} else if (!vpninfo->password) {
 		/* No echo */
 		UI_add_input_string(ui, pass_form_prompt, 0, password, 1, 80);
@@ -497,13 +481,25 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 		append_opt(body, bodylen, user_form_id,
 			   vpninfo->username?:username);
 
-	if (is_securid && tpin[0]) {
+	if (is_securid == 1 && vpninfo->sid_tokencode[0]) {
+		/* First token request; mangle pin into _both_ first and next
+		   token code */
+		int ret = add_securid_pin(vpninfo->sid_tokencode, tpin);
+		if (!ret)
+			ret = add_securid_pin(vpninfo->sid_nexttokencode, tpin);
+		if (ret)
+			return ret;
+		passresult = vpninfo->sid_tokencode;
+	} else if (is_securid == 2 && vpninfo->sid_nexttokencode[0]) {
+		passresult = vpninfo->sid_nexttokencode;
+	} else if (is_securid && tpin[0]) {
 		ret = add_securid_pin(password, tpin);
 		if (ret)
 			return ret;
-	}
+	} else if (vpninfo->password)
+		passresult = vpninfo->password;
 
-	append_opt(body, bodylen, pass_form_id, vpninfo->password?:password);
+	append_opt(body, bodylen, pass_form_id, passresult);
 
 	return 0;
 }

@@ -70,7 +70,10 @@ struct split_include {
 
 struct openconnect_info {
 	char *redirect_url;
-	
+
+	char sid_tokencode[9];
+	char sid_nexttokencode[9];
+
 	const char *localname;
 	char *hostname;
 	char *urlpath;
@@ -211,6 +214,10 @@ char *openconnect_create_useragent(char *base);
 
 /* ssl_ui.c */
 int set_openssl_ui(void);
+
+/* securid.c */
+int generate_securid_tokencodes(struct openconnect_info *vpninfo);
+int add_securid_pin(char *token, char *pin);
 
 /* version.c */
 extern char openconnect_version[];

@@ -55,7 +55,7 @@ CFLAGS_nm-auth-dialog.o += $(GTK_CFLAGS) $(GCONF_CFLAGS) $(XML2_CFLAGS)
 
 OPENCONNECT_OBJS := main.o $(SSL_UI) xml.o
 CONNECTION_OBJS := dtls.o cstp.o mainloop.o tun.o 
-AUTH_OBJECTS := ssl.o http.o version.o
+AUTH_OBJECTS := ssl.o http.o version.o securid.o
 
 all: openconnect $(NMAUTHDIALOG)
 
