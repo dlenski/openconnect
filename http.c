@@ -514,7 +514,6 @@ static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	char *form_message, *form_error, *auth_id;
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node;
-	int success = 0;
 
 	xml_doc = xmlReadMemory(response, strlen(response), "noname.xml", NULL, 0);
 	if (!xml_doc) {
