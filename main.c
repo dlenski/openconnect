@@ -159,7 +159,7 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "C:c:hvldDu:U:i:tk:p:qs:Shx:V",
+	while ((opt = getopt_long(argc, argv, "C:c:Ddhi:k:lp:qSs:tU:u:Vvx:",
 				  long_options, NULL))) {
 		if (opt < 0)
 			break;
