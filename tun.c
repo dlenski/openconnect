@@ -260,7 +260,9 @@ int setup_tun(struct openconnect_info *vpninfo)
 
 		tun_fd = open("/dev/net/tun", O_RDWR);
 		if (tun_fd < 0) {
-			perror("open tun");
+			vpninfo->progress(vpninfo, PRG_ERR,
+					  "Failed to open tun device: %s\n",
+					  strerror(errno));
 			exit(1);
 		}
 		memset(&ifr, 0, sizeof(ifr));
@@ -269,7 +271,9 @@ int setup_tun(struct openconnect_info *vpninfo)
 			strncpy(ifr.ifr_name, vpninfo->ifname,
 				sizeof(ifr.ifr_name) - 1);
 		if (ioctl(tun_fd, TUNSETIFF, (void *) &ifr) < 0) {
-			perror("TUNSETIFF");
+			vpninfo->progress(vpninfo, PRG_ERR,
+					  "TUNSETIFF failed: %s\n",
+					  strerror(errno));
 			exit(1);
 		}
 		if (!vpninfo->ifname)
