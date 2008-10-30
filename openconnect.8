@@ -1,0 +1,226 @@
+.TH OPENCONNECT 8
+.SH NAME
+openconnect \- Connect to Cisco AnyConnect VPN
+.SH SYNOPSIS
+.B openconnect
+[
+.B -c,--certificate
+.I CERT
+]
+[
+.B -k,--sslkey
+.I KEY
+]
+[
+.B -C,--cookie
+.I COOKIE
+]
+[
+.B --cookie-on-stdin
+]
+[
+.B -d,--deflate
+]
+[
+.B -D,--no-deflate
+]
+[
+.B -h,--help
+]
+[
+.B -i,--interface
+.I IFNAME
+]
+[
+.B -l,--syslog
+]
+[
+.B -U,--setuid
+.I USER
+]
+[
+.B -m,--mtu
+.I MTU
+]
+[
+.B -p,--tpm-password
+.I PASS
+]
+[
+.B -q,--quiet
+]
+[
+.B -Q,--queue-len
+.I LEN
+]
+[
+.B -s,--script
+.I SCRIPT
+]
+[
+.B -S,--script-tun
+]
+[
+.B -t,--tpm
+]
+[
+.B -T,--tun-fd
+]
+[
+.B -u,--user
+.I NAME
+]
+[
+.B -V,--version
+]
+[
+.B -v,--verbose
+]
+[
+.B -x,--xmlconfig
+.I CONFIG
+]
+[
+.B --cookieonly
+]
+[
+.B --printcookie
+]
+[
+.B --cafile
+.I FILE
+]
+[
+.B --no-dtls
+]
+[
+.B --passwd-on-stdin
+]
+\fIserver\fR
+
+.SH DESCRIPTION
+The program
+.B openconnect
+connects to Cisco "AnyConnect" VPN servers, which use standard TLS
+and DTLS protocols for data transport.
+
+The connection happens in two phases. First there is a simple HTTPS
+connection over which the user authenticates somehow \- by using a
+certificate, or password or SecurID, etc.  Having authenticated, the
+user is rewarded with an HTTP cookie which can be used to make the
+real VPN connection.
+
+The second phase uses that cookie in an HTTPS 
+.I CONNECT
+request, and data packets can be passed over the resulting
+connection. In auxiliary headers exchanged with the
+.I CONNECT
+request, a Session-ID and Master Secret for a DTLS connection are also
+exchanged, which allows data transport over UDP to occur.
+
+
+.SH OPTIONS
+.TP
+.B -c,--certificate=CERT
+Use SSL client certificate
+.I CERT
+.TP
+.B -k,--sslkey=KEY
+Use SSL private key file
+.I KEY
+.TP
+.B -C,--cookie=COOKIE
+Use WebVPN cookie
+.I COOKIE
+.TP
+.B --cookie-on-stdin
+Read cookie from standard input
+.TP
+.B -d,--deflate
+Enable compression (default)
+.TP
+.B -D,--no-deflate
+Disable compression
+.TP
+.B -h,--help
+Display help text
+.TP
+.B -i,--interface=IFNAME
+Use
+.I IFNAME
+for tunnel interface
+.TP
+.B -l,--syslog
+Use syslog for progress messages
+.TP
+.B -U,--setuid=USER
+Drop privileges after connecting, to become user
+.I USER
+.TP
+.B -m,--mtu=MTU
+Request
+.I MTU
+from server
+.TP
+.B -p,--tpm-password=PASS
+Provide SRK (System Root Key) PIN for TPM
+.TP
+.B -q,--quiet
+Less output
+.TP
+.B -Q,--queue-len=LEN
+Set packet queue limit to 
+.I LEN
+pkts
+.TP
+.B -s,--script=SCRIPT
+Use vpnc-compatible config script
+.TP
+.B -S,--script-tun
+Pass traffic to 'script' program, not tun
+.TP
+.B -t,--tpm
+Use TPM engine for private key
+.TP
+.B -T,--tun-fd
+File descriptor to use for passing traffic
+.TP
+.B -u,--user=NAME
+Set login username to
+.I NAME
+.TP
+.B -V,--version
+Report version number
+.TP
+.B -v,--verbose
+More output
+.TP
+.B -x,--xmlconfig=CONFIG
+XML config file
+.TP
+.B --cookieonly
+Fetch webvpn cookie only; don't connect
+.TP
+.B --printcookie
+Print webvpn cookie before connecting
+.TP
+.B --cafile=FILE
+Cert file for server verification
+.TP
+.B --no-dtls
+Disable DTLS
+.TP
+.B --passwd-on-stdin
+Read password from standard input
+
+.SH LIMITATIONS
+The
+.B openconnect
+client does not yet support IPv6 connectivity, although it is known
+that Cisco's servers do. We have not yet found a suitably configured
+server against which we can test IPv6 functionality. Please contact
+the author if you are able to configure such a server so that we can
+test IPv6 support against it.
+
+.SH AUTHORS
+David Woodhouse <dwmw2@infradead.org>
