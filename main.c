@@ -281,19 +281,19 @@ int main(int argc, char **argv)
 	if (!vpninfo->sslkey)
 		vpninfo->sslkey = vpninfo->cert;
 
-	if (config_lookup_host(vpninfo, argv[optind]))
-		exit(1);
-
-	if (!vpninfo->hostname)
-		vpninfo->hostname = strdup(argv[optind]);
-	vpninfo->urlpath = strdup("/");
-
 	if (use_syslog) {
 		openlog("openconnect", LOG_PID, LOG_DAEMON);
 		vpninfo->progress = syslog_progress;
 	} else {
 		vpninfo->progress = write_progress;
 	}
+
+	if (config_lookup_host(vpninfo, argv[optind]))
+		exit(1);
+
+	if (!vpninfo->hostname)
+		vpninfo->hostname = strdup(argv[optind]);
+	vpninfo->urlpath = strdup("/");
 
 #ifdef SSL_UI
 	set_openssl_ui();
