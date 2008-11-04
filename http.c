@@ -532,6 +532,11 @@ static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		return 0;
 	}
 
+	if (vpninfo->nopasswd) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Asked for password but nopasswd set\n");
+		return -EPERM;
+	}
+
 	form_message = form_error = NULL;
 	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
 		if (xml_node->type != XML_ELEMENT_NODE)

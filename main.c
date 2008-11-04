@@ -72,6 +72,7 @@ static struct option long_options[] = {
 	{"xmlconfig", 1, 0, 'x'},
 	{"cookie-on-stdin", 0, 0, '4'},
 	{"passwd-on-stdin", 0, 0, '5'},
+	{"no-passwd", 0, 0, '6'},
 	{NULL, 0, 0, 0},
 };
 
@@ -104,6 +105,7 @@ void usage(void)
 	printf("      --printcookie               Print webvpn cookie before connecting\n");
 	printf("      --cafile=FILE               Cert file for server verification\n");
 	printf("      --no-dtls                   Disable DTLS\n");
+	printf("      --no-passwd                 Disable password/SecurID authentication\n");
 	printf("      --passwd-on-stdin           Read password from standard input\n");
 	exit(1);
 }
@@ -189,6 +191,9 @@ int main(int argc, char **argv)
 			break;
 		case '5':
 			read_stdin(&vpninfo->password);
+			break;
+		case '6':
+			vpninfo->nopasswd = 1;
 			break;
 		case 'C':
 			vpninfo->cookie = optarg;

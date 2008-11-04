@@ -207,8 +207,14 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	if (!vpninfo->https_ctx) {
 		vpninfo->https_ctx = SSL_CTX_new(ssl3_method);
 
+		err = -EPERM;
 		if (vpninfo->cert)
-			load_certificate(vpninfo);
+			err = load_certificate(vpninfo);
+
+		if (err && vpninfo->nopasswd) {
+			vpninfo->progress(vpninfo, PRG_ERR, "No certificate and nopasswd set. Aborting\n");
+			return err;
+		}
 
 		if (vpninfo->cafile) {
 			SSL_CTX_load_verify_locations(vpninfo->https_ctx, vpninfo->cafile, NULL);
