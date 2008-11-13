@@ -28,6 +28,7 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/engine.h>
+#include <openssl/evp.h>
 
 #include "openconnect.h"
 
@@ -147,7 +148,41 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	}
 	return 0;
 }
- 
+
+static int verify_callback(X509_STORE_CTX *ctx, void *arg)
+{
+	/* We've seen certificates in the wild which don't have the
+	   purpose fields filled in correctly */
+	ctx->param->purpose = 0;
+		
+	/* If it succeeds, all well and good... */
+	return X509_verify_cert(ctx);
+}
+
+static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
+{
+	X509 *peer_cert;
+
+	if (vpninfo->cafile) {
+		int vfy = SSL_get_verify_result(https_ssl);
+		
+		if (vfy != X509_V_OK) {
+			vpninfo->progress(vpninfo, PRG_ERR, "Server certificate verify failed: %s\n",
+				X509_verify_cert_error_string(vfy));
+			return -EINVAL;
+		}
+		return 0;
+	}
+
+	peer_cert = SSL_get_peer_certificate(https_ssl);
+
+	if (vpninfo->validate_peer_cert)
+		return vpninfo->validate_peer_cert(vpninfo, peer_cert);
+
+	/* If no validation function, just let it succeed */
+	return 0;
+}
+
 int openconnect_open_https(struct openconnect_info *vpninfo)
 {
 	SSL_METHOD *ssl3_method;
@@ -216,10 +251,12 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			return err;
 		}
 
-		if (vpninfo->cafile) {
+		SSL_CTX_set_cert_verify_callback(vpninfo->https_ctx, verify_callback, vpninfo);
+		SSL_CTX_set_default_verify_paths(vpninfo->https_ctx);
+
+		if (vpninfo->cafile)
 			SSL_CTX_load_verify_locations(vpninfo->https_ctx, vpninfo->cafile, NULL);
-			SSL_CTX_set_default_verify_paths(vpninfo->https_ctx);
-		}
+
 	}
 	https_ssl = SSL_new(vpninfo->https_ctx);
 
@@ -237,17 +274,10 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	if (vpninfo->cafile) {
-		int vfy = SSL_get_verify_result(https_ssl);
-
-		/* FIXME: Show cert details, allow user to accept (and store?) */
-		if (vfy != X509_V_OK) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Server certificate verify failed: %s\n",
-				X509_verify_cert_error_string(vfy));
-			SSL_free(https_ssl);
-			close(ssl_sock);
-			return -EINVAL;
-		}
+	if (verify_peer(vpninfo, https_ssl)) {
+		SSL_free(https_ssl);
+		close(ssl_sock);
+		return -EINVAL;
 	}
 
 	vpninfo->ssl_fd = ssl_sock;

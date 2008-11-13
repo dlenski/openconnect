@@ -150,6 +150,7 @@ struct openconnect_info {
 
 	char *quit_reason;
 
+	int (*validate_peer_cert) (struct openconnect_info *vpninfo, X509 *cert);
 	int (*write_new_config) (struct openconnect_info *vpninfo, char *buf, int buflen);
 
 	void __attribute__ ((format(printf, 3, 4)))
