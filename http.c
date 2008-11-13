@@ -503,7 +503,7 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 
 	if (vpninfo->password) {
 		free(vpninfo->password);
-		vpninfo->password = 0;
+		vpninfo->password = NULL;
 	}
 		
 	return 0;
