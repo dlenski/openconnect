@@ -36,7 +36,99 @@
 #include "auth-dlg-settings.h"
 #include "openconnect.h"
 
+#include <openssl/bio.h>
+
+static GConfClient *gcl;
+static char *config_path;
+
 static char *last_message;
+
+static int user_validate_cert(struct openconnect_info *vpninfo, X509 *peer_cert)
+{
+	BIO *bp = BIO_new(BIO_s_mem());
+	char *title;
+	BUF_MEM *certinfo;
+	char zero = 0;
+	GtkWidget *dlg, *text, *scroll;
+	GtkTextBuffer *buffer;
+	int result;
+
+	/* There are probably better ways to do this -- getting individual
+	   elements of the cert info and formatting it nicely in the dialog
+	   box. But this will do for now... */
+	X509_print_ex(bp, peer_cert, 0, 0);
+	BIO_write(bp, &zero, 1);
+	BIO_get_mem_ptr(bp, &certinfo);
+
+	title = g_strdup_printf("Unknown certificate from VPN server \"%s\".\n"
+				"Do you want to accept it?", vpninfo->hostname);
+
+	dlg = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_QUESTION,
+				     GTK_BUTTONS_OK_CANCEL,
+				     title);
+	gtk_window_set_default_size(GTK_WINDOW(dlg), 768, 768);
+	gtk_window_set_resizable(GTK_WINDOW(dlg), TRUE);
+	gtk_dialog_set_default_response(GTK_DIALOG(dlg), GTK_RESPONSE_CANCEL);
+
+	scroll = gtk_scrolled_window_new(NULL, NULL);
+	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dlg)->vbox), scroll, TRUE, TRUE, 0);
+	gtk_widget_show(scroll);
+
+	text = gtk_text_view_new();
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text));
+	gtk_text_buffer_set_text(buffer, certinfo->data, -1);
+	gtk_text_view_set_editable(GTK_TEXT_VIEW(text), 0);
+	gtk_container_add(GTK_CONTAINER(scroll), text);
+	gtk_widget_show(text);
+
+	result = gtk_dialog_run(GTK_DIALOG(dlg));
+
+	BIO_free(bp);
+	gtk_widget_destroy(dlg);
+	gdk_flush();
+	g_free(title);
+
+	if (result != GTK_RESPONSE_OK)
+		return -EINVAL;
+
+	return 0;
+}
+
+static int validate_peer_cert(struct openconnect_info *vpninfo,
+			      X509 *peer_cert)
+{
+	ASN1_STRING *signature = peer_cert->signature;
+	GSList *list, *this;
+	char *key;
+	BIO *bp = BIO_new(BIO_s_mem());
+	BUF_MEM *sig;
+	char zero = 0;
+	int ret = 0;
+
+	i2a_ASN1_STRING(bp, signature, V_ASN1_OCTET_STRING);
+	BIO_write(bp, &zero, 1);
+	BIO_get_mem_ptr(bp, &sig);
+
+	key = g_strdup_printf("%s/vpn/%s", config_path, "certsigs");
+	list = gconf_client_get_list(gcl, key, GCONF_VALUE_STRING, NULL);
+
+	for (this = list; this; this = this->next) {
+		if (!strcmp(this->data, sig->data))
+			goto out;
+	}
+
+	ret = user_validate_cert(vpninfo, peer_cert);
+	if (!ret) {
+		list = g_slist_append(list, g_strdup(sig->data));
+		gconf_client_set_list(gcl, key, GCONF_VALUE_STRING, list, NULL);
+	}
+	
+ out:
+	BIO_free(bp);
+	g_slist_free(list);
+	g_free(key);
+	return ret;
+}
 
 static char *get_config_path(GConfClient *gcl, const char *vpn_uuid)
 {
@@ -89,9 +181,6 @@ static char *get_gconf_setting(GConfClient *gcl, char *config_path,
 	g_free(key);
 	return result;
 }
-
-static GConfClient *gcl;
-static char *config_path;
 
 static char *lasthost;
 
@@ -278,6 +367,7 @@ static int choose_vpnhost(struct openconnect_info *vpninfo, const char *vpn_name
 		vpninfo->hostname = host->hostaddress;
 	}
 	gtk_widget_destroy(dlg);
+	gdk_flush();
 	return 0;
 
 }
@@ -387,6 +477,7 @@ int main (int argc, char **argv)
 	vpninfo->ssl_fd = -1;
 	vpninfo->write_new_config = write_new_config;
 	vpninfo->progress = write_progress;
+	vpninfo->validate_peer_cert = validate_peer_cert;
 
 	set_openssl_ui();
 
