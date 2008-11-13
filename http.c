@@ -295,6 +295,13 @@ static int append_opt(char *body, int bodylen, char *opt, char *name)
 	return 0;
 }
 
+/*
+ * Maybe we should offer this choice to the user. So far we've only
+ * ever seen it offer bogus choices though -- between certificate and
+ * password authentication, when the former has already failed.
+ * So we just accept the first option with an auth-type property.
+ */
+
 static int parse_auth_choice(struct openconnect_info *vpninfo,
 			     xmlNode *xml_node, char *body, int bodylen,
 			     char **user_prompt, char **pass_prompt, int *is_securid)
@@ -322,7 +329,9 @@ static int parse_auth_choice(struct openconnect_info *vpninfo,
 			continue;
 		if (strcmp(authtype, "sdi-via-proxy")) {
 			char *content = (char *)xmlNodeGetContent(xml_node);
-			vpninfo->progress(vpninfo, PRG_ERR, "Unrecognised auth type %s, label '%s'\n", authtype, content);
+			vpninfo->progress(vpninfo, PRG_ERR, "Unrecognised auth type %s, label '%s'\n",
+					  authtype, content);
+			/* But continue anyway... */
 		}
 		vpninfo->progress(vpninfo, PRG_TRACE, "choosing %s %s\n", form_name, form_id);
 		append_opt(body, bodylen, form_name, form_id);
@@ -341,7 +350,8 @@ static int parse_auth_choice(struct openconnect_info *vpninfo,
 		return 0;
 	}
 	vpninfo->progress(vpninfo, PRG_ERR, "Didn't find appropriate auth-type choice\n");
-	return -EINVAL;
+	/* Not necessarily an error -- sometimes there are none */
+	return 0;
 }
 
 static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
