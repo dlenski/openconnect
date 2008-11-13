@@ -501,6 +501,11 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 
 	append_opt(body, bodylen, pass_form_id, passresult);
 
+	if (vpninfo->password) {
+		free(vpninfo->password);
+		vpninfo->password = 0;
+	}
+		
 	return 0;
 }
 
