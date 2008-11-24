@@ -170,6 +170,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 				  "See http://rt.openssl.org/Ticket/Display.html?id=1751\n"
 				  "Use the --no-dtls command line option to avoid this message\n",
 				  vpninfo->dtls_session->ssl_version);
+		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
 
