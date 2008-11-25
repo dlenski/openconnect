@@ -99,7 +99,7 @@ static int validate_peer_cert(struct openconnect_info *vpninfo,
 			      X509 *peer_cert)
 {
 	ASN1_STRING *signature = peer_cert->signature;
-	GSList *list, *this;
+	char *certs_data;
 	char *key;
 	BIO *bp = BIO_new(BIO_s_mem());
 	BUF_MEM *sig;
@@ -111,22 +111,35 @@ static int validate_peer_cert(struct openconnect_info *vpninfo,
 	BIO_get_mem_ptr(bp, &sig);
 
 	key = g_strdup_printf("%s/vpn/%s", config_path, "certsigs");
-	list = gconf_client_get_list(gcl, key, GCONF_VALUE_STRING, NULL);
+	certs_data = gconf_client_get_string(gcl, key, NULL);
+	if (certs_data) {
+		char **certs = g_strsplit_set(certs_data, "\t", 0);
+		char **this = certs;
 
-	for (this = list; this; this = this->next) {
-		if (!strcmp(this->data, sig->data))
-			goto out;
+		while (*this) {
+			if (!strcmp(*this, sig->data)) {
+				g_strfreev(certs);
+				goto out;
+			}
+			this++;
+		}
+		g_strfreev(certs);
 	}
 
 	ret = user_validate_cert(vpninfo, peer_cert);
 	if (!ret) {
-		list = g_slist_append(list, g_strdup(sig->data));
-		gconf_client_set_list(gcl, key, GCONF_VALUE_STRING, list, NULL);
+		if (certs_data) {
+			char *new = g_strdup_printf("%s\t%s", certs_data, sig->data);
+			gconf_client_set_string(gcl, key, new, NULL);
+			g_free(new);
+		} else {
+			gconf_client_set_string(gcl, key, sig->data, NULL);
+		}
 	}
-	
  out:
+	if (certs_data)
+		g_free(certs_data);
 	BIO_free(bp);
-	g_slist_free(list);
 	g_free(key);
 	return ret;
 }
