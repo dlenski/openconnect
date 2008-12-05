@@ -27,6 +27,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <netinet/in.h>
 #include <openssl/err.h>
 #include <fcntl.h>
 #include <string.h>
