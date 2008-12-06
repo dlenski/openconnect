@@ -121,7 +121,7 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 		memcpy(&efds, &vpninfo->select_efds, sizeof(efds));
 
 		tv.tv_sec = timeout / 1000;
-		tv.tv_usec = (timeout * 1000) % 1000000;
+		tv.tv_usec = (timeout % 1000) * 1000;
 		if (select(vpninfo->select_nfds, &rfds, &wfds, &efds, &tv) >= 0
 		    && FD_ISSET(vpninfo->ssl_fd, &efds)) {
 			/* OpenSSL doesn't seem to cope properly with this... */
