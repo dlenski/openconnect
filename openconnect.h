@@ -106,6 +106,8 @@ struct openconnect_info {
 	z_stream deflate_strm;
 	uint32_t deflate_adler32;
 
+	int reconnect_timeout;
+	int reconnect_interval;
 	int dtls_attempt_period;
 	time_t new_dtls_started;
 	SSL_CTX *dtls_ctx;

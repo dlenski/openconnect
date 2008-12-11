@@ -291,8 +291,10 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
 int make_cstp_connection(struct openconnect_info *vpninfo)
 {
-	if (!vpninfo->https_ssl && openconnect_open_https(vpninfo))
-		exit(1);
+	int ret;
+
+	if (!vpninfo->https_ssl && (ret=openconnect_open_https(vpninfo)))
+		return ret;
 
 	if (vpninfo->deflate) {
 		vpninfo->deflate_adler32 = 1;
@@ -317,12 +319,23 @@ int make_cstp_connection(struct openconnect_info *vpninfo)
 		}
 	}
 
-	if (start_cstp_connection(vpninfo))
-		return -EINVAL;
-
-	return 0;
+	return start_cstp_connection(vpninfo);
 }
 
+static int cstp_reconnect(struct openconnect_info *vpninfo)
+{
+	int retries, nr_retries, ret;
+	
+	nr_retries = vpninfo->reconnect_timeout / vpninfo->reconnect_interval;
+
+	while ((ret = make_cstp_connection(vpninfo))) {
+		retries++;
+		if (retries >= nr_retries)
+			return ret;
+		sleep(vpninfo->reconnect_interval);
+	}
+	return 0;
+}
 
 static int inflate_and_queue_packet(struct openconnect_info *vpninfo, int type, void *buf, int len)
 {
@@ -528,7 +541,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt)
 			vpninfo->current_ssl_pkt = NULL;
 
-		if (make_cstp_connection(vpninfo)) {
+		if (cstp_reconnect(vpninfo)) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Reconnect failed\n");
 			vpninfo->quit_reason = "SSL DPD detected dead peer; reconnect failed";
 			return 1;

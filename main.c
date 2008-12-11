@@ -155,6 +155,8 @@ int main(int argc, char **argv)
 	vpninfo->deflate = 1;
 	vpninfo->dtls_attempt_period = 60;
 	vpninfo->max_qlen = 10;
+	vpninfo->reconnect_interval = 20;
+	vpninfo->reconnect_timeout = 300;
 
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
 		fprintf(stderr, "Failed to initialise DTLS secret\n");
