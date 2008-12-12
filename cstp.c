@@ -635,13 +635,19 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 int cstp_bye(struct openconnect_info *vpninfo, char *reason)
 {
 	unsigned char *bye_pkt;
-	int reason_len = strlen(reason);
+	int reason_len;
+
+	/* already lost connection? */
+	if (!vpninfo->https_ssl)
+		return 0;
+
+	reason_len = strlen(reason);
 	bye_pkt = malloc(reason_len + 8);
 	if (!bye_pkt)
 		return -ENOMEM;
 	
 	memcpy(bye_pkt, data_hdr, 8);
-	memcpy(bye_pkt + 8, reason, strlen(reason));
+	memcpy(bye_pkt + 8, reason, reason_len);
 
 	bye_pkt[4] = reason_len >> 8;
 	bye_pkt[5] = reason_len & 0xff;
