@@ -69,6 +69,9 @@ struct split_include {
 	struct split_include *next;
 };
 
+#define RECONNECT_INTERVAL_MIN	10
+#define RECONNECT_INTERVAL_MAX	100
+
 struct openconnect_info {
 	char *redirect_url;
 

@@ -324,15 +324,24 @@ int make_cstp_connection(struct openconnect_info *vpninfo)
 
 static int cstp_reconnect(struct openconnect_info *vpninfo)
 {
-	int retries, nr_retries, ret;
+	int ret;
+	int timeout;
+	int interval;
 	
-	nr_retries = vpninfo->reconnect_timeout / vpninfo->reconnect_interval;
+	timeout = vpninfo->reconnect_timeout;
+	interval = vpninfo->reconnect_interval;
 
 	while ((ret = make_cstp_connection(vpninfo))) {
-		retries++;
-		if (retries >= nr_retries)
+		if (timeout <= 0)
 			return ret;
-		sleep(vpninfo->reconnect_interval);
+		vpninfo->progress(vpninfo, PRG_INFO,
+				  "sleep %ds, remain timeout %ds\n",
+				  interval, timeout);
+		sleep(interval);
+		timeout -= interval;
+		interval += vpninfo->reconnect_interval;
+		if (interval > RECONNECT_INTERVAL_MAX)
+			interval = RECONNECT_INTERVAL_MAX;
 	}
 	return 0;
 }
