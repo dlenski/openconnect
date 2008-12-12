@@ -55,7 +55,7 @@ int queue_new_packet(struct pkt **q, int type, void *buf, int len)
 	return 0;
 }
 
-static int killed;
+int killed;
 
 static void handle_sigint(int sig)
 {

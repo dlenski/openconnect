@@ -338,6 +338,8 @@ static int cstp_reconnect(struct openconnect_info *vpninfo)
 				  "sleep %ds, remain timeout %ds\n",
 				  interval, timeout);
 		sleep(interval);
+		if (killed)
+			return 1;
 		timeout -= interval;
 		interval += vpninfo->reconnect_interval;
 		if (interval > RECONNECT_INTERVAL_MAX)
