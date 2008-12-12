@@ -99,6 +99,9 @@ openconnect \- Connect to Cisco AnyConnect VPN
 [
 .B --passwd-on-stdin
 ]
+[
+.B --reconnect-timeout
+]
 \fIserver\fR
 
 .SH DESCRIPTION
@@ -218,6 +221,11 @@ Never attempt password (or SecurID) authentication
 .TP
 .B --passwd-on-stdin
 Read password from standard input
+.TP
+.B --reconnect-timeout
+Keep reconnect attempts until so much seconds are elapsed. The default
+timeout is 300 seconds, which means that openconnect can recover
+VPN connection after a temporary network down time of 300 seconds.
 
 .SH LIMITATIONS
 The

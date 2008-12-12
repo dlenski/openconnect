@@ -74,6 +74,7 @@ static struct option long_options[] = {
 	{"cookie-on-stdin", 0, 0, '4'},
 	{"passwd-on-stdin", 0, 0, '5'},
 	{"no-passwd", 0, 0, '6'},
+	{"reconnect-timeout", 1, 0, '7'},
 	{NULL, 0, 0, 0},
 };
 
@@ -108,6 +109,7 @@ void usage(void)
 	printf("      --no-dtls                   Disable DTLS\n");
 	printf("      --no-passwd                 Disable password/SecurID authentication\n");
 	printf("      --passwd-on-stdin           Read password from standard input\n");
+	printf("      --reconnect-timeout         Connection retry timeout in seconds\n");
 	exit(1);
 }
 
@@ -197,6 +199,9 @@ int main(int argc, char **argv)
 			break;
 		case '6':
 			vpninfo->nopasswd = 1;
+			break;
+		case '7':
+			vpninfo->reconnect_timeout = atoi(optarg);
 			break;
 		case 'C':
 			vpninfo->cookie = optarg;
