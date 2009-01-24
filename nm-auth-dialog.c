@@ -44,10 +44,18 @@ static char *config_path;
 
 static char *last_message;
 
+static char* get_title(const char *vpn_name)
+{
+	if (vpn_name)
+		return g_strdup_printf ("Connect to VPN '%s'", vpn_name);
+	else
+		return g_strdup ("Connect to VPN");
+}
+
 static int user_validate_cert(struct openconnect_info *vpninfo, X509 *peer_cert)
 {
 	BIO *bp = BIO_new(BIO_s_mem());
-	char *title;
+	char *msg, *title;
 	BUF_MEM *certinfo;
 	char zero = 0;
 	GtkWidget *dlg, *text, *scroll;
@@ -61,15 +69,22 @@ static int user_validate_cert(struct openconnect_info *vpninfo, X509 *peer_cert)
 	BIO_write(bp, &zero, 1);
 	BIO_get_mem_ptr(bp, &certinfo);
 
-	title = g_strdup_printf("Unknown certificate from VPN server \"%s\".\n"
+	title = get_title(vpninfo->vpn_name);
+	msg = g_strdup_printf("Unknown certificate from VPN server \"%s\".\n"
 				"Do you want to accept it?", vpninfo->hostname);
 
 	dlg = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_QUESTION,
 				     GTK_BUTTONS_OK_CANCEL,
-				     title);
+				     msg);
+	gtk_window_set_skip_taskbar_hint(GTK_WINDOW(dlg), FALSE);
+	gtk_window_set_skip_pager_hint(GTK_WINDOW(dlg), FALSE);
+	gtk_window_set_title (GTK_WINDOW(dlg), title);
 	gtk_window_set_default_size(GTK_WINDOW(dlg), 768, 768);
 	gtk_window_set_resizable(GTK_WINDOW(dlg), TRUE);
 	gtk_dialog_set_default_response(GTK_DIALOG(dlg), GTK_RESPONSE_CANCEL);
+
+	g_free(title);
+	g_free(msg);
 
 	scroll = gtk_scrolled_window_new(NULL, NULL);
 	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dlg)->vbox), scroll, TRUE, TRUE, 0);
@@ -87,7 +102,6 @@ static int user_validate_cert(struct openconnect_info *vpninfo, X509 *peer_cert)
 	BIO_free(bp);
 	gtk_widget_destroy(dlg);
 	gdk_flush();
-	g_free(title);
 
 	if (result != GTK_RESPONSE_OK)
 		return -EINVAL;
@@ -329,22 +343,31 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	return 0;
 }
 
-static int choose_vpnhost(struct openconnect_info *vpninfo, const char *vpn_name)
+static int choose_vpnhost(struct openconnect_info *vpninfo)
 {
 	GtkWidget *dlg, *label, *combo;
 	struct vpnhost *host;
 	int i = 0, result;
+	char *title;
 
 	if (!lasthost)
 		lasthost = vpninfo->hostname;
 
-	dlg = gtk_dialog_new_with_buttons(vpn_name, NULL, GTK_DIALOG_MODAL,
+	title = get_title(vpninfo->vpn_name);
+	dlg = gtk_dialog_new_with_buttons(title, NULL, GTK_DIALOG_MODAL,
 					  GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-					  GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
+					  GTK_STOCK_CONNECT, GTK_RESPONSE_ACCEPT,
 					  NULL);
+	g_free(title);
 
-	label = gtk_label_new("Choose host to connect to:");
-	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dlg)->vbox), label, FALSE, FALSE, 0);	
+	GtkWidget *box;
+	box = gtk_hbox_new (FALSE, 4);
+	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dlg)->vbox), box, FALSE, FALSE, 0);
+	gtk_container_set_border_width (GTK_CONTAINER(box),8);
+	gtk_widget_show (box);
+
+	label = gtk_label_new("Select host");
+	gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
 	gtk_widget_show(label);
 	
 	combo = gtk_combo_box_new_text();
@@ -359,11 +382,11 @@ static int choose_vpnhost(struct openconnect_info *vpninfo, const char *vpn_name
 			gtk_combo_box_set_active(GTK_COMBO_BOX(combo), i);
 	}
 			
-	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dlg)->vbox), combo, FALSE, FALSE, 0);	
+	gtk_box_pack_start(GTK_BOX(box), combo, FALSE, FALSE, 0);
 	gtk_widget_show(combo);
 
 	result = gtk_dialog_run(GTK_DIALOG(dlg));
-	if (result == GTK_RESPONSE_CANCEL) {
+	if (result != GTK_RESPONSE_ACCEPT) {
 		if (last_message)
 			g_free(last_message);
 		last_message = NULL;
@@ -386,11 +409,10 @@ static int choose_vpnhost(struct openconnect_info *vpninfo, const char *vpn_name
 
 }
 
-static int get_cookie(struct openconnect_info *vpninfo, char *vpn_name)
+static int get_cookie(struct openconnect_info *vpninfo)
 {
-	if (vpnhosts && choose_vpnhost(vpninfo, vpn_name))
+	if (vpnhosts && choose_vpnhost(vpninfo))
 		return -ENOENT;
-
 	openconnect_init_openssl();
 	openconnect_obtain_cookie(vpninfo);
 
@@ -492,6 +514,7 @@ int main (int argc, char **argv)
 	vpninfo->write_new_config = write_new_config;
 	vpninfo->progress = write_progress;
 	vpninfo->validate_peer_cert = validate_peer_cert;
+	vpninfo->vpn_name = vpn_name;
 
 	set_openssl_ui();
 
@@ -500,15 +523,25 @@ int main (int argc, char **argv)
 		return 1;
 	}
 
-	if (get_cookie(vpninfo, vpn_name) || !vpninfo->hostname || !vpninfo->cookie) {
+	if (get_cookie(vpninfo) || !vpninfo->hostname || !vpninfo->cookie) {
 		if (last_message) {
-			GtkWidget *dlg = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_ERROR,
-								GTK_BUTTONS_CANCEL, vpn_name);
-			GtkWidget *label = gtk_label_new(last_message);
-			gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dlg)->vbox), label, FALSE, FALSE, 0);
-			gtk_widget_show(label);
+			char *title, *msg;
+			GtkWidget *dlg;
+
+			msg = g_strdup_printf("Error: %s", last_message);
+			title = get_title (vpninfo->vpn_name);
 			
+			dlg = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_ERROR,
+						     GTK_BUTTONS_OK, msg);
+			gtk_window_set_title(GTK_WINDOW(dlg), title);
+			gtk_window_set_skip_taskbar_hint(GTK_WINDOW(dlg), FALSE);
+			gtk_window_set_skip_pager_hint(GTK_WINDOW(dlg), FALSE);
+
+			g_free(msg);
+			g_free(title);
+
 			gtk_dialog_run(GTK_DIALOG(dlg));
+			gtk_widget_destroy (dlg);
 		}
 		return 1;
 	}

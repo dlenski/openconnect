@@ -42,7 +42,8 @@ static int ui_open(UI *ui)
 	dlg = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_QUESTION,
 				     GTK_BUTTONS_OK_CANCEL, "OpenConnect");
 	gtk_dialog_set_default_response(GTK_DIALOG(dlg), GTK_RESPONSE_OK);
-	
+	gtk_window_set_skip_taskbar_hint(GTK_WINDOW(dlg), FALSE);
+	gtk_window_set_skip_pager_hint(GTK_WINDOW(dlg), FALSE);
 
 	UI_add_user_data(ui, dlg);
 	ssl_ui = ui;
