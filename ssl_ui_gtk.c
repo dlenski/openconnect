@@ -73,7 +73,7 @@ static void entry_changed_cb(GtkWidget *widget, gpointer user_data)
 static void entry_activate_cb(GtkWidget *widget, gpointer dlg)
 {
         g_return_if_fail(GTK_IS_DIALOG(dlg));
-        gtk_dialog_response(GTK_DIALOG(dlg), GTK_RESPONSE_OK);
+        gtk_dialog_response(GTK_DIALOG(dlg), GTK_RESPONSE_ACCEPT);
 }
 
 static int ui_write(UI *ui, UI_STRING *uis)
@@ -138,11 +138,16 @@ static int ui_close(UI *ui)
 static int ui_flush(UI* ui)
 {
 	dialog_data *data;
+	int response;
 
 	data = UI_get0_user_data(ui);
 
-	int response = gtk_dialog_run(GTK_DIALOG(data->dlg));
-	return response == GTK_RESPONSE_OK;
+	response = gtk_dialog_run(GTK_DIALOG(data->dlg));
+
+	/* -1 = cancel,
+	 *  0 = failure,
+	 *  1 = success */
+	return (response == GTK_RESPONSE_ACCEPT ? 1 : -1);
 }
 
 int set_openssl_ui(void)
