@@ -312,7 +312,7 @@ int main(int argc, char **argv)
 	set_openssl_ui();
 #endif
 
-	if (!vpninfo->cookie && openconnect_obtain_cookie(vpninfo)) {
+	if (!vpninfo->cookie && openconnect_obtain_cookie(vpninfo) != 1) {
 		fprintf(stderr, "Failed to obtain WebVPN cookie\n");
 		exit(1);
 	}

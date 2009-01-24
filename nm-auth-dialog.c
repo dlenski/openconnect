@@ -409,16 +409,17 @@ static int choose_vpnhost(struct openconnect_info *vpninfo)
 
 }
 
+/* Return value:
+ *  < 0, error
+ *  = 0, no cookie (user cancel)
+ *  = 1, got cookie
+ */
 static int get_cookie(struct openconnect_info *vpninfo)
 {
 	if (vpnhosts && choose_vpnhost(vpninfo))
 		return -ENOENT;
 	openconnect_init_openssl();
-	openconnect_obtain_cookie(vpninfo);
-
-	if (!vpninfo->cookie)
-		return -ENOENT;
-	return 0;
+	return openconnect_obtain_cookie(vpninfo);
 }
 
 int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
@@ -460,6 +461,7 @@ int main (int argc, char **argv)
 	struct openconnect_info *vpninfo;
 	int opt;
 	char read_buf;
+	int ret;
 
 	while ((opt = getopt_long(argc, argv, "ru:n:s:", long_options, NULL))) {
 		if (opt < 0)
@@ -526,7 +528,8 @@ int main (int argc, char **argv)
 		return 1;
 	}
 
-	if (get_cookie(vpninfo) || !vpninfo->hostname || !vpninfo->cookie) {
+	ret = get_cookie(vpninfo);
+	if (ret < 0) {
 		if (last_message) {
 			char *title, *msg;
 			GtkWidget *dlg;
@@ -547,12 +550,13 @@ int main (int argc, char **argv)
 			gtk_widget_destroy (dlg);
 		}
 		return 1;
+	} else if (ret == 1) {
+		printf("%s\n%s\n", NM_OPENCONNECT_KEY_GATEWAY, vpninfo->hostname);
+		printf("%s\n%s\n", NM_OPENCONNECT_KEY_COOKIE, vpninfo->cookie);
+		memset((void *)vpninfo->cookie, 0, strlen(vpninfo->cookie));
 	}
-	printf("%s\n%s\n", NM_OPENCONNECT_KEY_GATEWAY, vpninfo->hostname);
-	printf("%s\n%s\n", NM_OPENCONNECT_KEY_COOKIE, vpninfo->cookie);
 	printf("\n\n");
 
-	memset((void *)vpninfo->cookie, 0, strlen(vpninfo->cookie));
 
 	fflush (stdout);
 	(void)read(0, &read_buf, 1);
