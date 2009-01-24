@@ -504,6 +504,9 @@ int main (int argc, char **argv)
 		return 1;
 	}
 
+	gtk_init(0,  NULL);
+	gtk_window_set_default_icon_name(GTK_STOCK_DIALOG_AUTHENTICATION);
+
 	vpninfo = malloc(sizeof(*vpninfo));
 	memset(vpninfo, 0, sizeof(*vpninfo));
 

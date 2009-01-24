@@ -125,8 +125,6 @@ int set_openssl_ui(void)
 {
 	UI_METHOD *ui_method = UI_create_method("OpenConnect VPN UI (gtk)");
 
-	gtk_init(0,  NULL);
-
 	UI_method_set_opener(ui_method, ui_open);
 	UI_method_set_flusher(ui_method, ui_flush);
 	UI_method_set_writer(ui_method, ui_write);
