@@ -824,6 +824,8 @@ static void build_main_dialog(auth_ui_data *ui_data)
 	char *title;
 	GtkWidget *vbox, *hbox, *label, *image, *frame, *frame_box;
 
+	gtk_window_set_default_icon_name(GTK_STOCK_DIALOG_AUTHENTICATION);
+
 	title = get_title(ui_data->vpninfo->vpn_name);
 	ui_data->dialog = gtk_dialog_new_with_buttons(title, NULL, GTK_DIALOG_MODAL, 
 						      GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE,
@@ -902,6 +904,29 @@ static void build_main_dialog(auth_ui_data *ui_data)
 	gtk_widget_show(ui_data->cancel_button);
 }
 
+static auth_ui_data *init_ui_data (char *vpn_name)
+{
+	auth_ui_data *ui_data;
+
+	ui_data = g_slice_new0(auth_ui_data); 
+
+	ui_data->form_entries = g_queue_new();
+	ui_data->form_mutex = g_mutex_new();
+	ui_data->form_flushed = g_cond_new();
+
+	ui_data->vpninfo = g_slice_new0(struct openconnect_info);
+	ui_data->vpninfo->urlpath = strdup("/");
+	ui_data->vpninfo->mtu = 1406;
+	ui_data->vpninfo->useragent = openconnect_create_useragent("OpenConnect VPN Agent (NetworkManager)");
+	ui_data->vpninfo->ssl_fd = -1;
+	ui_data->vpninfo->write_new_config = write_new_config;
+	ui_data->vpninfo->progress = write_progress;
+	ui_data->vpninfo->validate_peer_cert = validate_peer_cert;
+	ui_data->vpninfo->vpn_name = vpn_name;
+
+	return ui_data;
+}
+
 static struct option long_options[] = {
 	{"reprompt", 0, 0, 'r'},
 	{"uuid", 1, 0, 'u'},
@@ -913,7 +938,7 @@ static struct option long_options[] = {
 int main (int argc, char **argv)
 {
 	char *vpn_name = NULL, *vpn_uuid = NULL, *vpn_service = NULL;
- 	int reprompt;
+	int reprompt;
 	int opt;
 
 	while ((opt = getopt_long(argc, argv, "ru:n:s:", long_options, NULL))) {
@@ -960,30 +985,13 @@ int main (int argc, char **argv)
 	}
 
 	g_thread_init (NULL);
-	gtk_init(0,  NULL);
-	gtk_window_set_default_icon_name(GTK_STOCK_DIALOG_AUTHENTICATION);
+	gtk_init(0, NULL);
 
-	ui_data = g_slice_new0(auth_ui_data); 
-
-	ui_data->form_entries = g_queue_new();
-	ui_data->form_mutex = g_mutex_new();
-	ui_data->form_flushed = g_cond_new();
-
-	ui_data->vpninfo = g_slice_new0(struct openconnect_info);
-	ui_data->vpninfo->urlpath = strdup("/");
-	ui_data->vpninfo->mtu = 1406;
-	ui_data->vpninfo->useragent = openconnect_create_useragent("OpenConnect VPN Agent (NetworkManager)");
-	ui_data->vpninfo->ssl_fd = -1;
-	ui_data->vpninfo->write_new_config = write_new_config;
-	ui_data->vpninfo->progress = write_progress;
-	ui_data->vpninfo->validate_peer_cert = validate_peer_cert;
-	ui_data->vpninfo->vpn_name = vpn_name;
-
+	ui_data = init_ui_data(vpn_name);
 	if (get_config(vpn_uuid, ui_data->vpninfo)) {
 		fprintf(stderr, "Failed to find VPN UUID %s in gconf\n", vpn_uuid);
 		return 1;
 	}
-
 	build_main_dialog(ui_data);
 
 	init_openssl_ui();
