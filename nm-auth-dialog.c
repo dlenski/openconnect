@@ -718,6 +718,8 @@ static gboolean cookie_obtained(auth_ui_data *ui_data)
 		/* error while getting cookie */
 		if (last_message) {
 			ssl_box_add_error(ui_data, last_message);
+			gtk_widget_show_all(ui_data->ssl_box);
+			gtk_widget_set_sensitive(ui_data->cancel_button, TRUE);
 		}
 		ui_data->retval = 1;
 	} else if (ui_data->cookie_retval == 1) {
@@ -761,6 +763,8 @@ static void connect_host(auth_ui_data *ui_data)
 
 	ui_data->cancelled = FALSE;
 	ui_data->getting_cookie = TRUE;
+	ssl_box_clear(ui_data);
+	gtk_widget_show(ui_data->getting_form_label);
 
 	/* reset ssl context. 
 	 * TODO: this is probably not the way to go... */
@@ -802,14 +806,10 @@ static void dialog_response (GtkDialog *dialog, int response, auth_ui_data *ui_d
 {
 	switch (response) {
 	case AUTH_DIALOG_RESPONSE_CANCEL:
-		gtk_container_foreach(GTK_CONTAINER(ui_data->ssl_box), 
-				      container_child_remove, ui_data->ssl_box);
+	case AUTH_DIALOG_RESPONSE_LOGIN:
+		ssl_box_clear(ui_data);
 		if(ui_data->getting_cookie)
 			gtk_widget_show (ui_data->getting_form_label);
-		/* fall through */
-	case AUTH_DIALOG_RESPONSE_LOGIN:
-		gtk_widget_set_sensitive (ui_data->login_button, FALSE);
-		gtk_widget_set_sensitive (ui_data->cancel_button, FALSE);
 		g_mutex_lock (ui_data->form_mutex);
 		ui_data->form_retval = GINT_TO_POINTER(response);
 		g_cond_signal (ui_data->form_retval_changed);
@@ -845,7 +845,7 @@ static void build_main_dialog(auth_ui_data *ui_data)
 						      GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE,
 						      NULL);
 	g_signal_connect (ui_data->dialog, "response", G_CALLBACK(dialog_response), ui_data);
-	gtk_window_set_default_size(GTK_WINDOW(ui_data->dialog), 340,235);
+	gtk_window_set_default_size(GTK_WINDOW(ui_data->dialog), 350, 275);
 	g_signal_connect_swapped(ui_data->dialog, "destroy",
 				 G_CALLBACK(gtk_main_quit), NULL);
 	g_free(title);
