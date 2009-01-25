@@ -266,28 +266,25 @@ static int ui_flush(UI* ui)
 
 	ui_data = UI_get0_user_data(ui);
 
-	/* return if a new host has been selected */
-	if (ui_data->cancelled) {
-		return -1;
-	}
-
-	g_idle_add ((GSourceFunc)ui_show, ui_data);
-
-	g_mutex_lock (ui_data->form_mutex);
-
+	g_idle_add((GSourceFunc)ui_show, ui_data);
+	g_mutex_lock(ui_data->form_mutex);
 	/* wait for ui to show */
 	while (!ui_data->form_shown) {
-		g_cond_wait (ui_data->form_shown_changed, ui_data->form_mutex);
+		g_cond_wait(ui_data->form_shown_changed, ui_data->form_mutex);
 	}
 	ui_data->form_shown = FALSE;
 
-	/* wait for form submission or cancel */ 
-	while (!ui_data->form_retval) {
-		g_cond_wait (ui_data->form_retval_changed, ui_data->form_mutex);
-	}
-	response = GPOINTER_TO_INT (ui_data->form_retval);
-	ui_data->form_retval = NULL;
+	if (!ui_data->cancelled) {
+		/* wait for form submission or cancel */ 
+		while (!ui_data->form_retval) {
+			g_cond_wait(ui_data->form_retval_changed, ui_data->form_mutex);
+		}
+		response = GPOINTER_TO_INT (ui_data->form_retval);
+		ui_data->form_retval = NULL;
+	} else 
+		response = AUTH_DIALOG_RESPONSE_CANCEL;
 
+	/* set entry results and free temporary data structures */
 	while (!g_queue_is_empty (ui_data->form_entries)) {
 		ui_fragment_data *data;
 		data = g_queue_pop_tail (ui_data->form_entries); 
@@ -740,7 +737,6 @@ static gboolean cookie_obtained(auth_ui_data *ui_data)
 		ui_data->retval = 0;
 	}
 
-
 	return FALSE;
 }
 
@@ -763,6 +759,11 @@ static void connect_host(auth_ui_data *ui_data)
 
 	ui_data->cancelled = FALSE;
 	ui_data->getting_cookie = TRUE;
+
+	g_mutex_lock (ui_data->form_mutex);
+	ui_data->form_retval = NULL;
+	g_mutex_unlock (ui_data->form_mutex);
+
 	ssl_box_clear(ui_data);
 	gtk_widget_show(ui_data->getting_form_label);
 
@@ -797,7 +798,6 @@ static void queue_connect_host(auth_ui_data *ui_data)
 		 * conversation will not be shown to user, and cookie_obtained() 
 		 * will start a new one conversation */
 		ui_data->cancelled = TRUE;
-
 		gtk_dialog_response(GTK_DIALOG(ui_data->dialog), AUTH_DIALOG_RESPONSE_CANCEL);
 	}
 }
