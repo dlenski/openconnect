@@ -135,7 +135,6 @@ static void ssl_box_clear(auth_ui_data *ui_data)
 typedef struct ui_fragment_data {
 	auth_ui_data *ui_data;
 	UI_STRING *uis;
-	gboolean visible;
 	char *entry_text;
 } ui_fragment_data;
 
@@ -200,7 +199,7 @@ static gboolean ui_write_prompt (ui_fragment_data *data)
 
 	entry = gtk_entry_new();
 	gtk_box_pack_end(GTK_BOX(hbox), entry, FALSE, FALSE, 0);
-	if (!data->visible)
+	if (!(UI_get_input_flags(data->uis) & UI_INPUT_FLAG_ECHO))
 		gtk_entry_set_visibility(GTK_ENTRY(entry), FALSE);
 	if (g_queue_peek_tail(ui_data->form_entries) == data)
 		gtk_widget_grab_focus (entry);
@@ -243,7 +242,6 @@ static int ui_write(UI *ui, UI_STRING *uis)
 	data = g_slice_new0 (ui_fragment_data);
 	data->ui_data = ui_data;
 	data->uis = uis;
-	data->visible = (UI_get_input_flags(uis) & UI_INPUT_FLAG_ECHO);
 
 	switch(UI_get_string_type(uis)) {
 	case UIT_ERROR:
@@ -291,14 +289,11 @@ static int ui_flush(UI* ui)
 	ui_data->form_retval = NULL;
 	g_mutex_unlock (ui_data->form_mutex);
 
-
 	while (!g_queue_is_empty (ui_data->form_entries)) {
 		ui_fragment_data *data;
 		data = g_queue_pop_tail (ui_data->form_entries); 
 		if (data->entry_text) {
 			UI_set_result(ui, data->uis, data->entry_text);
-		} else {
-			UI_set_result(ui, data->uis, "");
 		}
 		g_slice_free (ui_fragment_data, data);
 	}
@@ -709,6 +704,7 @@ void write_progress(struct openconnect_info *info, int level, const char *fmt, .
 
 static gboolean cookie_obtained(auth_ui_data *ui_data)
 {
+	ui_data->getting_cookie = FALSE;
 
 	if (ui_data->cancelled) {
 		/* user has chosen a new host, start from beginning */
@@ -748,9 +744,7 @@ gpointer obtain_cookie (auth_ui_data *ui_data)
 {
 	int ret;
 
-	ui_data->getting_cookie = TRUE;
 	ret = openconnect_obtain_cookie(ui_data->vpninfo);
-	ui_data->getting_cookie = FALSE;
 
 	ui_data->cookie_retval = ret;
 	g_idle_add ((GSourceFunc)cookie_obtained, ui_data);
@@ -760,9 +754,11 @@ gpointer obtain_cookie (auth_ui_data *ui_data)
 
 static void connect_host(auth_ui_data *ui_data)
 {
+	GThread *thread;
 	int host_nr;
 
 	ui_data->cancelled = FALSE;
+	ui_data->getting_cookie = TRUE;
 
 	/* reset ssl context. 
 	 * TODO: this is probably not the way to go... */
@@ -777,7 +773,6 @@ static void connect_host(auth_ui_data *ui_data)
 	host_nr = gtk_combo_box_get_active(GTK_COMBO_BOX(ui_data->combo));
 	ui_data->vpninfo->hostname = get_hostname(ui_data, host_nr);
 
-	GThread *thread;
 	thread = g_thread_create((GThreadFunc)obtain_cookie, ui_data,
 				 FALSE, NULL);
 }
@@ -790,8 +785,10 @@ static void queue_connect_host(auth_ui_data *ui_data)
 
 	if (!ui_data->getting_cookie) {
 		connect_host(ui_data);
-	} else {
-		/* cancel current ssl ui  */
+	} else if (!ui_data->cancelled) {
+		/* set state to cancelled. Current challenge-response-
+		 * conversation will not be shown to user, and cookie_obtained() 
+		 * will start a new one conversation */
 		ui_data->cancelled = TRUE;
 		gtk_widget_hide(ui_data->no_form_label);
 
@@ -809,7 +806,6 @@ static void dialog_response (GtkDialog *dialog, int response, auth_ui_data *ui_d
 	case AUTH_DIALOG_RESPONSE_LOGIN:
 		gtk_widget_set_sensitive (ui_data->login_button, FALSE);
 		gtk_widget_set_sensitive (ui_data->cancel_button, FALSE);
-
 		g_mutex_lock (ui_data->form_mutex);
 		ui_data->form_retval = GINT_TO_POINTER(response);
 		g_cond_signal (ui_data->form_flushed);
