@@ -42,7 +42,6 @@
 #include <openssl/bio.h>
 #include <openssl/ui.h>
 
-
 static GConfClient *gcl;
 static char *config_path;
 
@@ -577,7 +576,7 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	vpnhosts->hostaddress = hostname;
 	vpnhosts->next = NULL;
 
-if (1){
+if (0){
 /* DEBUG add another copy of gateway to host list */
 	 vpnhost *tmphost;
 	tmphost = malloc(sizeof(tmphost));
@@ -837,7 +836,7 @@ static void login_clicked (GtkButton *btn, auth_ui_data *ui_data)
 static void build_main_dialog(auth_ui_data *ui_data)
 {
 	char *title;
-	GtkWidget *vbox, *hbox, *label, *image, *frame, *frame_box;
+	GtkWidget *vbox, *hbox, *label, *frame, *image, *frame_box;
 
 	gtk_window_set_default_icon_name(GTK_STOCK_DIALOG_AUTHENTICATION);
 
@@ -1013,6 +1012,9 @@ int main (int argc, char **argv)
 	init_openssl_ui();
 	openconnect_init_openssl();
 
+#ifdef NM_AUTH_DIALOG_AUTOCONNECT
+	queue_connect_host(ui_data);
+#endif
 	gtk_window_present(GTK_WINDOW(ui_data->dialog));
 	gtk_main();
 
