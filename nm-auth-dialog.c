@@ -77,9 +77,13 @@ typedef struct auth_ui_data {
 	gboolean getting_cookie;
 	
 	GQueue *form_entries; /* modified from worker thread */
-	GCond *form_flushed;
 	GMutex *form_mutex;
+
+	GCond *form_retval_changed;
 	gpointer form_retval;
+
+	GCond *form_shown_changed;
+	gboolean form_shown;
 } auth_ui_data;
 
 enum {
@@ -105,21 +109,15 @@ static void ssl_box_add_error(auth_ui_data *ui_data, const char *msg)
 {
 	GtkWidget *hbox, *text, *image;
 
-	gtk_widget_hide(ui_data->getting_form_label);
-	gtk_widget_set_sensitive (ui_data->cancel_button, TRUE);
-
 	hbox = gtk_hbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(ui_data->ssl_box), hbox, FALSE, FALSE, 0);
-	gtk_widget_show(hbox);
 
 	image = gtk_image_new_from_stock(GTK_STOCK_DIALOG_ERROR,
 					 GTK_ICON_SIZE_DIALOG);
 	gtk_box_pack_start(GTK_BOX(hbox), image, FALSE, FALSE, 0);
-	gtk_widget_show(image);
 
 	text = gtk_label_new(msg);
 	gtk_box_pack_start(GTK_BOX(hbox), text, FALSE, FALSE, 0);
-	gtk_widget_show(text);
 }
 
 static void ssl_box_clear(auth_ui_data *ui_data)
@@ -149,13 +147,6 @@ static void entry_changed(GtkEntry *entry, ui_fragment_data *data)
 	data->entry_text = g_strdup(gtk_entry_get_text(entry));
 }
 
-static gboolean ui_open_real (auth_ui_data *ui_data)
-{
-	ssl_box_clear(ui_data);
-
-	return FALSE;
-}
-
 static gboolean ui_write_error (ui_fragment_data *data)
 {
 	ssl_box_add_error(data->ui_data, UI_get0_output_string(data->uis));
@@ -169,12 +160,8 @@ static gboolean ui_write_info (ui_fragment_data *data)
 {
 	GtkWidget *text;
 
-	gtk_widget_hide(data->ui_data->getting_form_label);
-	gtk_widget_set_sensitive (ui_data->cancel_button, TRUE);
-
 	text = gtk_label_new(UI_get0_output_string(data->uis));
 	gtk_box_pack_start(GTK_BOX(data->ui_data->ssl_box), text, FALSE, FALSE, 0);
-	gtk_widget_show(text);
 
 	g_slice_free (ui_fragment_data, data);
 
@@ -185,17 +172,11 @@ static gboolean ui_write_prompt (ui_fragment_data *data)
 {
 	GtkWidget *hbox, *text, *entry;
 
-	gtk_widget_hide(data->ui_data->getting_form_label);
-	gtk_widget_set_sensitive (ui_data->login_button, TRUE);
-	gtk_widget_set_sensitive (ui_data->cancel_button, TRUE);
-
 	hbox = gtk_hbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(data->ui_data->ssl_box), hbox, FALSE, FALSE, 0);
-	gtk_widget_show(hbox);
 
 	text = gtk_label_new(UI_get0_output_string(data->uis));
 	gtk_box_pack_start(GTK_BOX(hbox), text, FALSE, FALSE, 0);
-	gtk_widget_show(text);
 
 	entry = gtk_entry_new();
 	gtk_box_pack_end(GTK_BOX(hbox), entry, FALSE, FALSE, 0);
@@ -205,9 +186,24 @@ static gboolean ui_write_prompt (ui_fragment_data *data)
 		gtk_widget_grab_focus (entry);
 	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(entry_changed), data);
 	g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(entry_activate_cb), ui_data);
-	gtk_widget_show(entry);
 
-	/* data is freed in ui_flush */
+	/* data is freed in ui_flush in worker thread */
+
+	return FALSE;
+}
+
+static gboolean ui_show (auth_ui_data *ui_data)
+{
+	gtk_widget_hide (ui_data->getting_form_label);
+	gtk_widget_show_all (ui_data->ssl_box);
+	gtk_widget_set_sensitive (ui_data->cancel_button, TRUE);
+	g_mutex_lock (ui_data->form_mutex);
+	if (!g_queue_is_empty(ui_data->form_entries))
+		gtk_widget_set_sensitive (ui_data->login_button, TRUE);
+	ui_data->form_shown = TRUE;
+	g_cond_signal (ui_data->form_shown_changed);
+	g_mutex_unlock (ui_data->form_mutex);
+
 	return FALSE;
 }
 
@@ -215,13 +211,6 @@ static gboolean ui_write_prompt (ui_fragment_data *data)
 static int ui_open(UI *ui)
 {
 	UI_add_user_data(ui, ui_data);
-
-	/* return if a new host has been selected */
-	if (ui_data->cancelled) {
-		return 1;
-	}
-
-	g_idle_add ((GSourceFunc)ui_open_real, ui_data);
 
 	return 1;
 }
@@ -254,7 +243,10 @@ static int ui_write(UI *ui, UI_STRING *uis)
 
 	case UIT_PROMPT:
 	case UIT_VERIFY:
+		g_mutex_lock (ui_data->form_mutex);
 		g_queue_push_head(ui_data->form_entries, data);
+		g_mutex_unlock (ui_data->form_mutex);
+
 		g_idle_add ((GSourceFunc)ui_write_prompt, data);
 		break;
 
@@ -280,14 +272,22 @@ static int ui_flush(UI* ui)
 		return -1;
 	}
 
-	/* wait for form submission or cancel */ 
+	g_idle_add ((GSourceFunc)ui_show, ui_data);
+
 	g_mutex_lock (ui_data->form_mutex);
+
+	/* wait for ui to show */
+	while (!ui_data->form_shown) {
+		g_cond_wait (ui_data->form_shown_changed, ui_data->form_mutex);
+	}
+	ui_data->form_shown = FALSE;
+
+	/* wait for form submission or cancel */ 
 	while (!ui_data->form_retval) {
-		g_cond_wait (ui_data->form_flushed, ui_data->form_mutex);
+		g_cond_wait (ui_data->form_retval_changed, ui_data->form_mutex);
 	}
 	response = GPOINTER_TO_INT (ui_data->form_retval);
 	ui_data->form_retval = NULL;
-	g_mutex_unlock (ui_data->form_mutex);
 
 	while (!g_queue_is_empty (ui_data->form_entries)) {
 		ui_fragment_data *data;
@@ -297,6 +297,8 @@ static int ui_flush(UI* ui)
 		}
 		g_slice_free (ui_fragment_data, data);
 	}
+
+	g_mutex_unlock(ui_data->form_mutex);
 
 	/* -1 = cancel,
 	 *  0 = failure,
@@ -575,7 +577,7 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	vpnhosts->hostaddress = hostname;
 	vpnhosts->next = NULL;
 
-if (0){
+if (1){
 /* DEBUG add another copy of gateway to host list */
 	 vpnhost *tmphost;
 	tmphost = malloc(sizeof(tmphost));
@@ -705,6 +707,7 @@ void write_progress(struct openconnect_info *info, int level, const char *fmt, .
 static gboolean cookie_obtained(auth_ui_data *ui_data)
 {
 	ui_data->getting_cookie = FALSE;
+	gtk_widget_hide (ui_data->getting_form_label);
 
 	if (ui_data->cancelled) {
 		/* user has chosen a new host, start from beginning */
@@ -782,6 +785,7 @@ static void queue_connect_host(auth_ui_data *ui_data)
 {
 	ssl_box_clear(ui_data);
 	gtk_widget_show(ui_data->getting_form_label);
+	gtk_widget_hide(ui_data->no_form_label);
 
 	if (!ui_data->getting_cookie) {
 		connect_host(ui_data);
@@ -790,7 +794,6 @@ static void queue_connect_host(auth_ui_data *ui_data)
 		 * conversation will not be shown to user, and cookie_obtained() 
 		 * will start a new one conversation */
 		ui_data->cancelled = TRUE;
-		gtk_widget_hide(ui_data->no_form_label);
 
 		gtk_dialog_response(GTK_DIALOG(ui_data->dialog), AUTH_DIALOG_RESPONSE_CANCEL);
 	}
@@ -802,13 +805,15 @@ static void dialog_response (GtkDialog *dialog, int response, auth_ui_data *ui_d
 	case AUTH_DIALOG_RESPONSE_CANCEL:
 		gtk_container_foreach(GTK_CONTAINER(ui_data->ssl_box), 
 				      container_child_remove, ui_data->ssl_box);
+		if(ui_data->getting_cookie)
+			gtk_widget_show (ui_data->getting_form_label);
 		/* fall through */
 	case AUTH_DIALOG_RESPONSE_LOGIN:
 		gtk_widget_set_sensitive (ui_data->login_button, FALSE);
 		gtk_widget_set_sensitive (ui_data->cancel_button, FALSE);
 		g_mutex_lock (ui_data->form_mutex);
 		ui_data->form_retval = GINT_TO_POINTER(response);
-		g_cond_signal (ui_data->form_flushed);
+		g_cond_signal (ui_data->form_retval_changed);
 		g_mutex_unlock (ui_data->form_mutex);
 		break;
 	case GTK_RESPONSE_CLOSE:
@@ -922,7 +927,8 @@ static auth_ui_data *init_ui_data (char *vpn_name)
 
 	ui_data->form_entries = g_queue_new();
 	ui_data->form_mutex = g_mutex_new();
-	ui_data->form_flushed = g_cond_new();
+	ui_data->form_retval_changed = g_cond_new();
+	ui_data->form_shown_changed = g_cond_new();
 
 	ui_data->vpninfo = g_slice_new0(struct openconnect_info);
 	ui_data->vpninfo->urlpath = strdup("/");
