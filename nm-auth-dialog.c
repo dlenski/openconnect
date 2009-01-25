@@ -732,9 +732,7 @@ static gboolean cookie_obtained(auth_ui_data *ui_data)
 	} else {
 		/* no cookie */
 		gtk_widget_show (ui_data->no_form_label);
-		printf("\n\n");
-		fflush(stdout);
-		ui_data->retval = 0;
+		ui_data->retval = 1;
 	}
 
 	return FALSE;
@@ -923,6 +921,7 @@ static auth_ui_data *init_ui_data (char *vpn_name)
 	auth_ui_data *ui_data;
 
 	ui_data = g_slice_new0(auth_ui_data); 
+	ui_data->retval = 1;
 
 	ui_data->form_entries = g_queue_new();
 	ui_data->form_mutex = g_mutex_new();
