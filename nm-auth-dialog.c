@@ -150,6 +150,12 @@ static void entry_changed(GtkEntry *entry, ui_fragment_data *data)
 	data->entry_text = g_strdup(gtk_entry_get_text(entry));
 }
 
+static gboolean ui_open_real (auth_ui_data *ui_data)
+{
+	ssl_box_clear(ui_data);
+
+	return FALSE;
+}
 
 static gboolean ui_write_error (ui_fragment_data *data)
 {
@@ -210,6 +216,14 @@ static gboolean ui_write_prompt (ui_fragment_data *data)
 static int ui_open(UI *ui)
 {
 	UI_add_user_data(ui, ui_data);
+
+	/* return if a new host has been selected */
+	if (ui_data->cancelled) {
+		return 1;
+	}
+
+	g_idle_add ((GSourceFunc)ui_open_real, ui_data);
+
 	return 1;
 }
 
