@@ -68,6 +68,7 @@ typedef struct auth_ui_data {
 	GtkWidget *ssl_box;
 	GtkWidget *cancel_button;
 	GtkWidget *login_button;
+	GtkTextBuffer *log;
 
 	int retval;
 	int cookie_retval;
@@ -116,6 +117,10 @@ static void ssl_box_add_error(auth_ui_data *ui_data, const char *msg)
 	gtk_box_pack_start(GTK_BOX(hbox), image, FALSE, FALSE, 0);
 
 	text = gtk_label_new(msg);
+	gtk_label_set_line_wrap_mode(GTK_LABEL(text), PANGO_WRAP_WORD_CHAR);
+	gtk_label_set_line_wrap(GTK_LABEL(text), TRUE);
+	gtk_label_set_width_chars (GTK_LABEL(text), 33);
+
 	gtk_box_pack_start(GTK_BOX(hbox), text, FALSE, FALSE, 0);
 }
 
@@ -678,22 +683,51 @@ int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
 	return 0;
 }
 
+static void scroll_log(GtkTextBuffer *log, GtkTextView *view)
+{
+	GtkTextMark *mark;
+
+	g_return_if_fail(GTK_IS_TEXT_VIEW(view));
+
+	mark = gtk_text_buffer_get_insert(log);
+	gtk_text_view_scroll_to_mark(view, mark, 0.0, FALSE, 0.0, 0.0);
+}
+
+/* NOTE: write_progress_real() will free the given string */
+static gboolean write_progress_real(char *message)
+{
+	GtkTextIter iter;
+
+	g_return_val_if_fail(message, FALSE);
+
+	gtk_text_buffer_get_end_iter(ui_data->log, &iter);
+	gtk_text_buffer_insert(ui_data->log, &iter, message, -1);
+
+	g_free(message);
+
+	return FALSE;
+}
+
+/* runs in worker thread */
 void write_progress(struct openconnect_info *info, int level, const char *fmt, ...)
 {
 	va_list args;
 	char *msg;
 
+	if (last_message) {
+		g_free(last_message);
+		last_message = NULL;
+	}
+
 	va_start(args, fmt);
 	msg = g_strdup_vprintf(fmt, args);
 	va_end(args);
 
-	if (level <= PRG_INFO) {
-		fprintf(stderr, "%s", msg);
+	if (level <= PRG_DEBUG) {
+		g_idle_add((GSourceFunc)write_progress_real, g_strdup(msg));
 	}
 
 	if (level <= PRG_ERR){
-		if (last_message)
-			g_free(last_message);
 		last_message = msg;
 		return;
 	} 
@@ -835,6 +869,7 @@ static void build_main_dialog(auth_ui_data *ui_data)
 {
 	char *title;
 	GtkWidget *vbox, *hbox, *label, *frame, *image, *frame_box;
+	GtkWidget *exp, *scrolled, *view;
 
 	gtk_window_set_default_icon_name(GTK_STOCK_DIALOG_AUTHENTICATION);
 
@@ -843,7 +878,7 @@ static void build_main_dialog(auth_ui_data *ui_data)
 						      GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE,
 						      NULL);
 	g_signal_connect (ui_data->dialog, "response", G_CALLBACK(dialog_response), ui_data);
-	gtk_window_set_default_size(GTK_WINDOW(ui_data->dialog), 350, 275);
+	gtk_window_set_default_size(GTK_WINDOW(ui_data->dialog), 350, 300);
 	g_signal_connect_swapped(ui_data->dialog, "destroy",
 				 G_CALLBACK(gtk_main_quit), NULL);
 	g_free(title);
@@ -879,6 +914,7 @@ static void build_main_dialog(auth_ui_data *ui_data)
 
 	frame = gtk_frame_new(NULL);
 	gtk_box_pack_start(GTK_BOX(vbox), frame, TRUE, TRUE, 0);
+	gtk_widget_set_size_request(frame, -1, 175);
 	gtk_widget_show(frame);
 
 	frame_box = gtk_vbox_new(FALSE, 4);
@@ -900,7 +936,7 @@ static void build_main_dialog(auth_ui_data *ui_data)
 	gtk_widget_show(ui_data->ssl_box);
 
 	hbox = gtk_hbox_new (FALSE, 8);
-	gtk_box_pack_end(GTK_BOX(frame_box), hbox, FALSE, FALSE, 0);
+	gtk_box_pack_end(GTK_BOX(frame_box), hbox, FALSE, FALSE, 4);
 	gtk_widget_show(hbox);
 
 	ui_data->login_button = gtk_button_new_with_label ("Login");
@@ -914,6 +950,30 @@ static void build_main_dialog(auth_ui_data *ui_data)
 	g_signal_connect (ui_data->cancel_button, "clicked", G_CALLBACK(cancel_clicked), ui_data);
 	gtk_widget_set_sensitive (ui_data->cancel_button, FALSE);
 	gtk_widget_show(ui_data->cancel_button);
+
+	exp = gtk_expander_new("Log");
+	gtk_box_pack_end(GTK_BOX(vbox), exp, FALSE, FALSE, 0);
+	gtk_widget_show(exp);
+
+	scrolled = gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled),
+				       GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+	gtk_widget_set_size_request(scrolled, -1, 75);
+	gtk_container_add(GTK_CONTAINER(exp), scrolled);
+	gtk_widget_show(scrolled);
+
+	view = gtk_text_view_new();
+	gtk_text_view_set_editable(GTK_TEXT_VIEW(view), FALSE);
+	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(view), FALSE);
+	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(view), GTK_WRAP_WORD_CHAR);
+	gtk_text_view_set_left_margin(GTK_TEXT_VIEW(view), 5);
+	gtk_text_view_set_right_margin(GTK_TEXT_VIEW(view), 5);
+	gtk_text_view_set_indent(GTK_TEXT_VIEW(view), -10);
+	gtk_container_add(GTK_CONTAINER(scrolled), view);
+	gtk_widget_show(view);
+
+	ui_data->log = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
+	g_signal_connect(ui_data->log, "changed", G_CALLBACK(scroll_log), view);
 }
 
 static auth_ui_data *init_ui_data (char *vpn_name)
