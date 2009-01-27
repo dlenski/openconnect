@@ -945,7 +945,7 @@ static void build_main_dialog(auth_ui_data *ui_data)
 	gtk_box_pack_end(GTK_BOX(frame_box), hbox, FALSE, FALSE, 0);
 	gtk_widget_show(hbox);
 
-	ui_data->login_button = gtk_button_new_with_label ("Login");
+	ui_data->login_button = gtk_button_new_with_mnemonic("_Login");
 	image = gtk_image_new_from_stock(GTK_STOCK_APPLY, GTK_ICON_SIZE_BUTTON);
 	gtk_button_set_image (GTK_BUTTON(ui_data->login_button), image);
 	gtk_box_pack_end(GTK_BOX(hbox), ui_data->login_button, FALSE, FALSE, 0);
