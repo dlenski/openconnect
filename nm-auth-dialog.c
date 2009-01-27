@@ -924,7 +924,7 @@ static void build_main_dialog(auth_ui_data *ui_data)
 	gtk_widget_show(frame);
 
 	frame_box = gtk_vbox_new(FALSE, 4);
-	gtk_container_set_border_width(GTK_CONTAINER(frame_box), 4);
+	gtk_container_set_border_width(GTK_CONTAINER(frame_box), 8);
 	gtk_container_add(GTK_CONTAINER(frame), frame_box);
 	gtk_widget_show(frame_box);
 
@@ -933,7 +933,7 @@ static void build_main_dialog(auth_ui_data *ui_data)
 	gtk_box_pack_start(GTK_BOX(frame_box), ui_data->no_form_label, FALSE, FALSE, 0);
 	gtk_widget_show(ui_data->no_form_label);
 
-	ui_data->getting_form_label = gtk_label_new("Fetching login form, please wait...");
+	ui_data->getting_form_label = gtk_label_new("Contacting host, please wait...");
 	gtk_widget_set_sensitive(ui_data->getting_form_label, FALSE);
 	gtk_box_pack_start(GTK_BOX(frame_box), ui_data->getting_form_label, FALSE, FALSE, 0);
 
@@ -941,11 +941,13 @@ static void build_main_dialog(auth_ui_data *ui_data)
 	gtk_box_pack_start(GTK_BOX(frame_box), ui_data->ssl_box, FALSE, FALSE, 0);
 	gtk_widget_show(ui_data->ssl_box);
 
-	hbox = gtk_hbox_new (FALSE, 8);
-	gtk_box_pack_end(GTK_BOX(frame_box), hbox, FALSE, FALSE, 4);
+	hbox = gtk_hbox_new (FALSE, 6);
+	gtk_box_pack_end(GTK_BOX(frame_box), hbox, FALSE, FALSE, 0);
 	gtk_widget_show(hbox);
 
 	ui_data->login_button = gtk_button_new_with_label ("Login");
+	image = gtk_image_new_from_stock(GTK_STOCK_APPLY, GTK_ICON_SIZE_BUTTON);
+	gtk_button_set_image (GTK_BUTTON(ui_data->login_button), image);
 	gtk_box_pack_end(GTK_BOX(hbox), ui_data->login_button, FALSE, FALSE, 0);
 	g_signal_connect (ui_data->login_button, "clicked", G_CALLBACK(login_clicked), ui_data);
 	gtk_widget_set_sensitive (ui_data->login_button, FALSE);
