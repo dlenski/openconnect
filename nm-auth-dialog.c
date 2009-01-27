@@ -550,14 +550,14 @@ int main (int argc, char **argv)
 			gtk_widget_destroy (dlg);
 		}
 		return 1;
-	} else if (ret == 1) {
-		printf("%s\n%s\n", NM_OPENCONNECT_KEY_GATEWAY, vpninfo->hostname);
-		printf("%s\n%s\n", NM_OPENCONNECT_KEY_COOKIE, vpninfo->cookie);
-		memset((void *)vpninfo->cookie, 0, strlen(vpninfo->cookie));
+	} else if (ret == 0) {
+		return 1;
 	}
+	printf("%s\n%s\n", NM_OPENCONNECT_KEY_GATEWAY, vpninfo->hostname);
+	printf("%s\n%s\n", NM_OPENCONNECT_KEY_COOKIE, vpninfo->cookie);
 	printf("\n\n");
 
-
+	memset((void *)vpninfo->cookie, 0, strlen(vpninfo->cookie));
 	fflush (stdout);
 	(void)read(0, &read_buf, 1);
 
