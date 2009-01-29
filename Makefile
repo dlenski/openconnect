@@ -34,8 +34,8 @@ endif
 XML2_CFLAGS += $(shell xml2-config --cflags) 
 XML2_LDFLAGS += $(shell xml2-config --libs)
 
-GTK_CFLAGS += $(shell pkg-config --cflags gtk+-x11-2.0)
-GTK_LDFLAGS += $(shell pkg-config --libs gtk+-x11-2.0)
+GTK_CFLAGS += $(shell pkg-config --cflags gtk+-x11-2.0 gthread-2.0)
+GTK_LDFLAGS += $(shell pkg-config --libs gtk+-x11-2.0 gthread-2.0)
 
 GCONF_CFLAGS += $(shell pkg-config --cflags gconf-2.0)
 GCONF_LDFLAGS += $(shell pkg-config --libs gconf-2.0)
