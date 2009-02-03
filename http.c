@@ -355,6 +355,11 @@ static int parse_auth_choice(struct openconnect_info *vpninfo,
 	return 0;
 }
 
+/* Return value:
+ *  < 0, on error
+ *  = 0, when form was cancelled
+ *  = 1, when form was parsed
+ */
 static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 		      char *form_message, char *form_error, xmlNode *xml_node,
 		      char *body, int bodylen)
@@ -483,11 +488,16 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 		UI_add_input_string(ui, pass_form_prompt, 0, password, 1, 80);
 	}
 
-	ret = UI_process(ui);
-	if (ret) {
+	switch (UI_process(ui)) {
+	case -2:
+		/* cancelled */
+		return 0;
+	case -1:
+		/* error */
 		vpninfo->progress(vpninfo, PRG_ERR, "Invalid inputs\n");
 		return -EINVAL;
 	}
+
 	if (user_form_id)
 		append_opt(body, bodylen, user_form_id,
 			   vpninfo->username?:username);
@@ -496,17 +506,17 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 		/* First token request; mangle pin into _both_ first and next
 		   token code */
 		int ret = add_securid_pin(vpninfo->sid_tokencode, tpin);
-		if (!ret)
+		if (ret < 0)
 			ret = add_securid_pin(vpninfo->sid_nexttokencode, tpin);
-		if (ret)
-			return ret;
+		if (ret < 0)
+			return -1;
 		passresult = vpninfo->sid_tokencode;
 	} else if (is_securid == 2 && vpninfo->sid_nexttokencode[0]) {
 		passresult = vpninfo->sid_nexttokencode;
 	} else if (is_securid && tpin[0]) {
 		ret = add_securid_pin(password, tpin);
-		if (ret)
-			return ret;
+		if (ret < 0)
+			return -1;
 	} else if (vpninfo->password)
 		passresult = vpninfo->password;
 
@@ -516,10 +526,16 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 		free(vpninfo->password);
 		vpninfo->password = NULL;
 	}
-		
-	return 0;
+
+	return 1;
 }
 
+/* Return value:
+ *  < 0, on error
+ *  = 0, 
+ *  = 1, when response was parsed
+ *  = 2, when response was cancelled
+ */
 static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			      char *request_body, int req_len)
 {
@@ -564,6 +580,8 @@ static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			form_error = (char *)xmlNodeGetContent(xml_node);
 		} else if (!strcmp((char *)xml_node->name, "form")) {
 			char *form_method, *form_action;
+			int ret;
+
 			form_method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
 			form_action = (char *)xmlGetProp(xml_node, (unsigned char *)"action");
 			if (strcasecmp(form_method, "POST")) {
@@ -574,17 +592,21 @@ static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			}
 			free(vpninfo->urlpath);
 			vpninfo->urlpath = strdup(form_action);
-			
-			if (parse_form(vpninfo, auth_id, form_message,
-				       form_error, xml_node, request_body,
-				       req_len)) {
+
+			ret = parse_form(vpninfo, auth_id, form_message,
+					 form_error, xml_node, request_body,
+					 req_len);
+			if (ret < 0) {
+				/* fail */
 				xmlFreeDoc(xml_doc);
 				return -EINVAL;
+			} else if (ret == 0)  {
+				/* cancel */
+				return 2;
 			}
 
 			/* Let the caller know there's a form to be submitted */
 			return 1;
-			
 		}
 	}
 
@@ -647,6 +669,11 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 	return vpninfo->write_new_config(vpninfo, buf, buflen);
 }
 
+/* Return value:
+ *  < 0, on error
+ *  = 0, no cookie (user cancel)
+ *  = 1, obtained cookie
+ */
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 {
 	struct vpn_option *opt, *next;
@@ -749,7 +776,10 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 
 	request_body[0] = 0;
 	result = parse_xml_response(vpninfo, buf, request_body, sizeof(request_body));
-	if (result > 0) {
+	if (result == 2) {
+		/* cancel */
+		return 0;
+	} else if (result == 1) {
 		method = "POST";
 		request_body_type = "application/x-www-form-urlencoded";
 		if (0) {
@@ -792,11 +822,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		}
 	}
 
-	if (vpninfo->cookie)
-		return 0;
-
-	vpninfo->progress(vpninfo, PRG_ERR, "Server claimed successful login, but no cookie!\n");
-	return -1;
+	return 1;
 }
 
 char *openconnect_create_useragent(char *base)

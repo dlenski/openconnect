@@ -75,6 +75,8 @@ struct split_include {
 struct openconnect_info {
 	char *redirect_url;
 
+	char *vpn_name;
+
 	char sid_tokencode[9];
 	char sid_nexttokencode[9];
 
