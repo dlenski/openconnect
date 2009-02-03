@@ -473,6 +473,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpninfo->progress(vpninfo, PRG_TRACE,
 				  "Sent DTLS packet of %d bytes; SSL_write() returned %d\n",
 				  this->len, ret);
+		free(this);
 	}
 
 	return work_done;

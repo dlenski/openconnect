@@ -335,6 +335,7 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpninfo->quit_reason = "Client connection terminated";
 			return 1;
 		}
+		free(this);
 	}
 	/* Work is not done if we just got rid of packets off the queue */
 	return work_done;
