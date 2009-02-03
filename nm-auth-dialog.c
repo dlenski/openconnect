@@ -354,6 +354,7 @@ typedef struct cert_data {
 	X509 *peer_cert;
 } cert_data;
 
+
 static gboolean user_validate_cert(cert_data *data)
 {
 	BIO *bp = BIO_new(BIO_s_mem());
@@ -381,7 +382,7 @@ static gboolean user_validate_cert(cert_data *data)
 	gtk_window_set_skip_taskbar_hint(GTK_WINDOW(dlg), FALSE);
 	gtk_window_set_skip_pager_hint(GTK_WINDOW(dlg), FALSE);
 	gtk_window_set_title(GTK_WINDOW(dlg), title);
-	gtk_window_set_default_size(GTK_WINDOW(dlg), 768, 768);
+	gtk_window_set_default_size(GTK_WINDOW(dlg), 550, 600);
 	gtk_window_set_resizable(GTK_WINDOW(dlg), TRUE);
 	gtk_dialog_set_default_response(GTK_DIALOG(dlg), GTK_RESPONSE_CANCEL);
 
@@ -396,6 +397,7 @@ static gboolean user_validate_cert(cert_data *data)
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text));
 	gtk_text_buffer_set_text(buffer, certinfo->data, -1);
 	gtk_text_view_set_editable(GTK_TEXT_VIEW(text), 0);
+	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(text), FALSE);
 	gtk_container_add(GTK_CONTAINER(scroll), text);
 	gtk_widget_show(text);
 
