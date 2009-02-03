@@ -57,6 +57,11 @@ typedef struct vpnhost {
 
 vpnhost *vpnhosts;
 
+enum certificate_response{
+	CERT_DENIED = -1,
+	CERT_USER_NOT_READY,
+	CERT_ACCEPTED,
+};
 
 typedef struct auth_ui_data {
 	struct openconnect_info *vpninfo;
@@ -84,6 +89,9 @@ typedef struct auth_ui_data {
 
 	GCond *form_shown_changed;
 	gboolean form_shown;
+
+	GCond *cert_response_changed;
+	enum certificate_response cert_response;
 } auth_ui_data;
 
 enum {
@@ -341,7 +349,12 @@ static char* get_title(const char *vpn_name)
 		return g_strdup("Connect to VPN");
 }
 
-static int user_validate_cert(struct openconnect_info *vpninfo, X509 *peer_cert)
+typedef struct cert_data {
+	auth_ui_data *ui_data;
+	X509 *peer_cert;
+} cert_data;
+
+static gboolean user_validate_cert(cert_data *data)
 {
 	BIO *bp = BIO_new(BIO_s_mem());
 	char *msg, *title;
@@ -354,13 +367,13 @@ static int user_validate_cert(struct openconnect_info *vpninfo, X509 *peer_cert)
 	/* There are probably better ways to do this -- getting individual
 	   elements of the cert info and formatting it nicely in the dialog
 	   box. But this will do for now... */
-	X509_print_ex(bp, peer_cert, 0, 0);
+	X509_print_ex(bp, data->peer_cert, 0, 0);
 	BIO_write(bp, &zero, 1);
 	BIO_get_mem_ptr(bp, &certinfo);
 
-	title = get_title(vpninfo->vpn_name);
+	title = get_title(data->ui_data->vpninfo->vpn_name);
 	msg = g_strdup_printf("Unknown certificate from VPN server \"%s\".\n"
-			      "Do you want to accept it?", vpninfo->hostname);
+			      "Do you want to accept it?", data->ui_data->vpninfo->hostname);
 
 	dlg = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_QUESTION,
 				     GTK_BUTTONS_OK_CANCEL,
@@ -391,12 +404,18 @@ static int user_validate_cert(struct openconnect_info *vpninfo, X509 *peer_cert)
 	BIO_free(bp);
 	gtk_widget_destroy(dlg);
 
-	if (result != GTK_RESPONSE_OK)
-		return -EINVAL;
+	g_mutex_lock (ui_data->form_mutex);
+	if (result == GTK_RESPONSE_OK)
+		data->ui_data->cert_response = CERT_ACCEPTED;
+	else 
+		data->ui_data->cert_response = CERT_DENIED;
+	g_cond_signal (ui_data->cert_response_changed);
+	g_mutex_unlock (ui_data->form_mutex);
 
-	return 0;
+	return FALSE;
 }
 
+/* runs in worker thread */
 static int validate_peer_cert(struct openconnect_info *vpninfo,
 			      X509 *peer_cert)
 {
@@ -407,6 +426,7 @@ static int validate_peer_cert(struct openconnect_info *vpninfo,
 	BUF_MEM *sig;
 	char zero = 0;
 	int ret = 0;
+	cert_data *data;
 
 	i2a_ASN1_STRING(bp, signature, V_ASN1_OCTET_STRING);
 	BIO_write(bp, &zero, 1);
@@ -428,8 +448,20 @@ static int validate_peer_cert(struct openconnect_info *vpninfo,
 		g_strfreev(certs);
 	}
 
-	ret = user_validate_cert(vpninfo, peer_cert);
-	if (!ret) {
+	data = g_slice_new(cert_data);
+	data->ui_data = ui_data; /* FIXME uses global */
+	data->peer_cert = peer_cert;
+
+	g_mutex_lock(ui_data->form_mutex);
+
+	ui_data->cert_response = CERT_USER_NOT_READY; 
+	g_idle_add((GSourceFunc)user_validate_cert, data);
+
+	/* wait for user to accept or cancel */ 
+	while (ui_data->cert_response == CERT_USER_NOT_READY) {
+		g_cond_wait(ui_data->cert_response_changed, ui_data->form_mutex);
+	}
+	if (ui_data->cert_response == CERT_ACCEPTED) {
 		if (certs_data) {
 			char *new = g_strdup_printf("%s\t%s", certs_data, sig->data);
 			gconf_client_set_string(gcl, key, new, NULL);
@@ -437,7 +469,14 @@ static int validate_peer_cert(struct openconnect_info *vpninfo,
 		} else {
 			gconf_client_set_string(gcl, key, sig->data, NULL);
 		}
+		ret = 0;
+	} else {
+		ret = -EINVAL;
 	}
+	g_mutex_unlock (ui_data->form_mutex);
+
+	g_slice_free(cert_data, data);
+
  out:
 	if (certs_data)
 		g_free(certs_data);
@@ -995,6 +1034,7 @@ static auth_ui_data *init_ui_data (char *vpn_name)
 	ui_data->form_mutex = g_mutex_new();
 	ui_data->form_retval_changed = g_cond_new();
 	ui_data->form_shown_changed = g_cond_new();
+	ui_data->cert_response_changed = g_cond_new();
 
 	ui_data->vpninfo = g_slice_new0(struct openconnect_info);
 	ui_data->vpninfo->urlpath = strdup("/");
