@@ -34,8 +34,8 @@ endif
 XML2_CFLAGS += $(shell xml2-config --cflags) 
 XML2_LDFLAGS += $(shell xml2-config --libs)
 
-GTK_CFLAGS += $(shell pkg-config --cflags gtk+-x11-2.0)
-GTK_LDFLAGS += $(shell pkg-config --libs gtk+-x11-2.0)
+GTK_CFLAGS += $(shell pkg-config --cflags gtk+-x11-2.0 gthread-2.0)
+GTK_LDFLAGS += $(shell pkg-config --libs gtk+-x11-2.0 gthread-2.0)
 
 GCONF_CFLAGS += $(shell pkg-config --cflags gconf-2.0)
 GCONF_LDFLAGS += $(shell pkg-config --libs gconf-2.0)
@@ -47,10 +47,6 @@ ifdef SSL_UI
 CFLAGS += -DSSL_UI
 endif
 
-ifeq ($(SSL_UI),ssl_ui_gtk.o)
-LDFLAGS += $(GTK_LDFLAGS)
-endif
-CFLAGS_ssl_ui_gtk.o += $(GTK_CFLAGS)	
 CFLAGS_nm-auth-dialog.o += $(GTK_CFLAGS) $(GCONF_CFLAGS) $(XML2_CFLAGS)
 
 OPENCONNECT_OBJS := main.o $(SSL_UI) xml.o
@@ -70,7 +66,7 @@ libopenconnect.a: $(AUTH_OBJECTS)
 openconnect: $(OPENCONNECT_OBJS) $(CONNECTION_OBJS) libopenconnect.a
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-nm-openconnect-auth-dialog: nm-auth-dialog.o ssl_ui_gtk.o libopenconnect.a 
+nm-openconnect-auth-dialog: nm-auth-dialog.o libopenconnect.a 
 	$(CC) -o $@ $^ $(LDFLAGS) $(GTK_LDFLAGS) $(GCONF_LDFLAGS) $(XML2_LDFLAGS)
 
 %.o: %.c
