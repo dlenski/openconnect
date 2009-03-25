@@ -542,11 +542,15 @@ static char *get_gconf_setting(GConfClient *gcl, char *config_path,
 
 static int get_gconf_autoconnect(GConfClient *gcl, char *config_path)
 {
-	int result;
-	char *key = g_strdup_printf("%s/vpn/autoconnect", config_path);
-	result = gconf_client_get_bool(gcl, key, NULL);
-	g_free(key);
-	return result;
+	char *autoconnect = get_gconf_setting(gcl, config_path, "autoconnect");
+	int ret = 0;
+
+	if (autoconnect) {
+		if (!strcmp(autoconnect, "yes"))
+			ret = 1;
+		g_free(autoconnect);
+	}
+	return ret;
 }
 
 static int parse_xmlconfig(char *xmlconfig)
