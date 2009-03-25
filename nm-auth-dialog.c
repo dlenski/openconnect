@@ -65,6 +65,7 @@ enum certificate_response{
 
 typedef struct auth_ui_data {
 	struct openconnect_info *vpninfo;
+	char *firsthost;
 	GtkWidget *dialog;
 	GtkWidget *combo;
 	GtkWidget *connect_button;
@@ -810,6 +811,11 @@ static gboolean cookie_obtained(auth_ui_data *ui_data)
 		ui_data->retval = 1;
 	} else if (ui_data->cookie_retval == 1) {
 		/* got cookie */
+		char *key = g_strdup_printf("%s/vpn/lasthost", config_path);
+		/* We don't use vpninfo->hostname because it might have been redirected */
+		gconf_client_set_string(gcl, key, ui_data->firsthost, NULL);
+		g_free(key);
+		
 		printf("%s\n%s\n", NM_OPENCONNECT_KEY_GATEWAY, ui_data->vpninfo->hostname);
 		printf("%s\n%s\n", NM_OPENCONNECT_KEY_COOKIE, ui_data->vpninfo->cookie);
 		memset((void *)ui_data->vpninfo->cookie, 0, strlen(ui_data->vpninfo->cookie));
@@ -866,6 +872,7 @@ static void connect_host(auth_ui_data *ui_data)
 
 	host_nr = gtk_combo_box_get_active(GTK_COMBO_BOX(ui_data->combo));
 	ui_data->vpninfo->hostname = get_hostname(ui_data, host_nr);
+	ui_data->firsthost = g_strdup(ui_data->vpninfo->hostname);
 
 	thread = g_thread_create((GThreadFunc)obtain_cookie, ui_data,
 				 FALSE, NULL);
