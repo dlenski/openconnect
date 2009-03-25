@@ -587,6 +587,14 @@ static int parse_xmlconfig(char *xmlconfig)
 					if (newhost->hostname && newhost->hostaddress) {
 						*list_end = newhost;
 						list_end = &newhost->next;
+
+						if (!strcasecmp(newhost->hostaddress, vpnhosts->hostaddress)) {
+							/* Remove originally configured host if it's in the list */
+							struct vpnhost *tmp = vpnhosts->next;
+							free(vpnhosts);
+							vpnhosts = tmp;
+						}
+
                                         } else
 						free(newhost);
                                 }
