@@ -629,7 +629,7 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	vpnhosts = malloc(sizeof(vpnhosts));
 	if (!vpnhosts)
 		return -ENOMEM;
-	vpnhosts->hostname = g_strdup("VPN Gateway");
+	vpnhosts->hostname = g_strdup(hostname);
 	vpnhosts->hostaddress = hostname;
 	vpnhosts->next = NULL;
 
