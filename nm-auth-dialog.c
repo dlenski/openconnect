@@ -540,6 +540,15 @@ static char *get_gconf_setting(GConfClient *gcl, char *config_path,
 	return result;
 }
 
+static int get_gconf_autoconnect(GConfClient *gcl, char *config_path)
+{
+	int result;
+	char *key = g_strdup_printf("%s/vpn/autoconnect", config_path);
+	result = gconf_client_get_bool(gcl, key, NULL);
+	g_free(key);
+	return result;
+}
+
 static int parse_xmlconfig(char *xmlconfig)
 {
 	xmlDocPtr xml_doc;
@@ -1136,9 +1145,9 @@ int main (int argc, char **argv)
 	init_openssl_ui();
 	openconnect_init_openssl();
 
-#ifdef NM_AUTH_DIALOG_AUTOCONNECT
-	queue_connect_host(ui_data);
-#endif
+	if (get_gconf_autoconnect(gcl, config_path))
+		queue_connect_host(ui_data);
+
 	gtk_window_present(GTK_WINDOW(ui_data->dialog));
 	gtk_main();
 
