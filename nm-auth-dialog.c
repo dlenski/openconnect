@@ -52,6 +52,7 @@ static char *lasthost;
 typedef struct vpnhost {
 	char *hostname;
 	char *hostaddress;
+	char *usergroup;
 	struct vpnhost *next;
 } vpnhost;
 
@@ -596,13 +597,17 @@ static int parse_xmlconfig(char *xmlconfig)
 						} else if (!strcmp((char *)xml_node2->name, "HostAddress")) {
                                                         char *content = (char *)xmlNodeGetContent(xml_node2);
 							newhost->hostaddress = content;
+						} else if (!strcmp((char *)xml_node2->name, "UserGroup")) {
+                                                        char *content = (char *)xmlNodeGetContent(xml_node2);
+							newhost->usergroup = content;
 						}
 					}
 					if (newhost->hostname && newhost->hostaddress) {
 						*list_end = newhost;
 						list_end = &newhost->next;
 
-						if (!strcasecmp(newhost->hostaddress, vpnhosts->hostaddress)) {
+						if (!strcasecmp(newhost->hostaddress, vpnhosts->hostaddress) &&
+						    !strcasecmp(newhost->usergroup?:"", vpnhosts->usergroup?:"")) {
 							/* Remove originally configured host if it's in the list */
 							struct vpnhost *tmp = vpnhosts->next;
 							free(vpnhosts);
@@ -625,6 +630,7 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	char *authtype;
 	char *xmlconfig;
 	char *hostname;
+	char *group;
 
 	gcl = gconf_client_get_default();
 	config_path = get_config_path(gcl, vpn_uuid);
@@ -640,10 +646,16 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	}
 
 	/* add gateway to host list */
-	vpnhosts = malloc(sizeof(vpnhosts));
+	vpnhosts = malloc(sizeof(*vpnhosts));
 	if (!vpnhosts)
 		return -ENOMEM;
 	vpnhosts->hostname = g_strdup(hostname);
+	group = strchr(hostname, '/');
+	if (group) {
+		*(group++) = 0;
+		vpnhosts->usergroup = g_strdup(group);
+	} else
+		vpnhosts->usergroup = NULL;
 	vpnhosts->hostaddress = hostname;
 	vpnhosts->next = NULL;
 
@@ -655,6 +667,7 @@ if (0){
 		return -ENOMEM;
 	tmphost->hostname = g_strdup("VPN Gateway 2");
 	tmphost->hostaddress = hostname;
+	tmphost->usergroup = NULL;
 	tmphost->next = NULL;
 	vpnhosts->next = tmphost;
 }
@@ -721,27 +734,11 @@ static void populate_vpnhost_combo(auth_ui_data *ui_data)
 		gtk_combo_box_append_text(combo, host->hostname);
 
 		if (i == 0 ||
-		    (lasthost && !strcmp(host->hostaddress, lasthost)))
+		    (lasthost && !strcmp(host->hostname, lasthost)))
 			gtk_combo_box_set_active(combo, i);
 		i++;
 
 	}
-}
-
-static char* get_hostname(auth_ui_data *ui_data, int host_nr)
-{
-	vpnhost *host;
-	int i;
-
-	g_return_val_if_fail(vpnhosts, 0);
-	g_return_val_if_fail(host_nr >= 0, 0);
-
-	host = vpnhosts;
-	for (i = 0; i < host_nr; i++){
-		host = host->next;
-	}
-
-	return host->hostaddress;
 }
 
 int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
@@ -861,6 +858,8 @@ gpointer obtain_cookie (auth_ui_data *ui_data)
 static void connect_host(auth_ui_data *ui_data)
 {
 	GThread *thread;
+	vpnhost *host;
+	int i;
 	int host_nr;
 
 	ui_data->cancelled = FALSE;
@@ -884,8 +883,13 @@ static void connect_host(auth_ui_data *ui_data)
 	}
 
 	host_nr = gtk_combo_box_get_active(GTK_COMBO_BOX(ui_data->combo));
-	ui_data->vpninfo->hostname = get_hostname(ui_data, host_nr);
-	ui_data->firsthost = g_strdup(ui_data->vpninfo->hostname);
+	host = vpnhosts;
+	for (i = 0; i < host_nr; i++)
+		host = host->next;
+
+	ui_data->vpninfo->hostname = g_strdup(host->hostaddress);
+	ui_data->vpninfo->urlpath = g_strdup_printf("/%s", host->usergroup?:"");
+	ui_data->firsthost = g_strdup(host->hostname);
 
 	thread = g_thread_create((GThreadFunc)obtain_cookie, ui_data,
 				 FALSE, NULL);
