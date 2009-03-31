@@ -734,12 +734,11 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			/* New host. Tear down the existing connection and make a new one */
 			char *host = vpninfo->redirect_url + 8;
 			char *path = strchr(host, '/');
-			if (path)
-				*(path++) = 0;
 			free(vpninfo->urlpath);
-			if (path && path[0])
+			if (path) {
 				vpninfo->urlpath = strdup(path);
-			else
+				*(path++) = 0;
+			} else
 				vpninfo->urlpath = strdup("/");
 			free(vpninfo->hostname);
 			vpninfo->hostname = strdup(host);
