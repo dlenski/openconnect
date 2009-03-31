@@ -222,7 +222,6 @@ int main(int argc, char **argv)
 			vpninfo->deflate = 0;
 			break;
 		case 'g':
-			printf("optarg %s\n", optarg);
 			free(vpninfo->urlpath);
 			vpninfo->urlpath = malloc(strlen(optarg)+2);
 			sprintf(vpninfo->urlpath, "/%s", optarg);
