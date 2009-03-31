@@ -734,31 +734,36 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			/* New host. Tear down the existing connection and make a new one */
 			char *host = vpninfo->redirect_url + 8;
 			char *path = strchr(host, '/');
+
 			free(vpninfo->urlpath);
 			if (path) {
 				vpninfo->urlpath = strdup(path);
 				*(path++) = 0;
 			} else
 				vpninfo->urlpath = strdup("/");
-			free(vpninfo->hostname);
-			vpninfo->hostname = strdup(host);
+
+			if (strcmp(vpninfo->hostname, host)) {
+				free(vpninfo->hostname);
+				vpninfo->hostname = strdup(host);
+
+				/* Kill the existing connection, and a new one will happen */
+				SSL_free(vpninfo->https_ssl);
+				vpninfo->https_ssl = NULL;
+				close(vpninfo->ssl_fd);
+				vpninfo->ssl_fd = -1;
+
+				for (opt = vpninfo->cookies; opt; opt = next) {
+					next = opt->next;
+
+					free(opt->option);
+					free(opt->value);
+					free(opt);
+				}
+				vpninfo->cookies = NULL;
+			}
 			free(vpninfo->redirect_url);
 			vpninfo->redirect_url = NULL;
 
-			/* Kill the existing connection, and a new one will happen */
-			SSL_free(vpninfo->https_ssl);
-			vpninfo->https_ssl = NULL;
-			close(vpninfo->ssl_fd);
-			vpninfo->ssl_fd = -1;
-
-			for (opt = vpninfo->cookies; opt; opt = next) {
-				next = opt->next;
-
-				free(opt->option);
-				free(opt->value);
-				free(opt);
-			}
-			vpninfo->cookies = NULL;
 			goto retry;
 		} else if (vpninfo->redirect_url[0] == '/') {
 			/* Absolute redirect within same host */
