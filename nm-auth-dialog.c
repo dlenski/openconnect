@@ -749,6 +749,14 @@ int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
 	return 0;
 }
 
+static void autocon_toggled(GtkWidget *widget)
+{
+	int enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
+	char *key = g_strdup_printf("%s/vpn/autoconnect", config_path);
+
+	gconf_client_set_string(gcl, key, enabled?"yes":"no", NULL);
+}
+
 static void scroll_log(GtkTextBuffer *log, GtkTextView *view)
 {
 	GtkTextMark *mark;
@@ -948,7 +956,7 @@ static void build_main_dialog(auth_ui_data *ui_data)
 {
 	char *title;
 	GtkWidget *vbox, *hbox, *label, *frame, *image, *frame_box;
-	GtkWidget *exp, *scrolled, *view;
+	GtkWidget *exp, *scrolled, *view, *autocon;
 
 	gtk_window_set_default_icon_name(GTK_STOCK_DIALOG_AUTHENTICATION);
 
@@ -990,6 +998,13 @@ static void build_main_dialog(auth_ui_data *ui_data)
 	g_signal_connect_swapped(ui_data->connect_button, "clicked",
 				 G_CALLBACK(queue_connect_host), ui_data);
 	gtk_widget_show(ui_data->connect_button);
+
+	autocon = gtk_check_button_new_with_label("Automatically start connecting next time");
+	gtk_box_pack_start(GTK_BOX(vbox), autocon, FALSE, FALSE, 0);
+	if (get_gconf_autoconnect(gcl, config_path))
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(autocon), 1);
+	g_signal_connect(autocon, "toggled", G_CALLBACK(autocon_toggled), NULL);
+	gtk_widget_show(autocon);
 
 	frame = gtk_frame_new(NULL);
 	gtk_box_pack_start(GTK_BOX(vbox), frame, TRUE, TRUE, 0);
