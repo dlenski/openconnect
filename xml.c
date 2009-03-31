@@ -121,7 +121,16 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 								vpninfo->hostname = strdup(content);
 								printf("Host \"%s\" has address \"%s\"\n",
 								       host, content);
-								break;
+							}
+						} else if (match &&
+							   !strcmp((char *)xml_node2->name, "UserGroup")) {
+							char *content = (char *)xmlNodeGetContent(xml_node2);
+							if (content) {
+								free(vpninfo->urlpath);
+								vpninfo->urlpath = malloc(strlen(content)+2);
+								sprintf(vpninfo->urlpath, "/%s", content);
+								printf("Host \"%s\" has UserGroup \"%s\"\n",
+								       host, content);
 							}
 						}
 					}
