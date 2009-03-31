@@ -52,6 +52,7 @@ static struct option long_options[] = {
 	{"cookie", 1, 0, 'C'},
 	{"deflate", 0, 0, 'd'},
 	{"no-deflate", 0, 0, 'D'},
+	{"usergroup", 1, 0, 'g'},
 	{"help", 0, 0, 'h'},
 	{"interface", 1, 0, 'i'},
 	{"mtu", 1, 0, 'm'},
@@ -88,6 +89,7 @@ void usage(void)
 	printf("      --cookie-on-stdin           Read cookie from standard input\n");
 	printf("  -d, --deflate                   Enable compression (default)\n");
 	printf("  -D, --no-deflate                Disable compression\n");
+	printf("  -g, --usergroup=GROUP           Set login usergroup\n");
 	printf("  -h, --help                      Display help text\n");
 	printf("  -i, --interface=IFNAME          Use IFNAME for tunnel interface\n");
 	printf("  -l, --syslog                    Use syslog for progress messages\n");
@@ -159,6 +161,7 @@ int main(int argc, char **argv)
 	vpninfo->max_qlen = 10;
 	vpninfo->reconnect_interval = RECONNECT_INTERVAL_MIN;
 	vpninfo->reconnect_timeout = 300;
+	vpninfo->urlpath = strdup("/");
 
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
 		fprintf(stderr, "Failed to initialise DTLS secret\n");
@@ -169,7 +172,7 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "C:c:Ddhi:k:lp:Q:qSs:tU:u:Vvx:",
+	while ((opt = getopt_long(argc, argv, "C:c:Ddg:hi:k:lp:Q:qSs:tU:u:Vvx:",
 				  long_options, NULL))) {
 		if (opt < 0)
 			break;
@@ -217,6 +220,12 @@ int main(int argc, char **argv)
 			break;
 		case 'D':
 			vpninfo->deflate = 0;
+			break;
+		case 'g':
+			printf("optarg %s\n", optarg);
+			free(vpninfo->urlpath);
+			vpninfo->urlpath = malloc(strlen(optarg)+2);
+			sprintf(vpninfo->urlpath, "/%s", optarg);
 			break;
 		case 'h':
 			usage();
@@ -306,7 +315,6 @@ int main(int argc, char **argv)
 
 	if (!vpninfo->hostname)
 		vpninfo->hostname = strdup(argv[optind]);
-	vpninfo->urlpath = strdup("/");
 
 #ifdef SSL_UI
 	set_openssl_ui();
