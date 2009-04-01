@@ -126,8 +126,7 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 							   !strcmp((char *)xml_node2->name, "UserGroup")) {
 							char *content = (char *)xmlNodeGetContent(xml_node2);
 							if (content) {
-								if (vpninfo->urlpath)
-									free(vpninfo->urlpath);
+								free(vpninfo->urlpath);
 								vpninfo->urlpath = strdup(content);
 								printf("Host \"%s\" has UserGroup \"%s\"\n",
 								       host, content);

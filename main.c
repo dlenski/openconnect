@@ -221,8 +221,7 @@ int main(int argc, char **argv)
 			vpninfo->deflate = 0;
 			break;
 		case 'g':
-			if (vpninfo->urlpath)
-				free(vpninfo->urlpath);
+			free(vpninfo->urlpath);
 			vpninfo->urlpath = strdup(optarg);
 			break;
 		case 'h':
