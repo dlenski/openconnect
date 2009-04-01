@@ -584,14 +584,14 @@ static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 
 			form_method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
 			form_action = (char *)xmlGetProp(xml_node, (unsigned char *)"action");
-			if (strcasecmp(form_method, "POST")) {
-				vpninfo->progress(vpninfo, PRG_ERR, "Cannot handle form method '%s'\n",
-					form_method);
+			if (strcasecmp(form_method, "POST") || form_action[0] != '/') {
+				vpninfo->progress(vpninfo, PRG_ERR, "Cannot handle form method='%s', action='%s'\n",
+						  form_method, form_action);
 				xmlFreeDoc(xml_doc);
 				return -EINVAL;
 			}
 			free(vpninfo->urlpath);
-			vpninfo->urlpath = strdup(form_action);
+			vpninfo->urlpath = strdup(form_action+1);
 
 			ret = parse_form(vpninfo, auth_id, form_message,
 					 form_error, xml_node, request_body,
@@ -699,7 +699,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	 *
 	 * So we process the HTTP for ourselves...
 	 */
-	sprintf(buf, "%s %s HTTP/1.1\r\n", method, vpninfo->urlpath);
+	sprintf(buf, "%s /%s HTTP/1.1\r\n", method, vpninfo->urlpath?:"");
 	sprintf(buf + strlen(buf), "Host: %s\r\n", vpninfo->hostname);
 	sprintf(buf + strlen(buf),  "User-Agent: %s\r\n", vpninfo->useragent);
 	sprintf(buf + strlen(buf),  "Accept: */*\r\n");
@@ -721,6 +721,8 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	if (request_body_type)
 		sprintf(buf + strlen(buf), "%s", request_body);
 
+	vpninfo->progress(vpninfo, PRG_INFO, "%s %s/%s\n", method, vpninfo->hostname, vpninfo->urlpath?:"");
+
 	SSL_write(vpninfo->https_ssl, buf, strlen(buf));
 
 	buflen = process_http_response(vpninfo, &result, NULL, buf, 65536);
@@ -737,10 +739,10 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 
 			free(vpninfo->urlpath);
 			if (path) {
-				vpninfo->urlpath = strdup(path);
 				*(path++) = 0;
+				vpninfo->urlpath = strdup(path);
 			} else
-				vpninfo->urlpath = strdup("/");
+				vpninfo->urlpath = NULL;
 
 			if (strcmp(vpninfo->hostname, host)) {
 				free(vpninfo->hostname);
@@ -768,7 +770,8 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		} else if (vpninfo->redirect_url[0] == '/') {
 			/* Absolute redirect within same host */
 			free(vpninfo->urlpath);
-			vpninfo->urlpath = vpninfo->redirect_url;
+			vpninfo->urlpath = strdup(vpninfo->redirect_url + 1);
+			free(vpninfo->redirect_url);
 			vpninfo->redirect_url = NULL;
 			goto retry;
 		} else {

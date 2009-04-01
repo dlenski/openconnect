@@ -161,7 +161,6 @@ int main(int argc, char **argv)
 	vpninfo->max_qlen = 10;
 	vpninfo->reconnect_interval = RECONNECT_INTERVAL_MIN;
 	vpninfo->reconnect_timeout = 300;
-	vpninfo->urlpath = strdup("/");
 
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
 		fprintf(stderr, "Failed to initialise DTLS secret\n");
@@ -222,9 +221,9 @@ int main(int argc, char **argv)
 			vpninfo->deflate = 0;
 			break;
 		case 'g':
-			free(vpninfo->urlpath);
-			vpninfo->urlpath = malloc(strlen(optarg)+2);
-			sprintf(vpninfo->urlpath, "/%s", optarg);
+			if (vpninfo->urlpath)
+				free(vpninfo->urlpath);
+			vpninfo->urlpath = strdup(optarg);
 			break;
 		case 'h':
 			usage();

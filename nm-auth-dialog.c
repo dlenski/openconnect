@@ -896,7 +896,8 @@ static void connect_host(auth_ui_data *ui_data)
 		host = host->next;
 
 	ui_data->vpninfo->hostname = g_strdup(host->hostaddress);
-	ui_data->vpninfo->urlpath = g_strdup_printf("/%s", host->usergroup?:"");
+	if (host->usergroup)
+		ui_data->vpninfo->urlpath = g_strdup(host->usergroup);
 	ui_data->firsthost = g_strdup(host->hostname);
 
 	thread = g_thread_create((GThreadFunc)obtain_cookie, ui_data,
@@ -1086,7 +1087,6 @@ static auth_ui_data *init_ui_data (char *vpn_name)
 	ui_data->cert_response_changed = g_cond_new();
 
 	ui_data->vpninfo = g_slice_new0(struct openconnect_info);
-	ui_data->vpninfo->urlpath = strdup("/");
 	ui_data->vpninfo->mtu = 1406;
 	ui_data->vpninfo->useragent = openconnect_create_useragent("OpenConnect VPN Agent (NetworkManager)");
 	ui_data->vpninfo->ssl_fd = -1;
