@@ -2,6 +2,7 @@
  * OpenConnect (SSL + DTLS) VPN client
  *
  * Copyright © 2008 Intel Corporation.
+ * Copyright © 2008 Nick Andrew <nick@nick-andrew.net>
  *
  * Author: David Woodhouse <dwmw2@infradead.org>
  *
@@ -335,7 +336,7 @@ static int cstp_reconnect(struct openconnect_info *vpninfo)
 		if (timeout <= 0)
 			return ret;
 		vpninfo->progress(vpninfo, PRG_INFO,
-				  "sleep %ds, remain timeout %ds\n",
+				  "sleep %ds, remaining timeout %ds\n",
 				  interval, timeout);
 		sleep(interval);
 		if (killed)
