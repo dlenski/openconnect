@@ -2,6 +2,7 @@
  * OpenConnect (SSL + DTLS) VPN client
  *
  * Copyright © 2008 Intel Corporation.
+ * Copyright © 2008 Nick Andrew <nick@nick-andrew.net>
  *
  * Author: David Woodhouse <dwmw2@infradead.org>
  *
@@ -100,7 +101,7 @@ void usage(void)
 	printf("  -Q, --queue-len=LEN             Set packet queue limit to LEN pkts\n");
 	printf("  -s, --script=SCRIPT             Use vpnc-compatible config script\n");
 	printf("  -S, --script-tun                Pass traffic to 'script' program, not tun\n");
-	printf("  -t, --tpm                       Use TPM engine for private key\n");
+	printf("  -t, --tpm-key                   Use TPM engine for private key\n");
 	printf("  -u, --user=NAME                 Set login username\n");
 	printf("  -V, --version                   Report version number\n");
 	printf("  -v, --verbose                   More output\n");
