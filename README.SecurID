@@ -29,7 +29,7 @@ work: http://seclists.org/bugtraq/2000/Dec/0459.html
 
 For the 128-bit tokens, they just use a standard AES algorithm instead
 of their own 'speshul' hash. A basic description of it can be found at 
-http://archives.free.net.ph/message/20040426.120338.65a88fc6.en.html
+http://www.velocityreviews.com/forums/t367596-aes-securid-token.html
 
 If we just work out how the input bits are fed into the hash, and work
 out how the token is stored in the file system, then we should be able
