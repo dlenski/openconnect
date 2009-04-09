@@ -2,6 +2,7 @@
  * OpenConnect (SSL + DTLS) VPN client
  *
  * Copyright © 2008 Intel Corporation.
+ * Copyright © 2008 Nick Andrew <nick@nick-andrew.net>
  *
  * Author: David Woodhouse <dwmw2@infradead.org>
  *
@@ -565,7 +566,7 @@ static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	}
 
 	if (vpninfo->nopasswd) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Asked for password but nopasswd set\n");
+		vpninfo->progress(vpninfo, PRG_ERR, "Asked for password but '--no-passwd' set\n");
 		return -EPERM;
 	}
 
