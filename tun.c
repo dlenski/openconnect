@@ -58,7 +58,7 @@ static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
 		if (ioctl(net_fd, SIOCGIFFLAGS, &ifr) < 0)
 			perror("SIOCGIFFLAGS");
 
-		ifr.ifr_flags |= IFF_UP | IFF_POINTOPOINT; 
+		ifr.ifr_flags |= IFF_UP | IFF_POINTOPOINT;
 		if (ioctl(net_fd, SIOCSIFFLAGS, &ifr) < 0)
 			perror("SIOCSIFFLAGS");
 
@@ -125,7 +125,7 @@ static int process_split_include(struct openconnect_info *vpninfo,
 			break;
 	}
 	masklen = 32 - masklen;
-		    
+
 	snprintf(envname, 79, "CISCO_SPLIT_INC_%d_MASKLEN", *nr_incs);
 	setenv_int(envname, masklen);
 
@@ -161,7 +161,7 @@ static void set_script_env(struct openconnect_info *vpninfo)
 
 	setenv("INTERNAL_IP4_ADDRESS", vpninfo->vpn_addr, 1);
 	setenv("INTERNAL_IP4_NETMASK", vpninfo->vpn_netmask, 1);
-	
+
 	if (vpninfo->vpn_dns[0])
 		setenv("INTERNAL_IP4_DNS", vpninfo->vpn_dns[0], 1);
 	else
@@ -194,9 +194,9 @@ static void set_script_env(struct openconnect_info *vpninfo)
 			this = this->next;
 		}
 		setenv_int("CISCO_SPLIT_INC", nr_split_includes);
-	}			
-			
-			
+	}
+
+
 }
 
 static int script_config_tun(struct openconnect_info *vpninfo)
@@ -268,7 +268,7 @@ int setup_tun(struct openconnect_info *vpninfo)
 #else /* BSD et al have /dev/tun$x devices */
 		static char tun_name[80];
 		int i;
-		for (i=0; i < 255; i++) {
+		for (i = 0; i < 255; i++) {
 			sprintf(tun_name, "/dev/tun%d", i);
 			tun_fd = open(tun_name, O_RDWR);
 			if (tun_fd >= 0)
@@ -284,14 +284,14 @@ int setup_tun(struct openconnect_info *vpninfo)
 			script_config_tun(vpninfo);
 			/* We have to set the MTU for ourselves, because the script doesn't */
 			local_config_tun(vpninfo, 1);
-		} else 
+		} else
 			local_config_tun(vpninfo, 0);
 	}
 
 	fcntl(tun_fd, F_SETFD, FD_CLOEXEC);
 
 	vpninfo->tun_fd = tun_fd;
-	
+
 	if (vpninfo->select_nfds <= tun_fd)
 		vpninfo->select_nfds = tun_fd + 1;
 

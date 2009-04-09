@@ -333,7 +333,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Creating SSL connection failed\n");
 		exit(1);
 	}
-	
+
 	if (setup_tun(vpninfo)) {
 		fprintf(stderr, "Set up tun device failed\n");
 		exit(1);
@@ -345,14 +345,16 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 	}
-		
+
 	if (vpninfo->dtls_attempt_period && setup_dtls(vpninfo))
 		fprintf(stderr, "Set up DTLS failed; using SSL instead\n");
 
 	vpninfo->progress(vpninfo, PRG_INFO,
 			  "Connected %s as %s, using %s\n", vpninfo->ifname,
 			  vpninfo->vpn_addr,
-			  (vpninfo->dtls_fd==-1)?(vpninfo->deflate?"SSL + deflate":"SSL"):"DTLS");
+			  (vpninfo->dtls_fd == -1) ?
+			      (vpninfo->deflate ? "SSL + deflate" : "SSL")
+			      : "DTLS");
 
 	vpn_mainloop(vpninfo);
 	exit(1);
@@ -364,19 +366,19 @@ static int write_new_config(struct openconnect_info *vpninfo, char *buf, int buf
 
 	config_fd = open(vpninfo->xmlconfig, O_WRONLY|O_TRUNC|O_CREAT, 0644);
 	if (!config_fd) {
-		fprintf(stderr, "Failed to open %s for write: %s\n", 
+		fprintf(stderr, "Failed to open %s for write: %s\n",
 			vpninfo->xmlconfig, strerror(errno));
 		return -errno;
 	}
 
 	/* FIXME: We should actually write to a new tempfile, then rename */
-	write(config_fd, buf, buflen);	
+	write(config_fd, buf, buflen);
 	return 0;
 }
 
 void write_progress(struct openconnect_info *info, int level, const char *fmt, ...)
 {
-	FILE *outf = level?stdout:stderr;
+	FILE *outf = level ? stdout : stderr;
 	va_list args;
 
 	if (verbose >= level) {
@@ -389,7 +391,7 @@ void write_progress(struct openconnect_info *info, int level, const char *fmt, .
 void syslog_progress(struct openconnect_info *info, int level,
 		     const char *fmt, ...)
 {
-	int priority = level?LOG_INFO:LOG_NOTICE;
+	int priority = level ? LOG_INFO : LOG_NOTICE;
 	va_list args;
 
 	if (verbose >= level) {

@@ -5,7 +5,7 @@
  *
  * Authors: Jussi Kukkonen <jku@linux.intel.com>
  *          David Woodhouse <dwmw2@infradead.org>
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * version 2.1, as published by the Free Software Foundation.
@@ -79,10 +79,10 @@ typedef struct auth_ui_data {
 
 	int retval;
 	int cookie_retval;
-	
+
 	gboolean cancelled; /* fully cancel the whole challenge-response series */
 	gboolean getting_cookie;
-	
+
 	GQueue *form_entries; /* modified from worker thread */
 	GMutex *form_mutex;
 
@@ -99,7 +99,7 @@ typedef struct auth_ui_data {
 enum {
 	AUTH_DIALOG_RESPONSE_LOGIN = 1,
 	AUTH_DIALOG_RESPONSE_CANCEL,
-}auth_dialog_response;
+} auth_dialog_response;
 
 
 
@@ -139,7 +139,7 @@ static void ssl_box_clear(auth_ui_data *ui_data)
 {
 	gtk_widget_hide(ui_data->no_form_label);
 	gtk_widget_hide(ui_data->getting_form_label);
-	gtk_container_foreach(GTK_CONTAINER(ui_data->ssl_box), 
+	gtk_container_foreach(GTK_CONTAINER(ui_data->ssl_box),
 			      container_child_remove, ui_data->ssl_box);
 	gtk_widget_set_sensitive (ui_data->login_button, FALSE);
 	gtk_widget_set_sensitive (ui_data->cancel_button, FALSE);
@@ -296,19 +296,19 @@ static int ui_flush(UI* ui)
 	ui_data->form_shown = FALSE;
 
 	if (!ui_data->cancelled) {
-		/* wait for form submission or cancel */ 
+		/* wait for form submission or cancel */
 		while (!ui_data->form_retval) {
 			g_cond_wait(ui_data->form_retval_changed, ui_data->form_mutex);
 		}
 		response = GPOINTER_TO_INT (ui_data->form_retval);
 		ui_data->form_retval = NULL;
-	} else 
+	} else
 		response = AUTH_DIALOG_RESPONSE_CANCEL;
 
 	/* set entry results and free temporary data structures */
 	while (!g_queue_is_empty (ui_data->form_entries)) {
 		ui_fragment_data *data;
-		data = g_queue_pop_tail (ui_data->form_entries); 
+		data = g_queue_pop_tail (ui_data->form_entries);
 		if (data->entry_text) {
 			UI_set_result(ui, data->uis, data->entry_text);
 		}
@@ -411,7 +411,7 @@ static gboolean user_validate_cert(cert_data *data)
 	g_mutex_lock (ui_data->form_mutex);
 	if (result == GTK_RESPONSE_OK)
 		data->ui_data->cert_response = CERT_ACCEPTED;
-	else 
+	else
 		data->ui_data->cert_response = CERT_DENIED;
 	g_cond_signal (ui_data->cert_response_changed);
 	g_mutex_unlock (ui_data->form_mutex);
@@ -458,10 +458,10 @@ static int validate_peer_cert(struct openconnect_info *vpninfo,
 
 	g_mutex_lock(ui_data->form_mutex);
 
-	ui_data->cert_response = CERT_USER_NOT_READY; 
+	ui_data->cert_response = CERT_USER_NOT_READY;
 	g_idle_add((GSourceFunc)user_validate_cert, data);
 
-	/* wait for user to accept or cancel */ 
+	/* wait for user to accept or cancel */
 	while (ui_data->cert_response == CERT_USER_NOT_READY) {
 		g_cond_wait(ui_data->cert_response_changed, ui_data->form_mutex);
 	}
@@ -607,7 +607,7 @@ static int parse_xmlconfig(char *xmlconfig)
 						list_end = &newhost->next;
 
 						if (!strcasecmp(newhost->hostaddress, vpnhosts->hostaddress) &&
-						    !strcasecmp(newhost->usergroup?:"", vpnhosts->usergroup?:"")) {
+						    !strcasecmp(newhost->usergroup ?: "", vpnhosts->usergroup ?: "")) {
 							/* Remove originally configured host if it's in the list */
 							struct vpnhost *tmp = vpnhosts->next;
 							free(vpnhosts);
@@ -659,9 +659,9 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	vpnhosts->hostaddress = hostname;
 	vpnhosts->next = NULL;
 
-if (0){
+if (0) {
 /* DEBUG add another copy of gateway to host list */
-	 vpnhost *tmphost;
+	vpnhost *tmphost;
 	tmphost = malloc(sizeof(tmphost));
 	if (!tmphost)
 		return -ENOMEM;
@@ -724,7 +724,7 @@ if (0){
 	return 0;
 }
 
-static void populate_vpnhost_combo(auth_ui_data *ui_data) 
+static void populate_vpnhost_combo(auth_ui_data *ui_data)
 {
 	struct vpnhost *host;
 	int i = 0;
@@ -754,7 +754,7 @@ static void autocon_toggled(GtkWidget *widget)
 	int enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
 	char *key = g_strdup_printf("%s/vpn/autoconnect", config_path);
 
-	gconf_client_set_string(gcl, key, enabled?"yes":"no", NULL);
+	gconf_client_set_string(gcl, key, enabled ? "yes" : "no", NULL);
 }
 
 static void scroll_log(GtkTextBuffer *log, GtkTextView *view)
@@ -801,10 +801,10 @@ void write_progress(struct openconnect_info *info, int level, const char *fmt, .
 		g_idle_add((GSourceFunc)write_progress_real, g_strdup(msg));
 	}
 
-	if (level <= PRG_ERR){
+	if (level <= PRG_ERR) {
 		last_message = msg;
 		return;
-	} 
+	}
 	g_free(msg);
 }
 
@@ -833,7 +833,7 @@ static gboolean cookie_obtained(auth_ui_data *ui_data)
 		/* We don't use vpninfo->hostname because it might have been redirected */
 		gconf_client_set_string(gcl, key, ui_data->firsthost, NULL);
 		g_free(key);
-		
+
 		printf("%s\n%s\n", NM_OPENCONNECT_KEY_GATEWAY, ui_data->vpninfo->hostname);
 		printf("%s\n%s\n", NM_OPENCONNECT_KEY_COOKIE, ui_data->vpninfo->cookie);
 		memset((void *)ui_data->vpninfo->cookie, 0, strlen(ui_data->vpninfo->cookie));
@@ -880,12 +880,12 @@ static void connect_host(auth_ui_data *ui_data)
 	ssl_box_clear(ui_data);
 	gtk_widget_show(ui_data->getting_form_label);
 
-	/* reset ssl context. 
+	/* reset ssl context.
 	 * TODO: this is probably not the way to go... */
 	if (ui_data->vpninfo->https_ssl) {
 		openconnect_close_https(ui_data->vpninfo);
 	}
-	if (ui_data->vpninfo->https_ctx){
+	if (ui_data->vpninfo->https_ctx) {
 		SSL_CTX_free(ui_data->vpninfo->https_ctx);
 		ui_data->vpninfo->https_ctx = NULL;
 	}
@@ -915,7 +915,7 @@ static void queue_connect_host(auth_ui_data *ui_data)
 		connect_host(ui_data);
 	} else if (!ui_data->cancelled) {
 		/* set state to cancelled. Current challenge-response-
-		 * conversation will not be shown to user, and cookie_obtained() 
+		 * conversation will not be shown to user, and cookie_obtained()
 		 * will start a new one conversation */
 		ui_data->cancelled = TRUE;
 		gtk_dialog_response(GTK_DIALOG(ui_data->dialog), AUTH_DIALOG_RESPONSE_CANCEL);
@@ -928,7 +928,7 @@ static void dialog_response (GtkDialog *dialog, int response, auth_ui_data *ui_d
 	case AUTH_DIALOG_RESPONSE_CANCEL:
 	case AUTH_DIALOG_RESPONSE_LOGIN:
 		ssl_box_clear(ui_data);
-		if(ui_data->getting_cookie)
+		if (ui_data->getting_cookie)
 			gtk_widget_show (ui_data->getting_form_label);
 		g_mutex_lock (ui_data->form_mutex);
 		ui_data->form_retval = GINT_TO_POINTER(response);
@@ -962,7 +962,7 @@ static void build_main_dialog(auth_ui_data *ui_data)
 	gtk_window_set_default_icon_name(GTK_STOCK_DIALOG_AUTHENTICATION);
 
 	title = get_title(ui_data->vpninfo->vpn_name);
-	ui_data->dialog = gtk_dialog_new_with_buttons(title, NULL, GTK_DIALOG_MODAL, 
+	ui_data->dialog = gtk_dialog_new_with_buttons(title, NULL, GTK_DIALOG_MODAL,
 						      GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE,
 						      NULL);
 	g_signal_connect (ui_data->dialog, "response", G_CALLBACK(dialog_response), ui_data);
@@ -987,7 +987,7 @@ static void build_main_dialog(auth_ui_data *ui_data)
 	ui_data->combo = gtk_combo_box_new_text();
 	populate_vpnhost_combo(ui_data);
 	gtk_box_pack_start(GTK_BOX(hbox), ui_data->combo, TRUE, TRUE, 0);
-	g_signal_connect_swapped(ui_data->combo, "changed", 
+	g_signal_connect_swapped(ui_data->combo, "changed",
 	                         G_CALLBACK(queue_connect_host), ui_data);
 	gtk_widget_show(ui_data->combo);
 
@@ -1077,7 +1077,7 @@ static auth_ui_data *init_ui_data (char *vpn_name)
 {
 	auth_ui_data *ui_data;
 
-	ui_data = g_slice_new0(auth_ui_data); 
+	ui_data = g_slice_new0(auth_ui_data);
 	ui_data->retval = 1;
 
 	ui_data->form_entries = g_queue_new();

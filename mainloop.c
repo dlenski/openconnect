@@ -67,7 +67,7 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = handle_sigint;
-	
+
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGHUP, &sa, NULL);
 
@@ -114,7 +114,7 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 		if (did_work)
 			continue;
 
-		vpninfo->progress(vpninfo, PRG_TRACE, 
+		vpninfo->progress(vpninfo, PRG_TRACE,
 				  "Did no work; sleeping for %d ms...\n", timeout);
 		memcpy(&rfds, &vpninfo->select_rfds, sizeof(rfds));
 		memcpy(&wfds, &vpninfo->select_wfds, sizeof(wfds));

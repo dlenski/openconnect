@@ -42,7 +42,7 @@ struct pkt {
 	unsigned char hdr[8];
 	unsigned char data[];
 };
-	
+
 struct vpn_option {
 	char *option;
 	char *value;

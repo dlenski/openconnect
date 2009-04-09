@@ -37,11 +37,11 @@
    We could use cURL for the HTTP stuff, but it's overkill */
 
 int  __attribute__ ((format (printf, 2, 3)))
-	openconnect_SSL_printf(SSL *ssl, const char *fmt, ...) 
+	openconnect_SSL_printf(SSL *ssl, const char *fmt, ...)
 {
 	char buf[1024];
 	va_list args;
-	
+
 	buf[1023] = 0;
 
 	va_start(args, fmt);
@@ -79,13 +79,13 @@ int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len)
 		ret = -SSL_get_error(ssl, ret);
 	}
 	buf[i] = 0;
-	return i?:ret;
+	return i ?: ret;
 }
 
 
 static int load_certificate(struct openconnect_info *vpninfo)
 {
-	vpninfo->progress(vpninfo, PRG_TRACE, 
+	vpninfo->progress(vpninfo, PRG_TRACE,
 			  "Using certificate file %s\n", vpninfo->cert);
 
 	if (!SSL_CTX_use_certificate_file(vpninfo->https_ctx, vpninfo->cert,
@@ -95,7 +95,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		ERR_print_errors_fp(stderr);
 		return -EINVAL;
 	}
-	
+
 	if (vpninfo->tpm) {
 		ENGINE *e;
 		EVP_PKEY *key;
@@ -113,7 +113,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			ERR_print_errors_fp(stderr);
 			ENGINE_free(e);
 			return -EINVAL;
-		}     
+		}
 
 		if (vpninfo->tpmpass) {
 			if (!ENGINE_ctrl_cmd(e, "PIN", strlen(vpninfo->tpmpass),
@@ -124,7 +124,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		}
 		key = ENGINE_load_private_key(e, vpninfo->sslkey, NULL, NULL);
 		if (!key) {
-			vpninfo->progress(vpninfo, PRG_ERR, 
+			vpninfo->progress(vpninfo, PRG_ERR,
 				"Failed to load TPM private key\n");
 			ERR_print_errors_fp(stderr);
 			ENGINE_free(e);
@@ -155,7 +155,7 @@ static int verify_callback(X509_STORE_CTX *ctx, void *arg)
 	/* We've seen certificates in the wild which don't have the
 	   purpose fields filled in correctly */
 	ctx->param->purpose = 0;
-		
+
 	/* If it succeeds, all well and good... */
 	return X509_verify_cert(ctx);
 }
@@ -166,7 +166,7 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 
 	if (vpninfo->cafile) {
 		int vfy = SSL_get_verify_result(https_ssl);
-		
+
 		if (vfy != X509_V_OK) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Server certificate verify failed: %s\n",
 				X509_verify_cert_error_string(vfy));
@@ -217,7 +217,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		if (ssl_sock < 0)
 			continue;
 		if (connect(ssl_sock, rp->ai_addr, rp->ai_addrlen) >= 0) {
-			/* Store the peer address we actually used, so that DTLS can 
+			/* Store the peer address we actually used, so that DTLS can
 			   use it again later */
 			vpninfo->peer_addr = malloc(rp->ai_addrlen);
 			if (!vpninfo->peer_addr) {
@@ -284,7 +284,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	vpninfo->ssl_fd = ssl_sock;
 	vpninfo->https_ssl = https_ssl;
 
-	vpninfo->progress(vpninfo, PRG_INFO, 
+	vpninfo->progress(vpninfo, PRG_INFO,
 			  "Connected to HTTPS on %s\n", vpninfo->hostname);
 
 	return 0;

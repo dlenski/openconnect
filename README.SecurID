@@ -28,7 +28,7 @@ shouldn't be particularly hard. We already know how the 64-bit tokens
 work: http://seclists.org/bugtraq/2000/Dec/0459.html
 
 For the 128-bit tokens, they just use a standard AES algorithm instead
-of their own 'speshul' hash. A basic description of it can be found at 
+of their own 'speshul' hash. A basic description of it can be found at
 http://www.velocityreviews.com/forums/t367596-aes-securid-token.html
 
 If we just work out how the input bits are fed into the hash, and work

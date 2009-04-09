@@ -35,7 +35,7 @@
 
 /*
  * Data packets are encapsulated in the SSL stream as follows:
- * 
+ *
  * 0000: Magic "STF\x1"
  * 0004: Big-endian 16-bit length (not including 8-byte header)
  * 0006: Byte packet type (see openconnect.h)
@@ -109,7 +109,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		if (!retried) {
 			retried = 1;
 			openconnect_close_https(vpninfo);
-		
+
 			if (openconnect_open_https(vpninfo)) {
 				vpninfo->progress(vpninfo, PRG_ERR,
 						  "Failed to open HTTPS connection to %s\n",
@@ -125,7 +125,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		if (!strncmp(buf, "HTTP/1.1 503 ", 13)) {
 			/* "Service Unavailable. Why? */
 			char *reason = "<unknown>";
-			while ((i=openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+			while ((i = openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
 				if (!strncmp(buf, "X-Reason: ", 10)) {
 					reason = buf + 10;
 					break;
@@ -135,7 +135,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 					  reason);
 			return -EINVAL;
 		}
-		vpninfo->progress(vpninfo, PRG_ERR, 
+		vpninfo->progress(vpninfo, PRG_ERR,
 				  "Got inappropriate HTTP CONNECT response: %s\n",
 				  buf);
 		if (!strncmp(buf, "HTTP/1.1 401 ", 13))
@@ -149,7 +149,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	/* We may have advertised it, but we only do it if the server agrees */
 	vpninfo->deflate = 0;
 
-	while ((i=openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+	while ((i = openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
 		struct vpn_option *new_option;
 		char *colon = strchr(buf, ':');
 		if (!colon)
@@ -198,7 +198,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			if (!strcmp(colon, "deflate"))
 				vpninfo->deflate = 1;
 			else {
-				vpninfo->progress(vpninfo, PRG_ERR, 
+				vpninfo->progress(vpninfo, PRG_ERR,
 					"Unknown CSTP-Content-Encoding %s\n",
 					colon);
 				return -EINVAL;
@@ -275,8 +275,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	vpninfo->progress(vpninfo, PRG_INFO, "CSTP connected. DPD %d, Keepalive %d\n",
 			  vpninfo->ssl_times.dpd, vpninfo->ssl_times.keepalive);
 
-	BIO_set_nbio(SSL_get_rbio(vpninfo->https_ssl),1);
-	BIO_set_nbio(SSL_get_wbio(vpninfo->https_ssl),1);
+	BIO_set_nbio(SSL_get_rbio(vpninfo->https_ssl), 1);
+	BIO_set_nbio(SSL_get_wbio(vpninfo->https_ssl), 1);
 
 	fcntl(vpninfo->ssl_fd, F_SETFL, fcntl(vpninfo->ssl_fd, F_GETFL) | O_NONBLOCK);
 	if (vpninfo->select_nfds <= vpninfo->ssl_fd)
@@ -294,7 +294,7 @@ int make_cstp_connection(struct openconnect_info *vpninfo)
 {
 	int ret;
 
-	if (!vpninfo->https_ssl && (ret=openconnect_open_https(vpninfo)))
+	if (!vpninfo->https_ssl && (ret = openconnect_open_https(vpninfo)))
 		return ret;
 
 	if (vpninfo->deflate) {
@@ -328,7 +328,7 @@ static int cstp_reconnect(struct openconnect_info *vpninfo)
 	int ret;
 	int timeout;
 	int interval;
-	
+
 	timeout = vpninfo->reconnect_timeout;
 	interval = vpninfo->reconnect_interval;
 
@@ -377,7 +377,7 @@ static int inflate_and_queue_packet(struct openconnect_info *vpninfo, int type, 
 	vpninfo->inflate_adler32 = adler32(vpninfo->inflate_adler32,
 					   new->data, new->len);
 
-	if (vpninfo->inflate_adler32 != ntohl( *(uint32_t *)(buf + len - 4))) {
+	if (vpninfo->inflate_adler32 != ntohl( *(uint32_t *) (buf + len - 4) )) {
 		vpninfo->quit_reason = "Compression (inflate) adler32 failure";
 	}
 
@@ -484,7 +484,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 
 	/* If SSL_write() fails we are expected to try again. With exactly
-	   the same data, at exactly the same location. So we keep the 
+	   the same data, at exactly the same location. So we keep the
 	   packet we had before.... */
 	if (vpninfo->current_ssl_pkt) {
 	handle_outgoing:
@@ -548,7 +548,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpninfo->progress(vpninfo, PRG_ERR, "CSTP Dead Peer Detection detected dead peer!\n");
 		openconnect_close_https(vpninfo);
 
-		/* It's already deflated in the old stream. Extremely 
+		/* It's already deflated in the old stream. Extremely
 		   non-trivial to reconstitute it; just throw it away */
 		if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt)
 			vpninfo->current_ssl_pkt = NULL;
@@ -657,7 +657,7 @@ int cstp_bye(struct openconnect_info *vpninfo, char *reason)
 	bye_pkt = malloc(reason_len + 8);
 	if (!bye_pkt)
 		return -ENOMEM;
-	
+
 	memcpy(bye_pkt, data_hdr, 8);
 	memcpy(bye_pkt + 8, reason, reason_len);
 

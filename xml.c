@@ -25,7 +25,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h> 
+#include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -45,7 +45,7 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 	unsigned char sha1[SHA_DIGEST_LENGTH];
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node, *xml_node2;
-	
+
 	if (!vpninfo->xmlconfig)
 		return 0;
 
@@ -146,6 +146,6 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 		fprintf(stderr, "Host \"%s\" not listed in config; treating as raw hostname\n",
 			host);
 	}
-		
+
 	return 0;
 }

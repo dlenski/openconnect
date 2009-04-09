@@ -5,7 +5,7 @@
 # Copyright 2008, Aron Griffis <agriffis@n01se.net>
 # Copyright 2008, Oracle
 # Released under the GNU GPLv2
- 
+
 v="v1.10"
 
 which git &> /dev/null

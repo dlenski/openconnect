@@ -51,7 +51,7 @@ int RAND_pseudo_bytes(char *buf, int len)
 	memset(buf, 0x5a, len);
 	printf("FAKE PSEUDO RANDOM!\n");
 	return 1;
-	
+
 }
 int RAND_bytes(char *buf, int len)
 {
@@ -73,8 +73,8 @@ int RAND_bytes(char *buf, int len)
  * was in OpenSSL 0.9.8e -- it includes backports of some later
  * OpenSSL patches.
  *
- * The openssl/ directory of this source tree should contain both a 
- * small patch against OpenSSL 0.9.8e to make it support Cisco's 
+ * The openssl/ directory of this source tree should contain both a
+ * small patch against OpenSSL 0.9.8e to make it support Cisco's
  * snapshot of the protocol, and a larger patch against newer OpenSSL
  * which gives us an option to use the old protocol again.
  *
@@ -86,7 +86,7 @@ int RAND_bytes(char *buf, int len)
  * number when calculating the MAC, the server still seems to be ignoring
  * my subsequent data packets. So we use the old protocol, which is what
  * their clients use anyway.
- */   
+ */
 
 static unsigned char nybble(unsigned char n)
 {
@@ -114,7 +114,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		perror("Open UDP socket for DTLS:");
 		return -EINVAL;
 	}
-	
+
 	if (connect(dtls_fd, vpninfo->peer_addr, vpninfo->peer_addrlen)) {
 		perror("UDP (DTLS) connect:\n");
 		close(dtls_fd);
@@ -122,7 +122,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	}
 
 	fcntl(dtls_fd, F_SETFD, FD_CLOEXEC);
-	
+
 	https_cipher = SSL_get_current_cipher(vpninfo->https_ssl);
 
 	if (!vpninfo->dtls_ctx) {
@@ -144,7 +144,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		if (!vpninfo->dtls_session) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Initialise DTLSv1 session failed\n");
 			return -EINVAL;
-		}			
+		}
 		vpninfo->dtls_session->ssl_version = 0x0100; // DTLS1_BAD_VER
 
 		vpninfo->dtls_session->master_key_length = sizeof(vpninfo->dtls_secret);
@@ -185,14 +185,14 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	SSL_set_options(dtls_ssl, SSL_OP_CISCO_ANYCONNECT);
 
 	/* Set non-blocking */
-	BIO_set_nbio(SSL_get_rbio(dtls_ssl),1);
-	BIO_set_nbio(SSL_get_wbio(dtls_ssl),1);
+	BIO_set_nbio(SSL_get_rbio(dtls_ssl), 1);
+	BIO_set_nbio(SSL_get_wbio(dtls_ssl), 1);
 
 	fcntl(dtls_fd, F_SETFL, fcntl(dtls_fd, F_GETFL) | O_NONBLOCK);
 
 	vpninfo->new_dtls_fd = dtls_fd;
 	vpninfo->new_dtls_ssl = dtls_ssl;
-	
+
 	if (vpninfo->select_nfds <= dtls_fd)
 		vpninfo->select_nfds = dtls_fd + 1;
 
@@ -311,7 +311,7 @@ int setup_dtls(struct openconnect_info *vpninfo)
 		} else if (!strcmp(dtls_opt->option + 7, "Rekey-Time")) {
 			vpninfo->dtls_times.rekey = atol(dtls_opt->value);
 		}
-			
+
 		dtls_opt = dtls_opt->next;
 	}
 	if (!sessid_found || !dtls_port)
@@ -329,7 +329,7 @@ int setup_dtls(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	
+
 	if (connect_dtls_socket(vpninfo))
 		return -EINVAL;
 
@@ -383,7 +383,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 					  "Unknown DTLS packet type %02x, len %d\n", buf[0], len);
 			if (1) {
 				/* Some versions of OpenSSL have bugs with receiving out-of-order
-				 * packets. Not only do they wrongly decide to drop packets if 
+				 * packets. Not only do they wrongly decide to drop packets if
 				 * two packets get swapped in transit, but they also _fail_ to
 				 * drop the packet in non-blocking mode; instead they return
 				 * the appropriate length of garbage. So don't abort... for now. */
@@ -452,7 +452,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		/* One byte of header */
 		this->hdr[7] = AC_PKT_DATA;
-		
+
 		ret = SSL_write(vpninfo->dtls_ssl, &this->hdr[7], this->len + 1);
 		if (ret <= 0) {
 			ret = SSL_get_error(vpninfo->dtls_ssl, ret);
@@ -460,7 +460,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			/* If it's a real error, kill the DTLS connection and
 			   requeue the packet to be sent over SSL */
 			if (ret != SSL_ERROR_WANT_READ && ret != SSL_ERROR_WANT_WRITE) {
-				vpninfo->progress(vpninfo, PRG_ERR, 
+				vpninfo->progress(vpninfo, PRG_ERR,
 						  "DTLS got write error %d. Falling back to SSL\n", ret);
 				ERR_print_errors_fp(stderr);
 				dtls_restart(vpninfo);

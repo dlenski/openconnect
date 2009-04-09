@@ -40,7 +40,7 @@
 #include "openconnect.h"
 
 /*
- * We didn't really want to have to do this for ourselves -- one might have 
+ * We didn't really want to have to do this for ourselves -- one might have
  * thought that it would be available in a library somewhere. But neither
  * cURL nor Neon have reliable cross-platform ways of either using a cert
  * from the TPM, or just reading from / writing to a transport which is
@@ -76,7 +76,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	vpninfo->progress(vpninfo, PRG_TRACE, "Got HTTP response: %s\n", buf);
 
 	/* Eat headers... */
-	while ((i=openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+	while ((i = openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
 		char *colon;
 
 		vpninfo->progress(vpninfo, PRG_TRACE, "%s\n", buf);
@@ -200,7 +200,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	}
 
 	/* ... else, chunked */
-	while ((i=openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+	while ((i = openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
 		int chunklen, lastchunk = 0;
 
 		if (i < 0) {
@@ -227,7 +227,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			done += i;
 		}
 	skip:
-		if ((i=openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+		if ((i = openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
 			if (i < 0) {
 				vpninfo->progress(vpninfo, PRG_ERR, "Error fetching HTTP response body\n");
 			} else {
@@ -237,7 +237,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			return -EINVAL;
 		}
 
-		if (lastchunk) 
+		if (lastchunk)
 			break;
 	}
  fin:
@@ -314,7 +314,7 @@ static int parse_auth_choice(struct openconnect_info *vpninfo,
 		vpninfo->progress(vpninfo, PRG_ERR, "Form choice has no name\n");
 		return -EINVAL;
 	}
-	
+
 	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
 		char *authtype, *form_id, *override_name, *override_label, *auth_content;
 		if (xml_node->type != XML_ELEMENT_NODE)
@@ -398,7 +398,7 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 
 	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
 		char *input_type, *input_name, *input_label;
-		
+
 		if (xml_node->type != XML_ELEMENT_NODE)
 			continue;
 
@@ -428,7 +428,7 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 		if (!strcmp(input_type, "hidden")) {
 			char *value = (char *)xmlGetProp(xml_node, (unsigned char *)"value");
 			if (!value) {
-				vpninfo->progress(vpninfo, PRG_INFO, 
+				vpninfo->progress(vpninfo, PRG_INFO,
 						  "No value for hidden input %s\n",
 						  input_name);
 				continue;
@@ -445,14 +445,14 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 		input_label = (char *)xmlGetProp(xml_node, (unsigned char *)"label");
 
 		if (!strcmp(input_type, "text")) {
-			user_form_prompt = input_label?:"Username:";
+			user_form_prompt = input_label ?: "Username:";
 			user_form_id = input_name;
 		} else if (!strcmp(input_type, "password")) {
-			pass_form_prompt = input_label?:"Password:";
+			pass_form_prompt = input_label ?: "Password:";
 			pass_form_id = input_name;
 		}
 	}
-			 
+
 	vpninfo->progress(vpninfo, PRG_TRACE, "Fixed options give %s\n", body);
 
 	if (user_form_id && !vpninfo->username)
@@ -501,7 +501,7 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 
 	if (user_form_id)
 		append_opt(body, bodylen, user_form_id,
-			   vpninfo->username?:username);
+			   vpninfo->username ?: username);
 
 	if (is_securid == 1 && vpninfo->sid_tokencode[0]) {
 		/* First token request; mangle pin into _both_ first and next
@@ -533,7 +533,7 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 
 /* Return value:
  *  < 0, on error
- *  = 0, 
+ *  = 0,
  *  = 1, when response was parsed
  *  = 2, when response was cancelled
  */
@@ -639,7 +639,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 		sprintf(buf + strlen(buf),  "Cookie: ");
 		for (opt = vpninfo->cookies; opt; opt = opt->next)
 			sprintf(buf + strlen(buf),  "%s=%s%s", opt->option,
-				      opt->value, opt->next?"; ":"\r\n");
+				      opt->value, opt->next ? "; " : "\r\n");
 	}
 	sprintf(buf + strlen(buf),  "X-Transcend-Version: 1\r\n\r\n");
 
@@ -654,7 +654,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 	if (result != 200)
 		return -EINVAL;
 
-	
+
 	EVP_MD_CTX_init(&c);
 	EVP_Digest(buf, buflen, local_sha1_bin, NULL, EVP_sha1(), NULL);
 	EVP_MD_CTX_cleanup(&c);
@@ -692,15 +692,15 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	}
 
 	/*
-	 * It would be nice to use cURL for this, but we really need to guarantee 
-	 * that we'll be using OpenSSL (for the TPM stuff), and it doesn't seem 
+	 * It would be nice to use cURL for this, but we really need to guarantee
+	 * that we'll be using OpenSSL (for the TPM stuff), and it doesn't seem
 	 * to have any way to let us provide our own socket read/write functions.
 	 * We can only provide a socket _open_ function. Which would require having
-	 * a socketpair() and servicing the "other" end of it. 
+	 * a socketpair() and servicing the "other" end of it.
 	 *
 	 * So we process the HTTP for ourselves...
 	 */
-	sprintf(buf, "%s /%s HTTP/1.1\r\n", method, vpninfo->urlpath?:"");
+	sprintf(buf, "%s /%s HTTP/1.1\r\n", method, vpninfo->urlpath ?: "");
 	sprintf(buf + strlen(buf), "Host: %s\r\n", vpninfo->hostname);
 	sprintf(buf + strlen(buf),  "User-Agent: %s\r\n", vpninfo->useragent);
 	sprintf(buf + strlen(buf),  "Accept: */*\r\n");
@@ -710,7 +710,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		sprintf(buf + strlen(buf),  "Cookie: ");
 		for (opt = vpninfo->cookies; opt; opt = opt->next)
 			sprintf(buf + strlen(buf),  "%s=%s%s", opt->option,
-				      opt->value, opt->next?"; ":"\r\n");
+				      opt->value, opt->next ? "; " : "\r\n");
 	}
 	if (request_body_type) {
 		sprintf(buf + strlen(buf),  "Content-Type: %s\r\n",
@@ -722,7 +722,8 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	if (request_body_type)
 		sprintf(buf + strlen(buf), "%s", request_body);
 
-	vpninfo->progress(vpninfo, PRG_INFO, "%s %s/%s\n", method, vpninfo->hostname, vpninfo->urlpath?:"");
+	vpninfo->progress(vpninfo, PRG_INFO, "%s %s/%s\n", method,
+			  vpninfo->hostname, vpninfo->urlpath ?: "");
 
 	SSL_write(vpninfo->https_ssl, buf, strlen(buf));
 
