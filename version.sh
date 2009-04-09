@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# determine-version -- report a useful version for releases
+# version.sh -- report a useful version for releases
 #
 # Copyright 2008, Aron Griffis <agriffis@n01se.net>
 # Copyright 2008, Oracle
