@@ -239,7 +239,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	}
 	fcntl(ssl_sock, F_SETFD, FD_CLOEXEC);
 
-	ssl3_method = SSLv23_client_method();
+	ssl3_method = TLSv1_client_method();
 	if (!vpninfo->https_ctx) {
 		vpninfo->https_ctx = SSL_CTX_new(ssl3_method);
 
