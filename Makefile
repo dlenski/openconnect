@@ -53,9 +53,13 @@ OPENCONNECT_OBJS := main.o $(SSL_UI) xml.o
 CONNECTION_OBJS := dtls.o cstp.o mainloop.o tun.o 
 AUTH_OBJECTS := ssl.o http.o version.o securid.o
 
+VERSION_OBJS := $(filter-out version.o, \
+		$(OPENCONNECT_OBJS) $(CONNECTION_OBJS) $(AUTH_OBJECTS))
+
 all: openconnect $(NMAUTHDIALOG)
 
-version.c: $(patsubst %.o,%.c,$(OBJECTS)) openconnect.h $(wildcard .git/index .git/refs/tags) version.sh
+version.c: $(patsubst %.o,%.c,$(VERSION_OBJS)) openconnect.h \
+		$(wildcard .git/index .git/refs/tags) version.sh
 	@./version.sh
 	@echo -en "New version.c: "
 	@cut -f2 -d\" version.c
