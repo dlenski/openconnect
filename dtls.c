@@ -103,8 +103,9 @@ static unsigned char hex(const char *data)
 
 int connect_dtls_socket(struct openconnect_info *vpninfo)
 {
+	STACK_OF(SSL_CIPHER) *ciphers;
 	SSL_METHOD *dtls_method;
-	SSL_CIPHER *https_cipher;
+	SSL_CIPHER *dtls_cipher;
 	SSL *dtls_ssl;
 	BIO *dtls_bio;
 	int dtls_fd;
@@ -123,19 +124,26 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 
 	fcntl(dtls_fd, F_SETFD, FD_CLOEXEC);
 
-	https_cipher = SSL_get_current_cipher(vpninfo->https_ssl);
-
 	if (!vpninfo->dtls_ctx) {
 		dtls_method = DTLSv1_client_method();
 		vpninfo->dtls_ctx = SSL_CTX_new(dtls_method);
 		if (!vpninfo->dtls_ctx) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Initialise DTLSv1 CTX failed\n");
+			vpninfo->dtls_attempt_period = 0;
 			return -EINVAL;
 		}
 
 		/* If we don't readahead, then we do short reads and throw
 		   away the tail of data packets. */
 		SSL_CTX_set_read_ahead(vpninfo->dtls_ctx, 1);
+
+		if (!SSL_CTX_set_cipher_list(vpninfo->dtls_ctx, vpninfo->dtls_cipher)) {
+			vpninfo->progress(vpninfo, PRG_ERR, "Set DTLS cipher list failed\n");
+			SSL_CTX_free(vpninfo->dtls_ctx);
+			vpninfo->dtls_ctx = NULL;
+			vpninfo->dtls_attempt_period = 0;
+			return -EINVAL;
+		}
 	}
 
 	if (!vpninfo->dtls_session) {
@@ -143,6 +151,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		vpninfo->dtls_session = SSL_SESSION_new();
 		if (!vpninfo->dtls_session) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Initialise DTLSv1 session failed\n");
+			vpninfo->dtls_attempt_period = 0;
 			return -EINVAL;
 		}
 		vpninfo->dtls_session->ssl_version = 0x0100; // DTLS1_BAD_VER
@@ -154,14 +163,27 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		vpninfo->dtls_session->session_id_length = sizeof(vpninfo->dtls_session_id);
 		memcpy(vpninfo->dtls_session->session_id, vpninfo->dtls_session_id,
 		       sizeof(vpninfo->dtls_session_id));
-
-		vpninfo->dtls_session->cipher = https_cipher;
-		vpninfo->dtls_session->cipher_id = https_cipher->id;
 	}
 
 	dtls_ssl = SSL_new(vpninfo->dtls_ctx);
 	SSL_set_connect_state(dtls_ssl);
-	SSL_set_cipher_list(dtls_ssl, SSL_CIPHER_get_name(https_cipher));
+
+	ciphers = SSL_get_ciphers(dtls_ssl);
+	if (sk_SSL_CIPHER_num(ciphers) != 1) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Not precisely one DTLS cipher\n");
+		SSL_CTX_free(vpninfo->dtls_ctx);
+		SSL_free(dtls_ssl);
+		SSL_SESSION_free(vpninfo->dtls_session);
+		vpninfo->dtls_ctx = NULL;
+		vpninfo->dtls_session = NULL;
+		vpninfo->dtls_attempt_period = 0;
+		return -EINVAL;
+	}
+	dtls_cipher = sk_SSL_CIPHER_value(ciphers, 0);
+
+	/* Set the appropriate cipher on our session to be resumed */
+	vpninfo->dtls_session->cipher = dtls_cipher;
+	vpninfo->dtls_session->cipher_id = dtls_cipher->id;
 
 	/* Add the generated session to the SSL */
 	if (!SSL_set_session(dtls_ssl, vpninfo->dtls_session)) {
@@ -310,6 +332,8 @@ int setup_dtls(struct openconnect_info *vpninfo)
 			vpninfo->dtls_times.dpd = atol(dtls_opt->value);
 		} else if (!strcmp(dtls_opt->option + 7, "Rekey-Time")) {
 			vpninfo->dtls_times.rekey = atol(dtls_opt->value);
+		} else if (!strcmp(dtls_opt->option + 7, "CipherSuite")) {
+			vpninfo->dtls_cipher = dtls_opt->value;
 		}
 
 		dtls_opt = dtls_opt->next;

@@ -258,6 +258,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		}
 	}
 
+	free(vpninfo->dtls_cipher);
+	vpninfo->dtls_cipher = NULL;
+
 	while (old_dtls_opts) {
 		struct vpn_option *tmp = old_dtls_opts;
 		old_dtls_opts = old_dtls_opts->next;
