@@ -58,7 +58,7 @@ VERSION_OBJS := $(filter-out version.o, \
 
 all: openconnect $(NMAUTHDIALOG)
 
-version.c: $(patsubst %.o,%.c,$(VERSION_OBJS)) openconnect.h \
+version.c: $(patsubst %.o,%.c,$(VERSION_OBJS)) Makefile openconnect.h \
 		$(wildcard .git/index .git/refs/tags) version.sh
 	@./version.sh
 	@echo -en "New version.c: "
