@@ -327,9 +327,9 @@ static int parse_auth_choice(struct openconnect_info *vpninfo,
 		authtype = (char *)xmlGetProp(xml_node, (unsigned char *)"auth-type");
 		override_name = (char *)xmlGetProp(xml_node, (unsigned char *)"override-name");
 		override_label = (char *)xmlGetProp(xml_node, (unsigned char *)"override-label");
-		if (!form_id || !authtype)
+		if (!form_id)
 			continue;
-		if (strcmp(authtype, "sdi-via-proxy")) {
+		if (authtype && !strcmp(authtype, "sdi-via-proxy")) {
 			char *content = (char *)xmlNodeGetContent(xml_node);
 			vpninfo->progress(vpninfo, PRG_ERR, "Unrecognised auth type %s, label '%s'\n",
 					  authtype, content);
