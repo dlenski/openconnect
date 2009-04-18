@@ -94,7 +94,16 @@ tag:
 	git commit -s -m "Tag version $(VERSION)" version.sh
 	git tag v$(VERSION)
 
-tarball:
-	git archive --format=tar --prefix=openconnect-$(VERSION)/ v$(VERSION) | gzip -9 > openconnect-$(VERSION).tar.gz
+tarball: version.c
+	if ! grep -q '"v$(VERSION)"' version.c; then \
+		echo "Tree not at v$(VERSION)"; exit 1 ; fi
+	@if git diff-index --name-only HEAD | grep ^ ; then \
+		echo Uncommitted changes in above files; exit 1; fi
+	git add -f version.c
+	git write-tree 
+	git commit -m "add version.c for v$(VERSION)" version.c
+	git archive --format=tar --prefix=openconnect-$(VERSION)/ `git write-tree` | gzip -9 > openconnect-$(VERSION).tar.gz
+	git reset v$(VERSION)
+	git gc --prune
 endif
 
