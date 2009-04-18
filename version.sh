@@ -22,6 +22,8 @@ if [ $? == 0 -a -d .git ]; then
             v="$v"-dirty
         fi
     fi
+else
+    v="$v"-unknown
 fi
 
 echo "char openconnect_version[] = \"$v\";" > version.c
