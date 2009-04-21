@@ -38,6 +38,41 @@
 
 #include "openconnect.h"
 
+#define OPT_TEXT	1
+#define OPT_PASSWORD	2
+#define OPT_SELECT	3
+
+struct form_opt {
+	struct form_opt *next;
+	int type;
+	char *name;
+	char *label;
+};
+
+struct choice {
+	char *name;
+	char *label;
+	char *auth_type;
+	char *override_name;
+	char *override_label;
+};
+
+struct form_opt_select {
+	struct form_opt form;
+	int nr_choices;
+	struct choice choices[0];
+};
+
+struct auth_form {
+	char *banner;
+	char *message;
+	char *error;
+	char *auth_id;
+	char *method;
+	char *action;
+	struct form_opt *opts;
+};
+
 static int append_opt(char *body, int bodylen, char *opt, char *name)
 {
 	int len = strlen(body);
@@ -91,19 +126,29 @@ static int append_opt(char *body, int bodylen, char *opt, char *name)
  * So we just accept the first option with an auth-type property.
  */
 
-static int parse_auth_choice(struct openconnect_info *vpninfo,
-			     xmlNode *xml_node, char *body, int bodylen,
-			     char **user_prompt, char **pass_prompt, int *is_securid)
+static int parse_auth_choice(struct openconnect_info *vpninfo, struct auth_form *form,
+			     xmlNode *xml_node)
 {
-	char *form_name = (char *)xmlGetProp(xml_node, (unsigned char *)"name");
+	struct form_opt_select *opt;
 
-	if (!form_name) {
+	opt = calloc(1, sizeof(*opt));
+	if (!opt)
+		return -ENOMEM;
+
+	opt->form.type = OPT_SELECT;
+	opt->form.name = (char *)xmlGetProp(xml_node, (unsigned char *)"name");
+	opt->form.label = (char *)xmlGetProp(xml_node, (unsigned char *)"label");
+
+	if (!opt->form.name) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Form choice has no name\n");
+		free(opt);
 		return -EINVAL;
 	}
 
 	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
-		char *authtype, *form_id, *override_name, *override_label, *auth_content;
+		char *form_id;
+		struct choice *choice;
+
 		if (xml_node->type != XML_ELEMENT_NODE)
 			continue;
 
@@ -111,35 +156,28 @@ static int parse_auth_choice(struct openconnect_info *vpninfo,
 			continue;
 
 		form_id = (char *)xmlGetProp(xml_node, (unsigned char *)"value");
-		authtype = (char *)xmlGetProp(xml_node, (unsigned char *)"auth-type");
-		override_name = (char *)xmlGetProp(xml_node, (unsigned char *)"override-name");
-		override_label = (char *)xmlGetProp(xml_node, (unsigned char *)"override-label");
 		if (!form_id)
 			continue;
-		if (authtype && !strcmp(authtype, "sdi-via-proxy")) {
-			char *content = (char *)xmlNodeGetContent(xml_node);
-			vpninfo->progress(vpninfo, PRG_ERR, "Unrecognised auth type %s, label '%s'\n",
-					  authtype, content);
-			/* But continue anyway... */
-		}
-		vpninfo->progress(vpninfo, PRG_TRACE, "choosing %s %s\n", form_name, form_id);
-		append_opt(body, bodylen, form_name, form_id);
 
-		if (override_name && override_label) {
-			if (!strcmp(override_name, "username"))
-				*user_prompt = override_label;
-			else if (!strcmp(override_name, "password"))
-				*pass_prompt = override_label;
-		}
-		auth_content = (char *)xmlNodeGetContent(xml_node);
-		if (auth_content && (!strcasecmp(auth_content, "SecureID") ||
-				     !strcasecmp(auth_content, "SecurID")))
-			*is_securid = 1;
+		opt->nr_choices++;
+		opt = realloc(opt, sizeof(*opt) +
+				   opt->nr_choices * sizeof(*choice));
+		if (!opt)
+			return -ENOMEM;
 
-		return 0;
+		choice = &opt->choices[opt->nr_choices-1];
+
+		choice->name = form_id;
+		choice->label = (char *)xmlNodeGetContent(xml_node);
+		choice->auth_type = (char *)xmlGetProp(xml_node, (unsigned char *)"auth-type");
+		choice->override_name = (char *)xmlGetProp(xml_node, (unsigned char *)"override-name");
+		choice->override_label = (char *)xmlGetProp(xml_node, (unsigned char *)"override-label");
 	}
-	vpninfo->progress(vpninfo, PRG_ERR, "Didn't find appropriate auth-type choice\n");
-	/* Not necessarily an error -- sometimes there are none */
+
+	/* We link the choice _first_ so it's at the top of what we present
+	   to the user */
+	opt->form.next = form->opts;
+	form->opts = &opt->form;
 	return 0;
 }
 
@@ -148,51 +186,19 @@ static int parse_auth_choice(struct openconnect_info *vpninfo,
  *  = 0, when form was cancelled
  *  = 1, when form was parsed
  */
-static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
-		      char *form_message, char *form_error, xmlNode *xml_node,
-		      char *body, int bodylen)
+static int parse_form(struct openconnect_info *vpninfo, struct auth_form *form,
+		      xmlNode *xml_node, char *body, int bodylen)
 {
-	UI *ui = UI_new();
-	char msg_buf[1024], err_buf[1024];
-	char username[80], password[80], tpin[80], *passresult = password;
-	int ret, is_securid = 0;
-	char *user_form_prompt = NULL;
-	char *user_form_id = NULL;
-	char *pass_form_prompt = NULL;
-	char *pass_form_id = NULL;
-
-	username[0] = 0;
-	password[0] = 0;
-	tpin[0] = 0;
-
-	if (!strcmp(auth_id, "next_tokencode"))
-		is_securid = 2;
-
-	if (!ui) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Failed to create UI\n");
-		return -EINVAL;
-	}
-	if (form_error) {
-		err_buf[1023] = 0;
-		snprintf(err_buf, 1023, "%s\n", form_error);
-		UI_add_error_string(ui, err_buf);
-	}
-	if (form_message) {
-		msg_buf[1023] = 0;
-		snprintf(msg_buf, 1023, "%s\n", form_message);
-		UI_add_info_string(ui, msg_buf);
-	}
+	char *input_type, *input_name, *input_label;
 
 	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
-		char *input_type, *input_name, *input_label;
+		struct form_opt *opt, **p;
 
 		if (xml_node->type != XML_ELEMENT_NODE)
 			continue;
 
 		if (!strcmp((char *)xml_node->name, "select")) {
-			if (parse_auth_choice(vpninfo, xml_node, body, bodylen,
-					      &user_form_prompt, &pass_form_prompt,
-					      &is_securid))
+			if (parse_auth_choice(vpninfo, form, xml_node))
 				return -EINVAL;
 			continue;
 		}
@@ -228,24 +234,198 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 			}
 			continue;
 		}
-
 		input_label = (char *)xmlGetProp(xml_node, (unsigned char *)"label");
 
-		if (!strcmp(input_type, "text")) {
-			user_form_prompt = input_label ?: "Username:";
-			user_form_id = input_name;
-		} else if (!strcmp(input_type, "password")) {
-			pass_form_prompt = input_label ?: "Password:";
-			pass_form_id = input_name;
+		opt = calloc(1, sizeof(*opt));
+		if (!opt)
+			return -ENOMEM;
+
+		if (!strcmp(input_type, "text"))
+			opt->type = OPT_TEXT;
+		else if (!strcmp(input_type, "password"))
+			opt->type = OPT_PASSWORD;
+		else {
+			vpninfo->progress(vpninfo, PRG_INFO, "Unknown input type %s in form\n",
+					  input_type);
+			free(opt);
+			continue;
 		}
+
+		opt->name = input_name;
+		opt->label = input_label;
+
+		p = &form->opts;
+		while (*p)
+			p = &(*p)->next;
+
+		*p = opt;
 	}
 
 	vpninfo->progress(vpninfo, PRG_TRACE, "Fixed options give %s\n", body);
 
-	if (user_form_id && !vpninfo->username)
+	return 0;
+}
+
+static int process_form(struct openconnect_info *vpninfo, struct auth_form *form,
+			char *body, int bodylen);
+
+/* Return value:
+ *  < 0, on error
+ *  = 0, when form indicated success
+ *  = 1, when response was parsed and POST required
+ *  = 2, when response was cancelled
+ */
+int parse_xml_response(struct openconnect_info *vpninfo, char *response,
+		       char *request_body, int req_len)
+{
+	struct auth_form *form;
+	xmlDocPtr xml_doc;
+	xmlNode *xml_node;
+	int ret = 0;
+
+	form = calloc(1, sizeof(*form));
+	if (!form)
+		return -ENOMEM;
+
+	xml_doc = xmlReadMemory(response, strlen(response), "noname.xml", NULL, 0);
+	if (!xml_doc) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to parse server response\n");
+		vpninfo->progress(vpninfo, PRG_TRACE, "Response was:%s\n", response);
+		free(form);
+		return -EINVAL;
+	}
+
+	xml_node = xmlDocGetRootElement(xml_doc);
+	if (xml_node->type != XML_ELEMENT_NODE || strcmp((char *)xml_node->name, "auth")) {
+		vpninfo->progress(vpninfo, PRG_ERR, "XML response has no \"auth\" root node\n");
+		ret = -EINVAL;
+		goto out;
+	}
+
+	form->auth_id = (char *)xmlGetProp(xml_node, (unsigned char *)"id");
+	if (!strcmp(form->auth_id, "success")) {
+		goto out;
+		return 0;
+	}
+
+	if (vpninfo->nopasswd) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Asked for password but '--no-passwd' set\n");
+		ret = -EPERM;
+		goto out;
+	}
+
+	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
+		if (xml_node->type != XML_ELEMENT_NODE)
+			continue;
+
+		if (!strcmp((char *)xml_node->name, "banner"))
+			form->banner = (char *)xmlNodeGetContent(xml_node);
+		else if (!strcmp((char *)xml_node->name, "message"))
+			form->message = (char *)xmlNodeGetContent(xml_node);
+		else if (!strcmp((char *)xml_node->name, "error"))
+			form->error = (char *)xmlNodeGetContent(xml_node);
+		else if (!strcmp((char *)xml_node->name, "form")) {
+
+			form->method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
+			form->action = (char *)xmlGetProp(xml_node, (unsigned char *)"action");
+			if (!form->method || !form->action || 
+			    strcasecmp(form->method, "POST") || form->action[0] != '/') {
+				vpninfo->progress(vpninfo, PRG_ERR,
+						  "Cannot handle form method='%s', action='%s'\n",
+						  form->method, form->action);
+				ret = -EINVAL;
+				goto out;
+			}
+			free(vpninfo->urlpath);
+			vpninfo->urlpath = strdup(form->action+1);
+
+			ret = parse_form(vpninfo, form, xml_node, request_body, req_len);
+			if (ret < 0)
+				goto out;
+		}
+	}
+
+	ret = process_form(vpninfo, form, request_body, req_len);
+ out:
+	xmlFreeDoc(xml_doc);
+	while (form->opts) {
+		struct form_opt *tmp = form->opts->next;
+		free(form->opts);
+		form->opts = tmp;
+	}
+	free(form);
+	return ret;
+}
+
+/* Return value as for parse_xml_response() above: 
+ *  < 0, on error
+ *  = 0, never
+ *  = 1, when response was parsed and POST required
+ *  = 2, when response was cancelled
+ */
+static int process_form(struct openconnect_info *vpninfo, struct auth_form *form,
+			char *body, int bodylen)
+{
+	UI *ui = UI_new();
+	char msg_buf[1024], err_buf[1024];
+	char username[80], password[80], tpin[80], *passresult = password;
+	int ret = 0, is_securid = 0;
+	char *user_form_prompt = NULL;
+	char *user_form_id = NULL;
+	char *pass_form_prompt = NULL;
+	char *pass_form_id = NULL;
+	struct form_opt *opt;
+
+	username[0] = 0;
+	password[0] = 0;
+	tpin[0] = 0;
+
+	if (!strcmp(form->auth_id, "next_tokencode"))
+		is_securid = 2;
+
+	if (!ui) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to create UI\n");
+		return -EINVAL;
+	}
+	if (form->banner) {
+		err_buf[1023] = 0;
+		snprintf(err_buf, 1023, "%s\n", form->banner);
+		UI_add_error_string(ui, err_buf);
+	}
+	if (form->error) {
+		err_buf[1023] = 0;
+		snprintf(err_buf, 1023, "%s\n", form->error);
+		UI_add_error_string(ui, err_buf);
+	}
+	if (form->message) {
+		msg_buf[1023] = 0;
+		snprintf(msg_buf, 1023, "%s\n", form->message);
+		UI_add_info_string(ui, msg_buf);
+	}
+
+	for (opt = form->opts; opt; opt = opt->next) {
+
+		if (opt->type == OPT_TEXT) {
+			user_form_prompt = opt->label;
+			user_form_id = opt->name;
+		} else if (opt->type == OPT_PASSWORD) {
+			pass_form_prompt = opt->label;
+			pass_form_id = opt->name;
+		} else if (opt->type == OPT_SELECT) {
+			struct form_opt_select *select_opt = (void *)opt;
+			struct choice *choice = &select_opt->choices[select_opt->nr_choices-1];
+
+			/* FIXME: Let the user choose */
+			append_opt(body, bodylen, opt->name, choice->name);
+
+			if (choice->label && !strcmp(choice->label, "SecureID"))
+				is_securid = 1;
+		}
+	}
+
+        if (user_form_id && !vpninfo->username)
 		UI_add_input_string(ui, user_form_prompt, UI_INPUT_FLAG_ECHO, username, 1, 80);
-
-
+			
 	/* This isn't ideal, because we the user could take an arbitrary length
 	   of time to enter the PIN, and we should use a tokencode generated
 	   _after_ they enter the PIN, not before. Once we have proper tokencode
@@ -279,7 +459,7 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 	switch (UI_process(ui)) {
 	case -2:
 		/* cancelled */
-		return 0;
+		return 2;
 	case -1:
 		/* error */
 		vpninfo->progress(vpninfo, PRG_ERR, "Invalid inputs\n");
@@ -297,14 +477,14 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 		if (ret < 0)
 			ret = add_securid_pin(vpninfo->sid_nexttokencode, tpin);
 		if (ret < 0)
-			return -1;
+			return -EINVAL;
 		passresult = vpninfo->sid_tokencode;
 	} else if (is_securid == 2 && vpninfo->sid_nexttokencode[0]) {
 		passresult = vpninfo->sid_nexttokencode;
 	} else if (is_securid && tpin[0]) {
 		ret = add_securid_pin(password, tpin);
 		if (ret < 0)
-			return -1;
+			return -EINVAL;
 	} else if (vpninfo->password)
 		passresult = vpninfo->password;
 
@@ -316,91 +496,4 @@ static int parse_form(struct openconnect_info *vpninfo, char *auth_id,
 	}
 
 	return 1;
-}
-
-/* Return value:
- *  < 0, on error
- *  = 0,
- *  = 1, when response was parsed
- *  = 2, when response was cancelled
- */
-int parse_xml_response(struct openconnect_info *vpninfo, char *response,
-		       char *request_body, int req_len)
-{
-	char *form_message, *form_error, *auth_id;
-	xmlDocPtr xml_doc;
-	xmlNode *xml_node;
-
-	xml_doc = xmlReadMemory(response, strlen(response), "noname.xml", NULL, 0);
-	if (!xml_doc) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Failed to parse server response\n");
-		vpninfo->progress(vpninfo, PRG_TRACE, "Response was:%s\n", response);
-		return -EINVAL;
-	}
-
-	xml_node = xmlDocGetRootElement(xml_doc);
-	if (xml_node->type != XML_ELEMENT_NODE ||
-	    strcmp((char *)xml_node->name, "auth")) {
-		vpninfo->progress(vpninfo, PRG_ERR, "XML response has no \"auth\" root node\n");
-		xmlFreeDoc(xml_doc);
-		return -EINVAL;
-	}
-
-	auth_id = (char *)xmlGetProp(xml_node, (unsigned char *)"id");
-	if (!strcmp(auth_id, "success")) {
-		xmlFreeDoc(xml_doc);
-		return 0;
-	}
-
-	if (vpninfo->nopasswd) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Asked for password but '--no-passwd' set\n");
-		return -EPERM;
-	}
-
-	form_message = form_error = NULL;
-	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
-		if (xml_node->type != XML_ELEMENT_NODE)
-			continue;
-
-		if (!strcmp((char *)xml_node->name, "message"))
-			form_message = (char *)xmlNodeGetContent(xml_node);
-		else if (!strcmp((char *)xml_node->name, "error")) {
-			form_error = (char *)xmlNodeGetContent(xml_node);
-		} else if (!strcmp((char *)xml_node->name, "form")) {
-			char *form_method, *form_action;
-			int ret;
-
-			form_method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
-			form_action = (char *)xmlGetProp(xml_node, (unsigned char *)"action");
-			if (strcasecmp(form_method, "POST") || form_action[0] != '/') {
-				vpninfo->progress(vpninfo, PRG_ERR, "Cannot handle form method='%s', action='%s'\n",
-						  form_method, form_action);
-				xmlFreeDoc(xml_doc);
-				return -EINVAL;
-			}
-			free(vpninfo->urlpath);
-			vpninfo->urlpath = strdup(form_action+1);
-
-			ret = parse_form(vpninfo, auth_id, form_message,
-					 form_error, xml_node, request_body,
-					 req_len);
-			if (ret < 0) {
-				/* fail */
-				xmlFreeDoc(xml_doc);
-				return -EINVAL;
-			} else if (ret == 0)  {
-				/* cancel */
-				return 2;
-			}
-
-			/* Let the caller know there's a form to be submitted */
-			return 1;
-		}
-	}
-
-	xmlFreeDoc(xml_doc);
-
-	vpninfo->progress(vpninfo, PRG_ERR, "Response neither indicated success nor requested input\n");
-	vpninfo->progress(vpninfo, PRG_ERR, "Response was:\n%s\n", response);
-	return -EINVAL;
 }
