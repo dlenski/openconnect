@@ -245,8 +245,11 @@ static int parse_form(struct openconnect_info *vpninfo, struct auth_form *form,
 		else if (!strcmp(input_type, "password"))
 			opt->type = OPT_PASSWORD;
 		else {
-			vpninfo->progress(vpninfo, PRG_INFO, "Unknown input type %s in form\n",
-					  input_type);
+			if (strcmp(input_type, "submit") &&
+			    strcmp(input_type, "reset"))
+				vpninfo->progress(vpninfo, PRG_INFO,
+						  "Unknown input type %s in form\n",
+						  input_type);
 			free(opt);
 			continue;
 		}
@@ -367,7 +370,7 @@ static int process_form(struct openconnect_info *vpninfo, struct auth_form *form
 			char *body, int bodylen)
 {
 	UI *ui = UI_new();
-	char msg_buf[1024], err_buf[1024];
+	char banner_buf[1024], msg_buf[1024], err_buf[1024];
 	char username[80], password[80], tpin[80], *passresult = password;
 	int ret = 0, is_securid = 0;
 	char *user_form_prompt = NULL;
@@ -388,9 +391,9 @@ static int process_form(struct openconnect_info *vpninfo, struct auth_form *form
 		return -EINVAL;
 	}
 	if (form->banner) {
-		err_buf[1023] = 0;
-		snprintf(err_buf, 1023, "%s\n", form->banner);
-		UI_add_error_string(ui, err_buf);
+		banner_buf[1023] = 0;
+		snprintf(banner_buf, 1023, "%s\n", form->banner);
+		UI_add_info_string(ui, banner_buf);
 	}
 	if (form->error) {
 		err_buf[1023] = 0;
