@@ -135,6 +135,19 @@ static void ssl_box_add_error(auth_ui_data *ui_data, const char *msg)
 	gtk_box_pack_start(GTK_BOX(hbox), text, FALSE, FALSE, 0);
 }
 
+static void ssl_box_add_info(auth_ui_data *ui_data, const char *msg)
+{
+	GtkWidget *text;
+	int width;
+
+	text = gtk_label_new(msg);
+	gtk_label_set_line_wrap(GTK_LABEL(text), TRUE);
+	gtk_window_get_size(GTK_WINDOW(ui_data->dialog), &width, NULL);
+	/* FIXME: this is not very nice -- can't make the window thinner after this */
+	gtk_widget_set_size_request(text, width - 40, -1);
+	gtk_box_pack_start(GTK_BOX(ui_data->ssl_box), text, FALSE, FALSE, 0);
+}
+
 static void ssl_box_clear(auth_ui_data *ui_data)
 {
 	gtk_widget_hide(ui_data->no_form_label);
@@ -173,15 +186,7 @@ static gboolean ui_write_error (ui_fragment_data *data)
 
 static gboolean ui_write_info (ui_fragment_data *data)
 {
-	GtkWidget *text;
-	int width;
-
-	text = gtk_label_new(UI_get0_output_string(data->uis));
-	gtk_label_set_line_wrap(GTK_LABEL(text), TRUE);
-	gtk_window_get_size(GTK_WINDOW(ui_data->dialog), &width, NULL);
-	/* FIXME: this is not very nice -- can't make the window thinner after this */
-	gtk_widget_set_size_request(text, width - 40, -1);
-	gtk_box_pack_start(GTK_BOX(data->ui_data->ssl_box), text, FALSE, FALSE, 0);
+	ssl_box_add_info(data->ui_data, UI_get0_output_string(data->uis));
 
 	g_slice_free (ui_fragment_data, data);
 
