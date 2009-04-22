@@ -159,6 +159,7 @@ static void ssl_box_clear(auth_ui_data *ui_data)
 }
 
 typedef struct ui_fragment_data {
+	GtkWidget *widget;
 	auth_ui_data *ui_data;
 	UI_STRING *uis;
 	struct oc_form_opt *opt;
@@ -176,6 +177,19 @@ static void entry_changed(GtkEntry *entry, ui_fragment_data *data)
 	data->entry_text = g_strdup(gtk_entry_get_text(entry));
 }
 
+static void do_override_label(ui_fragment_data *data, struct oc_choice *choice)
+{
+	const char *new_label = data->opt->label;
+
+	if (!data->widget)
+		return;
+
+	if (choice->override_name && !strcmp(choice->override_name, data->opt->name))
+		    new_label = choice->override_label;
+
+	gtk_label_set_text(GTK_LABEL(data->widget), new_label);
+
+}
 static void combo_changed(GtkComboBox *combo, ui_fragment_data *data)
 {
 	struct oc_form_opt_select *sopt = (void *)data->opt;
@@ -184,6 +198,9 @@ static void combo_changed(GtkComboBox *combo, ui_fragment_data *data)
 		return;
 
 	data->entry_text = sopt->choices[entry].name;
+
+	g_queue_foreach(data->ui_data->form_entries, do_override_label,
+			&sopt->choices[entry]);
 }
 
 static gboolean ui_write_error (ui_fragment_data *data)
@@ -223,6 +240,7 @@ static gboolean ui_write_prompt (ui_fragment_data *data)
 
 	text = gtk_label_new(label);
 	gtk_box_pack_start(GTK_BOX(hbox), text, FALSE, FALSE, 0);
+	data->widget = text;
 
 	entry = gtk_entry_new();
 	gtk_box_pack_end(GTK_BOX(hbox), entry, FALSE, FALSE, 0);
