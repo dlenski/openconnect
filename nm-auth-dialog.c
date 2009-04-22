@@ -405,11 +405,11 @@ static gboolean ui_form (struct oc_auth_form *form)
 
 	ssl_box_clear(ui_data);
 
-	if (form->banner)
+	if (form->banner && form->banner[0])
 		ssl_box_add_info(ui_data, form->banner);
-	if (form->error)
+	if (form->error && form->error[0])
 		ssl_box_add_error(ui_data, form->error);
-	if (form->message)
+	if (form->message && form->message[0])
 		ssl_box_add_info(ui_data, form->message);
 
 	for (opt = form->opts; opt; opt = opt->next) {
