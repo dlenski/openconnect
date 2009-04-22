@@ -236,7 +236,8 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 	return 0;
 }
 
-static int process_form(struct openconnect_info *vpninfo, struct oc_auth_form *form);
+static int process_auth_form(struct openconnect_info *vpninfo,
+			     struct oc_auth_form *form);
 
 /* Return value:
  *  < 0, on error
@@ -314,7 +315,10 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		}
 	}
 
-	ret = process_form(vpninfo, form);
+	if (vpninfo->process_auth_form)
+		ret = vpninfo->process_auth_form(vpninfo, form);
+	else
+		ret = process_auth_form(vpninfo, form);
 	if (ret)
 		goto out;
 
@@ -340,8 +344,8 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
  *  = 0, when form was parsed and POST required
  *  = 1, when response was cancelled by user
  */
-static int process_form(struct openconnect_info *vpninfo,
-			struct oc_auth_form *form)
+static int process_auth_form(struct openconnect_info *vpninfo,
+			     struct oc_auth_form *form)
 {
 	UI *ui = UI_new();
 	char banner_buf[1024], msg_buf[1024], err_buf[1024];
