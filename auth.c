@@ -364,17 +364,17 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 		vpninfo->progress(vpninfo, PRG_ERR, "Failed to create UI\n");
 		return -EINVAL;
 	}
-	if (form->banner) {
+	if (form->banner && form->banner[0]) {
 		banner_buf[1023] = 0;
 		snprintf(banner_buf, 1023, "%s\n", form->banner);
 		UI_add_info_string(ui, banner_buf);
 	}
-	if (form->error) {
+	if (form->error && form->error[0]) {
 		err_buf[1023] = 0;
 		snprintf(err_buf, 1023, "%s\n", form->error);
 		UI_add_error_string(ui, err_buf);
 	}
-	if (form->message) {
+	if (form->message && form->message[0]) {
 		msg_buf[1023] = 0;
 		snprintf(msg_buf, 1023, "%s\n", form->message);
 		UI_add_info_string(ui, msg_buf);
