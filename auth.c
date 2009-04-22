@@ -127,6 +127,20 @@ static int append_opt(char *body, int bodylen, char *opt, char *name)
 	return 0;
 }
 
+static int append_form_opts(struct openconnect_info *vpninfo,
+			    struct oc_auth_form *form, char *body, int bodylen)
+{
+	struct oc_form_opt *opt;
+	int ret;
+
+	for (opt = form->opts; opt; opt = opt->next) {
+		ret = append_opt(body, bodylen, opt->name, opt->value);
+		if (ret)
+			return ret;
+	}
+	return 0;
+}
+
 /*
  * Maybe we should offer this choice to the user. So far we've only
  * ever seen it offer bogus choices though -- between certificate and
@@ -265,8 +279,6 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 	return 0;
 }
 
-static int append_form_opts(struct openconnect_info *vpninfo,
-			    struct oc_auth_form *form, char *body, int bodylen);
 static int process_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
 			char *body, int bodylen);
 
@@ -367,19 +379,6 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 }
 
 
-static int append_form_opts(struct openconnect_info *vpninfo,
-			    struct oc_auth_form *form, char *body, int bodylen)
-{
-	struct oc_form_opt *opt;
-	int ret;
-
-	for (opt = form->opts; opt; opt = opt->next) {
-		ret = append_opt(body, bodylen, opt->name, opt->value);
-		if (ret)
-			return ret;
-	}
-	return 0;
-}
 
 /* Return value as for parse_xml_response() above: 
  *  < 0, on error
