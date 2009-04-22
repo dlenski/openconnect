@@ -1,0 +1,22 @@
+Cisco's implementation of the DTLS protocol unfortunately does not
+comply with the relevant standards. We need some patches to OpenSSL to
+be compatible with it.
+
+For the 0.9.8 branch of OpenSSL, the required patch is 
+	http://cvs.openssl.org/chngview?cn=18037
+
+This was included in OpenSSL CVS in April 2009 and should be in the
+next release from the 0.9.8 branch, which will presumably be 0.9.8l.
+
+For versions of OpenSSL earlier than 0.9.8j, a couple of other DTLS
+bug-fixes are also required:
+	http://cvs.openssl.org/chngview?cn=17500
+	http://cvs.openssl.org/chngview?cn=17505
+
+OpenSSL 1.0.0-beta2 and later require no patching; all the required
+support is already present.
+
+Without a suitable OpenSSL, the openconnect client will fall back to
+passing packets over the HTTPS connection. This will work, but will
+suffer quite a lot if your connection has packet loss. For details of
+why that happens, see http://sites.inka.de/~W1011/devel/tcp-tcp.html
