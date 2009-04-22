@@ -1009,7 +1009,7 @@ static void build_main_dialog(auth_ui_data *ui_data)
 
 	frame = gtk_frame_new(NULL);
 	gtk_box_pack_start(GTK_BOX(vbox), frame, TRUE, TRUE, 0);
-	gtk_widget_set_size_request(frame, -1, 175);
+	gtk_widget_set_size_request(frame, -1, -1);
 	gtk_widget_show(frame);
 
 	frame_box = gtk_vbox_new(FALSE, 4);
