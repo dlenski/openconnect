@@ -827,7 +827,7 @@ static gboolean cookie_obtained(auth_ui_data *ui_data)
 			gtk_widget_set_sensitive(ui_data->cancel_button, TRUE);
 		}
 		ui_data->retval = 1;
-	} else if (ui_data->cookie_retval == 1) {
+	} else if (!ui_data->cookie_retval) {
 		/* got cookie */
 		char *key = g_strdup_printf("%s/vpn/lasthost", config_path);
 		/* We don't use vpninfo->hostname because it might have been redirected */
@@ -843,7 +843,7 @@ static gboolean cookie_obtained(auth_ui_data *ui_data)
 
 		gtk_main_quit();
 	} else {
-		/* no cookie */
+		/* no cookie; user cancellation */
 		gtk_widget_show (ui_data->no_form_label);
 		ui_data->retval = 1;
 	}

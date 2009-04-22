@@ -415,22 +415,15 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 
 	request_body[0] = 0;
 	result = parse_xml_response(vpninfo, buf, request_body, sizeof(request_body));
-	if (result == 1) {
-		/* cancelled by user */
-		return 0;
-	} else if (result == 0) {
+	if (!result) {
 		method = "POST";
 		request_body_type = "application/x-www-form-urlencoded";
-		if (0) {
-			/* This doesn't make the second form work any better */
-			SSL_free(vpninfo->https_ssl);
-			vpninfo->https_ssl = NULL;
-			close(vpninfo->ssl_fd);
-			vpninfo->ssl_fd = -1;
-		}
 		goto retry;
-	} else if (result < 0)
+	}
+	if (result != 2)
 		return result;
+	/* A return value of 2 means the XML form indicated
+	   success. We _should_ have a cookie... */
 
 	for (opt = vpninfo->cookies; opt; opt = opt->next) {
 
@@ -461,7 +454,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		}
 	}
 
-	return 1;
+	return 0;
 }
 
 char *openconnect_create_useragent(char *base)
