@@ -161,6 +161,7 @@ static void ssl_box_clear(auth_ui_data *ui_data)
 typedef struct ui_fragment_data {
 	auth_ui_data *ui_data;
 	UI_STRING *uis;
+	struct oc_form_opt *opt;
 	char *entry_text;
 } ui_fragment_data;
 
@@ -196,16 +197,26 @@ static gboolean ui_write_info (ui_fragment_data *data)
 static gboolean ui_write_prompt (ui_fragment_data *data)
 {
 	GtkWidget *hbox, *text, *entry;
+	int visible;
+	const char *label;
+
+	if (data->uis) {
+		label = UI_get0_output_string(data->uis);
+		visible = UI_get_input_flags(data->uis) & UI_INPUT_FLAG_ECHO;
+	} else {
+		label = data->opt->label;
+		visible = (data->opt->type == OC_FORM_OPT_TEXT);
+	}
 
 	hbox = gtk_hbox_new(FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(data->ui_data->ssl_box), hbox, FALSE, FALSE, 0);
 
-	text = gtk_label_new(UI_get0_output_string(data->uis));
+	text = gtk_label_new(label);
 	gtk_box_pack_start(GTK_BOX(hbox), text, FALSE, FALSE, 0);
 
 	entry = gtk_entry_new();
 	gtk_box_pack_end(GTK_BOX(hbox), entry, FALSE, FALSE, 0);
-	if (!(UI_get_input_flags(data->uis) & UI_INPUT_FLAG_ECHO))
+	if (!visible)
 		gtk_entry_set_visibility(GTK_ENTRY(entry), FALSE);
 	if (g_queue_peek_tail(ui_data->form_entries) == data)
 		gtk_widget_grab_focus (entry);
@@ -347,6 +358,92 @@ int init_openssl_ui(void)
 	return 0;
 }
 
+
+/* This part for processing forms from openconnect directly, rather than
+   through the SSL UI abstraction (which doesn't allow 'select' options) */
+
+static gboolean ui_form (struct oc_auth_form *form)
+{
+	struct oc_form_opt *opt;
+
+	ssl_box_clear(ui_data);
+
+	if (form->banner)
+		ssl_box_add_info(ui_data, form->banner);
+	if (form->error)
+		ssl_box_add_error(ui_data, form->error);
+	if (form->message)
+		ssl_box_add_info(ui_data, form->message);
+
+	for (opt = form->opts; opt; opt = opt->next) {
+		ui_fragment_data *data;
+
+		if (opt->type == OC_FORM_OPT_HIDDEN)
+			continue;
+
+		data = g_slice_new0 (ui_fragment_data);
+		data->ui_data = ui_data;
+		data->opt = opt;
+		
+		if (opt->type == OC_FORM_OPT_PASSWORD ||
+		    opt->type == OC_FORM_OPT_TEXT) {
+			g_mutex_lock (ui_data->form_mutex);
+			g_queue_push_head(ui_data->form_entries, data);
+			g_mutex_unlock (ui_data->form_mutex);
+
+			ui_write_prompt(data);
+		} else if (opt->type == OC_FORM_OPT_SELECT) {
+			printf("got select\n");
+		} else
+			g_slice_free (ui_fragment_data, data);
+	}
+	
+	return ui_show(ui_data);
+}
+
+int nm_process_auth_form (struct openconnect_info *vpninfo,
+			  struct oc_auth_form *form)
+{
+	int response;
+
+	g_idle_add((GSourceFunc)ui_form, form);
+
+	g_mutex_lock(ui_data->form_mutex);
+	/* wait for ui to show */
+	while (!ui_data->form_shown) {
+		g_cond_wait(ui_data->form_shown_changed, ui_data->form_mutex);
+	}
+	ui_data->form_shown = FALSE;
+
+	if (!ui_data->cancelled) {
+		/* wait for form submission or cancel */
+		while (!ui_data->form_retval) {
+			g_cond_wait(ui_data->form_retval_changed, ui_data->form_mutex);
+		}
+		response = GPOINTER_TO_INT (ui_data->form_retval);
+		ui_data->form_retval = NULL;
+	} else
+		response = AUTH_DIALOG_RESPONSE_CANCEL;
+
+	/* set entry results and free temporary data structures */
+	while (!g_queue_is_empty (ui_data->form_entries)) {
+		ui_fragment_data *data;
+		data = g_queue_pop_tail (ui_data->form_entries);
+		if (data->entry_text) {
+			data->opt->value = data->entry_text;
+		}
+		g_slice_free (ui_fragment_data, data);
+	}
+
+
+	g_mutex_unlock(ui_data->form_mutex);
+	
+	/* -1 = cancel,
+	 *  0 = failure,
+	 *  1 = success */
+	return (response == AUTH_DIALOG_RESPONSE_LOGIN ? 0 : 1);
+
+}
 
 static char* get_title(const char *vpn_name)
 {
@@ -1099,6 +1196,7 @@ static auth_ui_data *init_ui_data (char *vpn_name)
 	ui_data->vpninfo->progress = write_progress;
 	ui_data->vpninfo->validate_peer_cert = validate_peer_cert;
 	ui_data->vpninfo->vpn_name = vpn_name;
+	ui_data->vpninfo->process_auth_form = nm_process_auth_form;
 
 	return ui_data;
 }
