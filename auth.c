@@ -368,7 +368,8 @@ static int append_form_opts(struct openconnect_info *vpninfo,
 
 	for (opt = form->opts; opt; opt = opt->next) {
 		/* For now, only OPT_HIDDEN opts need to be added here */
-		if (opt->type == OPT_HIDDEN) {
+		if (opt->type == OPT_HIDDEN ||
+		    opt->type == OPT_SELECT) {
 			ret = append_opt(body, bodylen, opt->name, opt->value);
 			if (ret)
 				return ret;
@@ -436,7 +437,7 @@ static int process_form(struct openconnect_info *vpninfo, struct auth_form *form
 			struct choice *choice = &select_opt->choices[select_opt->nr_choices-1];
 
 			/* FIXME: Let the user choose */
-			append_opt(body, bodylen, opt->name, choice->name);
+			opt->value = choice->name;
 
 			if (choice->label && !strcmp(choice->label, "SecureID"))
 				is_securid = 1;
