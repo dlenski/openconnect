@@ -103,7 +103,7 @@ static int append_opt(char *body, int bodylen, char *opt, char *name)
 		return -ENOSPC;
 	body[len++] = '=';
 
-	while (*name) {
+	while (name && *name) {
 		if (isalnum(*name)) {
 			if (len >= bodylen - 1)
 				return -ENOSPC;
@@ -232,8 +232,6 @@ static int parse_form(struct openconnect_info *vpninfo, struct auth_form *form,
 		if (!strcmp(input_type, "hidden")) {
 			opt->type = OPT_HIDDEN;
 			opt->value = (char *)xmlGetProp(xml_node, (unsigned char *)"value");
-			if (!opt->value)
-				opt->value = "";
 		} else if (!strcmp(input_type, "text"))
 			opt->type = OPT_TEXT;
 		else if (!strcmp(input_type, "password"))
@@ -352,6 +350,9 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	xmlFreeDoc(xml_doc);
 	while (form->opts) {
 		struct form_opt *tmp = form->opts->next;
+		if (form->opts->type == OPT_TEXT ||
+		    form->opts->type == OPT_PASSWORD)
+			free(form->opts->value);
 		free(form->opts);
 		form->opts = tmp;
 	}
@@ -367,13 +368,9 @@ static int append_form_opts(struct openconnect_info *vpninfo,
 	int ret;
 
 	for (opt = form->opts; opt; opt = opt->next) {
-		/* For now, only OPT_HIDDEN opts need to be added here */
-		if (opt->type == OPT_HIDDEN ||
-		    opt->type == OPT_SELECT) {
-			ret = append_opt(body, bodylen, opt->name, opt->value);
-			if (ret)
-				return ret;
-		}
+		ret = append_opt(body, bodylen, opt->name, opt->value);
+		if (ret)
+			return ret;
 	}
 	return 0;
 }
@@ -391,11 +388,7 @@ static int process_form(struct openconnect_info *vpninfo, struct auth_form *form
 	char banner_buf[1024], msg_buf[1024], err_buf[1024];
 	char username[80], password[80], tpin[80], *passresult = password;
 	int ret = 0, is_securid = 0;
-	char *user_form_prompt = NULL;
-	char *user_form_id = NULL;
-	char *pass_form_prompt = NULL;
-	char *pass_form_id = NULL;
-	struct form_opt *opt;
+	struct form_opt *opt, *pass_opt = NULL, *user_opt = NULL;
 
 	username[0] = 0;
 	password[0] = 0;
@@ -427,11 +420,19 @@ static int process_form(struct openconnect_info *vpninfo, struct auth_form *form
 	for (opt = form->opts; opt; opt = opt->next) {
 
 		if (opt->type == OPT_TEXT) {
-			user_form_prompt = opt->label;
-			user_form_id = opt->name;
+			if (vpninfo->username) {
+				opt->value = strdup(vpninfo->username);
+				if (!opt->value)
+					return -ENOMEM;
+			} else
+				user_opt = opt;
 		} else if (opt->type == OPT_PASSWORD) {
-			pass_form_prompt = opt->label;
-			pass_form_id = opt->name;
+			if (vpninfo->password) {
+				opt->value = strdup(vpninfo->password);
+				if (!opt->value)
+					return -ENOMEM;
+			} else
+				pass_opt = opt;
 		} else if (opt->type == OPT_SELECT) {
 			struct form_opt_select *select_opt = (void *)opt;
 			struct choice *choice = &select_opt->choices[select_opt->nr_choices-1];
@@ -444,9 +445,12 @@ static int process_form(struct openconnect_info *vpninfo, struct auth_form *form
 		}
 	}
 
-        if (user_form_id && !vpninfo->username)
-		UI_add_input_string(ui, user_form_prompt, UI_INPUT_FLAG_ECHO, username, 1, 80);
-			
+	if (!user_opt && !pass_opt)
+		return 1;
+
+        if (user_opt)
+		UI_add_input_string(ui, user_opt->label, UI_INPUT_FLAG_ECHO, username, 1, 80);
+
 	/* This isn't ideal, because we the user could take an arbitrary length
 	   of time to enter the PIN, and we should use a tokencode generated
 	   _after_ they enter the PIN, not before. Once we have proper tokencode
@@ -464,7 +468,7 @@ static int process_form(struct openconnect_info *vpninfo, struct auth_form *form
 
 		/* If we couldn't generate them, we'll have to ask the user */
 		if (!vpninfo->sid_tokencode[0])
-			UI_add_input_string(ui, pass_form_prompt,
+			UI_add_input_string(ui, pass_opt->label,
 					    UI_INPUT_FLAG_ECHO, password, 1, 9);
 
 		/* We need the PIN only the first time, if we already have the
@@ -472,9 +476,9 @@ static int process_form(struct openconnect_info *vpninfo, struct auth_form *form
 		   Or both times if we're asking the user for tokencodes. */
 		if (is_securid == 1 || !vpninfo->sid_tokencode[0])
 			UI_add_input_string(ui, "SecurID PIN:", 0, tpin, 0, 9);
-	} else if (!vpninfo->password) {
+	} else if (pass_opt) {
 		/* No echo */
-		UI_add_input_string(ui, pass_form_prompt, 0, password, 1, 80);
+		UI_add_input_string(ui, pass_opt->label, 0, password, 1, 80);
 	}
 
 	switch (UI_process(ui)) {
@@ -487,10 +491,11 @@ static int process_form(struct openconnect_info *vpninfo, struct auth_form *form
 		return -EINVAL;
 	}
 
-	if (user_form_id)
-		append_opt(body, bodylen, user_form_id,
-			   vpninfo->username ?: username);
-
+	if (user_opt) {
+		user_opt->value = strdup(vpninfo->username?:username);
+		if (!user_opt->value)
+			return -ENOMEM;
+	}
 	if (is_securid == 1 && vpninfo->sid_tokencode[0]) {
 		/* First token request; mangle pin into _both_ first and next
 		   token code */
@@ -506,10 +511,13 @@ static int process_form(struct openconnect_info *vpninfo, struct auth_form *form
 		ret = add_securid_pin(password, tpin);
 		if (ret < 0)
 			return -EINVAL;
-	} else if (vpninfo->password)
-		passresult = vpninfo->password;
+	}
 
-	append_opt(body, bodylen, pass_form_id, passresult);
+	if (pass_opt) {
+		pass_opt->value = strdup(passresult);
+		if (!pass_opt)
+			return -ENOMEM;
+	}
 
 	if (vpninfo->password) {
 		free(vpninfo->password);
