@@ -254,9 +254,6 @@ int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len);
 int openconnect_open_https(struct openconnect_info *vpninfo);
 void openconnect_close_https(struct openconnect_info *vpninfo);
 
-/* main.c */
-extern int verbose;
-
 /* mainloop.c */
 int vpn_add_pollfd(struct openconnect_info *vpninfo, int fd, short events);
 int vpn_mainloop(struct openconnect_info *vpninfo);
