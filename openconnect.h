@@ -182,6 +182,54 @@ struct openconnect_info {
 #define AC_PKT_COMPRESSED	8	/* Compressed data */
 #define AC_PKT_TERM_SERVER	9	/* Server kick */
 
+/****************************************************************************/
+
+/* Authentication form processing */
+
+#define OC_FORM_OPT_TEXT	1
+#define OC_FORM_OPT_PASSWORD	2
+#define OC_FORM_OPT_SELECT	3
+#define OC_FORM_OPT_HIDDEN	4
+
+/* char * fields are static (owned by XML parser) and don't need to be
+   freed by the form handling code -- except for value, which for TEXT
+   and PASSWORD options is allocated by process_form() when
+   interacting with the user and must be freed. */
+struct oc_form_opt {
+	struct oc_form_opt *next;
+	int type;
+	char *name;
+	char *label;
+	char *value;
+};
+
+/* All fields are static, owned by the XML parser */
+struct oc_choice {
+	char *name;
+	char *label;
+	char *auth_type;
+	char *override_name;
+	char *override_label;
+};
+
+struct oc_form_opt_select {
+	struct oc_form_opt form;
+	int nr_choices;
+	struct oc_choice choices[0];
+};
+
+/* All char * fields are static, owned by the XML parser */
+struct oc_auth_form {
+	char *banner;
+	char *message;
+	char *error;
+	char *auth_id;
+	char *method;
+	char *action;
+	struct oc_form_opt *opts;
+};
+
+/****************************************************************************/
 
 /* tun.c */
 int setup_tun(struct openconnect_info *vpninfo);
