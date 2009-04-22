@@ -199,7 +199,7 @@ static void combo_changed(GtkComboBox *combo, ui_fragment_data *data)
 
 	data->entry_text = sopt->choices[entry].name;
 
-	g_queue_foreach(data->ui_data->form_entries, do_override_label,
+	g_queue_foreach(data->ui_data->form_entries, (GFunc)do_override_label,
 			&sopt->choices[entry]);
 }
 
