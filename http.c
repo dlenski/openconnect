@@ -415,10 +415,10 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 
 	request_body[0] = 0;
 	result = parse_xml_response(vpninfo, buf, request_body, sizeof(request_body));
-	if (result == 2) {
-		/* cancel */
+	if (result == 1) {
+		/* cancelled by user */
 		return 0;
-	} else if (result == 1) {
+	} else if (result == 0) {
 		method = "POST";
 		request_body_type = "application/x-www-form-urlencoded";
 		if (0) {
@@ -430,7 +430,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		}
 		goto retry;
 	} else if (result < 0)
-		return -EINVAL;
+		return result;
 
 	for (opt = vpninfo->cookies; opt; opt = opt->next) {
 

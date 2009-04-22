@@ -241,9 +241,9 @@ static int process_form(struct openconnect_info *vpninfo, struct oc_auth_form *f
 
 /* Return value:
  *  < 0, on error
- *  = 0, when form indicated success
- *  = 1, when response was parsed and POST required
- *  = 2, when response was cancelled
+ *  = 0, when form parsed and POST required
+ *  = 1, when response was cancelled by user
+ *  = 2, when form indicates that login was already successful
  */
 int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		       char *request_body, int req_len)
@@ -251,7 +251,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	struct oc_auth_form *form;
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node;
-	int ret = 0;
+	int ret;
 
 	form = calloc(1, sizeof(*form));
 	if (!form)
@@ -274,8 +274,8 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 
 	form->auth_id = (char *)xmlGetProp(xml_node, (unsigned char *)"id");
 	if (!strcmp(form->auth_id, "success")) {
+		ret = 2;
 		goto out;
-		return 0;
 	}
 
 	if (vpninfo->nopasswd) {
@@ -316,11 +316,10 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	}
 
 	ret = process_form(vpninfo, form, request_body, req_len);
-	if (ret == 1) {
-		ret = append_form_opts(vpninfo, form, request_body, req_len);
-		if (!ret)
-			ret = 1;
-	}
+	if (ret)
+		goto out;
+
+	ret = append_form_opts(vpninfo, form, request_body, req_len);
  out:
 	xmlFreeDoc(xml_doc);
 	while (form->opts) {
@@ -337,11 +336,10 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 
 
 
-/* Return value as for parse_xml_response() above: 
+/* Return value:
  *  < 0, on error
- *  = 0, never
- *  = 1, when response was parsed and POST required
- *  = 2, when response was cancelled
+ *  = 0, when form was parsed and POST required
+ *  = 1, when response was cancelled by user
  */
 static int process_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
 			char *body, int bodylen)
@@ -408,7 +406,7 @@ static int process_form(struct openconnect_info *vpninfo, struct oc_auth_form *f
 	}
 
 	if (!user_opt && !pass_opt)
-		return 1;
+		return 0;
 
         if (user_opt)
 		UI_add_input_string(ui, user_opt->label, UI_INPUT_FLAG_ECHO, username, 1, 80);
@@ -446,7 +444,7 @@ static int process_form(struct openconnect_info *vpninfo, struct oc_auth_form *f
 	switch (UI_process(ui)) {
 	case -2:
 		/* cancelled */
-		return 2;
+		return 1;
 	case -1:
 		/* error */
 		vpninfo->progress(vpninfo, PRG_ERR, "Invalid inputs\n");
@@ -486,5 +484,5 @@ static int process_form(struct openconnect_info *vpninfo, struct oc_auth_form *f
 		vpninfo->password = NULL;
 	}
 
-	return 1;
+	return 0;
 }
