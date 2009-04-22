@@ -41,12 +41,14 @@
 #define OPT_TEXT	1
 #define OPT_PASSWORD	2
 #define OPT_SELECT	3
+#define OPT_HIDDEN	4
 
 struct form_opt {
 	struct form_opt *next;
 	int type;
 	char *name;
 	char *label;
+	char *value;
 };
 
 struct choice {
@@ -213,25 +215,12 @@ static int parse_form(struct openconnect_info *vpninfo, struct auth_form *form,
 			continue;
 		}
 
+		if (!strcmp(input_type, "submit") || !strcmp(input_type, "reset"))
+			continue;
+
 		input_name = (char *)xmlGetProp(xml_node, (unsigned char *)"name");
 		if (!input_name) {
 			vpninfo->progress(vpninfo, PRG_INFO, "No input name in form\n");
-			continue;
-		}
-		if (!strcmp(input_type, "hidden")) {
-			char *value = (char *)xmlGetProp(xml_node, (unsigned char *)"value");
-			if (!value) {
-				vpninfo->progress(vpninfo, PRG_INFO,
-						  "No value for hidden input %s\n",
-						  input_name);
-				continue;
-			}
-
-			/* Add this to the request buffer directly */
-			if (append_opt(body, bodylen, input_name, value)) {
-				body[0] = 0;
-				return -1;
-			}
 			continue;
 		}
 		input_label = (char *)xmlGetProp(xml_node, (unsigned char *)"label");
@@ -240,16 +229,19 @@ static int parse_form(struct openconnect_info *vpninfo, struct auth_form *form,
 		if (!opt)
 			return -ENOMEM;
 
-		if (!strcmp(input_type, "text"))
+		if (!strcmp(input_type, "hidden")) {
+			opt->type = OPT_HIDDEN;
+			opt->value = (char *)xmlGetProp(xml_node, (unsigned char *)"value");
+			if (!opt->value)
+				opt->value = "";
+		} else if (!strcmp(input_type, "text"))
 			opt->type = OPT_TEXT;
 		else if (!strcmp(input_type, "password"))
 			opt->type = OPT_PASSWORD;
 		else {
-			if (strcmp(input_type, "submit") &&
-			    strcmp(input_type, "reset"))
-				vpninfo->progress(vpninfo, PRG_INFO,
-						  "Unknown input type %s in form\n",
-						  input_type);
+			vpninfo->progress(vpninfo, PRG_INFO,
+					  "Unknown input type %s in form\n",
+					  input_type);
 			free(opt);
 			continue;
 		}
@@ -269,6 +261,8 @@ static int parse_form(struct openconnect_info *vpninfo, struct auth_form *form,
 	return 0;
 }
 
+static int append_form_opts(struct openconnect_info *vpninfo,
+			    struct auth_form *form, char *body, int bodylen);
 static int process_form(struct openconnect_info *vpninfo, struct auth_form *form,
 			char *body, int bodylen);
 
@@ -349,6 +343,11 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	}
 
 	ret = process_form(vpninfo, form, request_body, req_len);
+	if (ret == 1) {
+		ret = append_form_opts(vpninfo, form, request_body, req_len);
+		if (!ret)
+			ret = 1;
+	}
  out:
 	xmlFreeDoc(xml_doc);
 	while (form->opts) {
@@ -358,6 +357,24 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	}
 	free(form);
 	return ret;
+}
+
+
+static int append_form_opts(struct openconnect_info *vpninfo,
+			    struct auth_form *form, char *body, int bodylen)
+{
+	struct form_opt *opt;
+	int ret;
+
+	for (opt = form->opts; opt; opt = opt->next) {
+		/* For now, only OPT_HIDDEN opts need to be added here */
+		if (opt->type == OPT_HIDDEN) {
+			ret = append_opt(body, bodylen, opt->name, opt->value);
+			if (ret)
+				return ret;
+		}
+	}
+	return 0;
 }
 
 /* Return value as for parse_xml_response() above: 
