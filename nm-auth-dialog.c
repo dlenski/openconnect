@@ -176,6 +176,16 @@ static void entry_changed(GtkEntry *entry, ui_fragment_data *data)
 	data->entry_text = g_strdup(gtk_entry_get_text(entry));
 }
 
+static void combo_changed(GtkComboBox *combo, ui_fragment_data *data)
+{
+	struct oc_form_opt_select *sopt = (void *)data->opt;
+	int entry = gtk_combo_box_get_active(combo);
+	if (entry < 0)
+		return;
+
+	data->entry_text = sopt->choices[entry].name;
+}
+
 static gboolean ui_write_error (ui_fragment_data *data)
 {
 	ssl_box_add_error(data->ui_data, UI_get0_output_string(data->uis));
@@ -222,6 +232,33 @@ static gboolean ui_write_prompt (ui_fragment_data *data)
 		gtk_widget_grab_focus (entry);
 	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(entry_changed), data);
 	g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(entry_activate_cb), ui_data);
+
+	/* data is freed in ui_flush in worker thread */
+
+	return FALSE;
+}
+
+static gboolean ui_add_select (ui_fragment_data *data)
+{
+	GtkWidget *hbox, *text, *combo;
+	struct oc_form_opt_select *sopt = (void *)data->opt;
+	int i;
+
+	hbox = gtk_hbox_new(FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(data->ui_data->ssl_box), hbox, FALSE, FALSE, 0);
+
+	text = gtk_label_new(data->opt->label);
+	gtk_box_pack_start(GTK_BOX(hbox), text, FALSE, FALSE, 0);
+
+	combo = gtk_combo_box_new_text();
+	gtk_box_pack_end(GTK_BOX(hbox), combo, FALSE, FALSE, 0);
+	for (i = 0; i < sopt->nr_choices; i++) {
+		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), sopt->choices[i].label);
+	}
+	gtk_combo_box_set_active(GTK_COMBO_BOX(combo), 0);
+	if (g_queue_peek_tail(ui_data->form_entries) == data)
+		gtk_widget_grab_focus (combo);
+	g_signal_connect(G_OBJECT(combo), "changed", G_CALLBACK(combo_changed), data);
 
 	/* data is freed in ui_flush in worker thread */
 
@@ -393,7 +430,11 @@ static gboolean ui_form (struct oc_auth_form *form)
 
 			ui_write_prompt(data);
 		} else if (opt->type == OC_FORM_OPT_SELECT) {
-			printf("got select\n");
+			g_mutex_lock (ui_data->form_mutex);
+			g_queue_push_head(ui_data->form_entries, data);
+			g_mutex_unlock (ui_data->form_mutex);
+
+			ui_add_select(data);
 		} else
 			g_slice_free (ui_fragment_data, data);
 	}
