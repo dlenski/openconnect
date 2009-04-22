@@ -171,10 +171,33 @@ static void entry_activate_cb(GtkWidget *widget, auth_ui_data *ui_data)
 	gtk_dialog_response(GTK_DIALOG(ui_data->dialog), AUTH_DIALOG_RESPONSE_LOGIN);
 }
 
+static void do_check_visibility(ui_fragment_data *data, gboolean *visible)
+{
+	int min_len;
+
+	if (!data->uis)
+		return;
+
+	min_len = UI_get_result_minsize(data->uis);
+
+	if (min_len && (!data->entry_text || strlen(data->entry_text) < min_len))
+		*visible = FALSE;
+}
+
+static void evaluate_login_visibility(auth_ui_data *ui_data)
+{
+	gboolean visible = TRUE;
+	g_queue_foreach(ui_data->form_entries, (GFunc)do_check_visibility,
+			&visible);
+
+	gtk_widget_set_sensitive (ui_data->login_button, visible);
+}
+
 static void entry_changed(GtkEntry *entry, ui_fragment_data *data)
 {
 	g_free (data->entry_text);
 	data->entry_text = g_strdup(gtk_entry_get_text(entry));
+	evaluate_login_visibility(data->ui_data);
 }
 
 static void do_override_label(ui_fragment_data *data, struct oc_choice *choice)
@@ -289,8 +312,7 @@ static gboolean ui_show (auth_ui_data *ui_data)
 	gtk_widget_show_all (ui_data->ssl_box);
 	gtk_widget_set_sensitive (ui_data->cancel_button, TRUE);
 	g_mutex_lock (ui_data->form_mutex);
-	if (!g_queue_is_empty(ui_data->form_entries))
-		gtk_widget_set_sensitive (ui_data->login_button, TRUE);
+	evaluate_login_visibility(ui_data);
 	ui_data->form_shown = TRUE;
 	g_cond_signal (ui_data->form_shown_changed);
 	g_mutex_unlock (ui_data->form_mutex);
