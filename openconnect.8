@@ -95,6 +95,10 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .I FILE
 ]
 [
+.B --dtls-ciphers
+.I LIST
+]
+[
 .B --no-dtls
 ]
 [
@@ -221,6 +225,9 @@ Print webvpn cookie before connecting
 .TP
 .B --cafile=FILE
 Cert file for server verification
+.TP
+.B --dtls-ciphers=LIST
+Set OpenSSL ciphers to support for DTLS
 .TP
 .B --no-dtls
 Disable DTLS

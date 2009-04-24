@@ -143,6 +143,7 @@ struct openconnect_info {
 	char *username;
 	char *password;
 	int nopasswd;
+	char *dtls_ciphers;
 
 	char *cookie;
 	struct vpn_option *cookies;

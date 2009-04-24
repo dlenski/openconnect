@@ -102,7 +102,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	openconnect_SSL_printf(vpninfo->https_ssl, "X-DTLS-Master-Secret: ");
 	for (i = 0; i < sizeof(vpninfo->dtls_secret); i++)
 		openconnect_SSL_printf(vpninfo->https_ssl, "%02X", vpninfo->dtls_secret[i]);
-	openconnect_SSL_printf(vpninfo->https_ssl, "\r\nX-DTLS-CipherSuite: AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA\r\n\r\n");
+	openconnect_SSL_printf(vpninfo->https_ssl, "\r\nX-DTLS-CipherSuite: %s\r\n\r\n",
+			       vpninfo->dtls_ciphers?:"AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA");
 
 	if (openconnect_SSL_gets(vpninfo->https_ssl, buf, 65536) < 0) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Error fetching HTTPS response\n");
