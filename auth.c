@@ -398,9 +398,13 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 				pass_opt = opt;
 		} else if (opt->type == OC_FORM_OPT_SELECT) {
 			struct oc_form_opt_select *select_opt = (void *)opt;
-			struct oc_choice *choice = &select_opt->choices[select_opt->nr_choices-1];
+			struct oc_choice *choice;
+
+			if (!select_opt->nr_choices)
+				continue;
 
 			/* FIXME: Let the user choose */
+			choice = &select_opt->choices[select_opt->nr_choices-1];
 			opt->value = choice->name;
 
 			if (choice->label && !strcmp(choice->label, "SecureID"))
