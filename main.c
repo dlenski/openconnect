@@ -46,8 +46,10 @@ static void write_progress(struct openconnect_info *info, int level, const char 
 static void syslog_progress(struct openconnect_info *info, int level, const char *fmt, ...);
 
 int verbose = PRG_INFO;
+int background;
 
 static struct option long_options[] = {
+	{"background", 0, 0, 'b'},
 	{"certificate", 1, 0, 'c'},
 	{"sslkey", 1, 0, 'k'},
 	{"cookie", 1, 0, 'C'},
@@ -85,6 +87,7 @@ void usage(void)
 {
 	printf("Usage:  openconnect [options] <server>\n");
 	printf("Open client for Cisco AnyConnect VPN, version %s\n\n", openconnect_version);
+	printf("  -b, --background                Continue in background after startup\n");
 	printf("  -c, --certificate=CERT          Use SSL client certificate CERT\n");
 	printf("  -k, --sslkey=KEY                Use SSL private key file KEY\n");
 	printf("  -C, --cookie=COOKIE             Use WebVPN cookie COOKIE\n");
@@ -174,7 +177,7 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "C:c:Ddg:hi:k:lp:Q:qSs:tU:u:Vvx:",
+	while ((opt = getopt_long(argc, argv, "bC:c:Ddg:hi:k:lp:Q:qSs:tU:u:Vvx:",
 				  long_options, NULL))) {
 		if (opt < 0)
 			break;
@@ -210,6 +213,9 @@ int main(int argc, char **argv)
 			break;
 		case '8':
 			vpninfo->dtls_ciphers = optarg;
+			break;
+		case 'b':
+			background = 1;
 			break;
 		case 'C':
 			vpninfo->cookie = optarg;
@@ -361,6 +367,15 @@ int main(int argc, char **argv)
 			      (vpninfo->deflate ? "SSL + deflate" : "SSL")
 			      : "DTLS");
 
+	if (background) {
+		int pid;
+		if ((pid = fork ())) {
+			vpninfo->progress(vpninfo, PRG_INFO,
+					  "Continuing in background; pid %d\n",
+					  pid);
+			exit (1);
+		}
+	}
 	vpn_mainloop(vpninfo);
 	exit(1);
 }

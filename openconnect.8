@@ -4,6 +4,9 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .SH SYNOPSIS
 .B openconnect
 [
+.B -b,--background
+]
+[
 .B -c,--certificate
 .I CERT
 ]
@@ -134,6 +137,9 @@ exchanged, which allows data transport over UDP to occur.
 
 
 .SH OPTIONS
+.TP
+.B -b,--background
+Continue in background after startup
 .TP
 .B -c,--certificate=CERT
 Use SSL client certificate
