@@ -110,6 +110,12 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	BIO *dtls_bio;
 	int dtls_fd;
 
+	if (!vpninfo->dtls_cipher) {
+		/* We probably didn't offer it any ciphers it liked */
+		vpninfo->progress(vpninfo, PRG_ERR, "Server offered no DTLS cipher option\n");
+		return -EINVAL;
+	}
+		
 	dtls_fd = socket(vpninfo->peer_addr->sa_family, SOCK_DGRAM, IPPROTO_UDP);
 	if (dtls_fd < 0) {
 		perror("Open UDP socket for DTLS:");
