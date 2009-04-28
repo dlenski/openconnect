@@ -458,7 +458,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			}
 			buf[payload_len + 8] = 0;
 			vpninfo->progress(vpninfo, PRG_ERR,
-					  "Received server disconnect: '%s'\n", buf + 8);
+					  "Received server disconnect: %02x '%s'\n", buf[8], buf + 9);
 			vpninfo->quit_reason = "Server request";
 			return 1;
 		}
