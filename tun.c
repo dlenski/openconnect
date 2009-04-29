@@ -185,6 +185,9 @@ static void set_script_env(struct openconnect_info *vpninfo)
 		setenv("CISCO_DEF_DOMAIN", vpninfo->vpn_domain, 1);
 	else unsetenv ("CISCO_DEF_DOMAIN");
 
+	if (vpninfo->vpn_proxy_pac)
+		setenv("CISCO_PROXY_PAC", vpninfo->vpn_proxy_pac, 1);
+
 	if (vpninfo->split_includes) {
 		struct split_include *this = vpninfo->split_includes;
 		int nr_split_includes = 0;

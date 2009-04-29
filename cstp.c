@@ -78,6 +78,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	/* Clear old options which will be overwritten */
 	vpninfo->vpn_addr = vpninfo->vpn_netmask = NULL;
 	vpninfo->cstp_options = vpninfo->dtls_options = NULL;
+	vpninfo->vpn_domain = vpninfo->vpn_proxy_pac = NULL;
+
 	for (i=0; i<3; i++)
 		vpninfo->vpn_dns[i] = vpninfo->vpn_nbns[i] = NULL;
 
@@ -233,6 +235,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			}
 		} else if (!strcmp(buf + 7, "Default-Domain")) {
 			vpninfo->vpn_domain = new_option->value;
+		} else if (!strcmp(buf + 7, "MSIE-Proxy-PAC-URL")) {
+			vpninfo->vpn_proxy_pac = new_option->value;
 		} else if (!strcmp(buf + 7, "Split-Include")) {
 			struct split_include *inc = malloc(sizeof(*inc));
 			if (!inc)
