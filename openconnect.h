@@ -186,6 +186,7 @@ struct openconnect_info {
 	const char *vpn_nbns[3];
 	const char *vpn_domain;
 	struct split_include *split_includes;
+	struct split_include *split_excludes;
 
 	int select_nfds;
 	fd_set select_rfds;

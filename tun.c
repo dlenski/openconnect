@@ -84,8 +84,8 @@ static int setenv_int(const char *opt, int value)
 	return setenv(opt, buf, 1);
 }
 
-static int process_split_include(struct openconnect_info *vpninfo,
-				 char *route, int *nr_incs)
+static int process_split_xxclude(struct openconnect_info *vpninfo,
+				 char *in_ex, char *route, int *nr_incs)
 {
 	struct in_addr addr;
 	int masklen;
@@ -96,8 +96,8 @@ static int process_split_include(struct openconnect_info *vpninfo,
 	if (!slash) {
 	badinc:
 		vpninfo->progress(vpninfo, PRG_ERR,
-				  "Discard bad split include: \"%s\"\n",
-				  route);
+				  "Discard bad split %sclude: \"%s\"\n",
+				  in_ex, route);
 		return -EINVAL;
 	}
 
@@ -108,7 +108,7 @@ static int process_split_include(struct openconnect_info *vpninfo,
 	}
 
 	envname[79] = 0;
-	snprintf(envname, 79, "CISCO_SPLIT_INC_%d_ADDR", *nr_incs);
+	snprintf(envname, 79, "CISCO_SPLIT_%sC_%d_ADDR", in_ex, *nr_incs);
 	setenv(envname, route, 1);
 
 	/* Put it back how we found it */
@@ -117,7 +117,7 @@ static int process_split_include(struct openconnect_info *vpninfo,
 	if (!inet_aton(slash+1, &addr))
 		goto badinc;
 
-	snprintf(envname, 79, "CISCO_SPLIT_INC_%d_MASK", *nr_incs);
+	snprintf(envname, 79, "CISCO_SPLIT_%sC_%d_MASK", in_ex, *nr_incs);
 	setenv(envname, slash+1, 1);
 
 	for (masklen = 0; masklen < 32; masklen++) {
@@ -126,7 +126,7 @@ static int process_split_include(struct openconnect_info *vpninfo,
 	}
 	masklen = 32 - masklen;
 
-	snprintf(envname, 79, "CISCO_SPLIT_INC_%d_MASKLEN", *nr_incs);
+	snprintf(envname, 79, "CISCO_SPLIT_%sC_%d_MASKLEN", in_ex, *nr_incs);
 	setenv_int(envname, masklen);
 
 	(*nr_incs)++;
@@ -156,6 +156,7 @@ static void set_script_env(struct openconnect_info *vpninfo)
 	setenv("reason", "connect", 1);
 	unsetenv("CISCO_BANNER");
 	unsetenv("CISCO_SPLIT_INC");
+	unsetenv("CISCO_SPLIT_EXC");
 
 	setenv_int("INTERNAL_IP4_MTU", vpninfo->mtu);
 
@@ -189,14 +190,23 @@ static void set_script_env(struct openconnect_info *vpninfo)
 		int nr_split_includes = 0;
 
 		while (this) {
-			process_split_include(vpninfo, this->route,
+			process_split_xxclude(vpninfo, "IN", this->route,
 					      &nr_split_includes);
 			this = this->next;
 		}
 		setenv_int("CISCO_SPLIT_INC", nr_split_includes);
 	}
+	if (vpninfo->split_excludes) {
+		struct split_include *this = vpninfo->split_excludes;
+		int nr_split_excludes = 0;
 
-
+		while (this) {
+			process_split_xxclude(vpninfo, "EX", this->route,
+					      &nr_split_excludes);
+			this = this->next;
+		}
+		setenv_int("CISCO_SPLIT_EXC", nr_split_excludes);
+	}
 }
 
 static int script_config_tun(struct openconnect_info *vpninfo)
