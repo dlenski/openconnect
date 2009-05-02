@@ -83,16 +83,17 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	for (i=0; i<3; i++)
 		vpninfo->vpn_dns[i] = vpninfo->vpn_nbns[i] = NULL;
 
-	for (inc = vpninfo->split_includes; inc; inc = inc->next) {
+	for (inc = vpninfo->split_includes; inc; ) {
 		struct split_include *next = inc->next;
 		free(inc);
 		inc = next;
 	}
-	for (inc = vpninfo->split_excludes; inc; inc = inc->next) {
+	for (inc = vpninfo->split_excludes; inc; ) {
 		struct split_include *next = inc->next;
 		free(inc);
 		inc = next;
 	}
+	vpninfo->split_includes = vpninfo->split_excludes = NULL;
  retry:
 	openconnect_SSL_printf(vpninfo->https_ssl, "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
 	openconnect_SSL_printf(vpninfo->https_ssl, "Host: %s\r\n", vpninfo->hostname);
@@ -249,7 +250,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			if (!exc)
 				continue;
 			exc->route = new_option->value;
-			exc->next = vpninfo->split_includes;
+			exc->next = vpninfo->split_excludes;
 			vpninfo->split_excludes = exc;
 		}
 	}
