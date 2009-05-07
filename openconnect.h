@@ -142,6 +142,7 @@ struct openconnect_info {
 	char xmlsha1[(SHA_DIGEST_LENGTH * 2) + 1];
 	char *username;
 	char *password;
+	char *authgroup;
 	int nopasswd;
 	char *dtls_ciphers;
 

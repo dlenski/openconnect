@@ -405,6 +405,25 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 			if (!select_opt->nr_choices)
 				continue;
 
+			if (vpninfo->authgroup &&
+			    !strcmp(opt->name, "group_list")) {
+				int i;
+				for (i = 0; i < select_opt->nr_choices; i++) {
+					choice = &select_opt->choices[i];
+
+					if (!strcmp(vpninfo->authgroup,
+						    choice->label)) {
+						opt->value = choice->name;
+						break;
+					}
+				}
+				if (opt->value)
+					continue;
+
+				vpninfo->progress(vpninfo, PRG_ERR,
+						  "Auth choice \"%s\" not available\n",
+						  vpninfo->authgroup);
+			}
 			/* FIXME: Let the user choose */
 			choice = &select_opt->choices[select_opt->nr_choices-1];
 			opt->value = choice->name;

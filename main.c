@@ -80,6 +80,7 @@ static struct option long_options[] = {
 	{"no-passwd", 0, 0, '6'},
 	{"reconnect-timeout", 1, 0, '7'},
 	{"dtls-ciphers", 1, 0, '8'},
+	{"authgroup", 1, 0, '9'},
 	{NULL, 0, 0, 0},
 };
 
@@ -110,6 +111,7 @@ void usage(void)
 	printf("  -V, --version                   Report version number\n");
 	printf("  -v, --verbose                   More output\n");
 	printf("  -x, --xmlconfig=CONFIG          XML config file\n");
+	printf("      --authgroup=GROUP           Choose authentication login selection\n");
 	printf("      --cookieonly                Fetch webvpn cookie only; don't connect\n");
 	printf("      --printcookie               Print webvpn cookie before connecting\n");
 	printf("      --cafile=FILE               Cert file for server verification\n");
@@ -213,6 +215,9 @@ int main(int argc, char **argv)
 			break;
 		case '8':
 			vpninfo->dtls_ciphers = optarg;
+			break;
+		case '9':
+			vpninfo->authgroup = optarg;
 			break;
 		case 'b':
 			background = 1;
