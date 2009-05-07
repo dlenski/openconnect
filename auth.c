@@ -383,14 +383,16 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 	for (opt = form->opts; opt; opt = opt->next) {
 
 		if (opt->type == OC_FORM_OPT_TEXT) {
-			if (vpninfo->username) {
+			if (vpninfo->username &&
+			    !strcmp(opt->name, "username")) {
 				opt->value = strdup(vpninfo->username);
 				if (!opt->value)
 					return -ENOMEM;
 			} else
 				user_opt = opt;
 		} else if (opt->type == OC_FORM_OPT_PASSWORD) {
-			if (vpninfo->password) {
+			if (vpninfo->password &&
+			    !strcmp(opt->name, "password")) {
 				opt->value = strdup(vpninfo->password);
 				if (!opt->value)
 					return -ENOMEM;
