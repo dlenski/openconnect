@@ -315,6 +315,14 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		}
 	}
 
+	if (!form->opts) {
+		if (form->message && form->message[0])
+			vpninfo->progress(vpninfo, PRG_INFO, "%s\n", form->message);
+		if (form->error && form->error[0])
+			vpninfo->progress(vpninfo, PRG_ERR, "%s\n", form->error);
+		return -EPERM;
+	}
+
 	if (vpninfo->process_auth_form)
 		ret = vpninfo->process_auth_form(vpninfo, form);
 	else
