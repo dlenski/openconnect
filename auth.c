@@ -239,14 +239,44 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 static int process_auth_form(struct openconnect_info *vpninfo,
 			     struct oc_auth_form *form);
 
-static char *xmlnode_msg(xmlNode *xml_node)
+static char *xmlnode_msg(xmlNode *xml_node, char **buf)
 {
 	char *result = (char *)xmlNodeGetContent(xml_node);
-	
+	char *param1, *param2, *pct;
+	int nr_params = 0, buflen;
+
 	if (!result || !result[0])
 		return NULL;
 
-	return result;
+	for (pct = strchr(result, '%'); pct;
+	     (pct = strchr(pct, '%'))) {
+		/* We only cope with '%s' */
+		if (pct[1] != 's')
+			return result;
+		pct++;
+		nr_params++;
+	}
+	if (!nr_params)
+		return result;
+
+	param1 = (char *)xmlGetProp(xml_node, (unsigned char *)"param1");
+	param2 = (char *)xmlGetProp(xml_node, (unsigned char *)"param2");
+
+	if (nr_params && !param1)
+		return result;
+	if (nr_params > 1 && !param2)
+		return result;
+	if (nr_params > 2)
+		return result;
+
+	buflen = strlen(result) + strlen(param1);
+	if (param2)
+		buflen += strlen(param2);
+	*buf = malloc(buflen);
+	if (!*buf)
+		return result;
+	sprintf(*buf, result, param1, param2);
+	return *buf;
 }
 
 /* Return value:
@@ -261,6 +291,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	struct oc_auth_form *form;
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node;
+	char *err_string = NULL, *msg_string = NULL, *banner_string = NULL;
 	int ret;
 
 	form = calloc(1, sizeof(*form));
@@ -298,13 +329,12 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		if (xml_node->type != XML_ELEMENT_NODE)
 			continue;
 
-		if (!strcmp((char *)xml_node->name, "banner")) {
-			form->banner = xmlnode_msg(xml_node);
-		} else if (!strcmp((char *)xml_node->name, "message")) {
-			form->message = xmlnode_msg(xml_node);
-		} else if (!strcmp((char *)xml_node->name, "error")) {
-			form->error = xmlnode_msg(xml_node);
-		}
+		if (!strcmp((char *)xml_node->name, "banner"))
+			form->banner = xmlnode_msg(xml_node, &banner_string);
+		else if (!strcmp((char *)xml_node->name, "message"))
+			form->message = xmlnode_msg(xml_node, &msg_string);
+		else if (!strcmp((char *)xml_node->name, "error"))
+			form->error = xmlnode_msg(xml_node, &err_string);
 		else if (!strcmp((char *)xml_node->name, "form")) {
 
 			form->method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
@@ -331,7 +361,8 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			vpninfo->progress(vpninfo, PRG_INFO, "%s\n", form->message);
 		if (form->error)
 			vpninfo->progress(vpninfo, PRG_ERR, "%s\n", form->error);
-		return -EPERM;
+		ret = -EPERM;
+		goto out;
 	}
 
 	if (vpninfo->process_auth_form)
@@ -343,6 +374,9 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 
 	ret = append_form_opts(vpninfo, form, request_body, req_len);
  out:
+	free(err_string);
+	free(msg_string);
+	free(banner_string);
 	xmlFreeDoc(xml_doc);
 	while (form->opts) {
 		struct oc_form_opt *tmp = form->opts->next;
