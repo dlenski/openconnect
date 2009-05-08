@@ -239,6 +239,16 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 static int process_auth_form(struct openconnect_info *vpninfo,
 			     struct oc_auth_form *form);
 
+static char *xmlnode_msg(xmlNode *xml_node)
+{
+	char *result = (char *)xmlNodeGetContent(xml_node);
+	
+	if (!result || !result[0])
+		return NULL;
+
+	return result;
+}
+
 /* Return value:
  *  < 0, on error
  *  = 0, when form parsed and POST required
@@ -289,17 +299,11 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			continue;
 
 		if (!strcmp((char *)xml_node->name, "banner")) {
-			form->banner = (char *)xmlNodeGetContent(xml_node);
-			if (form->banner && !form->banner[0])
-				form->banner = NULL;
+			form->banner = xmlnode_msg(xml_node);
 		} else if (!strcmp((char *)xml_node->name, "message")) {
-			form->message = (char *)xmlNodeGetContent(xml_node);
-			if (form->message && !form->message[0])
-				form->message = NULL;
+			form->message = xmlnode_msg(xml_node);
 		} else if (!strcmp((char *)xml_node->name, "error")) {
-			form->error = (char *)xmlNodeGetContent(xml_node);
-			if (form->error && !form->error[0])
-				form->error = NULL;
+			form->error = xmlnode_msg(xml_node);
 		}
 		else if (!strcmp((char *)xml_node->name, "form")) {
 
