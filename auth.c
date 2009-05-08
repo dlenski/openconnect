@@ -350,12 +350,15 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 	UI *ui = UI_new();
 	char banner_buf[1024], msg_buf[1024], err_buf[1024];
 	char username[80], password[80], tpin[80], *passresult = password;
+	char choice_prompt[1024], choice_resp[80];
 	int ret = 0, is_securid = 0;
 	struct oc_form_opt *opt, *pass_opt = NULL, *user_opt = NULL;
+	struct oc_form_opt_select *select_opt = NULL;
 
 	username[0] = 0;
 	password[0] = 0;
 	tpin[0] = 0;
+	choice_resp[0] = 0;
 
 	if (!strcmp(form->auth_id, "next_tokencode"))
 		is_securid = 2;
@@ -399,15 +402,16 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 			} else
 				pass_opt = opt;
 		} else if (opt->type == OC_FORM_OPT_SELECT) {
-			struct oc_form_opt_select *select_opt = (void *)opt;
-			struct oc_choice *choice;
+			struct oc_choice *choice = NULL;
+			int i;
+
+			select_opt = (void *)opt;
 
 			if (!select_opt->nr_choices)
 				continue;
 
 			if (vpninfo->authgroup &&
 			    !strcmp(opt->name, "group_list")) {
-				int i;
 				for (i = 0; i < select_opt->nr_choices; i++) {
 					choice = &select_opt->choices[i];
 
@@ -417,23 +421,37 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 						break;
 					}
 				}
-				if (opt->value)
-					continue;
-
-				vpninfo->progress(vpninfo, PRG_ERR,
-						  "Auth choice \"%s\" not available\n",
-						  vpninfo->authgroup);
+				if (!opt->value)
+					vpninfo->progress(vpninfo, PRG_ERR,
+							  "Auth choice \"%s\" not available\n",
+							  vpninfo->authgroup);
 			}
-			/* FIXME: Let the user choose */
-			choice = &select_opt->choices[select_opt->nr_choices-1];
-			opt->value = choice->name;
+			if (!opt->value && select_opt->nr_choices == 1) {
+				choice = &select_opt->choices[0];
+				opt->value = choice->name;
+			}
+			if (opt->value) {
+				if (!strcmp(choice->label, "SecureID"))
+					is_securid = 1;
 
-			if (choice->label && !strcmp(choice->label, "SecureID"))
-				is_securid = 1;
+				select_opt = NULL;
+				continue;
+			}
+			snprintf(choice_prompt, 1023, "%s [", opt->label);
+			for (i = 0; i < select_opt->nr_choices; i++) {
+				choice = &select_opt->choices[i];
+				if (i)
+					strncat(choice_prompt, "|", 1023 - strlen(choice_prompt));
+
+				strncat(choice_prompt, choice->label, 1023 - strlen(choice_prompt));
+			}
+			strncat(choice_prompt, "]:", 1023 - strlen(choice_prompt));
+
+			UI_add_input_string(ui, choice_prompt, UI_INPUT_FLAG_ECHO, choice_resp, 1, 80);
 		}
 	}
 
-	if (!user_opt && !pass_opt)
+	if (!user_opt && !pass_opt && !select_opt)
 		return 0;
 
         if (user_opt)
@@ -456,7 +474,7 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 
 		/* If we couldn't generate them, we'll have to ask the user */
 		if (!vpninfo->sid_tokencode[0])
-			UI_add_input_string(ui, pass_opt->label,
+			UI_add_input_string(ui, "SecurID code:",
 					    UI_INPUT_FLAG_ECHO, password, 1, 9);
 
 		/* We need the PIN only the first time, if we already have the
@@ -477,6 +495,26 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 		/* error */
 		vpninfo->progress(vpninfo, PRG_ERR, "Invalid inputs\n");
 		return -EINVAL;
+	}
+
+	if (select_opt) {
+		struct oc_choice *choice = NULL;
+		int i;
+
+		for (i = 0; i < select_opt->nr_choices; i++) {
+			choice = &select_opt->choices[i];
+
+			if (!strcmp(choice_resp, choice->label)) {
+				select_opt->form.value = choice->name;
+				break;
+			}
+		}
+		if (!select_opt->form.value) {
+			vpninfo->progress(vpninfo, PRG_ERR,
+					  "Auth choice \"%s\" not valid\n",
+					  choice_resp);
+			return -EINVAL;
+		}
 	}
 
 	if (user_opt) {
