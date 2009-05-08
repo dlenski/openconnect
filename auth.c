@@ -288,12 +288,19 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		if (xml_node->type != XML_ELEMENT_NODE)
 			continue;
 
-		if (!strcmp((char *)xml_node->name, "banner"))
+		if (!strcmp((char *)xml_node->name, "banner")) {
 			form->banner = (char *)xmlNodeGetContent(xml_node);
-		else if (!strcmp((char *)xml_node->name, "message"))
+			if (form->banner && !form->banner[0])
+				form->banner = NULL;
+		} else if (!strcmp((char *)xml_node->name, "message")) {
 			form->message = (char *)xmlNodeGetContent(xml_node);
-		else if (!strcmp((char *)xml_node->name, "error"))
+			if (form->message && !form->message[0])
+				form->message = NULL;
+		} else if (!strcmp((char *)xml_node->name, "error")) {
 			form->error = (char *)xmlNodeGetContent(xml_node);
+			if (form->error && !form->error[0])
+				form->error = NULL;
+		}
 		else if (!strcmp((char *)xml_node->name, "form")) {
 
 			form->method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
@@ -316,9 +323,9 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	}
 
 	if (!form->opts) {
-		if (form->message && form->message[0])
+		if (form->message)
 			vpninfo->progress(vpninfo, PRG_INFO, "%s\n", form->message);
-		if (form->error && form->error[0])
+		if (form->error)
 			vpninfo->progress(vpninfo, PRG_ERR, "%s\n", form->error);
 		return -EPERM;
 	}
@@ -375,17 +382,17 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 		vpninfo->progress(vpninfo, PRG_ERR, "Failed to create UI\n");
 		return -EINVAL;
 	}
-	if (form->banner && form->banner[0]) {
+	if (form->banner) {
 		banner_buf[1023] = 0;
 		snprintf(banner_buf, 1023, "%s\n", form->banner);
 		UI_add_info_string(ui, banner_buf);
 	}
-	if (form->error && form->error[0]) {
+	if (form->error) {
 		err_buf[1023] = 0;
 		snprintf(err_buf, 1023, "%s\n", form->error);
 		UI_add_error_string(ui, err_buf);
 	}
-	if (form->message && form->message[0]) {
+	if (form->message) {
 		msg_buf[1023] = 0;
 		snprintf(msg_buf, 1023, "%s\n", form->message);
 		UI_add_info_string(ui, msg_buf);
