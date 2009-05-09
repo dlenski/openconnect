@@ -269,6 +269,8 @@ static gboolean ui_write_prompt (ui_fragment_data *data)
 	gtk_box_pack_end(GTK_BOX(hbox), entry, FALSE, FALSE, 0);
 	if (!visible)
 		gtk_entry_set_visibility(GTK_ENTRY(entry), FALSE);
+	if (data->entry_text)
+		gtk_entry_set_text(GTK_ENTRY(entry), data->entry_text);
 	if (g_queue_peek_tail(ui_data->form_entries) == data)
 		gtk_widget_grab_focus (entry);
 	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(entry_changed), data);
@@ -295,9 +297,17 @@ static gboolean ui_add_select (ui_fragment_data *data)
 	gtk_box_pack_end(GTK_BOX(hbox), combo, FALSE, FALSE, 0);
 	for (i = 0; i < sopt->nr_choices; i++) {
 		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), sopt->choices[i].label);
+		if (data->entry_text && 
+		    !strcmp(data->entry_text, sopt->choices[i].name)) {
+			gtk_combo_box_set_active(GTK_COMBO_BOX(combo), i);
+			g_free(data->entry_text);
+			data->entry_text = sopt->choices[i].name;
+		}
 	}
-	gtk_combo_box_set_active(GTK_COMBO_BOX(combo), 0);
-	data->entry_text = sopt->choices[0].name;
+	if (gtk_combo_box_get_active(GTK_COMBO_BOX(combo)) < 0) {
+		gtk_combo_box_set_active(GTK_COMBO_BOX(combo), 0); 
+		data->entry_text = sopt->choices[0].name;
+	}
 
 	if (g_queue_peek_tail(ui_data->form_entries) == data)
 		gtk_widget_grab_focus (combo);
