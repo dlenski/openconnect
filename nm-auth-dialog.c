@@ -447,6 +447,15 @@ int init_openssl_ui(void)
 	return 0;
 }
 
+char *find_form_answer(struct oc_auth_form *form, struct oc_form_opt *opt)
+{
+	char *key, *result;
+	key = g_strdup_printf("%s/vpn/form:%s:%s", config_path,
+			      form->auth_id, opt->name);
+	result = gconf_client_get_string(gcl, key, NULL);
+	g_free(key);
+	return result;
+}
 
 /* This part for processing forms from openconnect directly, rather than
    through the SSL UI abstraction (which doesn't allow 'select' options) */
@@ -479,12 +488,15 @@ static gboolean ui_form (struct oc_auth_form *form)
 			g_mutex_lock (ui_data->form_mutex);
 			g_queue_push_head(ui_data->form_entries, data);
 			g_mutex_unlock (ui_data->form_mutex);
+			if (opt->type != OC_FORM_OPT_PASSWORD)
+				data->entry_text = find_form_answer(form, opt);
 
 			ui_write_prompt(data);
 		} else if (opt->type == OC_FORM_OPT_SELECT) {
 			g_mutex_lock (ui_data->form_mutex);
 			g_queue_push_head(ui_data->form_entries, data);
 			g_mutex_unlock (ui_data->form_mutex);
+			data->entry_text = find_form_answer(form, opt);
 
 			ui_add_select(data);
 		} else
