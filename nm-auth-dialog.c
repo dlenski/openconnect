@@ -312,6 +312,9 @@ static gboolean ui_add_select (ui_fragment_data *data)
 	if (g_queue_peek_tail(ui_data->form_entries) == data)
 		gtk_widget_grab_focus (combo);
 	g_signal_connect(G_OBJECT(combo), "changed", G_CALLBACK(combo_changed), data);
+	/* Hook up the 'show' signal to ensure that we override prompts on 
+	   UI elements which may be coming later. */
+	g_signal_connect(G_OBJECT(combo), "show", G_CALLBACK(combo_changed), data);
 
 	/* data is freed in ui_flush in worker thread */
 
