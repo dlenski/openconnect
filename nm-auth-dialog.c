@@ -468,6 +468,17 @@ void remember_gconf_key(auth_ui_data *ui_data, char *key, char *value)
 	k->value = value;
 
 	ui_data->success_keys = k;
+	while (k->next) {
+		if (!strcmp(k->next->key, key)) {
+			struct gconf_key *old = k->next;
+			k->next = old->next;
+			g_free(old->key);
+			g_free(old->value);
+			g_free(old);
+			break;
+		}
+		k = k->next;
+	}
 }
 
 char *find_form_answer(struct oc_auth_form *form, struct oc_form_opt *opt)
