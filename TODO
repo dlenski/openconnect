@@ -1,11 +1,10 @@
 
-Authentication tool:
- - Use a single persistent dialog box
- - Make asynchronous
- - Store server cert in gconf, prompt user to accept it
+openconnect:
+	IPv6 support
+	Port to/test on Windows/Solaris/*BSD
+	Proper SecurID support
 
- - Use standalone (gopenconnect) as well as from NetworkManager
-
-Connectivity:
- - Allow use of lwip + SOCKS server instead of tun
-
+nm-auth-dialog:
+	Store cookie in GNOME keyring and reuse it instead of logging in again
+	      (which means you keep your IP address)
+	Remember form options (auth group selection, username) too.
