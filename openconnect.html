@@ -1,0 +1,234 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<META HTTP-EQUIV="Content-Type: text/html; charset=utf8">
+<title>OpenConnect</title>
+</head>
+
+<body>
+<h1>OpenConnect</h1>
+
+<P>OpenConnect is a client for Cisco's <A HREF="http://www.cisco.com/en/US/prod/collateral/iosswrel/ps6537/ps6586/ps6657/product_data_sheet0900aecd80405e25.html">AnyConnect SSL VPN</A>, which is supported by IOS 12.4(9)T or later on Cisco SR500, 870, 880, 1800, 2800, 3800, 7200 Series and Cisco 7301 Routers.</P>
+
+<P>OpenConnect is released under the GNU Lesser Public License, version 2.1.</P>
+
+<P>Like <A HREF="http://www.unix-ag.uni-kl.de/~massar/vpnc/">vpnc</A>,
+OpenConnect is not officially supported by, or associated in any way
+with, Cisco Systems. It just happens to interoperate with their
+equipment.
+<P>
+Development of OpenConnect was started after a trial of their "official"
+client under Linux found it to have many deficiencies:
+<UL>
+  <LI>Inability to use SSL certificates from a <A HREF="http://en.wikipedia.org/wiki/Trusted_Platform_Module">TPM</A>.</LI>
+  <LI>Lack of support for Linux platforms other than i386.</LI>
+  <LI>Lack of integration with NetworkManager on the Linux desktop.</LI>
+  <LI>Lack of proper (RPM/DEB) packaging for Linux distributions.</LI>
+  <LI>"Stealth" use of libraries with <TT>dlopen()</TT>, even using
+      the development-only symlinks such as <TT>libz.so</TT> &mdash;
+      making it hard to properly discover the dependencies which
+      proper packaging would have expressed</LI>
+  <LI>Tempfile races allowing unprivileged users to trick it into overwriting arbitrary files, as root.</LI>
+  <LI>Unable to run as an unprivileged user, which would have reduced the severity of the above bug.</LI>
+  <LI>Inability to audit the source code for further such "Security 101" bugs.</LI>
+</UL>
+
+Naturally, OpenConnect addresses all of the above issues, and more.
+
+<H2>Supported Platforms</H2>
+
+OpenConnect is known to work on Linux and Mac OS X
+platforms, and should be trivially portable to any other platform
+supporting <A HREF="http://en.wikipedia.org/wiki/TUN/TAP">TUN/TAP</a>
+devices and on which <A HREF="http://www.openssl.org/">OpenSSL</a> runs.
+<P>
+It is known to work on at least i386, x86_64, PowerPC and MIPS
+processors, and should not have issues with portability to other CPUs.
+
+<H2>Features</H2>
+<UL>
+  <LI>Automatic detection of IPv4 address, routes.</LI>
+  <LI>Authentication via HTTP forms.</LI>
+      <LI>Authentication using SSL certificates, from local file or <A HREF="http://en.wikipedia.org/wiki/Trusted_Platform_Module">Trusted Platform Module</A>.</LI>
+  <LI><I>UserGroup</I> support for selecting between multiple configurations on a single VPN server.</LI>
+  <LI>Data transport over TCP <I>(HTTPS)</I> or UDP <I>(DTLS)</I>.</LI>
+  <LI>Keepalive and Dead Peer Detection on both HTTPS and DTLS.</LI>
+  <LI>Automatic update of VPN server list / configuration.</LI>
+  <LI>Roaming support, allowing reconnection when the local IP address changes.</LI>
+  <LI>Run without root privileges.</LI>
+</UL>
+
+There are two ways that OpenConnect can run without root
+privileges. The first is that it can use a tun device which is created
+in advance by the root user, and set to be owned by the user who runs
+OpenConnect.<P>
+
+The second is that it can avoid using the tun device altogether and
+instead spawn a user-supplied program, passing all data traffic
+through a UNIX socket to that program.  This latter option can be used
+in conjunction with a userspace TCP stack such as <A
+HREF="http://savannah.nongnu.org/projects/lwip/">lwip</A> to provide
+SOCKS access to the VPN without giving full access to all untrusted
+users and processes on the computer, and without requiring root
+privileges at all.
+
+
+<H2>TODO</H2>
+<UL>
+  <LI>IPv6 support</LI>
+  <LI>Windows / BSD / etc. support</LI>
+</UL>
+
+Neither of the above would be hard to implement. The first just
+requires someone with access to a suitably configured server; it
+should be fairly simple to see how IPv6 connectivity works. If someone
+has such a machine &mdash; or has a legitimate version of IOS which
+they could run in an emulator like <A
+HREF="http://www.ipflow.utc.fr/index.php/Cisco_7200_Simulator">Dynamips</A>,
+it would be very much appreciated to have some time to experiment with
+it.
+
+<P> The second is just a case of someone testing it on new platforms
+and letting me have any patches that are required; it mostly ought to
+'just work', with maybe a few system-specific modifications to the tun
+support.
+
+<H2>Download</H2>
+
+Development of OpenConnect is in the git repository at
+<TT>git://git.infradead.org/users/dwmw2/openconnect.git</TT>, which can be viewed in gitweb at <A HREF="http://git.infradead.org/users/dwmw2/openconnect.git">http://git.infradead.org/users/dwmw2/openconnect.git</A>
+<P>
+Tarball releases can be downloaded from <A HREF="ftp://ftp.infradead.org/pub/openconnect/">ftp://ftp.infradead.org/pub/openconnect/</A>
+
+<H2>Release Notes / Changelog</H2>
+For full changelog entries including the latest development, see
+<A HREF="http://git.infradead.org/users/dwmw2/openconnect.git">gitweb</A>.
+<UL>
+  <LI><B><A HREF="ftp://ftp.infradead.org/pub/openconnect/openconnect-1.20.tar.gz">OpenConnect v1.20</a></B> &mdash; 2009-05-08<BR>
+      <UL>
+	<LI>DTLS cipher choice fixes.</LI>
+	<LI>Improve handling of authentication group selection.</LI>
+	<LI>Export more information to connection script.</LI>
+	<LI>Add <TT>--background</TT> option to dæmonize after connection.</LI>
+	<LI>Detect TCP connection closure.</LI>
+      </UL><BR>
+  </LI>
+  <LI><B><A HREF="ftp://ftp.infradead.org/pub/openconnect/openconnect-1.10.tar.gz">OpenConnect v1.10</a></B> &mdash; 2009-04-01<BR>
+      <UL>
+	<LI>NetworkManager UI rewrite with many improvements.</LI>
+	<LI>Support for "UserGroups" where a single server offers multiple
+	configurations according to the URL used to connect.</LI>
+      </UL><BR>
+  <LI><B><A HREF="ftp://ftp.infradead.org/pub/openconnect/openconnect-1.00.tar.gz">OpenConnect v1.00</a></B> &mdash; 2009-03-18<BR>
+      <UL>
+	<LI>First non-beta release.</LI>
+      </UL>
+  </li>
+</UL>
+
+<H2>NetworkManager support</H2>
+
+Support for OpenConnect in NetworkManager has been integrated into
+GNOME git and is released alongside NetworkManager's other VPN modules:
+<A HREF="http://ftp.gnome.org/pub/GNOME/sources/NetworkManager-openconnect/">
+http://ftp.gnome.org/pub/GNOME/sources/NetworkManager-openconnect/</A>.<P>
+
+Unlike other VPN support in NetworkManager, the <TT>auth-dialog</TT>
+tool which handles GUI authentication is part of OpenConnect itself,
+rather than included in the <TT>network-manager-openconnect</TT>
+package. This is because it shares a lot of code with OpenConnect, but
+doesn't actually share any with NetworkManager or the other parts of
+the NetworkManager support.
+
+<H2>ConnMan support</H2>
+
+Basic support for OpenConnect in <A
+HREF="http://moblin.org/projects/connection-manager">ConnMan</A> has
+been submitted, and is pending approval. It can be obtained from the
+git repository at
+<TT>git://git.infradead.org/users/dwmw2/connman-openconnect.git</TT>;
+browsable in <A HREF="
+http://git.infradead.org/users/dwmw2/connman-openconnect.git">gitweb</A>.
+<H2>Requirements</H2>
+The basic text-mode client uses the following libraries:
+<UL>
+  <LI><B>OpenSSL</B> &mdash; all versions will work for basic connectivity, but see note on DTLS compatibility below.</LI>
+  <LI><B>libxml2</B></LI>
+</UL>
+For building the NetworkManager support, you will also need:
+<UL>
+  <LI><B>GTK</B></LI>
+  <LI><B>GConf</B></LI>
+</UL>
+
+Patches converting OpenConnect from libxml2 to something more compact like expat would be welcomed...
+
+
+<HR>
+<H2>How the VPN works</H2>
+
+The VPN is extremely simple, based almost entirely on the standard
+HTTPS and <A HREF="http://www.rfc-editor.org/rfc/rfc4347.txt">DTLS</A>
+protocols. You connect to the secure web server, authenticate using
+certificates and/or arbitrary web forms, and you are rewarded with a
+standard HTTP cookie.<P>
+
+You then use this cookie in an HTTP <TT>CONNECT</TT> request, and can
+then pass traffic over that connection. IP addresses and routing
+information are passed back and forth in the headers of that
+<TT>CONNECT</TT> request.<P>
+
+Since <A HREF="http://sites.inka.de/~W1011/devel/tcp-tcp.html">TCP
+over TCP is very suboptimal</A>, the VPN also attempts to use UDP
+datagrams, and will only <em>actually</em> pass traffic over the HTTPS
+connection if that fails. The UDP connectivity is done using Datagram
+TLS, which is supported by OpenSSL.
+
+
+<H2>OpenSSL/DTLS compatibility</H2>
+
+Unfortunately, Cisco used an old version of OpenSSL for their server,
+which predates the official RFC and has a few differences in the
+implementation of DTLS.
+
+Compatibility support for their "speshul" version of the protocol was
+introduced into OpenSSL after the 0.9.8k release.<P>
+
+If you are using a version of OpenSSL older than 0.9.8l, you will need to apply this patch from OpenSSL CVS:
+<UL>
+  <LI><A HREF="http://cvs.openssl.org/chngview?cn=18037">http://cvs.openssl.org/chngview?cn=18037</A> (OpenSSL <A HREF="http://rt.openssl.org/Ticket/Display.html?id=1751&user=guest&pass=guest">RT#1751</A>)</LI>
+</UL>
+
+For versions older than 0.9.8j, some generic DTLS bug fixes are also required:
+<UL>
+  <LI><A HREF="http://cvs.openssl.org/chngview?cn=17500">http://cvs.openssl.org/chngview?cn=17500</A>  (OpenSSL <A HREF="http://rt.openssl.org/Ticket/Display.html?id=1703&user=guest&pass=guest">RT#1703</A>)</LI>
+  <LI><A HREF="http://cvs.openssl.org/chngview?cn=17505">http://cvs.openssl.org/chngview?cn=17505</A> (OpenSSL <A HREF="http://rt.openssl.org/Ticket/Display.html?id=1752&user=guest&pass=guest">RT#1752</A>) </LI>
+</UL>
+The username/password for OpenSSL RT is 'guest/guest'
+<Hr>
+<H2>Distribution Status</H2>
+
+<I>Updates to the information below are welcomed, especially for distributions (including *BSD etc.) which aren't yet mentioned.</I>
+
+<H3>Fedora</H3>
+Both <TT>openconnect</TT> and <TT>NetworkManager-openconnect</TT> packages are included in Fedora.
+Fedora's latest OpenSSL package updates also include all required patches for DTLS compatibility,
+as of the <TT><A
+HREF="http://koji.fedoraproject.org/koji/buildinfo?buildID=98878">openssl-0.9.8g-13</A></TT>
+package in Fedora 10 and the <TT><A
+HREF="http://koji.fedoraproject.org/koji/buildinfo?buildID=98854">openssl-0.9.8k-4</A></TT>
+package in Fedora 11.
+<H3>Debian</H3>
+The <TT>openconnect</TT> package is available in Debian unstable, but <TT>NetworkManager-openconnect</TT> is not yet available.<BR>
+<A HREF="http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=524982">Debian bug #524982</A> has been filed, requesting that the required patches be included in Debian's OpenSSL package.<P>
+<H3>Gentoo</H3>
+<A HREF="http://bugs.gentoo.org/show_bug.cgi?id=263097">Gentoo bug #263097</A> has been filed, asking for <TT>openconnect</TT> to be packaged.
+
+
+
+<hr>
+<address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
+<!-- hhmts start -->
+Last modified: Sat May  9 14:40:38 BST 2009
+<!-- hhmts end -->
+</body> </html>
