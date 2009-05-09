@@ -297,6 +297,8 @@ static gboolean ui_add_select (ui_fragment_data *data)
 		gtk_combo_box_append_text(GTK_COMBO_BOX(combo), sopt->choices[i].label);
 	}
 	gtk_combo_box_set_active(GTK_COMBO_BOX(combo), 0);
+	data->entry_text = sopt->choices[0].name;
+
 	if (g_queue_peek_tail(ui_data->form_entries) == data)
 		gtk_widget_grab_focus (combo);
 	g_signal_connect(G_OBJECT(combo), "changed", G_CALLBACK(combo_changed), data);
