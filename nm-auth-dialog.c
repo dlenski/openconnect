@@ -64,9 +64,15 @@ enum certificate_response{
 	CERT_ACCEPTED,
 };
 
+struct gconf_key {
+	char *key;
+	char *value;
+	struct gconf_key *next;
+};
+
 typedef struct auth_ui_data {
 	struct openconnect_info *vpninfo;
-	char *firsthost;
+	struct gconf_key *success_keys;
 	GtkWidget *dialog;
 	GtkWidget *combo;
 	GtkWidget *connect_button;
@@ -450,6 +456,20 @@ int init_openssl_ui(void)
 	return 0;
 }
 
+void remember_gconf_key(auth_ui_data *ui_data, char *key, char *value)
+{
+	struct gconf_key *k = g_malloc(sizeof(*k));
+
+	if (!k)
+		return;
+
+	k->next = ui_data->success_keys;
+	k->key = key;
+	k->value = value;
+
+	ui_data->success_keys = k;
+}
+
 char *find_form_answer(struct oc_auth_form *form, struct oc_form_opt *opt)
 {
 	char *key, *result;
@@ -539,6 +559,12 @@ int nm_process_auth_form (struct openconnect_info *vpninfo,
 		data = g_queue_pop_tail (ui_data->form_entries);
 		if (data->entry_text) {
 			data->opt->value = data->entry_text;
+		}
+		if (data->opt->type == OC_FORM_OPT_TEXT ||
+		    data->opt->type == OC_FORM_OPT_SELECT) {
+			char *keyname;
+			keyname = g_strdup_printf("form:%s:%s", form->auth_id, data->opt->name);
+			remember_gconf_key(ui_data, keyname, strdup(data->entry_text));
 		}
 		g_slice_free (ui_fragment_data, data);
 	}
@@ -1025,6 +1051,14 @@ static gboolean cookie_obtained(auth_ui_data *ui_data)
 
 	if (ui_data->cancelled) {
 		/* user has chosen a new host, start from beginning */
+		while (ui_data->success_keys) {
+			struct gconf_key *k = ui_data->success_keys;
+			
+			ui_data->success_keys = k->next;
+			g_free(k->key);
+			g_free(k->value);
+			g_free(k);
+		}			
 		connect_host(ui_data);
 		return FALSE;
 	}
@@ -1039,10 +1073,18 @@ static gboolean cookie_obtained(auth_ui_data *ui_data)
 		ui_data->retval = 1;
 	} else if (!ui_data->cookie_retval) {
 		/* got cookie */
-		char *key = g_strdup_printf("%s/vpn/lasthost", config_path);
-		/* We don't use vpninfo->hostname because it might have been redirected */
-		gconf_client_set_string(gcl, key, ui_data->firsthost, NULL);
-		g_free(key);
+		while (ui_data->success_keys) {
+			struct gconf_key *k = ui_data->success_keys;
+			char *key = g_strdup_printf("%s/vpn/%s", config_path, k->key);
+
+			gconf_client_set_string(gcl, key, k->value, NULL);
+			g_free(key);
+
+			ui_data->success_keys = k->next;
+			g_free(k->key);
+			g_free(k->value);
+			g_free(k);
+		}
 
 		printf("%s\n%s\n", NM_OPENCONNECT_KEY_GATEWAY, ui_data->vpninfo->hostname);
 		printf("%s\n%s\n", NM_OPENCONNECT_KEY_COOKIE, ui_data->vpninfo->cookie);
@@ -1057,6 +1099,15 @@ static gboolean cookie_obtained(auth_ui_data *ui_data)
 		gtk_widget_show (ui_data->no_form_label);
 		ui_data->retval = 1;
 	}
+
+	while (ui_data->success_keys) {
+		struct gconf_key *k = ui_data->success_keys;
+
+		ui_data->success_keys = k->next;
+		g_free(k->key);
+		g_free(k->value);
+		g_free(k);
+	}			
 
 	return FALSE;
 }
@@ -1108,7 +1159,8 @@ static void connect_host(auth_ui_data *ui_data)
 	ui_data->vpninfo->hostname = g_strdup(host->hostaddress);
 	if (host->usergroup)
 		ui_data->vpninfo->urlpath = g_strdup(host->usergroup);
-	ui_data->firsthost = g_strdup(host->hostname);
+
+	remember_gconf_key(ui_data, g_strdup("lasthost"), g_strdup(host->hostname));
 
 	thread = g_thread_create((GThreadFunc)obtain_cookie, ui_data,
 				 FALSE, NULL);
