@@ -20,7 +20,7 @@ equipment.
 Development of OpenConnect was started after a trial of their "official"
 client under Linux found it to have many deficiencies:
 <UL>
-  <LI>Inability to use SSL certificates from a <A HREF="http://en.wikipedia.org/wiki/Trusted_Platform_Module">TPM</A>.</LI>
+  <LI>Inability to use SSL certificates from a <A HREF="http://en.wikipedia.org/wiki/Trusted_Platform_Module">TPM</A>, or even use a passphrase.</LI>
   <LI>Lack of support for Linux platforms other than i386.</LI>
   <LI>Lack of integration with NetworkManager on the Linux desktop.</LI>
   <LI>Lack of proper (RPM/DEB) packaging for Linux distributions.</LI>
@@ -104,6 +104,10 @@ Tarball releases can be downloaded from <A HREF="ftp://ftp.infradead.org/pub/ope
 For full changelog entries including the latest development, see
 <A HREF="http://git.infradead.org/users/dwmw2/openconnect.git">gitweb</A>.
 <UL>
+  <LI><B>OpenConnect v1.30</B> &mdash; in development<BR>
+      <UL>
+	<LI>NetworkManager auth-dialog will now cache authentication form options.</LI>
+      </UL><BR>
   <LI><B><A HREF="ftp://ftp.infradead.org/pub/openconnect/openconnect-1.20.tar.gz">OpenConnect v1.20</a></B> &mdash; 2009-05-08<BR>
       <UL>
 	<LI>DTLS cipher choice fixes.</LI>
@@ -229,6 +233,6 @@ The <TT>openconnect</TT> package is available in Debian unstable, but <TT>Networ
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Sat May  9 14:40:38 BST 2009
+Last modified: Mon May 11 00:08:37 BST 2009
 <!-- hhmts end -->
 </body> </html>
