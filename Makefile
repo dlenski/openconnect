@@ -4,15 +4,7 @@
 #
 # OPENSSL := ../openssl-0.9.8i
 
-#
-# don't build nm-openconnect-auth-dialog and the ssl UI on a Mac
-#
-OS=$(shell uname -s)
-
-# Only build the NetworkManager part on Linux
-ifeq ($(OS),Linux)
-	NMAUTHDIALOG := nm-openconnect-auth-dialog
-endif
+NMAUTHDIALOG := nm-openconnect-auth-dialog
 
 ifdef RPM_OPT_FLAGS
 OPT_FLAGS := $(RPM_OPT_FLAGS)
@@ -33,12 +25,21 @@ endif
 
 XML2_CFLAGS += $(shell xml2-config --cflags) 
 XML2_LDFLAGS += $(shell xml2-config --libs)
+ifeq ($(XML2_LDFLAGS),)
+$(error "No libxml2 support. Cannot continue");
+endif
 
 GTK_CFLAGS += $(shell pkg-config --cflags gtk+-x11-2.0 gthread-2.0)
 GTK_LDFLAGS += $(shell pkg-config --libs gtk+-x11-2.0 gthread-2.0)
+ifeq ($(GTK_LDFLAGS),)
+NMAUTHDIALOG := $(warning "Not building NetworkManager UI due to lack of gtk supprt.");
+endif
 
 GCONF_CFLAGS += $(shell pkg-config --cflags gconf-2.0)
 GCONF_LDFLAGS += $(shell pkg-config --libs gconf-2.0)
+ifeq ($(GCONF_LDFLAGS),)
+NMAUTHDIALOG := $(warning "Not building NetworkManager UI due to lack of GConf supprt.");
+endif
 
 CFLAGS := $(OPT_FLAGS) $(SSL_CFLAGS) $(XML2_CFLAGS) $(EXTRA_CFLAGS)
 LDFLAGS := $(SSL_LDFLAGS) $(XML2_LDFLAGS) $(EXTRA_LDFLAGS)
