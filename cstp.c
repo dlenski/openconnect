@@ -527,10 +527,9 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 					goto peer_dead;
 				return work_done;
 			default:
-				vpninfo->progress(vpninfo, PRG_ERR, "SSL_write failed: %d", ret);
+				vpninfo->progress(vpninfo, PRG_ERR, "SSL_write failed: %d\n", ret);
 				ERR_print_errors_fp(stderr);
-				vpninfo->quit_reason = "SSL write error";
-				return 1;
+				goto do_reconnect;
 			}
 		}
 		if (ret != vpninfo->current_ssl_pkt->len + 8) {
@@ -567,6 +566,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	case KA_DPD_DEAD:
 	peer_dead:
 		vpninfo->progress(vpninfo, PRG_ERR, "CSTP Dead Peer Detection detected dead peer!\n");
+	do_reconnect:
 		openconnect_close_https(vpninfo);
 
 		/* It's already deflated in the old stream. Extremely
@@ -576,7 +576,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		if (cstp_reconnect(vpninfo)) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Reconnect failed\n");
-			vpninfo->quit_reason = "SSL DPD detected dead peer; reconnect failed";
+			vpninfo->quit_reason = "CSTP reconnect failed";
 			return 1;
 		}
 		/* I think we can leave DTLS to its own devices; when we reconnect
