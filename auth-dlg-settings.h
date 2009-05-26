@@ -30,6 +30,7 @@
 
 #define NM_OPENCONNECT_KEY_GATEWAY "gateway"
 #define NM_OPENCONNECT_KEY_COOKIE "cookie"
+#define NM_OPENCONNECT_KEY_GWCERT "gwcert"
 #define NM_OPENCONNECT_KEY_AUTHTYPE "authtype"
 #define NM_OPENCONNECT_KEY_USERCERT "usercert"
 #define NM_OPENCONNECT_KEY_CACERT "cacert"

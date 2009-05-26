@@ -160,6 +160,35 @@ static int verify_callback(X509_STORE_CTX *ctx, void *arg)
 	return X509_verify_cert(ctx);
 }
 
+static int check_server_cert(struct openconnect_info *vpninfo, X509 *cert)
+{
+	BIO *bp = BIO_new(BIO_s_mem());
+	char zero = 0;
+	char *tmp1, *tmp2;
+	BUF_MEM *sig;
+	int result = 0;
+
+	i2a_ASN1_STRING(bp, cert->signature, V_ASN1_OCTET_STRING);
+	BIO_write(bp, &zero, 1);
+	BIO_get_mem_ptr(bp, &sig);
+	tmp1 = sig->data;
+	while ((tmp2 = strchr(tmp1, '\\'))) {
+		tmp1 = tmp2++;
+		while (isspace(*tmp2))
+			tmp2++;
+		memmove(tmp1, tmp2, strlen(tmp2) + 1);
+	}
+
+	if (strcmp(vpninfo->servercert, sig->data)) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Server SSL certificate didn't match\n");
+		result = -EINVAL;
+	}
+
+	BIO_free(bp);
+	return result;
+}
+
 static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 {
 	X509 *peer_cert;
@@ -176,6 +205,9 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 	}
 
 	peer_cert = SSL_get_peer_certificate(https_ssl);
+
+	if (vpninfo->servercert)
+		return check_server_cert(vpninfo, peer_cert);
 
 	if (vpninfo->validate_peer_cert)
 		return vpninfo->validate_peer_cert(vpninfo, peer_cert);

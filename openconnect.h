@@ -138,6 +138,7 @@ struct openconnect_info {
 	int tpm;
 	char *tpmpass;
 	const char *cafile;
+	const char *servercert;
 	const char *xmlconfig;
 	char xmlsha1[(SHA_DIGEST_LENGTH * 2) + 1];
 	char *username;

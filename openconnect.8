@@ -117,6 +117,10 @@ openconnect \- Connect to Cisco AnyConnect VPN
 [
 .B --reconnect-timeout
 ]
+[
+.B --servercert
+.I SIGNATURE
+]
 \fIserver\fR
 
 .SH DESCRIPTION
@@ -255,6 +259,9 @@ Read password from standard input
 Keep reconnect attempts until so much seconds are elapsed. The default
 timeout is 300 seconds, which means that openconnect can recover
 VPN connection after a temporary network down time of 300 seconds.
+.TP
+.B --servercert
+Accept server's SSL certificate only if its signature matches.
 
 .SH LIMITATIONS
 The

@@ -81,6 +81,7 @@ static struct option long_options[] = {
 	{"reconnect-timeout", 1, 0, '7'},
 	{"dtls-ciphers", 1, 0, '8'},
 	{"authgroup", 1, 0, '9'},
+	{"servercert", 1, 0, 0x01},
 	{NULL, 0, 0, 0},
 };
 
@@ -120,6 +121,7 @@ void usage(void)
 	printf("      --no-passwd                 Disable password/SecurID authentication\n");
 	printf("      --passwd-on-stdin           Read password from standard input\n");
 	printf("      --reconnect-timeout         Connection retry timeout in seconds\n");
+	printf("      --servercert                Server's SSL certificate signature\n");
 	exit(1);
 }
 
@@ -187,6 +189,9 @@ int main(int argc, char **argv)
 		switch (opt) {
 		case '0':
 			vpninfo->cafile = optarg;
+			break;
+		case 0x01:
+			vpninfo->servercert = optarg;
 			break;
 		case '1':
 			vpninfo->dtls_attempt_period = 0;

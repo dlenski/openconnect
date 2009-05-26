@@ -1055,6 +1055,29 @@ void write_progress(struct openconnect_info *info, int level, const char *fmt, .
 	g_free(msg);
 }
 
+static void print_peer_cert(struct openconnect_info *vpninfo)
+{
+	X509 *cert = SSL_get_peer_certificate(vpninfo->https_ssl);
+	BIO *bp = BIO_new(BIO_s_mem());
+	char zero = 0;
+	char *tmp1, *tmp2;
+	BUF_MEM *sig;
+
+	i2a_ASN1_STRING(bp, cert->signature, V_ASN1_OCTET_STRING);
+	BIO_write(bp, &zero, 1);
+	BIO_get_mem_ptr(bp, &sig);
+	tmp1 = sig->data;
+	while ((tmp2 = strchr(tmp1, '\\'))) {
+		tmp1 = tmp2++;
+		while (isspace(*tmp2))
+			tmp2++;
+		memmove(tmp1, tmp2, strlen(tmp2) + 1);
+	}
+
+	printf("gwcert\n%s\n", sig->data);
+	BIO_free(bp);
+}
+
 static gboolean cookie_obtained(auth_ui_data *ui_data)
 {
 	ui_data->getting_cookie = FALSE;
@@ -1099,6 +1122,7 @@ static gboolean cookie_obtained(auth_ui_data *ui_data)
 
 		printf("%s\n%s\n", NM_OPENCONNECT_KEY_GATEWAY, ui_data->vpninfo->hostname);
 		printf("%s\n%s\n", NM_OPENCONNECT_KEY_COOKIE, ui_data->vpninfo->cookie);
+		print_peer_cert(ui_data->vpninfo);
 		memset((void *)ui_data->vpninfo->cookie, 0, strlen(ui_data->vpninfo->cookie));
 		printf("\n\n");
 		fflush(stdout);
