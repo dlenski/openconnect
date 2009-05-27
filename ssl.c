@@ -51,6 +51,19 @@ int  __attribute__ ((format (printf, 2, 3)))
 
 }
 
+static int print_err(const char *str, size_t len, void *ptr)
+{
+	struct openconnect_info *vpninfo = ptr;
+
+	vpninfo->progress(vpninfo, PRG_ERR, "%s", str);
+	return 0;
+}
+
+void report_ssl_errors(struct openconnect_info *vpninfo)
+{
+	ERR_print_errors_cb(print_err, vpninfo);
+}
+
 int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len)
 {
 	int i = 0;
@@ -92,7 +105,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 					  SSL_FILETYPE_PEM)) {
 		vpninfo->progress(vpninfo, PRG_ERR,
 				  "Load certificate failed\n");
-		ERR_print_errors_fp(stderr);
+		report_ssl_errors(vpninfo);
 		return -EINVAL;
 	}
 
@@ -104,13 +117,13 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		e = ENGINE_by_id("tpm");
 		if (!e) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Can't load TPM engine.\n");
-			ERR_print_errors_fp(stderr);
+			report_ssl_errors(vpninfo);
 			return -EINVAL;
 		}
 		if (!ENGINE_init(e) || !ENGINE_set_default_RSA(e) ||
 		    !ENGINE_set_default_RAND(e)) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Failed to init TPM engine\n");
-			ERR_print_errors_fp(stderr);
+			report_ssl_errors(vpninfo);
 			ENGINE_free(e);
 			return -EINVAL;
 		}
@@ -119,21 +132,21 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			if (!ENGINE_ctrl_cmd(e, "PIN", strlen(vpninfo->tpmpass),
 					     vpninfo->tpmpass, NULL, 0)) {
 				vpninfo->progress(vpninfo, PRG_ERR, "Failed to set TPM SRK password\n");
-				ERR_print_errors_fp(stderr);
+				report_ssl_errors(vpninfo);
 			}
 		}
 		key = ENGINE_load_private_key(e, vpninfo->sslkey, NULL, NULL);
 		if (!key) {
 			vpninfo->progress(vpninfo, PRG_ERR,
 				"Failed to load TPM private key\n");
-			ERR_print_errors_fp(stderr);
+			report_ssl_errors(vpninfo);
 			ENGINE_free(e);
 			ENGINE_finish(e);
 			return -EINVAL;
 		}
 		if (!SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key)) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Add key from TPM failed\n");
-			ERR_print_errors_fp(stderr);
+			report_ssl_errors(vpninfo);
 			ENGINE_free(e);
 			ENGINE_finish(e);
 			return -EINVAL;
@@ -143,7 +156,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 						    vpninfo->sslkey,
 						    SSL_FILETYPE_PEM)) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Private key failed\n");
-			ERR_print_errors_fp(stderr);
+			report_ssl_errors(vpninfo);
 			return -EINVAL;
 		}
 	}
@@ -301,7 +314,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 	if (SSL_connect(https_ssl) <= 0) {
 		vpninfo->progress(vpninfo, PRG_ERR, "SSL connection failure\n");
-		ERR_print_errors_fp(stderr);
+		report_ssl_errors(vpninfo);
 		SSL_free(https_ssl);
 		close(ssl_sock);
 		return -EINVAL;

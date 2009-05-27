@@ -266,7 +266,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	}
 
 	vpninfo->progress(vpninfo, PRG_ERR, "DTLS handshake failed: %d\n", ret);
-	ERR_print_errors_fp(stderr);
+	report_ssl_errors(vpninfo);
 
 	/* Kill the new (failed) connection... */
 	SSL_free(vpninfo->new_dtls_ssl);
@@ -492,7 +492,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			if (ret != SSL_ERROR_WANT_READ && ret != SSL_ERROR_WANT_WRITE) {
 				vpninfo->progress(vpninfo, PRG_ERR,
 						  "DTLS got write error %d. Falling back to SSL\n", ret);
-				ERR_print_errors_fp(stderr);
+				report_ssl_errors(vpninfo);
 				dtls_restart(vpninfo);
 				vpninfo->outgoing_queue = this;
 				vpninfo->outgoing_qlen++;

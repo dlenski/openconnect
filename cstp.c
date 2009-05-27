@@ -526,7 +526,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				return work_done;
 			default:
 				vpninfo->progress(vpninfo, PRG_ERR, "SSL_write failed: %d\n", ret);
-				ERR_print_errors_fp(stderr);
+				report_ssl_errors(vpninfo);
 				goto do_reconnect;
 			}
 		}

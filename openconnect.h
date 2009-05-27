@@ -262,6 +262,7 @@ int  __attribute__ ((format (printf, 2, 3)))
 int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len);
 int openconnect_open_https(struct openconnect_info *vpninfo);
 void openconnect_close_https(struct openconnect_info *vpninfo);
+void report_ssl_errors(struct openconnect_info *vpninfo);
 
 /* mainloop.c */
 int vpn_add_pollfd(struct openconnect_info *vpninfo, int fd, short events);
