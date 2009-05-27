@@ -152,11 +152,21 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			return -EINVAL;
 		}
 	} else {
+	again:
 		if (!SSL_CTX_use_RSAPrivateKey_file(vpninfo->https_ctx,
 						    vpninfo->sslkey,
 						    SSL_FILETYPE_PEM)) {
+			unsigned long err = ERR_peek_error();
+
 			vpninfo->progress(vpninfo, PRG_ERR, "Private key failed\n");
 			report_ssl_errors(vpninfo);
+
+			/* If the user fat-fingered the passphrase, try again */
+			if (ERR_GET_LIB(err) == ERR_LIB_EVP &&
+			    ERR_GET_FUNC(err) == EVP_F_EVP_DECRYPTFINAL_EX &&
+			    ERR_GET_REASON(err) == EVP_R_BAD_DECRYPT)
+				goto again;
+
 			return -EINVAL;
 		}
 	}
