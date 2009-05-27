@@ -79,6 +79,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	vpninfo->vpn_addr = vpninfo->vpn_netmask = NULL;
 	vpninfo->cstp_options = vpninfo->dtls_options = NULL;
 	vpninfo->vpn_domain = vpninfo->vpn_proxy_pac = NULL;
+	vpninfo->dtls_cipher = NULL;
 
 	for (i=0; i<3; i++)
 		vpninfo->vpn_dns[i] = vpninfo->vpn_nbns[i] = NULL;
@@ -275,9 +276,6 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			return -EINVAL;
 		}
 	}
-
-	free(vpninfo->dtls_cipher);
-	vpninfo->dtls_cipher = NULL;
 
 	while (old_dtls_opts) {
 		struct vpn_option *tmp = old_dtls_opts;
