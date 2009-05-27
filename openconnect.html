@@ -104,6 +104,13 @@ Tarball releases can be downloaded from <A HREF="ftp://ftp.infradead.org/pub/ope
 For full changelog entries including the latest development, see
 <A HREF="http://git.infradead.org/users/dwmw2/openconnect.git">gitweb</A>.
 <UL>
+  <LI><B><A HREF="ftp://ftp.infradead.org/pub/openconnect/openconnect-1.40.tar.gz">OpenConnect v1.40</a></B> &mdash; 2009-05-27<BR>
+      <UL>
+	<LI>Fix validation of server's SSL certificate when NetworkManager runs openconnect as an unprivileged user (which can't read the real user's trust chain file).</LI>
+	<LI>Fix double-free of DTLS Cipher option on reconnect.</LI>
+	<LI>Reconnect on SSL write errors</LI>
+	<LI>Fix reporting of SSL errors through syslog/UI.</LI>
+      </UL><BR>
   <LI><B><A HREF="ftp://ftp.infradead.org/pub/openconnect/openconnect-1.30.tar.gz">OpenConnect v1.30</a></B> &mdash; 2009-05-13<BR>
       <UL>
 	<LI>NetworkManager auth-dialog will now cache authentication form options.</LI>
@@ -233,6 +240,6 @@ The <TT>openconnect</TT> package is available in Debian unstable, but <TT>Networ
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Wed May 13 13:45:07 BST 2009
+Last modified: Wed May 27 13:53:47 BST 2009
 <!-- hhmts end -->
 </body> </html>
