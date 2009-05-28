@@ -50,7 +50,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .I MTU
 ]
 [
-.B -p,--tpm-password
+.B -p,--tpm-password,--key-password
 .I PASS
 ]
 [
@@ -195,8 +195,8 @@ Request
 .I MTU
 from server
 .TP
-.B -p,--tpm-password=PASS
-Provide SRK (System Root Key) PIN for TPM
+.B -p,--tpm-password=PASS,--key-password=PASS
+Provide SRK (System Root Key) PIN for TPM or PEM passphrase for certificate
 .TP
 .B -q,--quiet
 Less output

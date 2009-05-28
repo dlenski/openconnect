@@ -95,6 +95,23 @@ int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len)
 	return i ?: ret;
 }
 
+static int pem_pw_cb(char *buf, int len, int w, void *v)
+{
+	struct openconnect_info *vpninfo = v;
+
+	/* Only try the provided password once... */
+	SSL_CTX_set_default_passwd_cb(vpninfo->https_ctx, NULL);
+	SSL_CTX_set_default_passwd_cb_userdata(vpninfo->https_ctx, NULL);
+
+	if (len <= strlen(vpninfo->tpmpass)) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "PEM password too long (%zd >= %d)\n",
+				  strlen(vpninfo->tpmpass), len);
+		return -1;
+	}
+	strcpy(buf, vpninfo->tpmpass);
+	return strlen(vpninfo->tpmpass);
+}
 
 static int load_certificate(struct openconnect_info *vpninfo)
 {
@@ -152,6 +169,12 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			return -EINVAL;
 		}
 	} else {
+		if (vpninfo->tpmpass) {
+			SSL_CTX_set_default_passwd_cb(vpninfo->https_ctx,
+						      pem_pw_cb);
+			SSL_CTX_set_default_passwd_cb_userdata(vpninfo->https_ctx,
+							       vpninfo);
+		}
 	again:
 		if (!SSL_CTX_use_RSAPrivateKey_file(vpninfo->https_ctx,
 						    vpninfo->sslkey,

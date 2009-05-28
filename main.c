@@ -65,6 +65,7 @@ static struct option long_options[] = {
 	{"syslog", 0, 0, 'l'},
 	{"tpm-key", 0, 0, 't'},
 	{"tpm-password", 1, 0, 'p'},
+	{"key-password", 1, 0, 'p'},
 	{"user", 1, 0, 'u'},
 	{"verbose", 0, 0, 'v'},
 	{"version", 0, 0, 'V'},
@@ -103,6 +104,7 @@ void usage(void)
 	printf("  -U, --setuid=USER               Drop privileges after connecting\n");
 	printf("  -m, --mtu=MTU                   Request MTU from server\n");
 	printf("  -p, --tpm-password=PASS         Set TPM SRK PIN\n");
+	printf("  -p, --key-password=PASS         Set PEM key passphrase\n");
 	printf("  -q, --quiet                     Less output\n");
 	printf("  -Q, --queue-len=LEN             Set packet queue limit to LEN pkts\n");
 	printf("  -s, --script=SCRIPT             Use vpnc-compatible config script\n");
