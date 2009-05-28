@@ -878,6 +878,7 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	char *xmlconfig;
 	char *hostname;
 	char *group;
+	char *pem_passphrase_fsid;
 
 	gcl = gconf_client_get_default();
 	config_path = get_config_path(gcl, vpn_uuid);
@@ -968,6 +969,11 @@ if (0) {
 	if (!vpninfo->sslkey)
 		vpninfo->sslkey = vpninfo->cert;
 
+	pem_passphrase_fsid = get_gconf_setting(gcl, config_path, "pem_passphrase_fsid");
+	if (pem_passphrase_fsid && !strcmp(pem_passphrase_fsid, "yes"))
+		passphrase_from_fsid(vpninfo);
+	g_free(pem_passphrase_fsid);
+				    
 	return 0;
 }
 

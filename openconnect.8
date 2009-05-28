@@ -121,6 +121,9 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .B --servercert
 .I SIGNATURE
 ]
+[
+.B --pem-passphrase-from-fsid
+]
 \fIserver\fR
 
 .SH DESCRIPTION
@@ -262,6 +265,10 @@ VPN connection after a temporary network down time of 300 seconds.
 .TP
 .B --servercert
 Accept server's SSL certificate only if its signature matches.
+.TP
+.B --pem-passphrase-from-fsid
+Passphrase for certificate file is automatically generated from the fsid of
+the file system on which it is stored.
 
 .SH LIMITATIONS
 The

@@ -47,6 +47,7 @@ static void syslog_progress(struct openconnect_info *info, int level, const char
 
 int verbose = PRG_INFO;
 int background;
+int do_passphrase_from_fsid;
 
 static struct option long_options[] = {
 	{"background", 0, 0, 'b'},
@@ -83,6 +84,7 @@ static struct option long_options[] = {
 	{"dtls-ciphers", 1, 0, '8'},
 	{"authgroup", 1, 0, '9'},
 	{"servercert", 1, 0, 0x01},
+	{"pem-passphrase-from-fsid", 0, 0, 0x02},
 	{NULL, 0, 0, 0},
 };
 
@@ -124,6 +126,7 @@ void usage(void)
 	printf("      --passwd-on-stdin           Read password from standard input\n");
 	printf("      --reconnect-timeout         Connection retry timeout in seconds\n");
 	printf("      --servercert                Server's SSL certificate signature\n");
+	printf("      --pem-passphrase-from-fsid  PEM passphrase is fsid of file system\n");
 	exit(1);
 }
 
@@ -312,6 +315,9 @@ int main(int argc, char **argv)
 			vpninfo->xmlconfig = optarg;
 			vpninfo->write_new_config = write_new_config;
 			break;
+		case 0x02:
+			do_passphrase_from_fsid = 1;
+			break;
 		default:
 			usage();
 		}
@@ -330,6 +336,9 @@ int main(int argc, char **argv)
 	} else {
 		vpninfo->progress = write_progress;
 	}
+
+	if (vpninfo->sslkey && do_passphrase_from_fsid)
+		passphrase_from_fsid(vpninfo);
 
 	if (config_lookup_host(vpninfo, argv[optind]))
 		exit(1);

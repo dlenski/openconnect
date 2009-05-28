@@ -22,6 +22,7 @@
  *   Boston, MA 02110-1301 USA
  */
 #include <sys/socket.h>
+#include <sys/vfs.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -387,3 +388,22 @@ void openconnect_init_openssl(void)
 	OpenSSL_add_all_algorithms ();
 }
 
+int passphrase_from_fsid(struct openconnect_info *vpninfo)
+{
+	struct statfs buf;
+	unsigned *fsid = (unsigned *)&buf.f_fsid;
+	unsigned long long fsid64;
+
+	vpninfo->tpmpass = malloc(17);
+	if (!vpninfo->tpmpass)
+		return -ENOMEM;
+
+	if (statfs(vpninfo->sslkey, &buf)) {
+		int err = errno;
+		vpninfo->progress(vpninfo, PRG_ERR, "statfs: %s\n", strerror(errno));
+		return -err;
+	}
+	fsid64 = ((unsigned long long)fsid[0] << 32) | fsid[1];
+	sprintf(vpninfo->tpmpass, "%llx", fsid64);
+	return 0;
+}
