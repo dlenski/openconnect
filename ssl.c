@@ -369,7 +369,7 @@ void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo, SSL *ssl
 	if (!X509_STORE_CTX_init(&ctx, store, NULL, NULL))
 		return;
 
-	while (X509_STORE_CTX_get1_issuer(&cert2, &ctx, cert) >= 0) {
+	while (X509_STORE_CTX_get1_issuer(&cert2, &ctx, cert) == 1) {
 		char buf[200];
 		if (cert2 == cert)
 			break;
