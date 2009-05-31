@@ -952,7 +952,7 @@ if (0) {
 		return 0;
 	}
 	if (!strcmp(authtype, NM_OPENCONNECT_AUTHTYPE_CERT_TPM))
-		vpninfo->tpm = 1;
+		vpninfo->cert_type = CERT_TYPE_TPM;
 	else if (strcmp(authtype, NM_OPENCONNECT_AUTHTYPE_CERT)) {
 		fprintf(stderr, "Unknown authentication type '%s'\n", authtype);
 		return -EINVAL;

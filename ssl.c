@@ -31,6 +31,7 @@
 #include <openssl/err.h>
 #include <openssl/engine.h>
 #include <openssl/evp.h>
+#include <openssl/pkcs12.h>
 
 #include "openconnect.h"
 
@@ -114,20 +115,95 @@ static int pem_pw_cb(char *buf, int len, int w, void *v)
 	return strlen(vpninfo->tpmpass);
 }
 
+static int load_pkcs12_certificate(struct openconnect_info *vpninfo)
+{
+	PKCS12 *p12;
+	EVP_PKEY *pkey = NULL;
+	X509 *cert = NULL;
+	STACK_OF(X509) *ca = sk_X509_new_null();
+	FILE *f;
+	int ret = 0;
+
+	f = fopen(vpninfo->cert, "r");
+	if (!f) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Failed to open certificate file %s\n",
+				  vpninfo->cert);
+		return -ENOENT;
+	}
+	p12 = d2i_PKCS12_fp(f, NULL);
+	fclose(f);
+	if (!p12) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Read PKCS#12 failed\n");
+		report_ssl_errors(vpninfo);
+		return -EINVAL;
+	}
+	if (!PKCS12_parse(p12, vpninfo->tpmpass, &pkey, &cert, &ca)) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Parse PKCS#12 failed\n");
+		report_ssl_errors(vpninfo);
+		PKCS12_free(p12);
+		return -EINVAL;
+	}
+	if (cert) {
+		SSL_CTX_use_certificate(vpninfo->https_ctx, cert);
+		X509_free(cert);
+	} else {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "PKCS#12 contained no certificate!");
+		ret = -EINVAL;
+	}
+
+	if (pkey) {
+		SSL_CTX_use_PrivateKey(vpninfo->https_ctx, pkey);
+		EVP_PKEY_free(pkey);
+	} else {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "PKCS#12 contained no private key!");
+		ret = -EINVAL;
+	}
+
+	if (ca) {
+		while ((cert = sk_X509_pop(ca))) {
+			char buf[200];
+			X509_NAME_oneline(X509_get_subject_name(cert), buf,
+                                          sizeof(buf));
+			vpninfo->progress(vpninfo, PRG_DEBUG, "Extra cert %s\n",
+					  buf);
+			SSL_CTX_add_extra_chain_cert(vpninfo->https_ctx, cert);
+		}
+		sk_X509_free(ca);
+	}
+
+	PKCS12_free(p12);
+	return ret;
+}
+
 static int load_certificate(struct openconnect_info *vpninfo)
 {
 	vpninfo->progress(vpninfo, PRG_TRACE,
 			  "Using certificate file %s\n", vpninfo->cert);
 
+	if (vpninfo->cert_type == CERT_TYPE_PKCS12)
+		return load_pkcs12_certificate(vpninfo);
+
 	if (!SSL_CTX_use_certificate_file(vpninfo->https_ctx, vpninfo->cert,
 					  SSL_FILETYPE_PEM)) {
+
+		unsigned long err = ERR_peek_error();
+
 		vpninfo->progress(vpninfo, PRG_ERR,
 				  "Load certificate failed\n");
 		report_ssl_errors(vpninfo);
+
+		if (ERR_GET_LIB(err) == ERR_LIB_PEM &&
+		    ERR_GET_FUNC(err) == PEM_F_PEM_READ_BIO &&
+		    ERR_GET_REASON(err) == PEM_R_NO_START_LINE)
+			return load_pkcs12_certificate(vpninfo);
+
 		return -EINVAL;
 	}
 
-	if (vpninfo->tpm) {
+	if (vpninfo->cert_type == CERT_TYPE_TPM) {
 		ENGINE *e;
 		EVP_PKEY *key;
 		ENGINE_load_builtin_engines();

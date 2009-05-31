@@ -122,6 +122,10 @@ struct split_include {
 #define RECONNECT_INTERVAL_MIN	10
 #define RECONNECT_INTERVAL_MAX	100
 
+#define CERT_TYPE_PEM		0
+#define CERT_TYPE_PKCS12	1
+#define CERT_TYPE_TPM		2
+
 struct openconnect_info {
 	char *redirect_url;
 
@@ -135,7 +139,7 @@ struct openconnect_info {
 	char *urlpath;
 	const char *cert;
 	const char *sslkey;
-	int tpm;
+	int cert_type;
 	char *tpmpass;
 	const char *cafile;
 	const char *servercert;

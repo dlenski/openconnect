@@ -52,6 +52,7 @@ int do_passphrase_from_fsid;
 static struct option long_options[] = {
 	{"background", 0, 0, 'b'},
 	{"certificate", 1, 0, 'c'},
+	{"pkcs12", 1, 0, 'P'},
 	{"sslkey", 1, 0, 'k'},
 	{"cookie", 1, 0, 'C'},
 	{"deflate", 0, 0, 'd'},
@@ -94,6 +95,7 @@ void usage(void)
 	printf("Open client for Cisco AnyConnect VPN, version %s\n\n", openconnect_version);
 	printf("  -b, --background                Continue in background after startup\n");
 	printf("  -c, --certificate=CERT          Use SSL client certificate CERT\n");
+	printf("  -P, --pkcs12=CERT               Use PKCS#12 client certificate CERT\n");
 	printf("  -k, --sslkey=KEY                Use SSL private key file KEY\n");
 	printf("  -C, --cookie=COOKIE             Use WebVPN cookie COOKIE\n");
 	printf("      --cookie-on-stdin           Read cookie from standard input\n");
@@ -186,7 +188,7 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "bC:c:Ddg:hi:k:lp:Q:qSs:tU:u:Vvx:",
+	while ((opt = getopt_long(argc, argv, "bC:c:Ddg:hi:k:lp:P:Q:qSs:tU:u:Vvx:",
 				  long_options, NULL))) {
 		if (opt < 0)
 			break;
@@ -235,6 +237,10 @@ int main(int argc, char **argv)
 		case 'C':
 			vpninfo->cookie = optarg;
 			break;
+		case 'P':
+			vpninfo->cert = optarg;
+			vpninfo->cert_type = CERT_TYPE_PKCS12;
+			break;
 		case 'c':
 			vpninfo->cert = optarg;
 			break;
@@ -276,7 +282,7 @@ int main(int argc, char **argv)
 			vpninfo->script_tun = 1;
 			break;
 		case 't':
-			vpninfo->tpm = 1;
+			vpninfo->cert_type = CERT_TYPE_TPM;
 			break;
 		case 'u':
 			vpninfo->username = optarg;

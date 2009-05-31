@@ -11,6 +11,10 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .I CERT
 ]
 [
+.B -P,--pkcs12
+.I CERT
+]
+[
 .B -k,--sslkey
 .I KEY
 ]
@@ -154,6 +158,10 @@ Continue in background after startup
 .TP
 .B -c,--certificate=CERT
 Use SSL client certificate
+.I CERT
+.TP
+.B -P,--pkcs12=CERT
+Use PKCS#12 client certificate
 .I CERT
 .TP
 .B -k,--sslkey=KEY
