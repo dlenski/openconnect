@@ -32,6 +32,7 @@
 #include <openssl/engine.h>
 #include <openssl/evp.h>
 #include <openssl/pkcs12.h>
+#include <openssl/x509v3.h>
 
 #include "openconnect.h"
 
@@ -162,14 +163,26 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo)
 		ret = -EINVAL;
 	}
 
+	/* Only include supporting certificates which are actually necessary */
 	if (ca) {
-		while ((cert = sk_X509_pop(ca))) {
-			char buf[200];
-			X509_NAME_oneline(X509_get_subject_name(cert), buf,
-                                          sizeof(buf));
-			vpninfo->progress(vpninfo, PRG_DEBUG, "Extra cert %s\n",
-					  buf);
-			SSL_CTX_add_extra_chain_cert(vpninfo->https_ctx, cert);
+		int i;
+	next:
+		for (i = 0; i < sk_X509_num(ca); i++) {
+			X509 *cert2 = sk_X509_value(ca, i);
+			if (X509_check_issued(cert2, cert) == X509_V_OK) {
+				char buf[200];
+
+				if (cert2 == cert)
+					break;
+
+				X509_NAME_oneline(X509_get_subject_name(cert2),
+						  buf, sizeof(buf));
+				vpninfo->progress(vpninfo, PRG_DEBUG,
+						  "Extra cert %s\n", buf);
+				SSL_CTX_add_extra_chain_cert(vpninfo->https_ctx, cert2);
+				cert = cert2;
+				goto next;
+			}
 		}
 		sk_X509_free(ca);
 	}
