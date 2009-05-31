@@ -124,6 +124,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo)
 	STACK_OF(X509) *ca = sk_X509_new_null();
 	FILE *f;
 	int ret = 0;
+	char pass[PEM_BUFSIZE];
 
 	f = fopen(vpninfo->cert, "r");
 	if (!f) {
@@ -139,7 +140,12 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo)
 		report_ssl_errors(vpninfo);
 		return -EINVAL;
 	}
-	if (!PKCS12_parse(p12, vpninfo->tpmpass, &pkey, &cert, &ca)) {
+	if (!vpninfo->tpmpass) {
+		if (EVP_read_pw_string(pass, PEM_BUFSIZE,
+				       "Enter PKCS#12 pass phrase:", 0))
+			return -EINVAL;
+	}
+	if (!PKCS12_parse(p12, vpninfo->tpmpass?:pass, &pkey, &cert, &ca)) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Parse PKCS#12 failed\n");
 		report_ssl_errors(vpninfo);
 		PKCS12_free(p12);
