@@ -178,7 +178,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo)
 				X509_NAME_oneline(X509_get_subject_name(cert2),
 						  buf, sizeof(buf));
 				vpninfo->progress(vpninfo, PRG_DEBUG,
-						  "Extra cert %s\n", buf);
+						  "Extra cert from PKCS#12: '%s'\n", buf);
 				SSL_CTX_add_extra_chain_cert(vpninfo->https_ctx, cert2);
 				cert = cert2;
 				goto next;
@@ -352,6 +352,38 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 	return 0;
 }
 
+void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo, SSL *ssl)
+{
+	/* OpenSSL has problems with certificate chains -- if there are
+	   multiple certs with the same name, it doesn't necessarily
+	   choose the _right_ one. This will probably be RT#1942.
+	   Pick the right ones for ourselves and add them manually. */
+	X509 *cert = SSL_get_certificate(ssl);
+	X509 *cert2;
+	X509_STORE *store = SSL_CTX_get_cert_store(vpninfo->https_ctx);
+	X509_STORE_CTX ctx;
+
+	if (!cert || !store)
+		return;
+
+	if (!X509_STORE_CTX_init(&ctx, store, NULL, NULL))
+		return;
+
+	while (X509_STORE_CTX_get1_issuer(&cert2, &ctx, cert) >= 0) {
+		char buf[200];
+		if (cert2 == cert)
+			break;
+		X509_free(cert);
+		cert = cert2;
+		X509_NAME_oneline(X509_get_subject_name(cert),
+				  buf, sizeof(buf));
+		vpninfo->progress(vpninfo, PRG_DEBUG,
+				  "Extra cert from cafile: '%s'\n", buf);
+		SSL_CTX_add_extra_chain_cert(vpninfo->https_ctx, cert);
+	}
+	X509_STORE_CTX_cleanup(&ctx);
+}
+
 int openconnect_open_https(struct openconnect_info *vpninfo)
 {
 	SSL_METHOD *ssl3_method;
@@ -428,6 +460,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 	}
 	https_ssl = SSL_new(vpninfo->https_ctx);
+	workaround_openssl_certchain_bug(vpninfo, https_ssl);
 
 	https_bio = BIO_new_socket(ssl_sock, BIO_NOCLOSE);
 	SSL_set_bio(https_ssl, https_bio, https_bio);
