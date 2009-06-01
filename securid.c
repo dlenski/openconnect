@@ -26,6 +26,7 @@
 #include <time.h>
 #include <ctype.h>
 #include <errno.h>
+#include <string.h>
 
 #include "openconnect.h"
 
