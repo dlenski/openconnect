@@ -181,6 +181,52 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 	return ret;
 }
 
+static int load_tpm_certificate (struct openconnect_info *vpninfo)
+{
+	ENGINE *e;
+	EVP_PKEY *key;
+	ENGINE_load_builtin_engines();
+
+	e = ENGINE_by_id("tpm");
+	if (!e) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Can't load TPM engine.\n");
+		report_ssl_errors(vpninfo);
+		return -EINVAL;
+	}
+	if (!ENGINE_init(e) || !ENGINE_set_default_RSA(e) ||
+	    !ENGINE_set_default_RAND(e)) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to init TPM engine\n");
+		report_ssl_errors(vpninfo);
+		ENGINE_free(e);
+		return -EINVAL;
+	}
+
+	if (vpninfo->tpmpass) {
+		if (!ENGINE_ctrl_cmd(e, "PIN", strlen(vpninfo->tpmpass),
+				     vpninfo->tpmpass, NULL, 0)) {
+			vpninfo->progress(vpninfo, PRG_ERR, "Failed to set TPM SRK password\n");
+			report_ssl_errors(vpninfo);
+		}
+	}
+	key = ENGINE_load_private_key(e, vpninfo->sslkey, NULL, NULL);
+	if (!key) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Failed to load TPM private key\n");
+		report_ssl_errors(vpninfo);
+		ENGINE_free(e);
+		ENGINE_finish(e);
+		return -EINVAL;
+	}
+	if (!SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key)) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Add key from TPM failed\n");
+		report_ssl_errors(vpninfo);
+		ENGINE_free(e);
+		ENGINE_finish(e);
+		return -EINVAL;
+	}
+	return 0;
+}
+
 static int load_certificate(struct openconnect_info *vpninfo)
 {
 	vpninfo->progress(vpninfo, PRG_TRACE,
@@ -213,6 +259,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		ERR_clear_error();
 	}
 
+	/* It's PEM or TPM now, and either way we need to load the plain cert: */
 	if (!SSL_CTX_use_certificate_file(vpninfo->https_ctx, vpninfo->cert,
 					  SSL_FILETYPE_PEM)) {
 		vpninfo->progress(vpninfo, PRG_ERR,
@@ -222,47 +269,9 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	}
 
 	if (vpninfo->cert_type == CERT_TYPE_TPM) {
-		ENGINE *e;
-		EVP_PKEY *key;
-		ENGINE_load_builtin_engines();
-
-		e = ENGINE_by_id("tpm");
-		if (!e) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Can't load TPM engine.\n");
-			report_ssl_errors(vpninfo);
-			return -EINVAL;
-		}
-		if (!ENGINE_init(e) || !ENGINE_set_default_RSA(e) ||
-		    !ENGINE_set_default_RAND(e)) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Failed to init TPM engine\n");
-			report_ssl_errors(vpninfo);
-			ENGINE_free(e);
-			return -EINVAL;
-		}
-
-		if (vpninfo->tpmpass) {
-			if (!ENGINE_ctrl_cmd(e, "PIN", strlen(vpninfo->tpmpass),
-					     vpninfo->tpmpass, NULL, 0)) {
-				vpninfo->progress(vpninfo, PRG_ERR, "Failed to set TPM SRK password\n");
-				report_ssl_errors(vpninfo);
-			}
-		}
-		key = ENGINE_load_private_key(e, vpninfo->sslkey, NULL, NULL);
-		if (!key) {
-			vpninfo->progress(vpninfo, PRG_ERR,
-				"Failed to load TPM private key\n");
-			report_ssl_errors(vpninfo);
-			ENGINE_free(e);
-			ENGINE_finish(e);
-			return -EINVAL;
-		}
-		if (!SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key)) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Add key from TPM failed\n");
-			report_ssl_errors(vpninfo);
-			ENGINE_free(e);
-			ENGINE_finish(e);
-			return -EINVAL;
-		}
+		int ret = load_tpm_certificate(vpninfo);
+		if (ret)
+			return ret;
 	} else {
 		if (vpninfo->tpmpass) {
 			SSL_CTX_set_default_passwd_cb(vpninfo->https_ctx,
