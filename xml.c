@@ -63,7 +63,7 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 
 	xmlfile = malloc(st.st_size);
 	if (!xmlfile) {
-		fprintf(stderr, "Could not allocate %ld bytes for XML config file\n", st.st_size);
+		fprintf(stderr, "Could not allocate %zd bytes for XML config file\n", st.st_size);
 		close(fd);
 		return -1;
 	}
