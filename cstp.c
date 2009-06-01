@@ -609,6 +609,10 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpninfo->outgoing_queue = this->next;
 		vpninfo->outgoing_qlen--;
 
+		/* FIXME: Don't know how to handle IPv6 yet */
+		if (this->type != AF_INET)
+			continue;
+
 		if (vpninfo->deflate) {
 			unsigned char *adler;
 			int ret;
