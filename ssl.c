@@ -116,30 +116,14 @@ static int pem_pw_cb(char *buf, int len, int w, void *v)
 	return strlen(vpninfo->tpmpass);
 }
 
-static int load_pkcs12_certificate(struct openconnect_info *vpninfo)
+static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12)
 {
-	PKCS12 *p12;
 	EVP_PKEY *pkey = NULL;
 	X509 *cert = NULL;
 	STACK_OF(X509) *ca = sk_X509_new_null();
-	FILE *f;
 	int ret = 0;
 	char pass[PEM_BUFSIZE];
 
-	f = fopen(vpninfo->cert, "r");
-	if (!f) {
-		vpninfo->progress(vpninfo, PRG_ERR,
-				  "Failed to open certificate file %s\n",
-				  vpninfo->cert);
-		return -ENOENT;
-	}
-	p12 = d2i_PKCS12_fp(f, NULL);
-	fclose(f);
-	if (!p12) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Read PKCS#12 failed\n");
-		report_ssl_errors(vpninfo);
-		return -EINVAL;
-	}
 	if (!vpninfo->tpmpass) {
 		if (EVP_read_pw_string(pass, PEM_BUFSIZE,
 				       "Enter PKCS#12 pass phrase:", 0))
@@ -202,23 +186,38 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	vpninfo->progress(vpninfo, PRG_TRACE,
 			  "Using certificate file %s\n", vpninfo->cert);
 
-	if (vpninfo->cert_type == CERT_TYPE_PKCS12)
-		return load_pkcs12_certificate(vpninfo);
+	if (vpninfo->cert_type == CERT_TYPE_PKCS12 ||
+	    vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
+		FILE *f;
+		PKCS12 *p12;
+
+		f = fopen(vpninfo->cert, "r");
+		if (!f) {
+			vpninfo->progress(vpninfo, PRG_ERR,
+					  "Failed to open certificate file %s\n",
+					  vpninfo->cert);
+			return -ENOENT;
+		}
+		p12 = d2i_PKCS12_fp(f, NULL);
+		fclose(f);
+		if (p12)
+			return load_pkcs12_certificate(vpninfo, p12);
+
+		/* Not PKCS#12 */
+		if (vpninfo->cert_type == CERT_TYPE_PKCS12) {
+			vpninfo->progress(vpninfo, PRG_ERR, "Read PKCS#12 failed\n");
+			report_ssl_errors(vpninfo);
+			return -EINVAL;
+		}
+		/* Clear error and fall through to see if it's a PEM file... */
+		ERR_clear_error();
+	}
 
 	if (!SSL_CTX_use_certificate_file(vpninfo->https_ctx, vpninfo->cert,
 					  SSL_FILETYPE_PEM)) {
-
-		unsigned long err = ERR_peek_error();
-
 		vpninfo->progress(vpninfo, PRG_ERR,
 				  "Load certificate failed\n");
 		report_ssl_errors(vpninfo);
-
-		if (ERR_GET_LIB(err) == ERR_LIB_PEM &&
-		    ERR_GET_FUNC(err) == PEM_F_PEM_READ_BIO &&
-		    ERR_GET_REASON(err) == PEM_R_NO_START_LINE)
-			return load_pkcs12_certificate(vpninfo);
-
 		return -EINVAL;
 	}
 
