@@ -31,7 +31,7 @@
 #include <ctype.h>
 #if defined(__linux__)
 #include <sys/vfs.h>
-#elif defined(BSD)
+#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
 #include <sys/param.h>
 #include <sys/mount.h>
 #endif
