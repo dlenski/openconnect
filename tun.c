@@ -254,7 +254,6 @@ static int script_config_tun(struct openconnect_info *vpninfo)
 /* Set up a tuntap device. */
 int setup_tun(struct openconnect_info *vpninfo)
 {
-	struct ifreq ifr;
 	int tun_fd;
 
 	if (vpninfo->script_tun) {
@@ -282,6 +281,8 @@ int setup_tun(struct openconnect_info *vpninfo)
 		vpninfo->ifname = "(script)";
 	} else {
 #ifdef IFF_TUN /* Linux */
+		struct ifreq ifr;
+
 		tun_fd = open("/dev/net/tun", O_RDWR);
 		if (tun_fd < 0) {
 			vpninfo->progress(vpninfo, PRG_ERR,
