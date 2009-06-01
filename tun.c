@@ -32,7 +32,9 @@
 #endif
 #include <fcntl.h>
 #include <unistd.h>
+#include <netinet/in_systm.h>
 #include <netinet/in.h>
+#include <netinet/ip.h>
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <errno.h>
@@ -354,13 +356,23 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	if (FD_ISSET(vpninfo->tun_fd, &vpninfo->select_rfds)) {
 		while ((len = read(vpninfo->tun_fd, buf, sizeof(buf))) > 0) {
 			unsigned char *pkt = buf;
-#ifdef TUN_HAS_AF_PREFIX
-			if (*(int *)buf != htonl(AF_INET))
+			int type;
+#ifdef __OpenBSD__
+			type = ntohl(*(int *)buf);
+			if (type != AF_INET && type != AF_INET6)
 				continue;
 			pkt += 4;
 			len -= 4;
+#else
+			struct ip *iph = (void *)buf;
+			if (iph->ip_v == 6)
+				type = AF_INET6;
+			else if (iph->ip_v == 4)
+				type = AF_INET;
+			else
+				continue;
 #endif
-			if (queue_new_packet(&vpninfo->outgoing_queue, AF_INET,
+			if (queue_new_packet(&vpninfo->outgoing_queue, type,
 					     pkt, len))
 				break;
 
@@ -385,10 +397,10 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		vpninfo->incoming_queue = this->next;
 
-#ifdef TUN_HAS_AF_PREFIX
+#ifdef __OpenBSD__
 		data -= 4;
 		len += 4;
-		*(int *)data = htonl(AF_INET);
+		*(int *)data = htonl(this->type);
 #endif
 
 		if (write(vpninfo->tun_fd, data, len) < 0 &&
