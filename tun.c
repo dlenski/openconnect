@@ -39,6 +39,10 @@
 
 #include "openconnect.h"
 
+#ifdef BSD
+#define TUN_HAS_AF_PREFIX 1
+#endif
+
 static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
 {
 	struct ifreq ifr;
@@ -343,13 +347,21 @@ int setup_tun(struct openconnect_info *vpninfo)
 
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
-	char buf[2000];
+	unsigned char buf[2000];
 	int len;
 	int work_done = 0;
 
 	if (FD_ISSET(vpninfo->tun_fd, &vpninfo->select_rfds)) {
 		while ((len = read(vpninfo->tun_fd, buf, sizeof(buf))) > 0) {
-			if (queue_new_packet(&vpninfo->outgoing_queue, AF_INET, buf, len))
+			unsigned char *pkt = buf;
+#ifdef TUN_HAS_AF_PREFIX
+			if (*(int *)buf != htonl(AF_INET))
+				continue;
+			pkt += 4;
+			len -= 4;
+#endif
+			if (queue_new_packet(&vpninfo->outgoing_queue, AF_INET,
+					     pkt, len))
 				break;
 
 			work_done = 1;
@@ -368,8 +380,18 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	   the no-longer-full situation, so let's not bother. */
 	while (vpninfo->incoming_queue) {
 		struct pkt *this = vpninfo->incoming_queue;
+		unsigned char *data = this->data;
+		int len = this->len;
+
 		vpninfo->incoming_queue = this->next;
-		if (write(vpninfo->tun_fd, this->data, this->len) < 0 &&
+
+#ifdef TUN_HAS_AF_PREFIX
+		data -= 4;
+		len += 4;
+		*(int *)data = htonl(AF_INET);
+#endif
+
+		if (write(vpninfo->tun_fd, data, len) < 0 &&
 		    errno == ENOTCONN) {
 			vpninfo->quit_reason = "Client connection terminated";
 			return 1;
