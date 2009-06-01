@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
+#include <string.h>
 #include <ctype.h>
 
 #include <openssl/err.h>
