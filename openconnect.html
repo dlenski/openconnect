@@ -20,6 +20,7 @@ equipment.
 Development of OpenConnect was started after a trial of their "official"
 client under Linux found it to have many deficiencies:
 <UL>
+  <LI>Fix OpenBSD build</LI>
   <LI>Inability to use SSL certificates from a <A HREF="http://en.wikipedia.org/wiki/Trusted_Platform_Module">TPM</A>, or even use a passphrase.</LI>
   <LI>Lack of support for Linux platforms other than i386.</LI>
   <LI>Lack of integration with NetworkManager on the Linux desktop.</LI>
@@ -37,7 +38,7 @@ Naturally, OpenConnect addresses all of the above issues, and more.
 
 <H2>Supported Platforms</H2>
 
-OpenConnect is known to work on Linux and Mac OS X
+OpenConnect is known to work on Linux, OpenBSD and Mac OS X
 platforms, and should be trivially portable to any other platform
 supporting <A HREF="http://en.wikipedia.org/wiki/TUN/TAP">TUN/TAP</a>
 devices and on which <A HREF="http://www.openssl.org/">OpenSSL</a> runs.
@@ -247,6 +248,6 @@ The <TT>openconnect</TT> package is available in Debian unstable, but <TT>Networ
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Mon Jun  1 01:15:14 BST 2009
+Last modified: Mon Jun  1 17:43:13 BST 2009
 <!-- hhmts end -->
 </body> </html>
