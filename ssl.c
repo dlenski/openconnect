@@ -181,7 +181,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 	return ret;
 }
 
-static int load_tpm_certificate (struct openconnect_info *vpninfo)
+static int load_tpm_certificate(struct openconnect_info *vpninfo)
 {
 	ENGINE *e;
 	EVP_PKEY *key;
@@ -268,34 +268,62 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	if (vpninfo->cert_type == CERT_TYPE_TPM) {
-		int ret = load_tpm_certificate(vpninfo);
-		if (ret)
-			return ret;
-	} else {
-		if (vpninfo->tpmpass) {
-			SSL_CTX_set_default_passwd_cb(vpninfo->https_ctx,
-						      pem_pw_cb);
-			SSL_CTX_set_default_passwd_cb_userdata(vpninfo->https_ctx,
-							       vpninfo);
+	if (vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
+		FILE *f = fopen(vpninfo->sslkey, "r");
+		char buf[256];
+
+		if (!f) {
+			vpninfo->progress(vpninfo, PRG_ERR,
+					  "Failed to open certificate file %s\n",
+					  vpninfo->cert);
+			return -ENOENT;
 		}
-	again:
-		if (!SSL_CTX_use_RSAPrivateKey_file(vpninfo->https_ctx,
-						    vpninfo->sslkey,
-						    SSL_FILETYPE_PEM)) {
-			unsigned long err = ERR_peek_error();
 
-			vpninfo->progress(vpninfo, PRG_ERR, "Private key failed\n");
-			report_ssl_errors(vpninfo);
-
-			/* If the user fat-fingered the passphrase, try again */
-			if (ERR_GET_LIB(err) == ERR_LIB_EVP &&
-			    ERR_GET_FUNC(err) == EVP_F_EVP_DECRYPTFINAL_EX &&
-			    ERR_GET_REASON(err) == EVP_R_BAD_DECRYPT)
-				goto again;
-
+		buf[255] = 0;
+		while (fgets(buf, 255, f)) {
+			if (!strcmp(buf, "-----BEGIN TSS KEY BLOB-----\n")) {
+				vpninfo->cert_type = CERT_TYPE_TPM;
+				break;
+			} else if (!strcmp(buf, "-----BEGIN RSA PRIVATE KEY-----\n") ||
+				   !strcmp(buf, "-----BEGIN DSA PRIVATE KEY-----\n")) {
+				vpninfo->cert_type = CERT_TYPE_PEM;
+				break;
+			}
+		}
+		fclose(f);
+		if (vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
+			vpninfo->progress(vpninfo, PRG_ERR,
+					  "Failed to identify private key type in '%s'\n",
+					  vpninfo->sslkey);
 			return -EINVAL;
 		}
+	}
+
+	if (vpninfo->cert_type == CERT_TYPE_TPM)
+		return load_tpm_certificate(vpninfo);
+
+	/* Standard PEM certificate */
+	if (vpninfo->tpmpass) {
+		SSL_CTX_set_default_passwd_cb(vpninfo->https_ctx,
+					      pem_pw_cb);
+		SSL_CTX_set_default_passwd_cb_userdata(vpninfo->https_ctx,
+						       vpninfo);
+	}
+ again:
+	if (!SSL_CTX_use_RSAPrivateKey_file(vpninfo->https_ctx, vpninfo->sslkey,
+					    SSL_FILETYPE_PEM)) {
+		unsigned long err = ERR_peek_error();
+		
+		vpninfo->progress(vpninfo, PRG_ERR, "Private key failed\n");
+		report_ssl_errors(vpninfo);
+
+		/* If the user fat-fingered the passphrase, try again */
+		if (ERR_GET_LIB(err) == ERR_LIB_EVP &&
+		    ERR_GET_FUNC(err) == EVP_F_EVP_DECRYPTFINAL_EX &&
+		    ERR_GET_REASON(err) == EVP_R_BAD_DECRYPT)
+			goto again;
+		
+		return -EINVAL;
 	}
 	return 0;
 }
