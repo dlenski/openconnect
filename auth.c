@@ -23,7 +23,6 @@
  *   Boston, MA 02110-1301 USA
  */
 
-#include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
