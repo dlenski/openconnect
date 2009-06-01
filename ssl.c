@@ -358,11 +358,12 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 	return 0;
 }
 
-void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo, SSL *ssl)
+void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
+				      SSL *ssl)
 {
 	/* OpenSSL has problems with certificate chains -- if there are
 	   multiple certs with the same name, it doesn't necessarily
-	   choose the _right_ one. This will probably be RT#1942.
+	   choose the _right_ one. (RT#1942)
 	   Pick the right ones for ourselves and add them manually. */
 	X509 *cert = SSL_get_certificate(ssl);
 	X509 *cert2;
@@ -375,7 +376,7 @@ void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo, SSL *ssl
 	if (!X509_STORE_CTX_init(&ctx, store, NULL, NULL))
 		return;
 
-	while (X509_STORE_CTX_get1_issuer(&cert2, &ctx, cert) == 1) {
+	while (ctx.get_issuer(&cert2, &ctx, cert) == 1) {
 		char buf[200];
 		if (cert2 == cert)
 			break;
