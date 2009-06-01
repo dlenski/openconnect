@@ -20,7 +20,7 @@ SSL_CFLAGS += -I$(OPENSSL)/include
 SSL_LDFLAGS += -lz $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a -ldl
 else
 SSL_CFLAGS += -I/usr/include/openssl
-SSL_LDFLAGS += -lssl
+SSL_LDFLAGS += -lcrypto -lssl
 endif
 
 XML2_CFLAGS += $(shell xml2-config --cflags) 
