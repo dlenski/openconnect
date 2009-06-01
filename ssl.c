@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
