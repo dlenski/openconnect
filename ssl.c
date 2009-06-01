@@ -106,14 +106,14 @@ static int pem_pw_cb(char *buf, int len, int w, void *v)
 	SSL_CTX_set_default_passwd_cb(vpninfo->https_ctx, NULL);
 	SSL_CTX_set_default_passwd_cb_userdata(vpninfo->https_ctx, NULL);
 
-	if (len <= strlen(vpninfo->tpmpass)) {
+	if (len <= strlen(vpninfo->cert_password)) {
 		vpninfo->progress(vpninfo, PRG_ERR,
 				  "PEM password too long (%zd >= %d)\n",
-				  strlen(vpninfo->tpmpass), len);
+				  strlen(vpninfo->cert_password), len);
 		return -1;
 	}
-	strcpy(buf, vpninfo->tpmpass);
-	return strlen(vpninfo->tpmpass);
+	strcpy(buf, vpninfo->cert_password);
+	return strlen(vpninfo->cert_password);
 }
 
 static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12)
@@ -124,12 +124,12 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 	int ret = 0;
 	char pass[PEM_BUFSIZE];
 
-	if (!vpninfo->tpmpass) {
+	if (!vpninfo->cert_password) {
 		if (EVP_read_pw_string(pass, PEM_BUFSIZE,
 				       "Enter PKCS#12 pass phrase:", 0))
 			return -EINVAL;
 	}
-	if (!PKCS12_parse(p12, vpninfo->tpmpass?:pass, &pkey, &cert, &ca)) {
+	if (!PKCS12_parse(p12, vpninfo->cert_password?:pass, &pkey, &cert, &ca)) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Parse PKCS#12 failed\n");
 		report_ssl_errors(vpninfo);
 		PKCS12_free(p12);
@@ -201,9 +201,9 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	if (vpninfo->tpmpass) {
-		if (!ENGINE_ctrl_cmd(e, "PIN", strlen(vpninfo->tpmpass),
-				     vpninfo->tpmpass, NULL, 0)) {
+	if (vpninfo->cert_password) {
+		if (!ENGINE_ctrl_cmd(e, "PIN", strlen(vpninfo->cert_password),
+				     vpninfo->cert_password, NULL, 0)) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Failed to set TPM SRK password\n");
 			report_ssl_errors(vpninfo);
 		}
@@ -303,7 +303,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		return load_tpm_certificate(vpninfo);
 
 	/* Standard PEM certificate */
-	if (vpninfo->tpmpass) {
+	if (vpninfo->cert_password) {
 		SSL_CTX_set_default_passwd_cb(vpninfo->https_ctx,
 					      pem_pw_cb);
 		SSL_CTX_set_default_passwd_cb_userdata(vpninfo->https_ctx,
@@ -559,8 +559,8 @@ int passphrase_from_fsid(struct openconnect_info *vpninfo)
 	unsigned *fsid = (unsigned *)&buf.f_fsid;
 	unsigned long long fsid64;
 
-	vpninfo->tpmpass = malloc(17);
-	if (!vpninfo->tpmpass)
+	vpninfo->cert_password = malloc(17);
+	if (!vpninfo->cert_password)
 		return -ENOMEM;
 
 	if (statfs(vpninfo->sslkey, &buf)) {
@@ -569,6 +569,6 @@ int passphrase_from_fsid(struct openconnect_info *vpninfo)
 		return -err;
 	}
 	fsid64 = ((unsigned long long)fsid[0] << 32) | fsid[1];
-	sprintf(vpninfo->tpmpass, "%llx", fsid64);
+	sprintf(vpninfo->cert_password, "%llx", fsid64);
 	return 0;
 }

@@ -52,7 +52,6 @@ int do_passphrase_from_fsid;
 static struct option long_options[] = {
 	{"background", 0, 0, 'b'},
 	{"certificate", 1, 0, 'c'},
-	{"pkcs12", 1, 0, 'P'},
 	{"sslkey", 1, 0, 'k'},
 	{"cookie", 1, 0, 'C'},
 	{"deflate", 0, 0, 'd'},
@@ -65,8 +64,7 @@ static struct option long_options[] = {
 	{"script", 1, 0, 's'},
 	{"script-tun", 0, 0, 'S'},
 	{"syslog", 0, 0, 'l'},
-	{"tpm-key", 0, 0, 't'},
-	{"tpm-password", 1, 0, 'p'},
+	{"key-type", 1, 0, 'K'},
 	{"key-password", 1, 0, 'p'},
 	{"user", 1, 0, 'u'},
 	{"verbose", 0, 0, 'v'},
@@ -85,7 +83,7 @@ static struct option long_options[] = {
 	{"dtls-ciphers", 1, 0, '8'},
 	{"authgroup", 1, 0, '9'},
 	{"servercert", 1, 0, 0x01},
-	{"pem-passphrase-from-fsid", 0, 0, 0x02},
+	{"key-password-from-fsid", 0, 0, 0x02},
 	{NULL, 0, 0, 0},
 };
 
@@ -95,8 +93,8 @@ void usage(void)
 	printf("Open client for Cisco AnyConnect VPN, version %s\n\n", openconnect_version);
 	printf("  -b, --background                Continue in background after startup\n");
 	printf("  -c, --certificate=CERT          Use SSL client certificate CERT\n");
-	printf("  -P, --pkcs12=CERT               Use PKCS#12 client certificate CERT\n");
 	printf("  -k, --sslkey=KEY                Use SSL private key file KEY\n");
+	printf("  -K, --key-type=TYPE             Private key type (PKCS#12 / TPM / PEM)\n");
 	printf("  -C, --cookie=COOKIE             Use WebVPN cookie COOKIE\n");
 	printf("      --cookie-on-stdin           Read cookie from standard input\n");
 	printf("  -d, --deflate                   Enable compression (default)\n");
@@ -107,13 +105,12 @@ void usage(void)
 	printf("  -l, --syslog                    Use syslog for progress messages\n");
 	printf("  -U, --setuid=USER               Drop privileges after connecting\n");
 	printf("  -m, --mtu=MTU                   Request MTU from server\n");
-	printf("  -p, --tpm-password=PASS         Set TPM SRK PIN\n");
-	printf("  -p, --key-password=PASS         Set PEM key passphrase\n");
+	printf("  -p, --key-password=PASS         Set key passphrase or TPM SRK PIN\n");
+	printf("      --key-password-from-fsid    Key passphrase is fsid of file system\n");
 	printf("  -q, --quiet                     Less output\n");
 	printf("  -Q, --queue-len=LEN             Set packet queue limit to LEN pkts\n");
 	printf("  -s, --script=SCRIPT             Use vpnc-compatible config script\n");
 	printf("  -S, --script-tun                Pass traffic to 'script' program, not tun\n");
-	printf("  -t, --tpm-key                   Use TPM engine for private key\n");
 	printf("  -u, --user=NAME                 Set login username\n");
 	printf("  -V, --version                   Report version number\n");
 	printf("  -v, --verbose                   More output\n");
@@ -128,7 +125,6 @@ void usage(void)
 	printf("      --passwd-on-stdin           Read password from standard input\n");
 	printf("      --reconnect-timeout         Connection retry timeout in seconds\n");
 	printf("      --servercert                Server's SSL certificate signature\n");
-	printf("      --pem-passphrase-from-fsid  PEM passphrase is fsid of file system\n");
 	exit(1);
 }
 
@@ -188,7 +184,7 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "bC:c:Ddg:hi:k:lp:P:Q:qSs:tU:u:Vvx:",
+	while ((opt = getopt_long(argc, argv, "bC:c:Ddg:hi:k:K:lp:Q:qSs:U:u:Vvx:",
 				  long_options, NULL))) {
 		if (opt < 0)
 			break;
@@ -237,16 +233,25 @@ int main(int argc, char **argv)
 		case 'C':
 			vpninfo->cookie = optarg;
 			break;
-		case 'P':
-			vpninfo->cert = optarg;
-			vpninfo->cert_type = CERT_TYPE_PKCS12;
-			break;
 		case 'c':
 			vpninfo->cert = optarg;
 			break;
 		case 'k':
 			vpninfo->sslkey = optarg;
 			break;
+		case 'K':
+			if (!strcasecmp(optarg, "PKCS#12") ||
+			    !strcasecmp(optarg, "PKCS12")) {
+				vpninfo->cert_type = CERT_TYPE_PKCS12;
+			} else if (!strcasecmp(optarg, "TPM")) {
+				vpninfo->cert_type = CERT_TYPE_TPM;
+			} else if (!strcasecmp(optarg, "PEM")) {
+				vpninfo->cert_type = CERT_TYPE_PEM;
+			} else {
+				fprintf(stderr, "Unknown certificate type '%s'\n",
+					optarg);
+				usage();
+			}
 		case 'd':
 			vpninfo->deflate = 1;
 			break;
@@ -273,16 +278,13 @@ int main(int argc, char **argv)
 			}
 			break;
 		case 'p':
-			vpninfo->tpmpass = optarg;
+			vpninfo->cert_password = optarg;
 			break;
 		case 's':
 			vpninfo->vpnc_script = optarg;
 			break;
 		case 'S':
 			vpninfo->script_tun = 1;
-			break;
-		case 't':
-			vpninfo->cert_type = CERT_TYPE_TPM;
 			break;
 		case 'u':
 			vpninfo->username = optarg;

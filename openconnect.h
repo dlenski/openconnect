@@ -141,7 +141,7 @@ struct openconnect_info {
 	const char *cert;
 	const char *sslkey;
 	int cert_type;
-	char *tpmpass;
+	char *cert_password;
 	const char *cafile;
 	const char *servercert;
 	const char *xmlconfig;

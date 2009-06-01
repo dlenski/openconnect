@@ -11,12 +11,12 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .I CERT
 ]
 [
-.B -P,--pkcs12
-.I CERT
-]
-[
 .B -k,--sslkey
 .I KEY
+]
+[
+.B -K,--key-type
+.I TYPE
 ]
 [
 .B -C,--cookie
@@ -54,8 +54,15 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .I MTU
 ]
 [
-.B -p,--tpm-password,--key-password
+.B -p,--key-password
 .I PASS
+]
+[
+.B --key-password-from-fsid
+]
+[
+.B --key-type
+.I TYPE
 ]
 [
 .B -q,--quiet
@@ -70,9 +77,6 @@ openconnect \- Connect to Cisco AnyConnect VPN
 ]
 [
 .B -S,--script-tun
-]
-[
-.B -t,--tpm-key
 ]
 [
 .B -T,--tun-fd
@@ -125,9 +129,6 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .B --servercert
 .I SIGNATURE
 ]
-[
-.B --pem-passphrase-from-fsid
-]
 \fIserver\fR
 
 .SH DESCRIPTION
@@ -158,10 +159,6 @@ Continue in background after startup
 .TP
 .B -c,--certificate=CERT
 Use SSL client certificate
-.I CERT
-.TP
-.B -P,--pkcs12=CERT
-Use PKCS#12 client certificate
 .I CERT
 .TP
 .B -k,--sslkey=KEY
@@ -206,8 +203,15 @@ Request
 .I MTU
 from server
 .TP
-.B -p,--tpm-password=PASS,--key-password=PASS
-Provide SRK (System Root Key) PIN for TPM or PEM passphrase for certificate
+.B -p,--key-password=PASS
+Provide passphrase for certificate file, or SRK (System Root Key) PIN for TPM
+.TP
+.B --key-password-from-fsid
+Passphrase for certificate file is automatically generated from the fsid of
+the file system on which it is stored
+.TP
+.B --key-type=TYPE
+Type of private key file (PKCS#12, TPM or PEM)
 .TP
 .B -q,--quiet
 Less output
@@ -222,9 +226,6 @@ Use vpnc-compatible config script
 .TP
 .B -S,--script-tun
 Pass traffic to 'script' program, not tun
-.TP
-.B -t,--tpm-key
-Use TPM engine for private key
 .TP
 .B -T,--tun-fd
 File descriptor to use for passing traffic
@@ -273,10 +274,6 @@ VPN connection after a temporary network down time of 300 seconds.
 .TP
 .B --servercert
 Accept server's SSL certificate only if its signature matches.
-.TP
-.B --pem-passphrase-from-fsid
-Passphrase for certificate file is automatically generated from the fsid of
-the file system on which it is stored.
 
 .SH LIMITATIONS
 The
