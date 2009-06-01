@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # version.sh -- report a useful version for releases
 #
