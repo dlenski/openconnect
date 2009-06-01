@@ -24,12 +24,17 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/vfs.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
 #include <ctype.h>
+#if defined(__linux__)
+#include <sys/vfs.h>
+#elif defined(BSD)
+#include <sys/param.h>
+#include <sys/mount.h>
+#endif
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
