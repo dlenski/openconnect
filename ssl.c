@@ -28,6 +28,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>

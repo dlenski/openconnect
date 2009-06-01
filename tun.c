@@ -22,14 +22,14 @@
  *   Boston, MA 02110-1301 USA
  */
 
-#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <string.h>
 #ifdef __linux__
 #include <linux/if_tun.h>
 #endif
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <netinet/in.h>
