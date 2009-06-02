@@ -29,11 +29,13 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <openssl/err.h>
+#include <openssl/ssl.h>
 #include <fcntl.h>
 #include <string.h>
 
 #include "openconnect.h"
 
+#ifdef SSL_F_DTLS1_CONNECT
 #if 0
 /*
  * Useful for catching test cases, where we want everything to be
@@ -512,5 +514,11 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 	return work_done;
 }
-
+#else /* No DTLS support in OpenSSL */
+int setup_dtls(struct openconnect_info *vpninfo)
+{
+	vpninfo->progress(vpninfo, PRG_ERR, "Built against OpenSSL with no DTLS support\n");
+	return -EINVAL;
+}
+#endif
 

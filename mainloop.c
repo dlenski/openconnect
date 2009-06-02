@@ -31,6 +31,8 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <openssl/ssl.h>
+
 #include "openconnect.h"
 
 void queue_packet(struct pkt **q, struct pkt *new)
@@ -78,6 +80,7 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 		struct timeval tv;
 		fd_set rfds, wfds, efds;
 
+#ifdef SSL_F_DTLS1_CONNECT
 		if (vpninfo->new_dtls_ssl)
 			dtls_try_handshake(vpninfo);
 
@@ -88,7 +91,7 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 		}
 		if (vpninfo->dtls_ssl)
 			did_work += dtls_mainloop(vpninfo, &timeout);
-
+#endif
 		if (vpninfo->quit_reason)
 			break;
 
