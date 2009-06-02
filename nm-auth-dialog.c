@@ -564,20 +564,23 @@ int nm_process_auth_form (struct openconnect_info *vpninfo,
 	} else
 		response = AUTH_DIALOG_RESPONSE_CANCEL;
 
-	/* set entry results and free temporary data structures */
-	while (!g_queue_is_empty (ui_data->form_entries)) {
-		ui_fragment_data *data;
-		data = g_queue_pop_tail (ui_data->form_entries);
-		if (data->entry_text) {
-			data->opt->value = data->entry_text;
+	if (response == AUTH_DIALOG_RESPONSE_LOGIN) {
+		/* set entry results and free temporary data structures */
+		while (!g_queue_is_empty (ui_data->form_entries)) {
+			ui_fragment_data *data;
+			data = g_queue_pop_tail (ui_data->form_entries);
+			if (data->entry_text) {
+				data->opt->value = data->entry_text;
+
+				if (data->opt->type == OC_FORM_OPT_TEXT ||
+				    data->opt->type == OC_FORM_OPT_SELECT) {
+					char *keyname;
+					keyname = g_strdup_printf("form:%s:%s", form->auth_id, data->opt->name);
+					remember_gconf_key(ui_data, keyname, strdup(data->entry_text));
+				}
+			}
+			g_slice_free (ui_fragment_data, data);
 		}
-		if (data->opt->type == OC_FORM_OPT_TEXT ||
-		    data->opt->type == OC_FORM_OPT_SELECT) {
-			char *keyname;
-			keyname = g_strdup_printf("form:%s:%s", form->auth_id, data->opt->name);
-			remember_gconf_key(ui_data, keyname, strdup(data->entry_text));
-		}
-		g_slice_free (ui_fragment_data, data);
 	}
 
 
