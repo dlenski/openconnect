@@ -8,8 +8,8 @@
 
 v="v1.40"
 
-which git &> /dev/null
-if [ $? == 0 -a -d .git ]; then
+which git >/dev/null 2>/dev/null
+if [ $? = 0 -a -d .git ]; then
     if head=`git rev-parse --verify HEAD 2>/dev/null`; then
         if tag=`git describe --tags 2>/dev/null`; then
             v="$tag"
