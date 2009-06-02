@@ -670,18 +670,15 @@ static gboolean user_validate_cert(cert_data *data)
 static int validate_peer_cert(struct openconnect_info *vpninfo,
 			      X509 *peer_cert)
 {
-	ASN1_STRING *signature = peer_cert->signature;
+	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
 	char *certs_data;
 	char *key;
-	BIO *bp = BIO_new(BIO_s_mem());
-	BUF_MEM *sig;
-	char zero = 0;
 	int ret = 0;
 	cert_data *data;
 
-	i2a_ASN1_STRING(bp, signature, V_ASN1_OCTET_STRING);
-	BIO_write(bp, &zero, 1);
-	BIO_get_mem_ptr(bp, &sig);
+	ret = get_cert_fingerprint(peer_cert, fingerprint);
+	if (ret)
+		return ret;
 
 	key = g_strdup_printf("%s/vpn/%s", config_path, "certsigs");
 	certs_data = gconf_client_get_string(gcl, key, NULL);
@@ -690,7 +687,7 @@ static int validate_peer_cert(struct openconnect_info *vpninfo,
 		char **this = certs;
 
 		while (*this) {
-			if (!strcmp(*this, sig->data)) {
+			if (!strcmp(*this, fingerprint)) {
 				g_strfreev(certs);
 				goto out;
 			}
@@ -714,11 +711,11 @@ static int validate_peer_cert(struct openconnect_info *vpninfo,
 	}
 	if (ui_data->cert_response == CERT_ACCEPTED) {
 		if (certs_data) {
-			char *new = g_strdup_printf("%s\t%s", certs_data, sig->data);
+			char *new = g_strdup_printf("%s\t%s", certs_data, fingerprint);
 			gconf_client_set_string(gcl, key, new, NULL);
 			g_free(new);
 		} else {
-			gconf_client_set_string(gcl, key, sig->data, NULL);
+			gconf_client_set_string(gcl, key, fingerprint, NULL);
 		}
 		ret = 0;
 	} else {
@@ -729,9 +726,7 @@ static int validate_peer_cert(struct openconnect_info *vpninfo,
 	g_slice_free(cert_data, data);
 
  out:
-	if (certs_data)
-		g_free(certs_data);
-	BIO_free(bp);
+	g_free(certs_data);
 	g_free(key);
 	return ret;
 }
@@ -1063,25 +1058,11 @@ void write_progress(struct openconnect_info *info, int level, const char *fmt, .
 
 static void print_peer_cert(struct openconnect_info *vpninfo)
 {
+	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
 	X509 *cert = SSL_get_peer_certificate(vpninfo->https_ssl);
-	BIO *bp = BIO_new(BIO_s_mem());
-	char zero = 0;
-	char *tmp1, *tmp2;
-	BUF_MEM *sig;
 
-	i2a_ASN1_STRING(bp, cert->signature, V_ASN1_OCTET_STRING);
-	BIO_write(bp, &zero, 1);
-	BIO_get_mem_ptr(bp, &sig);
-	tmp1 = sig->data;
-	while ((tmp2 = strchr(tmp1, '\\'))) {
-		tmp1 = tmp2++;
-		while (isspace(*tmp2))
-			tmp2++;
-		memmove(tmp1, tmp2, strlen(tmp2) + 1);
-	}
-
-	printf("gwcert\n%s\n", sig->data);
-	BIO_free(bp);
+	if (cert && !get_cert_fingerprint(cert, fingerprint))
+		printf("gwcert\n%s\n", fingerprint);
 }
 
 static gboolean cookie_obtained(auth_ui_data *ui_data)

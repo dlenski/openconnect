@@ -340,33 +340,35 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	return 0;
 }
 
+int get_cert_fingerprint(X509 *cert, char *buf)
+{
+	unsigned char md[EVP_MAX_MD_SIZE];
+	unsigned int i, n;
+
+	if (!X509_digest(cert, EVP_sha1(), md, &n))
+		return -ENOMEM;
+
+	for (i=0; i < n; i++) {
+		sprintf(&buf[i*2], "%02x", md[i]);
+	}
+	return 0;
+}
+
 static int check_server_cert(struct openconnect_info *vpninfo, X509 *cert)
 {
-	BIO *bp = BIO_new(BIO_s_mem());
-	char zero = 0;
-	char *tmp1, *tmp2;
-	BUF_MEM *sig;
-	int result = 0;
+	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
+	int ret;
 
-	i2a_ASN1_STRING(bp, cert->signature, V_ASN1_OCTET_STRING);
-	BIO_write(bp, &zero, 1);
-	BIO_get_mem_ptr(bp, &sig);
-	tmp1 = sig->data;
-	while ((tmp2 = strchr(tmp1, '\\'))) {
-		tmp1 = tmp2++;
-		while (isspace(*tmp2))
-			tmp2++;
-		memmove(tmp1, tmp2, strlen(tmp2) + 1);
-	}
+	ret = get_cert_fingerprint(cert, fingerprint);
+	if (ret)
+		return ret;
 
-	if (strcmp(vpninfo->servercert, sig->data)) {
+	if (strcmp(vpninfo->servercert, fingerprint)) {
 		vpninfo->progress(vpninfo, PRG_ERR,
-				  "Server SSL certificate didn't match\n");
-		result = -EINVAL;
+				  "Server SSL certificate didn't match: %s\n", fingerprint);
+		return -EINVAL;
 	}
-
-	BIO_free(bp);
-	return result;
+	return 0;
 }
 
 static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
