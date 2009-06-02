@@ -337,16 +337,6 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	return 0;
 }
 
-static int verify_callback(X509_STORE_CTX *ctx, void *arg)
-{
-	/* We've seen certificates in the wild which don't have the
-	   purpose fields filled in correctly */
-	ctx->param->purpose = 0;
-
-	/* If it succeeds, all well and good... */
-	return X509_verify_cert(ctx);
-}
-
 static int check_server_cert(struct openconnect_info *vpninfo, X509 *cert)
 {
 	BIO *bp = BIO_new(BIO_s_mem());
@@ -503,8 +493,9 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			vpninfo->progress(vpninfo, PRG_ERR, "No certificate and nopasswd set. Aborting\n");
 			return err;
 		}
-
-		SSL_CTX_set_cert_verify_callback(vpninfo->https_ctx, verify_callback, vpninfo);
+		/* We've seen certificates in the wild which don't have the
+		   purpose fields filled in correctly */
+		SSL_CTX_set_purpose(vpninfo->https_ctx, X509_PURPOSE_ANY);
 		SSL_CTX_set_default_verify_paths(vpninfo->https_ctx);
 
 		if (vpninfo->cafile)
