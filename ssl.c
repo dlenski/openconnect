@@ -490,14 +490,15 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	if (!vpninfo->https_ctx) {
 		vpninfo->https_ctx = SSL_CTX_new(ssl3_method);
 
-		err = -EPERM;
-		if (vpninfo->cert)
+		if (vpninfo->cert) {
 			err = load_certificate(vpninfo);
-
-		if (err && vpninfo->nopasswd) {
-			vpninfo->progress(vpninfo, PRG_ERR, "No certificate and nopasswd set. Aborting\n");
-			return err;
+			if (err) {
+				vpninfo->progress(vpninfo, PRG_ERR,
+						  "Loading certificate failed. Aborting.\n");
+				return err;
+			}
 		}
+
 		/* We've seen certificates in the wild which don't have the
 		   purpose fields filled in correctly */
 		SSL_CTX_set_purpose(vpninfo->https_ctx, X509_PURPOSE_ANY);
