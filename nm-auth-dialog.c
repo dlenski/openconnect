@@ -89,6 +89,7 @@ typedef struct auth_ui_data {
 	gboolean cancelled; /* fully cancel the whole challenge-response series */
 	gboolean getting_cookie;
 
+	int form_grabbed;
 	GQueue *form_entries; /* modified from worker thread */
 	GMutex *form_mutex;
 
@@ -170,6 +171,7 @@ typedef struct ui_fragment_data {
 	UI_STRING *uis;
 	struct oc_form_opt *opt;
 	char *entry_text;
+	int grab_focus;
 } ui_fragment_data;
 
 static void entry_activate_cb(GtkWidget *widget, auth_ui_data *ui_data)
@@ -277,8 +279,10 @@ static gboolean ui_write_prompt (ui_fragment_data *data)
 		gtk_entry_set_visibility(GTK_ENTRY(entry), FALSE);
 	if (data->entry_text)
 		gtk_entry_set_text(GTK_ENTRY(entry), data->entry_text);
-	if (g_queue_peek_tail(ui_data->form_entries) == data)
+	if (!data->entry_text && !data->ui_data->form_grabbed) {
+		data->ui_data->form_grabbed = 1;
 		gtk_widget_grab_focus (entry);
+	}
 	g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(entry_changed), data);
 	g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(entry_activate_cb), ui_data);
 
@@ -428,7 +432,7 @@ static int ui_flush(UI* ui)
 		}
 		g_slice_free (ui_fragment_data, data);
 	}
-
+	ui_data->form_grabbed = 0;
 	g_mutex_unlock(ui_data->form_mutex);
 
 	/* -1 = cancel,
