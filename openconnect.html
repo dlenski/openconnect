@@ -37,7 +37,7 @@ Naturally, OpenConnect addresses all of the above issues, and more.
 
 <H2>Supported Platforms</H2>
 
-OpenConnect is known to work on Linux, OpenBSD and Mac OS X
+OpenConnect is known to work on Linux, OpenBSD, FreeBSD and Mac OS X
 platforms, and should be trivially portable to any other platform
 supporting <A HREF="http://en.wikipedia.org/wiki/TUN/TAP">TUN/TAP</a>
 devices and on which <A HREF="http://www.openssl.org/">OpenSSL</a> runs.
@@ -106,8 +106,8 @@ For full changelog entries including the latest development, see
 <UL>
   <LI><B>OpenConnect HEAD</B><BR>
       <UL>
-	<LI>Add OpenBSD (and probably FreeBSD) support.</LI>
-	<LI>Build with OpenSSL-0.9.7 (MacOS X, OpenBSD, etc.)</LI>
+	<LI>Add OpenBSD and FreeBSD support.</LI>
+	<LI>Build with OpenSSL-0.9.7 (Mac OS X, OpenBSD, etc.)</LI>
 	<LI>Support PKCS#12 certificates.</LI>
 	<LI>Work around OpenSSL trust chain issues (<A HREF="http://rt.openssl.org/Ticket/Display.html?id=1942&user=guest&pass=guest">RT#1942</A>).</LI>
 	<LI>Allow PEM passphrase to be specified on command line.</LI>
@@ -172,9 +172,12 @@ http://git.infradead.org/users/dwmw2/connman-openconnect.git">gitweb</A>.
 <H2>Requirements</H2>
 The basic text-mode client uses the following libraries:
 <UL>
-  <LI><B>OpenSSL</B> &mdash; all versions will work for basic connectivity, but see note on DTLS compatibility below.</LI>
+  <LI><B>OpenSSL</B> &mdash; all versions from 0.9.7 onwards will work for basic connectivity, but see note on DTLS compatibility below.</LI>
   <LI><B>libxml2</B></LI>
 </UL>
+Mac OS X users will also need to install the
+<A HREF="http://tuntaposx.sourceforge.net/">Mac OS X tun/tap driver</A>.<P>
+
 For building the NetworkManager support, you will also need:
 <UL>
   <LI><B>GTK</B></LI>
@@ -249,6 +252,6 @@ The <TT>openconnect</TT> package is available in Debian unstable, but <TT>Networ
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Tue Jun  2 11:59:30 BST 2009
+Last modified: Tue Jun  2 13:17:40 BST 2009
 <!-- hhmts end -->
 </body> </html>
