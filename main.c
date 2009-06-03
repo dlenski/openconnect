@@ -124,7 +124,7 @@ void usage(void)
 	printf("      --no-passwd                 Disable password/SecurID authentication\n");
 	printf("      --passwd-on-stdin           Read password from standard input\n");
 	printf("      --reconnect-timeout         Connection retry timeout in seconds\n");
-	printf("      --servercert                Server's SSL certificate signature\n");
+	printf("      --servercert                Server's certificate SHA1 fingerprint\n");
 	exit(1);
 }
 
