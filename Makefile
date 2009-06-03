@@ -4,8 +4,6 @@
 #
 # OPENSSL := ../openssl-0.9.8i
 
-NMAUTHDIALOG := nm-openconnect-auth-dialog
-
 ifdef RPM_OPT_FLAGS
 OPT_FLAGS := $(RPM_OPT_FLAGS)
 else
@@ -19,6 +17,9 @@ ifdef OPENSSL
 SSL_CFLAGS += -I$(OPENSSL)/include
 SSL_LDFLAGS += -lz $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a -ldl
 else
+ifeq ($(wildcard /usr/include/openssl),)
+$(error "No OpenSSL in /usr/include/openssl. Cannot continue");
+endif
 SSL_CFLAGS += -I/usr/include/openssl
 SSL_LDFLAGS += -lcrypto -lssl
 endif
@@ -29,16 +30,16 @@ ifeq ($(XML2_LDFLAGS),)
 $(error "No libxml2 support. Cannot continue");
 endif
 
-GTK_CFLAGS += $(shell pkg-config --cflags gtk+-x11-2.0 gthread-2.0)
-GTK_LDFLAGS += $(shell pkg-config --libs gtk+-x11-2.0 gthread-2.0)
+GTK_CFLAGS += $(shell pkg-config --cflags gtk+-x11-2.0 gthread-2.0 2>/dev/null)
+GTK_LDFLAGS += $(shell pkg-config --libs gtk+-x11-2.0 gthread-2.0 2>/dev/null)
 ifeq ($(GTK_LDFLAGS),)
-NMAUTHDIALOG := $(warning "Not building NetworkManager UI due to lack of gtk supprt.");
+MISSINGPKGS += gtk+-x11-2.0
 endif
 
-GCONF_CFLAGS += $(shell pkg-config --cflags gconf-2.0)
-GCONF_LDFLAGS += $(shell pkg-config --libs gconf-2.0)
+GCONF_CFLAGS += $(shell pkg-config --cflags gconf-2.0 2>/dev/null)
+GCONF_LDFLAGS += $(shell pkg-config --libs gconf-2.0 2>/dev/null)
 ifeq ($(GCONF_LDFLAGS),)
-NMAUTHDIALOG := $(warning "Not building NetworkManager UI due to lack of GConf supprt.");
+MISSINGPKGS += gconf-2.0
 endif
 
 CFLAGS := $(OPT_FLAGS) $(SSL_CFLAGS) $(XML2_CFLAGS) $(EXTRA_CFLAGS)
@@ -57,19 +58,23 @@ AUTH_OBJECTS := ssl.o http.o version.o securid.o auth.o
 VERSION_OBJS := $(filter-out version.o, \
 		$(OPENCONNECT_OBJS) $(CONNECTION_OBJS) $(AUTH_OBJECTS))
 
-all: openconnect $(NMAUTHDIALOG)
+all: openconnect maybe-auth-dialog
 
 version.c: $(patsubst %.o,%.c,$(VERSION_OBJS)) Makefile openconnect.h \
 		$(wildcard .git/index .git/refs/tags) version.sh
 	@./version.sh
 
-libopenconnect.a: $(AUTH_OBJECTS)
-	$(AR) rcs $@ $^
-
-openconnect: $(OPENCONNECT_OBJS) $(CONNECTION_OBJS) libopenconnect.a
+openconnect: $(OPENCONNECT_OBJS) $(CONNECTION_OBJS) $(AUTH_OBJECTS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-nm-openconnect-auth-dialog: nm-auth-dialog.o libopenconnect.a 
+ifeq ($(MISSINGPKGS),)
+maybe-auth-dialog: nm-openconnect-auth-dialog
+else
+maybe-auth-dialog: $(warning Cannot build NetworkManager auth-dialog:) \
+		   $(warning Missing pkg-config packages: $(MISSINGPKGS))
+endif
+
+nm-openconnect-auth-dialog: nm-auth-dialog.o $(AUTH_OBJECTS)
 	$(CC) -o $@ $^ $(LDFLAGS) $(GTK_LDFLAGS) $(GCONF_LDFLAGS) $(XML2_LDFLAGS)
 
 %.o: %.c
