@@ -109,9 +109,12 @@ For full changelog entries including the latest development, see
 	<LI>Add OpenBSD and FreeBSD support.</LI>
 	<LI>Build with OpenSSL-0.9.7 (Mac OS X, OpenBSD, etc.)</LI>
 	<LI>Support PKCS#12 certificates.</LI>
+	<LI>Automatic detection of certificate type (PKCS#12, PEM, TPM).</LI>
 	<LI>Work around OpenSSL trust chain issues (<A HREF="http://rt.openssl.org/Ticket/Display.html?id=1942&user=guest&pass=guest">RT#1942</A>).</LI>
 	<LI>Allow PEM passphrase to be specified on command line.</LI>
 	<LI>Allow PEM passphrase automatically generated from the <TT>fsid</TT> of the file system on which the certificate is stored.</LI>
+	<LI>Fix certificate comparisons (in NM auth-dialog and <TT>--servercert</TT> option) to use SHA1 fingerprint, not signature.</LI>
+	<LI>Fix segfault in NM auth-dialog when changing hosts.</LI>
       </UL><BR>
   <LI><B><A HREF="ftp://ftp.infradead.org/pub/openconnect/openconnect-1.40.tar.gz">OpenConnect v1.40</a></B> &mdash; 2009-05-27<BR>
       <UL>
@@ -252,6 +255,6 @@ The <TT>openconnect</TT> package is available in Debian unstable, but <TT>Networ
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Tue Jun  2 13:17:40 BST 2009
+Last modified: Wed Jun  3 11:14:26 BST 2009
 <!-- hhmts end -->
 </body> </html>
