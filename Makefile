@@ -62,8 +62,6 @@ all: openconnect $(NMAUTHDIALOG)
 version.c: $(patsubst %.o,%.c,$(VERSION_OBJS)) Makefile openconnect.h \
 		$(wildcard .git/index .git/refs/tags) version.sh
 	@./version.sh
-	@echo -en "New version.c: "
-	@cut -f2 -d\" version.c
 
 libopenconnect.a: $(AUTH_OBJECTS)
 	$(AR) rcs $@ $^

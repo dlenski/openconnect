@@ -17,4 +17,4 @@ else
 fi
 
 echo "char openconnect_version[] = \"$v\";" > version.c
-
+echo "New version: $v"
