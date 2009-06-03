@@ -92,15 +92,25 @@ include /dev/null $(wildcard .*.o.dep)
 
 ifdef VERSION
 tag:
+	@git update-index --refresh --unmerged
 	@if git diff-index --name-only HEAD | grep ^ ; then \
 		echo Uncommitted changes in above files; exit 1; fi
-	sed 's/^v=.*/v="v$(VERSION)"/' -i version.sh
-	git commit -s -m "Tag version $(VERSION)" version.sh
-	git tag v$(VERSION)
+	@sed 's/^v=.*/v="v$(VERSION)"/' -i version.sh
+	@( echo "s/Last modified: .*/Last modified: $(shell date)/" ;\
+	   echo '/  <LI><B>OpenConnect HEAD/a\' ;\
+	   echo '     <UL>\' ;\
+	   echo '       <LI><I>No changelog entries yet</I></LI>\';\
+	   echo '     </UL><BR>\' ;  echo '  </LI>\' ;\
+	   echo '  <LI><B><A HREF="ftp://ftp.infradead.org/pub/openconnect/openconnect-$(VERSION).tar.gz">OpenConnect v$(VERSION)</a></B> &mdash; $(shell date +%Y-%m-%d)<BR>' ) | \
+		sed -f - -i openconnect.html
+# stupid syntax highlighting '
+	@git commit -s -m "Tag version $(VERSION)" version.sh openconnect.html
+	@git tag v$(VERSION)
 
 tarball: version.c
-	if ! grep -q '"v$(VERSION)"' version.c; then \
+	@if ! grep -q '"v$(VERSION)"' version.c; then \
 		echo "Tree not at v$(VERSION)"; exit 1 ; fi
+	@git update-index --refresh --unmerged
 	@if git diff-index --name-only HEAD | grep ^ ; then \
 		echo Uncommitted changes in above files; exit 1; fi
 	git add -f version.c
