@@ -436,7 +436,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	SSL_METHOD *ssl3_method;
 	SSL *https_ssl;
 	BIO *https_bio;
-	int ssl_sock;
+	int ssl_sock = -1;
 	int err;
 	struct addrinfo hints, *result, *rp;
 
@@ -480,7 +480,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	}
 	freeaddrinfo(result);
 
-	if (!rp) {
+	if (ssl_sock < 0) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Failed to connect to host %s\n", vpninfo->hostname);
 		return -EINVAL;
 	}
