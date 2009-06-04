@@ -269,8 +269,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	}
 
 	/* It's PEM or TPM now, and either way we need to load the plain cert: */
-	if (!SSL_CTX_use_certificate_file(vpninfo->https_ctx, vpninfo->cert,
-					  SSL_FILETYPE_PEM)) {
+	if (!SSL_CTX_use_certificate_chain_file(vpninfo->https_ctx,
+						vpninfo->cert)) {
 		vpninfo->progress(vpninfo, PRG_ERR,
 				  "Load certificate failed\n");
 		report_ssl_errors(vpninfo);
