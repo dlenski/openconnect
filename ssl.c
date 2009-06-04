@@ -413,6 +413,10 @@ void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 	if (!cert || !store)
 		return;
 
+	/* If we already have 'supporting' certs, don't add them again */
+	if (vpninfo->https_ctx->extra_certs)
+		return;
+
 	if (!X509_STORE_CTX_init(&ctx, store, NULL, NULL))
 		return;
 
