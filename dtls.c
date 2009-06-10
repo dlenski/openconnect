@@ -115,6 +115,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	if (!vpninfo->dtls_cipher) {
 		/* We probably didn't offer it any ciphers it liked */
 		vpninfo->progress(vpninfo, PRG_ERR, "Server offered no DTLS cipher option\n");
+		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
 		
