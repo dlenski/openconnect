@@ -424,7 +424,6 @@ void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 		char buf[200];
 		if (cert2 == cert)
 			break;
-		X509_free(cert);
 		cert = cert2;
 		X509_NAME_oneline(X509_get_subject_name(cert),
 				  buf, sizeof(buf));
