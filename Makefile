@@ -83,10 +83,12 @@ nm-openconnect-auth-dialog: nm-auth-dialog.o $(AUTH_OBJECTS)
 clean:
 	rm -f *.o *.a openconnect $(wildcard .*.o.dep)
 
-install:
+install: all
 	mkdir -p $(DESTDIR)/usr/bin $(DESTDIR)/usr/libexec
 	install -m0755 openconnect $(DESTDIR)/usr/bin
+ifeq ($(MISSINGPKGS),)
 	install -m0755 nm-openconnect-auth-dialog $(DESTDIR)/usr/libexec
+endif
 
 include /dev/null $(wildcard .*.o.dep)
 
