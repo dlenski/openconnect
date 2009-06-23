@@ -342,7 +342,7 @@ int setup_dtls(struct openconnect_info *vpninfo)
 		} else if (!strcmp(dtls_opt->option + 7, "Rekey-Time")) {
 			vpninfo->dtls_times.rekey = atol(dtls_opt->value);
 		} else if (!strcmp(dtls_opt->option + 7, "CipherSuite")) {
-			vpninfo->dtls_cipher = dtls_opt->value;
+			vpninfo->dtls_cipher = strdup(dtls_opt->value);
 		}
 
 		dtls_opt = dtls_opt->next;
