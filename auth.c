@@ -286,7 +286,8 @@ static char *xmlnode_msg(xmlNode *xml_node, char **buf)
  *  = 2, when form indicates that login was already successful
  */
 int parse_xml_response(struct openconnect_info *vpninfo, char *response,
-		       char *request_body, int req_len)
+		       char *request_body, int req_len, char **method,
+		       char **request_body_type)
 {
 	struct oc_auth_form *form;
 	xmlDocPtr xml_doc;
@@ -373,6 +374,10 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		goto out;
 
 	ret = append_form_opts(vpninfo, form, request_body, req_len);
+	if (!ret) {
+		*method = "POST";
+		*request_body_type = "application/x-www-form-urlencoded";
+	}
  out:
 	free(err_string);
 	free(msg_string);

@@ -286,7 +286,8 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host);
 
 /* auth.c */
 int parse_xml_response(struct openconnect_info *vpninfo, char *response,
-		       char *request_body, int req_len);
+		       char *request_body, int req_len, char **method,
+		       char **request_body_type);
 
 /* http.c */
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo);

@@ -414,12 +414,11 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	}
 
 	request_body[0] = 0;
-	result = parse_xml_response(vpninfo, buf, request_body, sizeof(request_body));
-	if (!result) {
-		method = "POST";
-		request_body_type = "application/x-www-form-urlencoded";
+	result = parse_xml_response(vpninfo, buf, request_body, sizeof(request_body),
+				    &method, &request_body_type);
+	if (!result)
 		goto retry;
-	}
+
 	if (result != 2)
 		return result;
 	/* A return value of 2 means the XML form indicated
