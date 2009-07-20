@@ -130,6 +130,12 @@ struct split_include {
 struct openconnect_info {
 	char *redirect_url;
 
+	char *csd_token;
+	char *csd_ticket;
+	char *csd_stuburl;
+	char *csd_starturl;
+	char *csd_waiturl;
+
 	char *vpn_name;
 
 	char sid_tokencode[9];

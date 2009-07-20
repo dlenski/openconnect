@@ -29,6 +29,7 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -300,6 +301,35 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 	return vpninfo->write_new_config(vpninfo, buf, buflen);
 }
 
+static int run_csd_script(struct openconnect_info *vpninfo, char *buf)
+{
+	char fname[16];
+	int fd;
+
+	sprintf(fname, "/tmp/csdXXXXXX");
+	fd = mkstemp(fname);
+	if (fd < 0) {
+		int err = -errno;
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to open temporary CSD script file: %s\n",
+				  strerror(errno));
+		return err;
+	}
+	write(fd, buf, strlen(buf));
+	chmod(fname, 0700);
+	if (!fork()) {
+		/* FIXME: Add whatever arguments we need */
+		system(fname);
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to exec CSD script %s\n", fname);
+	}
+	/* FIXME: Remember the filename so we can delete it later */
+
+	free(vpninfo->csd_stuburl);
+	vpninfo->csd_stuburl = NULL;
+	vpninfo->urlpath = strdup(vpninfo->csd_waiturl);
+	vpninfo->csd_waiturl = NULL;
+	return 0;
+}
+
 /* Return value:
  *  < 0, on error
  *  = 0, no cookie (user cancel)
@@ -413,6 +443,16 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		}
 	}
 
+	if (vpninfo->csd_stuburl) {
+		/* This is the CSD stub script, which we now need to run */
+		result = run_csd_script(vpninfo, buf);
+		if (result)
+			return result;
+
+		/* Now we'll be redirected to the waiturl */
+		goto retry;
+	}
+		
 	request_body[0] = 0;
 	result = parse_xml_response(vpninfo, buf, request_body, sizeof(request_body),
 				    &method, &request_body_type);
