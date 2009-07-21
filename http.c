@@ -302,7 +302,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 	return vpninfo->write_new_config(vpninfo, buf, buflen);
 }
 
-static int run_csd_script(struct openconnect_info *vpninfo, char *buf)
+static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int buflen)
 {
 	char fname[16];
 	int fd;
@@ -315,8 +315,9 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf)
 				  strerror(errno));
 		return err;
 	}
-	write(fd, buf, strlen(buf));
-	chmod(fname, 0700);
+	write(fd, buf, buflen);
+	fchmod(fd, 0700);
+	close(fd);
 	if (!fork()) {
 		/* FIXME: Add whatever arguments we need */
 		system(fname);
@@ -447,7 +448,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 
 	if (vpninfo->csd_stuburl) {
 		/* This is the CSD stub script, which we now need to run */
-		result = run_csd_script(vpninfo, buf);
+		result = run_csd_script(vpninfo, buf, buflen);
 		if (result)
 			return result;
 
