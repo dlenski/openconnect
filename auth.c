@@ -371,7 +371,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	}
 	if (vpninfo->csd_token && vpninfo->csd_ticket && vpninfo->csd_starturl && vpninfo->csd_waiturl) {
 		/* First, redirect to the stuburl -- we'll need to fetch and run that */
-		vpninfo->redirect_url = vpninfo->csd_stuburl;
+		vpninfo->redirect_url = strdup(vpninfo->csd_stuburl);
 		ret = 0;
 		goto out;
 	}
