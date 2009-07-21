@@ -136,6 +136,8 @@ struct openconnect_info {
 	char *csd_starturl;
 	char *csd_waiturl;
 
+	char *csd_scriptname;
+
 	char *vpn_name;
 
 	char sid_tokencode[9];

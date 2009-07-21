@@ -330,6 +330,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 	vpninfo->urlpath = strdup(vpninfo->csd_waiturl +
 				  (vpninfo->csd_waiturl[0] == '/' ? 1 : 0));
 	vpninfo->csd_waiturl = NULL;
+	vpninfo->csd_scriptname = strdup(fname);
 	return 0;
 }
 
@@ -495,7 +496,11 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 				fetch_config(vpninfo, bu, fu, sha);
 		}
 	}
-
+	if (vpninfo->csd_scriptname) {
+		unlink(vpninfo->csd_scriptname);
+		free(vpninfo->csd_scriptname);
+		vpninfo->csd_scriptname = NULL;
+	}
 	return 0;
 }
 

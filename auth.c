@@ -354,14 +354,14 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			ret = parse_form(vpninfo, form, xml_node, request_body, req_len);
 			if (ret < 0)
 				goto out;
-		} else if (!strcmp((char *)xml_node->name, "csd")) {
+		} else if (!vpninfo->csd_scriptname && !strcmp((char *)xml_node->name, "csd")) {
 			if (!vpninfo->csd_token)
 				vpninfo->csd_token = (char *)xmlGetProp(xml_node,
 									(unsigned char *)"token");
 			if (!vpninfo->csd_ticket)
 				vpninfo->csd_ticket = (char *)xmlGetProp(xml_node,
 									 (unsigned char *)"ticket");
-		} else if (!strcmp((char *)xml_node->name, "csdLinux")) {
+		} else if (!vpninfo->csd_scriptname && !strcmp((char *)xml_node->name, "csdLinux")) {
 			vpninfo->csd_stuburl = (char *)xmlGetProp(xml_node,
 								  (unsigned char *)"stuburl");
 			vpninfo->csd_starturl = (char *)xmlGetProp(xml_node,
