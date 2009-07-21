@@ -330,7 +330,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		csd_argv[i++] = "-ticket";
 		asprintf(&csd_argv[i++], "\"%s\"", vpninfo->csd_ticket);
 		csd_argv[i++] = "-stub";
-		csd_argv[i++] = "0";
+		csd_argv[i++] = "\"0\"";
 		csd_argv[i++] = "-group";
 		asprintf(&csd_argv[i++], "\"%s\"", vpninfo->authgroup?:"");
 
@@ -345,11 +345,11 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		asprintf(&csd_argv[i++], "\"https://%s%s\"", vpninfo->hostname, vpninfo->csd_starturl);
 		/* WTF would it want to know this for? */
 		csd_argv[i++] = "-vpnclient";
-		csd_argv[i++] = "\"/opt/cisco/vpn/bin/vpnui\"";
+		csd_argv[i++] = "\"/opt/cisco/vpn/bin/vpnui";
 		csd_argv[i++] = "-connect";
-		asprintf(&csd_argv[i++], "\"https://%s/%s\"", vpninfo->hostname, vpninfo->csd_preurl);
+		asprintf(&csd_argv[i++], "https://%s/%s", vpninfo->hostname, vpninfo->csd_preurl);
 		csd_argv[i++] = "-connectparam";
-		asprintf(&csd_argv[i++], "\"#csdtoken=%s\"", vpninfo->csd_token);
+		asprintf(&csd_argv[i++], "#csdtoken=%s\"", vpninfo->csd_token);
 		csd_argv[i++] = "-langselen";
 			
 		csd_argv[i++] = NULL;
