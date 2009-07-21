@@ -23,6 +23,7 @@
  *   Boston, MA 02110-1301 USA
  */
 
+#define _GNU_SOURCE
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -318,12 +319,13 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 	write(fd, buf, buflen);
 	fchmod(fd, 0700);
 	close(fd);
+
 	if (!fork()) {
 		/* FIXME: Add whatever arguments we need */
 		system(fname);
 		vpninfo->progress(vpninfo, PRG_ERR, "Failed to exec CSD script %s\n", fname);
+		exit(1);
 	}
-	/* FIXME: Remember the filename so we can delete it later */
 
 	free(vpninfo->csd_stuburl);
 	vpninfo->csd_stuburl = NULL;
@@ -457,7 +459,17 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		/* Now we'll be redirected to the waiturl */
 		goto retry;
 	}
-		
+	if (strncmp(buf, "<?xml", 5)) {
+		/* Not XML? Perhaps it's HTML with a refresh... */
+		if (strcasestr(buf, "http-equiv=\"refresh\"")) {
+			vpninfo->progress(vpninfo, PRG_INFO, "Refreshing %s after 1 second...\n",
+					  vpninfo->urlpath);
+			sleep(1);
+			goto retry;
+		}
+		vpninfo->progress(vpninfo, PRG_ERR, "Unknown response from server\n");
+		return -EINVAL;
+	}
 	request_body[0] = 0;
 	result = parse_xml_response(vpninfo, buf, request_body, sizeof(request_body),
 				    &method, &request_body_type);
