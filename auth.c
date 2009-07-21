@@ -367,6 +367,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 								   (unsigned char *)"starturl");
 			vpninfo->csd_waiturl = (char *)xmlGetProp(xml_node,
 								  (unsigned char *)"waiturl");
+			vpninfo->csd_preurl = strdup(vpninfo->urlpath);
 		}
 	}
 	if (vpninfo->csd_token && vpninfo->csd_ticket && vpninfo->csd_starturl && vpninfo->csd_waiturl) {

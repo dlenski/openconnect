@@ -135,6 +135,7 @@ struct openconnect_info {
 	char *csd_stuburl;
 	char *csd_starturl;
 	char *csd_waiturl;
+	char *csd_preurl;
 
 	char *csd_scriptname;
 
