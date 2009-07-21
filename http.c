@@ -398,6 +398,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	}
 
 	if (result != 200 && vpninfo->redirect_url) {
+	redirect:
 		if (!strncmp(vpninfo->redirect_url, "https://", 8)) {
 			/* New host. Tear down the existing connection and make a new one */
 			char *host = vpninfo->redirect_url + 8;
@@ -461,7 +462,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	result = parse_xml_response(vpninfo, buf, request_body, sizeof(request_body),
 				    &method, &request_body_type);
 	if (!result)
-		goto retry;
+		goto redirect;
 
 	if (result != 2)
 		return result;

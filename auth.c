@@ -348,8 +348,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 				ret = -EINVAL;
 				goto out;
 			}
-			free(vpninfo->urlpath);
-			vpninfo->urlpath = strdup(form->action+1);
+			vpninfo->redirect_url = strdup(form->action);
 
 			ret = parse_form(vpninfo, form, xml_node, request_body, req_len);
 			if (ret < 0)
@@ -372,9 +371,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	}
 	if (vpninfo->csd_token && vpninfo->csd_ticket && vpninfo->csd_starturl && vpninfo->csd_waiturl) {
 		/* First, redirect to the stuburl -- we'll need to fetch and run that */
-		free(vpninfo->urlpath);
-		vpninfo->urlpath = strdup(vpninfo->csd_stuburl +
-					  (vpninfo->csd_stuburl[0] == '/' ? 1 : 0));
+		vpninfo->redirect_url = vpninfo->csd_stuburl;
 		ret = 0;
 		goto out;
 	}
