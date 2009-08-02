@@ -359,6 +359,39 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 				  (vpninfo->csd_waiturl[0] == '/' ? 1 : 0));
 	vpninfo->csd_waiturl = NULL;
 	vpninfo->csd_scriptname = strdup(fname);
+
+	/* AB: add cookie "sdesktop=__TOKEN__" */
+	{
+		struct vpn_option *new, **this;
+		new = malloc(sizeof(*new));
+		if (!new) {
+			vpninfo->progress(vpninfo, PRG_ERR, "No memory for allocating cookies\n");
+			return -ENOMEM;
+		}
+		new->next = NULL;
+		new->option = strdup("sdesktop");
+		new->value = strdup(vpninfo->csd_token);
+
+		for (this = &vpninfo->cookies; *this; this = &(*this)->next) {
+			if (!strcmp(new->option, (*this)->option)) {
+				/* Replace existing cookie */
+				if (new)
+					new->next = (*this)->next;
+				else
+					new = (*this)->next;
+
+				free((*this)->option);
+				free((*this)->value);
+				free(*this);
+				*this = new;
+				break;
+			}
+		}
+		if (new && !*this) {
+			*this = new;
+			new->next = NULL;
+		}
+	}
 	return 0;
 }
 

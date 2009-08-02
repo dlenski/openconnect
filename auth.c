@@ -294,6 +294,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	xmlNode *xml_node;
 	char *err_string = NULL, *msg_string = NULL, *banner_string = NULL;
 	int ret;
+	struct vpn_option *opt, *next;
 
 	form = calloc(1, sizeof(*form));
 	if (!form)
@@ -373,6 +374,17 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	if (vpninfo->csd_token && vpninfo->csd_ticket && vpninfo->csd_starturl && vpninfo->csd_waiturl) {
 		/* First, redirect to the stuburl -- we'll need to fetch and run that */
 		vpninfo->redirect_url = strdup(vpninfo->csd_stuburl);
+
+		/* AB: remove all cookies */
+		for (opt = vpninfo->cookies; opt; opt = next) {
+			next = opt->next;
+
+			free(opt->option);
+			free(opt->value);
+			free(opt);
+		}
+		vpninfo->cookies = NULL;
+
 		ret = 0;
 		goto out;
 	}
