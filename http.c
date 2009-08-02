@@ -333,7 +333,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		csd_argv[i++] = "\"0\"";
 		csd_argv[i++] = "-group";
 		asprintf(&csd_argv[i++], "\"%s\"", vpninfo->authgroup?:"");
-		get_cert_md5_fingerprint(cert, certbuf);
+		get_cert_md5_fingerprint(vpninfo, cert, certbuf);
 		csd_argv[i++] = "-certhash";
 		asprintf(&csd_argv[i++], "\"%s:%s\"", certbuf, vpninfo->cert_md5_fingerprint ?: "");
 		csd_argv[i++] = "-url";
