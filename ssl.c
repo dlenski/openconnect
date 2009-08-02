@@ -340,7 +340,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	return 0;
 }
 
-int get_cert_fingerprint(X509 *cert, char *buf)
+int get_cert_sha1_fingerprint(X509 *cert, char *buf)
 {
 	unsigned char md[EVP_MAX_MD_SIZE];
 	unsigned int i, n;
@@ -359,7 +359,7 @@ static int check_server_cert(struct openconnect_info *vpninfo, X509 *cert)
 	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
 	int ret;
 
-	ret = get_cert_fingerprint(cert, fingerprint);
+	ret = get_cert_sha1_fingerprint(cert, fingerprint);
 	if (ret)
 		return ret;
 
