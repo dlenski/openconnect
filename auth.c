@@ -355,10 +355,12 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			if (ret < 0)
 				goto out;
 		} else if (!strcmp((char *)xml_node->name, "csd")) {
-			vpninfo->csd_token = (char *)xmlGetProp(xml_node,
-								(unsigned char *)"token");
-			vpninfo->csd_ticket = (char *)xmlGetProp(xml_node,
-								 (unsigned char *)"ticket");
+			if (!vpninfo->csd_token)
+				vpninfo->csd_token = (char *)xmlGetProp(xml_node,
+									(unsigned char *)"token");
+			if (!vpninfo->csd_ticket)
+				vpninfo->csd_ticket = (char *)xmlGetProp(xml_node,
+									 (unsigned char *)"ticket");
 		} else if (!strcmp((char *)xml_node->name, "csdLinux")) {
 			vpninfo->csd_stuburl = (char *)xmlGetProp(xml_node,
 								  (unsigned char *)"stuburl");
