@@ -169,7 +169,7 @@ int main(int argc, char **argv)
 
 	/* Set up some defaults */
 	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = vpninfo->new_dtls_fd = -1;
-	vpninfo->useragent = openconnect_create_useragent("Open AnyConnect VPN Agent %s");
+	vpninfo->useragent = openconnect_create_useragent("Open AnyConnect VPN Agent");
 	vpninfo->mtu = 1406;
 	vpninfo->deflate = 1;
 	vpninfo->dtls_attempt_period = 60;

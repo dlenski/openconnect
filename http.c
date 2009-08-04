@@ -459,6 +459,6 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 char *openconnect_create_useragent(char *base)
 {
 	char *uagent = malloc(strlen(base) + 1 + strlen(openconnect_version));
-	sprintf(uagent, "%s%s", base, openconnect_version);
+	sprintf(uagent, "%s %s", base, openconnect_version);
 	return uagent;
 }
