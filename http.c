@@ -37,6 +37,7 @@
 
 #include "openconnect.h"
 
+#define MAX_BUF_LEN 131072
 /*
  * We didn't really want to have to do this for ourselves -- one might have
  * thought that it would be available in a library somewhere. But neither
@@ -49,7 +50,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				 int (*header_cb)(struct openconnect_info *, char *, char *),
 				 char *body, int buf_len)
 {
-	char buf[65536];
+	char buf[MAX_BUF_LEN];
 	int bodylen = 0;
 	int done = 0;
 	int http10 = 0, closeconn = 0;
@@ -253,7 +254,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 			char *server_sha1)
 {
 	struct vpn_option *opt;
-	char buf[65536];
+	char buf[MAX_BUF_LEN];
 	int result, buflen;
 	unsigned char local_sha1_bin[SHA_DIGEST_LENGTH];
 	char local_sha1_ascii[(SHA_DIGEST_LENGTH * 2)+1];
@@ -276,7 +277,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 
 	SSL_write(vpninfo->https_ssl, buf, strlen(buf));
 
-	buflen = process_http_response(vpninfo, &result, NULL, buf, 65536);
+	buflen = process_http_response(vpninfo, &result, NULL, buf, MAX_BUF_LEN);
 	if (buflen < 0) {
 		/* We'll already have complained about whatever offended us */
 		return -EINVAL;
@@ -338,7 +339,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf)
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 {
 	struct vpn_option *opt, *next;
-	char buf[65536];
+	char buf[MAX_BUF_LEN];
 	int result, buflen;
 	char request_body[2048];
 	char *request_body_type = NULL;
@@ -387,7 +388,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 
 	SSL_write(vpninfo->https_ssl, buf, strlen(buf));
 
-	buflen = process_http_response(vpninfo, &result, NULL, buf, 65536);
+	buflen = process_http_response(vpninfo, &result, NULL, buf, MAX_BUF_LEN);
 	if (buflen < 0) {
 		/* We'll already have complained about whatever offended us */
 		exit(1);
