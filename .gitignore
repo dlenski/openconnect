@@ -1,5 +1,5 @@
 version.c
 .*.o.dep
 *.o
-anyconnect
+openconnect
 nm-openconnect-auth-dialog
