@@ -130,6 +130,15 @@ struct split_include {
 struct openconnect_info {
 	char *redirect_url;
 
+	char *csd_token;
+	char *csd_ticket;
+	char *csd_stuburl;
+	char *csd_starturl;
+	char *csd_waiturl;
+	char *csd_preurl;
+
+	char *csd_scriptname;
+
 	char *vpn_name;
 
 	char sid_tokencode[9];
@@ -142,6 +151,7 @@ struct openconnect_info {
 	const char *sslkey;
 	int cert_type;
 	char *cert_password;
+	char *cert_md5_fingerprint;
 	const char *cafile;
 	const char *servercert;
 	const char *xmlconfig;
@@ -267,7 +277,10 @@ int  __attribute__ ((format (printf, 2, 3)))
 int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len);
 int openconnect_open_https(struct openconnect_info *vpninfo);
 void openconnect_close_https(struct openconnect_info *vpninfo);
-int get_cert_fingerprint(X509 *cert, char *buf);
+int get_cert_md5_fingerprint(struct openconnect_info *vpninfo, X509 *cert,
+			     char *buf);
+int get_cert_sha1_fingerprint(struct openconnect_info *vpninfo, X509 *cert,
+			      char *buf);
 void report_ssl_errors(struct openconnect_info *vpninfo);
 int passphrase_from_fsid(struct openconnect_info *vpninfo);
 

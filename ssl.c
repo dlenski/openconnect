@@ -132,6 +132,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 	STACK_OF(X509) *ca = sk_X509_new_null();
 	int ret = 0;
 	char pass[PEM_BUFSIZE];
+	char certbuf[EVP_MAX_MD_SIZE * 2 + 1];
 
 	if (!vpninfo->cert_password) {
 		if (EVP_read_pw_string(pass, PEM_BUFSIZE,
@@ -146,6 +147,8 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 	}
 	if (cert) {
 		SSL_CTX_use_certificate(vpninfo->https_ctx, cert);
+		get_cert_md5_fingerprint(vpninfo, cert, certbuf);
+		vpninfo->cert_md5_fingerprint = strdup(certbuf);
 		X509_free(cert);
 	} else {
 		vpninfo->progress(vpninfo, PRG_ERR,
@@ -340,18 +343,48 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	return 0;
 }
 
-int get_cert_fingerprint(X509 *cert, char *buf)
+enum cert_hash_type {
+	EVP_MD5,
+	EVP_SHA1
+};
+
+static int get_cert_fingerprint(struct openconnect_info *vpninfo,
+				X509 *cert, enum cert_hash_type hash,
+				char *buf)
 {
 	unsigned char md[EVP_MAX_MD_SIZE];
 	unsigned int i, n;
 
-	if (!X509_digest(cert, EVP_sha1(), md, &n))
-		return -ENOMEM;
+	switch (hash) {
+	case EVP_MD5:
+		if (!X509_digest(cert, EVP_md5(), md, &n))
+			return -ENOMEM;
+		break;
+	case EVP_SHA1:
+		if (!X509_digest(cert, EVP_sha1(), md, &n))
+			return -ENOMEM;
+		break;
+	default:
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Unsupported SSL certificate hash function type\n");
+	}
 
 	for (i=0; i < n; i++) {
-		sprintf(&buf[i*2], "%02x", md[i]);
+		sprintf(&buf[i*2], "%02X", md[i]);
 	}
 	return 0;
+}
+
+int get_cert_md5_fingerprint(struct openconnect_info *vpninfo,
+			     X509 *cert, char *buf)
+{
+	return get_cert_fingerprint(vpninfo, cert, EVP_MD5, buf);
+}
+
+int get_cert_sha1_fingerprint(struct openconnect_info *vpninfo,
+			      X509 *cert, char *buf)
+{
+	return get_cert_fingerprint(vpninfo, cert, EVP_SHA1, buf);
 }
 
 static int check_server_cert(struct openconnect_info *vpninfo, X509 *cert)
@@ -359,7 +392,7 @@ static int check_server_cert(struct openconnect_info *vpninfo, X509 *cert)
 	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
 	int ret;
 
-	ret = get_cert_fingerprint(cert, fingerprint);
+	ret = get_cert_sha1_fingerprint(vpninfo, cert, fingerprint);
 	if (ret)
 		return ret;
 

@@ -683,7 +683,7 @@ static int validate_peer_cert(struct openconnect_info *vpninfo,
 	int ret = 0;
 	cert_data *data;
 
-	ret = get_cert_fingerprint(peer_cert, fingerprint);
+	ret = get_cert_sha1_fingerprint(vpninfo, peer_cert, fingerprint);
 	if (ret)
 		return ret;
 
@@ -1068,7 +1068,7 @@ static void print_peer_cert(struct openconnect_info *vpninfo)
 	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
 	X509 *cert = SSL_get_peer_certificate(vpninfo->https_ssl);
 
-	if (cert && !get_cert_fingerprint(cert, fingerprint))
+	if (cert && !get_cert_sha1_fingerprint(vpninfo, cert, fingerprint))
 		printf("gwcert\n%s\n", fingerprint);
 }
 

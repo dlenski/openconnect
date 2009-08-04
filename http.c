@@ -23,12 +23,14 @@
  *   Boston, MA 02110-1301 USA
  */
 
+#define _GNU_SOURCE
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -36,6 +38,7 @@
 
 #include "openconnect.h"
 
+#define MAX_BUF_LEN 131072
 /*
  * We didn't really want to have to do this for ourselves -- one might have
  * thought that it would be available in a library somewhere. But neither
@@ -48,7 +51,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				 int (*header_cb)(struct openconnect_info *, char *, char *),
 				 char *body, int buf_len)
 {
-	char buf[65536];
+	char buf[MAX_BUF_LEN];
 	int bodylen = 0;
 	int done = 0;
 	int http10 = 0, closeconn = 0;
@@ -252,7 +255,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 			char *server_sha1)
 {
 	struct vpn_option *opt;
-	char buf[65536];
+	char buf[MAX_BUF_LEN];
 	int result, buflen;
 	unsigned char local_sha1_bin[SHA_DIGEST_LENGTH];
 	char local_sha1_ascii[(SHA_DIGEST_LENGTH * 2)+1];
@@ -275,7 +278,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 
 	SSL_write(vpninfo->https_ssl, buf, strlen(buf));
 
-	buflen = process_http_response(vpninfo, &result, NULL, buf, 65536);
+	buflen = process_http_response(vpninfo, &result, NULL, buf, MAX_BUF_LEN);
 	if (buflen < 0) {
 		/* We'll already have complained about whatever offended us */
 		return -EINVAL;
@@ -300,6 +303,98 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 	return vpninfo->write_new_config(vpninfo, buf, buflen);
 }
 
+static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int buflen)
+{
+	char fname[16];
+	int fd;
+
+	sprintf(fname, "/tmp/csdXXXXXX");
+	fd = mkstemp(fname);
+	if (fd < 0) {
+		int err = -errno;
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to open temporary CSD script file: %s\n",
+				  strerror(errno));
+		return err;
+	}
+	write(fd, buf, buflen);
+	fchmod(fd, 0700);
+	close(fd);
+
+	if (!fork()) {
+		X509 *cert = SSL_get_peer_certificate(vpninfo->https_ssl);
+		char certbuf[EVP_MAX_MD_SIZE * 2 + 1];
+		char *csd_argv[32];
+		int i = 0;
+
+		csd_argv[i++] = fname;
+		csd_argv[i++] = "-ticket";
+		asprintf(&csd_argv[i++], "\"%s\"", vpninfo->csd_ticket);
+		csd_argv[i++] = "-stub";
+		csd_argv[i++] = "\"0\"";
+		csd_argv[i++] = "-group";
+		asprintf(&csd_argv[i++], "\"%s\"", vpninfo->authgroup?:"");
+		get_cert_md5_fingerprint(vpninfo, cert, certbuf);
+		csd_argv[i++] = "-certhash";
+		asprintf(&csd_argv[i++], "\"%s:%s\"", certbuf, vpninfo->cert_md5_fingerprint ?: "");
+		csd_argv[i++] = "-url";
+		asprintf(&csd_argv[i++], "\"https://%s%s\"", vpninfo->hostname, vpninfo->csd_starturl);
+		/* WTF would it want to know this for? */
+		csd_argv[i++] = "-vpnclient";
+		csd_argv[i++] = "\"/opt/cisco/vpn/bin/vpnui";
+		csd_argv[i++] = "-connect";
+		asprintf(&csd_argv[i++], "https://%s/%s", vpninfo->hostname, vpninfo->csd_preurl);
+		csd_argv[i++] = "-connectparam";
+		asprintf(&csd_argv[i++], "#csdtoken=%s\"", vpninfo->csd_token);
+		csd_argv[i++] = "-langselen";
+		csd_argv[i++] = NULL;
+
+		execv(fname, csd_argv);
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to exec CSD script %s\n", fname);
+		exit(1);
+	}
+
+	free(vpninfo->csd_stuburl);
+	vpninfo->csd_stuburl = NULL;
+	vpninfo->urlpath = strdup(vpninfo->csd_waiturl +
+				  (vpninfo->csd_waiturl[0] == '/' ? 1 : 0));
+	vpninfo->csd_waiturl = NULL;
+	vpninfo->csd_scriptname = strdup(fname);
+
+	/* AB: add cookie "sdesktop=__TOKEN__" */
+	{
+		struct vpn_option *new, **this;
+		new = malloc(sizeof(*new));
+		if (!new) {
+			vpninfo->progress(vpninfo, PRG_ERR, "No memory for allocating cookies\n");
+			return -ENOMEM;
+		}
+		new->next = NULL;
+		new->option = strdup("sdesktop");
+		new->value = strdup(vpninfo->csd_token);
+
+		for (this = &vpninfo->cookies; *this; this = &(*this)->next) {
+			if (!strcmp(new->option, (*this)->option)) {
+				/* Replace existing cookie */
+				if (new)
+					new->next = (*this)->next;
+				else
+					new = (*this)->next;
+
+				free((*this)->option);
+				free((*this)->value);
+				free(*this);
+				*this = new;
+				break;
+			}
+		}
+		if (new && !*this) {
+			*this = new;
+			new->next = NULL;
+		}
+	}
+	return 0;
+}
+
 /* Return value:
  *  < 0, on error
  *  = 0, no cookie (user cancel)
@@ -308,7 +403,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 {
 	struct vpn_option *opt, *next;
-	char buf[65536];
+	char buf[MAX_BUF_LEN];
 	int result, buflen;
 	char request_body[2048];
 	char *request_body_type = NULL;
@@ -357,13 +452,14 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 
 	SSL_write(vpninfo->https_ssl, buf, strlen(buf));
 
-	buflen = process_http_response(vpninfo, &result, NULL, buf, 65536);
+	buflen = process_http_response(vpninfo, &result, NULL, buf, MAX_BUF_LEN);
 	if (buflen < 0) {
 		/* We'll already have complained about whatever offended us */
 		exit(1);
 	}
 
 	if (result != 200 && vpninfo->redirect_url) {
+	redirect:
 		if (!strncmp(vpninfo->redirect_url, "https://", 8)) {
 			/* New host. Tear down the existing connection and make a new one */
 			char *host = vpninfo->redirect_url + 8;
@@ -413,11 +509,31 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		}
 	}
 
+	if (vpninfo->csd_stuburl) {
+		/* This is the CSD stub script, which we now need to run */
+		result = run_csd_script(vpninfo, buf, buflen);
+		if (result)
+			return result;
+
+		/* Now we'll be redirected to the waiturl */
+		goto retry;
+	}
+	if (strncmp(buf, "<?xml", 5)) {
+		/* Not XML? Perhaps it's HTML with a refresh... */
+		if (strcasestr(buf, "http-equiv=\"refresh\"")) {
+			vpninfo->progress(vpninfo, PRG_INFO, "Refreshing %s after 1 second...\n",
+					  vpninfo->urlpath);
+			sleep(1);
+			goto retry;
+		}
+		vpninfo->progress(vpninfo, PRG_ERR, "Unknown response from server\n");
+		return -EINVAL;
+	}
 	request_body[0] = 0;
 	result = parse_xml_response(vpninfo, buf, request_body, sizeof(request_body),
 				    &method, &request_body_type);
 	if (!result)
-		goto retry;
+		goto redirect;
 
 	if (result != 2)
 		return result;
@@ -452,7 +568,11 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 				fetch_config(vpninfo, bu, fu, sha);
 		}
 	}
-
+	if (vpninfo->csd_scriptname) {
+		unlink(vpninfo->csd_scriptname);
+		free(vpninfo->csd_scriptname);
+		vpninfo->csd_scriptname = NULL;
+	}
 	return 0;
 }
 
