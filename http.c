@@ -326,7 +326,8 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf)
 
 	free(vpninfo->csd_stuburl);
 	vpninfo->csd_stuburl = NULL;
-	vpninfo->urlpath = strdup(vpninfo->csd_waiturl);
+	vpninfo->urlpath = strdup(vpninfo->csd_waiturl +
+				  (vpninfo->csd_waiturl[0] == '/' ? 1 : 0));
 	vpninfo->csd_waiturl = NULL;
 	return 0;
 }
