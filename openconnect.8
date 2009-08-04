@@ -129,6 +129,10 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .B --servercert
 .I FINGERPRINT
 ]
+[
+.B --useragent
+.I STRING
+]
 \fIserver\fR
 
 .SH DESCRIPTION
@@ -274,6 +278,10 @@ VPN connection after a temporary network down time of 300 seconds.
 .TP
 .B --servercert
 Accept server's SSL certificate only if its SHA1 fingerprint matches.
+.TP
+.B --useragent=STRING
+Use STRING as 'User-Agent:' field value in HTTP header.
+(e.g. --useragent 'Cisco AnyConnect VPN Agent for Windows 2.2.0133')
 
 .SH LIMITATIONS
 The

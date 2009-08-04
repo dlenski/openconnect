@@ -84,6 +84,7 @@ static struct option long_options[] = {
 	{"authgroup", 1, 0, '9'},
 	{"servercert", 1, 0, 0x01},
 	{"key-password-from-fsid", 0, 0, 0x02},
+	{"useragent", 1, 0, 0x03},
 	{NULL, 0, 0, 0},
 };
 
@@ -125,6 +126,7 @@ void usage(void)
 	printf("      --passwd-on-stdin           Read password from standard input\n");
 	printf("      --reconnect-timeout         Connection retry timeout in seconds\n");
 	printf("      --servercert                Server's certificate SHA1 fingerprint\n");
+	printf("      --useragent=STRING          HTTP header User-Agent: field\n");
 	exit(1);
 }
 
@@ -325,6 +327,10 @@ int main(int argc, char **argv)
 			break;
 		case 0x02:
 			do_passphrase_from_fsid = 1;
+			break;
+		case 0x03:
+			free(vpninfo->useragent);
+			vpninfo->useragent = optarg;
 			break;
 		default:
 			usage();
