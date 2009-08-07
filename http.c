@@ -30,7 +30,9 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
+#include <pwd.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -317,7 +319,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		return err;
 	}
 	write(fd, buf, buflen);
-	fchmod(fd, 0700);
+	fchmod(fd, 0755);
 	close(fd);
 
 	if (!fork()) {
@@ -325,6 +327,28 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		char certbuf[EVP_MAX_MD_SIZE * 2 + 1];
 		char *csd_argv[32];
 		int i = 0;
+
+		if (vpninfo->uid != getuid()) {
+			struct passwd *pw;
+
+			if (setuid(vpninfo->uid)) {
+				fprintf(stderr, "Failed to set uid %d\n",
+					vpninfo->uid);
+				exit(1);
+			}
+			if (!(pw = getpwuid(vpninfo->uid))) {
+				fprintf(stderr, "Invalid user uid=%d\n",
+					vpninfo->uid);
+				exit(1);
+			}
+			setenv("HOME", pw->pw_dir, 1);
+			chdir(pw->pw_dir);
+		}
+		if (vpninfo->uid == 0) {
+			fprintf(stderr, "Warning: you are running unsecure "
+				"CSD code with root privileges\n"
+				"\t Use command line option \"-U\"\n");
+		}
 
 		csd_argv[i++] = fname;
 		csd_argv[i++] = "-ticket";

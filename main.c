@@ -155,7 +155,6 @@ int main(int argc, char **argv)
 	struct utsname utsbuf;
 	int cookieonly = 0;
 	int use_syslog = 0;
-	uid_t uid = getuid();
 	int opt;
 
 	openconnect_init_openssl();
@@ -176,6 +175,7 @@ int main(int argc, char **argv)
 	vpninfo->max_qlen = 10;
 	vpninfo->reconnect_interval = RECONNECT_INTERVAL_MIN;
 	vpninfo->reconnect_timeout = 300;
+	vpninfo->uid = getuid();
 
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
 		fprintf(stderr, "Failed to initialise DTLS secret\n");
@@ -293,7 +293,7 @@ int main(int argc, char **argv)
 			break;
 		case 'U': {
 			char *strend;
-			uid = strtol(optarg, &strend, 0);
+			vpninfo->uid = strtol(optarg, &strend, 0);
 			if (strend[0]) {
 				struct passwd *pw = getpwnam(optarg);
 				if (!pw) {
@@ -301,7 +301,7 @@ int main(int argc, char **argv)
 						optarg);
 					exit(1);
 				}
-				uid = pw->pw_uid;
+				vpninfo->uid = pw->pw_uid;
 			}
 			break;
 		}
@@ -385,9 +385,9 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	if (uid != getuid()) {
-		if (setuid(uid)) {
-			fprintf(stderr, "Failed to set uid %d\n", uid);
+	if (vpninfo->uid != getuid()) {
+		if (setuid(vpninfo->uid)) {
+			fprintf(stderr, "Failed to set uid %d\n", vpninfo->uid);
 			exit(1);
 		}
 	}

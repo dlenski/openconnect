@@ -161,6 +161,7 @@ struct openconnect_info {
 	char *authgroup;
 	int nopasswd;
 	char *dtls_ciphers;
+	uid_t uid;
 
 	char *cookie;
 	struct vpn_option *cookies;
