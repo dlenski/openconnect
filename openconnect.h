@@ -225,7 +225,7 @@ struct openconnect_info {
 	struct sockaddr *peer_addr;
 
 	int deflate;
-	const char *useragent;
+	char *useragent;
 
 	char *quit_reason;
 
