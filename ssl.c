@@ -513,6 +513,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			break;
 		}
 		close(ssl_sock);
+		ssl_sock = -1;
 	}
 	freeaddrinfo(result);
 
