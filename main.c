@@ -85,6 +85,7 @@ static struct option long_options[] = {
 	{"servercert", 1, 0, 0x01},
 	{"key-password-from-fsid", 0, 0, 0x02},
 	{"useragent", 1, 0, 0x03},
+	{"setuid-csd", 1, 0, 0x04},
 	{NULL, 0, 0, 0},
 };
 
@@ -105,6 +106,7 @@ void usage(void)
 	printf("  -i, --interface=IFNAME          Use IFNAME for tunnel interface\n");
 	printf("  -l, --syslog                    Use syslog for progress messages\n");
 	printf("  -U, --setuid=USER               Drop privileges after connecting\n");
+	printf("      --setuid-csd=USER           Drop privileges during CSD execution\n");
 	printf("  -m, --mtu=MTU                   Request MTU from server\n");
 	printf("  -p, --key-password=PASS         Set key passphrase or TPM SRK PIN\n");
 	printf("      --key-password-from-fsid    Key passphrase is fsid of file system\n");
@@ -155,6 +157,7 @@ int main(int argc, char **argv)
 	struct utsname utsbuf;
 	int cookieonly = 0;
 	int use_syslog = 0;
+	uid_t uid = getuid();
 	int opt;
 
 	openconnect_init_openssl();
@@ -175,7 +178,7 @@ int main(int argc, char **argv)
 	vpninfo->max_qlen = 10;
 	vpninfo->reconnect_interval = RECONNECT_INTERVAL_MIN;
 	vpninfo->reconnect_timeout = 300;
-	vpninfo->uid = getuid();
+	vpninfo->uid_csd = uid;
 
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
 		fprintf(stderr, "Failed to initialise DTLS secret\n");
@@ -293,7 +296,7 @@ int main(int argc, char **argv)
 			break;
 		case 'U': {
 			char *strend;
-			vpninfo->uid = strtol(optarg, &strend, 0);
+			uid = strtol(optarg, &strend, 0);
 			if (strend[0]) {
 				struct passwd *pw = getpwnam(optarg);
 				if (!pw) {
@@ -301,7 +304,21 @@ int main(int argc, char **argv)
 						optarg);
 					exit(1);
 				}
-				vpninfo->uid = pw->pw_uid;
+				uid = pw->pw_uid;
+			}
+			break;
+		}
+		case 0x04: {
+			char *strend;
+			vpninfo->uid_csd = strtol(optarg, &strend, 0);
+			if (strend[0]) {
+				struct passwd *pw = getpwnam(optarg);
+				if (!pw) {
+					fprintf(stderr, "Invalid user \"%s\"\n",
+						optarg);
+					exit(1);
+				}
+				vpninfo->uid_csd = pw->pw_uid;
 			}
 			break;
 		}
@@ -385,9 +402,9 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	if (vpninfo->uid != getuid()) {
-		if (setuid(vpninfo->uid)) {
-			fprintf(stderr, "Failed to set uid %d\n", vpninfo->uid);
+	if (uid != getuid()) {
+		if (setuid(uid)) {
+			fprintf(stderr, "Failed to set uid %d\n", uid);
 			exit(1);
 		}
 	}

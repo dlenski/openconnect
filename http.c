@@ -328,26 +328,26 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		char *csd_argv[32];
 		int i = 0;
 
-		if (vpninfo->uid != getuid()) {
+		if (vpninfo->uid_csd != getuid()) {
 			struct passwd *pw;
 
-			if (setuid(vpninfo->uid)) {
+			if (setuid(vpninfo->uid_csd)) {
 				fprintf(stderr, "Failed to set uid %d\n",
-					vpninfo->uid);
+					vpninfo->uid_csd);
 				exit(1);
 			}
-			if (!(pw = getpwuid(vpninfo->uid))) {
+			if (!(pw = getpwuid(vpninfo->uid_csd))) {
 				fprintf(stderr, "Invalid user uid=%d\n",
-					vpninfo->uid);
+					vpninfo->uid_csd);
 				exit(1);
 			}
 			setenv("HOME", pw->pw_dir, 1);
 			chdir(pw->pw_dir);
 		}
-		if (vpninfo->uid == 0) {
+		if (vpninfo->uid_csd == 0) {
 			fprintf(stderr, "Warning: you are running unsecure "
 				"CSD code with root privileges\n"
-				"\t Use command line option \"-U\"\n");
+				"\t Use command line option \"--setuid-csd\"\n");
 		}
 
 		csd_argv[i++] = fname;

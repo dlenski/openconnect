@@ -50,6 +50,10 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .I USER
 ]
 [
+.B --setuid-csd
+.I USER
+]
+[
 .B -m,--mtu
 .I MTU
 ]
@@ -147,7 +151,7 @@ certificate, or password or SecurID, etc.  Having authenticated, the
 user is rewarded with an HTTP cookie which can be used to make the
 real VPN connection.
 
-The second phase uses that cookie in an HTTPS 
+The second phase uses that cookie in an HTTPS
 .I CONNECT
 request, and data packets can be passed over the resulting
 connection. In auxiliary headers exchanged with the
@@ -202,6 +206,9 @@ Use syslog for progress messages
 Drop privileges after connecting, to become user
 .I USER
 .TP
+.B --setuid-csd=USER
+Drop privileges during CSD execution
+.TP
 .B -m,--mtu=MTU
 Request
 .I MTU
@@ -221,7 +228,7 @@ Type of private key file (PKCS#12, TPM or PEM)
 Less output
 .TP
 .B -Q,--queue-len=LEN
-Set packet queue limit to 
+Set packet queue limit to
 .I LEN
 pkts
 .TP
