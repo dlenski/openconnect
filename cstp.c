@@ -678,18 +678,19 @@ int cstp_bye(struct openconnect_info *vpninfo, char *reason)
 		return 0;
 
 	reason_len = strlen(reason);
-	bye_pkt = malloc(reason_len + 8);
+	bye_pkt = malloc(reason_len + 9);
 	if (!bye_pkt)
 		return -ENOMEM;
 
 	memcpy(bye_pkt, data_hdr, 8);
-	memcpy(bye_pkt + 8, reason, reason_len);
+	memcpy(bye_pkt + 9, reason, reason_len);
 
 	bye_pkt[4] = reason_len >> 8;
 	bye_pkt[5] = reason_len & 0xff;
 	bye_pkt[6] = AC_PKT_DISCONN;
+	bye_pkt[8] = 0xb0;
 
-	SSL_write(vpninfo->https_ssl, bye_pkt, reason_len + 8);
+	SSL_write(vpninfo->https_ssl, bye_pkt, reason_len + 9);
 	free(bye_pkt);
 
 	vpninfo->progress(vpninfo, PRG_INFO,
