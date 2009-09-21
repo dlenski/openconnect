@@ -448,7 +448,14 @@ static int write_new_config(struct openconnect_info *vpninfo, char *buf, int buf
 	}
 
 	/* FIXME: We should actually write to a new tempfile, then rename */
-	write(config_fd, buf, buflen);
+	if(write(config_fd, buf, buflen) != buflen) {
+		err = errno;
+		fprintf(stderr, "Failed to write config to %s: %s\n",
+			vpninfo->xmlconfig, strerror(err));
+
+		return -err;
+	}
+	  
 	return 0;
 }
 
