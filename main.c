@@ -437,12 +437,14 @@ int main(int argc, char **argv)
 static int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
 {
 	int config_fd;
+	int err;
 
 	config_fd = open(vpninfo->xmlconfig, O_WRONLY|O_TRUNC|O_CREAT, 0644);
 	if (config_fd < 0) {
+		err = errno;
 		fprintf(stderr, "Failed to open %s for write: %s\n",
-			vpninfo->xmlconfig, strerror(errno));
-		return -errno;
+			vpninfo->xmlconfig, strerror(err));
+		return -err;
 	}
 
 	/* FIXME: We should actually write to a new tempfile, then rename */
