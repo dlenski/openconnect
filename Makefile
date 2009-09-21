@@ -86,6 +86,9 @@ ifeq ($(MISSINGPKGS),)
 	rm -f nm-openconnect-auth-dialog
 endif
 
+realclean: clean
+	rm -f *~
+
 install: all
 	mkdir -p $(DESTDIR)/usr/bin $(DESTDIR)/usr/libexec
 	install -m0755 openconnect $(DESTDIR)/usr/bin
