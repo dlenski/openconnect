@@ -439,7 +439,7 @@ static int write_new_config(struct openconnect_info *vpninfo, char *buf, int buf
 	int config_fd;
 
 	config_fd = open(vpninfo->xmlconfig, O_WRONLY|O_TRUNC|O_CREAT, 0644);
-	if (!config_fd) {
+	if (config_fd < 0) {
 		fprintf(stderr, "Failed to open %s for write: %s\n",
 			vpninfo->xmlconfig, strerror(errno));
 		return -errno;
