@@ -178,7 +178,8 @@ int main(int argc, char **argv)
 	vpninfo->max_qlen = 10;
 	vpninfo->reconnect_interval = RECONNECT_INTERVAL_MIN;
 	vpninfo->reconnect_timeout = 300;
-	vpninfo->uid_csd = uid;
+	vpninfo->uid_csd = 0;
+	vpninfo->uid_csd_given = 0;
 
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
 		fprintf(stderr, "Failed to initialise DTLS secret\n");
@@ -320,6 +321,7 @@ int main(int argc, char **argv)
 				}
 				vpninfo->uid_csd = pw->pw_uid;
 			}
+			vpninfo->uid_csd_given = 1;
 			break;
 		}
 		case 'Q':

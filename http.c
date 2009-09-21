@@ -310,6 +310,13 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 	char fname[16];
 	int fd;
 
+	if (!vpninfo->uid_csd_given) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Error: You are trying to "
+				  "run unsecure CSD code without specifying the CSD user.\n"
+				  "       Use command line option \"--setuid-csd\"\n");
+		exit(1);
+	}
+
 	sprintf(fname, "/tmp/csdXXXXXX");
 	fd = mkstemp(fname);
 	if (fd < 0) {
