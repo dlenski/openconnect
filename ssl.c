@@ -297,7 +297,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 				vpninfo->cert_type = CERT_TYPE_TPM;
 				break;
 			} else if (!strcmp(buf, "-----BEGIN RSA PRIVATE KEY-----\n") ||
-				   !strcmp(buf, "-----BEGIN DSA PRIVATE KEY-----\n")) {
+				   !strcmp(buf, "-----BEGIN DSA PRIVATE KEY-----\n") ||
+				   !strcmp(buf, "-----BEGIN ENCRYPTED PRIVATE KEY-----\n")) {
 				vpninfo->cert_type = CERT_TYPE_PEM;
 				break;
 			}
