@@ -685,8 +685,8 @@ int cstp_bye(struct openconnect_info *vpninfo, char *reason)
 	memcpy(bye_pkt, data_hdr, 8);
 	memcpy(bye_pkt + 9, reason, reason_len);
 
-	bye_pkt[4] = reason_len >> 8;
-	bye_pkt[5] = reason_len & 0xff;
+	bye_pkt[4] = (reason_len + 1) >> 8;
+	bye_pkt[5] = (reason_len + 1) & 0xff;
 	bye_pkt[6] = AC_PKT_DISCONN;
 	bye_pkt[8] = 0xb0;
 
