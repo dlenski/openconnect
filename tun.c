@@ -59,7 +59,7 @@ static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
 	strncpy(ifr.ifr_name, vpninfo->ifname, sizeof(ifr.ifr_name) - 1);
 
 	if (!mtu_only) {
-		struct sockaddr_in *addr = (struct sockaddr_in *) &ifr.ifr_addr;
+		struct sockaddr_in addr;
 
 		if (ioctl(net_fd, SIOCGIFFLAGS, &ifr) < 0)
 			perror("SIOCGIFFLAGS");
@@ -68,8 +68,9 @@ static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
 		if (ioctl(net_fd, SIOCSIFFLAGS, &ifr) < 0)
 			perror("SIOCSIFFLAGS");
 
-		addr->sin_family = AF_INET;
-		addr->sin_addr.s_addr = inet_addr(vpninfo->vpn_addr);
+		addr.sin_family = AF_INET;
+		addr.sin_addr.s_addr = inet_addr(vpninfo->vpn_addr);
+		memcpy(&ifr.ifr_addr, &addr, sizeof(addr));
 		if (ioctl(net_fd, SIOCSIFADDR, &ifr) < 0)
 			perror("SIOCSIFADDR");
 	}
