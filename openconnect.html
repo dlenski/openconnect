@@ -117,6 +117,8 @@ For full changelog entries including the latest development, see
      <UL>
        <LI>Support for "Cisco Secure Desktop" idiocy.</LI>
        <LI>Allow <TT>User-Agent:</TT> to be specified on command line.</LI>
+       <LI>Fix session termination on disconnect.</LI>
+       <LI>Fix recognition of certificates from OpenSSL 1.0.0.</LI>
      </UL><BR>
   </LI>
   <LI><B><A HREF="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.01.tar.gz">OpenConnect v2.01</a></B> &mdash; 2009-06-24<BR>
@@ -268,14 +270,9 @@ The username/password for OpenSSL RT is 'guest/guest'
 
 <H3>Fedora</H3>
 Both <TT>openconnect</TT> and <TT>NetworkManager-openconnect</TT> packages are included in Fedora.
-Fedora's latest OpenSSL package updates also include all required patches for DTLS compatibility,
-as of the <TT><A
-HREF="http://koji.fedoraproject.org/koji/buildinfo?buildID=98878">openssl-0.9.8g-13</A></TT>
-package in Fedora 10 and the <TT><A
-HREF="http://koji.fedoraproject.org/koji/buildinfo?buildID=98854">openssl-0.9.8k-4</A></TT>
-package in Fedora 11.
+Fedora's OpenSSL packages include all required patches for DTLS compatibility.
 <H3>Debian</H3>
-The <TT>openconnect</TT> package is available in Debian unstable, but <TT>NetworkManager-openconnect</TT> is not yet available.<BR>
+The <TT>openconnect</TT> and <TT>network-manager-openconnect</TT> packages are avilable in unstable and testing.<BR>
 <A HREF="http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=524982">Debian bug #524982</A> has been filed, requesting that the required patches be included in Debian's OpenSSL package.<P>
 <H3>Gentoo</H3>
 <A HREF="http://bugs.gentoo.org/show_bug.cgi?id=263097">Gentoo bug #263097</A> has been filed, asking for <TT>openconnect</TT> to be packaged.
@@ -286,6 +283,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Tue Aug  4 20:17:56 BST 2009
+Last modified: Sat Oct  3 10:06:16 BST 2009
 <!-- hhmts end -->
 </body> </html>
