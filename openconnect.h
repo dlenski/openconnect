@@ -254,6 +254,12 @@ struct openconnect_info {
 #define AC_PKT_COMPRESSED	8	/* Compressed data */
 #define AC_PKT_TERM_SERVER	9	/* Server kick */
 
+/* Ick */
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+#define method_const const
+#else
+#define method_const
+#endif
 
 /****************************************************************************/
 

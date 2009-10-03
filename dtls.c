@@ -106,7 +106,7 @@ static unsigned char hex(const char *data)
 int connect_dtls_socket(struct openconnect_info *vpninfo)
 {
 	STACK_OF(SSL_CIPHER) *ciphers;
-	SSL_METHOD *dtls_method;
+	method_const SSL_METHOD *dtls_method;
 	SSL_CIPHER *dtls_cipher;
 	SSL *dtls_ssl;
 	BIO *dtls_bio;

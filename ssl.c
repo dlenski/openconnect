@@ -470,7 +470,7 @@ void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 
 int openconnect_open_https(struct openconnect_info *vpninfo)
 {
-	SSL_METHOD *ssl3_method;
+	method_const SSL_METHOD *ssl3_method;
 	SSL *https_ssl;
 	BIO *https_bio;
 	int ssl_sock = -1;
