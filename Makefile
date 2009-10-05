@@ -58,6 +58,8 @@ AUTH_OBJECTS := ssl.o http.o version.o securid.o auth.o
 VERSION_OBJS := $(filter-out version.o, \
 		$(OPENCONNECT_OBJS) $(CONNECTION_OBJS) $(AUTH_OBJECTS))
 
+.PHONY: all maybe-auth-dialog clean realclean install tag tarball
+
 all: openconnect maybe-auth-dialog
 
 version.c: $(patsubst %.o,%.c,$(VERSION_OBJS)) Makefile openconnect.h \
