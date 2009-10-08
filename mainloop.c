@@ -71,6 +71,7 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = handle_sigint;
 
+	sigaction(SIGTERM, &sa, NULL);
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGHUP, &sa, NULL);
 
