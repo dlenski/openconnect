@@ -502,6 +502,14 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		return 1;
 	}
 
+	ret = SSL_get_error(vpninfo->https_ssl, len);
+	if (ret == SSL_ERROR_SYSCALL || ret == SSL_ERROR_ZERO_RETURN) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "SSL read error %d (server probably closed connection); reconnecting.\n",
+				  ret);
+			goto do_reconnect;
+	}
+
 
 	/* If SSL_write() fails we are expected to try again. With exactly
 	   the same data, at exactly the same location. So we keep the
