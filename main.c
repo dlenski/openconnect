@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <signal.h>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -150,11 +151,19 @@ static void read_stdin(char **string)
 	if (c)
 		*c = 0;
 }
+static void handle_sigusr(int sig)
+{
+	if (sig == SIGUSR1)
+		verbose = PRG_TRACE;
+	else if (sig == SIGUSR2)
+		verbose = PRG_INFO;
+}
 
 int main(int argc, char **argv)
 {
 	struct openconnect_info *vpninfo;
 	struct utsname utsbuf;
+	struct sigaction sa;
 	int cookieonly = 0;
 	int use_syslog = 0;
 	uid_t uid = getuid();
@@ -369,6 +378,11 @@ int main(int argc, char **argv)
 	} else {
 		vpninfo->progress = write_progress;
 	}
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = handle_sigusr;
+
+	sigaction(SIGUSR1, &sa, NULL);
+	sigaction(SIGUSR2, &sa, NULL);
 
 	if (vpninfo->sslkey && do_passphrase_from_fsid)
 		passphrase_from_fsid(vpninfo);
