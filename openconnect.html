@@ -248,6 +248,8 @@ TLS, which is supported by OpenSSL.
 
 <H2>OpenSSL/DTLS compatibility</H2>
 
+<I><B>Note: DTLS is optional and not required for basic connectivity, as explained above.</B></I><P>
+
 Unfortunately, Cisco used an old version of OpenSSL for their server,
 which predates the official RFC and has a few differences in the
 implementation of DTLS.
@@ -255,7 +257,8 @@ implementation of DTLS.
 Compatibility support for their "speshul" version of the protocol was
 introduced into OpenSSL after the 0.9.8k release.<P>
 
-If you are using a version of OpenSSL older than 0.9.8l, you will need to apply this patch from OpenSSL CVS:
+If you are using a version of OpenSSL older than 0.9.8l, DTLS will
+only work if you apply this patch from OpenSSL CVS:
 <UL>
   <LI><A HREF="http://cvs.openssl.org/chngview?cn=18037">http://cvs.openssl.org/chngview?cn=18037</A> (OpenSSL <A HREF="http://rt.openssl.org/Ticket/Display.html?id=1751&user=guest&pass=guest">RT#1751</A>)</LI>
 </UL>
@@ -286,6 +289,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Mon Nov  2 10:41:07 GMT 2009
+Last modified: Mon Nov  2 12:17:48 GMT 2009
 <!-- hhmts end -->
 </body> </html>
