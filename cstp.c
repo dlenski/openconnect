@@ -75,10 +75,13 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	struct vpn_option *old_dtls_opts = vpninfo->dtls_options;
 	const char *old_addr = vpninfo->vpn_addr;
 	const char *old_netmask = vpninfo->vpn_netmask;
+	const char *old_addr6 = vpninfo->vpn_addr6;
+	const char *old_netmask6 = vpninfo->vpn_netmask6;
 	struct split_include *inc;
 
 	/* Clear old options which will be overwritten */
 	vpninfo->vpn_addr = vpninfo->vpn_netmask = NULL;
+	vpninfo->vpn_addr6 = vpninfo->vpn_netmask6 = NULL;
 	vpninfo->cstp_options = vpninfo->dtls_options = NULL;
 	vpninfo->vpn_domain = vpninfo->vpn_proxy_pac = NULL;
 
@@ -217,9 +220,15 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		} else if (!strcmp(buf + 7, "MTU")) {
 			vpninfo->mtu = atol(colon);
 		} else if (!strcmp(buf + 7, "Address")) {
-			vpninfo->vpn_addr = new_option->value;
+			if (strchr(new_option->value, ':'))
+				vpninfo->vpn_addr6 = new_option->value;
+			else
+				vpninfo->vpn_addr = new_option->value;
 		} else if (!strcmp(buf + 7, "Netmask")) {
-			vpninfo->vpn_netmask = new_option->value;
+			if (strchr(new_option->value, ':'))
+				vpninfo->vpn_netmask6 = new_option->value;
+			else
+				vpninfo->vpn_netmask = new_option->value;
 		} else if (!strcmp(buf + 7, "DNS")) {
 			int j;
 			for (j = 0; j < 3; j++) {
@@ -257,23 +266,37 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		}
 	}
 
-	if (!vpninfo->vpn_addr) {
+	if (!vpninfo->vpn_addr && !vpninfo->vpn_addr6) {
 		vpninfo->progress(vpninfo, PRG_ERR, "No IP address received. Aborting\n");
 		return -EINVAL;
 	}
-	if (!vpninfo->vpn_netmask)
+	if (vpninfo->vpn_addr && !vpninfo->vpn_netmask)
 		vpninfo->vpn_netmask = "255.255.255.255";
 	if (old_addr) {
 		if (strcmp(old_addr, vpninfo->vpn_addr)) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Reconnect gave different IP address (%s != %s)\n",
+			vpninfo->progress(vpninfo, PRG_ERR, "Reconnect gave different Legacy IP address (%s != %s)\n",
 				vpninfo->vpn_addr, old_addr);
 			return -EINVAL;
 		}
 	}
 	if (old_netmask) {
 		if (strcmp(old_netmask, vpninfo->vpn_netmask)) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Reconnect gave different netmask (%s != %s)\n",
+			vpninfo->progress(vpninfo, PRG_ERR, "Reconnect gave different Legacy IP netmask (%s != %s)\n",
 				vpninfo->vpn_netmask, old_netmask);
+			return -EINVAL;
+		}
+	}
+	if (old_addr6) {
+		if (strcmp(old_addr6, vpninfo->vpn_addr6)) {
+			vpninfo->progress(vpninfo, PRG_ERR, "Reconnect gave different IPv6 address (%s != %s)\n",
+				vpninfo->vpn_addr6, old_addr6);
+			return -EINVAL;
+		}
+	}
+	if (old_netmask6) {
+		if (strcmp(old_netmask6, vpninfo->vpn_netmask6)) {
+			vpninfo->progress(vpninfo, PRG_ERR, "Reconnect gave different IPv6 netmask (%s != %s)\n",
+				vpninfo->vpn_netmask6, old_netmask6);
 			return -EINVAL;
 		}
 	}

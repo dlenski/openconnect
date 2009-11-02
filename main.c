@@ -429,8 +429,10 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Set up DTLS failed; using SSL instead\n");
 
 	vpninfo->progress(vpninfo, PRG_INFO,
-			  "Connected %s as %s, using %s\n", vpninfo->ifname,
-			  vpninfo->vpn_addr,
+			  "Connected %s as %s%s%s, using %s\n", vpninfo->ifname,
+			  vpninfo->vpn_addr?:"",
+			  (vpninfo->vpn_addr6 && vpninfo->vpn_addr)?" + ":"",
+			  vpninfo->vpn_addr6?:"",
 			  (vpninfo->dtls_fd == -1) ?
 			      (vpninfo->deflate ? "SSL + deflate" : "SSL")
 			      : "DTLS");

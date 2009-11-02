@@ -191,8 +191,14 @@ static void set_script_env(struct openconnect_info *vpninfo)
 
 	setenv_int("INTERNAL_IP4_MTU", vpninfo->mtu);
 
-	setenv("INTERNAL_IP4_ADDRESS", vpninfo->vpn_addr, 1);
-	setenv("INTERNAL_IP4_NETMASK", vpninfo->vpn_netmask, 1);
+	if (vpninfo->vpn_addr) {
+		setenv("INTERNAL_IP4_ADDRESS", vpninfo->vpn_addr, 1);
+		setenv("INTERNAL_IP4_NETMASK", vpninfo->vpn_netmask, 1);
+	}
+	if (vpninfo->vpn_addr6) {
+		setenv("INTERNAL_IP6_ADDRESS", vpninfo->vpn_addr6, 1);
+		setenv("INTERNAL_IP6_NETMASK", vpninfo->vpn_netmask6, 1);
+	}
 
 	if (vpninfo->vpn_dns[0])
 		setenv("INTERNAL_IP4_DNS", vpninfo->vpn_dns[0], 1);
@@ -246,8 +252,9 @@ static void set_script_env(struct openconnect_info *vpninfo)
 
 static int script_config_tun(struct openconnect_info *vpninfo)
 {
-	if (vpninfo->peer_addr->sa_family != AF_INET) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Script cannot handle anything but Legacy IP\n");
+	if (vpninfo->peer_addr->sa_family != AF_INET || !vpninfo->vpn_addr) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Script can only handle Legacy IP\n");
 		return -EINVAL;
 	}
 

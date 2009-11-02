@@ -200,6 +200,8 @@ struct openconnect_info {
 	int mtu;
 	const char *vpn_addr;
 	const char *vpn_netmask;
+	const char *vpn_addr6;
+	const char *vpn_netmask6;
 	const char *vpn_dns[3];
 	const char *vpn_nbns[3];
 	const char *vpn_domain;
