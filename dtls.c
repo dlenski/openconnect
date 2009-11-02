@@ -390,7 +390,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		switch(buf[0]) {
 		case AC_PKT_DATA:
-			queue_new_packet(&vpninfo->incoming_queue, AF_INET, buf+1, len-1);
+			queue_new_packet(&vpninfo->incoming_queue, buf+1, len-1);
 			work_done = 1;
 			break;
 
@@ -482,10 +482,6 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		vpninfo->outgoing_queue = this->next;
 		vpninfo->outgoing_qlen--;
-
-		/* FIXME: Don't know how to handle IPv6 yet */
-		if (this->type != AF_INET)
-			continue;
 
 		/* One byte of header */
 		this->hdr[7] = AC_PKT_DATA;

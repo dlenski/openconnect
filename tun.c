@@ -41,7 +41,7 @@
 
 #include "openconnect.h"
 
-#ifdef BSD
+#ifdef __OpenBSD__
 #define TUN_HAS_AF_PREFIX 1
 #endif
 
@@ -357,24 +357,12 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	if (FD_ISSET(vpninfo->tun_fd, &vpninfo->select_rfds)) {
 		while ((len = read(vpninfo->tun_fd, buf, sizeof(buf))) > 0) {
 			unsigned char *pkt = buf;
-			int type;
-#ifdef __OpenBSD__
-			type = ntohl(*(int *)buf);
-			if (type != AF_INET && type != AF_INET6)
-				continue;
+#ifdef TUN_HAS_AF_PREFIX
 			pkt += 4;
 			len -= 4;
-#else
-			struct ip *iph = (void *)buf;
-			if (iph->ip_v == 6)
-				type = AF_INET6;
-			else if (iph->ip_v == 4)
-				type = AF_INET;
-			else
-				continue;
 #endif
-			if (queue_new_packet(&vpninfo->outgoing_queue, type,
-					     pkt, len))
+			if (queue_new_packet(&vpninfo->outgoing_queue, pkt,
+					     len))
 				break;
 
 			work_done = 1;
@@ -396,13 +384,30 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		unsigned char *data = this->data;
 		int len = this->len;
 
-		vpninfo->incoming_queue = this->next;
+#ifdef TUN_HAS_AF_PREFIX
+		struct ip *iph = (void *)data;
+		int type;
 
-#ifdef __OpenBSD__
+		if (iph->ip_v == 6)
+			type = AF_INET6;
+		else if (iph->ip_v == 4)
+			type = AF_INET;
+		else {
+			static int complained = 0;
+			if (!complained) {
+				complained = 1;
+				vpninfo->progress(vpninfo, PRG_ERR,
+						  "Unknown packet (len %d) received: %02x %02x %02x %02x...\n",
+						  len, data[0], data[1], data[2], data[3]);
+			}
+			free(this);
+			continue;
+		}
 		data -= 4;
 		len += 4;
-		*(int *)data = htonl(this->type);
+		*(int *)data = htonl(type);
 #endif
+		vpninfo->incoming_queue = this->next;
 
 		if (write(vpninfo->tun_fd, data, len) < 0 &&
 		    errno == ENOTCONN) {

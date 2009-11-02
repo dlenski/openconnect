@@ -369,14 +369,13 @@ static int cstp_reconnect(struct openconnect_info *vpninfo)
 	return 0;
 }
 
-static int inflate_and_queue_packet(struct openconnect_info *vpninfo, int type, void *buf, int len)
+static int inflate_and_queue_packet(struct openconnect_info *vpninfo, void *buf, int len)
 {
 	struct pkt *new = malloc(sizeof(struct pkt) + vpninfo->mtu);
 
 	if (!new)
 		return -ENOMEM;
 
-	new->type = type;
 	new->next = NULL;
 
 	vpninfo->inflate_strm.next_in = buf;
@@ -461,7 +460,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpninfo->progress(vpninfo, PRG_TRACE,
 					  "Received uncompressed data packet of %d bytes\n",
 					  payload_len);
-			queue_new_packet(&vpninfo->incoming_queue, AF_INET, buf + 8,
+			queue_new_packet(&vpninfo->incoming_queue, buf + 8,
 					 payload_len);
 			work_done = 1;
 			continue;
@@ -483,7 +482,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				vpninfo->progress(vpninfo, PRG_ERR, "Compressed packet received in !deflate mode\n");
 				goto unknown_pkt;
 			}
-			inflate_and_queue_packet(vpninfo, AF_INET, buf + 8, payload_len);
+			inflate_and_queue_packet(vpninfo, buf + 8, payload_len);
 			work_done = 1;
 			continue;
 
@@ -616,10 +615,6 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		struct pkt *this = vpninfo->outgoing_queue;
 		vpninfo->outgoing_queue = this->next;
 		vpninfo->outgoing_qlen--;
-
-		/* FIXME: Don't know how to handle IPv6 yet */
-		if (this->type != AF_INET)
-			continue;
 
 		if (vpninfo->deflate) {
 			unsigned char *adler;
