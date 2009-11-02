@@ -109,9 +109,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	if (vpninfo->deflate)
 		openconnect_SSL_printf(vpninfo->https_ssl, "X-CSTP-Accept-Encoding: deflate;q=1.0\r\n");
 	openconnect_SSL_printf(vpninfo->https_ssl, "X-CSTP-MTU: %d\r\n", vpninfo->mtu);
-	/* To enable IPv6, send 'IPv6,IPv4'.
-	   We don't know how most of that works yet though. */
-	openconnect_SSL_printf(vpninfo->https_ssl, "X-CSTP-Address-Type: IPv4\r\n");
+	openconnect_SSL_printf(vpninfo->https_ssl, "X-CSTP-Address-Type: %s\r\n",
+			       vpninfo->disable_ipv6?"IPv4":"IPv6,IPv4");
 	openconnect_SSL_printf(vpninfo->https_ssl, "X-DTLS-Master-Secret: ");
 	for (i = 0; i < sizeof(vpninfo->dtls_secret); i++)
 		openconnect_SSL_printf(vpninfo->https_ssl, "%02X", vpninfo->dtls_secret[i]);

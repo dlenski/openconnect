@@ -87,6 +87,7 @@ static struct option long_options[] = {
 	{"key-password-from-fsid", 0, 0, 0x02},
 	{"useragent", 1, 0, 0x03},
 	{"setuid-csd", 1, 0, 0x04},
+	{"disable-ipv6", 0, 0, 0x05},
 	{NULL, 0, 0, 0},
 };
 
@@ -123,6 +124,7 @@ void usage(void)
 	printf("      --cookieonly                Fetch webvpn cookie only; don't connect\n");
 	printf("      --printcookie               Print webvpn cookie before connecting\n");
 	printf("      --cafile=FILE               Cert file for server verification\n");
+	printf("      --disable-ipv6              Do not ask for IPv6 connectivity\n");
 	printf("      --dtls-ciphers=LIST         OpenSSL ciphers to support for DTLS\n");
 	printf("      --no-dtls                   Disable DTLS\n");
 	printf("      --no-passwd                 Disable password/SecurID authentication\n");
@@ -333,6 +335,9 @@ int main(int argc, char **argv)
 			vpninfo->uid_csd_given = 1;
 			break;
 		}
+		case 0x05:
+			vpninfo->disable_ipv6 = 1;
+			break;
 		case 'Q':
 			vpninfo->max_qlen = atol(optarg);
 			if (!vpninfo->max_qlen) {

@@ -114,6 +114,9 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .I FILE
 ]
 [
+.B --disable-ipv6
+]
+[
 .B --dtls-ciphers
 .I LIST
 ]
@@ -267,6 +270,9 @@ Print webvpn cookie before connecting
 .B --cafile=FILE
 Cert file for server verification
 .TP
+.B --disable-ipv6
+Do not advertise IPv6 capability to server
+.TP
 .B --dtls-ciphers=LIST
 Set OpenSSL ciphers to support for DTLS
 .TP
@@ -294,11 +300,9 @@ Use STRING as 'User-Agent:' field value in HTTP header.
 .SH LIMITATIONS
 The
 .B openconnect
-client does not yet support IPv6 connectivity, although it is known
-that Cisco's servers do. We have not yet found a suitably configured
-server against which we can test IPv6 functionality. Please contact
-the author if you are able to configure such a server so that we can
-test IPv6 support against it.
+client is not thoroughly tested with IPv6 connectivity. Please contact
+the author if you are able to access a server with IPv6 enabled, so
+that we can test IPv6 support against it.
 
 .SH AUTHORS
 David Woodhouse <dwmw2@infradead.org>
