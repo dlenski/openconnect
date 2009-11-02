@@ -82,9 +82,8 @@ HREF="http://lists.infradead.org/mailman/listinfo/openconnect-devel">Mailman adm
 
 <H2>TODO</H2>
 <UL>
-  <LI>IPv6 support</LI>
-  <LI>Windows support</LI>
-  <LI>"Cisco Secure Desktop" support</LI>
+  <LI>Finish IPv6 support</LI>
+  <LI>Windows (and other platform) support</LI>
 </UL>
 
 Neither of the above would be hard to implement. The first just
@@ -94,14 +93,17 @@ has such a machine &mdash; or has a legitimate version of IOS which
 they could run in an emulator like <A
 HREF="http://www.ipflow.utc.fr/index.php/Cisco_7200_Simulator">Dynamips</A>,
 it would be very much appreciated to have some time to experiment with
-it.
+it.  <P> IPv6 support ought to be working, although you will currently
+need to set the IPv6 address and routes on the tunnel device manually,
+since neither openconnect nor the standard vpn-script have support for
+that yet.
+<P>
 
 <P> The second is just a case of someone testing it on new platforms
 and letting me have any patches that are required; it mostly ought to
 'just work', with maybe a few system-specific modifications to the tun
 support.
 
-<P>CSD looks relatively straightforward; someone just needs to implement it.
 <H2>Download</H2>
 
 Development of OpenConnect is in the git repository at
@@ -115,6 +117,7 @@ For full changelog entries including the latest development, see
 <UL>
   <LI><B>OpenConnect HEAD</B><BR>
      <UL>
+       <LI>Preliminary support for IPv6 connectivity</LI>
        <LI>Support for "Cisco Secure Desktop" idiocy.</LI>
        <LI>Allow <TT>User-Agent:</TT> to be specified on command line.</LI>
        <LI>Fix session termination on disconnect.</LI>
@@ -283,6 +286,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Sat Oct  3 10:06:16 BST 2009
+Last modified: Mon Nov  2 10:41:07 GMT 2009
 <!-- hhmts end -->
 </body> </html>

@@ -302,7 +302,12 @@ The
 .B openconnect
 client is not thoroughly tested with IPv6 connectivity. Please contact
 the author if you are able to access a server with IPv6 enabled, so
-that we can test IPv6 support against it.
+that we can test IPv6 support against it. In particular, neither
+.B openconnect
+nor the standard
+.B vpn-script
+normally used with it are currently able to set the IPv6 addresses and
+routes; the user will need to add those to the tunnel device manually.
 
 .SH AUTHORS
 David Woodhouse <dwmw2@infradead.org>
