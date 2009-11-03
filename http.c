@@ -426,6 +426,27 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 	return 0;
 }
 
+#ifdef __sun__
+char *local_strcasestr(const char *haystack, const char *needle)
+{
+	int hlen = strlen(haystack);
+	int nlen = strlen(needle);
+	int i, j;
+
+	for (i = 0; i < hlen - nlen + 1; i++) {
+		for (j = 0; j < nlen; j++) {
+			if (tolower(haystack[i + j]) != 
+			    tolower(needle[j]))
+				break;
+		}
+		if (j == nlen)
+			return (char *)haystack + i;
+	}
+	return NULL;
+}
+#define strcasestr local_strcasestr
+#endif
+
 /* Return value:
  *  < 0, on error
  *  = 0, no cookie (user cancel)
