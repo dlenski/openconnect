@@ -480,13 +480,13 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
+	hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
 	hints.ai_protocol = 0;
 	hints.ai_canonname = NULL;
 	hints.ai_addr = NULL;
 	hints.ai_next = NULL;
 
-	err = getaddrinfo(vpninfo->hostname, "https", &hints, &result);
+	err = getaddrinfo(vpninfo->hostname, "443", &hints, &result);
 	if (err) {
 		vpninfo->progress(vpninfo, PRG_ERR, "getaddrinfo failed: %s\n", gai_strerror(err));
 		return -EINVAL;
