@@ -106,11 +106,21 @@ static int setenv_int(const char *opt, int value)
 	return setenv(opt, buf, 1);
 }
 
+static int netmasklen(struct in_addr addr)
+{
+	int masklen;
+
+	for (masklen = 0; masklen < 32; masklen++) {
+		if (ntohl(addr.s_addr) >= (0xffffffff << masklen))
+			break;
+	}
+	return 32 - masklen;
+}
+
 static int process_split_xxclude(struct openconnect_info *vpninfo,
 				 char *in_ex, char *route, int *nr_incs)
 {
 	struct in_addr addr;
-	int masklen;
 	char envname[80];
 	char *slash;
 
@@ -142,14 +152,8 @@ static int process_split_xxclude(struct openconnect_info *vpninfo,
 	snprintf(envname, 79, "CISCO_SPLIT_%sC_%d_MASK", in_ex, *nr_incs);
 	setenv(envname, slash+1, 1);
 
-	for (masklen = 0; masklen < 32; masklen++) {
-		if (ntohl(addr.s_addr) >= (0xffffffff << masklen))
-			break;
-	}
-	masklen = 32 - masklen;
-
 	snprintf(envname, 79, "CISCO_SPLIT_%sC_%d_MASKLEN", in_ex, *nr_incs);
-	setenv_int(envname, masklen);
+	setenv_int(envname, netmasklen(addr));
 
 	(*nr_incs)++;
 	return 0;
@@ -208,7 +212,22 @@ static void set_script_env(struct openconnect_info *vpninfo)
 
 	if (vpninfo->vpn_addr) {
 		setenv("INTERNAL_IP4_ADDRESS", vpninfo->vpn_addr, 1);
-		setenv("INTERNAL_IP4_NETMASK", vpninfo->vpn_netmask, 1);
+		if (vpninfo->vpn_netmask) {
+			struct in_addr addr;
+			struct in_addr mask;
+
+			if (inet_aton(vpninfo->vpn_addr, &addr) &&
+			    inet_aton(vpninfo->vpn_netmask, &mask)) {
+				char *netaddr;
+
+				addr.s_addr &= mask.s_addr;
+				netaddr = inet_ntoa(addr);
+
+				setenv("INTERNAL_IP4_NETADDR", netaddr, 1);
+				setenv("INTERNAL_IP4_NETMASK", vpninfo->vpn_netmask, 1);
+				setenv_int("INTERNAL_IP4_NETMASKLEN", netmasklen(mask));
+			}
+		}
 	}
 	if (vpninfo->vpn_addr6) {
 		setenv("INTERNAL_IP6_ADDRESS", vpninfo->vpn_addr6, 1);
