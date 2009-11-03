@@ -42,6 +42,14 @@ platforms, and should be trivially portable to any other platform
 supporting <A HREF="http://en.wikipedia.org/wiki/TUN/TAP">TUN/TAP</a>
 devices and on which <A HREF="http://www.openssl.org/">OpenSSL</a> runs.
 <P>
+
+OpenSolaris support is also functional in the latest code, although
+the standard <TT>vpnc-script</TT> from vpnc does not work on Solaris.
+See <A HREF="http://my2ndhead.blogspot.com/2008/11/connecting-opensolaris-to-cisco-vpn.html">here</A>
+for a script which does almost work, although it doesn't set up the
+routes as requested by the VPN client &mdash; you have to configure them
+manually in the script.
+<P>
 It is known to work on at least i386, x86_64, PowerPC and MIPS
 processors, and should not have issues with portability to other CPUs.
 
@@ -117,6 +125,7 @@ For full changelog entries including the latest development, see
 <UL>
   <LI><B>OpenConnect HEAD</B><BR>
      <UL>
+       <LI>OpenSolaris support</LI>
        <LI>Preliminary support for IPv6 connectivity</LI>
        <LI>Support for "Cisco Secure Desktop" idiocy.</LI>
        <LI>Allow <TT>User-Agent:</TT> to be specified on command line.</LI>
@@ -289,6 +298,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Mon Nov  2 12:17:48 GMT 2009
+Last modified: Tue Nov  3 16:09:20 GMT 2009
 <!-- hhmts end -->
 </body> </html>
