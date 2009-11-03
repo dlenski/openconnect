@@ -269,8 +269,6 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		vpninfo->progress(vpninfo, PRG_ERR, "No IP address received. Aborting\n");
 		return -EINVAL;
 	}
-	if (vpninfo->vpn_addr && !vpninfo->vpn_netmask)
-		vpninfo->vpn_netmask = "255.255.255.255";
 	if (old_addr) {
 		if (strcmp(old_addr, vpninfo->vpn_addr)) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Reconnect gave different Legacy IP address (%s != %s)\n",
