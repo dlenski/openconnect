@@ -268,6 +268,7 @@ struct openconnect_info {
 /* tun.c */
 int setup_tun(struct openconnect_info *vpninfo);
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout);
+void shutdown_tun(struct openconnect_info *vpninfo);
 
 /* dtls.c */
 int setup_dtls(struct openconnect_info *vpninfo);

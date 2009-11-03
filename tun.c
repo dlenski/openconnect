@@ -27,6 +27,7 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <string.h>
+#include <signal.h>
 #ifdef __linux__
 #include <linux/if_tun.h>
 #endif
@@ -425,4 +426,18 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	}
 	/* Work is not done if we just got rid of packets off the queue */
 	return work_done;
+}
+
+void shutdown_tun(struct openconnect_info *vpninfo)
+{	
+	if (vpninfo->script_tun) {
+		kill(vpninfo->script_tun, SIGHUP);
+	} else if (vpninfo->vpnc_script) {
+		setenv("TUNDEV", vpninfo->ifname, 1);
+		setenv("reason", "disconnect", 1);
+		system(vpninfo->vpnc_script);
+	}
+
+	close(vpninfo->tun_fd);
+	vpninfo->tun_fd = -1;
 }

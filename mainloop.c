@@ -132,17 +132,7 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 
 	cstp_bye(vpninfo, vpninfo->quit_reason);
 
-	if (vpninfo->vpnc_script) {
-		if (vpninfo->script_tun) {
-			kill(vpninfo->script_tun, SIGHUP);
-			close(vpninfo->tun_fd);
-		} else {
-			setenv("TUNDEV", vpninfo->ifname, 1);
-			setenv("reason", "disconnect", 1);
-			system(vpninfo->vpnc_script);
-		}
-	}
-
+	shutdown_tun(vpninfo);
 	return 0;
 }
 
