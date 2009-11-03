@@ -215,6 +215,10 @@ struct openconnect_info {
 	fd_set select_wfds;
 	fd_set select_efds;
 
+#ifdef __sun__
+	int ip_fd;
+	int tun_muxid;
+#endif
 	int tun_fd;
 	int ssl_fd;
 	int dtls_fd;

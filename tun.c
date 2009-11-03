@@ -30,6 +30,10 @@
 #include <signal.h>
 #ifdef __linux__
 #include <linux/if_tun.h>
+#elif defined(__sun__)
+#include <net/if_tun.h>
+#include <stropts.h>
+#include <sys/sockio.h>
 #endif
 #include <fcntl.h>
 #include <unistd.h>
@@ -46,6 +50,15 @@
 #define TUN_HAS_AF_PREFIX 1
 #endif
 
+#ifdef __sun__
+static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
+{
+	if (!mtu_only)
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "No vpnc-script configured. Need Solaris IP-setting code\n");
+	return 0;
+}
+#else
 static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
 {
 	struct ifreq ifr;
@@ -84,6 +97,7 @@ static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
 
 	return 0;
 }
+#endif
 
 static int setenv_int(const char *opt, int value)
 {
@@ -318,6 +332,81 @@ int setup_tun(struct openconnect_info *vpninfo)
 		}
 		if (!vpninfo->ifname)
 			vpninfo->ifname = strdup(ifr.ifr_name);
+#elif defined (__sun__)
+		static char tun_name[80];
+		int tun2_fd, ip_fd = open("/dev/ip", O_RDWR);
+		int unit_nr, mux_id;
+		struct ifreq ifr;
+
+		if (ip_fd < 0) {
+			perror("open /dev/ip");
+			return -EIO;
+		}
+
+		tun_fd = open("/dev/tun", O_RDWR);
+		if (tun_fd < 0) {
+			perror("open /dev/tun");
+			close(ip_fd);
+			return -EIO;
+		}
+
+		unit_nr = ioctl(tun_fd, TUNNEWPPA, -1);
+		if (unit_nr < 0) {
+			perror("Failed to create new tun");
+			close(tun_fd);
+			close(ip_fd);
+			return -EIO;
+		}
+		
+		tun2_fd = open("/dev/tun", O_RDWR);
+		if (tun2_fd < 0) {
+			perror("open /dev/tun again");
+			close(tun_fd);
+			close(ip_fd);
+			return -EIO;
+		}
+		if (ioctl(tun2_fd, I_PUSH, "ip") < 0) {
+			perror("Can't push IP");
+			close(tun2_fd);
+			close(tun_fd);
+			close(ip_fd);
+			return -EIO;
+		}
+		if (ioctl(tun2_fd, IF_UNITSEL, &unit_nr) < 0) {
+			perror("Can't select unit");
+			close(tun2_fd);
+			close(tun_fd);
+			close(ip_fd);
+			return -EIO;
+		}
+		mux_id = ioctl(ip_fd, I_PLINK, tun2_fd);
+		if (mux_id < 0) {
+			perror("Can't link tun to IP");
+			close(tun2_fd);
+			close(tun_fd);
+			close(ip_fd);
+			return -EIO;
+		}
+		close(tun2_fd);
+
+		sprintf(tun_name, "tun%d", unit_nr);
+		vpninfo->ifname = tun_name;
+
+		memset(&ifr, 0, sizeof(ifr));
+		strcpy(ifr.ifr_name, tun_name);
+		ifr.ifr_ip_muxid = mux_id;
+
+		if (ioctl(ip_fd, SIOCSIFMUXID, &ifr) < 0) {
+			perror("Set mux id");
+			close(tun_fd);
+			ioctl(ip_fd, I_PUNLINK, mux_id);
+			close(ip_fd);
+			return -EIO;
+		}
+		/* Solaris tunctl needs this in order to tear it down */
+		vpninfo->progress(vpninfo, PRG_DEBUG, "mux id is %d\n", mux_id);
+		vpninfo->tun_muxid = mux_id;
+		vpninfo->ip_fd = ip_fd;
 
 #else /* BSD et al have /dev/tun$x devices */
 		static char tun_name[80];
@@ -432,10 +521,19 @@ void shutdown_tun(struct openconnect_info *vpninfo)
 {	
 	if (vpninfo->script_tun) {
 		kill(vpninfo->script_tun, SIGHUP);
-	} else if (vpninfo->vpnc_script) {
-		setenv("TUNDEV", vpninfo->ifname, 1);
-		setenv("reason", "disconnect", 1);
-		system(vpninfo->vpnc_script);
+	} else {
+		if (vpninfo->vpnc_script) {
+			setenv("TUNDEV", vpninfo->ifname, 1);
+			setenv("reason", "disconnect", 1);
+			system(vpninfo->vpnc_script);
+		}
+#ifdef __sun__
+		if (ioctl(vpninfo->ip_fd, I_PUNLINK, vpninfo->tun_muxid) < 0)
+			perror("ioctl(I_PUNLINK)");
+
+		close(vpninfo->ip_fd);
+		vpninfo->ip_fd = -1;
+#endif
 	}
 
 	close(vpninfo->tun_fd);
