@@ -43,12 +43,11 @@ supporting <A HREF="http://en.wikipedia.org/wiki/TUN/TAP">TUN/TAP</a>
 devices and on which <A HREF="http://www.openssl.org/">OpenSSL</a> runs.
 <P>
 
-OpenSolaris support is also functional in the latest code, although
-the standard <TT>vpnc-script</TT> from vpnc does not work on Solaris.
-See <A HREF="http://my2ndhead.blogspot.com/2008/11/connecting-opensolaris-to-cisco-vpn.html">here</A>
-for a script which does almost work, although it doesn't set up the
-routes as requested by the VPN client &mdash; you have to configure them
-manually in the script.
+OpenSolaris support is also functional in the latest code. Make sure
+you use the vpnc-script from my <A
+HREF="http://git.infradead.org/users/dwmw2/vpnc-scripts.git">vpnc-scripts</A>
+repository, because the standard script distributed with vpnc doesn't
+work on Solaris.
 <P>
 It is known to work on at least i386, x86_64, PowerPC and MIPS
 processors, and should not have issues with portability to other CPUs.
@@ -298,6 +297,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Tue Nov  3 16:09:20 GMT 2009
+Last modified: Tue Nov  3 19:16:22 GMT 2009
 <!-- hhmts end -->
 </body> </html>
