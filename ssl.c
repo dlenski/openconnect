@@ -597,6 +597,25 @@ void openconnect_init_openssl(void)
 	OpenSSL_add_all_algorithms ();
 }
 
+#ifdef __sun__
+#include <sys/statvfs.h>
+int passphrase_from_fsid(struct openconnect_info *vpninfo)
+{
+	struct statvfs buf;
+
+	vpninfo->cert_password = malloc(17);
+	if (!vpninfo->cert_password)
+		return -ENOMEM;
+
+	if (statvfs(vpninfo->sslkey, &buf)) {
+		int err = errno;
+		vpninfo->progress(vpninfo, PRG_ERR, "statvfs: %s\n", strerror(errno));
+		return -err;
+	}
+	sprintf(vpninfo->cert_password, "%lx", buf.f_fsid);
+	return 0;
+}
+#else
 int passphrase_from_fsid(struct openconnect_info *vpninfo)
 {
 	struct statfs buf;
@@ -616,3 +635,4 @@ int passphrase_from_fsid(struct openconnect_info *vpninfo)
 	sprintf(vpninfo->cert_password, "%llx", fsid64);
 	return 0;
 }
+#endif
