@@ -312,8 +312,8 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 
 	if (!vpninfo->uid_csd_given) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Error: You are trying to "
-				  "run unsecure CSD code without specifying the CSD user.\n"
-				  "       Use command line option \"--setuid-csd\"\n");
+				  "run insecure CSD code without specifying the CSD user.\n"
+				  "       Use command line option \"--csd-user\"\n");
 		exit(1);
 	}
 
@@ -352,9 +352,9 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 			chdir(pw->pw_dir);
 		}
 		if (vpninfo->uid_csd == 0) {
-			fprintf(stderr, "Warning: you are running unsecure "
+			fprintf(stderr, "Warning: you are running insecure "
 				"CSD code with root privileges\n"
-				"\t Use command line option \"--setuid-csd\"\n");
+				"\t Use command line option \"--csd-user\"\n");
 		}
 
 		csd_argv[i++] = fname;

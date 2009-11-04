@@ -87,7 +87,7 @@ static struct option long_options[] = {
 	{"servercert", 1, 0, 0x01},
 	{"key-password-from-fsid", 0, 0, 0x02},
 	{"useragent", 1, 0, 0x03},
-	{"setuid-csd", 1, 0, 0x04},
+	{"csd-user", 1, 0, 0x04},
 	{"disable-ipv6", 0, 0, 0x05},
 	{NULL, 0, 0, 0},
 };
@@ -109,7 +109,7 @@ void usage(void)
 	printf("  -i, --interface=IFNAME          Use IFNAME for tunnel interface\n");
 	printf("  -l, --syslog                    Use syslog for progress messages\n");
 	printf("  -U, --setuid=USER               Drop privileges after connecting\n");
-	printf("      --setuid-csd=USER           Drop privileges during CSD execution\n");
+	printf("      --csd-user=USER           Drop privileges during CSD execution\n");
 	printf("  -m, --mtu=MTU                   Request MTU from server\n");
 	printf("  -p, --key-password=PASS         Set key passphrase or TPM SRK PIN\n");
 	printf("      --key-password-from-fsid    Key passphrase is fsid of file system\n");
