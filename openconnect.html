@@ -35,6 +35,38 @@ client under Linux found it to have many deficiencies:
 
 Naturally, OpenConnect addresses all of the above issues, and more.
 
+<H2>Getting started</H2>
+
+Before you get dismayed by the badly laid out information below,
+here's a simple intro to using OpenConnect.
+<OL>
+
+  <LI>Install OpenConnect.<BR>
+      Some distributions like Fedora have packages; otherwise you can
+      download it and type '<TT>make</TT>' to build it. To build it,
+      you'll want development packages for <TT>libxml2</TT>, <TT>zlib</TT>
+      and obviously <TT>OpenSSL</TT> to be installed.
+  </LI>
+  <LI>Install a <TT>vpnc-script</TT>.<BR>
+      This script is what sets up all the addresses and routes for you; it's the
+      same as <TT>vpnc</TT>'s. You can get one from <A HREF="http://git.infradead.org/users/dwmw2/vpnc-scripts.git/blob_plain/HEAD:/vpnc-script">here</A> if you don't have one &mdash; or if you need IPv6 or Solaris support, which the <TT>vpnc</TT> version lacks.</LI>
+  <LI>Connect to your server:<BR>
+      <TT>openconnect --script /etc/vpnc/vpnc-script vpn.mycompany.com</TT></LI>
+</OL>
+
+That should be it, if you have a password-based login. If you use
+certificates, you'll need to tell OpenConnect where to find the
+certificate with the <TT>-c</TT> option. You might need to steal the
+certificate from your Windows certificate store using a tool like <A
+HREF="https://www.isecpartners.com/jailbreak.html">Jailbreak</A>.
+<P>
+You can ignore anything you see below about needing to patch OpenSSL
+so that DTLS works &mdash; you don't really need it, although it will
+make your connections much faster if you're experiencing packet loss
+between you and the VPN server. But you can worry about that later.
+
+
+
 <H2>Supported Platforms</H2>
 
 OpenConnect is known to work on Linux, OpenBSD, FreeBSD and Mac OS X
@@ -51,10 +83,11 @@ work on Solaris.
 <P>
 It is known to work on at least i386, x86_64, PowerPC and MIPS
 processors, and should not have issues with portability to other CPUs.
+<P>Note that 'Cisco Secure Desktop' support may require the ability to run Linux/i386 binaries; see <A HREF="#csd">below</A>.</P>
 
 <H2>Features</H2>
 <UL>
-  <LI>Automatic detection of IPv4 address, routes.</LI>
+  <LI>Automatic detection of IPv4 and IPv6 address, routes.</LI>
   <LI>Authentication via HTTP forms.</LI>
       <LI>Authentication using SSL certificates, from local file or <A HREF="http://en.wikipedia.org/wiki/Trusted_Platform_Module">Trusted Platform Module</A>.</LI>
   <LI><I>UserGroup</I> support for selecting between multiple configurations on a single VPN server.</LI>
@@ -63,8 +96,10 @@ processors, and should not have issues with portability to other CPUs.
   <LI>Automatic update of VPN server list / configuration.</LI>
   <LI>Roaming support, allowing reconnection when the local IP address changes.</LI>
   <LI>Run without root privileges.</LI>
+  <LI>"Cisco Secure Desktop" support <I>(see below)</I>.</LI>
 </UL>
 
+<H3>Running as non-root</H3>
 There are two ways that OpenConnect can run without root
 privileges. The first is that it can use a tun device which is created
 in advance by the root user, and set to be owned by the user who runs
@@ -79,6 +114,24 @@ SOCKS access to the VPN without giving full access to all untrusted
 users and processes on the computer, and without requiring root
 privileges at all.
 
+<H3><A NAME="csd">Cisco Secure Desktop</A></H3>
+
+The 'Cisco Secure Desktop' is a bit of a misnomer &mdash; it works by
+downloading a trojan binary from the server and running it on your
+client machine to perform some kind of 'verification' and post its
+approval back to the server. This seems anything <em>but</em> secure
+to me, especially given their history of trivially-exploitable
+bugs.<P>
+It's also fairly easy to subvert, by running your own modified binary
+instead of the one you download from the server. Or by running their
+binary but poking at it with gdb.<P>
+We support this idiocy, but because of the security concerns the
+trojan will be executed only if a userid is specified on the command
+line using the <TT>--csd-user=</TT> option.
+<P>
+This support currently only works when the server has a Linux binary
+installed, and only when that Linux binary runs on the client machine.
+
 
 <H2>Mailing list</H2>
 
@@ -89,27 +142,29 @@ HREF="http://lists.infradead.org/mailman/listinfo/openconnect-devel">Mailman adm
 
 <H2>TODO</H2>
 <UL>
-  <LI>Finish IPv6 support</LI>
-  <LI>Windows (and other platform) support</LI>
+  <LI>Further testing of IPv6 support.</LI>
+  <LI>Support for running 'Cisco Secure Desktop' trojan under
+      <A HREF="http://www.winehq.com">Wine</A></LI> 
+  <LI>More platform support: Windows, Symbian, etc.</LI>
 </UL>
 
-Neither of the above would be hard to implement. The first just
-requires someone with access to a suitably configured server; it
-should be fairly simple to see how IPv6 connectivity works. If someone
-has such a machine &mdash; or has a legitimate version of IOS which
-they could run in an emulator like <A
-HREF="http://www.ipflow.utc.fr/index.php/Cisco_7200_Simulator">Dynamips</A>,
-it would be very much appreciated to have some time to experiment with
-it.  <P> IPv6 support ought to be working, although you will currently
-need to set the IPv6 address and routes on the tunnel device manually,
-since neither openconnect nor the standard vpn-script have support for
-that yet.
+IPv6 support is believed to be working, but is fairly new and lightly
+tested. With <A
+HREF="http://git.infradead.org/users/dwmw2/vpnc-scripts.git"> an
+appropriate vpnc-script</A>, an IPv6 address will be set on the tunnel
+interface and should work. However, IPv6 routes are not currently
+set up by the script. Patches welcome.
 <P>
-
-<P> The second is just a case of someone testing it on new platforms
-and letting me have any patches that are required; it mostly ought to
-'just work', with maybe a few system-specific modifications to the tun
-support.
+<P>
+Platform support for new UNIX systems is relatively simple to add
+&mdash; most of the difference is in the TUN/TAP device handling, and
+the major variants of that are already supported.
+<P>
+A port to Windows should be fairly simple, since a TUN/TAP driver
+exists for Windows and Cygwin should make the basic port work OK.
+<P>
+A port to Symbian, to provide VPN connectivity on phone handsets,
+would be very useful. Any volunteers?
 
 <H2>Download</H2>
 
@@ -124,8 +179,10 @@ For full changelog entries including the latest development, see
 <UL>
   <LI><B>OpenConnect HEAD</B><BR>
      <UL>
-       <LI>OpenSolaris support</LI>
-       <LI>Preliminary support for IPv6 connectivity</LI>
+       <LI>OpenSolaris support.</LI>
+       <LI>Preliminary support for IPv6 connectivity.</LI>
+       <LI>Fix session shutdown on exit.</LI>
+       <LI>Fix reconnection when TCP connection is closed.</LI>
        <LI>Support for "Cisco Secure Desktop" idiocy.</LI>
        <LI>Allow <TT>User-Agent:</TT> to be specified on command line.</LI>
        <LI>Fix session termination on disconnect.</LI>
@@ -220,9 +277,10 @@ The basic text-mode client uses the following libraries:
 <UL>
   <LI><B>OpenSSL</B> &mdash; all versions from 0.9.7 onwards will work for basic connectivity, but see note on DTLS compatibility below.</LI>
   <LI><B>libxml2</B></LI>
+  <LI><B>zlib</B></LI>
 </UL>
 Mac OS X users will also need to install the
-<A HREF="http://tuntaposx.sourceforge.net/">Mac OS X tun/tap driver</A>.<P>
+<A HREF="http://tuntaposx.sourceforge.net/">Mac OS X tun/tap driver</A>, and Solaris users will need the <A HREF="http://www.whiteboard.ne.jp/~admin2/tuntap/">Solaris one</A>.<P>
 
 For building the NetworkManager support, you will also need:
 <UL>
@@ -286,7 +344,7 @@ The username/password for OpenSSL RT is 'guest/guest'
 Both <TT>openconnect</TT> and <TT>NetworkManager-openconnect</TT> packages are included in Fedora.
 Fedora's OpenSSL packages include all required patches for DTLS compatibility.
 <H3>Debian</H3>
-The <TT>openconnect</TT> and <TT>network-manager-openconnect</TT> packages are avilable in unstable and testing.<BR>
+The <TT>openconnect</TT> and <TT>network-manager-openconnect</TT> packages are available in unstable and testing.<BR>
 <A HREF="http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=524982">Debian bug #524982</A> has been filed, requesting that the required patches be included in Debian's OpenSSL package.<P>
 <H3>Gentoo</H3>
 <A HREF="http://bugs.gentoo.org/show_bug.cgi?id=263097">Gentoo bug #263097</A> has been filed, asking for <TT>openconnect</TT> to be packaged.
@@ -297,6 +355,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Tue Nov  3 19:16:22 GMT 2009
+Last modified: Wed Nov  4 08:55:12 GMT 2009
 <!-- hhmts end -->
 </body> </html>
