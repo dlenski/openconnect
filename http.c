@@ -317,6 +317,11 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		exit(1);
 	}
 
+#ifndef __linux__
+	vpninfo->progress(vpninfo, PRG_INFO,
+			  "Trying to run Linux CSD trojan script.");
+#endif
+
 	sprintf(fname, "/tmp/csdXXXXXX");
 	fd = mkstemp(fname);
 	if (fd < 0) {
