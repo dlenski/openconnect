@@ -22,6 +22,7 @@
  *   Boston, MA 02110-1301 USA
  */
 
+#define _GNU_SOURCE
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -29,11 +30,14 @@
 #include <fcntl.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 #if defined(__linux__)
 #include <sys/vfs.h>
 #elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
 #include <sys/param.h>
 #include <sys/mount.h>
+#elif defined (__sun__)
+#include <sys/statvfs.h>
 #endif
 
 #include <openssl/ssl.h>
@@ -598,21 +602,17 @@ void openconnect_init_openssl(void)
 }
 
 #ifdef __sun__
-#include <sys/statvfs.h>
 int passphrase_from_fsid(struct openconnect_info *vpninfo)
 {
 	struct statvfs buf;
-
-	vpninfo->cert_password = malloc(17);
-	if (!vpninfo->cert_password)
-		return -ENOMEM;
 
 	if (statvfs(vpninfo->sslkey, &buf)) {
 		int err = errno;
 		vpninfo->progress(vpninfo, PRG_ERR, "statvfs: %s\n", strerror(errno));
 		return -err;
 	}
-	sprintf(vpninfo->cert_password, "%lx", buf.f_fsid);
+	if (asprintf(&vpninfo->cert_password, "%lx", buf.f_fsid))
+		return -ENOMEM;
 	return 0;
 }
 #else
@@ -622,17 +622,15 @@ int passphrase_from_fsid(struct openconnect_info *vpninfo)
 	unsigned *fsid = (unsigned *)&buf.f_fsid;
 	unsigned long long fsid64;
 
-	vpninfo->cert_password = malloc(17);
-	if (!vpninfo->cert_password)
-		return -ENOMEM;
-
 	if (statfs(vpninfo->sslkey, &buf)) {
 		int err = errno;
 		vpninfo->progress(vpninfo, PRG_ERR, "statfs: %s\n", strerror(errno));
 		return -err;
 	}
 	fsid64 = ((unsigned long long)fsid[0] << 32) | fsid[1];
-	sprintf(vpninfo->cert_password, "%llx", fsid64);
+
+	if (asprintf(&vpninfo->cert_password, "%llx", fsid64))
+		return -ENOMEM;
 	return 0;
 }
 #endif
