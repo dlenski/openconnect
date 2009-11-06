@@ -62,6 +62,12 @@ int http_add_cookie(struct openconnect_info *vpninfo, const char *option, const 
 		new->next = NULL;
 		new->option = strdup(option);
 		new->value = strdup(value);
+		if (!new->option || !new->value) {
+			free(new->option);
+			free(new->value);
+			free(new);
+			return -ENOMEM;
+		}
 	} else {
 		/* Kill cookie; don't replace it */
 		new = NULL;
