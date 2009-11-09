@@ -136,7 +136,6 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 	STACK_OF(X509) *ca = sk_X509_new_null();
 	int ret = 0;
 	char pass[PEM_BUFSIZE];
-	char certbuf[EVP_MAX_MD_SIZE * 2 + 1];
 
 	if (!vpninfo->cert_password) {
 		if (EVP_read_pw_string(pass, PEM_BUFSIZE,
@@ -151,8 +150,6 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 	}
 	if (cert) {
 		SSL_CTX_use_certificate(vpninfo->https_ctx, cert);
-		get_cert_md5_fingerprint(vpninfo, cert, certbuf);
-		vpninfo->cert_md5_fingerprint = strdup(certbuf);
 		X509_free(cert);
 	} else {
 		vpninfo->progress(vpninfo, PRG_ERR,

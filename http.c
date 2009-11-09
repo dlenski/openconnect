@@ -351,8 +351,10 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 	close(fd);
 
 	if (!fork()) {
-		X509 *cert = SSL_get_peer_certificate(vpninfo->https_ssl);
-		char certbuf[EVP_MAX_MD_SIZE * 2 + 1];
+		X509 *scert = SSL_get_peer_certificate(vpninfo->https_ssl);
+		X509 *ccert = SSL_get_certificate(vpninfo->https_ssl);
+		char scertbuf[EVP_MAX_MD_SIZE * 2 + 1];
+		char ccertbuf[EVP_MAX_MD_SIZE * 2 + 1];
 		char *csd_argv[32];
 		int i = 0;
 
@@ -385,9 +387,14 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		csd_argv[i++] = "\"0\"";
 		csd_argv[i++] = "-group";
 		asprintf(&csd_argv[i++], "\"%s\"", vpninfo->authgroup?:"");
-		get_cert_md5_fingerprint(vpninfo, cert, certbuf);
+		get_cert_md5_fingerprint(vpninfo, scert, scertbuf);
+		if (ccert)
+			get_cert_md5_fingerprint(vpninfo, ccert, ccertbuf);
+		else
+			ccertbuf[0] = 0;
+
 		csd_argv[i++] = "-certhash";
-		asprintf(&csd_argv[i++], "\"%s:%s\"", certbuf, vpninfo->cert_md5_fingerprint ?: "");
+		asprintf(&csd_argv[i++], "\"%s:%s\"", scertbuf, ccertbuf);
 		csd_argv[i++] = "-url";
 		asprintf(&csd_argv[i++], "\"https://%s%s\"", vpninfo->hostname, vpninfo->csd_starturl);
 		/* WTF would it want to know this for? */

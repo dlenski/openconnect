@@ -150,7 +150,6 @@ struct openconnect_info {
 	const char *sslkey;
 	int cert_type;
 	char *cert_password;
-	char *cert_md5_fingerprint;
 	const char *cafile;
 	const char *servercert;
 	const char *xmlconfig;
