@@ -256,8 +256,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		f = fopen(vpninfo->cert, "r");
 		if (!f) {
 			vpninfo->progress(vpninfo, PRG_ERR,
-					  "Failed to open certificate file %s\n",
-					  vpninfo->cert);
+					  "Failed to open certificate file %s: %s\n",
+					  vpninfo->cert, strerror(errno));
 			return -ENOENT;
 		}
 		p12 = d2i_PKCS12_fp(f, NULL);
@@ -279,7 +279,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	if (!SSL_CTX_use_certificate_chain_file(vpninfo->https_ctx,
 						vpninfo->cert)) {
 		vpninfo->progress(vpninfo, PRG_ERR,
-				  "Load certificate failed\n");
+				  "Loading certificate failed\n");
 		report_ssl_errors(vpninfo);
 		return -EINVAL;
 	}
@@ -290,8 +290,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 		if (!f) {
 			vpninfo->progress(vpninfo, PRG_ERR,
-					  "Failed to open certificate file %s\n",
-					  vpninfo->cert);
+					  "Failed to open private key file %s: %s\n",
+					  vpninfo->cert, strerror(errno));
 			return -ENOENT;
 		}
 
@@ -331,7 +331,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 					    SSL_FILETYPE_PEM)) {
 		unsigned long err = ERR_peek_error();
 		
-		vpninfo->progress(vpninfo, PRG_ERR, "Private key failed\n");
+		vpninfo->progress(vpninfo, PRG_ERR, "Loading private key failed\n");
 		report_ssl_errors(vpninfo);
 
 #ifndef EVP_F_EVP_DECRYPTFINAL_EX
