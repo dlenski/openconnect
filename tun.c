@@ -118,7 +118,8 @@ static int netmasklen(struct in_addr addr)
 }
 
 static int process_split_xxclude(struct openconnect_info *vpninfo,
-				 char *in_ex, char *route, int *nr_incs)
+				 char *in_ex, char *route, int *v4_incs,
+				 int *v6_incs)
 {
 	struct in_addr addr;
 	char envname[80];
@@ -134,13 +135,27 @@ static int process_split_xxclude(struct openconnect_info *vpninfo,
 	}
 
 	*slash = 0;
+
+	if (strchr(route, ':')) {
+		snprintf(envname, 79, "CISCO_IPV6_SPLIT_%sC_%d_ADDR", in_ex,
+			 *v6_incs);
+		setenv(envname, route, 1);
+
+		snprintf(envname, 79, "CISCO_IPV6_SPLIT_%sC_%d_MASKLEN", in_ex,
+			 *v6_incs);
+		setenv(envname, slash+1, 1);
+
+		(*v6_incs)++;
+		return 0;
+	}
+		
 	if (!inet_aton(route, &addr)) {
 		*slash = '/';
 		goto badinc;
 	}
 
 	envname[79] = 0;
-	snprintf(envname, 79, "CISCO_SPLIT_%sC_%d_ADDR", in_ex, *nr_incs);
+	snprintf(envname, 79, "CISCO_SPLIT_%sC_%d_ADDR", in_ex, *v4_incs);
 	setenv(envname, route, 1);
 
 	/* Put it back how we found it */
@@ -149,13 +164,13 @@ static int process_split_xxclude(struct openconnect_info *vpninfo,
 	if (!inet_aton(slash+1, &addr))
 		goto badinc;
 
-	snprintf(envname, 79, "CISCO_SPLIT_%sC_%d_MASK", in_ex, *nr_incs);
+	snprintf(envname, 79, "CISCO_SPLIT_%sC_%d_MASK", in_ex, *v4_incs);
 	setenv(envname, slash+1, 1);
 
-	snprintf(envname, 79, "CISCO_SPLIT_%sC_%d_MASKLEN", in_ex, *nr_incs);
+	snprintf(envname, 79, "CISCO_SPLIT_%sC_%d_MASKLEN", in_ex, *v4_incs);
 	setenv_int(envname, netmasklen(addr));
 
-	(*nr_incs)++;
+	(*v4_incs)++;
 	return 0;
 }
 
@@ -262,24 +277,34 @@ static void set_script_env(struct openconnect_info *vpninfo)
 	if (vpninfo->split_includes) {
 		struct split_include *this = vpninfo->split_includes;
 		int nr_split_includes = 0;
+		int nr_v6_split_includes = 0;
 
 		while (this) {
 			process_split_xxclude(vpninfo, "IN", this->route,
-					      &nr_split_includes);
+					      &nr_split_includes,
+					      &nr_v6_split_includes);
 			this = this->next;
 		}
-		setenv_int("CISCO_SPLIT_INC", nr_split_includes);
+		if (nr_split_includes)
+			setenv_int("CISCO_SPLIT_INC", nr_split_includes);
+		if (nr_v6_split_includes)
+			setenv_int("CISCO_IPV6_SPLIT_INC", nr_v6_split_includes);
 	}
 	if (vpninfo->split_excludes) {
 		struct split_include *this = vpninfo->split_excludes;
 		int nr_split_excludes = 0;
+		int nr_v6_split_excludes = 0;
 
 		while (this) {
 			process_split_xxclude(vpninfo, "EX", this->route,
-					      &nr_split_excludes);
+					      &nr_split_excludes,
+					      &nr_v6_split_excludes);
 			this = this->next;
 		}
-		setenv_int("CISCO_SPLIT_EXC", nr_split_excludes);
+		if (nr_split_excludes)
+			setenv_int("CISCO_SPLIT_EXC", nr_split_excludes);
+		if (nr_v6_split_excludes)
+			setenv_int("CISCO_IPV6_SPLIT_EXC", nr_v6_split_excludes);
 	}
 	setenv_cstp_opts(vpninfo);
 }
