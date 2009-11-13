@@ -34,6 +34,8 @@
 #include <net/if_tun.h>
 #include <stropts.h>
 #include <sys/sockio.h>
+#elif defined(__FreeBSD__)
+#include <net/if_tun.h>
 #endif
 #include <fcntl.h>
 #include <unistd.h>
@@ -47,6 +49,8 @@
 #include "openconnect.h"
 
 #ifdef __OpenBSD__
+#define TUN_HAS_AF_PREFIX 1
+#elif defined(TUNSIFHEAD)
 #define TUN_HAS_AF_PREFIX 1
 #endif
 
@@ -466,6 +470,13 @@ int setup_tun(struct openconnect_info *vpninfo)
 			exit(1);
 		}
 		vpninfo->ifname = tun_name + 5;
+#ifdef TUNSIFHEAD
+		i = 1;
+		if (ioctl(tun_fd, TUNSIFHEAD, &i) < 0) {
+			perror("TUNSIFHEAD");
+			exit(1);
+		}
+#endif
 #endif
 		if (vpninfo->vpnc_script) {
 			script_config_tun(vpninfo);
