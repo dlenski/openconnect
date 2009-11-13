@@ -300,14 +300,15 @@ Use STRING as 'User-Agent:' field value in HTTP header.
 .SH LIMITATIONS
 The
 .B openconnect
-client is not thoroughly tested with IPv6 connectivity. Please contact
-the author if you are able to access a server with IPv6 enabled, so
-that we can test IPv6 support against it. In particular, neither
-.B openconnect
-nor the standard
-.B vpn-script
-normally used with it are currently able to set the IPv6 addresses and
-routes; the user will need to add those to the tunnel device manually.
+client is not tested with IPv6 connectivity on OpenBSD or Mac OS X. A
+patch to the tun/tap driver is required on Solaris to make IPv6 work.
+
+
+Note also that the standard
+.B vpnc-script 
+shipped with vpnc 0.5.3 is not capable of setting up IPv6 routes; the one from
+.B git://git.infradead.org/users/dwmw2/vpnc-scripts.git
+will be required.
 
 .SH AUTHORS
 David Woodhouse <dwmw2@infradead.org>
