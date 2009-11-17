@@ -143,9 +143,10 @@ HREF="http://lists.infradead.org/mailman/listinfo/openconnect-devel">Mailman adm
 
 <H2>TODO</H2>
 <UL>
-  <LI>Testing IPv6 on all supported platforms (OpenBSD, Mac OS X).</LI>
+  <LI>Testing IPv6 on more platforms (only Linux, FreeBSD, Solaris are tested so far).</LI>
   <LI>Better support for running or emulating the 'Cisco Secure Desktop' trojan.</LI>
   <LI>More platform support: Windows, Symbian, etc.</LI>
+  <LI>GUI for OS X, perhaps based on <A HREF="http://code.google.com/p/tunnelblick/">Tunnelblick</A>.</LI>
 </UL>
 
 <P>
@@ -174,6 +175,8 @@ For full changelog entries including the latest development, see
      <UL>
        <LI>Add IPv6 support for FreeBSD.</LI>
        <LI>Support "split tunnel" mode for IPv6 routing.</LI>
+       <LI>Fix bug where client certificate's MD5 was only given to the
+	   CSD trojan if a PKCS#12 certificate was used.</LI>
      </UL><BR>
   </LI>
   <LI><B><A HREF="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.10.tar.gz">OpenConnect v2.10</a></B> &mdash; 2009-11-04<BR>
@@ -323,7 +326,7 @@ Compatibility support for their "speshul" version of the protocol is
 in the 1.0.0-beta2 and later releases, and is in CVS for the 0.9.8 branch,
 but has not yet been part of an official 0.9.8 release.
 <P>
-It was actually committed to the 0.9.8 branch after the 0.9.8k release,
+It was originally committed to the 0.9.8 branch after the 0.9.8k release,
 and therefore expected to be in the 0.9.8l release &mdash; but 0.9.8l
 actually turned out to be an "emergency" release to address a <A
 HREF="http://extendedsubset.com/?p=8">serious protocol flaw</A>, and
@@ -370,6 +373,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Mon Nov 16 10:06:24 GMT 2009
+Last modified: Tue Nov 17 12:16:45 GMT 2009
 <!-- hhmts end -->
 </body> </html>
