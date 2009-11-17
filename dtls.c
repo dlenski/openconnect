@@ -211,6 +211,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	SSL_set_bio(dtls_ssl, dtls_bio, dtls_bio);
 
 #ifndef SSL_OP_CISCO_ANYCONNECT
+#warning Your version of OpenSSL does not seem to support Cisco DTLS compatibility
 #define SSL_OP_CISCO_ANYCONNECT 0x8000
 #endif
 	SSL_set_options(dtls_ssl, SSL_OP_CISCO_ANYCONNECT);
