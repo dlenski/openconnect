@@ -51,6 +51,14 @@ endif
 
 CFLAGS_nm-auth-dialog.o += $(GTK_CFLAGS) $(GCONF_CFLAGS) $(XML2_CFLAGS)
 
+SYSTEM_INCLUDES=/usr/include
+IF_TUN_HDR := $(firstword $(wildcard $(SYSTEM_INCLUDES)/linux/if_tun.h \
+				     $(SYSTEM_INCLUDES)/net/if_tun.h \
+				     $(SYSTEM_INCLUDES)/net/tun/if_tun.h))
+ifneq ($(IF_TUN_HDR),)
+CFLAGS_tun.o += -DIF_TUN_HDR=\"$(patsubst $(SYSTEM_INCLUDES)/%,%,$(IF_TUN_HDR))\"
+endif
+
 OPENCONNECT_OBJS := main.o $(SSL_UI) xml.o
 CONNECTION_OBJS := dtls.o cstp.o mainloop.o tun.o 
 AUTH_OBJECTS := ssl.o http.o version.o securid.o auth.o

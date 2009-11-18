@@ -28,15 +28,6 @@
 #include <sys/ioctl.h>
 #include <string.h>
 #include <signal.h>
-#ifdef __linux__
-#include <linux/if_tun.h>
-#elif defined(__sun__)
-#include <net/if_tun.h>
-#include <stropts.h>
-#include <sys/sockio.h>
-#elif defined(__FreeBSD__)
-#include <net/if_tun.h>
-#endif
 #include <fcntl.h>
 #include <unistd.h>
 #include <netinet/in_systm.h>
@@ -45,12 +36,37 @@
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#if defined(__sun__)
+#include <net/if_tun.h>
+#include <stropts.h>
+#include <sys/sockio.h>
+#endif
 
 #include "openconnect.h"
 
-#ifdef __OpenBSD__
-#define TUN_HAS_AF_PREFIX 1
-#elif defined(TUNSIFHEAD)
+/*
+ * If an if_tun.h include file was found anywhere (by the Makefile), it's 
+ * included. Else, we end up assuming that we have BSD-style devices such
+ * as /dev/tun0 etc.
+ */
+#ifdef IF_TUN_HDR
+#include IF_TUN_HDR
+#endif
+
+/*
+ * The OS X tun/tap driver doesn't provide a header file; you're expected
+ * to define this for yourself.
+ */
+#ifdef __APPLE__
+#define TUNSIFHEAD  _IOW('t', 96, int)
+#endif
+
+/*
+ * OpenBSD always puts the protocol family prefix onto packets. Other
+ * systems let us enable that with the TUNSIFHEAD ioctl, and some of them
+ * (e.g. FreeBSD) _need_ it otherwise they'll interpret IPv6 packets as IPv4.
+ */
+#if defined(__OpenBSD__) || defined(TUNSIFHEAD)
 #define TUN_HAS_AF_PREFIX 1
 #endif
 
