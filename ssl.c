@@ -476,52 +476,67 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	BIO *https_bio;
 	int ssl_sock = -1;
 	int err;
-	struct addrinfo hints, *result, *rp;
 
-	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
-	hints.ai_protocol = 0;
-	hints.ai_canonname = NULL;
-	hints.ai_addr = NULL;
-	hints.ai_next = NULL;
-
-	err = getaddrinfo(vpninfo->hostname, "443", &hints, &result);
-	if (err) {
-		vpninfo->progress(vpninfo, PRG_ERR, "getaddrinfo failed: %s\n", gai_strerror(err));
-		return -EINVAL;
-	}
-
-	vpninfo->progress(vpninfo, PRG_INFO,
-			  "Attempting to connect to %s\n", vpninfo->hostname);
-
-	for (rp = result; rp ; rp = rp->ai_next) {
-		ssl_sock = socket(rp->ai_family, rp->ai_socktype,
-				  rp->ai_protocol);
-		if (ssl_sock < 0)
-			continue;
-		if (connect(ssl_sock, rp->ai_addr, rp->ai_addrlen) >= 0) {
-			/* Store the peer address we actually used, so that DTLS can
-			   use it again later */
-			vpninfo->peer_addr = malloc(rp->ai_addrlen);
-			if (!vpninfo->peer_addr) {
-				vpninfo->progress(vpninfo, PRG_ERR, "Failed to allocate sockaddr storage\n");
-				close(ssl_sock);
-				return -ENOMEM;
-			}
-			vpninfo->peer_addrlen = rp->ai_addrlen;
-			memcpy(vpninfo->peer_addr, rp->ai_addr, rp->ai_addrlen);
-			break;
+	if (vpninfo->peer_addr) {
+		ssl_sock = socket(vpninfo->peer_addr->sa_family, SOCK_STREAM, IPPROTO_IP);
+		if (ssl_sock < 0) {
+		reconn_err:
+			vpninfo->progress(vpninfo, PRG_ERR, "Failed to reconnect to host %s\n", vpninfo->hostname);
+			return -EINVAL;
 		}
-		close(ssl_sock);
-		ssl_sock = -1;
-	}
-	freeaddrinfo(result);
+		if (connect(ssl_sock, vpninfo->peer_addr, vpninfo->peer_addrlen))
+			goto reconn_err;
 
-	if (ssl_sock < 0) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Failed to connect to host %s\n", vpninfo->hostname);
-		return -EINVAL;
+		
+		
+	} else {
+		struct addrinfo hints, *result, *rp;
+
+		memset(&hints, 0, sizeof(struct addrinfo));
+		hints.ai_family = AF_UNSPEC;
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
+		hints.ai_protocol = 0;
+		hints.ai_canonname = NULL;
+		hints.ai_addr = NULL;
+		hints.ai_next = NULL;
+
+		err = getaddrinfo(vpninfo->hostname, "443", &hints, &result);
+		if (err) {
+			vpninfo->progress(vpninfo, PRG_ERR, "getaddrinfo failed: %s\n", gai_strerror(err));
+			return -EINVAL;
+		}
+
+		vpninfo->progress(vpninfo, PRG_INFO,
+				  "Attempting to connect to %s\n", vpninfo->hostname);
+
+		for (rp = result; rp ; rp = rp->ai_next) {
+			ssl_sock = socket(rp->ai_family, rp->ai_socktype,
+					  rp->ai_protocol);
+			if (ssl_sock < 0)
+				continue;
+			if (connect(ssl_sock, rp->ai_addr, rp->ai_addrlen) >= 0) {
+				/* Store the peer address we actually used, so that DTLS can
+				   use it again later */
+				vpninfo->peer_addr = malloc(rp->ai_addrlen);
+				if (!vpninfo->peer_addr) {
+					vpninfo->progress(vpninfo, PRG_ERR, "Failed to allocate sockaddr storage\n");
+					close(ssl_sock);
+					return -ENOMEM;
+				}
+				vpninfo->peer_addrlen = rp->ai_addrlen;
+				memcpy(vpninfo->peer_addr, rp->ai_addr, rp->ai_addrlen);
+				break;
+			}
+			close(ssl_sock);
+			ssl_sock = -1;
+		}
+		freeaddrinfo(result);
+		
+		if (ssl_sock < 0) {
+			vpninfo->progress(vpninfo, PRG_ERR, "Failed to connect to host %s\n", vpninfo->hostname);
+			return -EINVAL;
+		}
 	}
 	fcntl(ssl_sock, F_SETFD, FD_CLOEXEC);
 

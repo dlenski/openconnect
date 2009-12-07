@@ -527,6 +527,8 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 				vpninfo->hostname = strdup(host);
 
 				/* Kill the existing connection, and a new one will happen */
+				free(vpninfo->peer_addr);
+				vpninfo->peer_addr = NULL;
 				SSL_free(vpninfo->https_ssl);
 				vpninfo->https_ssl = NULL;
 				close(vpninfo->ssl_fd);
