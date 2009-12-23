@@ -477,6 +477,9 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	int ssl_sock = -1;
 	int err;
 
+	if (!vpninfo->port)
+		vpninfo->port = 443;
+
 	if (vpninfo->peer_addr) {
 		ssl_sock = socket(vpninfo->peer_addr->sa_family, SOCK_STREAM, IPPROTO_IP);
 		if (ssl_sock < 0) {
@@ -491,6 +494,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		
 	} else {
 		struct addrinfo hints, *result, *rp;
+		char port[6];
 
 		memset(&hints, 0, sizeof(struct addrinfo));
 		hints.ai_family = AF_UNSPEC;
@@ -501,7 +505,11 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		hints.ai_addr = NULL;
 		hints.ai_next = NULL;
 
-		err = getaddrinfo(vpninfo->hostname, "443", &hints, &result);
+		/* We do this because it's easier than passing NULL as the 
+		   port and then having to fill it in differently for IPv4
+		   and IPv6 destinations later. */
+		snprintf(port, 5, "%d", vpninfo->port);
+		err = getaddrinfo(vpninfo->hostname, port, &hints, &result);
 		if (err) {
 			vpninfo->progress(vpninfo, PRG_ERR, "getaddrinfo failed: %s\n", gai_strerror(err));
 			return -EINVAL;

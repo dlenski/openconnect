@@ -145,6 +145,7 @@ struct openconnect_info {
 
 	const char *localname;
 	char *hostname;
+	int port;
 	char *urlpath;
 	const char *cert;
 	const char *sslkey;

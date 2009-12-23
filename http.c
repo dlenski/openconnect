@@ -497,8 +497,14 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	if (request_body_type)
 		sprintf(buf + strlen(buf), "%s", request_body);
 
-	vpninfo->progress(vpninfo, PRG_INFO, "%s %s/%s\n", method,
-			  vpninfo->hostname, vpninfo->urlpath ?: "");
+	if (vpninfo->port == 443)
+		vpninfo->progress(vpninfo, PRG_INFO, "%s https://%s/%s\n",
+				  method, vpninfo->hostname,
+				  vpninfo->urlpath ?: "");
+	else
+		vpninfo->progress(vpninfo, PRG_INFO, "%s https://%s:%d/%s\n",
+				  method, vpninfo->hostname, vpninfo->port,
+				  vpninfo->urlpath ?: "");
 
 	SSL_write(vpninfo->https_ssl, buf, strlen(buf));
 
@@ -514,6 +520,8 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			/* New host. Tear down the existing connection and make a new one */
 			char *host = vpninfo->redirect_url + 8;
 			char *path = strchr(host, '/');
+			int port = 443;
+			char *port_str;
 
 			free(vpninfo->urlpath);
 			if (path) {
@@ -522,9 +530,26 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			} else
 				vpninfo->urlpath = NULL;
 
-			if (strcmp(vpninfo->hostname, host)) {
+			port_str = strrchr(host, ':');
+			if (port_str) {
+				char *end;
+
+				port = strtol(port_str + 1, &end, 10);
+				if (!*end)
+					*port_str = 0;
+				else
+					port = 443;
+			}
+			/* Check for IPv6 literal (RFC2732) */
+			if (host[0] == '[' && host[strlen(host)-1] == ']') {
+				host[strlen(host)-1] = 0;
+				host++;
+			}
+			if (strcmp(vpninfo->hostname, host) ||
+			    port != vpninfo->port) {
 				free(vpninfo->hostname);
 				vpninfo->hostname = strdup(host);
+				vpninfo->port = port;
 
 				/* Kill the existing connection, and a new one will happen */
 				free(vpninfo->peer_addr);
