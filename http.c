@@ -445,6 +445,63 @@ char *local_strcasestr(const char *haystack, const char *needle)
 #define strcasestr local_strcasestr
 #endif
 
+int parse_url(char *url, char **res_proto, char **res_host, int *res_port, char **res_path)
+{
+	char *proto = url;
+	char *host, *path, *port_str;
+	int port;
+
+	host = strstr(url, "://");
+	if (!host)
+		return -EINVAL;
+	*host = 0;
+	host += 3;
+
+	if (!strcasecmp(proto, "https"))
+		port = 443;
+	else if (!strcasecmp(proto, "http"))
+		port = 80;
+	else if (!strcasecmp(proto, "socks") ||
+		 !strcasecmp(proto, "socks4") ||
+		 !strcasecmp(proto, "socks5"))
+		port = 1080;
+	else
+		return -EPROTONOSUPPORT;
+
+	path = strchr(host, '/');
+	if (path) {
+		*(path++) = 0;
+		if (!*path)
+			path = NULL;
+	}
+
+	port_str = strrchr(host, ':');
+	if (port_str) {
+		char *end;
+		int new_port = strtol(port_str + 1, &end, 10);
+
+		if (!*end) {
+			*port_str = 0;
+			port = new_port;
+		}
+	}
+	/* Check for IPv6 literal (RFC2732) */
+	if (host[0] == '[' && host[strlen(host)-1] == ']') {
+		host[strlen(host)-1] = 0;
+		host++;
+	}
+
+	if (res_proto)
+		*res_proto = strdup(proto);
+	if (res_host)
+		*res_host = strdup(host);
+	if (res_port)
+		*res_port = port;
+	if (res_path)
+		*res_path = path ? strdup(path) : NULL;
+	return 0;
+}
+
 /* Return value:
  *  < 0, on error
  *  = 0, no cookie (user cancel)
@@ -518,37 +575,24 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	redirect:
 		if (!strncmp(vpninfo->redirect_url, "https://", 8)) {
 			/* New host. Tear down the existing connection and make a new one */
-			char *host = vpninfo->redirect_url + 8;
-			char *path = strchr(host, '/');
-			int port = 443;
-			char *port_str;
+			char *host;
+			int port;
+			int ret;
 
 			free(vpninfo->urlpath);
-			if (path) {
-				*(path++) = 0;
-				vpninfo->urlpath = strdup(path);
-			} else
-				vpninfo->urlpath = NULL;
+			vpninfo->urlpath = NULL;
 
-			port_str = strrchr(host, ':');
-			if (port_str) {
-				char *end;
+			ret = parse_url(vpninfo->redirect_url, NULL, &host, &port, &vpninfo->urlpath);
+			if (ret) {
+				vpninfo->progress(vpninfo, PRG_ERR, "Failed to parse redirected URL '%s': %s\n",
+						  vpninfo->redirect_url, strerror(-ret));
+				free(vpninfo->redirect_url);
+				return ret;
+			}
 
-				port = strtol(port_str + 1, &end, 10);
-				if (!*end)
-					*port_str = 0;
-				else
-					port = 443;
-			}
-			/* Check for IPv6 literal (RFC2732) */
-			if (host[0] == '[' && host[strlen(host)-1] == ']') {
-				host[strlen(host)-1] = 0;
-				host++;
-			}
-			if (strcmp(vpninfo->hostname, host) ||
-			    port != vpninfo->port) {
+			if (strcmp(vpninfo->hostname, host) || port != vpninfo->port) {
 				free(vpninfo->hostname);
-				vpninfo->hostname = strdup(host);
+				vpninfo->hostname = host;
 				vpninfo->port = port;
 
 				/* Kill the existing connection, and a new one will happen */
@@ -567,7 +611,9 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 					free(opt);
 				}
 				vpninfo->cookies = NULL;
-			}
+			} else
+				free(host);
+
 			free(vpninfo->redirect_url);
 			vpninfo->redirect_url = NULL;
 
