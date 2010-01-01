@@ -30,6 +30,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <netdb.h>
 #include <netinet/in_systm.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -234,9 +235,11 @@ static void setenv_cstp_opts(struct openconnect_info *vpninfo)
 
 static void set_script_env(struct openconnect_info *vpninfo)
 {
-	struct sockaddr_in *sin = (void *)vpninfo->peer_addr;
-
-	setenv("VPNGATEWAY", inet_ntoa(sin->sin_addr), 1);
+	char host[80];
+	int ret = getnameinfo(vpninfo->peer_addr, vpninfo->peer_addrlen, host,
+			      sizeof(host), NULL, 0, NI_NUMERICHOST);
+	if (!ret)
+		setenv("VPNGATEWAY", host, 1);
 	setenv("TUNDEV", vpninfo->ifname, 1);
 	setenv("reason", "connect", 1);
 	unsetenv("CISCO_BANNER");
@@ -331,12 +334,6 @@ static void set_script_env(struct openconnect_info *vpninfo)
 
 static int script_config_tun(struct openconnect_info *vpninfo)
 {
-	if (vpninfo->peer_addr->sa_family != AF_INET || !vpninfo->vpn_addr) {
-		vpninfo->progress(vpninfo, PRG_ERR,
-				  "Script can only handle Legacy IP\n");
-		return -EINVAL;
-	}
-
 	set_script_env(vpninfo);
 
 	system(vpninfo->vpnc_script);
