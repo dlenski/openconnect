@@ -518,7 +518,17 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			snprintf(port, 5, "%d", vpninfo->port);
 		}
 
+		if (hostname[0] == '[' && hostname[strlen(hostname)-1] == ']') {
+			hostname = strndup(hostname + 1, strlen(hostname) - 2);
+			if (!hostname)
+				return -ENOMEM;
+			hints.ai_flags |= AI_NUMERICHOST;
+		}
+
 		err = getaddrinfo(hostname, port, &hints, &result);
+		if (hints.ai_flags & AI_NUMERICHOST)
+			free(hostname);
+
 		if (err) {
 			vpninfo->progress(vpninfo, PRG_ERR, "getaddrinfo failed: %s\n",
 					  gai_strerror(err));
@@ -560,7 +570,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		freeaddrinfo(result);
 		
 		if (ssl_sock < 0) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Failed to connect to host %s\n", hostname);
+			vpninfo->progress(vpninfo, PRG_ERR, "Failed to connect to host %s\n",
+					  vpninfo->proxy?:vpninfo->hostname);
 			return -EINVAL;
 		}
 	}

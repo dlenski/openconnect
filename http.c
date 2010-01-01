@@ -445,28 +445,36 @@ char *local_strcasestr(const char *haystack, const char *needle)
 #define strcasestr local_strcasestr
 #endif
 
-int parse_url(char *url, char **res_proto, char **res_host, int *res_port, char **res_path)
+int parse_url(char *url, char **res_proto, char **res_host, int *res_port,
+	      char **res_path, int default_port)
 {
 	char *proto = url;
 	char *host, *path, *port_str;
 	int port;
 
 	host = strstr(url, "://");
-	if (!host)
-		return -EINVAL;
-	*host = 0;
-	host += 3;
+	if (host) {
+		*host = 0;
+		host += 3;
 
-	if (!strcasecmp(proto, "https"))
-		port = 443;
-	else if (!strcasecmp(proto, "http"))
-		port = 80;
-	else if (!strcasecmp(proto, "socks") ||
-		 !strcasecmp(proto, "socks4") ||
-		 !strcasecmp(proto, "socks5"))
-		port = 1080;
-	else
-		return -EPROTONOSUPPORT;
+		if (!strcasecmp(proto, "https"))
+			port = 443;
+		else if (!strcasecmp(proto, "http"))
+			port = 80;
+		else if (!strcasecmp(proto, "socks") ||
+			 !strcasecmp(proto, "socks4") ||
+			 !strcasecmp(proto, "socks5"))
+			port = 1080;
+		else
+			return -EPROTONOSUPPORT;
+	} else {
+		if (default_port) {
+			proto = NULL;
+			port = default_port;
+			host = url;
+		} else
+			return -EINVAL;
+	}
 
 	path = strchr(host, '/');
 	if (path) {
@@ -485,14 +493,9 @@ int parse_url(char *url, char **res_proto, char **res_host, int *res_port, char 
 			port = new_port;
 		}
 	}
-	/* Check for IPv6 literal (RFC2732) */
-	if (host[0] == '[' && host[strlen(host)-1] == ']') {
-		host[strlen(host)-1] = 0;
-		host++;
-	}
 
 	if (res_proto)
-		*res_proto = strdup(proto);
+		*res_proto = proto ? strdup(proto) : NULL;
 	if (res_host)
 		*res_host = strdup(host);
 	if (res_port)
@@ -582,7 +585,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			free(vpninfo->urlpath);
 			vpninfo->urlpath = NULL;
 
-			ret = parse_url(vpninfo->redirect_url, NULL, &host, &port, &vpninfo->urlpath);
+			ret = parse_url(vpninfo->redirect_url, NULL, &host, &port, &vpninfo->urlpath, 0);
 			if (ret) {
 				vpninfo->progress(vpninfo, PRG_ERR, "Failed to parse redirected URL '%s': %s\n",
 						  vpninfo->redirect_url, strerror(-ret));

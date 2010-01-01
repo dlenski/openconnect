@@ -305,7 +305,7 @@ int main(int argc, char **argv)
 		case 'P': {
 			char *url = strdup(optarg);
 			char *scheme;
-			parse_url(url, &scheme, &vpninfo->proxy, &vpninfo->proxy_port, NULL);
+			parse_url(url, &scheme, &vpninfo->proxy, &vpninfo->proxy_port, NULL, 80);
 			if (scheme && strcmp(scheme, "http")) {
 				fprintf(stderr, "Non-http proxy not supported\n");
 				exit(1);
@@ -416,8 +416,27 @@ int main(int argc, char **argv)
 	if (config_lookup_host(vpninfo, argv[optind]))
 		exit(1);
 
-	if (!vpninfo->hostname)
-		vpninfo->hostname = strdup(argv[optind]);
+	if (!vpninfo->hostname) {
+		char *url = strdup(argv[optind]);
+		char *scheme;
+		char *group;
+
+		if (parse_url(url, &scheme, &vpninfo->hostname, &vpninfo->port,
+			      &group, 443)) {
+			fprintf(stderr, "Failed to parse server URL '%s'\n",
+				url);
+			exit(1);
+		}
+		if (scheme && strcmp(scheme, "https")) {
+			fprintf(stderr, "Only https:// permitted for server URL\n");
+			exit(1);
+		}
+		if (group) {
+			free(vpninfo->urlpath);
+			vpninfo->urlpath = group;
+		}
+		free(scheme);
+	}
 
 #ifdef SSL_UI
 	set_openssl_ui();
