@@ -23,6 +23,8 @@
  *   Boston, MA 02110-1301 USA
  */
 
+#define _GNU_SOURCE
+#include <stdio.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -192,19 +194,26 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 			continue;
 		}
 
-		if (!strcmp(input_type, "submit") || !strcmp(input_type, "reset"))
+		if (!strcmp(input_type, "submit") || !strcmp(input_type, "reset")) {
+			free(input_type);
 			continue;
+		}
 
 		input_name = (char *)xmlGetProp(xml_node, (unsigned char *)"name");
 		if (!input_name) {
 			vpninfo->progress(vpninfo, PRG_INFO, "No input name in form\n");
+			free(input_type);
 			continue;
 		}
 		input_label = (char *)xmlGetProp(xml_node, (unsigned char *)"label");
 
 		opt = calloc(1, sizeof(*opt));
-		if (!opt)
+		if (!opt) {
+			free(input_type);
+			free(input_name);
+			free(input_label);
 			return -ENOMEM;
+		}
 
 		if (!strcmp(input_type, "hidden")) {
 			opt->type = OC_FORM_OPT_HIDDEN;
@@ -217,10 +226,14 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 			vpninfo->progress(vpninfo, PRG_INFO,
 					  "Unknown input type %s in form\n",
 					  input_type);
+			free(input_type);
+			free(input_name);
+			free(input_label);
 			free(opt);
 			continue;
 		}
 
+		free(input_type);
 		opt->name = input_name;
 		opt->label = input_label;
 
@@ -239,25 +252,27 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 static int process_auth_form(struct openconnect_info *vpninfo,
 			     struct oc_auth_form *form);
 
-static char *xmlnode_msg(xmlNode *xml_node, char **buf)
+static char *xmlnode_msg(xmlNode *xml_node)
 {
-	char *result = (char *)xmlNodeGetContent(xml_node);
-	char *param1, *param2, *pct;
-	int nr_params = 0, buflen;
+	char *fmt = (char *)xmlNodeGetContent(xml_node);
+	char *result, *param1, *param2, *pct;
+	int nr_params = 0;
 
-	if (!result || !result[0])
+	if (!fmt || !fmt[0]) {
+		free(fmt);
 		return NULL;
+	}
 
-	for (pct = strchr(result, '%'); pct;
+	for (pct = strchr(fmt, '%'); pct;
 	     (pct = strchr(pct, '%'))) {
 		/* We only cope with '%s' */
 		if (pct[1] != 's')
-			return result;
+			return fmt;
 		pct++;
 		nr_params++;
 	}
 	if (!nr_params)
-		return result;
+		return fmt;
 
 	param1 = (char *)xmlGetProp(xml_node, (unsigned char *)"param1");
 	param2 = (char *)xmlGetProp(xml_node, (unsigned char *)"param2");
@@ -269,14 +284,14 @@ static char *xmlnode_msg(xmlNode *xml_node, char **buf)
 	if (nr_params > 2)
 		return result;
 
-	buflen = strlen(result) + strlen(param1);
-	if (param2)
-		buflen += strlen(param2);
-	*buf = malloc(buflen);
-	if (!*buf)
-		return result;
-	sprintf(*buf, result, param1, param2);
-	return *buf;
+	if (asprintf(&result, fmt, param1, param2) < 0)
+		result = fmt;
+	else 
+		free(fmt);
+
+	free(param1);
+	free(param2);
+	return result;
 }
 
 /* Return value:
@@ -292,7 +307,6 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	struct oc_auth_form *form;
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node;
-	char *err_string = NULL, *msg_string = NULL, *banner_string = NULL;
 	int ret;
 	struct vpn_option *opt, *next;
 
@@ -331,13 +345,16 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		if (xml_node->type != XML_ELEMENT_NODE)
 			continue;
 
-		if (!strcmp((char *)xml_node->name, "banner"))
-			form->banner = xmlnode_msg(xml_node, &banner_string);
-		else if (!strcmp((char *)xml_node->name, "message"))
-			form->message = xmlnode_msg(xml_node, &msg_string);
-		else if (!strcmp((char *)xml_node->name, "error"))
-			form->error = xmlnode_msg(xml_node, &err_string);
-		else if (!strcmp((char *)xml_node->name, "form")) {
+		if (!strcmp((char *)xml_node->name, "banner")) {
+			free(form->banner);
+			form->banner = xmlnode_msg(xml_node);
+		} else if (!strcmp((char *)xml_node->name, "message")) {
+			free(form->message);
+			form->message = xmlnode_msg(xml_node);
+		} else if (!strcmp((char *)xml_node->name, "error")) {
+			free(form->error);
+			form->error = xmlnode_msg(xml_node);
+		} else if (!strcmp((char *)xml_node->name, "form")) {
 
 			form->method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
 			form->action = (char *)xmlGetProp(xml_node, (unsigned char *)"action");
@@ -410,18 +427,36 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		*request_body_type = "application/x-www-form-urlencoded";
 	}
  out:
-	free(err_string);
-	free(msg_string);
-	free(banner_string);
 	xmlFreeDoc(xml_doc);
 	while (form->opts) {
 		struct oc_form_opt *tmp = form->opts->next;
 		if (form->opts->type == OC_FORM_OPT_TEXT ||
-		    form->opts->type == OC_FORM_OPT_PASSWORD)
+		    form->opts->type == OC_FORM_OPT_PASSWORD ||
+		    form->opts->type == OC_FORM_OPT_HIDDEN)
 			free(form->opts->value);
+		else if (form->opts->type == OC_FORM_OPT_SELECT) {
+			struct oc_form_opt_select *sel = (void *)form->opts;
+			int i;
+
+			for (i=0; i < sel->nr_choices; i++) {
+				free(sel->choices[i].name);
+				free(sel->choices[i].label);
+				free(sel->choices[i].auth_type);
+				free(sel->choices[i].override_name);
+				free(sel->choices[i].override_label);
+			}
+		}
+		free(form->opts->label);
+		free(form->opts->name);
 		free(form->opts);
 		form->opts = tmp;
 	}
+	free(form->error);
+	free(form->message);
+	free(form->banner);
+	free(form->auth_id);
+	free(form->method);
+	free(form->action);
 	free(form);
 	return ret;
 }
@@ -478,16 +513,20 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 			if (vpninfo->username &&
 			    !strcmp(opt->name, "username")) {
 				opt->value = strdup(vpninfo->username);
-				if (!opt->value)
-					return -ENOMEM;
+				if (!opt->value) {
+					ret = -ENOMEM;
+					goto out_ui;
+				}
 			} else
 				user_opt = opt;
 		} else if (opt->type == OC_FORM_OPT_PASSWORD) {
 			if (vpninfo->password &&
 			    !strcmp(opt->name, "password")) {
 				opt->value = strdup(vpninfo->password);
-				if (!opt->value)
-					return -ENOMEM;
+				if (!opt->value) {
+					ret = -ENOMEM;
+					goto out_ui;
+				}
 			} else
 				pass_opt = opt;
 		} else if (opt->type == OC_FORM_OPT_SELECT) {
@@ -540,8 +579,10 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 		}
 	}
 
-	if (!user_opt && !pass_opt && !select_opt)
-		return 0;
+	if (!user_opt && !pass_opt && !select_opt) {
+		ret = 0;
+		goto out_ui;
+	}
 
         if (user_opt)
 		UI_add_input_string(ui, user_opt->label, UI_INPUT_FLAG_ECHO, username, 1, 80);
@@ -579,12 +620,18 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 	switch (UI_process(ui)) {
 	case -2:
 		/* cancelled */
-		return 1;
+		ret = 1;
+		goto out_ui;
 	case -1:
 		/* error */
 		vpninfo->progress(vpninfo, PRG_ERR, "Invalid inputs\n");
-		return -EINVAL;
+		ret = -EINVAL;
+	out_ui:
+		UI_free(ui);
+		return ret;
 	}
+
+	UI_free(ui);
 
 	if (select_opt) {
 		struct oc_choice *choice = NULL;

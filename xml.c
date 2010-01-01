@@ -61,14 +61,6 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 		return -1;
 	}
 
-	xmlfile = malloc(st.st_size);
-	if (!xmlfile) {
-		fprintf(stderr, "Could not allocate %lu bytes for XML config file\n",
-			(unsigned long)st.st_size);
-		close(fd);
-		return -1;
-	}
-
 	xmlfile = mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
 	if (xmlfile == MAP_FAILED) {
 		perror("mmap XML config file");
@@ -86,6 +78,8 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 	vpninfo->progress(vpninfo, PRG_TRACE, "XML config file SHA1: %s\n", vpninfo->xmlsha1);
 
 	xml_doc = xmlReadMemory(xmlfile, st.st_size, "noname.xml", NULL, 0);
+	munmap(xmlfile, st.st_size);
+	close(fd);
 	if (!xml_doc) {
 		fprintf(stderr, "Failed to parse XML config file %s\n", vpninfo->xmlconfig);
 		fprintf(stderr, "Treating host \"%s\" as a raw hostname\n", host);
@@ -116,11 +110,12 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 								match = 1;
 							else
 								match = -1;
+							free(content);
 						} else if (match &&
 							   !strcmp((char *)xml_node2->name, "HostAddress")) {
 							char *content = (char *)xmlNodeGetContent(xml_node2);
 							if (content) {
-								vpninfo->hostname = strdup(content);
+								vpninfo->hostname = content;
 								printf("Host \"%s\" has address \"%s\"\n",
 								       host, content);
 							}
@@ -129,7 +124,7 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 							char *content = (char *)xmlNodeGetContent(xml_node2);
 							if (content) {
 								free(vpninfo->urlpath);
-								vpninfo->urlpath = strdup(content);
+								vpninfo->urlpath = content;
 								printf("Host \"%s\" has UserGroup \"%s\"\n",
 								       host, content);
 							}
