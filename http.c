@@ -708,3 +708,94 @@ char *openconnect_create_useragent(char *base)
 
 	return uagent;
 }
+
+static int proxy_gets(int fd, char *buf, size_t len)
+{
+	int i = 0;
+	int ret;
+
+	if (len < 2)
+		return -EINVAL;
+
+	while ( (ret = read(fd, buf + i, 1)) == 1) {
+		if (buf[i] == '\n') {
+			buf[i] = 0;
+			if (i && buf[i-1] == '\r') {
+				buf[i-1] = 0;
+				i--;
+			}
+			return i;
+		}
+		i++;
+
+		if (i >= len - 1) {
+			buf[i] = 0;
+			return i;
+		}
+	}
+	if (ret < 0)
+		ret = -errno;
+
+	buf[i] = 0;
+	return i ?: ret;
+}
+
+
+int process_http_proxy(struct openconnect_info *vpninfo, int ssl_sock)
+{
+	char buf[MAX_BUF_LEN];
+	int count, buflen, result;
+
+	sprintf(buf, "CONNECT %s:%d HTTP/1.1\r\n", vpninfo->hostname, vpninfo->port);
+	sprintf(buf + strlen(buf), "Host: %s\r\n", vpninfo->hostname);
+	sprintf(buf + strlen(buf), "User-Agent: %s\r\n", vpninfo->useragent);
+	sprintf(buf + strlen(buf), "Proxy-Connection: keep-alive\r\n");
+	sprintf(buf + strlen(buf), "Connection: keep-alive\r\n");
+	sprintf(buf + strlen(buf), "Accept-Encoding: identity\r\n");
+	sprintf(buf + strlen(buf), "\r\n");
+
+	vpninfo->progress(vpninfo, PRG_INFO, "Requesting proxy connection to %s:%d\n",
+			  vpninfo->hostname, vpninfo->port);
+
+	buflen = strlen(buf);
+	for (count = 0; count < buflen; ) {
+		int i = write(ssl_sock, buf + count, buflen - count);
+		if (i < 0) {
+			i = -errno;
+			vpninfo->progress(vpninfo, PRG_ERR, "Sending proxy request failed: %s\n",
+					  strerror(errno));
+			return i;
+		}
+		count += i;
+	}
+
+	if (proxy_gets(ssl_sock, buf, sizeof(buf)) < 0) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Error fetching proxy response\n");
+		return -EIO;
+	}
+
+	if (strncmp(buf, "HTTP/1.", 7) || (buf[7] != '0' && buf[7] != '1') ||
+	    buf[8] != ' ' || !(result = atoi(buf+9))) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to parse proxy response '%s'\n",
+				  buf);
+		return -EINVAL;
+	}
+
+	if (result != 200) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Proxy CONNECT request failed: %s\n",
+				  buf);
+		return -EIO;
+	}
+
+	while ((count = proxy_gets(ssl_sock, buf, sizeof(buf)))) {
+		if (count < 0) {
+			vpninfo->progress(vpninfo, PRG_ERR, "Failed to read proxy response\n");
+			return -EIO;
+		}
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Unexpected continuation line after CONNECT response: '%s'\n",
+				  buf);
+	}
+
+	return 0;
+}

@@ -484,16 +484,17 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		ssl_sock = socket(vpninfo->peer_addr->sa_family, SOCK_STREAM, IPPROTO_IP);
 		if (ssl_sock < 0) {
 		reconn_err:
-			vpninfo->progress(vpninfo, PRG_ERR, "Failed to reconnect to host %s\n", vpninfo->hostname);
+			vpninfo->progress(vpninfo, PRG_ERR, "Failed to reconnect to %s %s\n",
+					  vpninfo->proxy?"proxy":"host",
+					  vpninfo->proxy?:vpninfo->hostname);
 			return -EINVAL;
 		}
 		if (connect(ssl_sock, vpninfo->peer_addr, vpninfo->peer_addrlen))
 			goto reconn_err;
-
-		
 		
 	} else {
 		struct addrinfo hints, *result, *rp;
+		char *hostname;
 		char port[6];
 
 		memset(&hints, 0, sizeof(struct addrinfo));
@@ -505,20 +506,37 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		hints.ai_addr = NULL;
 		hints.ai_next = NULL;
 
-		/* We do this because it's easier than passing NULL as the 
-		   port and then having to fill it in differently for IPv4
-		   and IPv6 destinations later. */
-		snprintf(port, 5, "%d", vpninfo->port);
-		err = getaddrinfo(vpninfo->hostname, port, &hints, &result);
+		/* The 'port' variable is a string because it's easier
+		   this way than if we pass NULL to getaddrinfo() and
+		   then try to fill in the numeric value into
+		   different types of returned sockaddr_in{6,}. */
+		if (vpninfo->proxy) {
+			hostname = vpninfo->proxy;
+			snprintf(port, 5, "%d", vpninfo->proxy_port);
+		} else {
+			hostname = vpninfo->hostname;
+			snprintf(port, 5, "%d", vpninfo->port);
+		}
+
+		err = getaddrinfo(hostname, port, &hints, &result);
 		if (err) {
-			vpninfo->progress(vpninfo, PRG_ERR, "getaddrinfo failed: %s\n", gai_strerror(err));
+			vpninfo->progress(vpninfo, PRG_ERR, "getaddrinfo failed: %s\n",
+					  gai_strerror(err));
 			return -EINVAL;
 		}
 
-		vpninfo->progress(vpninfo, PRG_INFO,
-				  "Attempting to connect to %s\n", vpninfo->hostname);
-
 		for (rp = result; rp ; rp = rp->ai_next) {
+			char host[80];
+
+			if (!getnameinfo(rp->ai_addr, rp->ai_addrlen, host,
+					 sizeof(host), NULL, 0, NI_NUMERICHOST))
+				vpninfo->progress(vpninfo, PRG_INFO,
+						  "Attempting to connect to %s%s%s:%s\n",
+						  rp->ai_family == AF_INET6?"[":"",
+						  host,
+						  rp->ai_family == AF_INET6?"]":"",
+						  port);
+			
 			ssl_sock = socket(rp->ai_family, rp->ai_socktype,
 					  rp->ai_protocol);
 			if (ssl_sock < 0)
@@ -542,11 +560,19 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		freeaddrinfo(result);
 		
 		if (ssl_sock < 0) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Failed to connect to host %s\n", vpninfo->hostname);
+			vpninfo->progress(vpninfo, PRG_ERR, "Failed to connect to host %s\n", hostname);
 			return -EINVAL;
 		}
 	}
 	fcntl(ssl_sock, F_SETFD, FD_CLOEXEC);
+
+	if (vpninfo->proxy) {
+		err = process_http_proxy(vpninfo, ssl_sock);
+		if (err) {
+			close(ssl_sock);
+			return err;
+		}
+	}
 
 	ssl3_method = TLSv1_client_method();
 	if (!vpninfo->https_ctx) {

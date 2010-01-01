@@ -68,6 +68,7 @@ static struct option long_options[] = {
 	{"syslog", 0, 0, 'l'},
 	{"key-type", 1, 0, 'K'},
 	{"key-password", 1, 0, 'p'},
+	{"proxy", 1, 0, 'P'},
 	{"user", 1, 0, 'u'},
 	{"verbose", 0, 0, 'v'},
 	{"version", 0, 0, 'V'},
@@ -89,6 +90,7 @@ static struct option long_options[] = {
 	{"useragent", 1, 0, 0x03},
 	{"csd-user", 1, 0, 0x04},
 	{"disable-ipv6", 0, 0, 0x05},
+	{"no-proxy", 0, 0, 0x06},
 	{NULL, 0, 0, 0},
 };
 
@@ -109,10 +111,12 @@ void usage(void)
 	printf("  -i, --interface=IFNAME          Use IFNAME for tunnel interface\n");
 	printf("  -l, --syslog                    Use syslog for progress messages\n");
 	printf("  -U, --setuid=USER               Drop privileges after connecting\n");
-	printf("      --csd-user=USER           Drop privileges during CSD execution\n");
+	printf("      --csd-user=USER             Drop privileges during CSD execution\n");
 	printf("  -m, --mtu=MTU                   Request MTU from server\n");
 	printf("  -p, --key-password=PASS         Set key passphrase or TPM SRK PIN\n");
 	printf("      --key-password-from-fsid    Key passphrase is fsid of file system\n");
+	printf("  -P, --proxy=URL                 Set proxy server\n");
+	printf("      --no-proxy                  Disable proxy\n");
 	printf("  -q, --quiet                     Less output\n");
 	printf("  -Q, --queue-len=LEN             Set packet queue limit to LEN pkts\n");
 	printf("  -s, --script=SCRIPT             Use vpnc-compatible config script\n");
@@ -202,7 +206,7 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "bC:c:Ddg:hi:k:K:lp:Q:qSs:U:u:Vvx:",
+	while ((opt = getopt_long(argc, argv, "bC:c:Ddg:hi:k:K:lpP:Q:qSs:U:u:Vvx:",
 				  long_options, NULL))) {
 		if (opt < 0)
 			break;
@@ -298,6 +302,22 @@ int main(int argc, char **argv)
 		case 'p':
 			vpninfo->cert_password = optarg;
 			break;
+		case 'P': {
+			char *url = strdup(optarg);
+			char *scheme;
+			parse_url(url, &scheme, &vpninfo->proxy, &vpninfo->proxy_port, NULL);
+			if (scheme && strcmp(scheme, "http")) {
+				fprintf(stderr, "Non-http proxy not supported\n");
+				exit(1);
+			}
+			free(scheme);
+			free(url);
+			vpninfo->dtls_attempt_period = 0;
+			break;
+		}
+		case 0x06:
+			free(vpninfo->proxy);
+			vpninfo->proxy = NULL;
 		case 's':
 			vpninfo->vpnc_script = optarg;
 			break;

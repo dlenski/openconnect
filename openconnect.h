@@ -143,6 +143,9 @@ struct openconnect_info {
 	char sid_tokencode[9];
 	char sid_nexttokencode[9];
 
+	char *proxy;
+	int proxy_port;
+
 	const char *localname;
 	char *hostname;
 	int port;
@@ -320,6 +323,8 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 /* http.c */
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo);
 char *openconnect_create_useragent(char *base);
+int process_http_proxy(struct openconnect_info *vpninfo, int ssl_sock);
+int parse_url(char *url, char **res_proto, char **res_host, int *res_port, char **res_path);
 
 /* ssl_ui.c */
 int set_openssl_ui(void);

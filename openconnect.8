@@ -62,6 +62,13 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .I PASS
 ]
 [
+.B -P,--proxy
+.I PROXY
+]
+[
+.B --no-proxy
+]
+[
 .B --key-password-from-fsid
 ]
 [
@@ -220,6 +227,12 @@ from server
 .TP
 .B -p,--key-password=PASS
 Provide passphrase for certificate file, or SRK (System Root Key) PIN for TPM
+.TP
+.B -P,--proxy=PROXY
+Use HTTP proxy for connection
+.TP
+.B --no-proxy
+Disable use of HTTP proxy
 .TP
 .B --key-password-from-fsid
 Passphrase for certificate file is automatically generated from the fsid of
