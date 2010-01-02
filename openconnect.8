@@ -69,6 +69,9 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .B --no-proxy
 ]
 [
+.B --libproxy
+]
+[
 .B --key-password-from-fsid
 ]
 [
@@ -233,6 +236,9 @@ Use HTTP proxy for connection
 .TP
 .B --no-proxy
 Disable use of HTTP proxy
+.TP
+.B --libproxy
+Use libproxy to configure proxy automatically (when built with libproxy support)
 .TP
 .B --key-password-from-fsid
 Passphrase for certificate file is automatically generated from the fsid of

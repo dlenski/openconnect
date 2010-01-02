@@ -94,6 +94,7 @@ static struct option long_options[] = {
 	{"csd-user", 1, 0, 0x04},
 	{"disable-ipv6", 0, 0, 0x05},
 	{"no-proxy", 0, 0, 0x06},
+	{"libproxy", 0, 0, 0x07},
 	{NULL, 0, 0, 0},
 };
 
@@ -120,6 +121,10 @@ void usage(void)
 	printf("      --key-password-from-fsid    Key passphrase is fsid of file system\n");
 	printf("  -P, --proxy=URL                 Set proxy server\n");
 	printf("      --no-proxy                  Disable proxy\n");
+	printf("      --libproxy                  Use libproxy to automatically configure proxy\n");
+#ifndef OPENCONNECT_LIBPROXY
+	printf("                                  (NOTE: libproxy disabled in this build)\n");
+#endif
 	printf("  -q, --quiet                     Less output\n");
 	printf("  -Q, --queue-len=LEN             Set packet queue limit to LEN pkts\n");
 	printf("  -s, --script=SCRIPT             Use vpnc-compatible config script\n");
@@ -176,7 +181,8 @@ int main(int argc, char **argv)
 	struct sigaction sa;
 	int cookieonly = 0;
 	int use_syslog = 0;
-	int autoproxy = 1;
+	char *proxy = NULL;
+	int autoproxy = 0;
 	uid_t uid = getuid();
 	int opt;
 
@@ -306,31 +312,21 @@ int main(int argc, char **argv)
 		case 'p':
 			vpninfo->cert_password = optarg;
 			break;
-		case 'P': {
-			char *url = strdup(optarg);
-
-			free(vpninfo->proxy_type);
-			vpninfo->proxy_type = NULL;
-			free(vpninfo->proxy);
-			vpninfo->proxy = NULL;
-
-			parse_url(url, &vpninfo->proxy_type, &vpninfo->proxy,
-				  &vpninfo->proxy_port, NULL, 80);
-			if (vpninfo->proxy_type &&
-			    strcmp(vpninfo->proxy_type, "http") &&
-			    strcmp(vpninfo->proxy_type, "socks") &&
-			    strcmp(vpninfo->proxy_type, "socks5")) {
-				fprintf(stderr, "Only http or socks[5] proxy scheme supported\n");
-				exit(1);
-			}
+		case 'P': 
+			proxy = optarg;
 			autoproxy = 0;
-			free(url);
 			break;
-		}
 		case 0x06:
 			autoproxy = 0;
-			free(vpninfo->proxy);
-			vpninfo->proxy = NULL;
+			proxy = NULL;
+		case 0x07:
+#ifndef OPENCONNECT_LIBPROXY
+			fprintf(stderr, "This version of openconnect was built without libproxy support\n");
+			exit(1);
+#endif
+			autoproxy = 1;
+			proxy = NULL;
+			break;
 		case 's':
 			vpninfo->vpnc_script = optarg;
 			break;
@@ -403,10 +399,6 @@ int main(int argc, char **argv)
 			usage();
 		}
 	}
-#ifdef OPENCONNECT_LIBPROXY
-	if (autoproxy)
-		vpninfo->proxy_factory = px_proxy_factory_new();
-#endif
 
 	if (optind != argc - 1) {
 		fprintf(stderr, "No server specified\n");
@@ -416,12 +408,20 @@ int main(int argc, char **argv)
 	if (!vpninfo->sslkey)
 		vpninfo->sslkey = vpninfo->cert;
 
+	vpninfo->progress = write_progress;
+
+#ifdef OPENCONNECT_LIBPROXY
+	if (autoproxy)
+		vpninfo->proxy_factory = px_proxy_factory_new();
+#endif
+	if (proxy && set_http_proxy(vpninfo, proxy))
+		exit(1);
+
 	if (use_syslog) {
 		openlog("openconnect", LOG_PID, LOG_DAEMON);
 		vpninfo->progress = syslog_progress;
-	} else {
-		vpninfo->progress = write_progress;
 	}
+
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = handle_sigusr;
 

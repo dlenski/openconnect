@@ -955,3 +955,37 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	return -EIO;
 }
 
+int set_http_proxy(struct openconnect_info *vpninfo, char *proxy)
+{
+	char *url = strdup(proxy);
+	int ret;
+
+	if (!url)
+		return -ENOMEM;
+
+	free(vpninfo->proxy_type);
+	vpninfo->proxy_type = NULL;
+	free(vpninfo->proxy);
+	vpninfo->proxy = NULL;
+
+	ret = parse_url(url, &vpninfo->proxy_type, &vpninfo->proxy,
+			&vpninfo->proxy_port, NULL, 80);
+	if (ret)
+		goto out;
+
+	if (vpninfo->proxy_type &&
+	    strcmp(vpninfo->proxy_type, "http") &&
+	    strcmp(vpninfo->proxy_type, "socks") &&
+	    strcmp(vpninfo->proxy_type, "socks5")) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Only http or socks(5) proxies supported\n");
+		free(vpninfo->proxy_type);
+		vpninfo->proxy_type = NULL;
+		free(vpninfo->proxy);
+		vpninfo->proxy = NULL;
+		return -EINVAL;
+	}
+ out:
+	free(url);
+	return ret;
+}
