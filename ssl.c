@@ -510,6 +510,38 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		   this way than if we pass NULL to getaddrinfo() and
 		   then try to fill in the numeric value into
 		   different types of returned sockaddr_in{6,}. */
+#ifdef OPENCONNECT_LIBPROXY
+		if (vpninfo->proxy_factory) {
+			char *url;
+			char **proxies;
+			int i = 0;
+
+			free(vpninfo->proxy);
+			vpninfo->proxy = NULL;
+
+			if (vpninfo->port == 443)
+				asprintf(&url, "https://%s/%s", vpninfo->hostname,
+					 vpninfo->urlpath?:"");
+			else
+				asprintf(&url, "https://%s:%d/%s", vpninfo->hostname,
+					 vpninfo->port, vpninfo->urlpath?:"");
+
+			proxies = px_proxy_factory_get_proxies(vpninfo->proxy_factory,
+							       url);
+
+			while (proxies && proxies[i]) {
+				if (!vpninfo->proxy && !strncmp(proxies[i], "http://", 7))
+					parse_url(proxies[i], NULL, &vpninfo->proxy,
+						  &vpninfo->proxy_port, NULL, 0);
+				i++;
+			}
+			free(url);
+			free(proxies);
+			if (vpninfo->proxy)
+				vpninfo->progress(vpninfo, PRG_TRACE, "Proxy from libproxy: http://%s:%d/\n",
+						  vpninfo->proxy, vpninfo->port);
+		}
+#endif
 		if (vpninfo->proxy) {
 			hostname = vpninfo->proxy;
 			snprintf(port, 5, "%d", vpninfo->proxy_port);

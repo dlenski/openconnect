@@ -34,6 +34,10 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#ifdef OPENCONNECT_LIBPROXY
+#include <libproxy/proxy.h>
+#endif
+
 
 /****************************************************************************/
 
@@ -143,6 +147,9 @@ struct openconnect_info {
 	char sid_tokencode[9];
 	char sid_nexttokencode[9];
 
+#ifdef OPENCONNECT_LIBPROXY
+	pxProxyFactory *proxy_factory;
+#endif
 	char *proxy;
 	int proxy_port;
 

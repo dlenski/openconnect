@@ -1386,6 +1386,9 @@ static auth_ui_data *init_ui_data (char *vpn_name)
 	ui_data->vpninfo->validate_peer_cert = validate_peer_cert;
 	ui_data->vpninfo->vpn_name = vpn_name;
 	ui_data->vpninfo->process_auth_form = nm_process_auth_form;
+#ifdef OPENCONNECT_LIBPROXY
+	ui_data->vpninfo->proxy_factory = px_proxy_factory_new();
+#endif
 
 	return ui_data;
 }

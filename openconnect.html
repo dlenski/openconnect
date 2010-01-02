@@ -88,6 +88,7 @@ processors, and should not have issues with portability to other CPUs.
 
 <H2>Features</H2>
 <UL>
+  <LI>Connection through HTTP proxy, including <A HREF="http://code.google.com/p/libproxy/">libproxy</A> support for automatic proxy configuration.</LI>
   <LI>Automatic detection of IPv4 and IPv6 address, routes.</LI>
   <LI>Authentication via HTTP forms.</LI>
       <LI>Authentication using SSL certificates, from local file or <A HREF="http://en.wikipedia.org/wiki/Trusted_Platform_Module">Trusted Platform Module</A>.</LI>
@@ -143,6 +144,7 @@ HREF="http://lists.infradead.org/mailman/listinfo/openconnect-devel">Mailman adm
 
 <H2>TODO</H2>
 <UL>
+  <LI>SOCKS proxy support.</LI>
   <LI>Testing IPv6 on more platforms (only Linux, FreeBSD, Solaris are tested so far).</LI>
   <LI>Better support for running or emulating the 'Cisco Secure Desktop' trojan.</LI>
   <LI>More platform support: Windows, Symbian, etc.</LI>
@@ -295,6 +297,7 @@ The basic text-mode client uses the following libraries:
   <LI><B>OpenSSL</B> &mdash; all versions from 0.9.7 onwards will work for basic connectivity, but see note on DTLS compatibility below.</LI>
   <LI><B>libxml2</B></LI>
   <LI><B>zlib</B></LI>
+  <LI><B><A HREF="http://code.google.com/p/libproxy/">libproxy</A></B></LI>
 </UL>
 Mac OS X users will also need to install the
 <A HREF="http://tuntaposx.sourceforge.net/">Mac OS X tun/tap driver</A>, and Solaris users will need the <A HREF="http://www.whiteboard.ne.jp/~admin2/tuntap/">Solaris one</A>. Note that for IPv6 support, the Solaris tun/tap driver from 16th Nov 2009 or newer is required.<P>

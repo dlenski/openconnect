@@ -118,7 +118,13 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
-		
+
+	if (vpninfo->proxy) {
+		vpninfo->progress(vpninfo, PRG_ERR, "No DTLS when connected via HTTP proxy\n");
+		vpninfo->dtls_attempt_period = 0;
+		return -EINVAL;
+	}
+
 	dtls_fd = socket(vpninfo->peer_addr->sa_family, SOCK_DGRAM, IPPROTO_UDP);
 	if (dtls_fd < 0) {
 		perror("Open UDP socket for DTLS:");

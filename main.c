@@ -37,6 +37,7 @@
 #include <sys/utsname.h>
 #include <sys/types.h>
 #include <openssl/rand.h>
+#include <libproxy/proxy.h>
 
 #define _GNU_SOURCE
 #include <getopt.h>
@@ -173,6 +174,7 @@ int main(int argc, char **argv)
 	struct sigaction sa;
 	int cookieonly = 0;
 	int use_syslog = 0;
+	int autoproxy = 1;
 	uid_t uid = getuid();
 	int opt;
 
@@ -305,6 +307,8 @@ int main(int argc, char **argv)
 		case 'P': {
 			char *url = strdup(optarg);
 			char *scheme;
+
+			autoproxy = 0;
 			parse_url(url, &scheme, &vpninfo->proxy, &vpninfo->proxy_port, NULL, 80);
 			if (scheme && strcmp(scheme, "http")) {
 				fprintf(stderr, "Non-http proxy not supported\n");
@@ -312,10 +316,10 @@ int main(int argc, char **argv)
 			}
 			free(scheme);
 			free(url);
-			vpninfo->dtls_attempt_period = 0;
 			break;
 		}
 		case 0x06:
+			autoproxy = 0;
 			free(vpninfo->proxy);
 			vpninfo->proxy = NULL;
 		case 's':
@@ -390,6 +394,11 @@ int main(int argc, char **argv)
 			usage();
 		}
 	}
+#ifdef OPENCONNECT_LIBPROXY
+	if (autoproxy)
+		vpninfo->proxy_factory = px_proxy_factory_new();
+#endif
+
 	if (optind != argc - 1) {
 		fprintf(stderr, "No server specified\n");
 		usage();

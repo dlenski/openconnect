@@ -59,6 +59,12 @@ ifneq ($(IF_TUN_HDR),)
 CFLAGS_tun.o += -DIF_TUN_HDR=\"$(patsubst $(SYSTEM_INCLUDES)/%,%,$(IF_TUN_HDR))\"
 endif
 
+LIBPROXY := $(firstword $(wildcard $(SYSTEM_INCLUDES)/libproxy/proxy.h))
+ifneq ($(LIBPROXY),)
+CFLAGS += -DOPENCONNECT_LIBPROXY
+LDFLAGS += -lproxy
+endif
+
 OPENCONNECT_OBJS := main.o $(SSL_UI) xml.o
 CONNECTION_OBJS := dtls.o cstp.o mainloop.o tun.o 
 AUTH_OBJECTS := ssl.o http.o version.o securid.o auth.o
