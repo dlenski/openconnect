@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 	struct sigaction sa;
 	int cookieonly = 0;
 	int use_syslog = 0;
-	char *proxy = NULL;
+	char *proxy = getenv("https_proxy");
 	int autoproxy = 0;
 	uid_t uid = getuid();
 	int opt;
