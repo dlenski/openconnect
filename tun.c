@@ -38,7 +38,6 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #if defined(__sun__)
-#include <net/if_tun.h>
 #include <stropts.h>
 #include <sys/sockio.h>
 #endif
