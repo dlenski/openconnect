@@ -516,6 +516,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			char **proxies;
 			int i = 0;
 
+			free(vpninfo->proxy_type);
+			vpninfo->proxy_type = NULL;
 			free(vpninfo->proxy);
 			vpninfo->proxy = NULL;
 
@@ -530,16 +532,20 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 							       url);
 
 			while (proxies && proxies[i]) {
-				if (!vpninfo->proxy && !strncmp(proxies[i], "http://", 7))
-					parse_url(proxies[i], NULL, &vpninfo->proxy,
-						  &vpninfo->proxy_port, NULL, 0);
+				if (!vpninfo->proxy &&
+				    (!strncmp(proxies[i], "http://", 7) ||
+				     !strncmp(proxies[i], "socks://", 8) ||
+				     !strncmp(proxies[i], "socks5://", 9)))
+					parse_url(proxies[i], &vpninfo->proxy_type,
+						  &vpninfo->proxy, &vpninfo->proxy_port,
+						  NULL, 0);
 				i++;
 			}
 			free(url);
 			free(proxies);
 			if (vpninfo->proxy)
-				vpninfo->progress(vpninfo, PRG_TRACE, "Proxy from libproxy: http://%s:%d/\n",
-						  vpninfo->proxy, vpninfo->port);
+				vpninfo->progress(vpninfo, PRG_TRACE, "Proxy from libproxy: %s://%s:%d/\n",
+						  vpninfo->proxy_type, vpninfo->proxy, vpninfo->port);
 		}
 #endif
 		if (vpninfo->proxy) {
@@ -610,7 +616,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	fcntl(ssl_sock, F_SETFD, FD_CLOEXEC);
 
 	if (vpninfo->proxy) {
-		err = process_http_proxy(vpninfo, ssl_sock);
+		err = process_proxy(vpninfo, ssl_sock);
 		if (err) {
 			close(ssl_sock);
 			return err;

@@ -743,11 +743,154 @@ static int proxy_gets(int fd, char *buf, size_t len)
 	return i ?: ret;
 }
 
+static int proxy_write(int fd, unsigned char *buf, size_t len)
+{
+	size_t count;
+	
+	for (count = 0; count < len; ) {
+		int i = write(fd, buf + count, len - count);
+		if (i < 0)
+			return -errno;
 
-int process_http_proxy(struct openconnect_info *vpninfo, int ssl_sock)
+		count += i;
+	}
+	return 0;
+}
+
+static int proxy_read(int fd, unsigned char *buf, size_t len)
+{
+	size_t count;
+
+	for (count = 0; count < len; ) {
+		int i = read(fd, buf + count, len - count);
+		if (i < 0)
+			return -errno;
+
+		count += i;
+	}
+	return 0;
+}
+
+static const char *socks_errors[] = {
+	"request granted",
+	"general failure",
+	"connection not allowed by ruleset",
+	"network unreachable",
+	"host unreachable",
+	"connection refused by destination host",
+	"TTL expired",
+	"command not supported / protocol error",
+	"address type not supported"
+};
+
+static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
+{
+	unsigned char buf[1024];
+	int i;
+
+	buf[0] = 5; /* SOCKS version */
+	buf[1] = 1; /* # auth methods */
+	buf[2] = 0; /* No auth supported */
+
+	if ((i = proxy_write(ssl_sock, buf, 3))) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Error writing auth request to SOCKS proxy: %s\n",
+				  strerror(-i));
+		return i;
+	}
+	
+	if ((i = proxy_read(ssl_sock, buf, 2))) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Error reading auth response from SOCKS proxy: %s\n",
+				  strerror(-i));
+		return i;
+	}
+	if (buf[0] != 5) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Unexpected auth response from SOCKS proxy: %02x %02x\n",
+				  buf[0], buf[1]);
+		return -EIO;
+	}
+	if (buf[1]) {
+	socks_err:
+		if (buf[1] < sizeof(socks_errors) / sizeof(socks_errors[0]))
+			vpninfo->progress(vpninfo, PRG_ERR,
+					  "SOCKS proxy error %02x: %s\n",
+					  buf[1], socks_errors[buf[1]]);
+		else
+			vpninfo->progress(vpninfo, PRG_ERR,
+					  "SOCKS proxy error %02x\n",
+					  buf[1]);
+		return -EIO;
+	}
+
+	vpninfo->progress(vpninfo, PRG_INFO, "Requesting SOCKS proxy connection to %s:%d\n",
+			  vpninfo->hostname, vpninfo->port);
+
+	buf[0] = 5; /* SOCKS version */
+	buf[1] = 1; /* CONNECT */
+	buf[2] = 0; /* Reserved */
+	buf[3] = 3; /* Address type is domain name */
+	buf[4] = strlen(vpninfo->hostname);
+	strcpy((char *)buf + 5, vpninfo->hostname);
+	i = strlen(vpninfo->hostname) + 5;
+	buf[i++] = vpninfo->port >> 8;
+	buf[i++] = vpninfo->port & 0xff;
+
+	if ((i = proxy_write(ssl_sock, buf, i))) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Error writing connect request to SOCKS proxy: %s\n",
+				  strerror(-i));
+		return i;
+	}
+	/* Read 5 bytes -- up to and including the first byte of the returned
+	   address (which might be the length byte of a domain name) */
+	if ((i = proxy_read(ssl_sock, buf, 5))) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Error reading connect response from SOCKS proxy: %s\n",
+				  strerror(-i));
+		return i;
+	}
+	if (buf[0] != 5) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Unexpected connect response from SOCKS proxy: %02x %02x...\n",
+				  buf[0], buf[1]);
+		return -EIO;
+	}
+	if (buf[1])
+		goto socks_err;
+
+	/* Connect responses contain an address */
+	switch(buf[3]) {
+	case 1: /* Legacy IP */
+		i = 5;
+		break;
+	case 3: /* Domain name */
+		i = buf[4] + 2;
+		break;
+	case 4: /* IPv6 */
+		i = 17;
+		break;
+	default:
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Unexpected address type %02x in SOCKS connect response\n",
+				  buf[3]);
+		return -EIO;
+	}
+
+	if ((i = proxy_read(ssl_sock, buf, i))) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Error reading connect response from SOCKS proxy: %s\n",
+				  strerror(-i));
+		return i;
+	}
+	return 0;
+}
+
+static int process_http_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 {
 	char buf[MAX_BUF_LEN];
-	int count, buflen, result;
+	int buflen, result;
 
 	sprintf(buf, "CONNECT %s:%d HTTP/1.1\r\n", vpninfo->hostname, vpninfo->port);
 	sprintf(buf + strlen(buf), "Host: %s\r\n", vpninfo->hostname);
@@ -757,19 +900,14 @@ int process_http_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	sprintf(buf + strlen(buf), "Accept-Encoding: identity\r\n");
 	sprintf(buf + strlen(buf), "\r\n");
 
-	vpninfo->progress(vpninfo, PRG_INFO, "Requesting proxy connection to %s:%d\n",
+	vpninfo->progress(vpninfo, PRG_INFO, "Requesting HTTP proxy connection to %s:%d\n",
 			  vpninfo->hostname, vpninfo->port);
 
-	buflen = strlen(buf);
-	for (count = 0; count < buflen; ) {
-		int i = write(ssl_sock, buf + count, buflen - count);
-		if (i < 0) {
-			i = -errno;
-			vpninfo->progress(vpninfo, PRG_ERR, "Sending proxy request failed: %s\n",
-					  strerror(errno));
-			return i;
-		}
-		count += i;
+	if (proxy_write(ssl_sock, (unsigned char *)buf, strlen(buf))) {
+		result = -errno;
+		vpninfo->progress(vpninfo, PRG_ERR, "Sending proxy request failed: %s\n",
+				  strerror(errno));
+		return result;
 	}
 
 	if (proxy_gets(ssl_sock, buf, sizeof(buf)) < 0) {
@@ -790,8 +928,8 @@ int process_http_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 		return -EIO;
 	}
 
-	while ((count = proxy_gets(ssl_sock, buf, sizeof(buf)))) {
-		if (count < 0) {
+	while ((buflen = proxy_gets(ssl_sock, buf, sizeof(buf)))) {
+		if (buflen < 0) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Failed to read proxy response\n");
 			return -EIO;
 		}
@@ -802,3 +940,18 @@ int process_http_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 
 	return 0;
 }
+
+int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
+{
+	if (!vpninfo->proxy_type || !strcmp(vpninfo->proxy_type, "http"))
+		return process_http_proxy(vpninfo, ssl_sock);
+	
+	if (!strcmp(vpninfo->proxy_type, "socks") ||
+	    !strcmp(vpninfo->proxy_type, "socks5"))
+		return process_socks_proxy(vpninfo, ssl_sock);
+
+	vpninfo->progress(vpninfo, PRG_ERR, "Unknown proxy type '%s'\n",
+				  vpninfo->proxy_type);
+	return -EIO;
+}
+

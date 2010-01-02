@@ -308,15 +308,22 @@ int main(int argc, char **argv)
 			break;
 		case 'P': {
 			char *url = strdup(optarg);
-			char *scheme;
 
-			autoproxy = 0;
-			parse_url(url, &scheme, &vpninfo->proxy, &vpninfo->proxy_port, NULL, 80);
-			if (scheme && strcmp(scheme, "http")) {
-				fprintf(stderr, "Non-http proxy not supported\n");
+			free(vpninfo->proxy_type);
+			vpninfo->proxy_type = NULL;
+			free(vpninfo->proxy);
+			vpninfo->proxy = NULL;
+
+			parse_url(url, &vpninfo->proxy_type, &vpninfo->proxy,
+				  &vpninfo->proxy_port, NULL, 80);
+			if (vpninfo->proxy_type &&
+			    strcmp(vpninfo->proxy_type, "http") &&
+			    strcmp(vpninfo->proxy_type, "socks") &&
+			    strcmp(vpninfo->proxy_type, "socks5")) {
+				fprintf(stderr, "Only http or socks[5] proxy scheme supported\n");
 				exit(1);
 			}
-			free(scheme);
+			autoproxy = 0;
 			free(url);
 			break;
 		}
