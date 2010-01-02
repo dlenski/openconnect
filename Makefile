@@ -51,16 +51,13 @@ endif
 
 CFLAGS_nm-auth-dialog.o += $(GTK_CFLAGS) $(GCONF_CFLAGS) $(XML2_CFLAGS)
 
-SYSTEM_INCLUDES=/usr/include
-IF_TUN_HDR := $(firstword $(wildcard $(SYSTEM_INCLUDES)/linux/if_tun.h \
-				     $(SYSTEM_INCLUDES)/net/if_tun.h \
-				     $(SYSTEM_INCLUDES)/net/tun/if_tun.h))
+-include Make.config
+
 ifneq ($(IF_TUN_HDR),)
-CFLAGS_tun.o += -DIF_TUN_HDR=\"$(patsubst $(SYSTEM_INCLUDES)/%,%,$(IF_TUN_HDR))\"
+CFLAGS_tun.o += -DIF_TUN_HDR=\"$(IF_TUN_HDR)\"
 endif
 
-LIBPROXY := $(firstword $(wildcard $(SYSTEM_INCLUDES)/libproxy/proxy.h))
-ifneq ($(LIBPROXY),)
+ifneq ($(LIBPROXY_HDR),)
 CFLAGS += -DOPENCONNECT_LIBPROXY
 LDFLAGS += -lproxy
 endif
@@ -97,7 +94,7 @@ nm-openconnect-auth-dialog: nm-auth-dialog.o $(AUTH_OBJECTS)
 	$(CC) -c -o $@ $(CFLAGS) $(CFLAGS_$@) $< -MD -MF .$@.dep
 
 clean:
-	rm -f *.o *.a openconnect $(wildcard .*.o.dep)
+	rm -f *.o *.a openconnect $(wildcard .*.o.dep .*.h.dep) Make.config
 ifeq ($(MISSINGPKGS),)
 	rm -f nm-openconnect-auth-dialog
 endif
@@ -113,6 +110,16 @@ ifeq ($(MISSINGPKGS),)
 endif
 
 include /dev/null $(wildcard .*.o.dep)
+
+HDRTEST = for a in $2 ; do if echo "\#include <$$a>" | $(CC) -o/dev/null -xc - -M -MF $1 -MP -MT Make.config 2>/dev/null; then \
+		echo $$a; break ; fi; done
+
+Make.config: LIBPROXY_H = $(shell $(call HDRTEST,.libproxy.h.dep,libproxy/proxy.h))
+Make.config: IF_TUN_H = $(shell $(call HDRTEST,.if_tun.h.dep, linux/if_tun.h net/if_tun.h net/tun/if_tun.h))
+Make.config: Makefile
+	( echo "IF_TUN_HDR := $(IF_TUN_H)"; echo "LIBPROXY_HDR := $(LIBPROXY_H)" ) > $@
+
+-include Make.config
 
 ifdef VERSION
 tag:
