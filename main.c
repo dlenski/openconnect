@@ -37,7 +37,9 @@
 #include <sys/utsname.h>
 #include <sys/types.h>
 #include <openssl/rand.h>
+#ifdef OPENCONNECT_LIBPROXY
 #include <libproxy/proxy.h>
+#endif
 
 #define _GNU_SOURCE
 #include <getopt.h>
