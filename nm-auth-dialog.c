@@ -504,6 +504,14 @@ static gboolean ui_form (struct oc_auth_form *form)
 
 	ssl_box_clear(ui_data);
 
+	g_mutex_lock(ui_data->form_mutex);
+	while (!g_queue_is_empty (ui_data->form_entries)) {
+		ui_fragment_data *data;
+		data = g_queue_pop_tail (ui_data->form_entries);
+		g_slice_free (ui_fragment_data, data);
+	}
+	g_mutex_unlock(ui_data->form_mutex);
+
 	if (form->banner)
 		ssl_box_add_info(ui_data, form->banner);
 	if (form->error)
