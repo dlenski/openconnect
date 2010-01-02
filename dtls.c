@@ -112,6 +112,12 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	BIO *dtls_bio;
 	int dtls_fd;
 
+	if (!vpninfo->dtls_addr) {
+		vpninfo->progress(vpninfo, PRG_ERR, "No DTLS address\n");
+		vpninfo->dtls_attempt_period = 0;
+		return -EINVAL;
+	}
+
 	if (!vpninfo->dtls_cipher) {
 		/* We probably didn't offer it any ciphers it liked */
 		vpninfo->progress(vpninfo, PRG_ERR, "Server offered no DTLS cipher option\n");
@@ -120,7 +126,8 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	}
 
 	if (vpninfo->proxy) {
-		vpninfo->progress(vpninfo, PRG_ERR, "No DTLS when connected via HTTP proxy\n");
+		/* XXX: Theoretically, SOCKS5 proxies can do UDP too */
+		vpninfo->progress(vpninfo, PRG_ERR, "No DTLS when connected via proxy\n");
 		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
@@ -131,7 +138,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	if (connect(dtls_fd, vpninfo->peer_addr, vpninfo->peer_addrlen)) {
+	if (connect(dtls_fd, vpninfo->dtls_addr, vpninfo->peer_addrlen)) {
 		perror("UDP (DTLS) connect:\n");
 		close(dtls_fd);
 		return -EINVAL;
@@ -335,6 +342,7 @@ int setup_dtls(struct openconnect_info *vpninfo)
 			if (strlen(dtls_opt->value) != 64) {
 				vpninfo->progress(vpninfo, PRG_ERR, "X-DTLS-Session-ID not 64 characters\n");
 				vpninfo->progress(vpninfo, PRG_ERR, "Is: %s\n", dtls_opt->value);
+				vpninfo->dtls_attempt_period = 0;
 				return -EINVAL;
 			}
 			for (i = 0; i < 64; i += 2)
@@ -354,21 +362,30 @@ int setup_dtls(struct openconnect_info *vpninfo)
 
 		dtls_opt = dtls_opt->next;
 	}
-	if (!sessid_found || !dtls_port)
-		return -EINVAL;
-
-	if (vpninfo->peer_addr->sa_family == AF_INET) {
-		struct sockaddr_in *sin = (void *)vpninfo->peer_addr;
-		sin->sin_port = htons(dtls_port);
-	} else if (vpninfo->peer_addr->sa_family == AF_INET6) {
-		struct sockaddr_in6 *sin = (void *)vpninfo->peer_addr;
-		sin->sin6_port = htons(dtls_port);
-	} else {
-		vpninfo->progress(vpninfo, PRG_ERR, "Unknown protocol family %d. Cannot do DTLS\n",
-			vpninfo->peer_addr->sa_family);
+	if (!sessid_found || !dtls_port) {
+		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
 
+	vpninfo->dtls_addr = malloc(vpninfo->peer_addrlen);
+	if (!vpninfo->dtls_addr) {
+		vpninfo->dtls_attempt_period = 0;
+		return -ENOMEM;
+	}
+	memcpy(vpninfo->dtls_addr, vpninfo->peer_addr, vpninfo->peer_addrlen);
+
+	if (vpninfo->peer_addr->sa_family == AF_INET) {
+		struct sockaddr_in *sin = (void *)vpninfo->dtls_addr;
+		sin->sin_port = htons(dtls_port);
+	} else if (vpninfo->peer_addr->sa_family == AF_INET6) {
+		struct sockaddr_in6 *sin = (void *)vpninfo->dtls_addr;
+		sin->sin6_port = htons(dtls_port);
+	} else {
+		vpninfo->progress(vpninfo, PRG_ERR, "Unknown protocol family %d. Cannot do DTLS\n",
+				  vpninfo->peer_addr->sa_family);
+		vpninfo->dtls_attempt_period = 0;
+		return -EINVAL;
+	}
 
 	if (connect_dtls_socket(vpninfo))
 		return -EINVAL;

@@ -242,6 +242,7 @@ struct openconnect_info {
 
 	socklen_t peer_addrlen;
 	struct sockaddr *peer_addr;
+	struct sockaddr *dtls_addr;
 
 	int deflate;
 	char *useragent;
