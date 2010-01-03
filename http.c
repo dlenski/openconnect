@@ -104,12 +104,12 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	int http10 = 0, closeconn = 0;
 	int i;
 
+ cont:
 	if (openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)) < 0) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Error fetching HTTPS response\n");
 		return -EINVAL;
 	}
 
- cont:
 	if (!strncmp(buf, "HTTP/1.0 ", 9)) {
 		http10 = 1;
 		closeconn = 1;
