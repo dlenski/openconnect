@@ -191,10 +191,6 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	if (*result == 100)
 		goto cont;
 
-	/* Now the body, if there is one */
-	if (!bodylen)
-		goto fin;
-
 	if (http10) {
 		/* HTTP 1.0 response. Just eat all we can. */
 		while (1) {
@@ -204,6 +200,11 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			done += i;
 		}
 	}
+
+	/* Now the body, if there is one */
+	if (!bodylen)
+		goto fin;
+
 	/* If we were given Content-Length, it's nice and easy... */
 	if (bodylen > 0) {
 		while (done < bodylen) {
