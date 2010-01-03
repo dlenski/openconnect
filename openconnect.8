@@ -63,7 +63,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 ]
 [
 .B -P,--proxy
-.I PROXY
+.I PROXYURL
 ]
 [
 .B --no-proxy
@@ -231,11 +231,11 @@ from server
 .B -p,--key-password=PASS
 Provide passphrase for certificate file, or SRK (System Root Key) PIN for TPM
 .TP
-.B -P,--proxy=PROXY
-Use HTTP proxy for connection
+.B -P,--proxy=PROXYURL
+Use HTTP or SOCKS proxy for connection
 .TP
 .B --no-proxy
-Disable use of HTTP proxy
+Disable use of proxy
 .TP
 .B --libproxy
 Use libproxy to configure proxy automatically (when built with libproxy support)
