@@ -259,7 +259,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			break;
 	}
  fin:
-	if (closeconn && vpninfo->https_ssl) {
+	if (closeconn) {
 		SSL_free(vpninfo->https_ssl);
 		vpninfo->https_ssl = NULL;
 		close(vpninfo->ssl_fd);
@@ -601,10 +601,12 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 				/* Kill the existing connection, and a new one will happen */
 				free(vpninfo->peer_addr);
 				vpninfo->peer_addr = NULL;
-				SSL_free(vpninfo->https_ssl);
-				vpninfo->https_ssl = NULL;
-				close(vpninfo->ssl_fd);
-				vpninfo->ssl_fd = -1;
+				if (vpninfo->https_ssl) {
+					SSL_free(vpninfo->https_ssl);
+					vpninfo->https_ssl = NULL;
+					close(vpninfo->ssl_fd);
+					vpninfo->ssl_fd = -1;
+				}
 
 				for (opt = vpninfo->cookies; opt; opt = next) {
 					next = opt->next;
