@@ -454,6 +454,7 @@ int main(int argc, char **argv)
 			vpninfo->urlpath = group;
 		}
 		free(scheme);
+		free(url);
 	}
 
 #ifdef SSL_UI
