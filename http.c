@@ -373,7 +373,11 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 				exit(1);
 			}
 			setenv("HOME", pw->pw_dir, 1);
-			chdir(pw->pw_dir);
+			if (chdir(pw->pw_dir)) {
+				fprintf(stderr, "Failed to change to CSD home directory '%s': %s\n",
+					pw->pw_dir, strerror(errno));
+				exit(1);
+			}
 		}
 		if (vpninfo->uid_csd == 0) {
 			fprintf(stderr, "Warning: you are running insecure "
@@ -383,11 +387,14 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 
 		csd_argv[i++] = fname;
 		csd_argv[i++] = "-ticket";
-		asprintf(&csd_argv[i++], "\"%s\"", vpninfo->csd_ticket);
+		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->csd_ticket) == -1)
+			return -ENOMEM;
 		csd_argv[i++] = "-stub";
 		csd_argv[i++] = "\"0\"";
 		csd_argv[i++] = "-group";
-		asprintf(&csd_argv[i++], "\"%s\"", vpninfo->authgroup?:"");
+		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->authgroup?:"") == -1)
+			return -ENOMEM;
+
 		get_cert_md5_fingerprint(vpninfo, scert, scertbuf);
 		if (ccert)
 			get_cert_md5_fingerprint(vpninfo, ccert, ccertbuf);
@@ -395,16 +402,20 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 			ccertbuf[0] = 0;
 
 		csd_argv[i++] = "-certhash";
-		asprintf(&csd_argv[i++], "\"%s:%s\"", scertbuf, ccertbuf);
+		if (asprintf(&csd_argv[i++], "\"%s:%s\"", scertbuf, ccertbuf) == -1)
+			return -ENOMEM;
 		csd_argv[i++] = "-url";
-		asprintf(&csd_argv[i++], "\"https://%s%s\"", vpninfo->hostname, vpninfo->csd_starturl);
+		if (asprintf(&csd_argv[i++], "\"https://%s%s\"", vpninfo->hostname, vpninfo->csd_starturl) == -1)
+			return -ENOMEM;
 		/* WTF would it want to know this for? */
 		csd_argv[i++] = "-vpnclient";
 		csd_argv[i++] = "\"/opt/cisco/vpn/bin/vpnui";
 		csd_argv[i++] = "-connect";
-		asprintf(&csd_argv[i++], "https://%s/%s", vpninfo->hostname, vpninfo->csd_preurl);
+		if (asprintf(&csd_argv[i++], "https://%s/%s", vpninfo->hostname, vpninfo->csd_preurl) == -1)
+			return -ENOMEM;
 		csd_argv[i++] = "-connectparam";
-		asprintf(&csd_argv[i++], "#csdtoken=%s\"", vpninfo->csd_token);
+		if (asprintf(&csd_argv[i++], "#csdtoken=%s\"", vpninfo->csd_token) == -1)
+			return -ENOMEM;
 		csd_argv[i++] = "-langselen";
 		csd_argv[i++] = NULL;
 

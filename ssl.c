@@ -522,11 +522,13 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			vpninfo->proxy = NULL;
 
 			if (vpninfo->port == 443)
-				asprintf(&url, "https://%s/%s", vpninfo->hostname,
-					 vpninfo->urlpath?:"");
+				i = asprintf(&url, "https://%s/%s", vpninfo->hostname,
+					     vpninfo->urlpath?:"");
 			else
-				asprintf(&url, "https://%s:%d/%s", vpninfo->hostname,
-					 vpninfo->port, vpninfo->urlpath?:"");
+				i = asprintf(&url, "https://%s:%d/%s", vpninfo->hostname,
+					     vpninfo->port, vpninfo->urlpath?:"");
+			if (i == -1)
+				return -ENOMEM;
 
 			proxies = px_proxy_factory_get_proxies(vpninfo->proxy_factory,
 							       url);
