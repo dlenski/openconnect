@@ -335,7 +335,13 @@ static int script_config_tun(struct openconnect_info *vpninfo)
 {
 	set_script_env(vpninfo);
 
-	system(vpninfo->vpnc_script);
+	if (system(vpninfo->vpnc_script)) {
+		int e = errno;
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Failed to spawn script '%s': %s\n",
+				  vpninfo->vpnc_script, strerror(e));
+		return -e;
+	}
 	return 0;
 }
 
@@ -592,7 +598,12 @@ void shutdown_tun(struct openconnect_info *vpninfo)
 		if (vpninfo->vpnc_script) {
 			setenv("TUNDEV", vpninfo->ifname, 1);
 			setenv("reason", "disconnect", 1);
-			system(vpninfo->vpnc_script);
+			if (system(vpninfo->vpnc_script) == -1) {
+				vpninfo->progress(vpninfo, PRG_ERR,
+						  "Failed to spawn script '%s': %s\n",
+						  vpninfo->vpnc_script,
+						  strerror(errno));
+			}
 		}
 #ifdef __sun__
 		if (ioctl(vpninfo->ip_fd, I_PUNLINK, vpninfo->tun_muxid) < 0)
