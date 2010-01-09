@@ -141,15 +141,15 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		if (*colon == ' ')
 			colon++;
 
-		if (!strcmp(buf, "Connection") && !strcmp(colon, "Close"))
+		if (!strcasecmp(buf, "Connection") && !strcasecmp(colon, "Close"))
 			closeconn = 1;
 
-		if (!strcmp(buf, "Location")) {
+		if (!strcasecmp(buf, "Location")) {
 			vpninfo->redirect_url = strdup(colon);
 			if (!vpninfo->redirect_url)
 				return -ENOMEM;
 		}
-		if (!strcmp(buf, "Content-Length")) {
+		if (!strcasecmp(buf, "Content-Length")) {
 			bodylen = atoi(colon);
 			if (bodylen < 0 || bodylen > buf_len) {
 				vpninfo->progress(vpninfo, PRG_ERR, "Response body too large for buffer (%d > %d)\n",
@@ -157,7 +157,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				return -EINVAL;
 			}
 		}
-		if (!strcmp(buf, "Set-Cookie")) {
+		if (!strcasecmp(buf, "Set-Cookie")) {
 			char *semicolon = strchr(colon, ';');
 			char *equals = strchr(colon, '=');
 			int ret;
@@ -175,8 +175,8 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			if (ret)
 				return ret;
 		}
-		if (!strcmp(buf, "Transfer-Encoding")) {
-			if (!strcmp(colon, "chunked"))
+		if (!strcasecmp(buf, "Transfer-Encoding")) {
+			if (!strcasecmp(colon, "chunked"))
 				bodylen = -1;
 			else {
 				vpninfo->progress(vpninfo, PRG_ERR, "Unknown Transfer-Encoding: %s\n", colon);
@@ -605,7 +605,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 				return ret;
 			}
 
-			if (strcmp(vpninfo->hostname, host) || port != vpninfo->port) {
+			if (strcasecmp(vpninfo->hostname, host) || port != vpninfo->port) {
 				free(vpninfo->hostname);
 				vpninfo->hostname = host;
 				vpninfo->port = port;
