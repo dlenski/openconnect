@@ -559,9 +559,15 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		}
 
 		if (hostname[0] == '[' && hostname[strlen(hostname)-1] == ']') {
-			hostname = strndup(hostname + 1, strlen(hostname) - 2);
-			if (!hostname)
+			/* Solaris has no strndup(). */
+			int len = strlen(hostname) - 2;
+			char *new_hostname = malloc(len + 1);
+			if (!new_hostname)
 				return -ENOMEM;
+			memcpy(new_hostname, hostname + 1, len);
+			new_hostname[len] = 0;
+
+			hostname = new_hostname;
 			hints.ai_flags |= AI_NUMERICHOST;
 		}
 
