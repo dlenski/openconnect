@@ -398,7 +398,7 @@ static int check_server_cert(struct openconnect_info *vpninfo, X509 *cert)
 	if (ret)
 		return ret;
 
-	if (strcmp(vpninfo->servercert, fingerprint)) {
+	if (strcasecmp(vpninfo->servercert, fingerprint)) {
 		vpninfo->progress(vpninfo, PRG_ERR,
 				  "Server SSL certificate didn't match: %s\n", fingerprint);
 		return -EINVAL;
