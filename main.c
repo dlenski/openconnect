@@ -503,11 +503,11 @@ int main(int argc, char **argv)
 
 	if (background) {
 		int pid;
-		if ((pid = fork ())) {
+		if ((pid = fork())) {
 			vpninfo->progress(vpninfo, PRG_INFO,
 					  "Continuing in background; pid %d\n",
 					  pid);
-			exit (1);
+			exit(0);
 		}
 	}
 	vpn_mainloop(vpninfo);
