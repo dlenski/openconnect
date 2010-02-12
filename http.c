@@ -213,6 +213,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			i = SSL_read(vpninfo->https_ssl, body + done, bodylen - done);
 			if (i < 0) {
 				vpninfo->progress(vpninfo, PRG_ERR, "Error reading HTTP response body\n");
+                                free(body);
 				return -EINVAL;
 			}
 			done += i;
@@ -238,6 +239,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				i = SSL_read(vpninfo->https_ssl, body + done, chunklen);
 				if (i < 0) {
 					vpninfo->progress(vpninfo, PRG_ERR, "Error reading HTTP response body\n");
+                                        free(body);
 					return -EINVAL;
 				}
 				chunklen -= i;
@@ -251,9 +253,10 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 					vpninfo->progress(vpninfo, PRG_ERR, "Error in chunked decoding. Expected '', got: '%s'",
 							  buf);
 				}
+                                free(body);
 				return -EINVAL;
 			}
-			
+
 			if (lastchunk)
 				break;
 		}
