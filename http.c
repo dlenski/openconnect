@@ -99,9 +99,10 @@ int http_add_cookie(struct openconnect_info *vpninfo, const char *option, const 
 
 static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				 int (*header_cb)(struct openconnect_info *, char *, char *),
-				 char *body, int buf_len)
+				 char **body_ret)
 {
 	char buf[MAX_BUF_LEN];
+	char *body = NULL;
 	int bodylen = BODY_HTTP10;
 	int done = 0;
 	int closeconn = 0;
@@ -155,9 +156,9 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		}
 		if (!strcasecmp(buf, "Content-Length")) {
 			bodylen = atoi(colon);
-			if (bodylen < 0 || bodylen > buf_len) {
-				vpninfo->progress(vpninfo, PRG_ERR, "Response body too large for buffer (%d > %d)\n",
-					bodylen, buf_len);
+			if (bodylen < 0) {
+				vpninfo->progress(vpninfo, PRG_ERR, "Response body has negative size (%d)\n",
+						  bodylen);
 				return -EINVAL;
 			}
 		}
@@ -203,6 +204,9 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 
 	/* If we were given Content-Length, it's nice and easy... */
 	if (bodylen > 0) {
+		body = malloc(bodylen + 1);
+		if (!body)
+			return -ENOMEM;
 		while (done < bodylen) {
 			i = SSL_read(vpninfo->https_ssl, body + done, bodylen - done);
 			if (i < 0) {
@@ -225,11 +229,9 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				lastchunk = 1;
 				goto skip;
 			}
-			if (chunklen + done > buf_len) {
-				vpninfo->progress(vpninfo, PRG_ERR, "Response body too large for buffer (%d > %d)\n",
-						  chunklen + done, buf_len);
-				return -EINVAL;
-			}
+			body = realloc(body, done + chunklen + 1);
+			if (!body)
+				return -ENOMEM;
 			while (chunklen) {
 				i = SSL_read(vpninfo->https_ssl, body + done, chunklen);
 				if (i < 0) {
@@ -259,9 +261,10 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			return -EINVAL;
 		}
 
-		/* HTTP 1.0 response. Just eat all we can. */
+		/* HTTP 1.0 response. Just eat all we can in 16KiB chunks */
 		while (1) {
-			i = SSL_read(vpninfo->https_ssl, body + done, buf_len - done);
+			body = realloc(body, done + 16385);
+			i = SSL_read(vpninfo->https_ssl, body + done, 16384);
 			if (i <= 0)
 				break;
 			done += i;
@@ -274,7 +277,10 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		close(vpninfo->ssl_fd);
 		vpninfo->ssl_fd = -1;
 	}
-	body[done] = 0;
+
+	if (body)
+		body[done] = 0;
+	*body_ret = body;
 	return done;
 }
 
@@ -283,6 +289,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 {
 	struct vpn_option *opt;
 	char buf[MAX_BUF_LEN];
+	char *config_buf = NULL;
 	int result, buflen;
 	unsigned char local_sha1_bin[SHA_DIGEST_LENGTH];
 	char local_sha1_ascii[(SHA_DIGEST_LENGTH * 2)+1];
@@ -305,18 +312,19 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 
 	SSL_write(vpninfo->https_ssl, buf, strlen(buf));
 
-	buflen = process_http_response(vpninfo, &result, NULL, buf, MAX_BUF_LEN);
+	buflen = process_http_response(vpninfo, &result, NULL, &config_buf);
 	if (buflen < 0) {
 		/* We'll already have complained about whatever offended us */
 		return -EINVAL;
 	}
 
-	if (result != 200)
+	if (result != 200) {
+		free(config_buf);
 		return -EINVAL;
-
+	}
 
 	EVP_MD_CTX_init(&c);
-	EVP_Digest(buf, buflen, local_sha1_bin, NULL, EVP_sha1(), NULL);
+	EVP_Digest(config_buf, buflen, local_sha1_bin, NULL, EVP_sha1(), NULL);
 	EVP_MD_CTX_cleanup(&c);
 
 	for (i = 0; i < SHA_DIGEST_LENGTH; i++)
@@ -324,10 +332,13 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 
 	if (strcasecmp(server_sha1, local_sha1_ascii)) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Downloaded config file did not match intended SHA1\n");
+		free(config_buf);
 		return -EINVAL;
 	}
 
-	return vpninfo->write_new_config(vpninfo, buf, buflen);
+	result = vpninfo->write_new_config(vpninfo, config_buf, buflen);
+	free(config_buf);
+	return result;
 }
 
 static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int buflen)
@@ -534,6 +545,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 {
 	struct vpn_option *opt, *next;
 	char buf[MAX_BUF_LEN];
+	char *form_buf = NULL;
 	int result, buflen;
 	char request_body[2048];
 	char *request_body_type = NULL;
@@ -588,7 +600,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 
 	SSL_write(vpninfo->https_ssl, buf, strlen(buf));
 
-	buflen = process_http_response(vpninfo, &result, NULL, buf, MAX_BUF_LEN);
+	buflen = process_http_response(vpninfo, &result, NULL, &form_buf);
 	if (buflen < 0) {
 		/* We'll already have complained about whatever offended us */
 		exit(1);
@@ -610,6 +622,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 				vpninfo->progress(vpninfo, PRG_ERR, "Failed to parse redirected URL '%s': %s\n",
 						  vpninfo->redirect_url, strerror(-ret));
 				free(vpninfo->redirect_url);
+				free(form_buf);
 				return ret;
 			}
 
@@ -653,38 +666,46 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		} else {
 			vpninfo->progress(vpninfo, PRG_ERR, "Relative redirect (to '%s') not supported\n",
 				vpninfo->redirect_url);
+			free(form_buf);
 			return -EINVAL;
 		}
 	}
 
 	if (vpninfo->csd_stuburl) {
 		/* This is the CSD stub script, which we now need to run */
-		result = run_csd_script(vpninfo, buf, buflen);
-		if (result)
+		result = run_csd_script(vpninfo, form_buf, buflen);
+		if (result) {
+			free(form_buf);
 			return result;
+		}
 
 		/* Now we'll be redirected to the waiturl */
 		goto retry;
 	}
-	if (strncmp(buf, "<?xml", 5)) {
+	if (strncmp(form_buf, "<?xml", 5)) {
 		/* Not XML? Perhaps it's HTML with a refresh... */
-		if (strcasestr(buf, "http-equiv=\"refresh\"")) {
+		if (strcasestr(form_buf, "http-equiv=\"refresh\"")) {
 			vpninfo->progress(vpninfo, PRG_INFO, "Refreshing %s after 1 second...\n",
 					  vpninfo->urlpath);
 			sleep(1);
 			goto retry;
 		}
 		vpninfo->progress(vpninfo, PRG_ERR, "Unknown response from server\n");
+		free(form_buf);
 		return -EINVAL;
 	}
 	request_body[0] = 0;
-	result = parse_xml_response(vpninfo, buf, request_body, sizeof(request_body),
+	result = parse_xml_response(vpninfo, form_buf, request_body, sizeof(request_body),
 				    &method, &request_body_type);
+
 	if (!result)
 		goto redirect;
 
+	free(form_buf);
+
 	if (result != 2)
 		return result;
+
 	/* A return value of 2 means the XML form indicated
 	   success. We _should_ have a cookie... */
 
