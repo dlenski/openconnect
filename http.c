@@ -40,6 +40,8 @@
 
 #include "openconnect.h"
 
+static int proxy_write(int fd, unsigned char *buf, size_t len);
+
 #define MAX_BUF_LEN 131072
 /*
  * We didn't really want to have to do this for ourselves -- one might have
@@ -344,7 +346,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int buflen)
 {
 	char fname[16];
-	int fd;
+	int fd, ret;
 
 	if (!vpninfo->uid_csd_given) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Error: You are trying to "
@@ -366,7 +368,13 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 				  strerror(errno));
 		return err;
 	}
-	write(fd, buf, buflen);
+
+	ret = proxy_write(fd, (void *)buf, buflen);
+	if (ret) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to write temporary CSD script file: %s\n",
+				  strerror(ret));
+		return ret;
+	}
 	fchmod(fd, 0755);
 	close(fd);
 
