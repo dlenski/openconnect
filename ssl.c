@@ -552,10 +552,10 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 #endif
 		if (vpninfo->proxy) {
 			hostname = vpninfo->proxy;
-			snprintf(port, 5, "%d", vpninfo->proxy_port);
+			snprintf(port, 6, "%d", vpninfo->proxy_port);
 		} else {
 			hostname = vpninfo->hostname;
-			snprintf(port, 5, "%d", vpninfo->port);
+			snprintf(port, 6, "%d", vpninfo->port);
 		}
 
 		if (hostname[0] == '[' && hostname[strlen(hostname)-1] == ']') {
