@@ -359,7 +359,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			form->method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
 			form->action = (char *)xmlGetProp(xml_node, (unsigned char *)"action");
 			if (!form->method || !form->action || 
-			    strcasecmp(form->method, "POST") || form->action[0] != '/') {
+			    strcasecmp(form->method, "POST") || !form->action[0]) {
 				vpninfo->progress(vpninfo, PRG_ERR,
 						  "Cannot handle form method='%s', action='%s'\n",
 						  form->method, form->action);

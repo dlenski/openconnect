@@ -681,10 +681,28 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			vpninfo->redirect_url = NULL;
 			goto retry;
 		} else {
-			vpninfo->progress(vpninfo, PRG_ERR, "Relative redirect (to '%s') not supported\n",
-				vpninfo->redirect_url);
-			free(form_buf);
-			return -EINVAL;
+			char *lastslash = strrchr(vpninfo->urlpath, '/');
+			if (!lastslash) {
+				free(vpninfo->urlpath);
+				vpninfo->urlpath = vpninfo->redirect_url;
+				vpninfo->redirect_url = NULL;
+			} else {
+				char *oldurl = vpninfo->urlpath;
+				*lastslash = 0;
+				vpninfo->urlpath = NULL;
+				if (asprintf(&vpninfo->urlpath, "%s/%s",
+					     oldurl, vpninfo->redirect_url) == -1) {
+					int err = -errno;
+					vpninfo->progress(vpninfo, PRG_ERR,
+							  "Allocating new path for relative redirect failed: %s\n",
+							  strerror(-err));
+					return err;
+				}
+				free(oldurl);
+				free(vpninfo->redirect_url);
+				vpninfo->redirect_url = NULL;
+			}
+			goto retry;
 		}
 	}
 
