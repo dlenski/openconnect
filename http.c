@@ -269,9 +269,13 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		/* HTTP 1.0 response. Just eat all we can in 16KiB chunks */
 		while (1) {
 			body = realloc(body, done + 16384);
+			if (!body)
+				return -ENOMEM;
 			i = SSL_read(vpninfo->https_ssl, body + done, 16384);
 			if (i <= 0) {
 				body = realloc(body, done + 1);
+				if (!body)
+					return -ENOMEM;
 				break;
                         }
 			done += i;
