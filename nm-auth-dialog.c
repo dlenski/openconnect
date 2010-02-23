@@ -1122,8 +1122,10 @@ static gboolean cookie_obtained(auth_ui_data *ui_data)
 			g_free(k);
 		}
 
-		printf("%s\n%s\n", NM_OPENCONNECT_KEY_GATEWAY, ui_data->vpninfo->hostname);
-		printf("%s\n%s\n", NM_OPENCONNECT_KEY_COOKIE, ui_data->vpninfo->cookie);
+		printf("%s\n%s:%d\n", NM_OPENCONNECT_KEY_GATEWAY,
+		       ui_data->vpninfo->hostname, ui_data->vpninfo->port);
+		printf("%s\n%s\n", NM_OPENCONNECT_KEY_COOKIE,
+		       ui_data->vpninfo->cookie);
 		print_peer_cert(ui_data->vpninfo);
 		memset((void *)ui_data->vpninfo->cookie, 0, strlen(ui_data->vpninfo->cookie));
 		printf("\n\n");
