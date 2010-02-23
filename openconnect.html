@@ -175,6 +175,10 @@ For full changelog entries including the latest development, see
 <UL>
   <LI><B>OpenConnect HEAD</B><BR>
      <UL>
+       <LI>Handle non-standard port when used with NetworkManager.</LI>
+       <LI>Cope with relative redirect and form URLs.</LI>
+       <LI>Allocate HTTP receive buffer dynamically, to cope with arbitrary size of content.</LI>
+       <LI>Fix server cert SHA1 comparison to be case-insensitive.</LI>
        <LI>Fix Solaris build <I>(Solaris has no <TT>strndup()</TT>).</I></LI>
        <LI>Fix exit code with <TT>--background</TT> option.</LI>
      </UL><BR>
@@ -404,6 +408,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Wed Feb  3 06:18:24 GMT 2010
+Last modified: Tue Feb 23 13:51:34 GMT 2010
 <!-- hhmts end -->
 </body> </html>
