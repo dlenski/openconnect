@@ -49,6 +49,11 @@
 
 #include "openconnect.h"
 
+/* OSX < 1.6 doesn't have AI_NUMERICSERV */
+#ifndef AI_NUMERICSERV
+#define AI_NUMERICSERV 0
+#endif
+
 /* Helper functions for reading/writing lines over SSL.
    We could use cURL for the HTTP stuff, but it's overkill */
 
