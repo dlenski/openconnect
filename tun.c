@@ -333,8 +333,6 @@ static void set_script_env(struct openconnect_info *vpninfo)
 
 static int script_config_tun(struct openconnect_info *vpninfo)
 {
-	set_script_env(vpninfo);
-
 	if (system(vpninfo->vpnc_script)) {
 		int e = errno;
 		vpninfo->progress(vpninfo, PRG_ERR,
@@ -350,6 +348,8 @@ static int script_config_tun(struct openconnect_info *vpninfo)
 int setup_tun(struct openconnect_info *vpninfo)
 {
 	int tun_fd;
+
+	set_script_env(vpninfo);
 
 	if (vpninfo->script_tun) {
 		pid_t child;
