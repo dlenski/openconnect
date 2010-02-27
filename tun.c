@@ -239,7 +239,7 @@ static void set_script_env(struct openconnect_info *vpninfo)
 			      sizeof(host), NULL, 0, NI_NUMERICHOST);
 	if (!ret)
 		setenv("VPNGATEWAY", host, 1);
-	setenv("TUNDEV", vpninfo->ifname, 1);
+
 	setenv("reason", "connect", 1);
 	unsetenv("CISCO_BANNER");
 	unsetenv("CISCO_SPLIT_INC");
@@ -497,6 +497,7 @@ int setup_tun(struct openconnect_info *vpninfo)
 #endif
 #endif
 		if (vpninfo->vpnc_script) {
+			setenv("TUNDEV", vpninfo->ifname, 1);
 			script_config_tun(vpninfo);
 			/* We have to set the MTU for ourselves, because the script doesn't */
 			local_config_tun(vpninfo, 1);
@@ -596,7 +597,6 @@ void shutdown_tun(struct openconnect_info *vpninfo)
 		kill(vpninfo->script_tun, SIGHUP);
 	} else {
 		if (vpninfo->vpnc_script) {
-			setenv("TUNDEV", vpninfo->ifname, 1);
 			setenv("reason", "disconnect", 1);
 			if (system(vpninfo->vpnc_script) == -1) {
 				vpninfo->progress(vpninfo, PRG_ERR,
