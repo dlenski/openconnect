@@ -148,8 +148,15 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		if (!strcasecmp(buf, "Connection")) {
 			if (!strcasecmp(colon, "Close"))
 				closeconn = 1;
+#if 0
+			/* This might seem reasonable, but in fact it breaks
+			   certificate authentication with some servers. If
+			   they give an HTTP/1.0 response, even if they
+			   explicitly give a Connection: Keep-Alive header,
+			   just close the connection. */
 			else if (!strcasecmp(colon, "Keep-Alive"))
 				closeconn = 0;
+#endif
 		}
 		if (!strcasecmp(buf, "Location")) {
 			vpninfo->redirect_url = strdup(colon);
