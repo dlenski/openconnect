@@ -175,7 +175,9 @@ For full changelog entries including the latest development, see
 <UL>
   <LI><B>OpenConnect HEAD</B><BR>
      <UL>
-       <LI>Handle non-standard port when used with NetworkManager.</LI>
+       <LI>Fix bug handling port numbers above 9999.</LI>
+       <LI>Ignore "<TT>Connection: Keep-Alive</TT>" in HTTP/1.0 to work around server bug with certificate authentication.</LI>
+       <LI>Handle non-standard port (and full URLs) when used with NetworkManager.</LI>
        <LI>Cope with relative redirect and form URLs.</LI>
        <LI>Allocate HTTP receive buffer dynamically, to cope with arbitrary size of content.</LI>
        <LI>Fix server cert SHA1 comparison to be case-insensitive.</LI>
@@ -408,6 +410,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Tue Feb 23 14:06:11 GMT 2010
+Last modified: Sun Mar  7 13:30:08 PST 2010
 <!-- hhmts end -->
 </body> </html>
