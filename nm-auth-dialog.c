@@ -884,7 +884,7 @@ static int parse_xmlconfig(char *xmlconfig)
 
 static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 {
-	char *authtype;
+	char *proxy;
 	char *xmlconfig;
 	char *hostname;
 	char *group;
@@ -950,37 +950,18 @@ if (0) {
 
 	vpninfo->cafile = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_CACERT);
 
-	authtype = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_AUTHTYPE);
-	if (!authtype) {
-		fprintf(stderr, "No authentication type configured\n");
-		return -EINVAL;
-	}
 
-	if (!strcmp(authtype, NM_OPENCONNECT_AUTHTYPE_PASSWORD)) {
-		vpninfo->username = get_gconf_setting(gcl, config_path,
-						      NM_OPENCONNECT_KEY_USERNAME);
-		return 0;
-	}
-	if (!strcmp(authtype, NM_OPENCONNECT_AUTHTYPE_CERT_TPM))
-		vpninfo->cert_type = CERT_TYPE_TPM;
-	else if (strcmp(authtype, NM_OPENCONNECT_AUTHTYPE_CERT)) {
-		fprintf(stderr, "Unknown authentication type '%s'\n", authtype);
+	proxy = get_gconf_setting(gcl, config_path, "proxy");
+	if (proxy && proxy[0] && set_http_proxy(vpninfo, proxy))
 		return -EINVAL;
-	}
 
-	/* It's a certificate */
 	vpninfo->cert = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_USERCERT);
-	if (!vpninfo->cert) {
-		fprintf(stderr, "No user certificate configured\n");
-		return -EINVAL;
-	}
-
 	vpninfo->sslkey = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_PRIVKEY);
 	if (!vpninfo->sslkey)
 		vpninfo->sslkey = vpninfo->cert;
 
 	pem_passphrase_fsid = get_gconf_setting(gcl, config_path, "pem_passphrase_fsid");
-	if (pem_passphrase_fsid && !strcmp(pem_passphrase_fsid, "yes"))
+	if (pem_passphrase_fsid && vpninfo->sslkey && !strcmp(pem_passphrase_fsid, "yes"))
 		passphrase_from_fsid(vpninfo);
 	g_free(pem_passphrase_fsid);
 				    
