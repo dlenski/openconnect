@@ -888,6 +888,7 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	char *xmlconfig;
 	char *hostname;
 	char *group;
+	char *csd;
 	char *pem_passphrase_fsid;
 
 	gcl = gconf_client_get_default();
@@ -950,6 +951,13 @@ if (0) {
 
 	vpninfo->cafile = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_CACERT);
 
+	csd = get_gconf_setting(gcl, config_path, "enable_csd_trojan");
+	if (csd && !strcmp(csd, "yes")) {
+		/* We're not running as root; we can't setuid(). */
+		vpninfo->uid_csd = getuid();
+		vpninfo->uid_csd_given = 2;
+	}
+	g_free(csd);
 
 	proxy = get_gconf_setting(gcl, config_path, "proxy");
 	if (proxy && proxy[0] && set_http_proxy(vpninfo, proxy))

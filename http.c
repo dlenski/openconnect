@@ -427,7 +427,11 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 				"CSD code with root privileges\n"
 				"\t Use command line option \"--csd-user\"\n");
 		}
-
+		if (vpninfo->uid_csd_given == 2) {	       
+			/* The NM tool really needs not to get spurious output
+			   on stdout, which the CSD trojan spews. */
+			dup2(2, 1);
+		}
 		csd_argv[i++] = fname;
 		csd_argv[i++] = "-ticket";
 		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->csd_ticket) == -1)
