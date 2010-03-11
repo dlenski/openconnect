@@ -365,10 +365,10 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 	int fd, ret;
 
 	if (!vpninfo->uid_csd_given) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Error: You are trying to "
-				  "run insecure CSD code without specifying the CSD user.\n"
-				  "       Use command line option \"--csd-user\"\n");
-		exit(1);
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
+				  "This facility is disabled by default for security reasons, so you may wish to enable it.");
+		return -EPERM;
 	}
 
 #ifndef __linux__
