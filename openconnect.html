@@ -366,22 +366,7 @@ which predates the official RFC and has a few differences in the
 implementation of DTLS.
 <P>
 Compatibility support for their "speshul" version of the protocol is
-in the 1.0.0-beta2 and later releases, and is in CVS for the 0.9.8 branch,
-but has not yet been part of an official 0.9.8 release.
-<P>
-It was originally committed to the 0.9.8 branch after the 0.9.8k release,
-and therefore expected to be in the 0.9.8l release &mdash; but 0.9.8l
-actually turned out to be an "emergency" release to address a <A
-HREF="http://extendedsubset.com/?p=8">serious protocol flaw</A>, and
-was identical to 0.9.8k except for a patch to disable SSL
-renegotiation.  It's quite likely that 0.9.8m will have a <A
-HREF="https://svn.resiprocate.org/rep/ietf-drafts/ekr/draft-rescorla-tls-renegotiate.txt">more
-refined fix</A> for the renegotiation problem, and therefore the Cisco
-DTLS compatibility and all the other things which went into OpenSSL
-CVS after 0.9.8k should finally see the light of day in a 0.9.8n
-release.
-
-
+in the 0.9.8m and later releases of OpenSSL (and 1.0.0-beta2 and later).
 <P>
 
 If you are using an older version of OpenSSL, DTLS will
@@ -416,6 +401,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Thu Mar 18 15:57:46 GMT 2010
+Last modified: Wed Mar 24 20:58:17 GMT 2010
 <!-- hhmts end -->
 </body> </html>

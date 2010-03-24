@@ -211,7 +211,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	if (!SSL_set_session(dtls_ssl, vpninfo->dtls_session)) {
 		vpninfo->progress(vpninfo, PRG_ERR,
 				  "SSL_set_session() failed with old protocol version 0x%x\n"
-				  "Your OpenSSL may lack Cisco compatibility support\n"
+				  "Are you using a version of OpenSSL older than 0.9.8m?\n"
 				  "See http://rt.openssl.org/Ticket/Display.html?id=1751\n"
 				  "Use the --no-dtls command line option to avoid this message\n",
 				  vpninfo->dtls_session->ssl_version);
