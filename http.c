@@ -716,7 +716,12 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			goto retry;
 		}
 	}
-
+	if (!form_buf || result != 200) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Unexpected %d result from server\n",
+				  result);
+		return -EINVAL;
+	}
 	if (vpninfo->csd_stuburl) {
 		/* This is the CSD stub script, which we now need to run */
 		result = run_csd_script(vpninfo, form_buf, buflen);
