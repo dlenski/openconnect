@@ -124,7 +124,8 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		return -EINVAL;
 	}
 
-	vpninfo->progress(vpninfo, PRG_TRACE, "Got HTTP response: %s\n", buf);
+	vpninfo->progress(vpninfo, (*result==200)?PRG_TRACE:PRG_INFO,
+			  "Got HTTP response: %s\n", buf);
 
 	/* Eat headers... */
 	while ((i = openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
