@@ -589,8 +589,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			free(hostname);
 
 		if (err) {
-			vpninfo->progress(vpninfo, PRG_ERR, "getaddrinfo failed: %s\n",
-					  gai_strerror(err));
+			vpninfo->progress(vpninfo, PRG_ERR, "getaddrinfo failed for host '%s': %s\n",
+					  hostname, gai_strerror(err));
 			return -EINVAL;
 		}
 
