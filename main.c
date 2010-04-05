@@ -501,6 +501,10 @@ int main(int argc, char **argv)
 			      (vpninfo->deflate ? "SSL + deflate" : "SSL")
 			      : "DTLS");
 
+	if (!vpninfo->vpnc_script)
+		vpninfo->progress(vpninfo, PRG_INFO,
+				  "No --script argument provided; DNS and routing are not configured\n");
+
 	if (background) {
 		int pid;
 		if ((pid = fork())) {
