@@ -49,8 +49,8 @@ here's a simple intro to using OpenConnect.
   </LI>
   <LI>Install a <TT>vpnc-script</TT>.<BR>
       This script is what sets up all the addresses and routes for you; it's the
-      same as <TT>vpnc</TT>'s. You can get one from <A HREF="http://git.infradead.org/users/dwmw2/vpnc-scripts.git/blob_plain/HEAD:/vpnc-script">here</A> if you don't have one &mdash; or if you need IPv6 or Solaris support, which the <TT>vpnc</TT> version lacks.</LI>
-  <LI>Connect to your server:<BR>
+      same as <TT>vpnc</TT>'s. You can get one from <A HREF="http://git.infradead.org/users/dwmw2/vpnc-scripts.git/blob_plain/HEAD:/vpnc-script">here</A> if you don't have one &mdash; or if you need IPv6 or Solaris support, which the <TT>vpnc</TT> version lacks. <I>(Note that the script needs to be executable, and stored somewhere where SELinux or similar security setups won't prevent the root user from accessing it.)</I></LI>
+  <LI>Connect to your server, running as root:<BR>
       <TT>openconnect --script /etc/vpnc/vpnc-script https://vpn.mycompany.com/</TT></LI>
 </OL>
 
@@ -401,6 +401,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Wed Mar 24 20:58:17 GMT 2010
+Last modified: Tue Apr  6 20:10:15 BST 2010
 <!-- hhmts end -->
 </body> </html>
