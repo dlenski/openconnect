@@ -33,7 +33,7 @@
 #include <stdio.h>
 #if defined(__linux__)
 #include <sys/vfs.h>
-#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
+#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__) || defined(__APPLE__)
 #include <sys/param.h>
 #include <sys/mount.h>
 #elif defined (__sun__)
