@@ -134,6 +134,9 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .B --no-dtls
 ]
 [
+.B --no-http-keepalive
+]
+[
 .B --no-passwd
 ]
 [
@@ -297,6 +300,25 @@ Set OpenSSL ciphers to support for DTLS
 .TP
 .B --no-dtls
 Disable DTLS
+.TP
+.B --no-http-keepalive
+Version 8.2.2.5 of the Cisco ASA software has a bug where it will forget
+the client's SSL certificate when HTTP connections are being re-used for
+multiple requests. So far, this has only been seen on the initial connection,
+where the server gives an HTTP/1.0 redirect response with an explicit
+.B Connection: Keep-Alive
+directive. OpenConnect as of v2.22 has an unconditional workaround for this,
+which is never to obey that directive after an HTTP/1.0 response.
+
+However, Cisco's support team has failed to give any competent
+response to the bug report and we don't know under what other
+circumstances their bug might manifest itself. So this option exists
+to disable ALL re-use of HTTP sessions and cause a new connection to be
+made for each request. If your server seems not to be recognising your
+certificate, try this option. If it makes a difference, please report
+this information to the
+.B openconnect-devel@lists.infradead.org
+mailing list.
 .TP
 .B --no-passwd
 Never attempt password (or SecurID) authentication

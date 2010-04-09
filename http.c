@@ -290,7 +290,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		}
 	}
 
-	if (closeconn) {
+	if (closeconn || vpninfo->no_http_keepalive) {
 		SSL_free(vpninfo->https_ssl);
 		vpninfo->https_ssl = NULL;
 		close(vpninfo->ssl_fd);

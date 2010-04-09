@@ -173,6 +173,7 @@ struct openconnect_info {
 	char *dtls_ciphers;
 	uid_t uid_csd;
 	int uid_csd_given;
+	int no_http_keepalive;
 
 	char *cookie;
 	struct vpn_option *cookies;

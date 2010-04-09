@@ -95,6 +95,7 @@ static struct option long_options[] = {
 	{"disable-ipv6", 0, 0, 0x05},
 	{"no-proxy", 0, 0, 0x06},
 	{"libproxy", 0, 0, 0x07},
+	{"no-http-keepalive", 0, 0, 0x08},
 	{NULL, 0, 0, 0},
 };
 
@@ -140,6 +141,7 @@ void usage(void)
 	printf("      --disable-ipv6              Do not ask for IPv6 connectivity\n");
 	printf("      --dtls-ciphers=LIST         OpenSSL ciphers to support for DTLS\n");
 	printf("      --no-dtls                   Disable DTLS\n");
+	printf("      --no-http-keepalive         Disable HTTP connection re-use\n");
 	printf("      --no-passwd                 Disable password/SecurID authentication\n");
 	printf("      --passwd-on-stdin           Read password from standard input\n");
 	printf("      --reconnect-timeout         Connection retry timeout in seconds\n");
@@ -326,6 +328,11 @@ int main(int argc, char **argv)
 #endif
 			autoproxy = 1;
 			proxy = NULL;
+			break;
+		case 0x08:
+			fprintf(stderr, "Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
+				"If this helps, please report to <openconnect-devel@lists.infradead.org>.\n");
+			vpninfo->no_http_keepalive = 1;
 			break;
 		case 's':
 			vpninfo->vpnc_script = optarg;
