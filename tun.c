@@ -232,6 +232,31 @@ static void setenv_cstp_opts(struct openconnect_info *vpninfo)
 	free(env_buf);
 }
 
+static void set_banner(struct openconnect_info *vpninfo)
+{
+	char *banner, *q;
+	const char *p;
+
+	if (!vpninfo->banner || !(banner = malloc(strlen(vpninfo->banner)))) {
+		unsetenv("CISCO_BANNER");
+		return;
+	}
+	p = vpninfo->banner;
+	q = banner;
+	
+	while (*p) {
+		if (*p == '%' && isxdigit(p[1]) && isxdigit(p[2])) {
+			*(q++) = unhex(p + 1);
+			p += 3;
+		} else 
+			*(q++) = *(p++);
+	}
+	*q = 0;
+	setenv("CISCO_BANNER", banner, 1);
+
+	free(banner);
+}	
+
 static void set_script_env(struct openconnect_info *vpninfo)
 {
 	char host[80];
@@ -241,7 +266,7 @@ static void set_script_env(struct openconnect_info *vpninfo)
 		setenv("VPNGATEWAY", host, 1);
 
 	setenv("reason", "connect", 1);
-	unsetenv("CISCO_BANNER");
+	set_banner(vpninfo);
 	unsetenv("CISCO_SPLIT_INC");
 	unsetenv("CISCO_SPLIT_EXC");
 

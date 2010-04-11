@@ -98,7 +98,7 @@ static unsigned char nybble(unsigned char n)
 	return 0;
 }
 
-static unsigned char hex(const char *data)
+unsigned char unhex(const char *data)
 {
 	return (nybble(data[0]) << 4) | nybble(data[1]);
 }
@@ -346,7 +346,7 @@ int setup_dtls(struct openconnect_info *vpninfo)
 				return -EINVAL;
 			}
 			for (i = 0; i < 64; i += 2)
-				vpninfo->dtls_session_id[i/2] = hex(dtls_opt->value + i);
+				vpninfo->dtls_session_id[i/2] = unhex(dtls_opt->value + i);
 			sessid_found = 1;
 		} else if (!strcmp(dtls_opt->option + 7, "Port")) {
 			dtls_port = atol(dtls_opt->value);

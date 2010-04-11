@@ -211,6 +211,7 @@ struct openconnect_info {
 	char *ifname;
 
 	int mtu;
+	const char *banner;
 	const char *vpn_addr;
 	const char *vpn_netmask;
 	const char *vpn_addr6;
@@ -288,6 +289,7 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout);
 void shutdown_tun(struct openconnect_info *vpninfo);
 
 /* dtls.c */
+unsigned char unhex(const char *data);
 int setup_dtls(struct openconnect_info *vpninfo);
 int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int dtls_try_handshake(struct openconnect_info *vpninfo);
