@@ -523,6 +523,7 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 			if (vpninfo->password &&
 			    !strcmp(opt->name, "password")) {
 				opt->value = strdup(vpninfo->password);
+				vpninfo->password = NULL;
 				if (!opt->value) {
 					ret = -ENOMEM;
 					goto out_ui;
