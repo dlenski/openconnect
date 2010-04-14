@@ -142,14 +142,26 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 	int ret = 0;
 	char pass[PEM_BUFSIZE];
 
+ retrypass:
 	if (!vpninfo->cert_password) {
 		if (EVP_read_pw_string(pass, PEM_BUFSIZE,
 				       "Enter PKCS#12 pass phrase:", 0))
 			return -EINVAL;
 	}
 	if (!PKCS12_parse(p12, vpninfo->cert_password?:pass, &pkey, &cert, &ca)) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Parse PKCS#12 failed\n");
+		unsigned long err = ERR_peek_error();
+
 		report_ssl_errors(vpninfo);
+
+		if (ERR_GET_LIB(err) == ERR_LIB_PKCS12 &&
+		    ERR_GET_FUNC(err) == PKCS12_F_PKCS12_PARSE &&
+		    ERR_GET_REASON(err) == PKCS12_R_MAC_VERIFY_FAILURE) {
+			vpninfo->progress(vpninfo, PRG_ERR, "Parse PKCS#12 failed (wrong passphrase?)\n");
+			vpninfo->cert_password = NULL;
+			goto retrypass;
+		}
+
+		vpninfo->progress(vpninfo, PRG_ERR, "Parse PKCS#12 failed (see above errors)\n");
 		PKCS12_free(p12);
 		return -EINVAL;
 	}
@@ -333,7 +345,6 @@ static int load_certificate(struct openconnect_info *vpninfo)
 					    SSL_FILETYPE_PEM)) {
 		unsigned long err = ERR_peek_error();
 		
-		vpninfo->progress(vpninfo, PRG_ERR, "Loading private key failed\n");
 		report_ssl_errors(vpninfo);
 
 #ifndef EVP_F_EVP_DECRYPTFINAL_EX
@@ -342,9 +353,12 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		/* If the user fat-fingered the passphrase, try again */
 		if (ERR_GET_LIB(err) == ERR_LIB_EVP &&
 		    ERR_GET_FUNC(err) == EVP_F_EVP_DECRYPTFINAL_EX &&
-		    ERR_GET_REASON(err) == EVP_R_BAD_DECRYPT)
+		    ERR_GET_REASON(err) == EVP_R_BAD_DECRYPT) {
+			vpninfo->progress(vpninfo, PRG_ERR, "Loading private key failed (wrong passphrase?)\n");
 			goto again;
+		}
 		
+		vpninfo->progress(vpninfo, PRG_ERR, "Loading private key failed (see above errors)\n");
 		return -EINVAL;
 	}
 	return 0;
