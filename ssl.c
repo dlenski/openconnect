@@ -474,6 +474,7 @@ void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 	X509_STORE_CTX_cleanup(&ctx);
 }
 
+#if OPENSSL_VERSION_NUMBER >= 0x00908000
 static int ssl_app_verify_callback(X509_STORE_CTX *ctx, void *arg)
 {
 	/* We've seen certificates in the wild which don't have the
@@ -481,6 +482,7 @@ static int ssl_app_verify_callback(X509_STORE_CTX *ctx, void *arg)
 	X509_VERIFY_PARAM_set_purpose(ctx->param, X509_PURPOSE_ANY);
 	return X509_verify_cert(ctx);
 }
+#endif
 
 int openconnect_open_https(struct openconnect_info *vpninfo)
 {
@@ -662,9 +664,13 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		   ... but it doesn't work with OpenSSL < 0.9.8k because of 
 		   problems with inheritance (fixed in v1.1.4.6 of
 		   crypto/x509/x509_vpm.c) so we have to play silly buggers
-		   instead. */
+		   instead. This trick doesn't work _either_ in < 0.9.7 but
+		   I don't know of _any_ workaround which will, and can't
+		   be bothered to find out either. */
+#if OPENSSL_VERSION_NUMBER >= 0x00908000
 		SSL_CTX_set_cert_verify_callback(vpninfo->https_ctx,
 						 ssl_app_verify_callback, NULL);
+#endif
 		SSL_CTX_set_default_verify_paths(vpninfo->https_ctx);
 
 		if (vpninfo->cafile)
