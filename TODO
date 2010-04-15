@@ -1,7 +1,6 @@
 
 openconnect:
-	IPv6 support
-	Port to/test on Windows/Solaris/*BSD
+	Port to/test on Windows, Symbian, etc.
 	Proper SecurID support
 
 nm-auth-dialog:
