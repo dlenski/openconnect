@@ -51,7 +51,8 @@ static int proxy_write(int fd, unsigned char *buf, size_t len);
  * provided by their caller.
  */
 
-int http_add_cookie(struct openconnect_info *vpninfo, const char *option, const char *value)
+static int http_add_cookie(struct openconnect_info *vpninfo,
+			   const char *option, const char *value)
 {
 	struct vpn_option *new, **this;
 

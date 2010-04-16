@@ -452,8 +452,8 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 	return 0;
 }
 
-void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
-				      SSL *ssl)
+static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
+					     SSL *ssl)
 {
 	/* OpenSSL has problems with certificate chains -- if there are
 	   multiple certs with the same name, it doesn't necessarily
