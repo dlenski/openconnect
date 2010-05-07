@@ -73,11 +73,14 @@ VERSION_OBJS := $(filter-out version.o, \
 
 all: openconnect maybe-auth-dialog
 
+libopenconnect.a: ${AUTH_OBJECTS}
+	$(AR) rcs $@ $^
+
 version.c: $(patsubst %.o,%.c,$(VERSION_OBJS)) Makefile openconnect.h \
 		$(wildcard .git/index .git/refs/tags) version.sh
 	@./version.sh
 
-openconnect: $(OPENCONNECT_OBJS) $(CONNECTION_OBJS) $(AUTH_OBJECTS)
+openconnect: $(OPENCONNECT_OBJS) $(CONNECTION_OBJS) libopenconnect.a
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 ifeq ($(MISSINGPKGS),)
@@ -87,7 +90,7 @@ maybe-auth-dialog: $(warning Cannot build NetworkManager auth-dialog:) \
 		   $(warning Missing pkg-config packages: $(MISSINGPKGS))
 endif
 
-nm-openconnect-auth-dialog: nm-auth-dialog.o $(AUTH_OBJECTS)
+nm-openconnect-auth-dialog: nm-auth-dialog.o libopenconnect.a
 	$(CC) -o $@ $^ $(LDFLAGS) $(GTK_LDFLAGS) $(GCONF_LDFLAGS) $(XML2_LDFLAGS)
 
 %.o: %.c
