@@ -37,7 +37,7 @@
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__) || defined(__APPLE__)
 #include <sys/param.h>
 #include <sys/mount.h>
-#elif defined (__sun__) || defined(__NetBSD__)
+#elif defined (__sun__) || defined(__NetBSD__) || defined(__DragonFly__)
 #include <sys/statvfs.h>
 #endif
 
@@ -743,7 +743,7 @@ void openconnect_init_openssl(void)
 	OpenSSL_add_all_algorithms ();
 }
 
-#if defined(__sun__) || defined(__NetBSD__)
+#if defined(__sun__) || defined(__NetBSD__) || defined(__DragonFly__)
 int passphrase_from_fsid(struct openconnect_info *vpninfo)
 {
 	struct statvfs buf;
