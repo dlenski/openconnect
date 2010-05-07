@@ -69,7 +69,7 @@ between you and the VPN server. But you can worry about that later.
 
 <H2>Supported Platforms</H2>
 
-OpenConnect is known to work on Linux, OpenBSD, FreeBSD, OpenSolaris
+OpenConnect is known to work on Linux, OpenBSD, FreeBSD, NetBSD, OpenSolaris
 and Mac OS X platforms, and should be trivially portable to any other platform
 supporting <A HREF="http://en.wikipedia.org/wiki/TUN/TAP">TUN/TAP</a>
 devices and on which <A HREF="http://www.openssl.org/">OpenSSL</a> runs.
@@ -178,6 +178,7 @@ For full changelog entries including the latest development, see
        <LI>Forget preconfigured password after a single attempt; don't retry infinitely if it's failing.</LI>
        <LI>Set <TT>$CISCO_BANNER</TT> environment variable when running script.</I></LI>
        <LI>Better handling of passphrase failure on certificate files.</LI>
+       <LI>Fix NetBSD build (thanks to Pouya D. Tafti).</LI>
      </UL><BR>
   </LI>
   <LI><B><A HREF="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.23.tar.gz">OpenConnect v2.23</a></B> &mdash; 2010-04-09<BR>
@@ -412,6 +413,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Mon Apr 19 16:41:24 BST 2010
+Last modified: Fri May  7 12:40:19 BST 2010
 <!-- hhmts end -->
 </body> </html>
