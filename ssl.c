@@ -159,6 +159,12 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 		    ERR_GET_REASON(err) == PKCS12_R_MAC_VERIFY_FAILURE) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Parse PKCS#12 failed (wrong passphrase?)\n");
 			vpninfo->cert_password = NULL;
+#if OPENSSL_VERSION_NUMBER < 0x10000002
+			/* Older versions of OpenSSL screw the ca stack up
+			   and will SEGV if you attempt to free (or reuse) it.
+			   So allocate a new one, and live with the memory leak. */
+			ca = sk_X509_new_null();
+#endif
 			goto retrypass;
 		}
 
