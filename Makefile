@@ -15,7 +15,7 @@ endif
 # dir; there's no need to install it anywhere (we link it statically).
 ifdef OPENSSL
 SSL_CFLAGS += -I$(OPENSSL)/include
-SSL_LDFLAGS += -lz $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a -ldl
+SSL_LDFLAGS += $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a
 else
 ifeq ($(wildcard /usr/include/openssl),)
 $(error "No OpenSSL in /usr/include/openssl. Cannot continue");
@@ -43,7 +43,7 @@ MISSINGPKGS += gconf-2.0
 endif
 
 CFLAGS := $(OPT_FLAGS) $(SSL_CFLAGS) $(XML2_CFLAGS) $(EXTRA_CFLAGS)
-LDFLAGS := $(SSL_LDFLAGS) $(XML2_LDFLAGS) $(EXTRA_LDFLAGS)
+LDFLAGS := -lz $(SSL_LDFLAGS) $(XML2_LDFLAGS) $(EXTRA_LDFLAGS)
 
 ifdef SSL_UI
 CFLAGS += -DSSL_UI
