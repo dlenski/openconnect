@@ -35,7 +35,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #ifdef OPENCONNECT_LIBPROXY
-#include <libproxy/proxy.h>
+#include LIBPROXY_HDR
 #endif
 
 

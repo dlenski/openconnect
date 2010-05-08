@@ -58,7 +58,7 @@ CFLAGS_tun.o += -DIF_TUN_HDR=\"$(IF_TUN_HDR)\"
 endif
 
 ifneq ($(LIBPROXY_HDR),)
-CFLAGS += -DOPENCONNECT_LIBPROXY
+CFLAGS += -DOPENCONNECT_LIBPROXY -DLIBPROXY_HDR=\"$(LIBPROXY_HDR)\"
 LDFLAGS += -lproxy
 endif
 
@@ -117,7 +117,7 @@ include /dev/null $(wildcard .*.o.dep)
 HDRTEST = for a in $2 ; do if echo "\#include <$$a>" | $(CC) -o/dev/null -xc - -M -MF $1 -MP -MT Make.config 2>/dev/null; then \
 		echo $$a; break ; fi; done
 
-Make.config: LIBPROXY_H = $(shell $(call HDRTEST,.libproxy.h.dep,libproxy/proxy.h))
+Make.config: LIBPROXY_H = $(shell $(call HDRTEST,.libproxy.h.dep,proxy.h libproxy/proxy.h))
 Make.config: IF_TUN_H = $(shell $(call HDRTEST,.if_tun.h.dep, linux/if_tun.h net/if_tun.h net/tun/if_tun.h))
 Make.config: Makefile
 	( echo "IF_TUN_HDR := $(IF_TUN_H)"; echo "LIBPROXY_HDR := $(LIBPROXY_H)" ) > $@
