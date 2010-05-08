@@ -41,6 +41,10 @@
 #if defined(__sun__)
 #include <stropts.h>
 #include <sys/sockio.h>
+#include <net/if_tun.h>
+#ifndef TUNNEWPPA
+#error "Install TAP driver from http://www.whiteboard.ne.jp/~admin2/tuntap/"
+#endif
 #endif
 
 #include "openconnect.h"
