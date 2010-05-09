@@ -175,7 +175,7 @@ For full changelog entries including the latest development, see
 <UL>
   <LI><B>OpenConnect HEAD</B><BR>
      <UL>
-       <LI><I>No changelog entries yet</I></LI>
+       <LI>Fix libproxy detection on NetBSD.</LI>
      </UL><BR>
   </LI>
   <LI><B><A HREF="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.24.tar.gz">OpenConnect v2.24</a></B> &mdash; 2010-05-07<BR>
@@ -337,10 +337,10 @@ http://git.infradead.org/users/dwmw2/connman-openconnect.git">gitweb</A>.
 <H2>Requirements</H2>
 The basic text-mode client uses the following libraries:
 <UL>
-  <LI><B>OpenSSL</B> &mdash; all versions from 0.9.7 onwards will work for basic connectivity, but see note on DTLS compatibility below.</LI>
+  <LI><B>OpenSSL</B> &mdash; ideally at least 0.9.8m, although all versions from 0.9.7 onwards will work for basic connectivity. See note on DTLS compatibility below.</LI>
   <LI><B>libxml2</B></LI>
   <LI><B>zlib</B></LI>
-  <LI><B><A HREF="http://code.google.com/p/libproxy/">libproxy</A></B></LI>
+  <LI><B><A HREF="http://code.google.com/p/libproxy/">libproxy</A></B> <I>(optionally)</I></LI>
 </UL>
 Mac OS X users will also need to install the
 <A HREF="http://tuntaposx.sourceforge.net/">Mac OS X tun/tap driver</A>, and Solaris users will need the <A HREF="http://www.whiteboard.ne.jp/~admin2/tuntap/">Solaris one</A>. Note that for IPv6 support, the Solaris tun/tap driver from 16th Nov 2009 or newer is required.<P>
@@ -423,6 +423,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Fri May  7 20:11:44 BST 2010
+Last modified: Sun May  9 01:44:55 BST 2010
 <!-- hhmts end -->
 </body> </html>
