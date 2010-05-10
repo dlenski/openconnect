@@ -206,12 +206,13 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 						  buf, sizeof(buf));
 				vpninfo->progress(vpninfo, PRG_DEBUG,
 						  "Extra cert from PKCS#12: '%s'\n", buf);
+				CRYPTO_add(&cert2->references, 1, CRYPTO_LOCK_X509);
 				SSL_CTX_add_extra_chain_cert(vpninfo->https_ctx, cert2);
 				cert = cert2;
 				goto next;
 			}
 		}
-		sk_X509_free(ca);
+		sk_X509_pop_free(ca, X509_free);
 	}
 
 	PKCS12_free(p12);
