@@ -435,6 +435,7 @@ static int check_server_cert(struct openconnect_info *vpninfo, X509 *cert)
 static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 {
 	X509 *peer_cert;
+	int ret;
 
 	if (vpninfo->cafile) {
 		int vfy = SSL_get_verify_result(https_ssl);
@@ -450,13 +451,16 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 	peer_cert = SSL_get_peer_certificate(https_ssl);
 
 	if (vpninfo->servercert)
-		return check_server_cert(vpninfo, peer_cert);
+		ret = check_server_cert(vpninfo, peer_cert);
+	else if (vpninfo->validate_peer_cert)
+		ret = vpninfo->validate_peer_cert(vpninfo, peer_cert);
+	else
+		/* If no validation function, just let it succeed */
+		ret = 0;
 
-	if (vpninfo->validate_peer_cert)
-		return vpninfo->validate_peer_cert(vpninfo, peer_cert);
+	X509_free(peer_cert);
 
-	/* If no validation function, just let it succeed */
-	return 0;
+	return ret;
 }
 
 static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
