@@ -454,7 +454,8 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 					  err_string);
 
 			if (vpninfo->validate_peer_cert)
-				ret = vpninfo->validate_peer_cert(vpninfo, peer_cert);
+				ret = vpninfo->validate_peer_cert(vpninfo, peer_cert,
+								  err_string);
 			else
 				ret = -EINVAL;
 		} else {

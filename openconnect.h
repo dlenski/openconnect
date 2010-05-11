@@ -251,7 +251,7 @@ struct openconnect_info {
 
 	char *quit_reason;
 
-	int (*validate_peer_cert) (struct openconnect_info *vpninfo, X509 *cert);
+	int (*validate_peer_cert) (struct openconnect_info *vpninfo, X509 *cert, const char *reason);
 	int (*write_new_config) (struct openconnect_info *vpninfo, char *buf, int buflen);
 	int (*process_auth_form) (struct openconnect_info *vpninfo, struct oc_auth_form *form);
 

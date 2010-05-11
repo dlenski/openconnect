@@ -616,6 +616,7 @@ static char* get_title(const char *vpn_name)
 typedef struct cert_data {
 	auth_ui_data *ui_data;
 	X509 *peer_cert;
+	const char *reason;
 } cert_data;
 
 
@@ -637,8 +638,9 @@ static gboolean user_validate_cert(cert_data *data)
 	BIO_get_mem_ptr(bp, &certinfo);
 
 	title = get_title(data->ui_data->vpninfo->vpn_name);
-	msg = g_strdup_printf("Unknown certificate from VPN server \"%s\".\n"
-			      "Do you want to accept it?", data->ui_data->vpninfo->hostname);
+	msg = g_strdup_printf("Certificate from VPN server \"%s\" failed verification.\n"
+			      "Reason: %s\nDo you want to accept it?",
+			      data->ui_data->vpninfo->hostname, data->reason);
 
 	dlg = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_QUESTION,
 				     GTK_BUTTONS_OK_CANCEL,
@@ -683,7 +685,7 @@ static gboolean user_validate_cert(cert_data *data)
 
 /* runs in worker thread */
 static int validate_peer_cert(struct openconnect_info *vpninfo,
-			      X509 *peer_cert)
+			      X509 *peer_cert, const char *reason)
 {
 	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
 	char *certs_data;
@@ -714,6 +716,7 @@ static int validate_peer_cert(struct openconnect_info *vpninfo,
 	data = g_slice_new(cert_data);
 	data->ui_data = ui_data; /* FIXME uses global */
 	data->peer_cert = peer_cert;
+	data->reason = reason;
 
 	g_mutex_lock(ui_data->form_mutex);
 
