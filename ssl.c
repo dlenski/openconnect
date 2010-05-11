@@ -139,11 +139,16 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 {
 	EVP_PKEY *pkey = NULL;
 	X509 *cert = NULL;
-	STACK_OF(X509) *ca = sk_X509_new_null();
+	STACK_OF(X509) *ca;
 	int ret = 0;
 	char pass[PEM_BUFSIZE];
 
  retrypass:
+	/* We do this every time round the loop, to work around a bug in
+	   OpenSSL < 1.0.0-beta2 -- where the stack at *ca will be freed
+	   when PKCS12_parse() returns an error, but *ca is left pointing
+	   to the freed memory. */
+	ca = NULL;
 	if (!vpninfo->cert_password) {
 		if (EVP_read_pw_string(pass, PEM_BUFSIZE,
 				       "Enter PKCS#12 pass phrase:", 0))
@@ -159,12 +164,6 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 		    ERR_GET_REASON(err) == PKCS12_R_MAC_VERIFY_FAILURE) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Parse PKCS#12 failed (wrong passphrase?)\n");
 			vpninfo->cert_password = NULL;
-#if OPENSSL_VERSION_NUMBER < 0x10000002
-			/* Older versions of OpenSSL screw the ca stack up
-			   and will SEGV if you attempt to free (or reuse) it.
-			   So allocate a new one, and live with the memory leak. */
-			ca = sk_X509_new_null();
-#endif
 			goto retrypass;
 		}
 
