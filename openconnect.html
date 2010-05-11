@@ -175,6 +175,10 @@ For full changelog entries including the latest development, see
 <UL>
   <LI><B>OpenConnect HEAD</B><BR>
      <UL>
+       <LI>Always validate server certificate, even when no extra <TT>--cafile</TT> is provided.</LI>
+       <LI>Add <TT>--no-cert-check</TT> option to avoid certificate validation.</LI>
+       <LI>Check server hostname against its certificate.</LI>
+       <LI>Provide text-mode function for reviewing and accepting "invalid" certificates.</LI>
        <LI>Fix libproxy detection on NetBSD.</LI>
      </UL><BR>
   </LI>
@@ -423,6 +427,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Sun May  9 11:20:00 BST 2010
+Last modified: Tue May 11 13:22:09 BST 2010
 <!-- hhmts end -->
 </body> </html>

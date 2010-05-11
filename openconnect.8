@@ -131,6 +131,9 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .I LIST
 ]
 [
+.B --no-cert-check
+]
+[
 .B --no-dtls
 ]
 [
@@ -297,6 +300,16 @@ Do not advertise IPv6 capability to server
 .TP
 .B --dtls-ciphers=LIST
 Set OpenSSL ciphers to support for DTLS
+.TP
+.B --no-cert-check
+Do not require server SSL certificate to be valid. Checks will still happen
+and failures will cause a warning message, but the connection will continue
+anyway. You should not need to use this option -- if your servers have SSL
+certificates which are not signed by a trusted Certificate Authority, you can
+still add them (or your private CA) to a local file and use that file with the
+.B --cafile
+option.
+
 .TP
 .B --no-dtls
 Disable DTLS

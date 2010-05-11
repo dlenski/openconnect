@@ -55,6 +55,7 @@ static int validate_peer_cert(struct openconnect_info *info, X509 *peer_cert, co
 int verbose = PRG_INFO;
 int background;
 int do_passphrase_from_fsid;
+int nocertcheck;
 
 static struct option long_options[] = {
 	{"background", 0, 0, 'b'},
@@ -98,6 +99,7 @@ static struct option long_options[] = {
 	{"no-proxy", 0, 0, 0x06},
 	{"libproxy", 0, 0, 0x07},
 	{"no-http-keepalive", 0, 0, 0x08},
+	{"no-cert-check", 0, 0, 0x09},
 	{NULL, 0, 0, 0},
 };
 
@@ -145,6 +147,7 @@ void usage(void)
 	printf("      --no-dtls                   Disable DTLS\n");
 	printf("      --no-http-keepalive         Disable HTTP connection re-use\n");
 	printf("      --no-passwd                 Disable password/SecurID authentication\n");
+	printf("      --no-cert-check             Do not require server SSL cert to be valid\n");
 	printf("      --passwd-on-stdin           Read password from standard input\n");
 	printf("      --reconnect-timeout         Connection retry timeout in seconds\n");
 	printf("      --servercert                Server's certificate SHA1 fingerprint\n");
@@ -336,6 +339,9 @@ int main(int argc, char **argv)
 			fprintf(stderr, "Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
 				"If this helps, please report to <openconnect-devel@lists.infradead.org>.\n");
 			vpninfo->no_http_keepalive = 1;
+			break;
+		case 0x09:
+			nocertcheck = 1;
 			break;
 		case 's':
 			vpninfo->vpnc_script = optarg;
@@ -591,6 +597,9 @@ static int validate_peer_cert(struct openconnect_info *vpninfo, X509 *peer_cert,
 	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
 	struct accepted_cert *this;
 	int ret;
+
+	if (nocertcheck)
+		return 0;
 
 	ret = get_cert_sha1_fingerprint(vpninfo, peer_cert, fingerprint);
 	if (ret)
