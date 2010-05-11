@@ -432,6 +432,109 @@ static int check_server_cert(struct openconnect_info *vpninfo, X509 *cert)
 	return 0;
 }
 
+static int match_hostname(struct openconnect_info *vpninfo, const char *match)
+{
+	/* FIXME: Handle wildcards properly */
+	return strcasecmp(vpninfo->hostname, match);
+}
+
+/* cf. RFC2818 and RFC2459 */
+int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
+{
+	STACK_OF(GENERAL_NAME) *altnames;
+	X509_NAME *subjname;
+	ASN1_STRING *subjasn1;
+	char *subjstr = NULL;
+	int i, altdns = 0;
+	int ret;
+
+	altnames = X509_get_ext_d2i(peer_cert, NID_subject_alt_name,
+				    NULL, NULL);
+	for (i = 0; i < sk_GENERAL_NAME_num(altnames); i++) {
+		const GENERAL_NAME *this = sk_GENERAL_NAME_value(altnames, i);
+		const char *str = (char *)ASN1_STRING_data(this->d.ia5);
+		size_t len = ASN1_STRING_length(this->d.ia5);
+
+		/* We don't like names with embedded NUL */
+		if (strlen(str) != len)
+			continue;
+
+		switch(this->type) {
+		case GEN_DNS:
+			altdns = 1;
+
+			if (!match_hostname(vpninfo, str)) {
+				vpninfo->progress(vpninfo, PRG_TRACE,
+						  "Matched DNS altname '%s'\n",
+						  str);
+				GENERAL_NAMES_free(altnames);
+				return 0;
+			} else {
+				vpninfo->progress(vpninfo, PRG_TRACE,
+						  "No match for altname '%s'\n",
+						  str);
+			}
+			break;
+		case GEN_IPADD:
+			/* FIXME: use getaddrinfo() with AI_NUMERICHOST and be
+			   careful of the [] around IPv6 literals, then compare. */
+			break;
+		case GEN_URI:
+			/* FIXME */
+			break;
+		}
+	}
+	GENERAL_NAMES_free(altnames);
+
+	/* According to RFC2818, we don't use the legacy subject name if
+	   there was an altname with DNS type. */
+	if (altdns) {
+		vpninfo->progress(vpninfo, PRG_ERR, "No altname in peer cert matched '%s'\n",
+				  vpninfo->hostname);
+		return -EINVAL;
+	}
+
+	subjname = X509_get_subject_name(peer_cert);
+	if (!subjname) {
+		vpninfo->progress(vpninfo, PRG_ERR, "No subject name in peer cert!\n");
+		return -EINVAL;
+	}
+
+	/* Find the _last_ (most specific) commonName */
+	i = -1;
+	while (1) {
+		int j = X509_NAME_get_index_by_NID(subjname, NID_commonName, i);
+		if (j >= 0)
+			i = j;
+		else
+			break;
+	}
+
+	subjasn1 = X509_NAME_ENTRY_get_data(X509_NAME_get_entry(subjname, i));
+
+	i = ASN1_STRING_to_UTF8((unsigned char **)&subjstr, subjasn1);
+
+	if (!subjstr || strlen(subjstr) != i) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  "Failed to parse subject name in peer cert\n");
+		return -EINVAL;
+	}
+	ret = 0;
+
+	if (match_hostname(vpninfo, subjstr)) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Peer cert subject mismatch ('%s' != '%s')\n",
+				  subjstr, vpninfo->hostname);
+		ret = -EINVAL;
+	} else {
+		vpninfo->progress(vpninfo, PRG_TRACE,
+				  "Matched peer certificate subject name '%s'\n",
+				  subjstr);
+	}
+
+	OPENSSL_free(subjstr);			  
+	return ret;
+}
+
 static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 {
 	X509 *peer_cert;
@@ -445,10 +548,14 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 		ret = check_server_cert(vpninfo, peer_cert);
 	} else {
 		int vfy = SSL_get_verify_result(https_ssl);
+		const char *err_string = NULL;
 
-		if (vfy != X509_V_OK) {
-			const char *err_string = X509_verify_cert_error_string(vfy);
+		if (vfy != X509_V_OK)
+			err_string = X509_verify_cert_error_string(vfy);
+		else if (match_cert_hostname(vpninfo, peer_cert))
+			err_string = "certificate does not match hostname";
 
+		if (err_string) {
 			vpninfo->progress(vpninfo, PRG_ERR,
 					  "Server certificate verify failed: %s\n",
 					  err_string);
