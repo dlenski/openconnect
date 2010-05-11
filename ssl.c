@@ -437,27 +437,30 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 	X509 *peer_cert;
 	int ret;
 
-	if (vpninfo->cafile) {
+	peer_cert = SSL_get_peer_certificate(https_ssl);
+
+	if (vpninfo->servercert) {
+		/* If given a cert fingerprint on the command line, that's
+		   all we look for */
+		ret = check_server_cert(vpninfo, peer_cert);
+	} else {
 		int vfy = SSL_get_verify_result(https_ssl);
 
 		if (vfy != X509_V_OK) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Server certificate verify failed: %s\n",
-				X509_verify_cert_error_string(vfy));
-			return -EINVAL;
+			const char *err_string = X509_verify_cert_error_string(vfy);
+
+			vpninfo->progress(vpninfo, PRG_ERR,
+					  "Server certificate verify failed: %s\n",
+					  err_string);
+
+			if (vpninfo->validate_peer_cert)
+				ret = vpninfo->validate_peer_cert(vpninfo, peer_cert);
+			else
+				ret = -EINVAL;
+		} else {
+			ret = 0;
 		}
-		return 0;
 	}
-
-	peer_cert = SSL_get_peer_certificate(https_ssl);
-
-	if (vpninfo->servercert)
-		ret = check_server_cert(vpninfo, peer_cert);
-	else if (vpninfo->validate_peer_cert)
-		ret = vpninfo->validate_peer_cert(vpninfo, peer_cert);
-	else
-		/* If no validation function, just let it succeed */
-		ret = 0;
-
 	X509_free(peer_cert);
 
 	return ret;
