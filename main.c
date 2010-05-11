@@ -37,6 +37,7 @@
 #include <sys/utsname.h>
 #include <sys/types.h>
 #include <openssl/rand.h>
+#include <openssl/ui.h>
 #ifdef OPENCONNECT_LIBPROXY
 #include LIBPROXY_HDR
 #endif
@@ -49,6 +50,7 @@
 static int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen);
 static void write_progress(struct openconnect_info *info, int level, const char *fmt, ...);
 static void syslog_progress(struct openconnect_info *info, int level, const char *fmt, ...);
+static int validate_peer_cert(struct openconnect_info *info, X509 *peer_cert, const char *reason);
 
 int verbose = PRG_INFO;
 int background;
@@ -208,6 +210,7 @@ int main(int argc, char **argv)
 	vpninfo->reconnect_timeout = 300;
 	vpninfo->uid_csd = 0;
 	vpninfo->uid_csd_given = 0;
+	vpninfo->validate_peer_cert = validate_peer_cert;
 
 	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
 		fprintf(stderr, "Failed to initialise DTLS secret\n");
@@ -573,4 +576,66 @@ void syslog_progress(struct openconnect_info *info, int level,
 		vsyslog(priority, fmt, args);
 		va_end(args);
 	}
+}
+
+
+struct accepted_cert {
+	struct accepted_cert *next;
+	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
+	char host[0];
+} *accepted_certs;
+
+static int validate_peer_cert(struct openconnect_info *vpninfo, X509 *peer_cert,
+			      const char *reason)
+{
+	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
+	struct accepted_cert *this;
+	int ret;
+
+	ret = get_cert_sha1_fingerprint(vpninfo, peer_cert, fingerprint);
+	if (ret)
+		return ret;
+
+	for (this = accepted_certs; this; this = this->next) {
+		if (!strcasecmp(this->host, vpninfo->hostname) &&
+		    !strcasecmp(this->fingerprint, fingerprint))
+			return 0;
+	}
+	
+	while (1) {
+		UI *ui;
+		char buf[6];
+		int ret;
+
+		fprintf(stderr, "\nCertificate from VPN server \"%s\" failed verification.\n"
+			"Reason: %s\n",	vpninfo->hostname, reason);
+		fflush(stderr);
+
+		ui = UI_new();
+		UI_add_input_string(ui, "Enter 'yes' to accept, 'no' to abort; anything else to view: ",
+				    UI_INPUT_FLAG_ECHO, buf, 2, 5);
+		ret = UI_process(ui);
+		UI_free(ui);
+		if (ret == -2)
+			return -EINVAL;
+		if (ret == -1)
+			buf[0] = 0;
+
+		if (!strcasecmp(buf, "yes")) {
+			struct accepted_cert *newcert = malloc(sizeof(*newcert) +
+							       strlen(vpninfo->hostname) + 1);
+			if (newcert) {
+				newcert->next = accepted_certs;
+				accepted_certs = newcert;
+				strcpy(newcert->fingerprint, fingerprint);
+				strcpy(newcert->host, vpninfo->hostname);
+			}
+			return 0;
+		}
+		if (!strcasecmp(buf, "no"))
+			return -EINVAL;
+
+		X509_print_fp(stderr, peer_cert);
+	}
+				
 }
