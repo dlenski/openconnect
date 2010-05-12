@@ -433,10 +433,64 @@ static int check_server_cert(struct openconnect_info *vpninfo, X509 *cert)
 	return 0;
 }
 
-static int match_hostname(struct openconnect_info *vpninfo, const char *match)
+static int match_hostname_elem(const char *hostname, int helem_len,
+			       const char *match, int melem_len)
 {
-	/* FIXME: Handle wildcards properly */
-	return strcasecmp(vpninfo->hostname, match);
+	if (!helem_len && !melem_len)
+		return 0;
+
+	if (!helem_len || !melem_len)
+		return -1;
+
+
+	if (match[0] == '*') {
+		int i;
+
+		for (i = 1 ; i <= helem_len; i++) {
+			if (!match_hostname_elem(hostname + i, helem_len - i,
+						 match + 1, melem_len - 1))
+				return 0;
+		}
+		return -1;
+	}
+
+	if (toupper(hostname[0]) == toupper(match[0]))
+		return match_hostname_elem(hostname + 1, helem_len - 1,
+					   match + 1, melem_len - 1);
+
+	return -1;
+}
+
+static int match_hostname(const char *hostname, const char *match)
+{
+	while (*match) {
+		const char *h_dot, *m_dot;
+		int helem_len, melem_len;
+
+		h_dot = strchr(hostname, '.');
+		m_dot = strchr(match, '.');
+		
+		if (h_dot && m_dot) {
+			helem_len = h_dot - hostname + 1;
+			melem_len = m_dot - match + 1;
+		} else if (!h_dot && !m_dot) {
+			helem_len = strlen(hostname);
+			melem_len = strlen(match);
+		} else
+			return -1;
+
+
+		if (match_hostname_elem(hostname, helem_len,
+					match, melem_len))
+			return -1;
+
+		hostname += helem_len;
+		match += melem_len;
+	}
+	if (*hostname)
+		return -1;
+
+	return 0;
 }
 
 /* cf. RFC2818 and RFC2459 */
@@ -473,7 +527,7 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 			if (strlen(str) != len)
 				continue;
 
-			if (!match_hostname(vpninfo, str)) {
+			if (!match_hostname(vpninfo->hostname, str)) {
 				vpninfo->progress(vpninfo, PRG_TRACE,
 						  "Matched DNS altname '%s'\n",
 						  str);
@@ -550,7 +604,7 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 	}
 	ret = 0;
 
-	if (match_hostname(vpninfo, subjstr)) {
+	if (match_hostname(vpninfo->hostname, subjstr)) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Peer cert subject mismatch ('%s' != '%s')\n",
 				  subjstr, vpninfo->hostname);
 		ret = -EINVAL;
