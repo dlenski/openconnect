@@ -519,8 +519,11 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 		const GENERAL_NAME *this = sk_GENERAL_NAME_value(altnames, i);
 
 		if (this->type == GEN_DNS) {
-			const char *str = (char *)ASN1_STRING_data(this->d.ia5);
-			size_t len = ASN1_STRING_length(this->d.ia5);
+			char *str;
+
+			int len = ASN1_STRING_to_UTF8((void *)&str, this->d.ia5);
+			if (len < 0)
+				continue;
 
 			altdns = 1;
 
@@ -533,12 +536,15 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 						  "Matched DNS altname '%s'\n",
 						  str);
 				GENERAL_NAMES_free(altnames);
+				OPENSSL_free(str);
 				return 0;
 			} else {
 				vpninfo->progress(vpninfo, PRG_TRACE,
 						  "No match for altname '%s'\n",
 						  str);
 			}
+			OPENSSL_free(str);
+
 			break;
 		} else if (this->type == GEN_IPADD && allow_ip) {
 			char host[80];
@@ -576,22 +582,22 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 						  host);
 			}
 		} else if (this->type == GEN_URI) {
-			char *str = (char *)ASN1_STRING_data(this->d.ia5);
+			char *str;
 			char *url_proto, *url_host, *url_path, *url_host2;
 			int url_port;
-			size_t len = ASN1_STRING_length(this->d.ia5);
+			int len = ASN1_STRING_to_UTF8((void *)&str, this->d.ia5);
+
+			if (len < 0)
+				continue;
 
 			/* We don't like names with embedded NUL */
-			if (strlen(str) != len)
+			if (strlen(str) != len) {
+				printf("len %d != %d\n", strlen(str), len);
 				continue;
-
-			/* parse_url will mangle it as if it's disposable */
-			str = strdup(str);
-			if (!str)
-				continue;
+			}
 
 			if (parse_url(str, &url_proto, &url_host, &url_port, &url_path, 0)) {
-				free(str);
+				OPENSSL_free(str);
 				continue;
 			}
 
@@ -609,7 +615,7 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 				url_host[strlen(url_host)-1] = 0;
 				url_host2++;
 			}
-				
+
 			if (strcasecmp(vpninfo->hostname, url_host2))
 				goto no_uri_match;
 
@@ -619,7 +625,7 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 			free(url_proto);
 			free(url_host);
 			free(url_path);
-			free(str);
+			OPENSSL_free(str);
 			GENERAL_NAMES_free(altnames);
 			return 0;
 
@@ -630,7 +636,7 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 			free(url_proto);
 			free(url_host);
 			free(url_path);
-			free(str);
+			OPENSSL_free(str);
 		}
 	}
 	GENERAL_NAMES_free(altnames);
@@ -661,7 +667,7 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 
 	subjasn1 = X509_NAME_ENTRY_get_data(X509_NAME_get_entry(subjname, i));
 
-	i = ASN1_STRING_to_UTF8((unsigned char **)&subjstr, subjasn1);
+	i = ASN1_STRING_to_UTF8((void *)&subjstr, subjasn1);
 
 	if (!subjstr || strlen(subjstr) != i) {
 		vpninfo->progress(vpninfo, PRG_ERR,
