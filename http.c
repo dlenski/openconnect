@@ -538,11 +538,8 @@ int parse_url(char *url, char **res_proto, char **res_host, int *res_port,
 	}
 
 	path = strchr(host, '/');
-	if (path) {
+	if (path)
 		*(path++) = 0;
-		if (!*path)
-			path = NULL;
-	}
 
 	port_str = strrchr(host, ':');
 	if (port_str) {
@@ -562,7 +559,13 @@ int parse_url(char *url, char **res_proto, char **res_host, int *res_port,
 	if (res_port)
 		*res_port = port;
 	if (res_path)
-		*res_path = path ? strdup(path) : NULL;
+		*res_path = (path && *path) ? strdup(path) : NULL;
+
+	/* Undo the damage we did to the original string */
+	if (path)
+		*(path - 1) = '/';
+	if (proto)
+		*(host - 3) = ':';
 	return 0;
 }
 
