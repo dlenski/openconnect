@@ -576,7 +576,61 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 						  host);
 			}
 		} else if (this->type == GEN_URI) {
-			/* FIXME */
+			char *str = (char *)ASN1_STRING_data(this->d.ia5);
+			char *url_proto, *url_host, *url_path, *url_host2;
+			int url_port;
+			size_t len = ASN1_STRING_length(this->d.ia5);
+
+			/* We don't like names with embedded NUL */
+			if (strlen(str) != len)
+				continue;
+
+			/* parse_url will mangle it as if it's disposable */
+			str = strdup(str);
+			if (!str)
+				continue;
+
+			if (parse_url(str, &url_proto, &url_host, &url_port, &url_path, 0)) {
+				free(str);
+				continue;
+			}
+
+			if (!url_proto || strcasecmp(url_proto, "https"))
+				goto no_uri_match;
+
+			if (url_port != vpninfo->port)
+				goto no_uri_match;
+
+			url_host2 = url_host;
+			if (allow_ip && vpninfo->peer_addr->sa_family == AF_INET6 &&
+			    vpninfo->hostname[0] != '[' && url_host[0] == '[' &&
+			    url_host[strlen(url_host)-1] == ']') {
+				/* Cope with https://[IPv6]/ when the hostname is bare IPv6 */
+				url_host[strlen(url_host)-1] = 0;
+				url_host2++;
+			}
+				
+			if (strcasecmp(vpninfo->hostname, url_host2))
+				goto no_uri_match;
+
+			vpninfo->progress(vpninfo, PRG_TRACE,
+					  "Matched URI '%s'\n",
+					  ASN1_STRING_data(this->d.ia5));
+			free(url_proto);
+			free(url_host);
+			free(url_path);
+			free(str);
+			GENERAL_NAMES_free(altnames);
+			return 0;
+
+		no_uri_match:
+			vpninfo->progress(vpninfo, PRG_TRACE,
+					  "No match for URI '%s'\n",
+					  ASN1_STRING_data(this->d.ia5));
+			free(url_proto);
+			free(url_host);
+			free(url_path);
+			free(str);
 		}
 	}
 	GENERAL_NAMES_free(altnames);
