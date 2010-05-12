@@ -544,8 +544,6 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 						  str);
 			}
 			OPENSSL_free(str);
-
-			break;
 		} else if (this->type == GEN_IPADD && allow_ip) {
 			char host[80];
 			int family;
