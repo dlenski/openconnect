@@ -589,10 +589,8 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 				continue;
 
 			/* We don't like names with embedded NUL */
-			if (strlen(str) != len) {
-				printf("len %d != %d\n", strlen(str), len);
+			if (strlen(str) != len)
 				continue;
-			}
 
 			if (parse_url(str, &url_proto, &url_host, &url_port, &url_path, 0)) {
 				OPENSSL_free(str);
