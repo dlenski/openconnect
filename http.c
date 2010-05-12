@@ -722,6 +722,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		vpninfo->progress(vpninfo, PRG_ERR,
 				  "Unexpected %d result from server\n",
 				  result);
+		free(form_buf);
 		return -EINVAL;
 	}
 	if (vpninfo->csd_stuburl) {
