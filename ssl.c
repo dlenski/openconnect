@@ -32,6 +32,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #if defined(__linux__)
 #include <sys/vfs.h>
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__) || defined(__APPLE__)
@@ -445,23 +446,32 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 	X509_NAME *subjname;
 	ASN1_STRING *subjasn1;
 	char *subjstr = NULL;
+	int allow_ip = 0;
 	int i, altdns = 0;
+	struct in_addr addr;
 	int ret;
+
+	/* Allow GEN_IP in the certificate only if we actually connected
+	   by IP address rather than by name. */
+	if ((vpninfo->hostname[0] == '[' &&
+	    vpninfo->hostname[strlen(vpninfo->hostname)-1] == ']') ||
+	    inet_pton(AF_INET, vpninfo->hostname, &addr))
+		allow_ip = 1;
 
 	altnames = X509_get_ext_d2i(peer_cert, NID_subject_alt_name,
 				    NULL, NULL);
 	for (i = 0; i < sk_GENERAL_NAME_num(altnames); i++) {
 		const GENERAL_NAME *this = sk_GENERAL_NAME_value(altnames, i);
-		const char *str = (char *)ASN1_STRING_data(this->d.ia5);
-		size_t len = ASN1_STRING_length(this->d.ia5);
 
-		/* We don't like names with embedded NUL */
-		if (strlen(str) != len)
-			continue;
+		if (this->type == GEN_DNS) {
+			const char *str = (char *)ASN1_STRING_data(this->d.ia5);
+			size_t len = ASN1_STRING_length(this->d.ia5);
 
-		switch(this->type) {
-		case GEN_DNS:
 			altdns = 1;
+
+			/* We don't like names with embedded NUL */
+			if (strlen(str) != len)
+				continue;
 
 			if (!match_hostname(vpninfo, str)) {
 				vpninfo->progress(vpninfo, PRG_TRACE,
@@ -475,13 +485,32 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 						  str);
 			}
 			break;
-		case GEN_IPADD:
-			/* FIXME: use getaddrinfo() with AI_NUMERICHOST and be
-			   careful of the [] around IPv6 literals, then compare. */
-			break;
-		case GEN_URI:
+		} else if (this->type == GEN_IPADD && allow_ip &&
+			   vpninfo->peer_addrlen == this->d.ip->length) {
+			char host[80];
+
+			/* We only do this for the debug messages but it's 
+			   NI_NUMERICHOST so it should be fairly cheap */
+			if (getnameinfo((void *)this->d.ip->data, this->d.ip->length,
+					host, sizeof(host), NULL, 0,
+					NI_NUMERICHOST)) {
+				strcpy(host, "<error formatting host>");
+			}
+
+			if (!memcmp(vpninfo->peer_addr, this->d.ip->data,
+				    vpninfo->peer_addrlen)) {
+				vpninfo->progress(vpninfo, PRG_TRACE,
+						  "Matched IP address '%s'\n",
+						  host);
+				GENERAL_NAMES_free(altnames);
+				return 0;
+			} else {
+				vpninfo->progress(vpninfo, PRG_TRACE,
+						  "No match for IP address '%s'\n",
+						  host);
+			}
+		} else if (this->type == GEN_URI) {
 			/* FIXME */
-			break;
 		}
 	}
 	GENERAL_NAMES_free(altnames);
