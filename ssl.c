@@ -617,12 +617,12 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 
 			if (url_path) {
 				vpninfo->progress(vpninfo, PRG_TRACE, "URI '%s' has non-empty path; ignoring\n",
-						  ASN1_STRING_data(this->d.ia5));
+						  str);
 				goto no_uri_match_silent;
 			}
 			vpninfo->progress(vpninfo, PRG_TRACE,
 					  "Matched URI '%s'\n",
-					  ASN1_STRING_data(this->d.ia5));
+					  str);
 			free(url_proto);
 			free(url_host);
 			free(url_path);
@@ -633,7 +633,7 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 		no_uri_match:
 			vpninfo->progress(vpninfo, PRG_TRACE,
 					  "No match for URI '%s'\n",
-					  ASN1_STRING_data(this->d.ia5));
+					  str);
 		no_uri_match_silent:
 			free(url_proto);
 			free(url_host);
