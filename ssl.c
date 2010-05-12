@@ -502,14 +502,15 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 	char *subjstr = NULL;
 	int allow_ip = 0;
 	int i, altdns = 0;
-	struct in_addr addr;
+	char addrbuf[sizeof(struct in6_addr)];
 	int ret;
 
 	/* Allow GEN_IP in the certificate only if we actually connected
 	   by IP address rather than by name. */
 	if ((vpninfo->hostname[0] == '[' &&
 	    vpninfo->hostname[strlen(vpninfo->hostname)-1] == ']') ||
-	    inet_pton(AF_INET, vpninfo->hostname, &addr))
+	    inet_pton(AF_INET, vpninfo->hostname, addrbuf) ||
+	    inet_pton(AF_INET6, vpninfo->hostname, addrbuf))
 		allow_ip = 1;
 
 	altnames = X509_get_ext_d2i(peer_cert, NID_subject_alt_name,
