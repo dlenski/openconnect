@@ -540,28 +540,39 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 						  str);
 			}
 			break;
-		} else if (this->type == GEN_IPADD && allow_ip &&
-			   vpninfo->peer_addrlen == this->d.ip->length) {
+		} else if (this->type == GEN_IPADD && allow_ip) {
 			char host[80];
+			int family;
+			void *addr;
 
-			/* We only do this for the debug messages but it's 
-			   NI_NUMERICHOST so it should be fairly cheap */
-			if (getnameinfo((void *)this->d.ip->data, this->d.ip->length,
-					host, sizeof(host), NULL, 0,
-					NI_NUMERICHOST)) {
-				strcpy(host, "<error formatting host>");
+			if (this->d.ip->length == 4) {
+				addr = &((struct sockaddr_in *)vpninfo->peer_addr)->sin_addr;
+				family = AF_INET;
+			} else if (this->d.ip->length == 16) {
+				addr = &((struct sockaddr_in6 *)vpninfo->peer_addr)->sin6_addr;
+				family = AF_INET6;
+			} else {
+				vpninfo->progress(vpninfo, PRG_ERR,
+						  "Certificate has GEN_IPADD altname with bogus length %d\n",
+						  this->d.ip->length);
+				continue;
 			}
+			
+			/* We only do this for the debug messages */
+			inet_ntop(family, this->d.ip->data, host, sizeof(host));
 
-			if (!memcmp(vpninfo->peer_addr, this->d.ip->data,
-				    vpninfo->peer_addrlen)) {
+			if (vpninfo->peer_addr->sa_family == family &&
+			    !memcmp(addr, this->d.ip->data, this->d.ip->length)) {
 				vpninfo->progress(vpninfo, PRG_TRACE,
-						  "Matched IP address '%s'\n",
+						  "Matched IP%s address '%s'\n",
+						  (family == AF_INET6)?"v6":"",
 						  host);
 				GENERAL_NAMES_free(altnames);
 				return 0;
 			} else {
 				vpninfo->progress(vpninfo, PRG_TRACE,
-						  "No match for IP address '%s'\n",
+						  "No match for IP%s address '%s'\n",
+						  (family == AF_INET6)?"v6":"",
 						  host);
 			}
 		} else if (this->type == GEN_URI) {
