@@ -500,18 +500,25 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 	X509_NAME *subjname;
 	ASN1_STRING *subjasn1;
 	char *subjstr = NULL;
-	int allow_ip = 0;
+	int addrlen = 0;
 	int i, altdns = 0;
 	char addrbuf[sizeof(struct in6_addr)];
 	int ret;
 
 	/* Allow GEN_IP in the certificate only if we actually connected
 	   by IP address rather than by name. */
-	if ((vpninfo->hostname[0] == '[' &&
-	    vpninfo->hostname[strlen(vpninfo->hostname)-1] == ']') ||
-	    inet_pton(AF_INET, vpninfo->hostname, addrbuf) ||
-	    inet_pton(AF_INET6, vpninfo->hostname, addrbuf))
-		allow_ip = 1;
+	if (inet_pton(AF_INET, vpninfo->hostname, addrbuf) > 0)
+		addrlen = 4;
+	else if (inet_pton(AF_INET6, vpninfo->hostname, addrbuf) > 0)
+		addrlen = 16;
+	else if (vpninfo->hostname[0] == '[' &&
+		 vpninfo->hostname[strlen(vpninfo->hostname)-1] == ']') {
+		char *p = &vpninfo->hostname[strlen(vpninfo->hostname)-1];
+		*p = 0;
+		if (inet_pton(AF_INET6, vpninfo->hostname + 1, addrbuf) > 0)
+			addrlen = 16;
+		*p = ']';
+	}
 
 	altnames = X509_get_ext_d2i(peer_cert, NID_subject_alt_name,
 				    NULL, NULL);
@@ -544,16 +551,13 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 						  str);
 			}
 			OPENSSL_free(str);
-		} else if (this->type == GEN_IPADD && allow_ip) {
+		} else if (this->type == GEN_IPADD && addrlen) {
 			char host[80];
 			int family;
-			void *addr;
 
 			if (this->d.ip->length == 4) {
-				addr = &((struct sockaddr_in *)vpninfo->peer_addr)->sin_addr;
 				family = AF_INET;
 			} else if (this->d.ip->length == 16) {
-				addr = &((struct sockaddr_in6 *)vpninfo->peer_addr)->sin6_addr;
 				family = AF_INET6;
 			} else {
 				vpninfo->progress(vpninfo, PRG_ERR,
@@ -565,8 +569,8 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 			/* We only do this for the debug messages */
 			inet_ntop(family, this->d.ip->data, host, sizeof(host));
 
-			if (vpninfo->peer_addr->sa_family == family &&
-			    !memcmp(addr, this->d.ip->data, this->d.ip->length)) {
+			if (this->d.ip->length == addrlen &&
+			    !memcmp(addrbuf, this->d.ip->data, addrlen)) {
 				vpninfo->progress(vpninfo, PRG_TRACE,
 						  "Matched IP%s address '%s'\n",
 						  (family == AF_INET6)?"v6":"",
@@ -603,10 +607,10 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 			if (url_port != vpninfo->port)
 				goto no_uri_match;
 
+			/* Leave url_host as it was so that it can be freed */
 			url_host2 = url_host;
-			if (allow_ip && vpninfo->peer_addr->sa_family == AF_INET6 &&
-			    vpninfo->hostname[0] != '[' && url_host[0] == '[' &&
-			    url_host[strlen(url_host)-1] == ']') {
+			if (addrlen == 16 && vpninfo->hostname[0] != '[' &&
+			    url_host[0] == '[' && url_host[strlen(url_host)-1] == ']') {
 				/* Cope with https://[IPv6]/ when the hostname is bare IPv6 */
 				url_host[strlen(url_host)-1] = 0;
 				url_host2++;
