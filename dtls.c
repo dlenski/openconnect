@@ -353,7 +353,9 @@ int setup_dtls(struct openconnect_info *vpninfo)
 		} else if (!strcmp(dtls_opt->option + 7, "Keepalive")) {
 			vpninfo->dtls_times.keepalive = atol(dtls_opt->value);
 		} else if (!strcmp(dtls_opt->option + 7, "DPD")) {
-			vpninfo->dtls_times.dpd = atol(dtls_opt->value);
+			int j = atol(dtls_opt->value);
+			if (j && (!vpninfo->dtls_times.dpd || j < vpninfo->dtls_times.dpd))
+				vpninfo->dtls_times.dpd = j;
 		} else if (!strcmp(dtls_opt->option + 7, "Rekey-Time")) {
 			vpninfo->dtls_times.rekey = atol(dtls_opt->value);
 		} else if (!strcmp(dtls_opt->option + 7, "CipherSuite")) {

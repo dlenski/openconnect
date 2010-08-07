@@ -32,6 +32,10 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .B -D,--no-deflate
 ]
 [
+.B --force-dpd
+.I INTERVAL
+]
+[
 .B -g,--usergroup
 .I GROUP
 ]
@@ -204,6 +208,11 @@ Enable compression (default)
 .TP
 .B -D,--no-deflate
 Disable compression
+.TP
+.B --force-dpd=INTERVAL
+Use
+.I INTERVAL
+as minimum Dead Peer Detection interval for CSTP and DTLS, forcing use of DPD even when the server doesn't request it.
 .TP
 .B -g,--usergroup=GROUP
 Use

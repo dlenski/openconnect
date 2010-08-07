@@ -207,7 +207,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		if (!strcmp(buf + 7, "Keepalive")) {
 			vpninfo->ssl_times.keepalive = atol(colon);
 		} else if (!strcmp(buf + 7, "DPD")) {
-			vpninfo->ssl_times.dpd = atol(colon);
+			int j = atol(colon);
+			if (j && (!vpninfo->ssl_times.dpd || j < vpninfo->ssl_times.dpd))
+				vpninfo->ssl_times.dpd = j;
 		} else if (!strcmp(buf + 7, "Content-Encoding")) {
 			if (!strcmp(colon, "deflate"))
 				vpninfo->deflate = 1;

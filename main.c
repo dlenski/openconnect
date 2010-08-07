@@ -100,6 +100,7 @@ static struct option long_options[] = {
 	{"libproxy", 0, 0, 0x07},
 	{"no-http-keepalive", 0, 0, 0x08},
 	{"no-cert-check", 0, 0, 0x09},
+	{"force-dpd", 1, 0, 0x10},
 	{NULL, 0, 0, 0},
 };
 
@@ -115,6 +116,7 @@ void usage(void)
 	printf("      --cookie-on-stdin           Read cookie from standard input\n");
 	printf("  -d, --deflate                   Enable compression (default)\n");
 	printf("  -D, --no-deflate                Disable compression\n");
+	printf("      --force-dpd=INTERVAL        Set minimum Dead Peer Detection interval\n");
 	printf("  -g, --usergroup=GROUP           Set login usergroup\n");
 	printf("  -h, --help                      Display help text\n");
 	printf("  -i, --interface=IFNAME          Use IFNAME for tunnel interface\n");
@@ -410,6 +412,9 @@ int main(int argc, char **argv)
 		case 0x03:
 			free(vpninfo->useragent);
 			vpninfo->useragent = optarg;
+			break;
+		case 0x10:
+			vpninfo->dtls_times.dpd = vpninfo->ssl_times.dpd = atoi(optarg);
 			break;
 		default:
 			usage();
