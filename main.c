@@ -57,6 +57,29 @@ int background;
 int do_passphrase_from_fsid;
 int nocertcheck;
 
+enum {
+	OPT_AUTHGROUP = 0x100,
+	OPT_CAFILE,
+	OPT_COOKIEONLY,
+	OPT_COOKIE_ON_STDIN,
+	OPT_CSD_USER,
+	OPT_DISABLE_IPV6,
+	OPT_DTLS_CIPHERS,
+	OPT_FORCE_DPD,
+	OPT_KEY_PASSWORD_FROM_FSID,
+	OPT_LIBPROXY,
+	OPT_NO_CERT_CHECK,
+	OPT_NO_DTLS,
+	OPT_NO_HTTP_KEEPALIVE,
+	OPT_NO_PASSWD,
+	OPT_NO_PROXY,
+	OPT_PASSWORD_ON_STDIN,
+	OPT_PRINTCOOKIE,
+	OPT_RECONNECT_TIMEOUT,
+	OPT_SERVERCERT,
+	OPT_USERAGENT,
+};
+
 static struct option long_options[] = {
 	{"background", 0, 0, 'b'},
 	{"certificate", 1, 0, 'c'},
@@ -78,29 +101,29 @@ static struct option long_options[] = {
 	{"user", 1, 0, 'u'},
 	{"verbose", 0, 0, 'v'},
 	{"version", 0, 0, 'V'},
-	{"cafile", 1, 0, '0'},
-	{"no-dtls", 0, 0, '1'},
-	{"cookieonly", 0, 0, '2'},
-	{"printcookie", 0, 0, '3'},
+	{"cafile", 1, 0, OPT_CAFILE},
+	{"no-dtls", 0, 0, OPT_NO_DTLS},
+	{"cookieonly", 0, 0, OPT_COOKIEONLY},
+	{"printcookie", 0, 0, OPT_PRINTCOOKIE},
 	{"quiet", 0, 0, 'q'},
 	{"queue-len", 1, 0, 'Q'},
 	{"xmlconfig", 1, 0, 'x'},
-	{"cookie-on-stdin", 0, 0, '4'},
-	{"passwd-on-stdin", 0, 0, '5'},
-	{"no-passwd", 0, 0, '6'},
-	{"reconnect-timeout", 1, 0, '7'},
-	{"dtls-ciphers", 1, 0, '8'},
-	{"authgroup", 1, 0, '9'},
-	{"servercert", 1, 0, 0x01},
-	{"key-password-from-fsid", 0, 0, 0x02},
-	{"useragent", 1, 0, 0x03},
-	{"csd-user", 1, 0, 0x04},
-	{"disable-ipv6", 0, 0, 0x05},
-	{"no-proxy", 0, 0, 0x06},
-	{"libproxy", 0, 0, 0x07},
-	{"no-http-keepalive", 0, 0, 0x08},
-	{"no-cert-check", 0, 0, 0x09},
-	{"force-dpd", 1, 0, 0x10},
+	{"cookie-on-stdin", 0, 0, OPT_COOKIE_ON_STDIN},
+	{"passwd-on-stdin", 0, 0, OPT_PASSWORD_ON_STDIN},
+	{"no-passwd", 0, 0, OPT_NO_PASSWD},
+	{"reconnect-timeout", 1, 0, OPT_RECONNECT_TIMEOUT},
+	{"dtls-ciphers", 1, 0, OPT_DTLS_CIPHERS},
+	{"authgroup", 1, 0, OPT_AUTHGROUP},
+	{"servercert", 1, 0, OPT_SERVERCERT},
+	{"key-password-from-fsid", 0, 0, OPT_KEY_PASSWORD_FROM_FSID},
+	{"useragent", 1, 0, OPT_USERAGENT},
+	{"csd-user", 1, 0, OPT_CSD_USER},
+	{"disable-ipv6", 0, 0, OPT_DISABLE_IPV6},
+	{"no-proxy", 0, 0, OPT_NO_PROXY},
+	{"libproxy", 0, 0, OPT_LIBPROXY},
+	{"no-http-keepalive", 0, 0, OPT_NO_HTTP_KEEPALIVE},
+	{"no-cert-check", 0, 0, OPT_NO_CERT_CHECK},
+	{"force-dpd", 1, 0, OPT_FORCE_DPD},
 	{NULL, 0, 0, 0},
 };
 
@@ -232,41 +255,41 @@ int main(int argc, char **argv)
 			break;
 
 		switch (opt) {
-		case '0':
+		case OPT_CAFILE:
 			vpninfo->cafile = optarg;
 			break;
-		case 0x01:
+		case OPT_SERVERCERT:
 			vpninfo->servercert = optarg;
 			break;
-		case '1':
+		case OPT_NO_DTLS:
 			vpninfo->dtls_attempt_period = 0;
 			break;
-		case '2':
+		case OPT_COOKIEONLY:
 			cookieonly = 1;
 			break;
-		case '3':
+		case OPT_PRINTCOOKIE:
 			cookieonly = 2;
 			break;
-		case '4':
+		case OPT_COOKIE_ON_STDIN:
 			read_stdin(&vpninfo->cookie);
 			/* If the cookie is empty, ignore it */
 			if (! *vpninfo->cookie) {
 				vpninfo->cookie = NULL;
 			}
 			break;
-		case '5':
+		case OPT_PASSWORD_ON_STDIN:
 			read_stdin(&vpninfo->password);
 			break;
-		case '6':
+		case OPT_NO_PASSWD:
 			vpninfo->nopasswd = 1;
 			break;
-		case '7':
+		case OPT_RECONNECT_TIMEOUT:
 			vpninfo->reconnect_timeout = atoi(optarg);
 			break;
-		case '8':
+		case OPT_DTLS_CIPHERS:
 			vpninfo->dtls_ciphers = optarg;
 			break;
-		case '9':
+		case OPT_AUTHGROUP:
 			vpninfo->authgroup = optarg;
 			break;
 		case 'b':
@@ -326,10 +349,10 @@ int main(int argc, char **argv)
 			proxy = optarg;
 			autoproxy = 0;
 			break;
-		case 0x06:
+		case OPT_NO_PROXY:
 			autoproxy = 0;
 			proxy = NULL;
-		case 0x07:
+		case OPT_LIBPROXY:
 #ifndef OPENCONNECT_LIBPROXY
 			fprintf(stderr, "This version of openconnect was built without libproxy support\n");
 			exit(1);
@@ -337,12 +360,12 @@ int main(int argc, char **argv)
 			autoproxy = 1;
 			proxy = NULL;
 			break;
-		case 0x08:
+		case OPT_NO_HTTP_KEEPALIVE:
 			fprintf(stderr, "Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
 				"If this helps, please report to <openconnect-devel@lists.infradead.org>.\n");
 			vpninfo->no_http_keepalive = 1;
 			break;
-		case 0x09:
+		case OPT_NO_CERT_CHECK:
 			nocertcheck = 1;
 			break;
 		case 's':
@@ -368,7 +391,7 @@ int main(int argc, char **argv)
 			}
 			break;
 		}
-		case 0x04: {
+		case OPT_CSD_USER: {
 			char *strend;
 			vpninfo->uid_csd = strtol(optarg, &strend, 0);
 			if (strend[0]) {
@@ -383,7 +406,7 @@ int main(int argc, char **argv)
 			vpninfo->uid_csd_given = 1;
 			break;
 		}
-		case 0x05:
+		case OPT_DISABLE_IPV6:
 			vpninfo->disable_ipv6 = 1;
 			break;
 		case 'Q':
@@ -406,14 +429,14 @@ int main(int argc, char **argv)
 			vpninfo->xmlconfig = optarg;
 			vpninfo->write_new_config = write_new_config;
 			break;
-		case 0x02:
+		case OPT_KEY_PASSWORD_FROM_FSID:
 			do_passphrase_from_fsid = 1;
 			break;
-		case 0x03:
+		case OPT_USERAGENT:
 			free(vpninfo->useragent);
 			vpninfo->useragent = optarg;
 			break;
-		case 0x10:
+		case OPT_FORCE_DPD:
 			vpninfo->dtls_times.dpd = vpninfo->ssl_times.dpd = atoi(optarg);
 			break;
 		default:
