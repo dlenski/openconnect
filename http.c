@@ -132,8 +132,6 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	while ((i = openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
 		char *colon;
 
-		vpninfo->progress(vpninfo, PRG_TRACE, "%s\n", buf);
-
 		if (i < 0) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Error processing HTTP response\n");
 			return -EINVAL;
@@ -146,6 +144,38 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		*(colon++) = 0;
 		if (*colon == ' ')
 			colon++;
+
+		/* Handle Set-Cookie first so that we can avoid printing the
+		   webvpn cookie in the verbose debug output */
+		if (!strcasecmp(buf, "Set-Cookie")) {
+			char *semicolon = strchr(colon, ';');
+			char *print_equals, *equals = strchr(colon, '=');
+			int ret;
+
+			if (semicolon)
+				*semicolon = 0;
+
+			if (!equals) {
+				vpninfo->progress(vpninfo, PRG_ERR, "Invalid cookie offered: %s\n", buf);
+				return -EINVAL;
+			}
+			*(equals++) = 0;
+
+			print_equals = equals;
+			/* Don't print the webvpn cookie; we don't want people posting it
+			   in public with debugging output */
+			if (!strcmp(colon, "webvpn"))				
+				print_equals = "<elided>";
+			vpninfo->progress(vpninfo, PRG_TRACE, "%s: %s=%s%s%s\n",
+					  buf, colon, print_equals, semicolon?";":"",
+					  semicolon?(semicolon+1):"");
+
+			ret = http_add_cookie(vpninfo, colon, equals);
+			if (ret)
+				return ret;
+		} else {
+			vpninfo->progress(vpninfo, PRG_TRACE, "%s: %s\n", buf, colon);
+		}
 
 		if (!strcasecmp(buf, "Connection")) {
 			if (!strcasecmp(colon, "Close"))
@@ -172,24 +202,6 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 						  bodylen);
 				return -EINVAL;
 			}
-		}
-		if (!strcasecmp(buf, "Set-Cookie")) {
-			char *semicolon = strchr(colon, ';');
-			char *equals = strchr(colon, '=');
-			int ret;
-
-			if (semicolon)
-				*semicolon = 0;
-
-			if (!equals) {
-				vpninfo->progress(vpninfo, PRG_ERR, "Invalid cookie offered: %s\n", buf);
-				return -EINVAL;
-			}
-			*(equals++) = 0;
-
-			ret = http_add_cookie(vpninfo, colon, equals);
-			if (ret)
-				return ret;
 		}
 		if (!strcasecmp(buf, "Transfer-Encoding")) {
 			if (!strcasecmp(colon, "chunked"))

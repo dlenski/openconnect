@@ -141,7 +141,13 @@ installed, and only when that Linux binary runs on the client machine.
 There is a mailing list at <TT><A
 HREF="mailto:openconnect-devel@lists.infradead.org">
 openconnect-devel@lists.infradead.org</A></TT>. To subscribe, visit the <A
-HREF="http://lists.infradead.org/mailman/listinfo/openconnect-devel">Mailman admin page</A>.
+HREF="http://lists.infradead.org/mailman/listinfo/openconnect-devel">Mailman admin page</A>. Before posting to the list, read this:
+<P>
+<B>SECURITY WARNING:</B><BR>
+If you are posting debugging output from openconnect to the mailing list, do <em>not</em> include a line which looks like this:
+
+<BR><TT>Set-Cookie: webvpn=835278264@921600@1221512527@6B9EC24DEB2F59E242F75B424D42F223D0912984;PATH=/</TT><BR>
+That HTTP cookie is all that's needed to grant access to the VPN session you just logged in to &mdash; it's almost as bad as giving your password away. Version 2.26 or later of OpenConnect will automatically filter this out of the debugging output for you.
 
 <H2>TODO</H2>
 <UL>
@@ -175,7 +181,7 @@ For full changelog entries including the latest development, see
 <UL>
   <LI><B>OpenConnect HEAD</B><BR>
      <UL>
-       <LI><I>No changelog entries yet</I></LI>
+       <LI>Don't print <TT>webvpn</TT> cookie in debug output.</LI>
      </UL><BR>
   </LI>
   <LI><B><A HREF="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.25.tar.gz">OpenConnect v2.25</a></B> &mdash; 2010-05-15<BR>
@@ -429,6 +435,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Thu May 27 10:58:11 BST 2010
+Last modified: Sat Aug  7 10:19:33 BST 2010
 <!-- hhmts end -->
 </body> </html>
