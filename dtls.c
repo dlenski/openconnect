@@ -177,15 +177,16 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 			return -EINVAL;
 		}
 		vpninfo->dtls_session->ssl_version = 0x0100; // DTLS1_BAD_VER
-
-		vpninfo->dtls_session->master_key_length = sizeof(vpninfo->dtls_secret);
-		memcpy(vpninfo->dtls_session->master_key, vpninfo->dtls_secret,
-		       sizeof(vpninfo->dtls_secret));
-
-		vpninfo->dtls_session->session_id_length = sizeof(vpninfo->dtls_session_id);
-		memcpy(vpninfo->dtls_session->session_id, vpninfo->dtls_session_id,
-		       sizeof(vpninfo->dtls_session_id));
 	}
+
+	/* Do this every time; it may have changed due to a rekey */
+	vpninfo->dtls_session->master_key_length = sizeof(vpninfo->dtls_secret);
+	memcpy(vpninfo->dtls_session->master_key, vpninfo->dtls_secret,
+	       sizeof(vpninfo->dtls_secret));
+
+	vpninfo->dtls_session->session_id_length = sizeof(vpninfo->dtls_session_id);
+	memcpy(vpninfo->dtls_session->session_id, vpninfo->dtls_session_id,
+	       sizeof(vpninfo->dtls_session_id));
 
 	dtls_ssl = SSL_new(vpninfo->dtls_ctx);
 	SSL_set_connect_state(dtls_ssl);
@@ -269,8 +270,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 		vpninfo->new_dtls_ssl = NULL;
 		vpninfo->new_dtls_fd = -1;
 
-		vpninfo->dtls_times.last_rekey = vpninfo->dtls_times.last_rx =
-			vpninfo->dtls_times.last_tx = time(NULL);
+		vpninfo->dtls_times.last_rx = vpninfo->dtls_times.last_tx = time(NULL);
 
 		return 0;
 	}
@@ -329,26 +329,14 @@ static int dtls_restart(struct openconnect_info *vpninfo)
 int setup_dtls(struct openconnect_info *vpninfo)
 {
 	struct vpn_option *dtls_opt = vpninfo->dtls_options;
-	int sessid_found = 0;
 	int dtls_port = 0;
-	int i;
 
 	while (dtls_opt) {
 		vpninfo->progress(vpninfo, PRG_TRACE,
 				  "DTLS option %s : %s\n",
 				  dtls_opt->option, dtls_opt->value);
 
-		if (!strcmp(dtls_opt->option, "X-DTLS-Session-ID")) {
-			if (strlen(dtls_opt->value) != 64) {
-				vpninfo->progress(vpninfo, PRG_ERR, "X-DTLS-Session-ID not 64 characters\n");
-				vpninfo->progress(vpninfo, PRG_ERR, "Is: %s\n", dtls_opt->value);
-				vpninfo->dtls_attempt_period = 0;
-				return -EINVAL;
-			}
-			for (i = 0; i < 64; i += 2)
-				vpninfo->dtls_session_id[i/2] = unhex(dtls_opt->value + i);
-			sessid_found = 1;
-		} else if (!strcmp(dtls_opt->option + 7, "Port")) {
+		if (!strcmp(dtls_opt->option + 7, "Port")) {
 			dtls_port = atol(dtls_opt->value);
 		} else if (!strcmp(dtls_opt->option + 7, "Keepalive")) {
 			vpninfo->dtls_times.keepalive = atol(dtls_opt->value);
@@ -364,7 +352,7 @@ int setup_dtls(struct openconnect_info *vpninfo)
 
 		dtls_opt = dtls_opt->next;
 	}
-	if (!sessid_found || !dtls_port) {
+	if (!dtls_port) {
 		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
@@ -457,9 +445,17 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 	switch (keepalive_action(&vpninfo->dtls_times, timeout)) {
 	case KA_REKEY:
-		time(&vpninfo->dtls_times.last_rekey);
-		vpninfo->progress(vpninfo, PRG_TRACE, "DTLS rekey due\n");
-		if (connect_dtls_socket(vpninfo)) {
+		vpninfo->progress(vpninfo, PRG_INFO, "DTLS rekey due\n");
+
+		/* There ought to be a method of rekeying DTLS without tearing down
+		   the CSTP session and restarting, but we don't (yet) know it */
+		if (cstp_reconnect(vpninfo)) {
+			vpninfo->progress(vpninfo, PRG_ERR, "Reconnect failed\n");
+			vpninfo->quit_reason = "CSTP reconnect failed";
+			return 1;
+		}
+
+		if (dtls_restart(vpninfo)) {
 			vpninfo->progress(vpninfo, PRG_ERR, "DTLS rekey failed\n");
 			return 1;
 		}

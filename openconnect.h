@@ -299,6 +299,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo);
 int make_cstp_connection(struct openconnect_info *vpninfo);
 int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int cstp_bye(struct openconnect_info *vpninfo, char *reason);
+int cstp_reconnect(struct openconnect_info *vpninfo);
 
 /* ssl.c */
 void openconnect_init_openssl(void);

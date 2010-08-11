@@ -32,6 +32,7 @@
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/rand.h>
 
 #include "openconnect.h"
 
@@ -68,7 +69,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 {
 	char buf[65536];
 	int i;
-	int retried = 0;
+	int retried = 0, sessid_found = 0;
 	struct vpn_option **next_dtls_option = &vpninfo->dtls_options;
 	struct vpn_option **next_cstp_option = &vpninfo->cstp_options;
 	struct vpn_option *old_cstp_opts = vpninfo->cstp_options;
@@ -100,6 +101,15 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		inc = next;
 	}
 	vpninfo->split_includes = vpninfo->split_excludes = NULL;
+
+	/* Create (new) random master key for DTLS connection, if needed */
+	if (vpninfo->dtls_times.last_rekey + vpninfo->dtls_times.rekey <
+	    time(NULL) + 300 &&
+	    RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
+		fprintf(stderr, "Failed to initialise DTLS secret\n");
+		exit(1);
+	}
+
  retry:
 	openconnect_SSL_printf(vpninfo->https_ssl, "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
 	openconnect_SSL_printf(vpninfo->https_ssl, "Host: %s\r\n", vpninfo->hostname);
@@ -197,6 +207,19 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		if (!strncmp(buf, "X-DTLS-", 7)) {
 			*next_dtls_option = new_option;
 			next_dtls_option = &new_option->next;
+
+			if (!strcmp(buf + 7, "Session-ID")) {
+				if (strlen(colon) != 64) {
+					vpninfo->progress(vpninfo, PRG_ERR, "X-DTLS-Session-ID not 64 characters\n");
+					vpninfo->progress(vpninfo, PRG_ERR, "Is: %s\n", colon);
+					vpninfo->dtls_attempt_period = 0;
+					return -EINVAL;
+				}
+				for (i = 0; i < 64; i += 2)
+					vpninfo->dtls_session_id[i/2] = unhex(colon + i);
+				sessid_found = 1;
+				time(&vpninfo->dtls_times.last_rekey);
+			}
 			continue;
 		}
 		/* CSTP options... */
@@ -210,6 +233,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			int j = atol(colon);
 			if (j && (!vpninfo->ssl_times.dpd || j < vpninfo->ssl_times.dpd))
 				vpninfo->ssl_times.dpd = j;
+		} else if (!strcmp(buf + 7, "Rekey-Time")) {
+			vpninfo->ssl_times.rekey = atol(colon);
 		} else if (!strcmp(buf + 7, "Content-Encoding")) {
 			if (!strcmp(colon, "deflate"))
 				vpninfo->deflate = 1;
@@ -330,7 +355,11 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	FD_SET(vpninfo->ssl_fd, &vpninfo->select_rfds);
 	FD_SET(vpninfo->ssl_fd, &vpninfo->select_efds);
 
-	vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
+	if (!sessid_found)
+		vpninfo->dtls_attempt_period = 0;
+
+	vpninfo->ssl_times.last_rekey = vpninfo->ssl_times.last_rx =
+		vpninfo->ssl_times.last_tx = time(NULL);
 	return 0;
 }
 
@@ -368,7 +397,7 @@ int make_cstp_connection(struct openconnect_info *vpninfo)
 	return start_cstp_connection(vpninfo);
 }
 
-static int cstp_reconnect(struct openconnect_info *vpninfo)
+int cstp_reconnect(struct openconnect_info *vpninfo)
 {
 	int ret;
 	int timeout;
@@ -589,9 +618,8 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	case KA_REKEY:
 		/* Not that this will ever happen; we don't even process
 		   the setting when we're asked for it. */
-		vpninfo->progress(vpninfo, PRG_ERR, "CSTP rekey due but we don't know how\n");
-		time(&vpninfo->ssl_times.last_rekey);
-		work_done = 1;
+		vpninfo->progress(vpninfo, PRG_INFO, "CSTP rekey due\n");
+		goto do_reconnect;
 		break;
 
 	case KA_DPD_DEAD:

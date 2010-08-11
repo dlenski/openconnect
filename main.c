@@ -36,7 +36,6 @@
 #include <sys/syslog.h>
 #include <sys/utsname.h>
 #include <sys/types.h>
-#include <openssl/rand.h>
 #include <openssl/ui.h>
 #ifdef OPENCONNECT_LIBPROXY
 #include LIBPROXY_HDR
@@ -240,10 +239,6 @@ int main(int argc, char **argv)
 	vpninfo->uid_csd_given = 0;
 	vpninfo->validate_peer_cert = validate_peer_cert;
 
-	if (RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
-		fprintf(stderr, "Failed to initialise DTLS secret\n");
-		exit(1);
-	}
 	if (!uname(&utsbuf))
 		vpninfo->localname = utsbuf.nodename;
 	else
