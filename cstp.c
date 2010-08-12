@@ -403,6 +403,13 @@ int cstp_reconnect(struct openconnect_info *vpninfo)
 	int timeout;
 	int interval;
 
+	openconnect_close_https(vpninfo);
+
+	/* It's already deflated in the old stream. Extremely
+	   non-trivial to reconstitute it; just throw it away */
+	if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt)
+		vpninfo->current_ssl_pkt = NULL;
+
 	timeout = vpninfo->reconnect_timeout;
 	interval = vpninfo->reconnect_interval;
 
@@ -626,13 +633,6 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	peer_dead:
 		vpninfo->progress(vpninfo, PRG_ERR, "CSTP Dead Peer Detection detected dead peer!\n");
 	do_reconnect:
-		openconnect_close_https(vpninfo);
-
-		/* It's already deflated in the old stream. Extremely
-		   non-trivial to reconstitute it; just throw it away */
-		if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt)
-			vpninfo->current_ssl_pkt = NULL;
-
 		if (cstp_reconnect(vpninfo)) {
 			vpninfo->progress(vpninfo, PRG_ERR, "Reconnect failed\n");
 			vpninfo->quit_reason = "CSTP reconnect failed";
