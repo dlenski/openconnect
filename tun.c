@@ -559,8 +559,10 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		while ((len = read(vpninfo->tun_fd, buf, sizeof(buf))) > 0) {
 			unsigned char *pkt = buf;
 #ifdef TUN_HAS_AF_PREFIX
-			pkt += 4;
-			len -= 4;
+			if (!vpninfo->script_tun) {
+				pkt += 4;
+				len -= 4;
+			}
 #endif
 			if (queue_new_packet(&vpninfo->outgoing_queue, pkt,
 					     len))
@@ -586,27 +588,29 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		int len = this->len;
 
 #ifdef TUN_HAS_AF_PREFIX
-		struct ip *iph = (void *)data;
-		int type;
+		if (!vpninfo->script_tun) {
+			struct ip *iph = (void *)data;
+			int type;
 
-		if (iph->ip_v == 6)
-			type = AF_INET6;
-		else if (iph->ip_v == 4)
-			type = AF_INET;
-		else {
-			static int complained = 0;
-			if (!complained) {
-				complained = 1;
-				vpninfo->progress(vpninfo, PRG_ERR,
-						  "Unknown packet (len %d) received: %02x %02x %02x %02x...\n",
-						  len, data[0], data[1], data[2], data[3]);
+			if (iph->ip_v == 6)
+				type = AF_INET6;
+			else if (iph->ip_v == 4)
+				type = AF_INET;
+			else {
+				static int complained = 0;
+				if (!complained) {
+					complained = 1;
+					vpninfo->progress(vpninfo, PRG_ERR,
+							  "Unknown packet (len %d) received: %02x %02x %02x %02x...\n",
+							  len, data[0], data[1], data[2], data[3]);
+				}
+				free(this);
+				continue;
 			}
-			free(this);
-			continue;
+			data -= 4;
+			len += 4;
+			*(int *)data = htonl(type);
 		}
-		data -= 4;
-		len += 4;
-		*(int *)data = htonl(type);
 #endif
 		vpninfo->incoming_queue = this->next;
 
