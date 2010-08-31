@@ -184,6 +184,10 @@ For full changelog entries including the latest development, see
        <LI>Implement CSTP and DTLS rekeying <I>(both by reconnecting CSTP)</I>.</LI>
        <LI>Add <TT>--force-dpd</TT> option to set minimum DPD interval.</LI>
        <LI>Don't print <TT>webvpn</TT> cookie in debug output.</LI>
+       <LI>Fix host selection in NetworkManager auth dialog.</LI>
+       <LI>Use SSLv3 instead of TLSv1; some servers <I>(or their firewalls)</I>
+	   don't accept any <TT>ClientHello</TT> options.</LI>
+       <LI>Never include address family prefix on <tt>script-tun</TT> connections.</LI> 
      </UL><BR>
   </LI>
   <LI><B><A HREF="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.25.tar.gz">OpenConnect v2.25</a></B> &mdash; 2010-05-15<BR>
@@ -437,6 +441,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Thu Aug 12 00:13:52 BST 2010
+Last modified: Wed Sep  1 00:49:35 BST 2010
 <!-- hhmts end -->
 </body> </html>
