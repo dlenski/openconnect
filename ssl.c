@@ -173,8 +173,8 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 		return -EINVAL;
 	}
 	if (cert) {
+		vpninfo->cert_x509 = cert;
 		SSL_CTX_use_certificate(vpninfo->https_ctx, cert);
-		X509_free(cert);
 	} else {
 		vpninfo->progress(vpninfo, PRG_ERR,
 				  "PKCS#12 contained no certificate!");
@@ -265,6 +265,28 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 	return 0;
 }
 
+static int reload_pem_cert(struct openconnect_info *vpninfo)
+{
+	BIO *b = BIO_new(BIO_s_file_internal());
+
+	if (!b)
+		return -ENOMEM;
+
+	if (BIO_read_filename(b, vpninfo->cert) <= 0) {
+	err:
+		BIO_free(b);
+		vpninfo->progress(vpninfo, PRG_ERR,
+				 "Failed to reload X509 cert for expiry check\n");
+		report_ssl_errors(vpninfo);
+		return -EIO;
+	}
+	vpninfo->cert_x509 = PEM_read_bio_X509_AUX(b, NULL, NULL, NULL);
+	if (!vpninfo->cert_x509)
+		goto err;
+
+	return 0;
+}
+
 static int load_certificate(struct openconnect_info *vpninfo)
 {
 	vpninfo->progress(vpninfo, PRG_TRACE,
@@ -305,6 +327,9 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		report_ssl_errors(vpninfo);
 		return -EINVAL;
 	}
+
+	/* Ew, we can't get it back from the OpenSSL CTX in any sane fashion */
+	reload_pem_cert(vpninfo);
 
 	if (vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
 		FILE *f = fopen(vpninfo->sslkey, "r");
@@ -781,6 +806,50 @@ static int ssl_app_verify_callback(X509_STORE_CTX *ctx, void *arg)
 }
 #endif
 
+static int check_certificate_expiry(struct openconnect_info *vpninfo)
+{
+	ASN1_TIME *notAfter;
+	char *reason = NULL;
+	time_t t;
+	int i;
+	if (!vpninfo->cert_x509)
+		return 0;
+
+	t = time(NULL);
+	notAfter = X509_get_notAfter(vpninfo->cert_x509);
+	i = X509_cmp_time(notAfter, &t);
+	if (!i) {
+		vpninfo->progress(vpninfo, PRG_ERR, "Error in client cert notAfter field\n");
+		return -EINVAL;
+	} else if (i < 0) {
+		reason = "has expired";
+	} else {
+		t += 60 * 86400;
+		i = X509_cmp_time(notAfter, &t);
+		if (i < 0) {
+			reason = "expires soon";
+		}
+	}
+	if (reason) {
+		BIO *bp = BIO_new(BIO_s_mem());
+		BUF_MEM *bm;
+		char *expiry = "<error>";
+		char zero = 0;
+
+		if (bp) {
+			ASN1_TIME_print(bp, notAfter);
+			BIO_write(bp, &zero, 1);
+			BIO_get_mem_ptr(bp, &bm);
+			expiry = bm->data;
+		}
+		vpninfo->progress(vpninfo, PRG_ERR, "Client certificate %s at: %s\n",
+				  reason, expiry);
+		if (bp)
+			BIO_free(bp);
+	}
+	return 0;
+}
+
 int openconnect_open_https(struct openconnect_info *vpninfo)
 {
 	method_const SSL_METHOD *ssl3_method;
@@ -954,6 +1023,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 						  "Loading certificate failed. Aborting.\n");
 				return err;
 			}
+			check_certificate_expiry(vpninfo);
 		}
 
 		/* We just want to do:

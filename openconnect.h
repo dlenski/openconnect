@@ -160,6 +160,7 @@ struct openconnect_info {
 	char *urlpath;
 	const char *cert;
 	const char *sslkey;
+	X509 *cert_x509;
 	int cert_type;
 	char *cert_password;
 	const char *cafile;
