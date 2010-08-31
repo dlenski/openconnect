@@ -97,9 +97,6 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .B -S,--script-tun
 ]
 [
-.B -T,--tun-fd
-]
-[
 .B -u,--user
 .I NAME
 ]
@@ -274,10 +271,10 @@ pkts
 Use vpnc-compatible config script
 .TP
 .B -S,--script-tun
-Pass traffic to 'script' program, not tun
-.TP
-.B -T,--tun-fd
-File descriptor to use for passing traffic
+Pass traffic to 'script' program over a UNIX socket, instead of to a kernel
+tun/tap device. This allows the VPN IP traffic to be handled entirely in
+userspace, for example by a program which uses lwIP to provide SOCKS access
+into the VPN.
 .TP
 .B -u,--user=NAME
 Set login username to
