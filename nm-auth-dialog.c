@@ -1175,6 +1175,8 @@ static void connect_host(auth_ui_data *ui_data)
 	/* reset ssl context.
 	 * TODO: this is probably not the way to go... */
 	if (ui_data->vpninfo->https_ssl) {
+		free(ui_data->vpninfo->peer_addr);
+		ui_data->vpninfo->peer_addr = NULL;
 		openconnect_close_https(ui_data->vpninfo);
 	}
 	if (ui_data->vpninfo->https_ctx) {
