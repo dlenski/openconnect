@@ -407,12 +407,25 @@ int setup_tun(struct openconnect_info *vpninfo)
 	} else {
 #ifdef IFF_TUN /* Linux */
 		struct ifreq ifr;
+		int tunerr;
 
 		tun_fd = open("/dev/net/tun", O_RDWR);
 		if (tun_fd < 0) {
+			/* Android has /dev/tun instead of /dev/net/tun
+			   Since other systems might have too, just try it
+			   as a fallback instead of using ifdef __ANDROID__ */
+			tunerr = errno;
+			tun_fd = open("/dev/tun", O_RDWR);
+		}
+		if (tun_fd < 0) {
+			/* If the error on /dev/tun is ENOENT, that's boring.
+			   Use the error we got on /dev/net/tun instead */
+			if (errno != -ENOENT)
+				tunerr = errno;
+
 			vpninfo->progress(vpninfo, PRG_ERR,
 					  "Failed to open tun device: %s\n",
-					  strerror(errno));
+					  strerror(tunerr));
 			exit(1);
 		}
 		memset(&ifr, 0, sizeof(ifr));
