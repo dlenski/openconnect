@@ -709,7 +709,9 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			vpninfo->redirect_url = NULL;
 			goto retry;
 		} else {
-			char *lastslash = strrchr(vpninfo->urlpath, '/');
+			char *lastslash = NULL;
+			if (vpninfo->urlpath)
+				lastslash = strrchr(vpninfo->urlpath, '/');
 			if (!lastslash) {
 				free(vpninfo->urlpath);
 				vpninfo->urlpath = vpninfo->redirect_url;
