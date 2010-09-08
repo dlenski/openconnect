@@ -397,48 +397,32 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	return 0;
 }
 
-enum cert_hash_type {
-	EVP_MD5,
-	EVP_SHA1
-};
-
 static int get_cert_fingerprint(struct openconnect_info *vpninfo,
-				X509 *cert, enum cert_hash_type hash,
+				X509 *cert, const EVP_MD *type,
 				char *buf)
 {
 	unsigned char md[EVP_MAX_MD_SIZE];
 	unsigned int i, n;
 
-	switch (hash) {
-	case EVP_MD5:
-		if (!X509_digest(cert, EVP_md5(), md, &n))
-			return -ENOMEM;
-		break;
-	case EVP_SHA1:
-		if (!X509_digest(cert, EVP_sha1(), md, &n))
-			return -ENOMEM;
-		break;
-	default:
-		vpninfo->progress(vpninfo, PRG_ERR,
-				  "Unsupported SSL certificate hash function type\n");
-	}
+	if (!X509_digest(cert, type, md, &n))
+		return -ENOMEM;
 
-	for (i=0; i < n; i++) {
+	for (i=0; i < n; i++)
 		sprintf(&buf[i*2], "%02X", md[i]);
-	}
+
 	return 0;
 }
 
 int get_cert_md5_fingerprint(struct openconnect_info *vpninfo,
 			     X509 *cert, char *buf)
 {
-	return get_cert_fingerprint(vpninfo, cert, EVP_MD5, buf);
+	return get_cert_fingerprint(vpninfo, cert, EVP_md5(), buf);
 }
 
 int get_cert_sha1_fingerprint(struct openconnect_info *vpninfo,
 			      X509 *cert, char *buf)
 {
-	return get_cert_fingerprint(vpninfo, cert, EVP_SHA1, buf);
+	return get_cert_fingerprint(vpninfo, cert, EVP_sha1(), buf);
 }
 
 static int check_server_cert(struct openconnect_info *vpninfo, X509 *cert)
