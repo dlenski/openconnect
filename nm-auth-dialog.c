@@ -963,7 +963,7 @@ if (0) {
 	g_free(csd);
 
 	proxy = get_gconf_setting(gcl, config_path, "proxy");
-	if (proxy && proxy[0] && set_http_proxy(vpninfo, proxy))
+	if (proxy && proxy[0] && openconnect_set_http_proxy(vpninfo, proxy))
 		return -EINVAL;
 
 	vpninfo->cert = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_USERCERT);

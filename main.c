@@ -453,7 +453,7 @@ int main(int argc, char **argv)
 	if (autoproxy)
 		vpninfo->proxy_factory = px_proxy_factory_new();
 #endif
-	if (proxy && set_http_proxy(vpninfo, proxy))
+	if (proxy && openconnect_set_http_proxy(vpninfo, proxy))
 		exit(1);
 
 	if (use_syslog) {
