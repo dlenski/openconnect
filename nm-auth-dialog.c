@@ -973,7 +973,7 @@ if (0) {
 
 	pem_passphrase_fsid = get_gconf_setting(gcl, config_path, "pem_passphrase_fsid");
 	if (pem_passphrase_fsid && vpninfo->sslkey && !strcmp(pem_passphrase_fsid, "yes"))
-		passphrase_from_fsid(vpninfo);
+		openconnect_passphrase_from_fsid(vpninfo);
 	g_free(pem_passphrase_fsid);
 				    
 	return 0;

@@ -1103,7 +1103,7 @@ void openconnect_init_openssl(void)
 }
 
 #if defined(__sun__) || defined(__NetBSD__) || defined(__DragonFly__)
-int passphrase_from_fsid(struct openconnect_info *vpninfo)
+int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 {
 	struct statvfs buf;
 
@@ -1117,7 +1117,7 @@ int passphrase_from_fsid(struct openconnect_info *vpninfo)
 	return 0;
 }
 #else
-int passphrase_from_fsid(struct openconnect_info *vpninfo)
+int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 {
 	struct statfs buf;
 	unsigned *fsid = (unsigned *)&buf.f_fsid;
