@@ -478,7 +478,7 @@ int main(int argc, char **argv)
 		char *scheme;
 		char *group;
 
-		if (parse_url(url, &scheme, &vpninfo->hostname, &vpninfo->port,
+		if (openconnect_parse_url(url, &scheme, &vpninfo->hostname, &vpninfo->port,
 			      &group, 443)) {
 			fprintf(stderr, "Failed to parse server URL '%s'\n",
 				url);

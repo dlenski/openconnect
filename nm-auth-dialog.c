@@ -1189,7 +1189,7 @@ static void connect_host(auth_ui_data *ui_data)
 	for (i = 0; i < host_nr; i++)
 		host = host->next;
 
-	if (parse_url(host->hostaddress, NULL,
+	if (openconnect_parse_url(host->hostaddress, NULL,
 		      &ui_data->vpninfo->hostname, &ui_data->vpninfo->port,
 		      &ui_data->vpninfo->urlpath, 443)) {
 		fprintf(stderr, "Failed to parse server URL '%s'\n",

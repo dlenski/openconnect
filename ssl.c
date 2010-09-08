@@ -621,7 +621,7 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 			if (strlen(str) != len)
 				continue;
 
-			if (parse_url(str, &url_proto, &url_host, &url_port, &url_path, 0)) {
+			if (openconnect_parse_url(str, &url_proto, &url_host, &url_port, &url_path, 0)) {
 				OPENSSL_free(str);
 				continue;
 			}
@@ -919,7 +919,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 				    (!strncmp(proxies[i], "http://", 7) ||
 				     !strncmp(proxies[i], "socks://", 8) ||
 				     !strncmp(proxies[i], "socks5://", 9)))
-					parse_url(proxies[i], &vpninfo->proxy_type,
+					openconnect_parse_url(proxies[i], &vpninfo->proxy_type,
 						  &vpninfo->proxy, &vpninfo->proxy_port,
 						  NULL, 0);
 				i++;

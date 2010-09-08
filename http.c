@@ -518,7 +518,7 @@ char *local_strcasestr(const char *haystack, const char *needle)
 #define strcasestr local_strcasestr
 #endif
 
-int parse_url(char *url, char **res_proto, char **res_host, int *res_port,
+int openconnect_parse_url(char *url, char **res_proto, char **res_host, int *res_port,
 	      char **res_path, int default_port)
 {
 	char *proto = url;
@@ -662,7 +662,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			free(vpninfo->urlpath);
 			vpninfo->urlpath = NULL;
 
-			ret = parse_url(vpninfo->redirect_url, NULL, &host, &port, &vpninfo->urlpath, 0);
+			ret = openconnect_parse_url(vpninfo->redirect_url, NULL, &host, &port, &vpninfo->urlpath, 0);
 			if (ret) {
 				vpninfo->progress(vpninfo, PRG_ERR, "Failed to parse redirected URL '%s': %s\n",
 						  vpninfo->redirect_url, strerror(-ret));
@@ -1082,7 +1082,7 @@ int openconnect_set_http_proxy(struct openconnect_info *vpninfo, char *proxy)
 	free(vpninfo->proxy);
 	vpninfo->proxy = NULL;
 
-	ret = parse_url(url, &vpninfo->proxy_type, &vpninfo->proxy,
+	ret = openconnect_parse_url(url, &vpninfo->proxy_type, &vpninfo->proxy,
 			&vpninfo->proxy_port, NULL, 80);
 	if (ret)
 		goto out;
