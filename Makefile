@@ -64,7 +64,7 @@ endif
 
 OPENCONNECT_OBJS := main.o $(SSL_UI) xml.o
 CONNECTION_OBJS := dtls.o cstp.o mainloop.o tun.o 
-AUTH_OBJECTS := ssl.o http.o version.o securid.o auth.o
+AUTH_OBJECTS := ssl.o http.o version.o auth.o
 
 VERSION_OBJS := $(filter-out version.o, \
 		$(OPENCONNECT_OBJS) $(CONNECTION_OBJS) $(AUTH_OBJECTS))

@@ -144,9 +144,6 @@ struct openconnect_info {
 
 	char *vpn_name;
 
-	char sid_tokencode[9];
-	char sid_nexttokencode[9];
-
 #ifdef OPENCONNECT_LIBPROXY
 	pxProxyFactory *proxy_factory;
 #endif

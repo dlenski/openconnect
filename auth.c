@@ -473,19 +473,12 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 {
 	UI *ui = UI_new();
 	char banner_buf[1024], msg_buf[1024], err_buf[1024];
-	char username[80], password[80], tpin[80], *passresult = password;
 	char choice_prompt[1024], choice_resp[80];
-	int ret = 0, is_securid = 0;
-	struct oc_form_opt *opt, *pass_opt = NULL, *user_opt = NULL;
+	int ret = 0, input_count=0;
+	struct oc_form_opt *opt;
 	struct oc_form_opt_select *select_opt = NULL;
 
-	username[0] = 0;
-	password[0] = 0;
-	tpin[0] = 0;
 	choice_resp[0] = 0;
-
-	if (!strcmp(form->auth_id, "next_tokencode"))
-		is_securid = 2;
 
 	if (!ui) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Failed to create UI\n");
@@ -507,30 +500,9 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 		UI_add_info_string(ui, msg_buf);
 	}
 
+	/* scan for select options first so they are displayed first */
 	for (opt = form->opts; opt; opt = opt->next) {
-
-		if (opt->type == OC_FORM_OPT_TEXT) {
-			if (vpninfo->username &&
-			    !strcmp(opt->name, "username")) {
-				opt->value = strdup(vpninfo->username);
-				if (!opt->value) {
-					ret = -ENOMEM;
-					goto out_ui;
-				}
-			} else
-				user_opt = opt;
-		} else if (opt->type == OC_FORM_OPT_PASSWORD) {
-			if (vpninfo->password &&
-			    !strcmp(opt->name, "password")) {
-				opt->value = strdup(vpninfo->password);
-				vpninfo->password = NULL;
-				if (!opt->value) {
-					ret = -ENOMEM;
-					goto out_ui;
-				}
-			} else
-				pass_opt = opt;
-		} else if (opt->type == OC_FORM_OPT_SELECT) {
+		if (opt->type == OC_FORM_OPT_SELECT) {
 			struct oc_choice *choice = NULL;
 			int i;
 
@@ -560,9 +532,6 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 				opt->value = choice->name;
 			}
 			if (opt->value) {
-				if (!strcmp(choice->label, "SecureID"))
-					is_securid = 1;
-
 				select_opt = NULL;
 				continue;
 			}
@@ -577,45 +546,55 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 			strncat(choice_prompt, "]:", 1023 - strlen(choice_prompt));
 
 			UI_add_input_string(ui, choice_prompt, UI_INPUT_FLAG_ECHO, choice_resp, 1, 80);
+			input_count++;
 		}
 	}
 
-	if (!user_opt && !pass_opt && !select_opt) {
+	for (opt = form->opts; opt; opt = opt->next) {
+
+		if (opt->type == OC_FORM_OPT_TEXT) {
+			if (vpninfo->username &&
+			    !strcmp(opt->name, "username")) {
+				opt->value = strdup(vpninfo->username);
+				if (!opt->value) {
+					ret = -ENOMEM;
+					goto out_ui;
+				}
+			} else {
+				opt->value=malloc(80);
+				if (!opt->value) {
+					ret = -ENOMEM;
+					goto out_ui;
+				}
+				UI_add_input_string(ui, opt->label, UI_INPUT_FLAG_ECHO, opt->value, 1, 80);
+				input_count++;
+			}
+
+		} else if (opt->type == OC_FORM_OPT_PASSWORD) {
+			if (vpninfo->password &&
+			    !strcmp(opt->name, "password")) {
+				opt->value = strdup(vpninfo->password);
+				vpninfo->password = NULL;
+				if (!opt->value) {
+					ret = -ENOMEM;
+					goto out_ui;
+				}
+			} else {
+				opt->value=malloc(80);
+				if (!opt->value) {
+					ret = -ENOMEM;
+					goto out_ui;
+				}
+				UI_add_input_string(ui, opt->label, 0, opt->value, 1, 80);
+				input_count++;
+			}
+
+		}
+	}
+
+	if (!input_count) {
 		ret = 0;
 		goto out_ui;
-	}
-
-        if (user_opt)
-		UI_add_input_string(ui, user_opt->label, UI_INPUT_FLAG_ECHO, username, 1, 80);
-
-	/* This isn't ideal, because we the user could take an arbitrary length
-	   of time to enter the PIN, and we should use a tokencode generated
-	   _after_ they enter the PIN, not before. Once we have proper tokencode
-	   generation rather than evil script hacks, we can look at improving it. */
-	if (is_securid) {
-		/*
-		 * If first tokencode being requested, try to generate them.
-		 * We generate the 'next tokencode' here too, in case it's needed.
-		 */
-		if (is_securid == 1) {
-			/* Forget any old tokencodes which evidently failed */
-			vpninfo->sid_tokencode[0] = vpninfo->sid_nexttokencode[0] = 0;
-			generate_securid_tokencodes(vpninfo);
-		}
-
-		/* If we couldn't generate them, we'll have to ask the user */
-		if (!vpninfo->sid_tokencode[0])
-			UI_add_input_string(ui, "SecurID code:",
-					    UI_INPUT_FLAG_ECHO, password, 1, 9);
-
-		/* We need the PIN only the first time, if we already have the
-		   'next tokencode' -- we'll mangle the PIN in immediately.
-		   Or both times if we're asking the user for tokencodes. */
-		if (is_securid == 1 || !vpninfo->sid_tokencode[0])
-			UI_add_input_string(ui, "SecurID PIN:", 0, tpin, 0, 9);
-	} else if (pass_opt) {
-		/* No echo */
-		UI_add_input_string(ui, pass_opt->label, 0, password, 1, 80);
 	}
 
 	switch (UI_process(ui)) {
@@ -652,34 +631,6 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 					  choice_resp);
 			return -EINVAL;
 		}
-	}
-
-	if (user_opt) {
-		user_opt->value = strdup(vpninfo->username?:username);
-		if (!user_opt->value)
-			return -ENOMEM;
-	}
-	if (is_securid == 1 && vpninfo->sid_tokencode[0]) {
-		/* First token request; mangle pin into _both_ first and next
-		   token code */
-		int ret = add_securid_pin(vpninfo->sid_tokencode, tpin);
-		if (ret < 0)
-			ret = add_securid_pin(vpninfo->sid_nexttokencode, tpin);
-		if (ret < 0)
-			return -EINVAL;
-		passresult = vpninfo->sid_tokencode;
-	} else if (is_securid == 2 && vpninfo->sid_nexttokencode[0]) {
-		passresult = vpninfo->sid_nexttokencode;
-	} else if (is_securid && tpin[0]) {
-		ret = add_securid_pin(password, tpin);
-		if (ret < 0)
-			return -EINVAL;
-	}
-
-	if (pass_opt) {
-		pass_opt->value = strdup(passresult);
-		if (!pass_opt)
-			return -ENOMEM;
 	}
 
 	if (vpninfo->password) {
