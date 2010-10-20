@@ -1040,8 +1040,15 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 #endif
 		SSL_CTX_set_default_verify_paths(vpninfo->https_ctx);
 
-		if (vpninfo->cafile)
-			SSL_CTX_load_verify_locations(vpninfo->https_ctx, vpninfo->cafile, NULL);
+		if (vpninfo->cafile) {
+			if (!SSL_CTX_load_verify_locations(vpninfo->https_ctx, vpninfo->cafile, NULL)) {
+				vpninfo->progress(vpninfo, PRG_ERR, "Failed to open CA file '%s'\n",
+						  vpninfo->cafile);
+				report_ssl_errors(vpninfo);
+				close(ssl_sock);
+				return -EINVAL;
+			}
+		}
 
 	}
 	https_ssl = SSL_new(vpninfo->https_ctx);
