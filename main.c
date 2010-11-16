@@ -174,7 +174,7 @@ void usage(void)
 	printf("      --no-cert-check             Do not require server SSL cert to be valid\n");
 	printf("      --passwd-on-stdin           Read password from standard input\n");
 	printf("      --reconnect-timeout         Connection retry timeout in seconds\n");
-	printf("      --servercert                Server's certificate SHA1 fingerprint\n");
+	printf("      --servercert=FINGERPRINT    Server's certificate SHA1 fingerprint\n");
 	printf("      --useragent=STRING          HTTP header User-Agent: field\n");
 	exit(1);
 }
