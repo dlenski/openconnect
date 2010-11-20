@@ -130,7 +130,8 @@ instead of the one you download from the server. Or by running their
 binary but poking at it with gdb.<P>
 We support this idiocy, but because of the security concerns the
 trojan will be executed only if a userid is specified on the command
-line using the <TT>--csd-user=</TT> option.
+line using the <TT>--csd-user=</TT> option, or the <TT>--csd-wrapper=</TT>
+option is used to handle the script in a 'safe' manner.
 <P>
 This support currently only works when the server has a Linux binary
 installed, and only when that Linux binary runs on the client machine.
@@ -181,6 +182,7 @@ For full changelog entries including the latest development, see
 <UL>
   <LI><B>OpenConnect HEAD</B><BR>
      <UL>
+       <LI>Add <TT>--csd-wrapper</TT> option to wrap CSD trojan.</LI>
        <LI>Report error and abort if CA file cannot be opened.</LI>
      </UL><BR>
   </LI>
@@ -449,6 +451,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Wed Oct 20 11:06:32 BST 2010
+Last modified: Sun Nov 21 21:42:05 GMT 2010
 <!-- hhmts end -->
 </body> </html>

@@ -378,7 +378,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 	char fname[16];
 	int fd, ret;
 
-	if (!vpninfo->uid_csd_given) {
+	if (!vpninfo->uid_csd_given && !vpninfo->csd_wrapper) {
 		vpninfo->progress(vpninfo, PRG_ERR,
 				  "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 				  "This facility is disabled by default for security reasons, so you may wish to enable it.");
@@ -436,7 +436,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 				exit(1);
 			}
 		}
-		if (vpninfo->uid_csd == 0) {
+		if (vpninfo->uid_csd == 0 && !vpninfo->csd_wrapper) {
 			fprintf(stderr, "Warning: you are running insecure "
 				"CSD code with root privileges\n"
 				"\t Use command line option \"--csd-user\"\n");
@@ -446,6 +446,8 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 			   on stdout, which the CSD trojan spews. */
 			dup2(2, 1);
 		}
+		if (vpninfo->csd_wrapper)
+			csd_argv[i++] = vpninfo->csd_wrapper;
 		csd_argv[i++] = fname;
 		csd_argv[i++] = "-ticket";
 		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->csd_ticket) == -1)
@@ -480,8 +482,8 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		csd_argv[i++] = "-langselen";
 		csd_argv[i++] = NULL;
 
-		execv(fname, csd_argv);
-		vpninfo->progress(vpninfo, PRG_ERR, "Failed to exec CSD script %s\n", fname);
+		execv(csd_argv[0], csd_argv);
+		vpninfo->progress(vpninfo, PRG_ERR, "Failed to exec CSD script %s\n", csd_argv[0]);
 		exit(1);
 	}
 

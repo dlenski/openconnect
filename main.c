@@ -62,6 +62,7 @@ enum {
 	OPT_COOKIEONLY,
 	OPT_COOKIE_ON_STDIN,
 	OPT_CSD_USER,
+	OPT_CSD_WRAPPER,
 	OPT_DISABLE_IPV6,
 	OPT_DTLS_CIPHERS,
 	OPT_FORCE_DPD,
@@ -117,6 +118,7 @@ static struct option long_options[] = {
 	{"key-password-from-fsid", 0, 0, OPT_KEY_PASSWORD_FROM_FSID},
 	{"useragent", 1, 0, OPT_USERAGENT},
 	{"csd-user", 1, 0, OPT_CSD_USER},
+	{"csd-wrapper", 1, 0, OPT_CSD_WRAPPER},
 	{"disable-ipv6", 0, 0, OPT_DISABLE_IPV6},
 	{"no-proxy", 0, 0, OPT_NO_PROXY},
 	{"libproxy", 0, 0, OPT_LIBPROXY},
@@ -145,6 +147,7 @@ void usage(void)
 	printf("  -l, --syslog                    Use syslog for progress messages\n");
 	printf("  -U, --setuid=USER               Drop privileges after connecting\n");
 	printf("      --csd-user=USER             Drop privileges during CSD execution\n");
+	printf("      --csd-wrapper=SCRIPT        Run SCRIPT instead of CSD binary\n");
 	printf("  -m, --mtu=MTU                   Request MTU from server\n");
 	printf("  -p, --key-password=PASS         Set key passphrase or TPM SRK PIN\n");
 	printf("      --key-password-from-fsid    Key passphrase is fsid of file system\n");
@@ -401,6 +404,9 @@ int main(int argc, char **argv)
 			vpninfo->uid_csd_given = 1;
 			break;
 		}
+		case OPT_CSD_WRAPPER:
+			vpninfo->csd_wrapper = optarg;
+			break;
 		case OPT_DISABLE_IPV6:
 			vpninfo->disable_ipv6 = 1;
 			break;

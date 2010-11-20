@@ -173,6 +173,7 @@ struct openconnect_info {
 	int nopasswd;
 	char *dtls_ciphers;
 	uid_t uid_csd;
+	char *csd_wrapper;
 	int uid_csd_given;
 	int no_http_keepalive;
 

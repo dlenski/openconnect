@@ -1,4 +1,4 @@
-.TH OPENCONNECT 8
+TH OPENCONNECT 8
 .SH NAME
 openconnect \- Connect to Cisco AnyConnect VPN
 .SH SYNOPSIS
@@ -232,8 +232,12 @@ Drop privileges after connecting, to become user
 .I USER
 .TP
 .B --csd-user=USER
-Drop privileges during CSD (Cisco Secure Desktop) script execution. This
-option is required when connecting to a server with CSD.
+Drop privileges during CSD (Cisco Secure Desktop) script execution.
+.TP
+.B --csd-wrapper=SCRIPT
+Run
+.I SCRIPT
+instead of the CSD (Cisco Secure Desktop) script.
 .TP
 .B -m,--mtu=MTU
 Request
