@@ -599,6 +599,10 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	char *method = "GET";
 
  retry:
+	if (form_buf) {
+		free(form_buf);
+		form_buf = NULL;
+	}
 	if (!vpninfo->https_ssl && openconnect_open_https(vpninfo)) {
 		vpninfo->progress(vpninfo, PRG_ERR, "Failed to open HTTPS connection to %s\n",
 			vpninfo->hostname);
