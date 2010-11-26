@@ -892,6 +892,7 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	char *hostname;
 	char *group;
 	char *csd;
+	char *csd_wrapper;
 	char *pem_passphrase_fsid;
 
 	gcl = gconf_client_get_default();
@@ -959,6 +960,12 @@ if (0) {
 		/* We're not running as root; we can't setuid(). */
 		vpninfo->uid_csd = getuid();
 		vpninfo->uid_csd_given = 2;
+
+		csd_wrapper = get_gconf_setting(gcl, config_path, "csd_wrapper");
+		if (csd_wrapper && csd_wrapper[0] )
+			vpninfo->csd_wrapper = csd_wrapper;
+		else
+			g_free(csd_wrapper);
 	}
 	g_free(csd);
 
