@@ -162,9 +162,9 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			*(equals++) = 0;
 
 			print_equals = equals;
-			/* Don't print the webvpn cookie; we don't want people posting it
-			   in public with debugging output */
-			if (!strcmp(colon, "webvpn"))				
+			/* Don't print the webvpn cookie unless it's empty; we don't
+			   want people posting it in public with debugging output */
+			if (!strcmp(colon, "webvpn") && *equals)
 				print_equals = "<elided>";
 			vpninfo->progress(vpninfo, PRG_TRACE, "%s: %s=%s%s%s\n",
 					  buf, colon, print_equals, semicolon?";":"",
