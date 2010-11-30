@@ -62,7 +62,7 @@ CFLAGS += -DOPENCONNECT_LIBPROXY -DLIBPROXY_HDR=\"$(LIBPROXY_HDR)\"
 LDFLAGS += -lproxy
 endif
 
-OPENCONNECT_OBJS := main.o $(SSL_UI) xml.o
+OPENCONNECT_OBJS := xml.o main.o $(SSL_UI)
 CONNECTION_OBJS := dtls.o cstp.o mainloop.o tun.o 
 AUTH_OBJECTS := ssl.o http.o version.o auth.o
 
