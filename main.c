@@ -53,7 +53,7 @@ static int validate_peer_cert(struct openconnect_info *info, X509 *peer_cert, co
 
 int verbose = PRG_INFO;
 int background;
-int do_openconnect_passphrase_from_fsid;
+int do_passphrase_from_fsid;
 int nocertcheck;
 
 enum {
@@ -431,7 +431,7 @@ int main(int argc, char **argv)
 			vpninfo->write_new_config = write_new_config;
 			break;
 		case OPT_KEY_PASSWORD_FROM_FSID:
-			do_openconnect_passphrase_from_fsid = 1;
+			do_passphrase_from_fsid = 1;
 			break;
 		case OPT_USERAGENT:
 			free(vpninfo->useragent);
@@ -473,7 +473,7 @@ int main(int argc, char **argv)
 	sigaction(SIGUSR1, &sa, NULL);
 	sigaction(SIGUSR2, &sa, NULL);
 
-	if (vpninfo->sslkey && do_openconnect_passphrase_from_fsid)
+	if (vpninfo->sslkey && do_passphrase_from_fsid)
 		openconnect_passphrase_from_fsid(vpninfo);
 
 	if (config_lookup_host(vpninfo, argv[optind]))
