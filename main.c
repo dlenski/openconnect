@@ -159,7 +159,7 @@ void usage(void)
 #endif
 	printf("  -q, --quiet                     Less output\n");
 	printf("  -Q, --queue-len=LEN             Set packet queue limit to LEN pkts\n");
-	printf("  -s, --script=SCRIPT             Use vpnc-compatible config script\n");
+	printf("  -s, --script=SCRIPT             Shell command line for using a vpnc-compatible config script\n");
 	printf("  -S, --script-tun                Pass traffic to 'script' program, not tun\n");
 	printf("  -u, --user=NAME                 Set login username\n");
 	printf("  -V, --version                   Report version number\n");
