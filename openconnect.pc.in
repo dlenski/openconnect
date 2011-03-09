@@ -1,0 +1,8 @@
+libdir=LIBDIR
+
+Name: openconnect
+Description: OpenConnect VPN client
+Version: VERSION
+Requires: LIBPROXY zlib openssl
+Libs: -L${libdir} -lopenconnect
+Cflags: 

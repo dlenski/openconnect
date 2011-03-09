@@ -69,7 +69,7 @@ AUTH_OBJECTS := ssl.o http.o version.o auth.o library.o
 VERSION_OBJS := $(filter-out version.o, \
 		$(OPENCONNECT_OBJS) $(CONNECTION_OBJS) $(AUTH_OBJECTS))
 
-.PHONY: all maybe-auth-dialog clean realclean install tag tarball
+.PHONY: all maybe-auth-dialog clean realclean install tag tarball openconnect.pc
 
 all: openconnect maybe-auth-dialog
 
@@ -98,7 +98,7 @@ nm-openconnect-auth-dialog: nm-auth-dialog.o libopenconnect.a
 	$(CC) -c -o $@ $(CFLAGS) $(CFLAGS_$@) $< -MD -MF .$@.dep
 
 clean:
-	rm -f *.o *.a openconnect $(wildcard .*.o.dep .*.h.dep) Make.config
+	rm -f *.o *.a openconnect $(wildcard .*.o.dep .*.h.dep) Make.config openconnect.pc
 ifeq ($(MISSINGPKGS),)
 	rm -f nm-openconnect-auth-dialog
 endif
@@ -124,6 +124,24 @@ Make.config: Makefile
 	( echo "IF_TUN_HDR := $(IF_TUN_H)"; echo "LIBPROXY_HDR := $(LIBPROXY_H)" ) > $@
 
 -include Make.config
+
+INCDIR := /usr/include
+LIBDIR := /usr/lib
+PKGCONFIGDIR := ${LIBDIR}/pkgconfig
+ifeq ($(LIBPROXY_HDR),)
+LIBPROXYPC :=
+else
+LIBPROXYPC := libproxy-1.0
+endif
+
+openconnect.pc: VERSION = $(shell sed 's/.*v\(.*\)";/\1/' version.c)
+openconnect.pc: openconnect.pc.in version.c
+	sed -e 's^VERSION^$(VERSION)^' -e 's^LIBDIR^$(LIBDIR)^' -e 's^LIBPROXY^$(LIBPROXYPC)^' $< > $@
+
+install-lib: libopenconnect.a openconnect.pc
+	install -D -m 0644 libopenconnect.a $(DESTDIR)$(LIBDIR)/libopenconnect.a
+	install -D -m 0644 openconnect.pc $(DESTDIR)$(PKGCONFIGDIR)/openconnect.pc
+	install -D -m 0644 openconnect.h $(DESTDIR)$(INCDIR)/openconnect.h
 
 ifdef VERSION
 tag:
