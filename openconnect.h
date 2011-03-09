@@ -89,7 +89,7 @@ struct openconnect_info;
 /* We don't want to have to pull in OpenSSL stuff just for this */
 struct x509_st;
 
-int get_cert_sha1_fingerprint(struct openconnect_info *vpninfo,
+int openconnect_get_cert_sha1(struct openconnect_info *vpninfo,
 			      struct x509_st *cert, char *buf);
 int openconnect_set_http_proxy(struct openconnect_info *vpninfo, char *proxy);
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo);

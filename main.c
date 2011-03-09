@@ -630,7 +630,7 @@ static int validate_peer_cert(struct openconnect_info *vpninfo, X509 *peer_cert,
 	if (nocertcheck)
 		return 0;
 
-	ret = get_cert_sha1_fingerprint(vpninfo, peer_cert, fingerprint);
+	ret = openconnect_get_cert_sha1(vpninfo, peer_cert, fingerprint);
 	if (ret)
 		return ret;
 
