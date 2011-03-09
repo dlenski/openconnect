@@ -44,7 +44,7 @@
 #include <openssl/bio.h>
 #include <openssl/ui.h>
 
-static GConfClient *gcl;
+static GConfClient *_gcl;
 static char *config_path;
 
 static char *last_message;
@@ -494,6 +494,7 @@ void remember_gconf_key(auth_ui_data *ui_data, char *key, char *value)
 
 char *find_form_answer(struct oc_auth_form *form, struct oc_form_opt *opt)
 {
+	GConfClient *gcl = _gcl; /* FIXME global */
 	char *key, *result;
 	key = g_strdup_printf("%s/vpn/form:%s:%s", config_path,
 			      form->auth_id, opt->name);
@@ -698,6 +699,7 @@ static gboolean user_validate_cert(cert_data *data)
 static int validate_peer_cert(struct openconnect_info *vpninfo,
 			      X509 *peer_cert, const char *reason)
 {
+	GConfClient *gcl = _gcl; /* FIXME global */
 	auth_ui_data *ui_data = _ui_data; /* FIXME global */
 	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
 	char *certs_data;
@@ -899,6 +901,7 @@ static int parse_xmlconfig(char *xmlconfig)
 
 static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 {
+	GConfClient *gcl;
 	char *proxy;
 	char *xmlconfig;
 	char *hostname;
@@ -908,7 +911,7 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	char *csd_wrapper;
 	char *pem_passphrase_fsid;
 
-	gcl = gconf_client_get_default();
+	_gcl = gcl = gconf_client_get_default();
 	config_path = get_config_path(gcl, vpn_uuid);
 
 	if (!config_path)
@@ -1018,6 +1021,7 @@ static void populate_vpnhost_combo(auth_ui_data *ui_data)
 
 int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
 {
+	GConfClient *gcl = _gcl; /* FIXME global */
 	char *key = g_strdup_printf("%s/vpn/%s", config_path,
 				    NM_OPENCONNECT_KEY_XMLCONFIG);
 	gconf_client_set_string(gcl, key, buf, NULL);
@@ -1026,6 +1030,7 @@ int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
 
 static void autocon_toggled(GtkWidget *widget)
 {
+	GConfClient *gcl = _gcl; /* FIXME global */
 	int enabled = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
 	char *key = g_strdup_printf("%s/vpn/autoconnect", config_path);
 
@@ -1123,6 +1128,7 @@ static gboolean cookie_obtained(auth_ui_data *ui_data)
 	} else if (!ui_data->cookie_retval) {
 		/* got cookie */
 		while (ui_data->success_keys) {
+			GConfClient *gcl = _gcl; /* FIXME global */
 			struct gconf_key *k = ui_data->success_keys;
 			char *key = g_strdup_printf("%s/vpn/%s", config_path, k->key);
 
@@ -1269,6 +1275,7 @@ static void login_clicked (GtkButton *btn, auth_ui_data *ui_data)
 
 static void build_main_dialog(auth_ui_data *ui_data)
 {
+	GConfClient *gcl = _gcl; /* FIXME global */
 	char *title;
 	GtkWidget *vbox, *hbox, *label, *frame, *image, *frame_box;
 	GtkWidget *exp, *scrolled, *view, *autocon;
@@ -1482,7 +1489,7 @@ int main (int argc, char **argv)
 	init_openssl_ui();
 	openconnect_init_openssl();
 
-	if (get_gconf_autoconnect(gcl, config_path))
+	if (get_gconf_autoconnect(_gcl, config_path))
 		queue_connect_host(_ui_data);
 
 	gtk_window_present(GTK_WINDOW(_ui_data->dialog));
