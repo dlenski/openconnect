@@ -454,7 +454,7 @@ static int ui_close(UI *ui)
 	return 1;
 }
 
-int init_openssl_ui(void)
+static int init_openssl_ui(void)
 {
 	UI_METHOD *ui_method = UI_create_method("OpenConnect VPN UI (gtk)");
 
@@ -467,7 +467,7 @@ int init_openssl_ui(void)
 	return 0;
 }
 
-void remember_gconf_key(auth_ui_data *ui_data, char *key, char *value)
+static void remember_gconf_key(auth_ui_data *ui_data, char *key, char *value)
 {
 	struct gconf_key *k = g_malloc(sizeof(*k));
 
@@ -492,7 +492,7 @@ void remember_gconf_key(auth_ui_data *ui_data, char *key, char *value)
 	}
 }
 
-char *find_form_answer(struct oc_auth_form *form, struct oc_form_opt *opt)
+static char *find_form_answer(struct oc_auth_form *form, struct oc_form_opt *opt)
 {
 	char *config_path = _config_path; /* FIXME global */
 	GConfClient *gcl = _gcl; /* FIXME global */
@@ -562,8 +562,8 @@ static gboolean ui_form (struct oc_auth_form *form)
 	return ui_show(ui_data);
 }
 
-int nm_process_auth_form (struct openconnect_info *vpninfo,
-			  struct oc_auth_form *form)
+static int nm_process_auth_form (struct openconnect_info *vpninfo,
+				 struct oc_auth_form *form)
 {
 	auth_ui_data *ui_data = _ui_data; /* FIXME global */
 	int response;
@@ -1022,7 +1022,7 @@ static void populate_vpnhost_combo(auth_ui_data *ui_data)
 	}
 }
 
-int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
+static int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
 {
 	char *config_path = _config_path; /* FIXME global */
 	GConfClient *gcl = _gcl; /* FIXME global */
@@ -1069,7 +1069,7 @@ static gboolean write_progress_real(char *message)
 }
 
 /* runs in worker thread */
-void write_progress(struct openconnect_info *info, int level, const char *fmt, ...)
+static void write_progress(struct openconnect_info *info, int level, const char *fmt, ...)
 {
 	va_list args;
 	char *msg;
@@ -1177,7 +1177,7 @@ static gboolean cookie_obtained(auth_ui_data *ui_data)
 	return FALSE;
 }
 
-gpointer obtain_cookie (auth_ui_data *ui_data)
+static gpointer obtain_cookie (auth_ui_data *ui_data)
 {
 	int ret;
 
