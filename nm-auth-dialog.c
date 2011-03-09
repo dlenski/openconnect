@@ -1228,6 +1228,7 @@ static void connect_host(auth_ui_data *ui_data)
 
 	thread = g_thread_create((GThreadFunc)obtain_cookie, ui_data,
 				 FALSE, NULL);
+	(void)thread;
 }
 
 
