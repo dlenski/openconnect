@@ -37,7 +37,8 @@
 #include <gtk/gtk.h>
 
 #include "auth-dlg-settings.h"
-#include "openconnect.h"
+
+#include "openconnect-internal.h"
 
 #include <openssl/bio.h>
 #include <openssl/ui.h>

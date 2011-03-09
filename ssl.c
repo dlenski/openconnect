@@ -49,7 +49,7 @@
 #include <openssl/pkcs12.h>
 #include <openssl/x509v3.h>
 
-#include "openconnect.h"
+#include "openconnect-internal.h"
 
 /* OSX < 1.6 doesn't have AI_NUMERICSERV */
 #ifndef AI_NUMERICSERV

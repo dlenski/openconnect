@@ -34,14 +34,14 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
 
-#include "openconnect.h"
+#include "openconnect-internal.h"
 
 /*
  * Data packets are encapsulated in the SSL stream as follows:
  *
  * 0000: Magic "STF\x1"
  * 0004: Big-endian 16-bit length (not including 8-byte header)
- * 0006: Byte packet type (see openconnect.h)
+ * 0006: Byte packet type (see openconnect-internal.h)
  * 0008: data payload
  */
 

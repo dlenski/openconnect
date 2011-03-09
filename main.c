@@ -44,7 +44,7 @@
 #define _GNU_SOURCE
 #include <getopt.h>
 
-#include "openconnect.h"
+#include "openconnect-internal.h"
 
 static int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen);
 static void write_progress(struct openconnect_info *info, int level, const char *fmt, ...);

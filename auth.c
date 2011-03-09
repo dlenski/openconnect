@@ -38,7 +38,7 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
-#include "openconnect.h"
+#include "openconnect-internal.h"
 
 static int append_opt(char *body, int bodylen, char *opt, char *name)
 {

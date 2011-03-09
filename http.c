@@ -38,7 +38,7 @@
 #include <openssl/err.h>
 #include <openssl/engine.h>
 
-#include "openconnect.h"
+#include "openconnect-internal.h"
 
 static int proxy_write(int fd, unsigned char *buf, size_t len);
 

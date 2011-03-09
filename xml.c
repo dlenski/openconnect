@@ -34,7 +34,7 @@
 #include <libxml/tree.h>
 #include <string.h>
 
-#include "openconnect.h"
+#include "openconnect-internal.h"
 
 int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 {

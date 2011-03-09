@@ -47,7 +47,7 @@
 #endif
 #endif
 
-#include "openconnect.h"
+#include "openconnect-internal.h"
 
 /*
  * If an if_tun.h include file was found anywhere (by the Makefile), it's 

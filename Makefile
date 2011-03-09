@@ -77,7 +77,8 @@ libopenconnect.a: ${AUTH_OBJECTS}
 	$(AR) rcs $@ $^
 
 version.c: $(patsubst %.o,%.c,$(VERSION_OBJS)) Makefile openconnect.h \
-		$(wildcard .git/index .git/refs/tags) version.sh
+	   openconnect-internal.h $(wildcard .git/index .git/refs/tags) \
+	   version.sh
 	@./version.sh
 
 openconnect: $(OPENCONNECT_OBJS) $(CONNECTION_OBJS) libopenconnect.a

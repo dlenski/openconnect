@@ -33,7 +33,7 @@
 #include <fcntl.h>
 #include <string.h>
 
-#include "openconnect.h"
+#include "openconnect-internal.h"
 
 static unsigned char nybble(unsigned char n)
 {
