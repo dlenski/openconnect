@@ -1438,7 +1438,6 @@ static struct option long_options[] = {
 int main (int argc, char **argv)
 {
 	char *vpn_name = NULL, *vpn_uuid = NULL, *vpn_service = NULL;
-	int reprompt;
 	int opt;
 
 	while ((opt = getopt_long(argc, argv, "ru:n:s:", long_options, NULL))) {
@@ -1447,7 +1446,7 @@ int main (int argc, char **argv)
 
 		switch(opt) {
 		case 'r':
-			reprompt = 1;
+			/* Reprompt does nothing */
 			break;
 
 		case 'u':
