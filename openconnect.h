@@ -86,6 +86,7 @@ struct oc_auth_form {
 #define PRG_TRACE	3
 
 struct openconnect_info;
+/* We don't want to have to pull in OpenSSL stuff just for this */
 struct x509_st;
 
 int get_cert_sha1_fingerprint(struct openconnect_info *vpninfo,
@@ -98,3 +99,41 @@ char *openconnect_create_useragent(char *base);
 void openconnect_init_openssl(void);
 
 #endif /* __OPENCONNECT_H__ */
+
+char *openconnect_get_vpn_name (struct openconnect_info *);
+char *openconnect_get_hostname (struct openconnect_info *);
+void openconnect_set_hostname (struct openconnect_info *, char *);
+char *openconnect_get_urlpath (struct openconnect_info *);
+void openconnect_set_urlpath (struct openconnect_info *, char *);
+void openconnect_set_xmlsha1 (struct openconnect_info *, char *, int size);
+void openconnect_set_cafile (struct openconnect_info *, char *);
+void openconnect_setup_csd (struct openconnect_info *, uid_t, int silent, char *wrapper);
+void openconnect_set_client_cert (struct openconnect_info *, char *cert, char *sslkey);
+struct x509_st *openconnect_get_peer_cert (struct openconnect_info *);
+int openconnect_get_port (struct openconnect_info *);
+char *openconnect_get_cookie (struct openconnect_info *);
+void openconnect_clear_cookie (struct openconnect_info *);
+void openconnect_clear_peer_addr (struct openconnect_info *);
+void openconnect_clear_https_ctx (struct openconnect_info *);
+
+void openconnect_reset_ssl (struct openconnect_info *vpninfo);
+int openconnect_parse_url (struct openconnect_info *vpninfo, char *url);
+
+
+typedef int (*openconnect_validate_peer_cert_fn) (struct openconnect_info *vpninfo,
+						  struct x509_st *cert, const char *reason);
+typedef int (*openconnect_write_new_config_fn) (struct openconnect_info *vpninfo, char *buf,
+						int buflen);
+typedef int (*openconnect_process_auth_form_fn) (struct openconnect_info *vpninfo,
+						 struct oc_auth_form *form);
+typedef void __attribute__ ((format(printf, 3, 4)))
+	(*openconnect_progress_fn) (struct openconnect_info *vpninfo, int level,
+				    const char *fmt, ...);
+
+struct openconnect_info *openconnect_vpninfo_new (char *useragent,
+						  openconnect_validate_peer_cert_fn,
+						  openconnect_write_new_config_fn,
+						  openconnect_process_auth_form_fn,
+						  openconnect_progress_fn);
+
+

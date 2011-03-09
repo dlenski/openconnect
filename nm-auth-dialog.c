@@ -38,8 +38,9 @@
 
 #include "auth-dlg-settings.h"
 
-#include "openconnect-internal.h"
+#include "openconnect.h"
 
+#include <openssl/ssl.h>
 #include <openssl/bio.h>
 #include <openssl/ui.h>
 
@@ -642,7 +643,8 @@ static gboolean user_validate_cert(cert_data *data)
 	title = get_title(data->ui_data->vpn_name);
 	msg = g_strdup_printf("Certificate from VPN server \"%s\" failed verification.\n"
 			      "Reason: %s\nDo you want to accept it?",
-			      data->ui_data->vpninfo->hostname, data->reason);
+			      openconnect_get_hostname(data->ui_data->vpninfo),
+			      data->reason);
 
 	dlg = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_QUESTION,
 				     GTK_BUTTONS_OK_CANCEL,
@@ -894,6 +896,7 @@ static int get_config(char *vpn_uuid, struct openconnect_info *vpninfo)
 	char *hostname;
 	char *group;
 	char *csd;
+	char *sslkey, *cert;
 	char *csd_wrapper;
 	char *pem_passphrase_fsid;
 
@@ -941,6 +944,7 @@ if (0) {
 	xmlconfig = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_XMLCONFIG);
 	if (xmlconfig) {
 		unsigned char sha1[SHA_DIGEST_LENGTH];
+		char sha1_text[SHA_DIGEST_LENGTH * 2];
 		EVP_MD_CTX c;
 		int i;
 
@@ -949,25 +953,25 @@ if (0) {
 		EVP_MD_CTX_cleanup(&c);
 
 		for (i = 0; i < SHA_DIGEST_LENGTH; i++)
-			sprintf(&vpninfo->xmlsha1[i*2], "%02x", sha1[i]);
+			sprintf(&sha1_text[i*2], "%02x", sha1[i]);
 
+		openconnect_set_xmlsha1(vpninfo, sha1_text, sizeof(sha1_text));
 		parse_xmlconfig(xmlconfig);
 		g_free(xmlconfig);
 	}
 
-	vpninfo->cafile = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_CACERT);
+	openconnect_set_cafile(vpninfo,
+			       get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_CACERT));
 
 	csd = get_gconf_setting(gcl, config_path, "enable_csd_trojan");
 	if (csd && !strcmp(csd, "yes")) {
 		/* We're not running as root; we can't setuid(). */
-		vpninfo->uid_csd = getuid();
-		vpninfo->uid_csd_given = 2;
-
 		csd_wrapper = get_gconf_setting(gcl, config_path, "csd_wrapper");
-		if (csd_wrapper && csd_wrapper[0] )
-			vpninfo->csd_wrapper = csd_wrapper;
-		else
+		if (csd_wrapper && !csd_wrapper[0]) {
 			g_free(csd_wrapper);
+			csd_wrapper = NULL;
+		}
+		openconnect_setup_csd(vpninfo, getuid(), 1, csd_wrapper);
 	}
 	g_free(csd);
 
@@ -975,16 +979,15 @@ if (0) {
 	if (proxy && proxy[0] && openconnect_set_http_proxy(vpninfo, proxy))
 		return -EINVAL;
 
-	vpninfo->cert = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_USERCERT);
-	vpninfo->sslkey = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_PRIVKEY);
-	if (!vpninfo->sslkey)
-		vpninfo->sslkey = vpninfo->cert;
+	cert = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_USERCERT);
+	sslkey = get_gconf_setting(gcl, config_path, NM_OPENCONNECT_KEY_PRIVKEY);
+	openconnect_set_client_cert (vpninfo, cert, sslkey);
 
 	pem_passphrase_fsid = get_gconf_setting(gcl, config_path, "pem_passphrase_fsid");
-	if (pem_passphrase_fsid && vpninfo->sslkey && !strcmp(pem_passphrase_fsid, "yes"))
+	if (pem_passphrase_fsid && cert && !strcmp(pem_passphrase_fsid, "yes"))
 		openconnect_passphrase_from_fsid(vpninfo);
 	g_free(pem_passphrase_fsid);
-				    
+
 	return 0;
 }
 
@@ -1075,7 +1078,7 @@ void write_progress(struct openconnect_info *info, int level, const char *fmt, .
 static void print_peer_cert(struct openconnect_info *vpninfo)
 {
 	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
-	X509 *cert = SSL_get_peer_certificate(vpninfo->https_ssl);
+	X509 *cert = openconnect_get_peer_cert(vpninfo);
 
 	if (cert && !get_cert_sha1_fingerprint(vpninfo, cert, fingerprint))
 		printf("gwcert\n%s\n", fingerprint);
@@ -1124,11 +1127,12 @@ static gboolean cookie_obtained(auth_ui_data *ui_data)
 		}
 
 		printf("%s\n%s:%d\n", NM_OPENCONNECT_KEY_GATEWAY,
-		       ui_data->vpninfo->hostname, ui_data->vpninfo->port);
+		       openconnect_get_hostname(ui_data->vpninfo),
+		       openconnect_get_port(ui_data->vpninfo));
 		printf("%s\n%s\n", NM_OPENCONNECT_KEY_COOKIE,
-		       ui_data->vpninfo->cookie);
+		       openconnect_get_cookie(ui_data->vpninfo));
 		print_peer_cert(ui_data->vpninfo);
-		memset((void *)ui_data->vpninfo->cookie, 0, strlen(ui_data->vpninfo->cookie));
+		openconnect_clear_cookie(ui_data->vpninfo);
 		printf("\n\n");
 		fflush(stdout);
 		ui_data->retval = 0;
@@ -1183,31 +1187,21 @@ static void connect_host(auth_ui_data *ui_data)
 
 	/* reset ssl context.
 	 * TODO: this is probably not the way to go... */
-	if (ui_data->vpninfo->https_ssl) {
-		free(ui_data->vpninfo->peer_addr);
-		ui_data->vpninfo->peer_addr = NULL;
-		openconnect_close_https(ui_data->vpninfo);
-	}
-	if (ui_data->vpninfo->https_ctx) {
-		SSL_CTX_free(ui_data->vpninfo->https_ctx);
-		ui_data->vpninfo->https_ctx = NULL;
-	}
+	openconnect_reset_ssl(ui_data->vpninfo);
 
 	host_nr = gtk_combo_box_get_active(GTK_COMBO_BOX(ui_data->combo));
 	host = vpnhosts;
 	for (i = 0; i < host_nr; i++)
 		host = host->next;
 
-	if (internal_parse_url(host->hostaddress, NULL,
-		      &ui_data->vpninfo->hostname, &ui_data->vpninfo->port,
-		      &ui_data->vpninfo->urlpath, 443)) {
+	if (openconnect_parse_url(ui_data->vpninfo, host->hostaddress)) {
 		fprintf(stderr, "Failed to parse server URL '%s'\n",
 			host->hostaddress);
-		ui_data->vpninfo->hostname = g_strdup(host->hostaddress);
+		openconnect_set_hostname (ui_data->vpninfo, g_strdup(host->hostaddress));
 	}
 
-	if (!ui_data->vpninfo->urlpath && host->usergroup)
-		ui_data->vpninfo->urlpath = g_strdup(host->usergroup);
+	if (!openconnect_get_urlpath(ui_data->vpninfo) && host->usergroup)
+		openconnect_set_urlpath(ui_data->vpninfo, g_strdup(host->usergroup));
 
 	remember_gconf_key(ui_data, g_strdup("lasthost"), g_strdup(host->hostname));
 
@@ -1398,14 +1392,10 @@ static auth_ui_data *init_ui_data (char *vpn_name)
 	ui_data->cert_response_changed = g_cond_new();
 	ui_data->vpn_name = vpn_name;
 
-	ui_data->vpninfo = g_slice_new0(struct openconnect_info);
-	ui_data->vpninfo->mtu = 1406;
-	ui_data->vpninfo->useragent = openconnect_create_useragent("OpenConnect VPN Agent (NetworkManager)");
-	ui_data->vpninfo->ssl_fd = -1;
-	ui_data->vpninfo->write_new_config = write_new_config;
-	ui_data->vpninfo->progress = write_progress;
-	ui_data->vpninfo->validate_peer_cert = validate_peer_cert;
-	ui_data->vpninfo->process_auth_form = nm_process_auth_form;
+	ui_data->vpninfo = (void *)openconnect_vpninfo_new("OpenConnect VPN Agent (NetworkManager)",
+						   validate_peer_cert, write_new_config,
+						   nm_process_auth_form, write_progress);
+
 #if 0
 	ui_data->vpninfo->proxy_factory = px_proxy_factory_new();
 #endif
