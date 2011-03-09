@@ -97,8 +97,6 @@ struct openconnect_info {
 
 	char *csd_scriptname;
 
-	char *vpn_name;
-
 #ifdef OPENCONNECT_LIBPROXY
 	pxProxyFactory *proxy_factory;
 #endif

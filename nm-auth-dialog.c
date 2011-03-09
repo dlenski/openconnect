@@ -72,6 +72,7 @@ struct gconf_key {
 };
 
 typedef struct auth_ui_data {
+	char *vpn_name;
 	struct openconnect_info *vpninfo;
 	struct gconf_key *success_keys;
 	GtkWidget *dialog;
@@ -638,7 +639,7 @@ static gboolean user_validate_cert(cert_data *data)
 	BIO_write(bp, &zero, 1);
 	BIO_get_mem_ptr(bp, &certinfo);
 
-	title = get_title(data->ui_data->vpninfo->vpn_name);
+	title = get_title(data->ui_data->vpn_name);
 	msg = g_strdup_printf("Certificate from VPN server \"%s\" failed verification.\n"
 			      "Reason: %s\nDo you want to accept it?",
 			      data->ui_data->vpninfo->hostname, data->reason);
@@ -1271,7 +1272,7 @@ static void build_main_dialog(auth_ui_data *ui_data)
 
 	gtk_window_set_default_icon_name(GTK_STOCK_DIALOG_AUTHENTICATION);
 
-	title = get_title(ui_data->vpninfo->vpn_name);
+	title = get_title(ui_data->vpn_name);
 	ui_data->dialog = gtk_dialog_new_with_buttons(title, NULL, GTK_DIALOG_MODAL,
 						      GTK_STOCK_CLOSE, GTK_RESPONSE_CLOSE,
 						      NULL);
@@ -1395,6 +1396,7 @@ static auth_ui_data *init_ui_data (char *vpn_name)
 	ui_data->form_retval_changed = g_cond_new();
 	ui_data->form_shown_changed = g_cond_new();
 	ui_data->cert_response_changed = g_cond_new();
+	ui_data->vpn_name = vpn_name;
 
 	ui_data->vpninfo = g_slice_new0(struct openconnect_info);
 	ui_data->vpninfo->mtu = 1406;
@@ -1403,7 +1405,6 @@ static auth_ui_data *init_ui_data (char *vpn_name)
 	ui_data->vpninfo->write_new_config = write_new_config;
 	ui_data->vpninfo->progress = write_progress;
 	ui_data->vpninfo->validate_peer_cert = validate_peer_cert;
-	ui_data->vpninfo->vpn_name = vpn_name;
 	ui_data->vpninfo->process_auth_form = nm_process_auth_form;
 #if 0
 	ui_data->vpninfo->proxy_factory = px_proxy_factory_new();
