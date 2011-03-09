@@ -116,7 +116,7 @@ void openconnect_clear_https_ctx (struct openconnect_info *);
 
 void openconnect_reset_ssl (struct openconnect_info *vpninfo);
 int openconnect_parse_url (struct openconnect_info *vpninfo, char *url);
-
+const char *openconnect_get_version(void);
 
 typedef int (*openconnect_validate_peer_cert_fn) (struct openconnect_info *vpninfo,
 						  struct x509_st *cert, const char *reason);

@@ -131,3 +131,8 @@ int openconnect_parse_url (struct openconnect_info *vpninfo, char *url)
 	return internal_parse_url (url, NULL, &vpninfo->hostname,
 				   &vpninfo->port, &vpninfo->urlpath, 443);
 }
+
+const char *openconnect_get_version (void)
+{
+	return openconnect_version;
+}
