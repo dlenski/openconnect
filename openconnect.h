@@ -96,7 +96,5 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo);
 void openconnect_close_https(struct openconnect_info *vpninfo);
 char *openconnect_create_useragent(char *base);
 void openconnect_init_openssl(void);
-int openconnect_parse_url(char *url, char **res_proto, char **res_host,
-			  int *res_port, char **res_path, int default_port);
 
 #endif /* __OPENCONNECT_H__ */

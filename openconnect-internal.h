@@ -279,6 +279,8 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 
 /* http.c */
 int process_proxy(struct openconnect_info *vpninfo, int ssl_sock);
+int internal_parse_url(char *url, char **res_proto, char **res_host,
+		       int *res_port, char **res_path, int default_port);
 
 /* ssl_ui.c */
 int set_openssl_ui(void);
