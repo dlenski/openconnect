@@ -114,7 +114,7 @@ enum {
 
 
 /* this is here because ssl ui (*opener) does not have a userdata pointer... */
-static auth_ui_data *ui_data;
+static auth_ui_data *_ui_data;
 
 static void connect_host(auth_ui_data *ui_data);
 
@@ -257,6 +257,7 @@ static gboolean ui_write_info (ui_fragment_data *data)
 
 static gboolean ui_write_prompt (ui_fragment_data *data)
 {
+	auth_ui_data *ui_data = _ui_data; /* FIXME global */
 	GtkWidget *hbox, *text, *entry;
 	int visible;
 	const char *label;
@@ -296,6 +297,7 @@ static gboolean ui_write_prompt (ui_fragment_data *data)
 
 static gboolean ui_add_select (ui_fragment_data *data)
 {
+	auth_ui_data *ui_data = _ui_data; /* FIXME global */
 	GtkWidget *hbox, *text, *combo;
 	struct oc_form_opt_select *sopt = (void *)data->opt;
 	int i;
@@ -351,6 +353,8 @@ static gboolean ui_show (auth_ui_data *ui_data)
 /* runs in worker thread */
 static int ui_open(UI *ui)
 {
+	auth_ui_data *ui_data = _ui_data; /* FIXME global */
+
 	UI_add_user_data(ui, ui_data);
 
 	return 1;
@@ -503,6 +507,7 @@ char *find_form_answer(struct oc_auth_form *form, struct oc_form_opt *opt)
 
 static gboolean ui_form (struct oc_auth_form *form)
 {
+	auth_ui_data *ui_data = _ui_data; /* FIXME global */
 	struct oc_form_opt *opt;
 
 	ssl_box_clear(ui_data);
@@ -558,6 +563,7 @@ static gboolean ui_form (struct oc_auth_form *form)
 int nm_process_auth_form (struct openconnect_info *vpninfo,
 			  struct oc_auth_form *form)
 {
+	auth_ui_data *ui_data = _ui_data; /* FIXME global */
 	int response;
 
 	g_idle_add((GSourceFunc)ui_form, form);
@@ -625,6 +631,7 @@ typedef struct cert_data {
 
 static gboolean user_validate_cert(cert_data *data)
 {
+	auth_ui_data *ui_data = _ui_data; /* FIXME global */
 	BIO *bp = BIO_new(BIO_s_mem());
 	char *msg, *title;
 	BUF_MEM *certinfo;
@@ -691,6 +698,7 @@ static gboolean user_validate_cert(cert_data *data)
 static int validate_peer_cert(struct openconnect_info *vpninfo,
 			      X509 *peer_cert, const char *reason)
 {
+	auth_ui_data *ui_data = _ui_data; /* FIXME global */
 	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
 	char *certs_data;
 	char *key;
@@ -1037,6 +1045,7 @@ static void scroll_log(GtkTextBuffer *log, GtkTextView *view)
 /* NOTE: write_progress_real() will free the given string */
 static gboolean write_progress_real(char *message)
 {
+	auth_ui_data *ui_data = _ui_data; /* FIXME global */
 	GtkTextIter iter;
 
 	g_return_val_if_fail(message, FALSE);
@@ -1463,21 +1472,21 @@ int main (int argc, char **argv)
 	g_thread_init (NULL);
 	gtk_init(0, NULL);
 
-	ui_data = init_ui_data(vpn_name);
-	if (get_config(vpn_uuid, ui_data->vpninfo)) {
+	_ui_data = init_ui_data(vpn_name);
+	if (get_config(vpn_uuid, _ui_data->vpninfo)) {
 		fprintf(stderr, "Failed to find VPN UUID %s in gconf\n", vpn_uuid);
 		return 1;
 	}
-	build_main_dialog(ui_data);
+	build_main_dialog(_ui_data);
 
 	init_openssl_ui();
 	openconnect_init_openssl();
 
 	if (get_gconf_autoconnect(gcl, config_path))
-		queue_connect_host(ui_data);
+		queue_connect_host(_ui_data);
 
-	gtk_window_present(GTK_WINDOW(ui_data->dialog));
+	gtk_window_present(GTK_WINDOW(_ui_data->dialog));
 	gtk_main();
 
-	return ui_data->retval;
+	return _ui_data->retval;
 }
