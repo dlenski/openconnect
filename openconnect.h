@@ -94,8 +94,6 @@ int get_cert_sha1_fingerprint(struct openconnect_info *vpninfo,
 int openconnect_set_http_proxy(struct openconnect_info *vpninfo, char *proxy);
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo);
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo);
-void openconnect_close_https(struct openconnect_info *vpninfo);
-char *openconnect_create_useragent(char *base);
 void openconnect_init_openssl(void);
 
 #endif /* __OPENCONNECT_H__ */

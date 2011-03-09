@@ -253,6 +253,7 @@ int  __attribute__ ((format (printf, 2, 3)))
 		openconnect_SSL_printf(SSL *ssl, const char *fmt, ...);
 int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len);
 int openconnect_open_https(struct openconnect_info *vpninfo);
+void openconnect_close_https(struct openconnect_info *vpninfo);
 int get_cert_md5_fingerprint(struct openconnect_info *vpninfo, X509 *cert,
 			     char *buf);
 void report_ssl_errors(struct openconnect_info *vpninfo);
@@ -276,6 +277,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		       char **request_body_type);
 
 /* http.c */
+char *openconnect_create_useragent(char *base);
 int process_proxy(struct openconnect_info *vpninfo, int ssl_sock);
 int internal_parse_url(char *url, char **res_proto, char **res_host,
 		       int *res_port, char **res_path, int default_port);
