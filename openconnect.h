@@ -30,6 +30,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#define OPENCONNECT_API_VERSION_MAJOR 1
+#define OPENCONNECT_API_VERSION_MINOR 0
 
 /****************************************************************************/
 
@@ -96,8 +98,6 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo);
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo);
 void openconnect_init_openssl(void);
 
-#endif /* __OPENCONNECT_H__ */
-
 char *openconnect_get_vpn_name (struct openconnect_info *);
 char *openconnect_get_hostname (struct openconnect_info *);
 void openconnect_set_hostname (struct openconnect_info *, char *);
@@ -134,4 +134,4 @@ struct openconnect_info *openconnect_vpninfo_new (char *useragent,
 						  openconnect_process_auth_form_fn,
 						  openconnect_progress_fn);
 
-
+#endif /* __OPENCONNECT_H__ */
