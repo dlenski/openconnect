@@ -1,6 +1,6 @@
 #!/bin/sh
 
-v="v2.26"
+v="v3.00"
 
 if tag=`git describe --tags`; then
 	v="$tag"
