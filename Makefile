@@ -30,26 +30,12 @@ ifeq ($(XML2_LDFLAGS),)
 $(error "No libxml2 support. Cannot continue");
 endif
 
-GTK_CFLAGS += $(shell pkg-config --cflags gtk+-x11-2.0 gthread-2.0 2>/dev/null)
-GTK_LDFLAGS += $(shell pkg-config --libs gtk+-x11-2.0 gthread-2.0 2>/dev/null)
-ifeq ($(GTK_LDFLAGS),)
-MISSINGPKGS += gtk+-x11-2.0
-endif
-
-GCONF_CFLAGS += $(shell pkg-config --cflags gconf-2.0 2>/dev/null)
-GCONF_LDFLAGS += $(shell pkg-config --libs gconf-2.0 2>/dev/null)
-ifeq ($(GCONF_LDFLAGS),)
-MISSINGPKGS += gconf-2.0
-endif
-
 CFLAGS := $(OPT_FLAGS) $(SSL_CFLAGS) $(XML2_CFLAGS) $(EXTRA_CFLAGS)
 LDFLAGS := -lz $(SSL_LDFLAGS) $(XML2_LDFLAGS) $(EXTRA_LDFLAGS)
 
 ifdef SSL_UI
 CFLAGS += -DSSL_UI
 endif
-
-CFLAGS_nm-auth-dialog.o += $(GTK_CFLAGS) $(GCONF_CFLAGS) $(XML2_CFLAGS)
 
 -include Make.config
 
@@ -69,9 +55,9 @@ AUTH_OBJECTS := ssl.o http.o version.o auth.o library.o
 VERSION_OBJS := $(filter-out version.o, \
 		$(OPENCONNECT_OBJS) $(CONNECTION_OBJS) $(AUTH_OBJECTS))
 
-.PHONY: all maybe-auth-dialog clean realclean install tag tarball openconnect.pc
+.PHONY: all clean realclean install tag tarball openconnect.pc
 
-all: openconnect maybe-auth-dialog
+all: openconnect
 
 libopenconnect.a: ${AUTH_OBJECTS}
 	$(AR) rcs $@ $^
@@ -84,24 +70,11 @@ version.c: $(patsubst %.o,%.c,$(VERSION_OBJS)) Makefile openconnect.h \
 openconnect: $(OPENCONNECT_OBJS) $(CONNECTION_OBJS) libopenconnect.a
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-ifeq ($(MISSINGPKGS),)
-maybe-auth-dialog: nm-openconnect-auth-dialog
-else
-maybe-auth-dialog: $(warning Cannot build NetworkManager auth-dialog:) \
-		   $(warning Missing pkg-config packages: $(MISSINGPKGS))
-endif
-
-nm-openconnect-auth-dialog: nm-auth-dialog.o libopenconnect.a
-	$(CC) -o $@ $^ $(LDFLAGS) $(GTK_LDFLAGS) $(GCONF_LDFLAGS) $(XML2_LDFLAGS)
-
 %.o: %.c
 	$(CC) -c -o $@ $(CFLAGS) $(CFLAGS_$@) $< -MD -MF .$@.dep
 
 clean:
 	rm -f *.o *.a openconnect $(wildcard .*.o.dep .*.h.dep) Make.config openconnect.pc
-ifeq ($(MISSINGPKGS),)
-	rm -f nm-openconnect-auth-dialog
-endif
 
 realclean: clean
 	rm -f *~
@@ -109,9 +82,6 @@ realclean: clean
 install: all
 	mkdir -p $(DESTDIR)/usr/bin $(DESTDIR)/usr/libexec
 	install -m 0755 openconnect $(DESTDIR)/usr/bin
-ifeq ($(MISSINGPKGS),)
-	install -m 0755 nm-openconnect-auth-dialog $(DESTDIR)/usr/libexec
-endif
 
 include /dev/null $(wildcard .*.o.dep)
 
