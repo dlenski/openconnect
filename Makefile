@@ -80,8 +80,9 @@ realclean: clean
 	rm -f *~
 
 install: all
-	mkdir -p $(DESTDIR)/usr/bin $(DESTDIR)/usr/libexec
+	mkdir -p $(DESTDIR)/usr/bin $(DESTDIR)/usr/share/man/man8
 	install -m 0755 openconnect $(DESTDIR)/usr/bin
+	install -m 0644 openconnect.8 $(DESTDIR)/usr/share/man/man8
 
 include /dev/null $(wildcard .*.o.dep)
 
