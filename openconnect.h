@@ -91,6 +91,10 @@ struct openconnect_info;
 /* We don't want to have to pull in OpenSSL stuff just for this */
 struct x509_st;
 
+
+
+/* Unless otherwise specified, all functions which set strings will take ownership of those strings
+   and should free them later in openconnect_vpninfo_free() */
 int openconnect_get_cert_sha1(struct openconnect_info *vpninfo,
 			      struct x509_st *cert, char *buf);
 int openconnect_set_http_proxy(struct openconnect_info *vpninfo, char *proxy);
@@ -103,7 +107,11 @@ char *openconnect_get_hostname (struct openconnect_info *);
 void openconnect_set_hostname (struct openconnect_info *, char *);
 char *openconnect_get_urlpath (struct openconnect_info *);
 void openconnect_set_urlpath (struct openconnect_info *, char *);
+
+/* This function does *not* take ownership of the string; it's copied
+   into a static buffer in the vpninfo */
 void openconnect_set_xmlsha1 (struct openconnect_info *, char *, int size);
+
 void openconnect_set_cafile (struct openconnect_info *, char *);
 void openconnect_setup_csd (struct openconnect_info *, uid_t, int silent, char *wrapper);
 void openconnect_set_client_cert (struct openconnect_info *, char *cert, char *sslkey);
@@ -111,8 +119,6 @@ struct x509_st *openconnect_get_peer_cert (struct openconnect_info *);
 int openconnect_get_port (struct openconnect_info *);
 char *openconnect_get_cookie (struct openconnect_info *);
 void openconnect_clear_cookie (struct openconnect_info *);
-void openconnect_clear_peer_addr (struct openconnect_info *);
-void openconnect_clear_https_ctx (struct openconnect_info *);
 
 void openconnect_reset_ssl (struct openconnect_info *vpninfo);
 int openconnect_parse_url (struct openconnect_info *vpninfo, char *url);
@@ -133,5 +139,6 @@ struct openconnect_info *openconnect_vpninfo_new (char *useragent,
 						  openconnect_write_new_config_fn,
 						  openconnect_process_auth_form_fn,
 						  openconnect_progress_fn);
+void openconnect_vpninfo_free (struct openconnect_info *vpninfo);
 
 #endif /* __OPENCONNECT_H__ */

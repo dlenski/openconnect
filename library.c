@@ -43,6 +43,42 @@ struct openconnect_info *openconnect_vpninfo_new (char *useragent,
 	return vpninfo;
 }
 
+static void free_optlist (struct vpn_option *opt)
+{
+	struct vpn_option *next;
+
+	for (; opt; opt = next) {
+		next = opt->next;
+		free(opt->option);
+		free(opt->value);
+		free(opt);
+	}
+}
+
+void openconnect_vpninfo_free (struct openconnect_info *vpninfo)
+{
+	openconnect_reset_ssl(vpninfo);
+	free_optlist(vpninfo->cookies);
+	free_optlist(vpninfo->cstp_options);
+	free_optlist(vpninfo->dtls_options);
+	free(vpninfo->hostname);
+	free(vpninfo->urlpath);
+	free(vpninfo->redirect_url);
+	free(vpninfo->proxy_type);
+	free(vpninfo->proxy);
+	free(vpninfo->csd_scriptname);
+	free(vpninfo->csd_stuburl);
+	/* These are const in openconnect itself, but for consistency of
+	   the library API we do take ownership of the strings we're given,
+	   and thus we have to free them too. */
+	free((void *)vpninfo->cafile);
+	free((void *)vpninfo->cert);
+	if (vpninfo->cert != vpninfo->sslkey)
+		free((void *)vpninfo->sslkey);
+	/* No need to free deflate streams; they weren't initialised */
+	free(vpninfo);
+}
+
 char *openconnect_get_hostname (struct openconnect_info *vpninfo)
 {
 	return vpninfo->hostname;
@@ -69,7 +105,6 @@ void openconnect_set_xmlsha1 (struct openconnect_info *vpninfo, char *xmlsha1, i
 		return;
 
 	memcpy (&vpninfo->xmlsha1, xmlsha1, size);
-
 }
 
 void openconnect_set_cafile (struct openconnect_info *vpninfo, char *cafile)
@@ -110,7 +145,8 @@ char *openconnect_get_cookie (struct openconnect_info *vpninfo)
 
 void openconnect_clear_cookie (struct openconnect_info *vpninfo)
 {
-	memset(vpninfo->cookie, 0, sizeof(vpninfo->cookie));
+	if (vpninfo->cookie)
+		memset(vpninfo->cookie, 0, strlen(vpninfo->cookie));
 }
 
 void openconnect_reset_ssl (struct openconnect_info *vpninfo)

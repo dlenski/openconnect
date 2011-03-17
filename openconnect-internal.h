@@ -127,7 +127,7 @@ struct openconnect_info {
 	int uid_csd_given;
 	int no_http_keepalive;
 
-	char *cookie;
+	char *cookie; /* Pointer to within cookies list */
 	struct vpn_option *cookies;
 	struct vpn_option *cstp_options;
 	struct vpn_option *dtls_options;

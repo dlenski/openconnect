@@ -1077,7 +1077,7 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 
 int openconnect_set_http_proxy(struct openconnect_info *vpninfo, char *proxy)
 {
-	char *url = strdup(proxy);
+	char *url = proxy;
 	int ret;
 
 	if (!url)
