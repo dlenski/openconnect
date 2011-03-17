@@ -72,9 +72,9 @@ void openconnect_vpninfo_free (struct openconnect_info *vpninfo)
 	   the library API we do take ownership of the strings we're given,
 	   and thus we have to free them too. */
 	free((void *)vpninfo->cafile);
-	free((void *)vpninfo->cert);
 	if (vpninfo->cert != vpninfo->sslkey)
 		free((void *)vpninfo->sslkey);
+	free((void *)vpninfo->cert);
 	/* No need to free deflate streams; they weren't initialised */
 	free(vpninfo);
 }
