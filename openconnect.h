@@ -31,7 +31,15 @@
 #include <unistd.h>
 
 #define OPENCONNECT_API_VERSION_MAJOR 1
-#define OPENCONNECT_API_VERSION_MINOR 0
+#define OPENCONNECT_API_VERSION_MINOR 1
+
+/*
+ * API version 1.1:
+ *  - Add openconnect_vpninfo_free()
+ *
+ * API version 1.0:
+ *  - Initial version
+ */
 
 /****************************************************************************/
 
