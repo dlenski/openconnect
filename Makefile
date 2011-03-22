@@ -17,11 +17,11 @@ ifdef OPENSSL
 SSL_CFLAGS += -I$(OPENSSL)/include
 SSL_LDFLAGS += $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a
 else
-ifeq ($(wildcard /usr/include/openssl),)
-$(error "No OpenSSL in /usr/include/openssl. Cannot continue");
+SSL_CFLAGS += $(shell pkg-config --cflags libssl)
+SSL_LDFLAGS += $(shell pkg-config --libs libssl)
+ifeq ($(SSL_LDFLAGS),)
+$(error "No OpenSSL support. Cannot continue");
 endif
-SSL_CFLAGS += -I/usr/include/openssl
-SSL_LDFLAGS += -lcrypto -lssl
 endif
 
 XML2_CFLAGS += $(shell xml2-config --cflags) 
