@@ -369,18 +369,22 @@ GNOME git and is released alongside NetworkManager's other VPN modules:
 <A HREF="http://ftp.gnome.org/pub/GNOME/sources/NetworkManager-openconnect/">
 http://ftp.gnome.org/pub/GNOME/sources/NetworkManager-openconnect/</A>.<P>
 
-Unlike other VPN support in NetworkManager, the <TT>auth-dialog</TT>
-tool which handles GUI authentication is part of OpenConnect itself,
+Prior to OpenConnect v3.00, the <TT>auth-dialog</TT>
+tool which handles GUI authentication was part of OpenConnect itself,
 rather than included in the <TT>network-manager-openconnect</TT>
-package. This is because it shares a lot of code with OpenConnect, but
-doesn't actually share any with NetworkManager or the other parts of
-the NetworkManager support.<P>
+package. Versions of <tt>network-manager-openconnect</tt> earlier than 0.8.4
+will expect the <tt>auth-dialog</tt> to be provided for them, and thus will
+not work with a version of OpenConnect any newer then v2.26.<P>
+
+To use OpenConnect v3.00 or newer with NetworkManager, you will need to be
+using NetworkManager-openconnect v0.8.4 or newer.<P>
+
 <B>Note for KDE users:</B> knetworkmanager does not yet support OpenConnect. See <A HREF="https://bugs.kde.org/show_bug.cgi?id=226028">KDE bug #226028</A>.
 
 <H2>ConnMan support</H2>
 
-<A HREF="http://connman.net/">ConnMan</A> has basic support for OpenConnect
-as from version 0.48. However, GUI support for VPNs is not yet implemented.
+<A HREF="http://connman.net/">ConnMan</A> has support for OpenConnect
+as from version 0.48.
 
 <H2>Requirements</H2>
 The basic text-mode client uses the following libraries:
@@ -471,6 +475,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Tue Apr 19 14:50:25 BST 2011
+Last modified: Tue Apr 19 21:26:49 BST 2011
 <!-- hhmts end -->
 </body> </html>
