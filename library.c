@@ -152,9 +152,11 @@ void openconnect_clear_cookie (struct openconnect_info *vpninfo)
 void openconnect_reset_ssl (struct openconnect_info *vpninfo)
 {
 	if (vpninfo->https_ssl) {
+		openconnect_close_https(vpninfo);
+	}
+	if (vpninfo->peer_addr) {
 		free(vpninfo->peer_addr);
 		vpninfo->peer_addr = NULL;
-		openconnect_close_https(vpninfo);
 	}
 	if (vpninfo->https_ctx) {
 		SSL_CTX_free(vpninfo->https_ctx);
@@ -164,6 +166,11 @@ void openconnect_reset_ssl (struct openconnect_info *vpninfo)
 
 int openconnect_parse_url (struct openconnect_info *vpninfo, char *url)
 {
+	if (vpninfo->peer_addr) {
+		free(vpninfo->peer_addr);
+		vpninfo->peer_addr = NULL;
+	}
+
 	return internal_parse_url (url, NULL, &vpninfo->hostname,
 				   &vpninfo->port, &vpninfo->urlpath, 443);
 }
