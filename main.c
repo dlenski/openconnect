@@ -1,7 +1,7 @@
 /*
  * OpenConnect (SSL + DTLS) VPN client
  *
- * Copyright © 2008-2010 Intel Corporation.
+ * Copyright © 2008-2011 Intel Corporation.
  * Copyright © 2008 Nick Andrew <nick@nick-andrew.net>
  *
  * Author: David Woodhouse <dwmw2@infradead.org>
@@ -55,6 +55,7 @@ int verbose = PRG_INFO;
 int background;
 int do_passphrase_from_fsid;
 int nocertcheck;
+int non_inter;
 
 enum {
 	OPT_AUTHGROUP = 0x100,
@@ -78,6 +79,7 @@ enum {
 	OPT_RECONNECT_TIMEOUT,
 	OPT_SERVERCERT,
 	OPT_USERAGENT,
+	OPT_NON_INTER,
 };
 
 static struct option long_options[] = {
@@ -125,6 +127,7 @@ static struct option long_options[] = {
 	{"no-http-keepalive", 0, 0, OPT_NO_HTTP_KEEPALIVE},
 	{"no-cert-check", 0, 0, OPT_NO_CERT_CHECK},
 	{"force-dpd", 1, 0, OPT_FORCE_DPD},
+	{"non-inter", 0, 0, OPT_NON_INTER},
 	{NULL, 0, 0, 0},
 };
 
@@ -175,6 +178,7 @@ void usage(void)
 	printf("      --no-http-keepalive         Disable HTTP connection re-use\n");
 	printf("      --no-passwd                 Disable password/SecurID authentication\n");
 	printf("      --no-cert-check             Do not require server SSL cert to be valid\n");
+	printf("      --non-inter                 Do not expect user input; exit if it is required\n");
 	printf("      --passwd-on-stdin           Read password from standard input\n");
 	printf("      --reconnect-timeout         Connection retry timeout in seconds\n");
 	printf("      --servercert=FINGERPRINT    Server's certificate SHA1 fingerprint\n");
@@ -279,6 +283,10 @@ int main(int argc, char **argv)
 			read_stdin(&vpninfo->password);
 			break;
 		case OPT_NO_PASSWD:
+			vpninfo->nopasswd = 1;
+			break;
+		case OPT_NON_INTER:
+			non_inter = 1;
 			vpninfo->nopasswd = 1;
 			break;
 		case OPT_RECONNECT_TIMEOUT:
@@ -647,6 +655,9 @@ static int validate_peer_cert(struct openconnect_info *vpninfo, X509 *peer_cert,
 
 		fprintf(stderr, "\nCertificate from VPN server \"%s\" failed verification.\n"
 			"Reason: %s\n",	vpninfo->hostname, reason);
+		if (non_inter)
+			return -EINVAL;
+
 		fflush(stderr);
 
 		ui = UI_new();

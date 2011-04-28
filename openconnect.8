@@ -144,6 +144,9 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .B --no-passwd
 ]
 [
+.B --non-inter
+]
+[
 .B --passwd-on-stdin
 ]
 [
@@ -344,7 +347,10 @@ this information to the
 mailing list.
 .TP
 .B --no-passwd
-Never attempt password (or SecurID) authentication
+Never attempt password (or SecurID) authentication.
+.TP
+.B --non-inter
+Do not expect user input; exit if it is required.
 .TP
 .B --passwd-on-stdin
 Read password from standard input
