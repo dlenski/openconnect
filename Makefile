@@ -17,8 +17,8 @@ ifdef OPENSSL
 SSL_CFLAGS += -I$(OPENSSL)/include
 SSL_LDFLAGS += $(OPENSSL)/libssl.a $(OPENSSL)/libcrypto.a
 else
-SSL_CFLAGS += $(shell pkg-config --cflags libssl)
-SSL_LDFLAGS += $(shell pkg-config --libs libssl)
+SSL_CFLAGS += $(shell pkg-config --cflags openssl)
+SSL_LDFLAGS += $(shell pkg-config --libs openssl)
 ifeq ($(SSL_LDFLAGS),)
 $(error "No OpenSSL support. Cannot continue");
 endif
