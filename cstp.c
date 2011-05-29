@@ -427,6 +427,7 @@ int cstp_reconnect(struct openconnect_info *vpninfo)
 		if (interval > RECONNECT_INTERVAL_MAX)
 			interval = RECONNECT_INTERVAL_MAX;
 	}
+	script_reconnect(vpninfo);
 	return 0;
 }
 

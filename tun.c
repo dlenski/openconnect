@@ -373,6 +373,11 @@ static int script_config_tun(struct openconnect_info *vpninfo)
 	return 0;
 }
 
+void script_reconnect (struct openconnect_info *vpninfo)
+{
+	setenv("reason", "reconnect", 1);
+	script_config_tun(vpninfo);
+}
 
 /* Set up a tuntap device. */
 int setup_tun(struct openconnect_info *vpninfo)
