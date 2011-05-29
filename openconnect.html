@@ -45,7 +45,8 @@ here's a simple intro to using OpenConnect.
       Some distributions like Fedora have packages; otherwise you can
       download it and type '<TT>make</TT>' to build it. To build it,
       you'll want development packages for <TT>libxml2</TT>, <TT>zlib</TT>
-      and obviously <TT>OpenSSL</TT> to be installed.
+      and obviously <TT>OpenSSL</TT> to be installed. You will also need
+      <tt>pkg-config</tt>.
   </LI>
   <LI>Install a <TT>vpnc-script</TT>.<BR>
       This script is what sets up all the addresses and routes for you; it's the
@@ -182,6 +183,7 @@ For full changelog entries including the latest development, see
 <UL>
   <LI><B>OpenConnect HEAD</B><BR>
      <UL>
+       <LI>Be more explicit about requiring <TT>pkg-config</TT>.</LI>
        <LI>Invoke script with <tt>reason=reconnect</tt> on CSTP reconnect.</LI>
        <LI>Add <TT>--non-inter</TT> option to avoid all user input.</LI>
      </UL><BR>
@@ -390,6 +392,7 @@ as from version 0.48.
 <H2>Requirements</H2>
 The basic text-mode client uses the following libraries:
 <UL>
+  <LI><B>pkg-config</B></LI>
   <LI><B>OpenSSL</B> &mdash; ideally at least 0.9.8m, although all versions from 0.9.7 onwards will work for basic connectivity. See note on DTLS compatibility below.</LI>
   <LI><B>libxml2</B></LI>
   <LI><B>zlib</B></LI>
@@ -476,6 +479,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Sun May 29 09:23:23 BST 2011
+Last modified: Sun May 29 09:24:58 BST 2011
 <!-- hhmts end -->
 </body> </html>

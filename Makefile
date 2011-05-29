@@ -10,6 +10,11 @@ else
 OPT_FLAGS := -O2 -g -Wall
 endif
 
+PKGCONFIG=$(shell pkg-config --version)
+ifeq ($(PKGCONFIG),)
+$(error "No pkg-config. Cannot continue");
+endif
+
 # Allow people to override OpenSSL and build it statically, if they need
 # a special build for the DTLS support. $(OPENSSL) points to the build 
 # dir; there's no need to install it anywhere (we link it statically).
