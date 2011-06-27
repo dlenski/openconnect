@@ -30,15 +30,19 @@ version.c: $(filter-out version.c, $(libopenconnect_la_SOURCES)) \
 	@./version.sh
 
 dist-hook:
+	@if ! git rev-parse --verify v$(VERSION) > /dev/null; then \
+		echo "*** ERROR: Version v$(VERSION) is not tagged"; exit 1; fi
+	@if ! git diff --name-only --exit-code v$(VERSION) HEAD > /dev/null; then \
+		echo "*** ERROR: Git checkout not at version v$(VERSION)"; exit 1; fi
 	@git update-index --refresh --unmerged
-	@if git diff-index --name-only HEAD | grep ^ ; then \
-		echo Uncommitted changes in above files; exit 1; fi
+	@if ! git diff-index --name-only --exit-code HEAD; then \
+		echo "*** ERROR: Uncommitted changes in above files"; exit 1; fi
 
  ifdef VERSION
 tag:
 	@git update-index --refresh --unmerged
-	@if git diff-index --name-only HEAD | grep ^ ; then \
-		echo Uncommitted changes in above files; exit 1; fi
+	@if ! git diff-index --name-only --exit-code HEAD; then \
+		echo "*** ERROR: Uncommitted changes in above files"; exit 1; fi
 	@sed 's/AC_INIT.*/AC_INIT(openconnect, $(VERSION))/' -i configure.ac
 	@sed 's/^v=.*/v="v$(VERSION)"/' -i version.sh
 	@( echo "s/Last modified: .*/Last modified: $(shell date)/" ;\
