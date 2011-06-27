@@ -38,11 +38,12 @@ dist-hook:
 	@if ! git diff-index --name-only --exit-code HEAD; then \
 		echo "*** ERROR: Uncommitted changes in above files"; exit 1; fi
 
- ifdef VERSION
 tag:
 	@git update-index --refresh --unmerged
 	@if ! git diff-index --name-only --exit-code HEAD; then \
 		echo "*** ERROR: Uncommitted changes in above files"; exit 1; fi
+	@if git rev-parse --verify v$(VERSION) > /dev/null; then \
+		echo "*** ERROR: Version v$(VERSION) is already tagged"; exit 1; fi
 	@sed 's/AC_INIT.*/AC_INIT(openconnect, $(VERSION))/' -i configure.ac
 	@sed 's/^v=.*/v="v$(VERSION)"/' -i version.sh
 	@( echo "s/Last modified: .*/Last modified: $(shell date)/" ;\
@@ -57,4 +58,3 @@ tag:
 	@git tag v$(VERSION)
 	@./autogen.sh
 
- endif
