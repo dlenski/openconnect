@@ -29,19 +29,23 @@ version.c: $(filter-out version.c, $(libopenconnect_la_SOURCES)) \
 	   $(wildcard .git/index .git/refs/tags)
 	@./version.sh
 
-dist-hook:
+tmp-dist: uncommitted-check
+	$(MAKE) $(AM_MAKEFLAGS) VERSION=$(patsubst v%,%,$(shell git describe --tags)) NODISTHOOK=1 dist
+
+uncommitted-check:
+	@if ! git update-index --refresh --unmerged || \
+	    ! git diff-index --name-only --exit-code HEAD; then \
+		echo "*** ERROR: Uncommitted changes in above files" >&2; sleep 2 ; exit 12; else echo foo ; fi
+
+dist-hook: uncommitted-check
+ ifndef NODISTHOOK
 	@if ! git rev-parse --verify v$(VERSION) > /dev/null; then \
 		echo "*** ERROR: Version v$(VERSION) is not tagged"; exit 1; fi
 	@if ! git diff --name-only --exit-code v$(VERSION) HEAD > /dev/null; then \
 		echo "*** ERROR: Git checkout not at version v$(VERSION)"; exit 1; fi
-	@git update-index --refresh --unmerged
-	@if ! git diff-index --name-only --exit-code HEAD; then \
-		echo "*** ERROR: Uncommitted changes in above files"; exit 1; fi
+ endif
 
-tag:
-	@git update-index --refresh --unmerged
-	@if ! git diff-index --name-only --exit-code HEAD; then \
-		echo "*** ERROR: Uncommitted changes in above files"; exit 1; fi
+tag: uncommitted-check
 	@if git rev-parse --verify v$(VERSION) > /dev/null; then \
 		echo "*** ERROR: Version v$(VERSION) is already tagged"; exit 1; fi
 	@sed 's/AC_INIT.*/AC_INIT(openconnect, $(VERSION))/' -i configure.ac
@@ -57,4 +61,3 @@ tag:
 	@git commit -s -m "Tag version $(VERSION)" configure.ac version.sh openconnect.html
 	@git tag v$(VERSION)
 	@./autogen.sh
-
