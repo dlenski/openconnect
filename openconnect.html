@@ -183,6 +183,9 @@ For full changelog entries including the latest development, see
 <UL>
   <LI><B>OpenConnect HEAD</B><BR>
      <UL>
+       <LI>Switch to using GNU autoconf/automake/libtool.</TT></LI>
+       <LI>Produce shared library for authentication.</TT></LI>
+       <LI>Improve library API to make life easier for C++ users.</TT></LI>
        <LI>Be more explicit about requiring <TT>pkg-config</TT>.</LI>
        <LI>Invoke script with <tt>reason=reconnect</tt> on CSTP reconnect.</LI>
        <LI>Add <TT>--non-inter</TT> option to avoid all user input.</LI>
@@ -382,7 +385,9 @@ not work with a version of OpenConnect any newer then v2.26.<P>
 To use OpenConnect v3.00 or newer with NetworkManager, you will need to be
 using NetworkManager-openconnect v0.8.4 or newer.<P>
 
-<B>Note for KDE users:</B> knetworkmanager does not yet support OpenConnect. See <A HREF="https://bugs.kde.org/show_bug.cgi?id=226028">KDE bug #226028</A>.
+<B>Note for KDE users:</B>Patches to support OpenConnect in KDE's NetworkManager
+UI are attached to <A HREF="https://bugs.kde.org/show_bug.cgi?id=226028">KDE
+bug #226028</A>.
 
 <H2>ConnMan support</H2>
 
@@ -479,6 +484,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Sun May 29 09:24:58 BST 2011
+Last modified: Mon Jun 27 02:30:07 BST 2011
 <!-- hhmts end -->
 </body> </html>
