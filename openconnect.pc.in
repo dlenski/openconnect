@@ -1,8 +1,12 @@
-libdir=LIBDIR
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
 
 Name: openconnect
 Description: OpenConnect VPN client
-Version: VERSION
-Requires: LIBPROXY zlib openssl libxml-2.0
+Version: @VERSION@
+Requires: @LIBPROXY_PC@ zlib openssl libxml-2.0
 Libs: -L${libdir} -lopenconnect
-Cflags: 
+Cflags: -I${includedir}
