@@ -203,12 +203,11 @@ struct openconnect_info {
 
 	char *quit_reason;
 
-	int (*validate_peer_cert) (struct openconnect_info *vpninfo, X509 *cert, const char *reason);
-	int (*write_new_config) (struct openconnect_info *vpninfo, char *buf, int buflen);
-	int (*process_auth_form) (struct openconnect_info *vpninfo, struct oc_auth_form *form);
-
-	void __attribute__ ((format(printf, 3, 4)))
-	(*progress) (struct openconnect_info *vpninfo, int level, const char *fmt, ...);
+	void *cbdata;
+	openconnect_validate_peer_cert_vfn validate_peer_cert;
+	openconnect_write_new_config_vfn write_new_config;
+	openconnect_process_auth_form_vfn process_auth_form;
+	openconnect_progress_vfn progress;
 };
 
 /* Packet types */
@@ -227,6 +226,8 @@ struct openconnect_info {
 #else
 #define method_const
 #endif
+
+#define vpn_progress(vpninfo, ...) (vpninfo)->progress ((vpninfo)->cbdata, __VA_ARGS__)
 
 /****************************************************************************/
 

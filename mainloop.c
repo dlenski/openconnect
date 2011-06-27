@@ -86,7 +86,7 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 
 		if (vpninfo->dtls_attempt_period && !vpninfo->dtls_ssl && !vpninfo->new_dtls_ssl &&
 		    vpninfo->new_dtls_started + vpninfo->dtls_attempt_period < time(NULL)) {
-			vpninfo->progress(vpninfo, PRG_TRACE, "Attempt new DTLS connection\n");
+			vpn_progress(vpninfo, PRG_TRACE, "Attempt new DTLS connection\n");
 			connect_dtls_socket(vpninfo);
 		}
 		if (vpninfo->dtls_ssl)
@@ -118,7 +118,7 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 		if (did_work)
 			continue;
 
-		vpninfo->progress(vpninfo, PRG_TRACE,
+		vpn_progress(vpninfo, PRG_TRACE,
 				  "No work to do; sleeping for %d ms...\n", timeout);
 		memcpy(&rfds, &vpninfo->select_rfds, sizeof(rfds));
 		memcpy(&wfds, &vpninfo->select_wfds, sizeof(wfds));

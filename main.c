@@ -46,10 +46,14 @@
 
 #include "openconnect-internal.h"
 
-static int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen);
-static void write_progress(struct openconnect_info *info, int level, const char *fmt, ...);
-static void syslog_progress(struct openconnect_info *info, int level, const char *fmt, ...);
-static int validate_peer_cert(struct openconnect_info *info, X509 *peer_cert, const char *reason);
+static int write_new_config(void *_vpninfo,
+			    char *buf, int buflen);
+static void write_progress(void *_vpninfo,
+			   int level, const char *fmt, ...);
+static void syslog_progress(void *_vpninfo,
+			    int level, const char *fmt, ...);
+static int validate_peer_cert(void *_vpninfo,
+			      X509 *peer_cert, const char *reason);
 
 int verbose = PRG_INFO;
 int background;
@@ -245,6 +249,7 @@ int main(int argc, char **argv)
 	vpninfo->uid_csd = 0;
 	vpninfo->uid_csd_given = 0;
 	vpninfo->validate_peer_cert = validate_peer_cert;
+	vpninfo->cbdata = vpninfo;
 
 	if (!uname(&utsbuf))
 		vpninfo->localname = utsbuf.nodename;
@@ -545,7 +550,7 @@ int main(int argc, char **argv)
 	if (vpninfo->dtls_attempt_period && setup_dtls(vpninfo))
 		fprintf(stderr, "Set up DTLS failed; using SSL instead\n");
 
-	vpninfo->progress(vpninfo, PRG_INFO,
+	vpn_progress(vpninfo, PRG_INFO,
 			  "Connected %s as %s%s%s, using %s\n", vpninfo->ifname,
 			  vpninfo->vpn_addr?:"",
 			  (vpninfo->vpn_addr6 && vpninfo->vpn_addr)?" + ":"",
@@ -555,13 +560,13 @@ int main(int argc, char **argv)
 			      : "DTLS");
 
 	if (!vpninfo->vpnc_script)
-		vpninfo->progress(vpninfo, PRG_INFO,
+		vpn_progress(vpninfo, PRG_INFO,
 				  "No --script argument provided; DNS and routing are not configured\n");
 
 	if (background) {
 		int pid;
 		if ((pid = fork())) {
-			vpninfo->progress(vpninfo, PRG_INFO,
+			vpn_progress(vpninfo, PRG_INFO,
 					  "Continuing in background; pid %d\n",
 					  pid);
 			exit(0);
@@ -571,8 +576,9 @@ int main(int argc, char **argv)
 	exit(1);
 }
 
-static int write_new_config(struct openconnect_info *vpninfo, char *buf, int buflen)
+static int write_new_config(void *_vpninfo, char *buf, int buflen)
 {
+	struct openconnect_info *vpninfo = _vpninfo;
 	int config_fd;
 	int err;
 
@@ -596,7 +602,7 @@ static int write_new_config(struct openconnect_info *vpninfo, char *buf, int buf
 	return 0;
 }
 
-void write_progress(struct openconnect_info *info, int level, const char *fmt, ...)
+void write_progress(void *_vpninfo, int level, const char *fmt, ...)
 {
 	FILE *outf = level ? stdout : stderr;
 	va_list args;
@@ -608,8 +614,7 @@ void write_progress(struct openconnect_info *info, int level, const char *fmt, .
 	}
 }
 
-void syslog_progress(struct openconnect_info *info, int level,
-		     const char *fmt, ...)
+void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
 {
 	int priority = level ? LOG_INFO : LOG_NOTICE;
 	va_list args;
@@ -628,9 +633,10 @@ struct accepted_cert {
 	char host[0];
 } *accepted_certs;
 
-static int validate_peer_cert(struct openconnect_info *vpninfo, X509 *peer_cert,
+static int validate_peer_cert(void *_vpninfo, X509 *peer_cert,
 			      const char *reason)
 {
+	struct openconnect_info *vpninfo = _vpninfo;
 	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
 	struct accepted_cert *this;
 	int ret;

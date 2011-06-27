@@ -79,7 +79,7 @@
 static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
 {
 	if (!mtu_only)
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "No vpnc-script configured. Need Solaris IP-setting code\n");
 	return 0;
 }
@@ -153,7 +153,7 @@ static int process_split_xxclude(struct openconnect_info *vpninfo,
 	slash = strchr(route, '/');
 	if (!slash) {
 	badinc:
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Discard bad split %sclude: \"%s\"\n",
 				  in_ex, route);
 		return -EINVAL;
@@ -365,7 +365,7 @@ static int script_config_tun(struct openconnect_info *vpninfo)
 {
 	if (system(vpninfo->vpnc_script)) {
 		int e = errno;
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Failed to spawn script '%s': %s\n",
 				  vpninfo->vpnc_script, strerror(e));
 		return -e;
@@ -428,7 +428,7 @@ int setup_tun(struct openconnect_info *vpninfo)
 			if (errno != -ENOENT)
 				tunerr = errno;
 
-			vpninfo->progress(vpninfo, PRG_ERR,
+			vpn_progress(vpninfo, PRG_ERR,
 					  "Failed to open tun device: %s\n",
 					  strerror(tunerr));
 			exit(1);
@@ -439,7 +439,7 @@ int setup_tun(struct openconnect_info *vpninfo)
 			strncpy(ifr.ifr_name, vpninfo->ifname,
 				sizeof(ifr.ifr_name) - 1);
 		if (ioctl(tun_fd, TUNSETIFF, (void *) &ifr) < 0) {
-			vpninfo->progress(vpninfo, PRG_ERR,
+			vpn_progress(vpninfo, PRG_ERR,
 					  "TUNSETIFF failed: %s\n",
 					  strerror(errno));
 			exit(1);
@@ -518,7 +518,7 @@ int setup_tun(struct openconnect_info *vpninfo)
 			return -EIO;
 		}
 		/* Solaris tunctl needs this in order to tear it down */
-		vpninfo->progress(vpninfo, PRG_DEBUG, "mux id is %d\n", mux_id);
+		vpn_progress(vpninfo, PRG_DEBUG, "mux id is %d\n", mux_id);
 		vpninfo->tun_muxid = mux_id;
 		vpninfo->ip_fd = ip_fd;
 
@@ -618,7 +618,7 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				static int complained = 0;
 				if (!complained) {
 					complained = 1;
-					vpninfo->progress(vpninfo, PRG_ERR,
+					vpn_progress(vpninfo, PRG_ERR,
 							  "Unknown packet (len %d) received: %02x %02x %02x %02x...\n",
 							  len, data[0], data[1], data[2], data[3]);
 				}
@@ -651,7 +651,7 @@ void shutdown_tun(struct openconnect_info *vpninfo)
 		if (vpninfo->vpnc_script) {
 			setenv("reason", "disconnect", 1);
 			if (system(vpninfo->vpnc_script) == -1) {
-				vpninfo->progress(vpninfo, PRG_ERR,
+				vpn_progress(vpninfo, PRG_ERR,
 						  "Failed to spawn script '%s': %s\n",
 						  vpninfo->vpnc_script,
 						  strerror(errno));

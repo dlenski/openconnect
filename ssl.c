@@ -78,7 +78,7 @@ static int print_err(const char *str, size_t len, void *ptr)
 {
 	struct openconnect_info *vpninfo = ptr;
 
-	vpninfo->progress(vpninfo, PRG_ERR, "%s", str);
+	vpn_progress(vpninfo, PRG_ERR, "%s", str);
 	return 0;
 }
 
@@ -127,7 +127,7 @@ static int pem_pw_cb(char *buf, int len, int w, void *v)
 	SSL_CTX_set_default_passwd_cb_userdata(vpninfo->https_ctx, NULL);
 
 	if (len <= strlen(vpninfo->cert_password)) {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "PEM password too long (%zd >= %d)\n",
 				  strlen(vpninfo->cert_password), len);
 		return -1;
@@ -163,12 +163,12 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 		if (ERR_GET_LIB(err) == ERR_LIB_PKCS12 &&
 		    ERR_GET_FUNC(err) == PKCS12_F_PKCS12_PARSE &&
 		    ERR_GET_REASON(err) == PKCS12_R_MAC_VERIFY_FAILURE) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Parse PKCS#12 failed (wrong passphrase?)\n");
+			vpn_progress(vpninfo, PRG_ERR, "Parse PKCS#12 failed (wrong passphrase?)\n");
 			vpninfo->cert_password = NULL;
 			goto retrypass;
 		}
 
-		vpninfo->progress(vpninfo, PRG_ERR, "Parse PKCS#12 failed (see above errors)\n");
+		vpn_progress(vpninfo, PRG_ERR, "Parse PKCS#12 failed (see above errors)\n");
 		PKCS12_free(p12);
 		return -EINVAL;
 	}
@@ -176,7 +176,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 		vpninfo->cert_x509 = cert;
 		SSL_CTX_use_certificate(vpninfo->https_ctx, cert);
 	} else {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "PKCS#12 contained no certificate!");
 		ret = -EINVAL;
 	}
@@ -185,7 +185,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 		SSL_CTX_use_PrivateKey(vpninfo->https_ctx, pkey);
 		EVP_PKEY_free(pkey);
 	} else {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "PKCS#12 contained no private key!");
 		ret = -EINVAL;
 	}
@@ -204,7 +204,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 
 				X509_NAME_oneline(X509_get_subject_name(cert2),
 						  buf, sizeof(buf));
-				vpninfo->progress(vpninfo, PRG_DEBUG,
+				vpn_progress(vpninfo, PRG_DEBUG,
 						  "Extra cert from PKCS#12: '%s'\n", buf);
 				CRYPTO_add(&cert2->references, 1, CRYPTO_LOCK_X509);
 				SSL_CTX_add_extra_chain_cert(vpninfo->https_ctx, cert2);
@@ -227,13 +227,13 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 
 	e = ENGINE_by_id("tpm");
 	if (!e) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Can't load TPM engine.\n");
+		vpn_progress(vpninfo, PRG_ERR, "Can't load TPM engine.\n");
 		report_ssl_errors(vpninfo);
 		return -EINVAL;
 	}
 	if (!ENGINE_init(e) || !ENGINE_set_default_RSA(e) ||
 	    !ENGINE_set_default_RAND(e)) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Failed to init TPM engine\n");
+		vpn_progress(vpninfo, PRG_ERR, "Failed to init TPM engine\n");
 		report_ssl_errors(vpninfo);
 		ENGINE_free(e);
 		return -EINVAL;
@@ -242,13 +242,13 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 	if (vpninfo->cert_password) {
 		if (!ENGINE_ctrl_cmd(e, "PIN", strlen(vpninfo->cert_password),
 				     vpninfo->cert_password, NULL, 0)) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Failed to set TPM SRK password\n");
+			vpn_progress(vpninfo, PRG_ERR, "Failed to set TPM SRK password\n");
 			report_ssl_errors(vpninfo);
 		}
 	}
 	key = ENGINE_load_private_key(e, vpninfo->sslkey, NULL, NULL);
 	if (!key) {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Failed to load TPM private key\n");
 		report_ssl_errors(vpninfo);
 		ENGINE_free(e);
@@ -256,7 +256,7 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 	if (!SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key)) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Add key from TPM failed\n");
+		vpn_progress(vpninfo, PRG_ERR, "Add key from TPM failed\n");
 		report_ssl_errors(vpninfo);
 		ENGINE_free(e);
 		ENGINE_finish(e);
@@ -275,7 +275,7 @@ static int reload_pem_cert(struct openconnect_info *vpninfo)
 	if (BIO_read_filename(b, vpninfo->cert) <= 0) {
 	err:
 		BIO_free(b);
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				 "Failed to reload X509 cert for expiry check\n");
 		report_ssl_errors(vpninfo);
 		return -EIO;
@@ -289,7 +289,7 @@ static int reload_pem_cert(struct openconnect_info *vpninfo)
 
 static int load_certificate(struct openconnect_info *vpninfo)
 {
-	vpninfo->progress(vpninfo, PRG_TRACE,
+	vpn_progress(vpninfo, PRG_TRACE,
 			  "Using certificate file %s\n", vpninfo->cert);
 
 	if (vpninfo->cert_type == CERT_TYPE_PKCS12 ||
@@ -299,7 +299,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 		f = fopen(vpninfo->cert, "r");
 		if (!f) {
-			vpninfo->progress(vpninfo, PRG_ERR,
+			vpn_progress(vpninfo, PRG_ERR,
 					  "Failed to open certificate file %s: %s\n",
 					  vpninfo->cert, strerror(errno));
 			return -ENOENT;
@@ -311,7 +311,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 		/* Not PKCS#12 */
 		if (vpninfo->cert_type == CERT_TYPE_PKCS12) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Read PKCS#12 failed\n");
+			vpn_progress(vpninfo, PRG_ERR, "Read PKCS#12 failed\n");
 			report_ssl_errors(vpninfo);
 			return -EINVAL;
 		}
@@ -322,7 +322,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	/* It's PEM or TPM now, and either way we need to load the plain cert: */
 	if (!SSL_CTX_use_certificate_chain_file(vpninfo->https_ctx,
 						vpninfo->cert)) {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Loading certificate failed\n");
 		report_ssl_errors(vpninfo);
 		return -EINVAL;
@@ -336,7 +336,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		char buf[256];
 
 		if (!f) {
-			vpninfo->progress(vpninfo, PRG_ERR,
+			vpn_progress(vpninfo, PRG_ERR,
 					  "Failed to open private key file %s: %s\n",
 					  vpninfo->cert, strerror(errno));
 			return -ENOENT;
@@ -356,7 +356,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		}
 		fclose(f);
 		if (vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
-			vpninfo->progress(vpninfo, PRG_ERR,
+			vpn_progress(vpninfo, PRG_ERR,
 					  "Failed to identify private key type in '%s'\n",
 					  vpninfo->sslkey);
 			return -EINVAL;
@@ -387,11 +387,11 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		if (ERR_GET_LIB(err) == ERR_LIB_EVP &&
 		    ERR_GET_FUNC(err) == EVP_F_EVP_DECRYPTFINAL_EX &&
 		    ERR_GET_REASON(err) == EVP_R_BAD_DECRYPT) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Loading private key failed (wrong passphrase?)\n");
+			vpn_progress(vpninfo, PRG_ERR, "Loading private key failed (wrong passphrase?)\n");
 			goto again;
 		}
 		
-		vpninfo->progress(vpninfo, PRG_ERR, "Loading private key failed (see above errors)\n");
+		vpn_progress(vpninfo, PRG_ERR, "Loading private key failed (see above errors)\n");
 		return -EINVAL;
 	}
 	return 0;
@@ -435,7 +435,7 @@ static int check_server_cert(struct openconnect_info *vpninfo, X509 *cert)
 		return ret;
 
 	if (strcasecmp(vpninfo->servercert, fingerprint)) {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Server SSL certificate didn't match: %s\n", fingerprint);
 		return -EINVAL;
 	}
@@ -548,14 +548,14 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 				continue;
 
 			if (!match_hostname(vpninfo->hostname, str)) {
-				vpninfo->progress(vpninfo, PRG_TRACE,
+				vpn_progress(vpninfo, PRG_TRACE,
 						  "Matched DNS altname '%s'\n",
 						  str);
 				GENERAL_NAMES_free(altnames);
 				OPENSSL_free(str);
 				return 0;
 			} else {
-				vpninfo->progress(vpninfo, PRG_TRACE,
+				vpn_progress(vpninfo, PRG_TRACE,
 						  "No match for altname '%s'\n",
 						  str);
 			}
@@ -569,7 +569,7 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 			} else if (this->d.ip->length == 16) {
 				family = AF_INET6;
 			} else {
-				vpninfo->progress(vpninfo, PRG_ERR,
+				vpn_progress(vpninfo, PRG_ERR,
 						  "Certificate has GEN_IPADD altname with bogus length %d\n",
 						  this->d.ip->length);
 				continue;
@@ -580,14 +580,14 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 
 			if (this->d.ip->length == addrlen &&
 			    !memcmp(addrbuf, this->d.ip->data, addrlen)) {
-				vpninfo->progress(vpninfo, PRG_TRACE,
+				vpn_progress(vpninfo, PRG_TRACE,
 						  "Matched IP%s address '%s'\n",
 						  (family == AF_INET6)?"v6":"",
 						  host);
 				GENERAL_NAMES_free(altnames);
 				return 0;
 			} else {
-				vpninfo->progress(vpninfo, PRG_TRACE,
+				vpn_progress(vpninfo, PRG_TRACE,
 						  "No match for IP%s address '%s'\n",
 						  (family == AF_INET6)?"v6":"",
 						  host);
@@ -629,11 +629,11 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 				goto no_uri_match;
 
 			if (url_path) {
-				vpninfo->progress(vpninfo, PRG_TRACE, "URI '%s' has non-empty path; ignoring\n",
+				vpn_progress(vpninfo, PRG_TRACE, "URI '%s' has non-empty path; ignoring\n",
 						  str);
 				goto no_uri_match_silent;
 			}
-			vpninfo->progress(vpninfo, PRG_TRACE,
+			vpn_progress(vpninfo, PRG_TRACE,
 					  "Matched URI '%s'\n",
 					  str);
 			free(url_proto);
@@ -644,7 +644,7 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 			return 0;
 
 		no_uri_match:
-			vpninfo->progress(vpninfo, PRG_TRACE,
+			vpn_progress(vpninfo, PRG_TRACE,
 					  "No match for URI '%s'\n",
 					  str);
 		no_uri_match_silent:
@@ -659,14 +659,14 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 	/* According to RFC2818, we don't use the legacy subject name if
 	   there was an altname with DNS type. */
 	if (altdns) {
-		vpninfo->progress(vpninfo, PRG_ERR, "No altname in peer cert matched '%s'\n",
+		vpn_progress(vpninfo, PRG_ERR, "No altname in peer cert matched '%s'\n",
 				  vpninfo->hostname);
 		return -EINVAL;
 	}
 
 	subjname = X509_get_subject_name(peer_cert);
 	if (!subjname) {
-		vpninfo->progress(vpninfo, PRG_ERR, "No subject name in peer cert!\n");
+		vpn_progress(vpninfo, PRG_ERR, "No subject name in peer cert!\n");
 		return -EINVAL;
 	}
 
@@ -685,18 +685,18 @@ int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 	i = ASN1_STRING_to_UTF8((void *)&subjstr, subjasn1);
 
 	if (!subjstr || strlen(subjstr) != i) {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Failed to parse subject name in peer cert\n");
 		return -EINVAL;
 	}
 	ret = 0;
 
 	if (match_hostname(vpninfo->hostname, subjstr)) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Peer cert subject mismatch ('%s' != '%s')\n",
+		vpn_progress(vpninfo, PRG_ERR, "Peer cert subject mismatch ('%s' != '%s')\n",
 				  subjstr, vpninfo->hostname);
 		ret = -EINVAL;
 	} else {
-		vpninfo->progress(vpninfo, PRG_TRACE,
+		vpn_progress(vpninfo, PRG_TRACE,
 				  "Matched peer certificate subject name '%s'\n",
 				  subjstr);
 	}
@@ -726,12 +726,13 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 			err_string = "certificate does not match hostname";
 
 		if (err_string) {
-			vpninfo->progress(vpninfo, PRG_ERR,
+			vpn_progress(vpninfo, PRG_ERR,
 					  "Server certificate verify failed: %s\n",
 					  err_string);
 
 			if (vpninfo->validate_peer_cert)
-				ret = vpninfo->validate_peer_cert(vpninfo, peer_cert,
+				ret = vpninfo->validate_peer_cert(vpninfo->cbdata,
+								  peer_cert,
 								  err_string);
 			else
 				ret = -EINVAL;
@@ -773,7 +774,7 @@ static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 		cert = cert2;
 		X509_NAME_oneline(X509_get_subject_name(cert),
 				  buf, sizeof(buf));
-		vpninfo->progress(vpninfo, PRG_DEBUG,
+		vpn_progress(vpninfo, PRG_DEBUG,
 				  "Extra cert from cafile: '%s'\n", buf);
 		SSL_CTX_add_extra_chain_cert(vpninfo->https_ctx, cert);
 	}
@@ -803,7 +804,7 @@ static int check_certificate_expiry(struct openconnect_info *vpninfo)
 	notAfter = X509_get_notAfter(vpninfo->cert_x509);
 	i = X509_cmp_time(notAfter, &t);
 	if (!i) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Error in client cert notAfter field\n");
+		vpn_progress(vpninfo, PRG_ERR, "Error in client cert notAfter field\n");
 		return -EINVAL;
 	} else if (i < 0) {
 		reason = "has expired";
@@ -826,7 +827,7 @@ static int check_certificate_expiry(struct openconnect_info *vpninfo)
 			BIO_get_mem_ptr(bp, &bm);
 			expiry = bm->data;
 		}
-		vpninfo->progress(vpninfo, PRG_ERR, "Client certificate %s at: %s\n",
+		vpn_progress(vpninfo, PRG_ERR, "Client certificate %s at: %s\n",
 				  reason, expiry);
 		if (bp)
 			BIO_free(bp);
@@ -849,7 +850,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		ssl_sock = socket(vpninfo->peer_addr->sa_family, SOCK_STREAM, IPPROTO_IP);
 		if (ssl_sock < 0) {
 		reconn_err:
-			vpninfo->progress(vpninfo, PRG_ERR, "Failed to reconnect to %s %s\n",
+			vpn_progress(vpninfo, PRG_ERR, "Failed to reconnect to %s %s\n",
 					  vpninfo->proxy?"proxy":"host",
 					  vpninfo->proxy?:vpninfo->hostname);
 			return -EINVAL;
@@ -911,7 +912,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			free(url);
 			free(proxies);
 			if (vpninfo->proxy)
-				vpninfo->progress(vpninfo, PRG_TRACE, "Proxy from libproxy: %s://%s:%d/\n",
+				vpn_progress(vpninfo, PRG_TRACE, "Proxy from libproxy: %s://%s:%d/\n",
 						  vpninfo->proxy_type, vpninfo->proxy, vpninfo->port);
 		}
 #endif
@@ -941,7 +942,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			free(hostname);
 
 		if (err) {
-			vpninfo->progress(vpninfo, PRG_ERR, "getaddrinfo failed for host '%s': %s\n",
+			vpn_progress(vpninfo, PRG_ERR, "getaddrinfo failed for host '%s': %s\n",
 					  hostname, gai_strerror(err));
 			return -EINVAL;
 		}
@@ -951,7 +952,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 			if (!getnameinfo(rp->ai_addr, rp->ai_addrlen, host,
 					 sizeof(host), NULL, 0, NI_NUMERICHOST))
-				vpninfo->progress(vpninfo, PRG_INFO,
+				vpn_progress(vpninfo, PRG_INFO,
 						  "Attempting to connect to %s%s%s:%s\n",
 						  rp->ai_family == AF_INET6?"[":"",
 						  host,
@@ -967,7 +968,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 				   use it again later */
 				vpninfo->peer_addr = malloc(rp->ai_addrlen);
 				if (!vpninfo->peer_addr) {
-					vpninfo->progress(vpninfo, PRG_ERR, "Failed to allocate sockaddr storage\n");
+					vpn_progress(vpninfo, PRG_ERR, "Failed to allocate sockaddr storage\n");
 					close(ssl_sock);
 					return -ENOMEM;
 				}
@@ -981,7 +982,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		freeaddrinfo(result);
 		
 		if (ssl_sock < 0) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Failed to connect to host %s\n",
+			vpn_progress(vpninfo, PRG_ERR, "Failed to connect to host %s\n",
 					  vpninfo->proxy?:vpninfo->hostname);
 			return -EINVAL;
 		}
@@ -1003,7 +1004,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		if (vpninfo->cert) {
 			err = load_certificate(vpninfo);
 			if (err) {
-				vpninfo->progress(vpninfo, PRG_ERR,
+				vpn_progress(vpninfo, PRG_ERR,
 						  "Loading certificate failed. Aborting.\n");
 				return err;
 			}
@@ -1026,7 +1027,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 		if (vpninfo->cafile) {
 			if (!SSL_CTX_load_verify_locations(vpninfo->https_ctx, vpninfo->cafile, NULL)) {
-				vpninfo->progress(vpninfo, PRG_ERR, "Failed to open CA file '%s'\n",
+				vpn_progress(vpninfo, PRG_ERR, "Failed to open CA file '%s'\n",
 						  vpninfo->cafile);
 				report_ssl_errors(vpninfo);
 				close(ssl_sock);
@@ -1041,11 +1042,11 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	https_bio = BIO_new_socket(ssl_sock, BIO_NOCLOSE);
 	SSL_set_bio(https_ssl, https_bio, https_bio);
 
-	vpninfo->progress(vpninfo, PRG_INFO,
+	vpn_progress(vpninfo, PRG_INFO,
 			  "SSL negotiation with %s\n", vpninfo->hostname);
 
 	if (SSL_connect(https_ssl) <= 0) {
-		vpninfo->progress(vpninfo, PRG_ERR, "SSL connection failure\n");
+		vpn_progress(vpninfo, PRG_ERR, "SSL connection failure\n");
 		report_ssl_errors(vpninfo);
 		SSL_free(https_ssl);
 		close(ssl_sock);
@@ -1061,7 +1062,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	vpninfo->ssl_fd = ssl_sock;
 	vpninfo->https_ssl = https_ssl;
 
-	vpninfo->progress(vpninfo, PRG_INFO,
+	vpn_progress(vpninfo, PRG_INFO,
 			  "Connected to HTTPS on %s\n", vpninfo->hostname);
 
 	return 0;
@@ -1093,7 +1094,7 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 
 	if (statvfs(vpninfo->sslkey, &buf)) {
 		int err = errno;
-		vpninfo->progress(vpninfo, PRG_ERR, "statvfs: %s\n", strerror(errno));
+		vpn_progress(vpninfo, PRG_ERR, "statvfs: %s\n", strerror(errno));
 		return -err;
 	}
 	if (asprintf(&vpninfo->cert_password, "%lx", buf.f_fsid))
@@ -1109,7 +1110,7 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 
 	if (statfs(vpninfo->sslkey, &buf)) {
 		int err = errno;
-		vpninfo->progress(vpninfo, PRG_ERR, "statfs: %s\n", strerror(errno));
+		vpn_progress(vpninfo, PRG_ERR, "statfs: %s\n", strerror(errno));
 		return -err;
 	}
 	fsid64 = ((unsigned long long)fsid[0] << 32) | fsid[1];

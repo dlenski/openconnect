@@ -59,7 +59,7 @@ static int http_add_cookie(struct openconnect_info *vpninfo,
 	if (*value) {
 		new = malloc(sizeof(*new));
 		if (!new) {
-			vpninfo->progress(vpninfo, PRG_ERR, "No memory for allocating cookies\n");
+			vpn_progress(vpninfo, PRG_ERR, "No memory for allocating cookies\n");
 			return -ENOMEM;
 		}
 		new->next = NULL;
@@ -113,7 +113,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 
  cont:
 	if (openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)) < 0) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Error fetching HTTPS response\n");
+		vpn_progress(vpninfo, PRG_ERR, "Error fetching HTTPS response\n");
 		return -EINVAL;
 	}
 
@@ -121,11 +121,11 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		closeconn = 1;
 	
 	if ((!closeconn && strncmp(buf, "HTTP/1.1 ", 9)) || !(*result = atoi(buf+9))) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Failed to parse HTTP response '%s'\n", buf);
+		vpn_progress(vpninfo, PRG_ERR, "Failed to parse HTTP response '%s'\n", buf);
 		return -EINVAL;
 	}
 
-	vpninfo->progress(vpninfo, (*result==200)?PRG_TRACE:PRG_INFO,
+	vpn_progress(vpninfo, (*result==200)?PRG_TRACE:PRG_INFO,
 			  "Got HTTP response: %s\n", buf);
 
 	/* Eat headers... */
@@ -133,12 +133,12 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		char *colon;
 
 		if (i < 0) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Error processing HTTP response\n");
+			vpn_progress(vpninfo, PRG_ERR, "Error processing HTTP response\n");
 			return -EINVAL;
 		}
 		colon = strchr(buf, ':');
 		if (!colon) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Ignoring unknown HTTP response line '%s'\n", buf);
+			vpn_progress(vpninfo, PRG_ERR, "Ignoring unknown HTTP response line '%s'\n", buf);
 			continue;
 		}
 		*(colon++) = 0;
@@ -156,7 +156,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				*semicolon = 0;
 
 			if (!equals) {
-				vpninfo->progress(vpninfo, PRG_ERR, "Invalid cookie offered: %s\n", buf);
+				vpn_progress(vpninfo, PRG_ERR, "Invalid cookie offered: %s\n", buf);
 				return -EINVAL;
 			}
 			*(equals++) = 0;
@@ -166,7 +166,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			   want people posting it in public with debugging output */
 			if (!strcmp(colon, "webvpn") && *equals)
 				print_equals = "<elided>";
-			vpninfo->progress(vpninfo, PRG_TRACE, "%s: %s=%s%s%s\n",
+			vpn_progress(vpninfo, PRG_TRACE, "%s: %s=%s%s%s\n",
 					  buf, colon, print_equals, semicolon?";":"",
 					  semicolon?(semicolon+1):"");
 
@@ -174,7 +174,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			if (ret)
 				return ret;
 		} else {
-			vpninfo->progress(vpninfo, PRG_TRACE, "%s: %s\n", buf, colon);
+			vpn_progress(vpninfo, PRG_TRACE, "%s: %s\n", buf, colon);
 		}
 
 		if (!strcasecmp(buf, "Connection")) {
@@ -198,7 +198,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		if (!strcasecmp(buf, "Content-Length")) {
 			bodylen = atoi(colon);
 			if (bodylen < 0) {
-				vpninfo->progress(vpninfo, PRG_ERR, "Response body has negative size (%d)\n",
+				vpn_progress(vpninfo, PRG_ERR, "Response body has negative size (%d)\n",
 						  bodylen);
 				return -EINVAL;
 			}
@@ -207,7 +207,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			if (!strcasecmp(colon, "chunked"))
 				bodylen = BODY_CHUNKED;
 			else {
-				vpninfo->progress(vpninfo, PRG_ERR, "Unknown Transfer-Encoding: %s\n", colon);
+				vpn_progress(vpninfo, PRG_ERR, "Unknown Transfer-Encoding: %s\n", colon);
 				return -EINVAL;
 			}
 		}
@@ -220,7 +220,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		goto cont;
 
 	/* Now the body, if there is one */
-	vpninfo->progress(vpninfo, PRG_TRACE, "HTTP body %s (%d)\n", 
+	vpn_progress(vpninfo, PRG_TRACE, "HTTP body %s (%d)\n", 
 			  bodylen==BODY_HTTP10?"http 1.0" :
 			  bodylen==BODY_CHUNKED?"chunked" : "length: ",
 			  bodylen);
@@ -233,7 +233,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		while (done < bodylen) {
 			i = SSL_read(vpninfo->https_ssl, body + done, bodylen - done);
 			if (i < 0) {
-				vpninfo->progress(vpninfo, PRG_ERR, "Error reading HTTP response body\n");
+				vpn_progress(vpninfo, PRG_ERR, "Error reading HTTP response body\n");
                                 free(body);
 				return -EINVAL;
 			}
@@ -245,7 +245,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			int chunklen, lastchunk = 0;
 
 			if (i < 0) {
-				vpninfo->progress(vpninfo, PRG_ERR, "Error fetching chunk header\n");
+				vpn_progress(vpninfo, PRG_ERR, "Error fetching chunk header\n");
 				exit(1);
 			}
 			chunklen = strtol(buf, NULL, 16);
@@ -259,7 +259,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			while (chunklen) {
 				i = SSL_read(vpninfo->https_ssl, body + done, chunklen);
 				if (i < 0) {
-					vpninfo->progress(vpninfo, PRG_ERR, "Error reading HTTP response body\n");
+					vpn_progress(vpninfo, PRG_ERR, "Error reading HTTP response body\n");
                                         free(body);
 					return -EINVAL;
 				}
@@ -269,9 +269,9 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		skip:
 			if ((i = openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
 				if (i < 0) {
-					vpninfo->progress(vpninfo, PRG_ERR, "Error fetching HTTP response body\n");
+					vpn_progress(vpninfo, PRG_ERR, "Error fetching HTTP response body\n");
 				} else {
-					vpninfo->progress(vpninfo, PRG_ERR, "Error in chunked decoding. Expected '', got: '%s'",
+					vpn_progress(vpninfo, PRG_ERR, "Error in chunked decoding. Expected '', got: '%s'",
 							  buf);
 				}
                                 free(body);
@@ -283,7 +283,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		}
 	} else if (bodylen == BODY_HTTP10) {
 		if (!closeconn) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Cannot receive HTTP 1.0 body without closing connection\n");
+			vpn_progress(vpninfo, PRG_ERR, "Cannot receive HTTP 1.0 body without closing connection\n");
 			return -EINVAL;
 		}
 
@@ -363,12 +363,12 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 		sprintf(&local_sha1_ascii[i*2], "%02x", local_sha1_bin[i]);
 
 	if (strcasecmp(server_sha1, local_sha1_ascii)) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Downloaded config file did not match intended SHA1\n");
+		vpn_progress(vpninfo, PRG_ERR, "Downloaded config file did not match intended SHA1\n");
 		free(config_buf);
 		return -EINVAL;
 	}
 
-	result = vpninfo->write_new_config(vpninfo, config_buf, buflen);
+	result = vpninfo->write_new_config(vpninfo->cbdata, config_buf, buflen);
 	free(config_buf);
 	return result;
 }
@@ -379,14 +379,14 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 	int fd, ret;
 
 	if (!vpninfo->uid_csd_given && !vpninfo->csd_wrapper) {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 				  "This facility is disabled by default for security reasons, so you may wish to enable it.");
 		return -EPERM;
 	}
 
 #ifndef __linux__
-	vpninfo->progress(vpninfo, PRG_INFO,
+	vpn_progress(vpninfo, PRG_INFO,
 			  "Trying to run Linux CSD trojan script.");
 #endif
 
@@ -394,14 +394,14 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 	fd = mkstemp(fname);
 	if (fd < 0) {
 		int err = -errno;
-		vpninfo->progress(vpninfo, PRG_ERR, "Failed to open temporary CSD script file: %s\n",
+		vpn_progress(vpninfo, PRG_ERR, "Failed to open temporary CSD script file: %s\n",
 				  strerror(errno));
 		return err;
 	}
 
 	ret = proxy_write(fd, (void *)buf, buflen);
 	if (ret) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Failed to write temporary CSD script file: %s\n",
+		vpn_progress(vpninfo, PRG_ERR, "Failed to write temporary CSD script file: %s\n",
 				  strerror(ret));
 		return ret;
 	}
@@ -483,7 +483,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		csd_argv[i++] = NULL;
 
 		execv(csd_argv[0], csd_argv);
-		vpninfo->progress(vpninfo, PRG_ERR, "Failed to exec CSD script %s\n", csd_argv[0]);
+		vpn_progress(vpninfo, PRG_ERR, "Failed to exec CSD script %s\n", csd_argv[0]);
 		exit(1);
 	}
 
@@ -604,7 +604,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		form_buf = NULL;
 	}
 	if (!vpninfo->https_ssl && openconnect_open_https(vpninfo)) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Failed to open HTTPS connection to %s\n",
+		vpn_progress(vpninfo, PRG_ERR, "Failed to open HTTPS connection to %s\n",
 			vpninfo->hostname);
 		return -EINVAL;
 	}
@@ -641,11 +641,11 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		sprintf(buf + strlen(buf), "%s", request_body);
 
 	if (vpninfo->port == 443)
-		vpninfo->progress(vpninfo, PRG_INFO, "%s https://%s/%s\n",
+		vpn_progress(vpninfo, PRG_INFO, "%s https://%s/%s\n",
 				  method, vpninfo->hostname,
 				  vpninfo->urlpath ?: "");
 	else
-		vpninfo->progress(vpninfo, PRG_INFO, "%s https://%s:%d/%s\n",
+		vpn_progress(vpninfo, PRG_INFO, "%s https://%s:%d/%s\n",
 				  method, vpninfo->hostname, vpninfo->port,
 				  vpninfo->urlpath ?: "");
 
@@ -670,7 +670,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 
 			ret = internal_parse_url(vpninfo->redirect_url, NULL, &host, &port, &vpninfo->urlpath, 0);
 			if (ret) {
-				vpninfo->progress(vpninfo, PRG_ERR, "Failed to parse redirected URL '%s': %s\n",
+				vpn_progress(vpninfo, PRG_ERR, "Failed to parse redirected URL '%s': %s\n",
 						  vpninfo->redirect_url, strerror(-ret));
 				free(vpninfo->redirect_url);
 				free(form_buf);
@@ -729,7 +729,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 				if (asprintf(&vpninfo->urlpath, "%s/%s",
 					     oldurl, vpninfo->redirect_url) == -1) {
 					int err = -errno;
-					vpninfo->progress(vpninfo, PRG_ERR,
+					vpn_progress(vpninfo, PRG_ERR,
 							  "Allocating new path for relative redirect failed: %s\n",
 							  strerror(-err));
 					return err;
@@ -742,7 +742,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		}
 	}
 	if (!form_buf || result != 200) {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Unexpected %d result from server\n",
 				  result);
 		free(form_buf);
@@ -762,12 +762,12 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	if (strncmp(form_buf, "<?xml", 5)) {
 		/* Not XML? Perhaps it's HTML with a refresh... */
 		if (strcasestr(form_buf, "http-equiv=\"refresh\"")) {
-			vpninfo->progress(vpninfo, PRG_INFO, "Refreshing %s after 1 second...\n",
+			vpn_progress(vpninfo, PRG_INFO, "Refreshing %s after 1 second...\n",
 					  vpninfo->urlpath);
 			sleep(1);
 			goto retry;
 		}
-		vpninfo->progress(vpninfo, PRG_ERR, "Unknown response from server\n");
+		vpn_progress(vpninfo, PRG_ERR, "Unknown response from server\n");
 		free(form_buf);
 		return -EINVAL;
 	}
@@ -913,20 +913,20 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	buf[2] = 0; /* No auth supported */
 
 	if ((i = proxy_write(ssl_sock, buf, 3))) {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Error writing auth request to SOCKS proxy: %s\n",
 				  strerror(-i));
 		return i;
 	}
 	
 	if ((i = proxy_read(ssl_sock, buf, 2))) {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Error reading auth response from SOCKS proxy: %s\n",
 				  strerror(-i));
 		return i;
 	}
 	if (buf[0] != 5) {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Unexpected auth response from SOCKS proxy: %02x %02x\n",
 				  buf[0], buf[1]);
 		return -EIO;
@@ -934,17 +934,17 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	if (buf[1]) {
 	socks_err:
 		if (buf[1] < sizeof(socks_errors) / sizeof(socks_errors[0]))
-			vpninfo->progress(vpninfo, PRG_ERR,
+			vpn_progress(vpninfo, PRG_ERR,
 					  "SOCKS proxy error %02x: %s\n",
 					  buf[1], socks_errors[buf[1]]);
 		else
-			vpninfo->progress(vpninfo, PRG_ERR,
+			vpn_progress(vpninfo, PRG_ERR,
 					  "SOCKS proxy error %02x\n",
 					  buf[1]);
 		return -EIO;
 	}
 
-	vpninfo->progress(vpninfo, PRG_INFO, "Requesting SOCKS proxy connection to %s:%d\n",
+	vpn_progress(vpninfo, PRG_INFO, "Requesting SOCKS proxy connection to %s:%d\n",
 			  vpninfo->hostname, vpninfo->port);
 
 	buf[0] = 5; /* SOCKS version */
@@ -958,7 +958,7 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	buf[i++] = vpninfo->port & 0xff;
 
 	if ((i = proxy_write(ssl_sock, buf, i))) {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Error writing connect request to SOCKS proxy: %s\n",
 				  strerror(-i));
 		return i;
@@ -966,13 +966,13 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	/* Read 5 bytes -- up to and including the first byte of the returned
 	   address (which might be the length byte of a domain name) */
 	if ((i = proxy_read(ssl_sock, buf, 5))) {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Error reading connect response from SOCKS proxy: %s\n",
 				  strerror(-i));
 		return i;
 	}
 	if (buf[0] != 5) {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Unexpected connect response from SOCKS proxy: %02x %02x...\n",
 				  buf[0], buf[1]);
 		return -EIO;
@@ -992,14 +992,14 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 		i = 17;
 		break;
 	default:
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Unexpected address type %02x in SOCKS connect response\n",
 				  buf[3]);
 		return -EIO;
 	}
 
 	if ((i = proxy_read(ssl_sock, buf, i))) {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Error reading connect response from SOCKS proxy: %s\n",
 				  strerror(-i));
 		return i;
@@ -1020,40 +1020,40 @@ static int process_http_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	sprintf(buf + strlen(buf), "Accept-Encoding: identity\r\n");
 	sprintf(buf + strlen(buf), "\r\n");
 
-	vpninfo->progress(vpninfo, PRG_INFO, "Requesting HTTP proxy connection to %s:%d\n",
+	vpn_progress(vpninfo, PRG_INFO, "Requesting HTTP proxy connection to %s:%d\n",
 			  vpninfo->hostname, vpninfo->port);
 
 	if (proxy_write(ssl_sock, (unsigned char *)buf, strlen(buf))) {
 		result = -errno;
-		vpninfo->progress(vpninfo, PRG_ERR, "Sending proxy request failed: %s\n",
+		vpn_progress(vpninfo, PRG_ERR, "Sending proxy request failed: %s\n",
 				  strerror(errno));
 		return result;
 	}
 
 	if (proxy_gets(ssl_sock, buf, sizeof(buf)) < 0) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Error fetching proxy response\n");
+		vpn_progress(vpninfo, PRG_ERR, "Error fetching proxy response\n");
 		return -EIO;
 	}
 
 	if (strncmp(buf, "HTTP/1.", 7) || (buf[7] != '0' && buf[7] != '1') ||
 	    buf[8] != ' ' || !(result = atoi(buf+9))) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Failed to parse proxy response '%s'\n",
+		vpn_progress(vpninfo, PRG_ERR, "Failed to parse proxy response '%s'\n",
 				  buf);
 		return -EINVAL;
 	}
 
 	if (result != 200) {
-		vpninfo->progress(vpninfo, PRG_ERR, "Proxy CONNECT request failed: %s\n",
+		vpn_progress(vpninfo, PRG_ERR, "Proxy CONNECT request failed: %s\n",
 				  buf);
 		return -EIO;
 	}
 
 	while ((buflen = proxy_gets(ssl_sock, buf, sizeof(buf)))) {
 		if (buflen < 0) {
-			vpninfo->progress(vpninfo, PRG_ERR, "Failed to read proxy response\n");
+			vpn_progress(vpninfo, PRG_ERR, "Failed to read proxy response\n");
 			return -EIO;
 		}
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Unexpected continuation line after CONNECT response: '%s'\n",
 				  buf);
 	}
@@ -1070,7 +1070,7 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	    !strcmp(vpninfo->proxy_type, "socks5"))
 		return process_socks_proxy(vpninfo, ssl_sock);
 
-	vpninfo->progress(vpninfo, PRG_ERR, "Unknown proxy type '%s'\n",
+	vpn_progress(vpninfo, PRG_ERR, "Unknown proxy type '%s'\n",
 				  vpninfo->proxy_type);
 	return -EIO;
 }
@@ -1097,7 +1097,7 @@ int openconnect_set_http_proxy(struct openconnect_info *vpninfo, char *proxy)
 	    strcmp(vpninfo->proxy_type, "http") &&
 	    strcmp(vpninfo->proxy_type, "socks") &&
 	    strcmp(vpninfo->proxy_type, "socks5")) {
-		vpninfo->progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_ERR,
 				  "Only http or socks(5) proxies supported\n");
 		free(vpninfo->proxy_type);
 		vpninfo->proxy_type = NULL;
