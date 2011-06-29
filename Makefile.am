@@ -35,7 +35,7 @@ tmp-dist: uncommitted-check
 uncommitted-check:
 	@if ! git update-index --refresh --unmerged || \
 	    ! git diff-index --name-only --exit-code HEAD; then \
-		echo "*** ERROR: Uncommitted changes in above files" >&2; sleep 2 ; exit 12; else echo foo ; fi
+		echo "*** ERROR: Uncommitted changes in above files"; exit 1; fi
 
 dist-hook: uncommitted-check
  ifndef NODISTHOOK
