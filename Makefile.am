@@ -39,14 +39,14 @@ uncommitted-check:
 
 dist-hook: uncommitted-check
  ifndef NODISTHOOK
-	@if ! git rev-parse --verify v$(VERSION) > /dev/null; then \
+	@if ! git rev-parse --verify v$(VERSION) &> /dev/null; then \
 		echo "*** ERROR: Version v$(VERSION) is not tagged"; exit 1; fi
 	@if ! git diff --name-only --exit-code v$(VERSION) HEAD > /dev/null; then \
 		echo "*** ERROR: Git checkout not at version v$(VERSION)"; exit 1; fi
  endif
 
 tag: uncommitted-check
-	@if git rev-parse --verify v$(VERSION) > /dev/null; then \
+	@if git rev-parse --verify v$(VERSION) &> /dev/null; then \
 		echo "*** ERROR: Version v$(VERSION) is already tagged"; exit 1; fi
 	@sed 's/AC_INIT.*/AC_INIT(openconnect, $(VERSION))/' -i configure.ac
 	@sed 's/^v=.*/v="v$(VERSION)"/' -i version.sh
