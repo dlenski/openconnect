@@ -219,6 +219,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 	return ret;
 }
 
+#ifdef HAVE_ENGINE
 static int load_tpm_certificate(struct openconnect_info *vpninfo)
 {
 	ENGINE *e;
@@ -264,6 +265,14 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 	}
 	return 0;
 }
+#else
+static int load_tpm_certificate(struct openconnect_info *vpninfo)
+{
+	vpn_progress (vpninfo, PRG_ERR,
+		      "This version of OpenConnect was built without TPM support\n");
+	return -EINVAL;
+}
+#endif
 
 static int reload_pem_cert(struct openconnect_info *vpninfo)
 {

@@ -40,4 +40,9 @@ AC_CHECK_HEADER([if_tun.h],
             [AC_CHECK_HEADER([net/tun/if_tun.h],
                 [AC_DEFINE([IF_TUN_HDR], ["net/tun/if_tun.h"])])])])])
 
+AC_CHECK_LIB(ssl, ENGINE_by_id,
+	     AC_DEFINE(HAVE_ENGINE, [1], [OpenSSL has ENGINE support]),
+	     AC_MSG_NOTICE([Building without OpenSSL TPM ENGINE support]),
+	     ${OPENSSL_LIBS})
+
 AC_OUTPUT(Makefile openconnect.pc)
