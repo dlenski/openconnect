@@ -997,9 +997,13 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		}
 	}
 
-	ssl3_method = SSLv3_client_method();
+	ssl3_method = TLSv1_client_method();
 	if (!vpninfo->https_ctx) {
 		vpninfo->https_ctx = SSL_CTX_new(ssl3_method);
+
+		/* Some servers (or their firewalls) really don't like seeing
+		   extensions. */
+		SSL_CTX_set_options (vpninfo->https_ctx, SSL_OP_NO_TICKET);
 
 		if (vpninfo->cert) {
 			err = load_certificate(vpninfo);
