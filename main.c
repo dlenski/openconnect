@@ -33,7 +33,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <pwd.h>
-#include <sys/syslog.h>
 #include <sys/utsname.h>
 #include <sys/types.h>
 #include <openssl/ui.h>
