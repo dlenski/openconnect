@@ -24,7 +24,11 @@
  */
 
 #include <stdio.h>
+#ifdef ANDROID
+#include <android/log.h>
+#else
 #include <syslog.h>
+#endif
 #include <stdarg.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -475,7 +479,9 @@ int main(int argc, char **argv)
 		exit(1);
 
 	if (use_syslog) {
+#ifndef ANDROID
 		openlog("openconnect", LOG_PID, LOG_DAEMON);
+#endif
 		vpninfo->progress = syslog_progress;
 	}
 
@@ -613,6 +619,24 @@ void write_progress(void *_vpninfo, int level, const char *fmt, ...)
 	}
 }
 
+#ifdef ANDROID
+void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
+{
+        static int l[4] = {
+		ANDROID_LOG_ERROR,	/* PRG_ERR   */
+		ANDROID_LOG_INFO,	/* PRG_INFO  */
+		ANDROID_LOG_DEBUG,	/* PRG_DEBUG */
+		ANDROID_LOG_DEBUG	/* PRG_TRACE */
+        };
+	va_list args;
+
+	if (verbose >= level) {
+		va_start(args, fmt);
+		__android_log_vprint(l[level], "openconnect", fmt, args);
+		va_end(args);
+	}
+}
+#else /* !ANDROID */
 void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
 {
 	int priority = level ? LOG_INFO : LOG_NOTICE;
@@ -624,7 +648,7 @@ void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
 		va_end(args);
 	}
 }
-
+#endif
 
 struct accepted_cert {
 	struct accepted_cert *next;
