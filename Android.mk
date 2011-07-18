@@ -8,7 +8,7 @@ common_SRC_FILES := \
 	ssl.c http.c version.c auth.c library.c \
 	openconnect-internal.h openconnect.h
 
-common_CFLAGS += -DANDROID -DIF_TUN_HDR="linux/if_tun.h"
+common_CFLAGS += -DANDROID -DIF_TUN_HDR="<linux/if_tun.h>"
 
 common_C_INCLUDES += \
 	$(JNI_H_INCLUDE) \
