@@ -628,12 +628,17 @@ void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
 		ANDROID_LOG_DEBUG,	/* PRG_DEBUG */
 		ANDROID_LOG_DEBUG	/* PRG_TRACE */
         };
-	va_list args;
+	va_list args, args2;
 
 	if (verbose >= level) {
 		va_start(args, fmt);
+		va_copy(args2, args);
 		__android_log_vprint(l[level], "openconnect", fmt, args);
+		/* Android wants it to stderr too, so the GUI can scrape
+		   it and display it as well as going to syslog */
+		vfprintf(stderr, fmt, args2);
 		va_end(args);
+		va_end(args2);
 	}
 }
 #else /* !ANDROID */
