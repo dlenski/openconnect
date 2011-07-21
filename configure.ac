@@ -1,5 +1,5 @@
 
-AC_INIT(openconnect, 3.10)
+AC_INIT(openconnect, 3.11)
 PKG_PROG_PKG_CONFIG
 AC_LANG_C
 AM_INIT_AUTOMAKE([foreign])
