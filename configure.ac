@@ -20,6 +20,7 @@ AC_ARG_WITH([openssl],
 AC_PROG_LIBTOOL
 
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0)
+PKG_CHECK_MODULES(ZLIB, zlib)
 
 libproxy_hdr=no
 AC_CHECK_HEADER([libproxy.h],
