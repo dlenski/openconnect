@@ -1014,7 +1014,9 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 		/* Some servers (or their firewalls) really don't like seeing
 		   extensions. */
+#ifdef SSL_OP_NO_TICKET
 		SSL_CTX_set_options (vpninfo->https_ctx, SSL_OP_NO_TICKET);
+#endif
 
 		if (vpninfo->cert) {
 			err = load_certificate(vpninfo);
