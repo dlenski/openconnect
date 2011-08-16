@@ -40,6 +40,8 @@
 #include <sys/mount.h>
 #elif defined (__sun__) || defined(__NetBSD__) || defined(__DragonFly__)
 #include <sys/statvfs.h>
+#elif defined (__GNU__)
+#include <sys/statfs.h>
 #endif
 
 #include <openssl/ssl.h>
