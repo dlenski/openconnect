@@ -272,6 +272,14 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 
 		vpninfo->dtls_times.last_rx = vpninfo->dtls_times.last_tx = time(NULL);
 
+		/* From about 8.4.1(11) onwards, the ASA seems to get
+		   very unhappy if we send it ChangeCipherSpec messages
+		   after the initial setup. Disable the retransmit timer;
+		   the Cisco client doesn't seem to do it at all, and
+		   DPD would help us notice if the original does go AWOL
+		   and hence the server can't decrypt any data packets. */
+		dtls1_stop_timer(vpninfo->dtls_ssl);
+
 		return 0;
 	}
 
