@@ -747,6 +747,7 @@ static int validate_peer_cert(void *_vpninfo, X509 *peer_cert,
 			return -EINVAL;
 
 		X509_print_fp(stderr, peer_cert);
+		fprintf(stderr, "SHA1 fingerprint: %s\n", fingerprint);
 	}
 				
 }
