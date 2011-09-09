@@ -7,6 +7,10 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .B -b,--background
 ]
 [
+.B --pid-file
+.I PIDFILE
+]
+[
 .B -c,--certificate
 .I CERT
 ]
@@ -187,6 +191,11 @@ exchanged, which allows data transport over UDP to occur.
 .TP
 .B -b,--background
 Continue in background after startup
+.TP
+.B --pid-file=PIDFILE
+Save the pid to
+.I PIDFILE
+when backgrounding
 .TP
 .B -c,--certificate=CERT
 Use SSL client certificate

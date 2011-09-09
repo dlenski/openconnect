@@ -81,6 +81,7 @@ enum {
 	OPT_NO_HTTP_KEEPALIVE,
 	OPT_NO_PASSWD,
 	OPT_NO_PROXY,
+	OPT_PIDFILE,
 	OPT_PASSWORD_ON_STDIN,
 	OPT_PRINTCOOKIE,
 	OPT_RECONNECT_TIMEOUT,
@@ -91,6 +92,7 @@ enum {
 
 static struct option long_options[] = {
 	{"background", 0, 0, 'b'},
+	{"pid-file", 1, 0, OPT_PIDFILE},
 	{"certificate", 1, 0, 'c'},
 	{"sslkey", 1, 0, 'k'},
 	{"cookie", 1, 0, 'C'},
@@ -143,6 +145,7 @@ void usage(void)
 	printf("Usage:  openconnect [options] <server>\n");
 	printf("Open client for Cisco AnyConnect VPN, version %s\n\n", openconnect_version);
 	printf("  -b, --background                Continue in background after startup\n");
+	printf("      --pid-file=PIDFILE          Write the daemons pid to this file\n");
 	printf("  -c, --certificate=CERT          Use SSL client certificate CERT\n");
 	printf("  -k, --sslkey=KEY                Use SSL private key file KEY\n");
 	printf("  -K, --key-type=TYPE             Private key type (PKCS#12 / TPM / PEM)\n");
@@ -230,6 +233,8 @@ int main(int argc, char **argv)
 	int autoproxy = 0;
 	uid_t uid = getuid();
 	int opt;
+	char *pidfile = NULL;
+	FILE *fp = NULL;
 
 	openconnect_init_openssl();
 
@@ -267,6 +272,9 @@ int main(int argc, char **argv)
 		switch (opt) {
 		case OPT_CAFILE:
 			vpninfo->cafile = optarg;
+			break;
+		case OPT_PIDFILE:
+			pidfile = optarg;
 			break;
 		case OPT_SERVERCERT:
 			vpninfo->servercert = optarg;
@@ -570,14 +578,34 @@ int main(int argc, char **argv)
 
 	if (background) {
 		int pid;
+
+		/* Open the pidfile before forking, so we can report errors
+		   more sanely. It's *possible* that we'll fail to write to
+		   it, but very unlikely. */
+		if (pidfile != NULL) {
+			fp = fopen(pidfile, "w");
+			if (!fp) {
+				fprintf(stderr, "Failed to open '%s' for write: %s\n",
+					pidfile, strerror(errno));
+				exit(1);
+			}
+		}
 		if ((pid = fork())) {
+			if (fp) {
+				fprintf(fp, "%d\n", pid);
+				fclose(fp);
+			}
 			vpn_progress(vpninfo, PRG_INFO,
-					  "Continuing in background; pid %d\n",
-					  pid);
+				     "Continuing in background; pid %d\n",
+				     pid);
 			exit(0);
 		}
+		if (fp)
+			fclose(fp);
 	}
 	vpn_mainloop(vpninfo);
+	if (fp)
+		unlink(pidfile);
 	exit(1);
 }
 
