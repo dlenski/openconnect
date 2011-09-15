@@ -408,7 +408,7 @@ int setup_tun(struct openconnect_info *vpninfo)
 		}
 		close(fds[1]);
 		vpninfo->script_tun = child;
-		vpninfo->ifname = "(script)";
+		vpninfo->ifname = strdup("(script)");
 	} else {
 #ifdef IFF_TUN /* Linux */
 		struct ifreq ifr;
@@ -504,7 +504,7 @@ int setup_tun(struct openconnect_info *vpninfo)
 		close(tun2_fd);
 
 		sprintf(tun_name, "tun%d", unit_nr);
-		vpninfo->ifname = tun_name;
+		vpninfo->ifname = strdup(tun_name);
 
 		memset(&ifr, 0, sizeof(ifr));
 		strcpy(ifr.ifr_name, tun_name);
@@ -535,7 +535,7 @@ int setup_tun(struct openconnect_info *vpninfo)
 			perror("open tun");
 			exit(1);
 		}
-		vpninfo->ifname = tun_name + 5;
+		vpninfo->ifname = strdup(tun_name + 5);
 #ifdef TUNSIFHEAD
 		i = 1;
 		if (ioctl(tun_fd, TUNSIFHEAD, &i) < 0) {
