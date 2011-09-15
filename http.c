@@ -596,8 +596,8 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	char *form_buf = NULL;
 	int result, buflen;
 	char request_body[2048];
-	char *request_body_type = NULL;
-	char *method = "GET";
+	const char *request_body_type = NULL;
+	const char *method = "GET";
 
  retry:
 	if (form_buf) {

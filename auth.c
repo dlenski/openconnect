@@ -301,8 +301,8 @@ static char *xmlnode_msg(xmlNode *xml_node)
  *  = 2, when form indicates that login was already successful
  */
 int parse_xml_response(struct openconnect_info *vpninfo, char *response,
-		       char *request_body, int req_len, char **method,
-		       char **request_body_type)
+		       char *request_body, int req_len, const char **method,
+		       const char **request_body_type)
 {
 	struct oc_auth_form *form;
 	xmlDocPtr xml_doc;
