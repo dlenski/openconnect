@@ -255,7 +255,8 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 static char *xmlnode_msg(xmlNode *xml_node)
 {
 	char *fmt = (char *)xmlNodeGetContent(xml_node);
-	char *result, *param1, *param2, *pct;
+	char *result, *params[2], *pct;
+	int len;
 	int nr_params = 0;
 
 	if (!fmt || !fmt[0]) {
@@ -263,34 +264,48 @@ static char *xmlnode_msg(xmlNode *xml_node)
 		return NULL;
 	}
 
-	for (pct = strchr(fmt, '%'); pct;
+	len = strlen(fmt) + 1;
+	
+	params[0] = (char *)xmlGetProp(xml_node, (unsigned char *)"param1");
+	if (params[0])
+		len += strlen(params[0]);
+	params[1] = (char *)xmlGetProp(xml_node, (unsigned char *)"param2");
+	if (params[1])
+		len += strlen(params[1]);
+
+	result = malloc(len);
+	if (!result) {
+		result = fmt;
+		goto out;
+	}
+
+	strcpy(result, fmt);
+	free (fmt);
+
+	for (pct = strchr(result, '%'); pct;
 	     (pct = strchr(pct, '%'))) {
+		int paramlen;
+
 		/* We only cope with '%s' */
 		if (pct[1] != 's')
-			return fmt;
-		pct++;
-		nr_params++;
+			goto out;
+
+		if (params[nr_params]) {
+			paramlen = strlen(params[nr_params]);
+			/* Move rest of fmt string up... */
+			memmove(pct - 1 + paramlen, pct + 2, strlen(pct) - 1);
+			/* ... and put the string parameter in where the '%s' was */
+			memcpy(pct, params[nr_params], paramlen);
+			pct += paramlen;
+		} else
+			pct++;
+
+		if (++nr_params == 2)
+			break;
 	}
-	if (!nr_params)
-		return fmt;
-
-	param1 = (char *)xmlGetProp(xml_node, (unsigned char *)"param1");
-	param2 = (char *)xmlGetProp(xml_node, (unsigned char *)"param2");
-
-	if (nr_params && !param1)
-		return result;
-	if (nr_params > 1 && !param2)
-		return result;
-	if (nr_params > 2)
-		return result;
-
-	if (asprintf(&result, fmt, param1, param2) < 0)
-		result = fmt;
-	else 
-		free(fmt);
-
-	free(param1);
-	free(param2);
+ out:
+	free(params[0]);
+	free(params[1]);
 	return result;
 }
 
