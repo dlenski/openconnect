@@ -514,7 +514,7 @@ static int match_hostname(const char *hostname, const char *match)
 }
 
 /* cf. RFC2818 and RFC2459 */
-int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
+static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert)
 {
 	STACK_OF(GENERAL_NAME) *altnames;
 	X509_NAME *subjname;
