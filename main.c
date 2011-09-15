@@ -140,7 +140,7 @@ static struct option long_options[] = {
 	{NULL, 0, 0, 0},
 };
 
-void usage(void)
+static void usage(void)
 {
 	printf("Usage:  openconnect [options] <server>\n");
 	printf("Open client for Cisco AnyConnect VPN, version %s\n\n", openconnect_version);
