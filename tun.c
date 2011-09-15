@@ -143,7 +143,7 @@ static int netmasklen(struct in_addr addr)
 }
 
 static int process_split_xxclude(struct openconnect_info *vpninfo,
-				 char *in_ex, char *route, int *v4_incs,
+				 const char *in_ex, const char *route, int *v4_incs,
 				 int *v6_incs)
 {
 	struct in_addr addr;
