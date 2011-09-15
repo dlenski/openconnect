@@ -375,10 +375,6 @@ int main(int argc, char **argv)
 			autoproxy = 0;
 			proxy = NULL;
 		case OPT_LIBPROXY:
-#ifndef OPENCONNECT_LIBPROXY
-			fprintf(stderr, "This version of openconnect was built without libproxy support\n");
-			exit(1);
-#endif
 			autoproxy = 1;
 			proxy = NULL;
 			break;
@@ -479,10 +475,15 @@ int main(int argc, char **argv)
 
 	vpninfo->progress = write_progress;
 
+	if (autoproxy) {
 #ifdef OPENCONNECT_LIBPROXY
-	if (autoproxy)
 		vpninfo->proxy_factory = px_proxy_factory_new();
+#else
+		fprintf(stderr, "This version of openconnect was built without libproxy support\n");
+		exit(1);
 #endif
+	}
+
 	if (proxy && openconnect_set_http_proxy(vpninfo, strdup(proxy)))
 		exit(1);
 
