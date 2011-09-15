@@ -5,6 +5,26 @@ AC_LANG_C
 AM_INIT_AUTOMAKE([foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
+AS_COMPILER_FLAGS(CFLAGS,
+        "-Wall
+         -Wextra
+         -Wno-missing-field-initializers
+         -Wno-sign-compare
+         -Wno-unused-parameter
+         -Werror=pointer-to-int-cast
+         -Wdeclaration-after-statement
+         -Werror-implicit-function-declaration
+         -Wformat-nonliteral
+         -Wformat-security
+         -Winit-self
+         -Wmissing-declarations
+         -Wmissing-include-dirs
+         -Wmissing-noreturn
+         -Wnested-externs
+         -Wpointer-arith
+         -Wundef
+         -Wwrite-strings")
+
 AC_ARG_WITH([openssl],
             AS_HELP_STRING([--with-openssl],
                            [Location of OpenSSL build dir]),
