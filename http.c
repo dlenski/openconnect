@@ -450,12 +450,12 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		if (vpninfo->csd_wrapper)
 			csd_argv[i++] = vpninfo->csd_wrapper;
 		csd_argv[i++] = fname;
-		csd_argv[i++] = "-ticket";
+		csd_argv[i++]= (char *)"-ticket";
 		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->csd_ticket) == -1)
 			return -ENOMEM;
-		csd_argv[i++] = "-stub";
-		csd_argv[i++] = "\"0\"";
-		csd_argv[i++] = "-group";
+		csd_argv[i++]= (char *)"-stub";
+		csd_argv[i++]= (char *)"\"0\"";
+		csd_argv[i++]= (char *)"-group";
 		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->authgroup?:"") == -1)
 			return -ENOMEM;
 
@@ -465,22 +465,22 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		else
 			ccertbuf[0] = 0;
 
-		csd_argv[i++] = "-certhash";
+		csd_argv[i++]= (char *)"-certhash";
 		if (asprintf(&csd_argv[i++], "\"%s:%s\"", scertbuf, ccertbuf) == -1)
 			return -ENOMEM;
-		csd_argv[i++] = "-url";
+		csd_argv[i++]= (char *)"-url";
 		if (asprintf(&csd_argv[i++], "\"https://%s%s\"", vpninfo->hostname, vpninfo->csd_starturl) == -1)
 			return -ENOMEM;
 		/* WTF would it want to know this for? */
-		csd_argv[i++] = "-vpnclient";
-		csd_argv[i++] = "\"/opt/cisco/vpn/bin/vpnui";
-		csd_argv[i++] = "-connect";
+		csd_argv[i++]= (char *)"-vpnclient";
+		csd_argv[i++]= (char *)"\"/opt/cisco/vpn/bin/vpnui";
+		csd_argv[i++]= (char *)"-connect";
 		if (asprintf(&csd_argv[i++], "https://%s/%s", vpninfo->hostname, vpninfo->csd_preurl) == -1)
 			return -ENOMEM;
-		csd_argv[i++] = "-connectparam";
+		csd_argv[i++]= (char *)"-connectparam";
 		if (asprintf(&csd_argv[i++], "#csdtoken=%s\"", vpninfo->csd_token) == -1)
 			return -ENOMEM;
-		csd_argv[i++] = "-langselen";
+		csd_argv[i++]= (char *)"-langselen";
 		csd_argv[i++] = NULL;
 
 		execv(csd_argv[0], csd_argv);
