@@ -148,7 +148,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	if (strncmp(buf, "HTTP/1.1 200 ", 13)) {
 		if (!strncmp(buf, "HTTP/1.1 503 ", 13)) {
 			/* "Service Unavailable. Why? */
-			char *reason = "<unknown>";
+			const char *reason = "<unknown>";
 			while ((i = openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
 				if (!strncmp(buf, "X-Reason: ", 10)) {
 					reason = buf + 10;
