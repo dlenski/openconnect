@@ -201,7 +201,7 @@ struct openconnect_info {
 	int deflate;
 	char *useragent;
 
-	char *quit_reason;
+	const char *quit_reason;
 
 	void *cbdata;
 	openconnect_validate_peer_cert_vfn validate_peer_cert;
@@ -247,7 +247,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo);
 /* cstp.c */
 int make_cstp_connection(struct openconnect_info *vpninfo);
 int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout);
-int cstp_bye(struct openconnect_info *vpninfo, char *reason);
+int cstp_bye(struct openconnect_info *vpninfo, const char *reason);
 int cstp_reconnect(struct openconnect_info *vpninfo);
 
 /* ssl.c */

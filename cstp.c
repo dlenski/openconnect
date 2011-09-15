@@ -725,7 +725,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	return work_done;
 }
 
-int cstp_bye(struct openconnect_info *vpninfo, char *reason)
+int cstp_bye(struct openconnect_info *vpninfo, const char *reason)
 {
 	unsigned char *bye_pkt;
 	int reason_len;
