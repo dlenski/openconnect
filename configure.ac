@@ -3,6 +3,7 @@ AC_INIT(openconnect, 3.12)
 PKG_PROG_PKG_CONFIG
 AC_LANG_C
 AM_INIT_AUTOMAKE([foreign])
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_ARG_WITH([openssl],
             AS_HELP_STRING([--with-openssl],
