@@ -35,6 +35,12 @@
 
 #include "openconnect-internal.h"
 
+#ifdef HAVE_DTLS1_STOP_TIMER
+/* OpenSSL doesn't deliberately export this, but we need it to
+   workaround a DTLS bug in versions < 1.0.0e */
+extern void dtls1_stop_timer (SSL *);
+#endif
+
 static unsigned char nybble(unsigned char n)
 {
 	if      (n >= '0' && n <= '9') return n - '0';
@@ -48,7 +54,7 @@ unsigned char unhex(const char *data)
 	return (nybble(data[0]) << 4) | nybble(data[1]);
 }
 
-#ifdef SSL_F_DTLS1_CONNECT
+#ifdef SSL_OP_CISCO_ANYCONNECT
 #if 0
 /*
  * Useful for catching test cases, where we want everything to be
@@ -224,10 +230,6 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	dtls_bio = BIO_new_socket(dtls_fd, BIO_NOCLOSE);
 	SSL_set_bio(dtls_ssl, dtls_bio, dtls_bio);
 
-#ifndef SSL_OP_CISCO_ANYCONNECT
-#warning Your version of OpenSSL does not seem to support Cisco DTLS compatibility
-#define SSL_OP_CISCO_ANYCONNECT 0x8000
-#endif
 	SSL_set_options(dtls_ssl, SSL_OP_CISCO_ANYCONNECT);
 
 	/* Set non-blocking */
@@ -273,13 +275,42 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 		vpninfo->dtls_times.last_rx = vpninfo->dtls_times.last_tx = time(NULL);
 
 		/* From about 8.4.1(11) onwards, the ASA seems to get
-		   very unhappy if we send it ChangeCipherSpec messages
-		   after the initial setup. Disable the retransmit timer;
-		   the Cisco client doesn't seem to do it at all, and
-		   DPD would help us notice if the original does go AWOL
-		   and hence the server can't decrypt any data packets. */
+		   very unhappy if we resend ChangeCipherSpec messages
+		   after the initial setup. This was "fixed" in OpenSSL
+		   1.0.0e for RT#2505, but it's not clear if that was
+		   the right fix. What happens if the original packet
+		   *does* get lost? Surely we *wanted* the retransmits,
+		   because without them the server will never be able
+		   to decrypt anything we send?
+		   Oh well, our retransmitted packets upset the server
+		   because we don't get the Cisco-compatibility right
+		   (this is one of the areas in which Cisco's DTLS differs
+		   from the RFC4347 spec), and DPD should help us notice
+		   if *nothing* is getting through. */
+#if OPENSSL_VERSION_NUMBER >= 0x1000005fL
+		/* OpenSSL 1.0.0e or above doesn't resend anyway; do nothing.
+		   However, if we were *built* against 1.0.0e or newer, but at
+		   runtime we find that we are being run against an older 
+		   version, warn about it. */
+		if (SSLeay() < 0x1000005fL) {
+			vpn_progress(vpninfo, PRG_WARNING,
+				     "Your OpenSSL is older than the one you built against, so DTLS may fail!");
+		}
+#elif defined (HAVE_DTLS1_STOP_TIMER)
 		dtls1_stop_timer(vpninfo->dtls_ssl);
-
+#else
+		/* Debian restricts visibility of dtls1_stop_timer()
+		   so do it manually. Thankfully this *should* work,
+		   from 0.9.8m to 1.0.0d inclusive, and we don't have
+		   to worry about future changes because we don't do
+		   this for 1.0.0e and above anyway */
+		memset (&(vpninfo->dtls_ssl->d1->next_timeout), 0,
+			sizeof((vpninfo->dtls_ssl->d1->next_timeout)));
+		vpninfo->dtls_ssl->d1->timeout_duration = 1;
+		BIO_ctrl(SSL_get_rbio(vpninfo->dtls_ssl),
+			 BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT, 0,
+			 &(vpninfo->dtls_ssl->d1->next_timeout));
+#endif
 		return 0;
 	}
 
@@ -542,9 +573,10 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	return work_done;
 }
 #else /* No DTLS support in OpenSSL */
-int setup_dtls(struct openconnect_info *vpninfo)
+#warning Your version of OpenSSL does not seem to support Cisco DTLS compatibility
+ int setup_dtls(struct openconnect_info *vpninfo)
 {
-	vpn_progress(vpninfo, PRG_ERR, "Built against OpenSSL with no DTLS support\n");
+	vpn_progress(vpninfo, PRG_ERR, "Built against OpenSSL with no Cisco DTLS support\n");
 	return -EINVAL;
 }
 #endif

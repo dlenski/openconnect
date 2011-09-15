@@ -46,4 +46,8 @@ AC_CHECK_LIB(ssl, ENGINE_by_id,
 	     AC_MSG_NOTICE([Building without OpenSSL TPM ENGINE support]),
 	     ${OPENSSL_LIBS})
 
+AC_CHECK_LIB(ssl, dtls1_stop_timer,
+		  AC_DEFINE(HAVE_DTLS1_STOP_TIMER, [1], [OpenSSL has dtls1_stop_timer() function]),
+		  ,,${OPENSSL_LIBS})
+
 AC_OUTPUT(Makefile openconnect.pc)

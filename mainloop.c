@@ -80,7 +80,7 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 		struct timeval tv;
 		fd_set rfds, wfds, efds;
 
-#ifdef SSL_F_DTLS1_CONNECT
+#ifdef SSL_OP_CISCO_ANYCONNECT
 		if (vpninfo->new_dtls_ssl)
 			dtls_try_handshake(vpninfo);
 
