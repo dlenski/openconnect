@@ -149,7 +149,8 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		   webvpn cookie in the verbose debug output */
 		if (!strcasecmp(buf, "Set-Cookie")) {
 			char *semicolon = strchr(colon, ';');
-			char *print_equals, *equals = strchr(colon, '=');
+			const char *print_equals;
+			char *equals = strchr(colon, '=');
 			int ret;
 
 			if (semicolon)
