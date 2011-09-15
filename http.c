@@ -823,7 +823,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	return 0;
 }
 
-char *openconnect_create_useragent(char *base)
+char *openconnect_create_useragent(const char *base)
 {
 	char *uagent;
 

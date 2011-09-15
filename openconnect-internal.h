@@ -279,7 +279,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		       const char **request_body_type);
 
 /* http.c */
-char *openconnect_create_useragent(char *base);
+char *openconnect_create_useragent(const char *base);
 int process_proxy(struct openconnect_info *vpninfo, int ssl_sock);
 int internal_parse_url(char *url, char **res_proto, char **res_host,
 		       int *res_port, char **res_path, int default_port);
