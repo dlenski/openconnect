@@ -293,7 +293,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 		   runtime we find that we are being run against an older 
 		   version, warn about it. */
 		if (SSLeay() < 0x1000005fL) {
-			vpn_progress(vpninfo, PRG_WARNING,
+			vpn_progress(vpninfo, PRG_ERR,
 				     "Your OpenSSL is older than the one you built against, so DTLS may fail!");
 		}
 #elif defined (HAVE_DTLS1_STOP_TIMER)
