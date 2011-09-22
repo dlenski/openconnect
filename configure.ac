@@ -43,14 +43,20 @@ AC_PROG_LIBTOOL
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0)
 PKG_CHECK_MODULES(ZLIB, zlib)
 
-libproxy_hdr=no
-AC_CHECK_HEADER([libproxy.h],
-    [libproxy_hdr='"libproxy.h"'],
-    [AC_CHECK_HEADER([proxy.h],
-        [libproxy_hdr='"libproxy.h"'])])
-if (test "$libproxy_hdr" != "no"); then
-   AC_DEFINE([LIBPROXY_HDR], $libproxy_hdr)
-   PKG_CHECK_MODULES(LIBPROXY, libproxy-1.0, AC_SUBST(LIBPROXY_PC, libproxy-1.0), dummy=yes)
+PKG_CHECK_MODULES(LIBPROXY, libproxy-1.0,
+		[AC_SUBST(LIBPROXY_PC, libproxy-1.0)
+		 AC_DEFINE([LIBPROXY_HDR], ["proxy.h"])
+		 libproxy_pkg=yes],
+		 libproxy_pkg=no)
+dnl Libproxy *can* exist without a .pc file, and its header may be called
+dnl libproxy.h in that case.
+if (test "$libproxy_pkg" = "no"); then
+   AC_CHECK_HEADER([proxy.h],
+	[AC_DEFINE([LIBPROXY_HDR], ["proxy.h"])
+	 AC_SUBST([LIBPROXY_LIBS], [-lproxy])],
+    [AC_CHECK_HEADER([libproxy.h],
+	[AC_DEFINE([LIBPROXY_HDR], ["libproxy.h"])
+	 AC_SUBST([LIBPROXY_LIBS], [-lproxy])])])
 fi
 
 AC_CHECK_HEADER([if_tun.h],

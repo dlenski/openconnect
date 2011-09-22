@@ -40,7 +40,7 @@
 #include <sys/utsname.h>
 #include <sys/types.h>
 #include <openssl/ui.h>
-#ifdef OPENCONNECT_LIBPROXY
+#ifdef LIBPROXY_HDR
 #include LIBPROXY_HDR
 #endif
 
@@ -167,7 +167,7 @@ static void usage(void)
 	printf("  -P, --proxy=URL                 Set proxy server\n");
 	printf("      --no-proxy                  Disable proxy\n");
 	printf("      --libproxy                  Use libproxy to automatically configure proxy\n");
-#ifndef OPENCONNECT_LIBPROXY
+#ifndef LIBPROXY_HDR
 	printf("                                  (NOTE: libproxy disabled in this build)\n");
 #endif
 	printf("  -q, --quiet                     Less output\n");
@@ -476,7 +476,7 @@ int main(int argc, char **argv)
 	vpninfo->progress = write_progress;
 
 	if (autoproxy) {
-#ifdef OPENCONNECT_LIBPROXY
+#ifdef LIBPROXY_HDR
 		vpninfo->proxy_factory = px_proxy_factory_new();
 #else
 		fprintf(stderr, "This version of openconnect was built without libproxy support\n");

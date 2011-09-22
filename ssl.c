@@ -888,7 +888,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		   this way than if we pass NULL to getaddrinfo() and
 		   then try to fill in the numeric value into
 		   different types of returned sockaddr_in{6,}. */
-#ifdef OPENCONNECT_LIBPROXY
+#ifdef LIBPROXY_HDR
 		if (vpninfo->proxy_factory) {
 			char *url;
 			char **proxies;

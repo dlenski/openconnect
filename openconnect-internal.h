@@ -36,7 +36,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#ifdef OPENCONNECT_LIBPROXY
+#ifdef LIBPROXY_HDR
 #include LIBPROXY_HDR
 #endif
 
@@ -97,7 +97,7 @@ struct openconnect_info {
 
 	char *csd_scriptname;
 
-#ifdef OPENCONNECT_LIBPROXY
+#ifdef LIBPROXY_HDR
 	pxProxyFactory *proxy_factory;
 #endif
 	char *proxy_type;
