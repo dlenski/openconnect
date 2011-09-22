@@ -75,7 +75,8 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 	for (i = 0; i < SHA_DIGEST_LENGTH; i++)
 		sprintf(&vpninfo->xmlsha1[i*2], "%02x", sha1[i]);
 
-	vpn_progress(vpninfo, PRG_TRACE, "XML config file SHA1: %s\n", vpninfo->xmlsha1);
+	vpn_progress(vpninfo, PRG_TRACE, _("XML config file SHA1: %s\n"),
+		     vpninfo->xmlsha1);
 
 	xml_doc = xmlReadMemory(xmlfile, st.st_size, "noname.xml", NULL, 0);
 	munmap(xmlfile, st.st_size);

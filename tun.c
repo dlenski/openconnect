@@ -80,7 +80,7 @@ static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
 {
 	if (!mtu_only)
 		vpn_progress(vpninfo, PRG_ERR,
-				  "No vpnc-script configured. Need Solaris IP-setting code\n");
+			     _("No vpnc-script configured. Need Solaris IP-setting code\n"));
 	return 0;
 }
 #else
@@ -91,7 +91,7 @@ static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
 
 	net_fd = socket(PF_INET, SOCK_DGRAM, 0);
 	if (net_fd < 0) {
-		perror("open net");
+		perror(_("open net"));
 		return -EINVAL;
 	}
 	memset(&ifr, 0, sizeof(ifr));
@@ -101,22 +101,22 @@ static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
 		struct sockaddr_in addr;
 
 		if (ioctl(net_fd, SIOCGIFFLAGS, &ifr) < 0)
-			perror("SIOCGIFFLAGS");
+			perror(_("SIOCGIFFLAGS"));
 
 		ifr.ifr_flags |= IFF_UP | IFF_POINTOPOINT;
 		if (ioctl(net_fd, SIOCSIFFLAGS, &ifr) < 0)
-			perror("SIOCSIFFLAGS");
+			perror(_("SIOCSIFFLAGS"));
 
 		addr.sin_family = AF_INET;
 		addr.sin_addr.s_addr = inet_addr(vpninfo->vpn_addr);
 		memcpy(&ifr.ifr_addr, &addr, sizeof(addr));
 		if (ioctl(net_fd, SIOCSIFADDR, &ifr) < 0)
-			perror("SIOCSIFADDR");
+			perror(_("SIOCSIFADDR"));
 	}
 
 	ifr.ifr_mtu = vpninfo->mtu;
 	if (ioctl(net_fd, SIOCSIFMTU, &ifr) < 0)
-		perror("SIOCSIFMTU");
+		perror(_("SIOCSIFMTU"));
 
 	close(net_fd);
 
@@ -154,8 +154,8 @@ static int process_split_xxclude(struct openconnect_info *vpninfo,
 	if (!slash) {
 	badinc:
 		vpn_progress(vpninfo, PRG_ERR,
-				  "Discard bad split %sclude: \"%s\"\n",
-				  in_ex, route);
+			     _("Discard bad split %sclude: \"%s\"\n"),
+			     in_ex, route);
 		return -EINVAL;
 	}
 
@@ -366,8 +366,8 @@ static int script_config_tun(struct openconnect_info *vpninfo)
 	if (system(vpninfo->vpnc_script)) {
 		int e = errno;
 		vpn_progress(vpninfo, PRG_ERR,
-				  "Failed to spawn script '%s': %s\n",
-				  vpninfo->vpnc_script, strerror(e));
+			     _("Failed to spawn script '%s': %s\n"),
+			     vpninfo->vpnc_script, strerror(e));
 		return -e;
 	}
 	return 0;
@@ -391,24 +391,24 @@ int setup_tun(struct openconnect_info *vpninfo)
 		int fds[2];
 
 		if (socketpair(AF_UNIX, SOCK_DGRAM, 0, fds)) {
-			perror("socketpair");
+			perror(_("socketpair"));
 			exit(1);
 		}
 		tun_fd = fds[0];
 		child = fork();
 		if (child < 0) {
-			perror("fork");
+			perror(_("fork"));
 			exit(1);
 		} else if (!child) {
 			close(tun_fd);
 			setenv_int("VPNFD", fds[1]);
 			execl("/bin/sh", "/bin/sh", "-c", vpninfo->vpnc_script, NULL);
-			perror("execl");
+			perror(_("execl"));
 			exit(1);
 		}
 		close(fds[1]);
 		vpninfo->script_tun = child;
-		vpninfo->ifname = strdup("(script)");
+		vpninfo->ifname = strdup(_("(script)"));
 	} else {
 #ifdef IFF_TUN /* Linux */
 		struct ifreq ifr;
@@ -429,8 +429,8 @@ int setup_tun(struct openconnect_info *vpninfo)
 				tunerr = errno;
 
 			vpn_progress(vpninfo, PRG_ERR,
-					  "Failed to open tun device: %s\n",
-					  strerror(tunerr));
+				     _("Failed to open tun device: %s\n"),
+				     strerror(tunerr));
 			exit(1);
 		}
 		memset(&ifr, 0, sizeof(ifr));
@@ -440,8 +440,8 @@ int setup_tun(struct openconnect_info *vpninfo)
 				sizeof(ifr.ifr_name) - 1);
 		if (ioctl(tun_fd, TUNSETIFF, (void *) &ifr) < 0) {
 			vpn_progress(vpninfo, PRG_ERR,
-					  "TUNSETIFF failed: %s\n",
-					  strerror(errno));
+				     _("TUNSETIFF failed: %s\n"),
+				     strerror(errno));
 			exit(1);
 		}
 		if (!vpninfo->ifname)
@@ -453,20 +453,20 @@ int setup_tun(struct openconnect_info *vpninfo)
 		struct ifreq ifr;
 
 		if (ip_fd < 0) {
-			perror("open /dev/ip");
+			perror(_("open /dev/ip"));
 			return -EIO;
 		}
 
 		tun_fd = open("/dev/tun", O_RDWR);
 		if (tun_fd < 0) {
-			perror("open /dev/tun");
+			perror(_("open /dev/tun"));
 			close(ip_fd);
 			return -EIO;
 		}
 
 		unit_nr = ioctl(tun_fd, TUNNEWPPA, -1);
 		if (unit_nr < 0) {
-			perror("Failed to create new tun");
+			perror(_("Failed to create new tun"));
 			close(tun_fd);
 			close(ip_fd);
 			return -EIO;
@@ -474,20 +474,20 @@ int setup_tun(struct openconnect_info *vpninfo)
 		
 		tun2_fd = open("/dev/tun", O_RDWR);
 		if (tun2_fd < 0) {
-			perror("open /dev/tun again");
+			perror(_("open /dev/tun again"));
 			close(tun_fd);
 			close(ip_fd);
 			return -EIO;
 		}
 		if (ioctl(tun2_fd, I_PUSH, "ip") < 0) {
-			perror("Can't push IP");
+			perror(_("Can't push IP"));
 			close(tun2_fd);
 			close(tun_fd);
 			close(ip_fd);
 			return -EIO;
 		}
 		if (ioctl(tun2_fd, IF_UNITSEL, &unit_nr) < 0) {
-			perror("Can't select unit");
+			perror(_("Can't select unit"));
 			close(tun2_fd);
 			close(tun_fd);
 			close(ip_fd);
@@ -495,7 +495,7 @@ int setup_tun(struct openconnect_info *vpninfo)
 		}
 		mux_id = ioctl(ip_fd, I_PLINK, tun2_fd);
 		if (mux_id < 0) {
-			perror("Can't link tun to IP");
+			perror(_("Can't link tun to IP"));
 			close(tun2_fd);
 			close(tun_fd);
 			close(ip_fd);
@@ -511,14 +511,14 @@ int setup_tun(struct openconnect_info *vpninfo)
 		ifr.ifr_ip_muxid = mux_id;
 
 		if (ioctl(ip_fd, SIOCSIFMUXID, &ifr) < 0) {
-			perror("Set mux id");
+			perror(_("Set mux id"));
 			close(tun_fd);
 			ioctl(ip_fd, I_PUNLINK, mux_id);
 			close(ip_fd);
 			return -EIO;
 		}
 		/* Solaris tunctl needs this in order to tear it down */
-		vpn_progress(vpninfo, PRG_DEBUG, "mux id is %d\n", mux_id);
+		vpn_progress(vpninfo, PRG_DEBUG, _("mux id is %d\n"), mux_id);
 		vpninfo->tun_muxid = mux_id;
 		vpninfo->ip_fd = ip_fd;
 
@@ -532,14 +532,14 @@ int setup_tun(struct openconnect_info *vpninfo)
 				break;
 		}
 		if (tun_fd < 0) {
-			perror("open tun");
+			perror(_("open tun"));
 			exit(1);
 		}
 		vpninfo->ifname = strdup(tun_name + 5);
 #ifdef TUNSIFHEAD
 		i = 1;
 		if (ioctl(tun_fd, TUNSIFHEAD, &i) < 0) {
-			perror("TUNSIFHEAD");
+			perror(_("TUNSIFHEAD"));
 			exit(1);
 		}
 #endif
@@ -619,8 +619,8 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				if (!complained) {
 					complained = 1;
 					vpn_progress(vpninfo, PRG_ERR,
-							  "Unknown packet (len %d) received: %02x %02x %02x %02x...\n",
-							  len, data[0], data[1], data[2], data[3]);
+						     _("Unknown packet (len %d) received: %02x %02x %02x %02x...\n"),
+						     len, data[0], data[1], data[2], data[3]);
 				}
 				free(this);
 				continue;
@@ -652,14 +652,14 @@ void shutdown_tun(struct openconnect_info *vpninfo)
 			setenv("reason", "disconnect", 1);
 			if (system(vpninfo->vpnc_script) == -1) {
 				vpn_progress(vpninfo, PRG_ERR,
-						  "Failed to spawn script '%s': %s\n",
-						  vpninfo->vpnc_script,
-						  strerror(errno));
+					     _("Failed to spawn script '%s': %s\n"),
+					     vpninfo->vpnc_script,
+					     strerror(errno));
 			}
 		}
 #ifdef __sun__
 		if (ioctl(vpninfo->ip_fd, I_PUNLINK, vpninfo->tun_muxid) < 0)
-			perror("ioctl(I_PUNLINK)");
+			perror(_("ioctl(I_PUNLINK)"));
 
 		close(vpninfo->ip_fd);
 		vpninfo->ip_fd = -1;

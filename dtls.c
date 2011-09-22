@@ -119,33 +119,33 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	int dtls_fd;
 
 	if (!vpninfo->dtls_addr) {
-		vpn_progress(vpninfo, PRG_ERR, "No DTLS address\n");
+		vpn_progress(vpninfo, PRG_ERR, _("No DTLS address\n"));
 		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
 
 	if (!vpninfo->dtls_cipher) {
 		/* We probably didn't offer it any ciphers it liked */
-		vpn_progress(vpninfo, PRG_ERR, "Server offered no DTLS cipher option\n");
+		vpn_progress(vpninfo, PRG_ERR, _("Server offered no DTLS cipher option\n"));
 		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
 
 	if (vpninfo->proxy) {
 		/* XXX: Theoretically, SOCKS5 proxies can do UDP too */
-		vpn_progress(vpninfo, PRG_ERR, "No DTLS when connected via proxy\n");
+		vpn_progress(vpninfo, PRG_ERR, _("No DTLS when connected via proxy\n"));
 		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
 
 	dtls_fd = socket(vpninfo->peer_addr->sa_family, SOCK_DGRAM, IPPROTO_UDP);
 	if (dtls_fd < 0) {
-		perror("Open UDP socket for DTLS:");
+		perror(_("Open UDP socket for DTLS:"));
 		return -EINVAL;
 	}
 
 	if (connect(dtls_fd, vpninfo->dtls_addr, vpninfo->peer_addrlen)) {
-		perror("UDP (DTLS) connect:\n");
+		perror(_("UDP (DTLS) connect:\n"));
 		close(dtls_fd);
 		return -EINVAL;
 	}
@@ -156,7 +156,8 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		dtls_method = DTLSv1_client_method();
 		vpninfo->dtls_ctx = SSL_CTX_new(dtls_method);
 		if (!vpninfo->dtls_ctx) {
-			vpn_progress(vpninfo, PRG_ERR, "Initialise DTLSv1 CTX failed\n");
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Initialise DTLSv1 CTX failed\n"));
 			vpninfo->dtls_attempt_period = 0;
 			return -EINVAL;
 		}
@@ -166,7 +167,8 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		SSL_CTX_set_read_ahead(vpninfo->dtls_ctx, 1);
 
 		if (!SSL_CTX_set_cipher_list(vpninfo->dtls_ctx, vpninfo->dtls_cipher)) {
-			vpn_progress(vpninfo, PRG_ERR, "Set DTLS cipher list failed\n");
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Set DTLS cipher list failed\n"));
 			SSL_CTX_free(vpninfo->dtls_ctx);
 			vpninfo->dtls_ctx = NULL;
 			vpninfo->dtls_attempt_period = 0;
@@ -178,7 +180,8 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		/* We're going to "resume" a session which never existed. Fake it... */
 		vpninfo->dtls_session = SSL_SESSION_new();
 		if (!vpninfo->dtls_session) {
-			vpn_progress(vpninfo, PRG_ERR, "Initialise DTLSv1 session failed\n");
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Initialise DTLSv1 session failed\n"));
 			vpninfo->dtls_attempt_period = 0;
 			return -EINVAL;
 		}
@@ -199,7 +202,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 
 	ciphers = SSL_get_ciphers(dtls_ssl);
 	if (sk_SSL_CIPHER_num(ciphers) != 1) {
-		vpn_progress(vpninfo, PRG_ERR, "Not precisely one DTLS cipher\n");
+		vpn_progress(vpninfo, PRG_ERR, _("Not precisely one DTLS cipher\n"));
 		SSL_CTX_free(vpninfo->dtls_ctx);
 		SSL_free(dtls_ssl);
 		SSL_SESSION_free(vpninfo->dtls_session);
@@ -217,11 +220,11 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	/* Add the generated session to the SSL */
 	if (!SSL_set_session(dtls_ssl, vpninfo->dtls_session)) {
 		vpn_progress(vpninfo, PRG_ERR,
-				  "SSL_set_session() failed with old protocol version 0x%x\n"
-				  "Are you using a version of OpenSSL older than 0.9.8m?\n"
-				  "See http://rt.openssl.org/Ticket/Display.html?id=1751\n"
-				  "Use the --no-dtls command line option to avoid this message\n",
-				  vpninfo->dtls_session->ssl_version);
+			     _("SSL_set_session() failed with old protocol version 0x%x\n"
+			       "Are you using a version of OpenSSL older than 0.9.8m?\n"
+			       "See http://rt.openssl.org/Ticket/Display.html?id=1751\n"
+			       "Use the --no-dtls command line option to avoid this message\n"),
+			     vpninfo->dtls_session->ssl_version);
 		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
@@ -256,7 +259,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	int ret = SSL_do_handshake(vpninfo->new_dtls_ssl);
 
 	if (ret == 1) {
-		vpn_progress(vpninfo, PRG_INFO, "Established DTLS connection\n");
+		vpn_progress(vpninfo, PRG_INFO, _("Established DTLS connection\n"));
 
 		if (vpninfo->dtls_ssl) {
 			/* We are replacing an old connection */
@@ -294,7 +297,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 		   version, warn about it. */
 		if (SSLeay() < 0x1000005fL) {
 			vpn_progress(vpninfo, PRG_ERR,
-				     "Your OpenSSL is older than the one you built against, so DTLS may fail!");
+				     _("Your OpenSSL is older than the one you built against, so DTLS may fail!"));
 		}
 #elif defined (HAVE_DTLS1_STOP_TIMER)
 		dtls1_stop_timer(vpninfo->dtls_ssl);
@@ -318,10 +321,10 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	if (ret == SSL_ERROR_WANT_WRITE || ret == SSL_ERROR_WANT_READ) {
 		if (time(NULL) < vpninfo->new_dtls_started + 5)
 			return 0;
-		vpn_progress(vpninfo, PRG_TRACE, "DTLS handshake timed out\n");
+		vpn_progress(vpninfo, PRG_TRACE, _("DTLS handshake timed out\n"));
 	}
 
-	vpn_progress(vpninfo, PRG_ERR, "DTLS handshake failed: %d\n", ret);
+	vpn_progress(vpninfo, PRG_ERR, _("DTLS handshake failed: %d\n"), ret);
 	report_ssl_errors(vpninfo);
 
 	/* Kill the new (failed) connection... */
@@ -372,8 +375,8 @@ int setup_dtls(struct openconnect_info *vpninfo)
 
 	while (dtls_opt) {
 		vpn_progress(vpninfo, PRG_TRACE,
-				  "DTLS option %s : %s\n",
-				  dtls_opt->option, dtls_opt->value);
+			     _("DTLS option %s : %s\n"),
+			     dtls_opt->option, dtls_opt->value);
 
 		if (!strcmp(dtls_opt->option + 7, "Port")) {
 			dtls_port = atol(dtls_opt->value);
@@ -410,8 +413,9 @@ int setup_dtls(struct openconnect_info *vpninfo)
 		struct sockaddr_in6 *sin = (void *)vpninfo->dtls_addr;
 		sin->sin6_port = htons(dtls_port);
 	} else {
-		vpn_progress(vpninfo, PRG_ERR, "Unknown protocol family %d. Cannot do DTLS\n",
-				  vpninfo->peer_addr->sa_family);
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Unknown protocol family %d. Cannot do DTLS\n"),
+			     vpninfo->peer_addr->sa_family);
 		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
@@ -420,8 +424,8 @@ int setup_dtls(struct openconnect_info *vpninfo)
 		return -EINVAL;
 
 	vpn_progress(vpninfo, PRG_TRACE,
-			  "DTLS connected. DPD %d, Keepalive %d\n",
-			  vpninfo->dtls_times.dpd, vpninfo->dtls_times.keepalive);
+		     _("DTLS connected. DPD %d, Keepalive %d\n"),
+		     vpninfo->dtls_times.dpd, vpninfo->dtls_times.keepalive);
 
 	return 0;
 }
@@ -436,8 +440,8 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	while ( (len = SSL_read(vpninfo->dtls_ssl, buf, sizeof(buf))) > 0 ) {
 
 		vpn_progress(vpninfo, PRG_TRACE,
-				  "Received DTLS packet 0x%02x of %d bytes\n",
-				  buf[0], len);
+			     _("Received DTLS packet 0x%02x of %d bytes\n"),
+			     buf[0], len);
 
 		vpninfo->dtls_times.last_rx = time(NULL);
 
@@ -448,25 +452,27 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			break;
 
 		case AC_PKT_DPD_OUT:
-			vpn_progress(vpninfo, PRG_TRACE, "Got DTLS DPD request\n");
+			vpn_progress(vpninfo, PRG_TRACE, _("Got DTLS DPD request\n"));
 
 			/* FIXME: What if the packet doesn't get through? */
 			magic_pkt = AC_PKT_DPD_RESP;
 			if (SSL_write(vpninfo->dtls_ssl, &magic_pkt, 1) != 1)
-				vpn_progress(vpninfo, PRG_ERR, "Failed to send DPD response. Expect disconnect\n");
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to send DPD response. Expect disconnect\n"));
 			continue;
 
 		case AC_PKT_DPD_RESP:
-			vpn_progress(vpninfo, PRG_TRACE, "Got DTLS DPD response\n");
+			vpn_progress(vpninfo, PRG_TRACE, _("Got DTLS DPD response\n"));
 			break;
 
 		case AC_PKT_KEEPALIVE:
-			vpn_progress(vpninfo, PRG_TRACE, "Got DTLS Keepalive\n");
+			vpn_progress(vpninfo, PRG_TRACE, _("Got DTLS Keepalive\n"));
 			break;
 
 		default:
 			vpn_progress(vpninfo, PRG_ERR,
-					  "Unknown DTLS packet type %02x, len %d\n", buf[0], len);
+				     _("Unknown DTLS packet type %02x, len %d\n"),
+				     buf[0], len);
 			if (1) {
 				/* Some versions of OpenSSL have bugs with receiving out-of-order
 				 * packets. Not only do they wrongly decide to drop packets if
@@ -484,18 +490,18 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 	switch (keepalive_action(&vpninfo->dtls_times, timeout)) {
 	case KA_REKEY:
-		vpn_progress(vpninfo, PRG_INFO, "DTLS rekey due\n");
+		vpn_progress(vpninfo, PRG_INFO, _("DTLS rekey due\n"));
 
 		/* There ought to be a method of rekeying DTLS without tearing down
 		   the CSTP session and restarting, but we don't (yet) know it */
 		if (cstp_reconnect(vpninfo)) {
-			vpn_progress(vpninfo, PRG_ERR, "Reconnect failed\n");
+			vpn_progress(vpninfo, PRG_ERR, _("Reconnect failed\n"));
 			vpninfo->quit_reason = "CSTP reconnect failed";
 			return 1;
 		}
 
 		if (dtls_restart(vpninfo)) {
-			vpn_progress(vpninfo, PRG_ERR, "DTLS rekey failed\n");
+			vpn_progress(vpninfo, PRG_ERR, _("DTLS rekey failed\n"));
 			return 1;
 		}
 		work_done = 1;
@@ -503,13 +509,13 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 
 	case KA_DPD_DEAD:
-		vpn_progress(vpninfo, PRG_ERR, "DTLS Dead Peer Detection detected dead peer!\n");
+		vpn_progress(vpninfo, PRG_ERR, _("DTLS Dead Peer Detection detected dead peer!\n"));
 		/* Fall back to SSL, and start a new DTLS connection */
 		dtls_restart(vpninfo);
 		return 1;
 
 	case KA_DPD:
-		vpn_progress(vpninfo, PRG_TRACE, "Send DTLS DPD\n");
+		vpn_progress(vpninfo, PRG_TRACE, _("Send DTLS DPD\n"));
 
 		magic_pkt = AC_PKT_DPD_OUT;
 		SSL_write(vpninfo->dtls_ssl, &magic_pkt, 1);
@@ -524,7 +530,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		if (vpninfo->outgoing_queue)
 			break;
 
-		vpn_progress(vpninfo, PRG_TRACE, "Send DTLS Keepalive\n");
+		vpn_progress(vpninfo, PRG_TRACE, _("Send DTLS Keepalive\n"));
 
 		magic_pkt = AC_PKT_KEEPALIVE;
 		SSL_write(vpninfo->dtls_ssl, &magic_pkt, 1);
@@ -555,7 +561,8 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			   requeue the packet to be sent over SSL */
 			if (ret != SSL_ERROR_WANT_READ && ret != SSL_ERROR_WANT_WRITE) {
 				vpn_progress(vpninfo, PRG_ERR,
-						  "DTLS got write error %d. Falling back to SSL\n", ret);
+					     _("DTLS got write error %d. Falling back to SSL\n"),
+					     ret);
 				report_ssl_errors(vpninfo);
 				dtls_restart(vpninfo);
 				vpninfo->outgoing_queue = this;
@@ -565,8 +572,8 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		}
 		time(&vpninfo->dtls_times.last_tx);
 		vpn_progress(vpninfo, PRG_TRACE,
-				  "Sent DTLS packet of %d bytes; SSL_write() returned %d\n",
-				  this->len, ret);
+			     _("Sent DTLS packet of %d bytes; SSL_write() returned %d\n"),
+			     this->len, ret);
 		free(this);
 	}
 
@@ -576,7 +583,8 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 #warning Your version of OpenSSL does not seem to support Cisco DTLS compatibility
  int setup_dtls(struct openconnect_info *vpninfo)
 {
-	vpn_progress(vpninfo, PRG_ERR, "Built against OpenSSL with no Cisco DTLS support\n");
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Built against OpenSSL with no Cisco DTLS support\n"));
 	return -EINVAL;
 }
 #endif

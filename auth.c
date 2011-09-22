@@ -121,7 +121,7 @@ static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_fo
 	opt->form.label = (char *)xmlGetProp(xml_node, (unsigned char *)"label");
 
 	if (!opt->form.name) {
-		vpn_progress(vpninfo, PRG_ERR, "Form choice has no name\n");
+		vpn_progress(vpninfo, PRG_ERR, _("Form choice has no name\n"));
 		free(opt);
 		return -EINVAL;
 	}
@@ -184,13 +184,15 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 			continue;
 		}
 		if (strcmp((char *)xml_node->name, "input")) {
-			vpn_progress(vpninfo, PRG_TRACE, "name %s not input\n", xml_node->name);
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("name %s not input\n"), xml_node->name);
 			continue;
 		}
 
 		input_type = (char *)xmlGetProp(xml_node, (unsigned char *)"type");
 		if (!input_type) {
-			vpn_progress(vpninfo, PRG_INFO, "No input type in form\n");
+			vpn_progress(vpninfo, PRG_INFO,
+				     _("No input type in form\n"));
 			continue;
 		}
 
@@ -201,7 +203,8 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 
 		input_name = (char *)xmlGetProp(xml_node, (unsigned char *)"name");
 		if (!input_name) {
-			vpn_progress(vpninfo, PRG_INFO, "No input name in form\n");
+			vpn_progress(vpninfo, PRG_INFO,
+				     _("No input name in form\n"));
 			free(input_type);
 			continue;
 		}
@@ -224,8 +227,8 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 			opt->type = OC_FORM_OPT_PASSWORD;
 		else {
 			vpn_progress(vpninfo, PRG_INFO,
-					  "Unknown input type %s in form\n",
-					  input_type);
+				     _("Unknown input type %s in form\n"),
+				     input_type);
 			free(input_type);
 			free(input_name);
 			free(input_label);
@@ -244,7 +247,7 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 		*p = opt;
 	}
 
-	vpn_progress(vpninfo, PRG_TRACE, "Fixed options give %s\n", body);
+	vpn_progress(vpninfo, PRG_TRACE, _("Fixed options give %s\n"), body);
 
 	return 0;
 }
@@ -331,15 +334,18 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 
 	xml_doc = xmlReadMemory(response, strlen(response), "noname.xml", NULL, 0);
 	if (!xml_doc) {
-		vpn_progress(vpninfo, PRG_ERR, "Failed to parse server response\n");
-		vpn_progress(vpninfo, PRG_TRACE, "Response was:%s\n", response);
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to parse server response\n"));
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Response was:%s\n"), response);
 		free(form);
 		return -EINVAL;
 	}
 
 	xml_node = xmlDocGetRootElement(xml_doc);
 	if (xml_node->type != XML_ELEMENT_NODE || strcmp((char *)xml_node->name, "auth")) {
-		vpn_progress(vpninfo, PRG_ERR, "XML response has no \"auth\" root node\n");
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("XML response has no \"auth\" root node\n"));
 		ret = -EINVAL;
 		goto out;
 	}
@@ -351,7 +357,8 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	}
 
 	if (vpninfo->nopasswd) {
-		vpn_progress(vpninfo, PRG_ERR, "Asked for password but '--no-passwd' set\n");
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Asked for password but '--no-passwd' set\n"));
 		ret = -EPERM;
 		goto out;
 	}
@@ -376,8 +383,8 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			if (!form->method || !form->action || 
 			    strcasecmp(form->method, "POST") || !form->action[0]) {
 				vpn_progress(vpninfo, PRG_ERR,
-						  "Cannot handle form method='%s', action='%s'\n",
-						  form->method, form->action);
+					     _("Cannot handle form method='%s', action='%s'\n"),
+					     form->method, form->action);
 				ret = -EINVAL;
 				goto out;
 			}
@@ -496,7 +503,7 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 	choice_resp[0] = 0;
 
 	if (!ui) {
-		vpn_progress(vpninfo, PRG_ERR, "Failed to create UI\n");
+		vpn_progress(vpninfo, PRG_ERR, _("Failed to create UI\n"));
 		return -EINVAL;
 	}
 	if (form->banner) {
@@ -539,8 +546,8 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 				}
 				if (!opt->value)
 					vpn_progress(vpninfo, PRG_ERR,
-							  "Auth choice \"%s\" not available\n",
-							  vpninfo->authgroup);
+						     _("Auth choice \"%s\" not available\n"),
+						     vpninfo->authgroup);
 			}
 			if (!opt->value && select_opt->nr_choices == 1) {
 				choice = &select_opt->choices[0];
@@ -619,7 +626,7 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 		goto out_ui;
 	case -1:
 		/* error */
-		vpn_progress(vpninfo, PRG_ERR, "Invalid inputs\n");
+		vpn_progress(vpninfo, PRG_ERR, _("Invalid inputs\n"));
 		ret = -EINVAL;
 	out_ui:
 		UI_free(ui);
@@ -642,8 +649,8 @@ static int process_auth_form(struct openconnect_info *vpninfo,
 		}
 		if (!select_opt->form.value) {
 			vpn_progress(vpninfo, PRG_ERR,
-					  "Auth choice \"%s\" not valid\n",
-					  choice_resp);
+				     _("Auth choice \"%s\" not valid\n"),
+				     choice_resp);
 			return -EINVAL;
 		}
 	}

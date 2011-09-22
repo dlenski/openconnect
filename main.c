@@ -570,17 +570,17 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Set up DTLS failed; using SSL instead\n");
 
 	vpn_progress(vpninfo, PRG_INFO,
-			  "Connected %s as %s%s%s, using %s\n", vpninfo->ifname,
-			  vpninfo->vpn_addr?:"",
-			  (vpninfo->vpn_addr6 && vpninfo->vpn_addr)?" + ":"",
-			  vpninfo->vpn_addr6?:"",
-			  (vpninfo->dtls_fd == -1) ?
-			      (vpninfo->deflate ? "SSL + deflate" : "SSL")
-			      : "DTLS");
+		     _("Connected %s as %s%s%s, using %s\n"), vpninfo->ifname,
+		     vpninfo->vpn_addr?:"",
+		     (vpninfo->vpn_addr6 && vpninfo->vpn_addr)?" + ":"",
+		     vpninfo->vpn_addr6?:"",
+		     (vpninfo->dtls_fd == -1) ?
+		     (vpninfo->deflate ? "SSL + deflate" : "SSL")
+		     : "DTLS");
 
 	if (!vpninfo->vpnc_script)
 		vpn_progress(vpninfo, PRG_INFO,
-				  "No --script argument provided; DNS and routing are not configured\n");
+			     _("No --script argument provided; DNS and routing are not configured\n"));
 
 	if (background) {
 		int pid;
@@ -591,7 +591,7 @@ int main(int argc, char **argv)
 		if (pidfile != NULL) {
 			fp = fopen(pidfile, "w");
 			if (!fp) {
-				fprintf(stderr, "Failed to open '%s' for write: %s\n",
+				fprintf(stderr, _("Failed to open '%s' for write: %s\n"),
 					pidfile, strerror(errno));
 				exit(1);
 			}
@@ -602,7 +602,7 @@ int main(int argc, char **argv)
 				fclose(fp);
 			}
 			vpn_progress(vpninfo, PRG_INFO,
-				     "Continuing in background; pid %d\n",
+				     _("Continuing in background; pid %d\n"),
 				     pid);
 			exit(0);
 		}
@@ -624,7 +624,7 @@ static int write_new_config(void *_vpninfo, char *buf, int buflen)
 	config_fd = open(vpninfo->xmlconfig, O_WRONLY|O_TRUNC|O_CREAT, 0644);
 	if (config_fd < 0) {
 		err = errno;
-		fprintf(stderr, "Failed to open %s for write: %s\n",
+		fprintf(stderr, _("Failed to open %s for write: %s\n"),
 			vpninfo->xmlconfig, strerror(err));
 		return -err;
 	}
@@ -632,7 +632,7 @@ static int write_new_config(void *_vpninfo, char *buf, int buflen)
 	/* FIXME: We should actually write to a new tempfile, then rename */
 	if(write(config_fd, buf, buflen) != buflen) {
 		err = errno;
-		fprintf(stderr, "Failed to write config to %s: %s\n",
+		fprintf(stderr, _("Failed to write config to %s: %s\n"),
 			vpninfo->xmlconfig, strerror(err));
 
 		return -err;
@@ -721,15 +721,16 @@ static int validate_peer_cert(void *_vpninfo, X509 *peer_cert,
 		char buf[6];
 		int ret;
 
-		fprintf(stderr, "\nCertificate from VPN server \"%s\" failed verification.\n"
-			"Reason: %s\n",	vpninfo->hostname, reason);
+		fprintf(stderr,
+			_("\nCertificate from VPN server \"%s\" failed verification.\n"
+			  "Reason: %s\n"), vpninfo->hostname, reason);
 		if (non_inter)
 			return -EINVAL;
 
 		fflush(stderr);
 
 		ui = UI_new();
-		UI_add_input_string(ui, "Enter 'yes' to accept, 'no' to abort; anything else to view: ",
+		UI_add_input_string(ui, _("Enter 'yes' to accept, 'no' to abort; anything else to view: "),
 				    UI_INPUT_FLAG_ECHO, buf, 2, 5);
 		ret = UI_process(ui);
 		UI_free(ui);
@@ -738,7 +739,7 @@ static int validate_peer_cert(void *_vpninfo, X509 *peer_cert,
 		if (ret == -1)
 			buf[0] = 0;
 
-		if (!strcasecmp(buf, "yes")) {
+		if (!strcasecmp(buf, _("yes"))) {
 			struct accepted_cert *newcert = malloc(sizeof(*newcert) +
 							       strlen(vpninfo->hostname) + 1);
 			if (newcert) {
@@ -749,11 +750,11 @@ static int validate_peer_cert(void *_vpninfo, X509 *peer_cert,
 			}
 			return 0;
 		}
-		if (!strcasecmp(buf, "no"))
+		if (!strcasecmp(buf, _("no")))
 			return -EINVAL;
 
 		X509_print_fp(stderr, peer_cert);
-		fprintf(stderr, "SHA1 fingerprint: %s\n", fingerprint);
+		fprintf(stderr, _("SHA1 fingerprint: %s\n"), fingerprint);
 	}
 				
 }

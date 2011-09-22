@@ -129,15 +129,16 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			       vpninfo->dtls_ciphers?:"AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA");
 
 	if (openconnect_SSL_gets(vpninfo->https_ssl, buf, 65536) < 0) {
-		vpn_progress(vpninfo, PRG_ERR, "Error fetching HTTPS response\n");
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Error fetching HTTPS response\n"));
 		if (!retried) {
 			retried = 1;
 			openconnect_close_https(vpninfo);
 
 			if (openconnect_open_https(vpninfo)) {
 				vpn_progress(vpninfo, PRG_ERR,
-						  "Failed to open HTTPS connection to %s\n",
-						  vpninfo->hostname);
+					     _("Failed to open HTTPS connection to %s\n"),
+					     vpninfo->hostname);
 				exit(1);
 			}
 			goto retry;
@@ -155,20 +156,20 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 					break;
 				}
 			}
-			vpn_progress(vpninfo, PRG_ERR, "VPN service unavailable; reason: %s\n",
-					  reason);
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("VPN service unavailable; reason: %s\n"),
+				     reason);
 			return -EINVAL;
 		}
 		vpn_progress(vpninfo, PRG_ERR,
-				  "Got inappropriate HTTP CONNECT response: %s\n",
-				  buf);
+			     _("Got inappropriate HTTP CONNECT response: %s\n"),
+			     buf);
 		if (!strncmp(buf, "HTTP/1.1 401 ", 13))
 			exit(2);
 		return -EINVAL;
 	}
 
-	vpn_progress(vpninfo, PRG_INFO,
-			  "Got CONNECT response: %s\n", buf);
+	vpn_progress(vpninfo, PRG_INFO, _("Got CONNECT response: %s\n"), buf);
 
 	/* We may have advertised it, but we only do it if the server agrees */
 	vpninfo->deflate = 0;
@@ -190,7 +191,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
 		new_option = malloc(sizeof(*new_option));
 		if (!new_option) {
-			vpn_progress(vpninfo, PRG_ERR, "No memory for options\n");
+			vpn_progress(vpninfo, PRG_ERR, _("No memory for options\n"));
 			return -ENOMEM;
 		}
 		new_option->option = strdup(buf);
@@ -198,7 +199,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		new_option->next = NULL;
 
 		if (!new_option->option || !new_option->value) {
-			vpn_progress(vpninfo, PRG_ERR, "No memory for options\n");
+			vpn_progress(vpninfo, PRG_ERR, _("No memory for options\n"));
 			return -ENOMEM;
 		}
 
@@ -210,8 +211,10 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
 			if (!strcmp(buf + 7, "Session-ID")) {
 				if (strlen(colon) != 64) {
-					vpn_progress(vpninfo, PRG_ERR, "X-DTLS-Session-ID not 64 characters\n");
-					vpn_progress(vpninfo, PRG_ERR, "Is: %s\n", colon);
+					vpn_progress(vpninfo, PRG_ERR,
+						     _("X-DTLS-Session-ID not 64 characters\n"));
+					vpn_progress(vpninfo, PRG_ERR,
+						     _("Is: %s\n"), colon);
 					vpninfo->dtls_attempt_period = 0;
 					return -EINVAL;
 				}
@@ -240,8 +243,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 				vpninfo->deflate = 1;
 			else {
 				vpn_progress(vpninfo, PRG_ERR,
-					"Unknown CSTP-Content-Encoding %s\n",
-					colon);
+					     _("Unknown CSTP-Content-Encoding %s\n"),
+					     colon);
 				return -EINVAL;
 			}
 		} else if (!strcmp(buf + 7, "MTU")) {
@@ -296,34 +299,39 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	}
 
 	if (!vpninfo->vpn_addr && !vpninfo->vpn_addr6) {
-		vpn_progress(vpninfo, PRG_ERR, "No IP address received. Aborting\n");
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("No IP address received. Aborting\n"));
 		return -EINVAL;
 	}
 	if (old_addr) {
 		if (strcmp(old_addr, vpninfo->vpn_addr)) {
-			vpn_progress(vpninfo, PRG_ERR, "Reconnect gave different Legacy IP address (%s != %s)\n",
-				vpninfo->vpn_addr, old_addr);
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Reconnect gave different Legacy IP address (%s != %s)\n"),
+				     vpninfo->vpn_addr, old_addr);
 			return -EINVAL;
 		}
 	}
 	if (old_netmask) {
 		if (strcmp(old_netmask, vpninfo->vpn_netmask)) {
-			vpn_progress(vpninfo, PRG_ERR, "Reconnect gave different Legacy IP netmask (%s != %s)\n",
-				vpninfo->vpn_netmask, old_netmask);
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Reconnect gave different Legacy IP netmask (%s != %s)\n"),
+				     vpninfo->vpn_netmask, old_netmask);
 			return -EINVAL;
 		}
 	}
 	if (old_addr6) {
 		if (strcmp(old_addr6, vpninfo->vpn_addr6)) {
-			vpn_progress(vpninfo, PRG_ERR, "Reconnect gave different IPv6 address (%s != %s)\n",
-				vpninfo->vpn_addr6, old_addr6);
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Reconnect gave different IPv6 address (%s != %s)\n"),
+				     vpninfo->vpn_addr6, old_addr6);
 			return -EINVAL;
 		}
 	}
 	if (old_netmask6) {
 		if (strcmp(old_netmask6, vpninfo->vpn_netmask6)) {
-			vpn_progress(vpninfo, PRG_ERR, "Reconnect gave different IPv6 netmask (%s != %s)\n",
-				vpninfo->vpn_netmask6, old_netmask6);
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Reconnect gave different IPv6 netmask (%s != %s)\n"),
+				     vpninfo->vpn_netmask6, old_netmask6);
 			return -EINVAL;
 		}
 	}
@@ -342,8 +350,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		free(tmp->option);
 		free(tmp);
 	}
-	vpn_progress(vpninfo, PRG_INFO, "CSTP connected. DPD %d, Keepalive %d\n",
-			  vpninfo->ssl_times.dpd, vpninfo->ssl_times.keepalive);
+	vpn_progress(vpninfo, PRG_INFO, _("CSTP connected. DPD %d, Keepalive %d\n"),
+		     vpninfo->ssl_times.dpd, vpninfo->ssl_times.keepalive);
 
 	BIO_set_nbio(SSL_get_rbio(vpninfo->https_ssl), 1);
 	BIO_set_nbio(SSL_get_wbio(vpninfo->https_ssl), 1);
@@ -378,14 +386,15 @@ int make_cstp_connection(struct openconnect_info *vpninfo)
 		if (inflateInit2(&vpninfo->inflate_strm, -12) ||
 		    deflateInit2(&vpninfo->deflate_strm, Z_DEFAULT_COMPRESSION,
 				 Z_DEFLATED, -12, 9, Z_DEFAULT_STRATEGY)) {
-			vpn_progress(vpninfo, PRG_ERR, "Compression setup failed\n");
+			vpn_progress(vpninfo, PRG_ERR, _("Compression setup failed\n"));
 			vpninfo->deflate = 0;
 		}
 
 		if (!vpninfo->deflate_pkt) {
 			vpninfo->deflate_pkt = malloc(sizeof(struct pkt) + 2048);
 			if (!vpninfo->deflate_pkt) {
-				vpn_progress(vpninfo, PRG_ERR, "Allocation of deflate buffer failed\n");
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Allocation of deflate buffer failed\n"));
 				vpninfo->deflate = 0;
 			}
 			memset(vpninfo->deflate_pkt, 0, sizeof(struct pkt));
@@ -417,8 +426,8 @@ int cstp_reconnect(struct openconnect_info *vpninfo)
 		if (timeout <= 0)
 			return ret;
 		vpn_progress(vpninfo, PRG_INFO,
-				  "sleep %ds, remaining timeout %ds\n",
-				  interval, timeout);
+			     _("sleep %ds, remaining timeout %ds\n"),
+			     interval, timeout);
 		sleep(interval);
 		if (killed)
 			return 1;
@@ -448,7 +457,7 @@ static int inflate_and_queue_packet(struct openconnect_info *vpninfo, void *buf,
 	vpninfo->inflate_strm.total_out = 0;
 
 	if (inflate(&vpninfo->inflate_strm, Z_SYNC_FLUSH)) {
-		vpn_progress(vpninfo, PRG_ERR, "inflate failed\n");
+		vpn_progress(vpninfo, PRG_ERR, _("inflate failed\n"));
 		free(new);
 		return -EINVAL;
 	}
@@ -463,8 +472,8 @@ static int inflate_and_queue_packet(struct openconnect_info *vpninfo, void *buf,
 	}
 
 	vpn_progress(vpninfo, PRG_TRACE,
-			  "Received compressed data packet of %ld bytes\n",
-			  vpninfo->inflate_strm.total_out);
+		     _("Received compressed data packet of %ld bytes\n"),
+		     vpninfo->inflate_strm.total_out);
 
 	queue_packet(&vpninfo->incoming_queue, new);
 	return 0;
@@ -492,36 +501,36 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		payload_len = (buf[4] << 8) + buf[5];
 		if (len != 8 + payload_len) {
 			vpn_progress(vpninfo, PRG_ERR,
-					  "Unexpected packet length. SSL_read returned %d but packet is\n",
-					  len);
+				     _("Unexpected packet length. SSL_read returned %d but packet is\n"),
+				     len);
 			vpn_progress(vpninfo, PRG_ERR,
-					  "%02x %02x %02x %02x %02x %02x %02x %02x\n",
-					  buf[0], buf[1], buf[2], buf[3],
-					  buf[4], buf[5], buf[6], buf[7]);
+				     "%02x %02x %02x %02x %02x %02x %02x %02x\n",
+				     buf[0], buf[1], buf[2], buf[3],
+				     buf[4], buf[5], buf[6], buf[7]);
 			continue;
 		}
 		vpninfo->ssl_times.last_rx = time(NULL);
 		switch(buf[6]) {
 		case AC_PKT_DPD_OUT:
 			vpn_progress(vpninfo, PRG_TRACE,
-					  "Got CSTP DPD request\n");
+				     _("Got CSTP DPD request\n"));
 			vpninfo->owe_ssl_dpd_response = 1;
 			continue;
 
 		case AC_PKT_DPD_RESP:
 			vpn_progress(vpninfo, PRG_TRACE,
-					  "Got CSTP DPD response\n");
+				     _("Got CSTP DPD response\n"));
 			continue;
 
 		case AC_PKT_KEEPALIVE:
 			vpn_progress(vpninfo, PRG_TRACE,
-					  "Got CSTP Keepalive\n");
+				     _("Got CSTP Keepalive\n"));
 			continue;
 
 		case AC_PKT_DATA:
 			vpn_progress(vpninfo, PRG_TRACE,
-					  "Received uncompressed data packet of %d bytes\n",
-					  payload_len);
+				     _("Received uncompressed data packet of %d bytes\n"),
+				     payload_len);
 			queue_new_packet(&vpninfo->incoming_queue, buf + 8,
 					 payload_len);
 			work_done = 1;
@@ -535,13 +544,15 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			}
 			buf[payload_len + 8] = 0;
 			vpn_progress(vpninfo, PRG_ERR,
-					  "Received server disconnect: %02x '%s'\n", buf[8], buf + 9);
+				     _("Received server disconnect: %02x '%s'\n"),
+				     buf[8], buf + 9);
 			vpninfo->quit_reason = "Server request";
 			return 1;
 		}
 		case AC_PKT_COMPRESSED:
 			if (!vpninfo->deflate) {
-				vpn_progress(vpninfo, PRG_ERR, "Compressed packet received in !deflate mode\n");
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Compressed packet received in !deflate mode\n"));
 				goto unknown_pkt;
 			}
 			inflate_and_queue_packet(vpninfo, buf + 8, payload_len);
@@ -549,16 +560,16 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			continue;
 
 		case AC_PKT_TERM_SERVER:
-			vpn_progress(vpninfo, PRG_ERR, "received server terminate packet\n");
+			vpn_progress(vpninfo, PRG_ERR, _("received server terminate packet\n"));
 			vpninfo->quit_reason = "Server request";
 			return 1;
 		}
 
 	unknown_pkt:
 		vpn_progress(vpninfo, PRG_ERR,
-				  "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n",
-				  buf[0], buf[1], buf[2], buf[3],
-				  buf[4], buf[5], buf[6], buf[7]);
+			     _("Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"),
+			     buf[0], buf[1], buf[2], buf[3],
+			     buf[4], buf[5], buf[6], buf[7]);
 		vpninfo->quit_reason = "Unknown packet received";
 		return 1;
 	}
@@ -566,8 +577,8 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	ret = SSL_get_error(vpninfo->https_ssl, len);
 	if (ret == SSL_ERROR_SYSCALL || ret == SSL_ERROR_ZERO_RETURN) {
 		vpn_progress(vpninfo, PRG_ERR,
-				  "SSL read error %d (server probably closed connection); reconnecting.\n",
-				  ret);
+			     _("SSL read error %d (server probably closed connection); reconnecting.\n"),
+			     ret);
 			goto do_reconnect;
 	}
 
@@ -595,14 +606,15 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 					goto peer_dead;
 				return work_done;
 			default:
-				vpn_progress(vpninfo, PRG_ERR, "SSL_write failed: %d\n", ret);
+				vpn_progress(vpninfo, PRG_ERR, _("SSL_write failed: %d\n"), ret);
 				report_ssl_errors(vpninfo);
 				goto do_reconnect;
 			}
 		}
 		if (ret != vpninfo->current_ssl_pkt->len + 8) {
-			vpn_progress(vpninfo, PRG_ERR, "SSL wrote too few bytes! Asked for %d, sent %d\n",
-				vpninfo->current_ssl_pkt->len + 8, ret);
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("SSL wrote too few bytes! Asked for %d, sent %d\n"),
+				     vpninfo->current_ssl_pkt->len + 8, ret);
 			vpninfo->quit_reason = "Internal error";
 			return 1;
 		}
@@ -626,16 +638,17 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	case KA_REKEY:
 		/* Not that this will ever happen; we don't even process
 		   the setting when we're asked for it. */
-		vpn_progress(vpninfo, PRG_INFO, "CSTP rekey due\n");
+		vpn_progress(vpninfo, PRG_INFO, _("CSTP rekey due\n"));
 		goto do_reconnect;
 		break;
 
 	case KA_DPD_DEAD:
 	peer_dead:
-		vpn_progress(vpninfo, PRG_ERR, "CSTP Dead Peer Detection detected dead peer!\n");
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("CSTP Dead Peer Detection detected dead peer!\n"));
 	do_reconnect:
 		if (cstp_reconnect(vpninfo)) {
-			vpn_progress(vpninfo, PRG_ERR, "Reconnect failed\n");
+			vpn_progress(vpninfo, PRG_ERR, _("Reconnect failed\n"));
 			vpninfo->quit_reason = "CSTP reconnect failed";
 			return 1;
 		}
@@ -644,7 +657,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		return 1;
 
 	case KA_DPD:
-		vpn_progress(vpninfo, PRG_TRACE, "Send CSTP DPD\n");
+		vpn_progress(vpninfo, PRG_TRACE, _("Send CSTP DPD\n"));
 
 		vpninfo->current_ssl_pkt = &dpd_pkt;
 		goto handle_outgoing;
@@ -655,7 +668,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		if (vpninfo->dtls_fd == -1 && vpninfo->outgoing_queue)
 			break;
 
-		vpn_progress(vpninfo, PRG_TRACE, "Send CSTP Keepalive\n");
+		vpn_progress(vpninfo, PRG_TRACE, _("Send CSTP Keepalive\n"));
 
 		vpninfo->current_ssl_pkt = &keepalive_pkt;
 		goto handle_outgoing;
@@ -682,7 +695,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 			ret = deflate(&vpninfo->deflate_strm, Z_SYNC_FLUSH);
 			if (ret) {
-				vpn_progress(vpninfo, PRG_ERR, "deflate failed %d\n", ret);
+				vpn_progress(vpninfo, PRG_ERR, _("deflate failed %d\n"), ret);
 				goto uncompr;
 			}
 
@@ -702,8 +715,8 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpninfo->deflate_pkt->len = vpninfo->deflate_strm.total_out + 4;
 
 			vpn_progress(vpninfo, PRG_TRACE,
-					  "Sending compressed data packet of %d bytes\n",
-					  this->len);
+				     _("Sending compressed data packet of %d bytes\n"),
+				     this->len);
 
 			vpninfo->current_ssl_pkt = vpninfo->deflate_pkt;
 		} else {
@@ -713,8 +726,8 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			this->hdr[5] = this->len & 0xff;
 
 			vpn_progress(vpninfo, PRG_TRACE,
-					  "Sending uncompressed data packet of %d bytes\n",
-					  this->len);
+				     _("Sending uncompressed data packet of %d bytes\n"),
+				     this->len);
 
 			vpninfo->current_ssl_pkt = this;
 		}
@@ -751,7 +764,7 @@ int cstp_bye(struct openconnect_info *vpninfo, const char *reason)
 	free(bye_pkt);
 
 	vpn_progress(vpninfo, PRG_INFO,
-			  "Send BYE packet: %s\n", reason);
+		     _("Send BYE packet: %s\n"), reason);
 
 	return 0;
 }
