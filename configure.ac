@@ -5,6 +5,13 @@ AC_LANG_C
 AM_INIT_AUTOMAKE([foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
+IT_PROG_INTLTOOL
+AC_SUBST(GETTEXT_PACKAGE, [openconnect])
+AM_CONDITIONAL(USE_NLS, [test "$USE_NLS" = "yes"])
+if (test "$USE_NLS" = "yes"); then
+   AC_DEFINE(ENABLE_NLS, 1)
+fi
+
 AS_COMPILER_FLAGS(CFLAGS,
         "-Wall
          -Wextra
@@ -77,4 +84,4 @@ AC_CHECK_LIB(ssl, dtls1_stop_timer,
 		  AC_DEFINE(HAVE_DTLS1_STOP_TIMER, [1], [OpenSSL has dtls1_stop_timer() function]),
 		  ,,${OPENSSL_LIBS})
 
-AC_OUTPUT(Makefile openconnect.pc)
+AC_OUTPUT(Makefile openconnect.pc po/Makefile.in)

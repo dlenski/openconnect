@@ -39,7 +39,12 @@
 #ifdef LIBPROXY_HDR
 #include LIBPROXY_HDR
 #endif
-
+#ifdef ENABLE_NLS
+#include <libintl.h>
+#define _(s) gettext(s)
+#else
+#define _(s) s
+#endif
 
 /****************************************************************************/
 

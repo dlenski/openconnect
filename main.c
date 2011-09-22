@@ -236,6 +236,11 @@ int main(int argc, char **argv)
 	char *pidfile = NULL;
 	FILE *fp = NULL;
 
+#ifdef ENABLE_NLS
+	setlocale(LC_ALL, "");
+	textdomain("openconnect");
+#endif
+
 	openconnect_init_openssl();
 
 	vpninfo = malloc(sizeof(*vpninfo));

@@ -1,0 +1,12 @@
+# List of source files containing translatable strings.
+# Please keep this list in alphabetic order.
+[encoding: UTF-8]
+auth.c
+cstp.c
+dtls.c
+http.c
+main.c
+mainloop.c
+ssl.c
+tun.c
+xml.c

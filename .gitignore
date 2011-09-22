@@ -7,3 +7,12 @@ version.c
 openconnect
 nm-openconnect-auth-dialog
 Make.config
+/po/Makefile
+/po/Makefile.in
+/po/Makefile.in.in
+/po/*.gmo
+/po/*.mo
+/po/POTFILES
+/po/.intltool-merge-cache
+/po/stamp-it
+/po/openconnect.pot

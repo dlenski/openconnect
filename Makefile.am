@@ -1,4 +1,7 @@
 
+if USE_NLS
+SUBDIRS = po
+endif
 
 lib_LTLIBRARIES = libopenconnect.la
 bin_PROGRAMS = openconnect
