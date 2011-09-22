@@ -238,7 +238,6 @@ int main(int argc, char **argv)
 
 #ifdef ENABLE_NLS
 	setlocale(LC_ALL, "");
-	textdomain("openconnect");
 #endif
 
 	openconnect_init_openssl();
