@@ -746,7 +746,7 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 			err_string = _("certificate does not match hostname");
 
 		if (err_string) {
-			vpn_progress(vpninfo, PRG_ERR,
+			vpn_progress(vpninfo, PRG_INFO,
 				     _("Server certificate verify failed: %s\n"),
 				     err_string);
 
