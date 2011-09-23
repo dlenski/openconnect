@@ -40,13 +40,22 @@ Naturally, OpenConnect addresses all of the above issues, and more.
 Before you get dismayed by the badly laid out information below,
 here's a simple intro to using OpenConnect.
 <OL>
-
   <LI>Install OpenConnect.<BR>
       Some distributions like Fedora have packages; otherwise you can
-      download it and type '<TT>make</TT>' to build it. To build it,
-      you'll want development packages for <TT>libxml2</TT>, <TT>zlib</TT>
-      and obviously <TT>OpenSSL</TT> to be installed. You will also need
-      <tt>pkg-config</tt>.
+      download it and build it for yourself. To build it, you'll want
+      development packages for <TT>libxml2</TT>, <TT>zlib</TT> and
+      obviously <TT>OpenSSL</TT> to be installed. You will also need
+      <tt>pkg-config</tt>. Then do the following:
+      <UL>
+	<LI>If you checked it out from git rather than a release tarball, then:<BR>
+	    <TT>./autogen.sh</TT></LI>
+	<LI><TT>./configure</TT></LI>
+	<LI><TT>make</TT></LI>
+	<LI><TT>make install</TT> <I>(If you want to install it)</I></LI>
+      </UL>
+      If you use an operating system distribution which does not have a
+      prepackaged version of OpenConnect available, then consider filing a
+      bug/feature request for it.
   </LI>
   <LI>Install a <TT>vpnc-script</TT>.<BR>
       This script is what sets up all the addresses and routes for you; it's the
@@ -509,6 +518,6 @@ An <TT>openconnect</TT> <A HREF="http://www.freebsd.org/cgi/cvsweb.cgi/ports/sec
 <hr>
 <address>David Woodhouse &lt;<A HREF="mailto:dwmw2@infradead.org">dwmw2@infradead.org</A>&gt;</address>
 <!-- hhmts start -->
-Last modified: Thu Sep 22 15:51:17 BST 2011
+Last modified: Fri Sep 23 21:28:13 BST 2011
 <!-- hhmts end -->
 </body> </html>
