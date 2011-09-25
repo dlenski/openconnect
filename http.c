@@ -177,6 +177,13 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				     buf, colon, print_equals, semicolon?";":"",
 				     semicolon?(semicolon+1):"");
 
+			/* The server tends to ask for the username and password as
+			   usual, even if we've already failed because it didn't like
+			   our cert. Thankfully it does give us this hint... */
+			if (!strcmp(colon, "ClientCertAuthFailed"))
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("SSL certificate authentication failed\n"));
+
 			ret = http_add_cookie(vpninfo, colon, equals);
 			if (ret)
 				return ret;
