@@ -1,0 +1,8 @@
+[main]
+host = https://www.transifex.net
+
+[openconnect.openconnectpot]
+file_filter = po/<lang>.po
+source_file = po/openconnect.pot
+source_lang = en
+
