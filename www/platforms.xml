@@ -1,0 +1,48 @@
+<PAGE>
+	<VAR match="VAR_ORIGIN" replace="" />
+	<VAR match="VAR_CVSID" replace=""/>
+
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_INDEX" replace="selected" />
+	<VAR match="VAR_SEL_PLATFORMS" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2.xml" />
+
+	<INCLUDE file="inc/content.tmpl" />
+
+	<h1>Supported Platforms</h1>
+
+<p>OpenConnect is known to work on Linux (including Android), OpenBSD,
+FreeBSD, NetBSD, DragonFly BSD, OpenSolaris
+and Mac OS X platforms, and should be trivially portable to any other platform
+supporting <a href="http://en.wikipedia.org/wiki/TUN/TAP">TUN/TAP</a>
+devices and on which <a href="http://www.openssl.org/">OpenSSL</a> runs.
+IPv6 support is tested on Linux, FreeBSD and OpenSolaris.</p>
+
+<p>For Solaris support, and for IPv6 on any platform, the
+<tt>vpnc-script</tt> shipped with vpnc itself (as of v0.5.3)
+is not sufficient. It is necessary to use the script from my <a
+href="http://git.infradead.org/users/dwmw2/vpnc-scripts.git">vpnc-scripts</a>
+repository instead.</p>
+
+<p>
+It is known to work on at least i386, x86_64, PowerPC and MIPS
+processors, and should not have issues with portability to other CPUs.</p>
+<p>Note that 'Cisco Secure Desktop' support may require the ability to run Linux/i386 binaries; see the <a href="csd.html">CSD page</a>.</p>
+
+<h2>New Ports</h2>
+<p>
+Platform support for new UNIX systems is relatively simple to add
+&#8212; most of the difference is in the TUN/TAP device handling, and
+the major variants of that are already supported.</p>
+<p>
+A port to Windows should be fairly simple, since a TUN/TAP driver
+exists for Windows and Cygwin should make the basic port work OK.</p>
+<p>
+A port to Symbian, to provide VPN connectivity on phone handsets,
+would be very useful. Any volunteers?</p>
+
+
+<INCLUDE file="inc/footer.tmpl" />
+</PAGE>

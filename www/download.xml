@@ -1,0 +1,43 @@
+<PAGE>
+	<VAR match="VAR_ORIGIN" replace="" />
+	<VAR match="VAR_CVSID" replace="" />
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_INDEX" replace="selected" />
+	<VAR match="VAR_SEL_DOWNLOAD" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2.xml" />
+	
+	<INCLUDE file="inc/content.tmpl" />
+
+    	<h1>Download</h1>
+
+<p>Released versions of OpenConnect are available from the FTP site:</p>
+<ul><li><a href="ftp://ftp.infradead.org/pub/openconnect/"><tt>ftp://ftp.infradead.org/pub/openconnect/</tt></a></li></ul>
+
+<p><i>(Note: Due to a longstanding <a href="https://bugzilla.redhat.com/show_bug.cgi?id=450853">Fedora bug</a>
+you may occasionally find that the FTP server is accessible only by IPv6 and not Legacy IP. If this happens,
+please let me know by sending me an email. Or just join us in the 21st century and <a href="http://en.wikipedia.org/wiki/List_of_IPv6_tunnel_brokers">get IPv6</a>.)</i></p>
+<p>
+<!-- latest-release-start -->
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.12.tar.gz">OpenConnect v3.12</a>, released on 2011-09-12 with the following changelog:</p>
+     <ul>
+       <li>Fix DTLS compatibility with ASA firmware 8.4.1(11) and above.</li>
+       <li>Fix build failures on GNU Hurd, on systems with ancient OpenSSL,
+       and on Debian.</li>
+       <li>Add <tt>--pid-file</tt> option.</li>
+       <li>Print SHA1 fingerprint with server certificate details.</li>
+     </ul>
+<!-- latest-release-end -->
+
+For older releases and change logs, see the <a href="changelog.html">changelog page</a>.
+
+<h2>Latest sources</h2>
+
+<p>The latest source code is available from the git repository at:</p>
+<ul><li><tt>git://git.infradead.org/users/dwmw2/openconnect.git</tt><br/>or browseable in gitweb at:</li>
+<li><a href="http://git.infradead.org/users/dwmw2/openconnect.git">
+http://git.infradead.org/users/dwmw2/openconnect.git</a></li></ul>
+
+	<INCLUDE file="inc/footer.tmpl" />
+</PAGE>

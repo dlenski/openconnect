@@ -1,0 +1,67 @@
+<PAGE>
+	<VAR match="VAR_ORIGIN" replace="" />
+	<VAR match="VAR_CVSID" replace=""/>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_STARTED" replace="selected" />
+	<VAR match="VAR_SEL_BUILDING" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2-started.xml" />
+	
+	<INCLUDE file="inc/content.tmpl" />
+
+    	<h1>Building OpenConnect</h1>
+
+<p>Unless you need to test the very latest version, you should not
+need to build OpenConnect for yourself. Your operating system should
+have a <a href="packages.html">prepackaged</a> version which you can
+install; if it does not then file a bug or enhancement request asking for
+one.</p>
+
+<h2>Requirements</h2>
+<p>To build OpenConnect from its source code, you will need the following
+libraries and tools installed:</p>
+
+<ul>
+  <li><b><tt>libxml2</tt></b></li>
+  <li><b><tt>zlib</tt></b></li>
+  <li><b><tt>OpenSSL</tt></b></li>
+  <li><b><tt>pkg-config</tt></b></li>
+</ul>
+And <em>optionally</em> also:
+<ul>
+  <li><b><a href="http://code.google.com/p/libproxy/">libproxy</a></b></li>
+</ul>
+<p>OpenConnect supports the use of HTTP and SOCKS proxies to connect to the
+AnyConnect service, even without using libproxy. You may wish to use libproxy
+if you want OpenConnect to automatically use the appropriate proxies for your
+environment, without having to manually give it the <tt>--proxy</tt> argument
+on the command line.</p>
+
+<h2>Building OpenConnect</h2>
+
+<p>If you checked the source code out from git rather from a release tarball
+  then run this command first to prepare the build system:</p>
+  <ul>
+    <li><tt>./autogen.sh</tt></li>
+  </ul>
+  <p>Then to build it, run the following commands:</p>
+  <ul>
+    <li><tt>./configure</tt></li>
+    <li><tt>make</tt></li>
+    <li><tt>make install</tt> <i>(If you want to install it)</i></li>
+  </ul>
+
+<p>If compilation fails, please make sure you have a working compiler and the
+<b>development</b> packages for all the required libraries mentioned above. If
+it still doesn't build, please send the full output in a plain-text mail to the
+<a href="mail.html">mailing list</a>.</p>
+
+<h2>TUN/TAP driver</h2>
+
+<p>Mac OS X users will also need to install the
+<a href="http://tuntaposx.sourceforge.net/">Mac OS X tun/tap driver</a>, and Solaris users will need the <a href="http://www.whiteboard.ne.jp/~admin2/tuntap/">Solaris one</a>. Note that for IPv6 support, the Solaris tun/tap driver from 16th Nov 2009 or newer is required.</p>
+
+	<INCLUDE file="inc/footer.tmpl" />
+</PAGE>
+

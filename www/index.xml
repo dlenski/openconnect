@@ -1,0 +1,43 @@
+<PAGE>
+	<VAR match="VAR_ORIGIN" replace="" />
+	<VAR match="VAR_CVSID" replace=""/>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_INDEX" replace="selected" />
+	<VAR match="VAR_SEL_ABOUT" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2.xml" />
+
+	<INCLUDE file="inc/content.tmpl" />
+
+<h1>OpenConnect</h1>
+<p>OpenConnect is a client for Cisco's <a href="http://www.cisco.com/en/US/netsol/ns1049/index.html">AnyConnect SSL VPN</a>, which is supported by the ASA5500 Series, by IOS 12.4(9)T or later on Cisco SR500, 870, 880, 1800, 2800, 3800, 7200 Series and Cisco 7301 Routers, and probably others.</p>
+
+<p>OpenConnect is released under the GNU Lesser Public License, version 2.1.</p>
+
+<p>Like <a href="http://www.unix-ag.uni-kl.de/~massar/vpnc/">vpnc</a>,
+OpenConnect is not officially supported by, or associated in any way
+with, Cisco Systems. It just happens to interoperate with their
+equipment.
+</p>
+<p>Development of OpenConnect was started after a trial of their "official"
+client under Linux found it to have many deficiencies:</p>
+<ul>
+  <li>Inability to use SSL certificates from a <a href="http://en.wikipedia.org/wiki/Trusted_Platform_Module">TPM</a>, or even use a passphrase.</li>
+  <li>Lack of support for Linux platforms other than i386.</li>
+  <li>Lack of integration with NetworkManager on the Linux desktop.</li>
+  <li>Lack of proper (RPM/DEB) packaging for Linux distributions.</li>
+  <li>"Stealth" use of libraries with <tt>dlopen()</tt>, even using
+      the development-only symlinks such as <tt>libz.so</tt> &#8212;
+      making it hard to properly discover the dependencies which
+      proper packaging would have expressed</li>
+  <li>Tempfile races allowing unprivileged users to trick it into overwriting arbitrary files, as root.</li>
+  <li>Unable to run as an unprivileged user, which would have reduced the severity of the above bug.</li>
+  <li>Inability to audit the source code for further such "Security 101" bugs.</li>
+</ul>
+
+<p>Naturally, OpenConnect addresses all of the above issues, and more.
+</p>
+
+	<INCLUDE file="inc/footer.tmpl" />
+</PAGE>

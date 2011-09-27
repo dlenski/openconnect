@@ -1,0 +1,232 @@
+<PAGE>
+	<VAR match="VAR_ORIGIN" replace="" />
+	<VAR match="VAR_CVSID" replace=""/>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_INDEX" replace="selected" />
+	<VAR match="VAR_SEL_CHANGELOG" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2.xml" />
+	
+	<INCLUDE file="inc/content.tmpl" />
+
+    	<h1>Changelog</h1>
+
+<p>For full changelog entries including the latest development, see
+<a href="http://git.infradead.org/users/dwmw2/openconnect.git">gitweb</a>.</p>
+<ul>
+   <li><b>OpenConnect HEAD</b>
+     <ul>
+       <li>Add localisation support.</li>
+       <li>Fix build on Debian systems where <tt>dtls1_stop_timer()</tt> is not available.</li>
+       <li>Fix libproxy detection.</li>
+       <li>Enable a useful set of compiler warnings by default.</li>
+       <li>Fix various minor compiler warnings.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.12.tar.gz">OpenConnect v3.12</a></b> &#8212; 2011-09-12
+     <ul>
+       <li>Fix DTLS compatibility with ASA firmware 8.4.1(11) and above.</li>
+       <li>Fix build failures on GNU Hurd, on systems with ancient OpenSSL,
+       and on Debian.</li>
+       <li>Add <tt>--pid-file</tt> option.</li>
+       <li>Print SHA1 fingerprint with server certificate details.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.11.tar.gz">OpenConnect v3.11</a></b> &#8212; 2011-07-20
+     <ul>
+       <li>Add <tt>Android.mk</tt> file for Android build support</li>
+       <li>Add logging support for Android, in place of standard <tt>syslog()</tt>.</li>
+       <li>Switch back to using TLSv1, but without extensions.</li>
+       <li>Make TPM support optional, dependent on OpenSSL ENGINE support.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.10.tar.gz">OpenConnect v3.10</a></b> &#8212; 2011-06-30
+     <ul>
+       <li>Switch to using GNU autoconf/automake/libtool.</li>
+       <li>Produce shared library for authentication.</li>
+       <li>Improve library API to make life easier for C++ users.</li>
+       <li>Be more explicit about requiring <tt>pkg-config</tt>.</li>
+       <li>Invoke script with <tt>reason=reconnect</tt> on CSTP reconnect.</li>
+       <li>Add <tt>--non-inter</tt> option to avoid all user input.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.02.tar.gz">OpenConnect v3.02</a></b> &#8212; 2011-04-19
+     <ul>
+       <li>Install man page in <tt>make install</tt> target.</li>
+       <li>Add <tt>openconnect_vpninfo_free()</tt> to libopenconnect.</li>
+       <li>Clear cached <tt>peer_addr</tt> to avoid reconnecting to wrong host.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.01.tar.gz">OpenConnect v3.01</a></b> &#8212; 2011-03-09
+     <ul>
+       <li>Add libxml2 to pkg-config requirements.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.00.tar.gz">OpenConnect v3.00</a></b> &#8212; 2011-03-09
+     <ul>
+       <li>Create libopenconnect.a for GUI authentication dialog to use.</li>
+       <li>Remove auth-dialog, which now lives in the <a href="http://git.gnome.org/browse/network-manager-openconnect/">network-manager-openconnect</a> package.</li>
+       <li>Cope with more entries in authentication forms.</li>
+       <li>Add <tt>--csd-wrapper</tt> option to wrap CSD trojan.</li>
+       <li>Report error and abort if CA file cannot be opened.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.26.tar.gz">OpenConnect v2.26</a></b> &#8212; 2010-09-22
+     <ul>
+       <li>Fix potential crash on relative HTTP redirect.</li>
+       <li>Use correct TUN/TAP device node on Android.</li>
+       <li>Check client certificate expiry date.</li>
+       <li>Implement CSTP and DTLS rekeying <i>(both by reconnecting CSTP)</i>.</li>
+       <li>Add <tt>--force-dpd</tt> option to set minimum DPD interval.</li>
+       <li>Don't print <tt>webvpn</tt> cookie in debug output.</li>
+       <li>Fix host selection in NetworkManager auth dialog.</li>
+       <li>Use SSLv3 instead of TLSv1; some servers <i>(or their firewalls)</i>
+	   don't accept any <tt>ClientHello</tt> options.</li>
+       <li>Never include address family prefix on <tt>script-tun</tt> connections.</li> 
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.25.tar.gz">OpenConnect v2.25</a></b> &#8212; 2010-05-15
+     <ul>
+       <li>Always validate server certificate, even when no extra <tt>--cafile</tt> is provided.</li>
+       <li>Add <tt>--no-cert-check</tt> option to avoid certificate validation.</li>
+       <li>Check server hostname against its certificate.</li>
+       <li>Provide text-mode function for reviewing and accepting "invalid" certificates.</li>
+       <li>Fix libproxy detection on NetBSD.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.24.tar.gz">OpenConnect v2.24</a></b> &#8212; 2010-05-07
+     <ul>
+       <li>Forget preconfigured password after a single attempt; don't retry infinitely if it's failing.</li>
+       <li>Set <tt>$CISCO_BANNER</tt> environment variable when running script.</li>
+       <li>Better handling of passphrase failure on certificate files.</li>
+       <li>Fix NetBSD build (thanks to Pouya D. Tafti).</li>
+       <li>Fix DragonFly BSD build.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.23.tar.gz">OpenConnect v2.23</a></b> &#8212; 2010-04-09
+     <ul>
+       <li>Support "Cisco Secure Desktop" trojan in NetworkManager auth-dialog.</li>
+       <li>Support proxy in NetworkManager auth-dialog.</li>
+       <li>Add <tt>--no-http-keepalive</tt> option to work around Cisco's incompetence.</li>
+       <li>Fix build on Debian/kFreeBSD.</li>
+       <li>Fix crash on receiving HTTP 404 error.</li>
+       <li>Improve workaround for server certificates lacking SSL_SERVER purpose, so that it also works with OpenSSL older than 0.9.8k.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.22.tar.gz">OpenConnect v2.22</a></b> &#8212; 2010-03-07
+     <ul>
+       <li>Fix bug handling port numbers above 9999.</li>
+       <li>Ignore "<tt>Connection: Keep-Alive</tt>" in HTTP/1.0 to work around server bug with certificate authentication.</li>
+       <li>Handle non-standard port (and full URLs) when used with NetworkManager.</li>
+       <li>Cope with relative redirect and form URLs.</li>
+       <li>Allocate HTTP receive buffer dynamically, to cope with arbitrary size of content.</li>
+       <li>Fix server cert SHA1 comparison to be case-insensitive.</li>
+       <li>Fix build on Solaris and OSX <i>(<tt>strndup()</tt>, <tt>AI_NUMERICSERV</tt>).</i></li>
+       <li>Fix exit code with <tt>--background</tt> option.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.21.tar.gz">OpenConnect v2.21</a></b> &#8212; 2010-01-10
+     <ul>
+       <li>Fix handling of HTTP 1.0 responses with keepalive <a href="https://bugzilla.redhat.com/show_bug.cgi?id=553817"><i>(RH#553817)</i></a>.</li>
+       <li>Fix case sensitivity in HTTP headers and hostname comparison on redirect.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.20.tar.gz">OpenConnect v2.20</a></b> &#8212; 2010-01-04
+     <ul>
+       <li>Fix use-after-free bug in NetworkManager authentication dialog <a href="https://bugzilla.redhat.com/show_bug.cgi?id=551665"><i>(RH#551665)</i></a>.</li>
+       <li>Allow server to be specified with <tt>https://</tt> URL, including port and pathname (which Cisco calls 'UserGroup')</li>
+       <li>Support connection through HTTP and SOCKS proxies.</li>
+       <li>Handle HTTP redirection with port numbers.</li>
+       <li>Handle HTTP redirection with IPv6 literal addresses.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.12.tar.gz">OpenConnect v2.12</a></b> &#8212; 2009-12-07
+     <ul>
+       <li>Fix buffer overflow when generating useragent string.</li>
+       <li>Cope with idiotic schizoDNS configurations by not repeating DNS lookup for VPN server on reconnects.</li>
+       <li>Support DragonFlyBSD. Probably.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.11.tar.gz">OpenConnect v2.11</a></b> &#8212; 2009-11-17
+     <ul>
+       <li>Add IPv6 support for FreeBSD.</li>
+       <li>Support "split tunnel" mode for IPv6 routing.</li>
+       <li>Fix bug where client certificate's MD5 was only given to the
+	   CSD trojan if a PKCS#12 certificate was used.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.10.tar.gz">OpenConnect v2.10</a></b> &#8212; 2009-11-04
+     <ul>
+       <li>OpenSolaris support.</li>
+       <li>Preliminary support for IPv6 connectivity.</li>
+       <li>Fix session shutdown on exit.</li>
+       <li>Fix reconnection when TCP connection is closed.</li>
+       <li>Support for "Cisco Secure Desktop" idiocy.</li>
+       <li>Allow <tt>User-Agent:</tt> to be specified on command line.</li>
+       <li>Fix session termination on disconnect.</li>
+       <li>Fix recognition of certificates from OpenSSL 1.0.0.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.01.tar.gz">OpenConnect v2.01</a></b> &#8212; 2009-06-24
+     <ul>
+       <li>Fix bug causing loss of DTLS (and lots of syslog spam about it)
+	   after a CSTP reconnection.</li>
+       <li>Don't apply OpenSSL certificate chain workaround if we already
+	   have "extra" certificates loaded (e.g. from a PKCS#12 file).</li>
+       <li>Load "extra" certificates from <tt>.pem</tt> files too.</li>
+       <li>Fix SEGV caused by freeing certificates after processing cert
+	   chain.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-2.00.tar.gz">OpenConnect v2.00</a></b> &#8212; 2009-06-03
+      <ul>
+	<li>Add OpenBSD and FreeBSD support.</li>
+	<li>Build with OpenSSL-0.9.7 (Mac OS X, OpenBSD, etc.)</li>
+	<li>Support PKCS#12 certificates.</li>
+	<li>Automatic detection of certificate type (PKCS#12, PEM, TPM).</li>
+	<li>Work around OpenSSL trust chain issues (<a href="http://rt.openssl.org/Ticket/Display.html?id=1942&amp;amp;user=guest&amp;amp;pass=guest">RT#1942</a>).</li>
+	<li>Allow PEM passphrase to be specified on command line.</li>
+	<li>Allow PEM passphrase automatically generated from the <tt>fsid</tt> of the file system on which the certificate is stored.</li>
+	<li>Fix certificate comparisons (in NM auth-dialog and <tt>--servercert</tt> option) to use SHA1 fingerprint, not signature.</li>
+	<li>Fix segfault in NM auth-dialog when changing hosts.</li>
+      </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-1.40.tar.gz">OpenConnect v1.40</a></b> &#8212; 2009-05-27
+      <ul>
+	<li>Fix validation of server's SSL certificate when NetworkManager runs openconnect as an unprivileged user (which can't read the real user's trust chain file).</li>
+	<li>Fix double-free of DTLS Cipher option on reconnect.</li>
+	<li>Reconnect on SSL write errors</li>
+	<li>Fix reporting of SSL errors through syslog/UI.</li>
+      </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-1.30.tar.gz">OpenConnect v1.30</a></b> &#8212; 2009-05-13
+      <ul>
+	<li>NetworkManager auth-dialog will now cache authentication form options.</li>
+      </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-1.20.tar.gz">OpenConnect v1.20</a></b> &#8212; 2009-05-08
+      <ul>
+	<li>DTLS cipher choice fixes.</li>
+	<li>Improve handling of authentication group selection.</li>
+	<li>Export more information to connection script.</li>
+	<li>Add <tt>--background</tt> option to dæmonize after connection.</li>
+	<li>Detect TCP connection closure.</li>
+      </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-1.10.tar.gz">OpenConnect v1.10</a></b> &#8212; 2009-04-01
+      <ul>
+	<li>NetworkManager UI rewrite with many improvements.</li>
+	<li>Support for "UserGroups" where a single server offers multiple
+	configurations according to the URL used to connect.</li>
+      </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-1.00.tar.gz">OpenConnect v1.00</a></b> &#8212; 2009-03-18
+      <ul>
+	<li>First non-beta release.</li>
+      </ul>
+  </li>
+</ul>
+	<INCLUDE file="inc/footer.tmpl" />
+</PAGE>
+

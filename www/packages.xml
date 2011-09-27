@@ -1,0 +1,39 @@
+<PAGE>
+	<VAR match="VAR_ORIGIN" replace="" />
+	<VAR match="VAR_CVSID" replace=""/>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_INDEX" replace="selected" />
+	<VAR match="VAR_SEL_PACKAGES" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2.xml" />
+
+	<INCLUDE file="inc/content.tmpl" />
+
+	<h1>Distribution Status</h1>
+
+<p>
+  <i>Updates to the information below are welcomed, especially for distributions (including *BSD etc.) which aren't yet mentioned.</i>
+
+<ul><li><h2>Fedora</h2>
+  Both <tt>openconnect</tt> and <tt>NetworkManager-openconnect</tt> packages are included in Fedora.
+  Fedora's OpenSSL packages include all required patches for DTLS compatibility.
+</li>
+<li><h2>Debian</h2>
+  The <tt>openconnect</tt> and <tt>network-manager-openconnect</tt> packages are available in unstable and testing.<br/>
+  Debian's OpenSSL packages include all required patches for DTLS compatibility in unstable and testing.
+</li>
+</ul>
+
+  <h3>Ubuntu</h3>
+  Reasonably current versions of the required packages are finally included in Ubuntu 10.04 "Lucid". Older releases still have <a href="https://bugs.launchpad.net/ubuntu/+source/openssl/+bug/516318">out of date OpenSSL</a> and <a href="https://bugs.launchpad.net/ubuntu/+source/openconnect/+bug/516324">out of date OpenConnect which doesn't work around the latest Cisco bugs</a>.
+  <h3>Gentoo</h3>
+  <a href="http://bugs.gentoo.org/show_bug.cgi?id=263097">Gentoo bug #263097</a> has been filed, asking for <tt>openconnect</tt> to be packaged.
+  <h3>NetBSD, DragonFly BSD, etc. <i>(pkgsrc)</i></h3>
+  There are packages for <a href="http://pkgsrc-wip.cvs.sourceforge.net/viewvc/pkgsrc-wip/wip/vpnc-script/">vpnc-script</a> and <a href="http://pkgsrc-wip.cvs.sourceforge.net/viewvc/pkgsrc-wip/wip/openconnect/">openconnect</a> in the pkgsrc-wip repository <i>(<a href="http://pkgsrc-wip.sourceforge.net/">pkgsrc-wip.sf.net</a>)</i>.
+  <h3>FreeBSD</h3>
+  An <tt>openconnect</tt> <a href="http://www.freebsd.org/cgi/cvsweb.cgi/ports/security/openconnect/">port</a> is available for FreeBSD. FreeBSD does not yet ship a version of OpenSSL which supports Cisco's "speshul" version of DTLS.
+</p>
+
+<INCLUDE file="inc/footer.tmpl" />
+</PAGE>

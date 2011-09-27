@@ -1,0 +1,43 @@
+<PAGE>
+	<VAR match="VAR_ORIGIN" replace="" />
+	<VAR match="VAR_CVSID" replace=""/>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_FEATURES" replace="selected" />
+	<VAR match="VAR_SEL_FEATURE_GUI" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2-features.xml" />
+
+	<INCLUDE file="inc/content.tmpl" />
+
+	<h1>GUI Tools for OpenConnect</h1>
+
+<h2>NetworkManager</h2>
+
+<p>Support for OpenConnect in NetworkManager has been integrated into
+GNOME git and is released alongside NetworkManager's other VPN modules:
+<a href="http://ftp.gnome.org/pub/GNOME/sources/NetworkManager-openconnect/">
+http://ftp.gnome.org/pub/GNOME/sources/NetworkManager-openconnect/</a>.</p>
+
+<p>Prior to OpenConnect v3.00, the <tt>auth-dialog</tt>
+tool which handles GUI authentication was part of OpenConnect itself,
+rather than included in the <tt>network-manager-openconnect</tt>
+package. Versions of <tt>network-manager-openconnect</tt> earlier than 0.8.4
+will expect the <tt>auth-dialog</tt> to be provided for them, and thus will
+not work with a version of OpenConnect any newer then v2.26.</p>
+
+<p>To use OpenConnect v3.00 or newer with NetworkManager, you will need to be
+using NetworkManager-openconnect v0.8.4 or newer.</p>
+
+<p><b>Note for KDE users:</b> KDE does not support using OpenConnect with version 0.8 of NetworkManager <i>(unless of course you run OpenConnect manually from the command line and don't use NetworkManager for the VPN at all)</i>. It is only supported since 2011-06-22 with the NetworkManager 0.9, and with the corresponding <a href="https://projects.kde.org/projects/extragear/base/networkmanagement/repository/show?rev=nm09"><tt>nm09</tt></a> branch of the <a href="http://userbase.kde.org/NetworkManagement">kde-plasma-networkmanagement</a> widget.</p>
+<p>This support was added by Ilia Kats, as <a href="https://bugs.kde.org/show_bug.cgi?id=226028">KDE bug #226028</a>.</p>
+
+<h2>ConnMan</h2>
+
+<p><a href="http://connman.net/">ConnMan</a> has core OpenConnect functionality
+as from version 0.48, and the corresponding support is also in the
+<a href="http://meego.gitorious.org/meego-netbook-ux/meego-panel-networks">meego-panel-networks</a>
+user interface. Other ConnMan UI front ends may lack VPN support.</p>
+
+<INCLUDE file="inc/footer.tmpl" />
+</PAGE>

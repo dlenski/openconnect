@@ -1,0 +1,46 @@
+<PAGE>
+	<VAR match="VAR_ORIGIN" replace="" />
+	<VAR match="VAR_CVSID" replace=""/>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_CONTRIBUTE" replace="selected" />
+	<PARSE file="menu1.xml" />
+	
+	<INCLUDE file="inc/content.tmpl" />
+
+<h1>Contributing to OpenConnect</h1>
+
+<a name="translation"/>
+<h2>Translations</h2>
+
+<p>The main thing needed at the present time is translations into
+languages other than English. All contributions will be gratefully
+received.</p>
+
+<p>Translations for OpenConnect can be entered through <a
+href="https://www.transifex.net/projects/p/openconnect/">Transifex</a>
+or by editing one of the language files in the <tt><a
+href="http://git.infradead.org/users/dwmw2/openconnect.git/tree/HEAD:/po">po/</a></tt>
+directory and sending the resulting patch (or file) to the <a
+href="mail.html">mailing list</a>.</p>
+
+<p>If there are questions about the messages because the intent is not clear, or if the
+messages could be improved to make translation easier or better, please also feel free to
+ask or make suggestions on the mailing list.</p>
+
+
+
+<h2>TODO</h2>
+
+Other items on the TODO list include:
+
+<ul>
+  <li>Testing IPv6 on more platforms (only Linux, FreeBSD, Solaris are tested so far).</li>
+  <li>Better support for running or emulating the '<a href="csd.html">Cisco Secure Desktop</a>' trojan.</li>
+  <li>More platform support: Windows, Symbian, etc.</li>
+  <li>GUI for OS X, perhaps based on <a href="http://code.google.com/p/tunnelblick/">Tunnelblick</a>.</li>
+</ul>
+
+
+	<INCLUDE file="inc/footer.tmpl" />
+</PAGE>

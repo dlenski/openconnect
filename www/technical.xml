@@ -1,0 +1,56 @@
+<PAGE>
+	<VAR match="VAR_ORIGIN" replace="" />
+	<VAR match="VAR_CVSID" replace=""/>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_TECHNICAL" replace="selected" />
+	<PARSE file="menu1.xml" />
+	
+	<INCLUDE file="inc/content.tmpl" />
+
+<h2>How the VPN works</h2>
+
+<p>The VPN is extremely simple, based almost entirely on the standard
+HTTPS and <a href="http://www.rfc-editor.org/rfc/rfc4347.txt">DTLS</a>
+protocols. You connect to the secure web server, authenticate using
+certificates and/or arbitrary web forms, and you are rewarded with a
+standard HTTP cookie.</p>
+
+<p>You then use this cookie in an HTTP <tt>CONNECT</tt> request, and can
+then pass traffic over that connection. IP addresses and routing
+information are passed back and forth in the headers of that
+<tt>CONNECT</tt> request.</p>
+
+<p>Since <a href="http://sites.inka.de/~W1011/devel/tcp-tcp.html">TCP
+over TCP is very suboptimal</a>, the VPN also attempts to use UDP
+datagrams, and will only <em>actually</em> pass traffic over the HTTPS
+connection if that fails. The UDP connectivity is done using Datagram
+TLS, which is supported by OpenSSL.</p>
+
+<h2>OpenSSL/DTLS compatibility</h2>
+
+<p><i><b>Note: DTLS is optional and not required for basic connectivity, as explained above.</b></i></p>
+
+<p>Unfortunately, Cisco used an old version of OpenSSL for their server,
+which predates the official RFC and has a few differences in the
+implementation of DTLS.
+</p>
+<p>Compatibility support for their "speshul" version of the protocol is
+in the 0.9.8m and later releases of OpenSSL (and 1.0.0-beta2 and later).
+</p>
+
+<p>If you are using an older version of OpenSSL, DTLS will
+only work if you apply this patch from OpenSSL CVS:</p>
+<ul>
+  <li><a href="http://cvs.openssl.org/chngview?cn=18037">http://cvs.openssl.org/chngview?cn=18037</a> (OpenSSL <a href="http://rt.openssl.org/Ticket/Display.html?id=1751&amp;amp;user=guest&amp;amp;pass=guest">RT#1751</a>)</li>
+</ul>
+
+For versions older than 0.9.8j, some generic DTLS bug fixes are also required:
+<ul>
+  <li><a href="http://cvs.openssl.org/chngview?cn=17500">http://cvs.openssl.org/chngview?cn=17500</a>  (OpenSSL <a href="http://rt.openssl.org/Ticket/Display.html?id=1703&amp;amp;user=guest&amp;amp;pass=guest">RT#1703</a>)</li>
+  <li><a href="http://cvs.openssl.org/chngview?cn=17505">http://cvs.openssl.org/chngview?cn=17505</a> (OpenSSL <a href="http://rt.openssl.org/Ticket/Display.html?id=1752&amp;amp;user=guest&amp;amp;pass=guest">RT#1752</a>) </li>
+</ul>
+The username/password for OpenSSL RT is 'guest/guest'
+
+	<INCLUDE file="inc/footer.tmpl" />
+</PAGE>

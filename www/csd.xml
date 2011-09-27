@@ -1,0 +1,33 @@
+<PAGE>
+	<VAR match="VAR_ORIGIN" replace="" />
+	<VAR match="VAR_CVSID" replace=""/>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_FEATURES" replace="selected" />
+	<VAR match="VAR_SEL_FEATURE_CSD" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2-features.xml" />
+
+	<INCLUDE file="inc/content.tmpl" />
+
+<h1>Cisco Secure Desktop</h1>
+
+<p>The 'Cisco Secure Desktop' is a bit of a misnomer &#8212; it works by
+downloading a trojan binary from the server and running it on your
+client machine to perform some kind of 'verification' and post its
+approval back to the server. This seems anything <em>but</em> secure
+to me, especially given their history of trivially-exploitable
+bugs.</p>
+<p>It's also fairly easy to subvert, by running your own modified binary
+instead of the one you download from the server. Or by running their
+binary but poking at it with gdb.</p>
+<p>We support this idiocy, but because of the security concerns the
+trojan will be executed only if a userid is specified on the command
+line using the <tt>--csd-user=</tt> option, or the <tt>--csd-wrapper=</tt>
+option is used to handle the script in a 'safe' manner.</p>
+<p>
+This support currently only works when the server has a Linux binary
+installed, and only when that Linux binary runs on the client machine.</p>
+
+<INCLUDE file="inc/footer.tmpl" />
+</PAGE>

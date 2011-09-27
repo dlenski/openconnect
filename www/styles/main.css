@@ -1,0 +1,150 @@
+body {
+    background: white;
+    font-family: 'Delius', Sans, Arial, Helvetica, Geneva, Swiss, SunSans-Regular;
+    font-size: 12px; 
+}
+
+#logo {
+	text-align: right;
+	margin: 0;
+}
+
+#main {
+	margin: 0;
+	border-left-style: double;
+	border-bottom-style: double;
+	border-color: #1414a6;
+	border-left-width: 5px;	
+	border-bottom-width: 5px;
+	min-width: 70em;
+}
+
+#menu1 {
+	margin: 0;
+	padding-left: 20px;
+	background: #1414a6;
+	height: 2.2em;
+}
+
+#menu1 p {
+	color: white;
+	font-size: 14px;
+	text-align: right;
+	vertical-align: middle;
+	padding-right: 10px;
+	padding-top: 0.2em;
+}
+
+#menu1 .nonsel a {
+    color: black;
+    float: left;
+    background: url(../images/left.png) top left no-repeat #b3b3b3;
+    margin-top: 0.2em;
+    margin-left: 5px;
+    padding-top: 0.2em;
+    height: 1.8em;
+    text-decoration: none;
+}
+
+#menu1 .nonsel a span {
+    background: url(../images/right.png) top right no-repeat transparent;
+    padding: 0.2em 1em 0 1em;
+}
+
+#menu1 .nonsel a:hover {
+    background: url(../images/leftsel.png) top left no-repeat #e6e6e6;
+}
+
+#menu1 .nonsel a:hover span {
+    color: Black;    
+    text-decoration: underline; 
+    background: url(../images/rightsel.png) top right no-repeat transparent;    
+}
+
+#menu1 .sel a {
+    color: black;
+    float: left;
+    padding-top: 0.2em;
+    background: url(../images/leftsel.png) top left no-repeat #e6e6e6;
+    margin-top: 0.2em;
+    margin-left: 5px;    
+    height: 2em;
+    text-decoration: none;
+}
+
+#menu1 .sel a span {
+    background: url(../images/rightsel.png) top right no-repeat transparent;
+    padding: 0.2em 1em 0 1em;
+}
+
+#menu2 {
+    background: #e6e6e6;
+    height: 2.3em;
+    border-bottom-style: solid;
+    border-color: #1414a6;
+    border-bottom-width: 1px;	
+}
+
+#menu2 .nonsel a {
+    color: black;
+    float: left;
+    background: url(../images/left2.png) top left no-repeat #b3b3b3;
+    margin-top: 0.2em;
+    margin-left: 5px;
+    padding-top: 0.2em;
+    height: 1.8em;
+    text-decoration: none;
+}
+
+#menu2 .nonsel a span {
+    background: url(../images/right2.png) top right no-repeat transparent;
+    padding: 0.2em 1em 0 1em;
+}
+
+#menu2 .nonsel a:hover {
+    background: url(../images/leftsel2.png) top left no-repeat #e6e6e6;
+}
+
+#menu2 .nonsel a:hover span {
+    color: Black;    
+    text-decoration: underline; 
+    background: url(../images/rightsel2.png) top right no-repeat transparent;    
+}
+
+#menu2 .sel a {
+    color: black;
+    float: left;
+    padding: 0.2em 1em 0 1em;
+    margin-top: 0.2em;
+    margin-left: 0px;    
+    height: 2em;
+    text-decoration: none;
+}
+
+#textbox {
+    margin-left: 20px;
+    margin-bottom: 20px;
+    margin-right: 20px;
+    margin-top: 20px;
+    padding-top: 20px;	
+    padding-left: 20px;
+    padding-right: 120px;	
+    padding-bottom: 20px;	
+    font-size: 14px; 
+}
+
+#text {
+    margin: 0;
+    border-color: #e6e6e6;
+    font-size: 14px; 
+    background: #ffffff;
+}
+
+#text a {
+	color: blue;
+	text-decoration: none;
+}
+
+#text a:hover {
+	text-decoration: underline;
+}

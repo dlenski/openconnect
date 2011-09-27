@@ -1,0 +1,32 @@
+<PAGE>
+	<VAR match="VAR_ORIGIN" replace="" />
+	<VAR match="VAR_CVSID" replace=""/>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_STARTED" replace="selected" />
+	<VAR match="VAR_SEL_VPNCSCRIPT" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2-started.xml" />
+	
+	<INCLUDE file="inc/content.tmpl" />
+
+<h1>Install a <tt>vpnc-script</tt>.</h1>
+
+<p>This script is what sets up all the addresses and routes for you; it's the
+same as <tt>vpnc</tt>'s, and if you have the <tt>vpnc</tt> package installed
+then you may already have a <tt>vpnc-script</tt> installed with it, perhaps in
+a directory like <tt>/etc/vpnc/vpnc-script</tt>.</p>
+
+<p>If you don't already have it, you can get a current version from <a
+href="http://git.infradead.org/users/dwmw2/vpnc-scripts.git/blob_plain/HEAD:/vpnc-script">here</a>.
+Even if you already have a copy from vpnc, you may wish to install this updated
+version which has support for IPv6, and for running on Solaris and on newer Linux
+kernels amongst other bug fixes.</p>
+
+<p>Note that the script needs to be executable, and stored somewhere
+where SELinux or similar security systems won't prevent the root user
+from accessing it.</p>
+
+	<INCLUDE file="inc/footer.tmpl" />
+</PAGE>
+

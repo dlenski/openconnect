@@ -1,0 +1,43 @@
+<PAGE>
+	<VAR match="VAR_ORIGIN" replace="" />
+	<VAR match="VAR_CVSID" replace=""/>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_MAIL" replace="selected" />
+	<PARSE file="menu1.xml" />
+	
+	<INCLUDE file="inc/content.tmpl" />
+
+    	<h1>Mailing lists</h1>
+
+	<p>There is a mailing list at <tt><a href="mailto:openconnect-devel@lists.infradead.org">
+	openconnect-devel@lists.infradead.org</a></tt>.</p>
+
+	<p>Please read the recent messages in the <a
+	href="http://lists.infradead.org/pipermail/openconnect-devel/">archive</a> before
+	posting a question that is likely to have been asked before.</p>
+
+	<p>You do <em>not</em> have to be subscribed to the list in order to post a question. If you have
+	questions or problems, <em>PLEASE</em> post them to the mailing list rather than putting
+	them on some random web forum where they are unlikely to get a quick or knowledgeable response.</p>
+
+	<p>If you do want to subscribe to the mailing list, you can do so from the <a
+	href="http://lists.infradead.org/mailman/listinfo/openconnect-devel">Mailman admin page</a>.</p>
+
+	<p>Please note that the mailing list, like many technical mailing lists, does not accept
+	HTML messages. You should post as plain text only. Other tips on 'netiquette' can be found
+	on <a href="http://david.woodhou.se/email.html">this page</a>.</p>
+
+
+
+	Before posting to the list, read this:
+	<p>
+	  <b>SECURITY WARNING:</b><br/>
+	  If you are posting debugging output from openconnect to the mailing list, do <em>not</em> include a line which looks like this:
+	  <br/><tt>Set-Cookie: webvpn=835278264@921600@1221512527@6B9EC24DEB2F59E242F75B424D42F223D0912984;PATH=/</tt><br/>
+	  That HTTP cookie is all that's needed to grant access to the VPN session you just logged in to &#8212;
+	  it's almost as bad as giving your password away. Version 2.26 or later of OpenConnect will 
+	  automatically filter this out of the debugging output for you.
+	</p>
+	<INCLUDE file="inc/footer.tmpl" />
+</PAGE>

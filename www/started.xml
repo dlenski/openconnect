@@ -1,0 +1,35 @@
+<PAGE>
+	<VAR match="VAR_ORIGIN" replace="" />
+	<VAR match="VAR_CVSID" replace=""/>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_STARTED" replace="selected" />
+	<VAR match="VAR_SEL_STARTED_CONNECTING" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2-started.xml" />
+	
+	<INCLUDE file="inc/content.tmpl" />
+
+    	<h1>Getting Started</h1>
+
+	<p>As root, run the following command:<br/>
+      <tt>openconnect --script /etc/vpnc/vpnc-script https://vpn.mycompany.com/</tt>
+    </p>
+
+That should be it, if you have a password-based login. If you use
+certificates, you'll need to tell OpenConnect where to find the
+certificate with the <tt>-c</tt> option. You might need to steal the
+certificate from your Windows certificate store using a tool like <a
+href="https://www.isecpartners.com/jailbreak.html">Jailbreak</a>.
+<p>
+You can ignore anything you see in the compatibility page about needing to patch OpenSSL
+so that DTLS works &#8212; you don't really need it, although it will
+make your connections much faster if you're experiencing packet loss
+between you and the VPN server. But you can worry about that later.
+</p>
+
+	<INCLUDE file="inc/footer.tmpl" />
+</PAGE>
+
+
+
