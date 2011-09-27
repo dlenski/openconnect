@@ -143,19 +143,25 @@ static int netmasklen(struct in_addr addr)
 }
 
 static int process_split_xxclude(struct openconnect_info *vpninfo,
-				 const char *in_ex, const char *route, int *v4_incs,
+				 int include, const char *route, int *v4_incs,
 				 int *v6_incs)
 {
 	struct in_addr addr;
+	const char *in_ex = include?"IN":"EX";
 	char envname[80];
 	char *slash;
 
 	slash = strchr(route, '/');
 	if (!slash) {
 	badinc:
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Discard bad split %sclude: \"%s\"\n"),
-			     in_ex, route);
+		if (include)
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Discard bad split include: \"%s\"\n"),
+				     route);
+		else
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Discard bad split exclude: \"%s\"\n"),
+				     route);
 		return -EINVAL;
 	}
 
@@ -332,7 +338,7 @@ static void set_script_env(struct openconnect_info *vpninfo)
 		int nr_v6_split_includes = 0;
 
 		while (this) {
-			process_split_xxclude(vpninfo, "IN", this->route,
+			process_split_xxclude(vpninfo, 1, this->route,
 					      &nr_split_includes,
 					      &nr_v6_split_includes);
 			this = this->next;
@@ -348,7 +354,7 @@ static void set_script_env(struct openconnect_info *vpninfo)
 		int nr_v6_split_excludes = 0;
 
 		while (this) {
-			process_split_xxclude(vpninfo, "EX", this->route,
+			process_split_xxclude(vpninfo, 0, this->route,
 					      &nr_split_excludes,
 					      &nr_v6_split_excludes);
 			this = this->next;
