@@ -1,7 +1,8 @@
 <PAGE>
 	<STARTMENU level="2"/>
-        <MENU topic="1. Building" link="VAR_ORIGINbuilding.html" mode="VAR_SEL_BUILDING" />
-        <MENU topic="2. vpnc-script" link="VAR_ORIGINvpnc-script.html" mode="VAR_SEL_VPNCSCRIPT" />
-	<MENU topic="3. Connecting" link="VAR_ORIGINconnecting.html" mode="VAR_SEL_CONNECTING" />
+        <MENU topic="Building" link="VAR_ORIGINbuilding.html" mode="VAR_SEL_BUILDING" />
+        <MENU topic="vpnc-script" link="VAR_ORIGINvpnc-script.html" mode="VAR_SEL_VPNCSCRIPT" />
+	<MENU topic="Connecting" link="VAR_ORIGINconnecting.html" mode="VAR_SEL_CONNECTING" />
+	<MENU topic="Manual" link="VAR_ORIGINmanual.html" mode="VAR_SEL_MANUAL" />
 	<ENDMENU />
 </PAGE>
