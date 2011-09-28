@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-26 00:03+0100\n"
-"PO-Revision-Date: 2011-09-27 10:38+0000\n"
+"POT-Creation-Date: 2011-09-28 04:13+0100\n"
+"PO-Revision-Date: 2011-09-28 23:01+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Czech (http://www.transifex.net/projects/p/meego/team/cs/)\n"
 "MIME-Version: 1.0\n"
@@ -1033,94 +1033,99 @@ msgstr ""
 msgid "SIOCSIFMTU"
 msgstr ""
 
-#: ../tun.c:157
+#: ../tun.c:159
 #, c-format
-msgid "Discard bad split %sclude: \"%s\"\n"
+msgid "Discard bad split include: \"%s\"\n"
 msgstr ""
 
-#: ../tun.c:369 ../tun.c:655
+#: ../tun.c:163
+#, c-format
+msgid "Discard bad split exclude: \"%s\"\n"
+msgstr ""
+
+#: ../tun.c:375 ../tun.c:661
 #, c-format
 msgid "Failed to spawn script '%s': %s\n"
 msgstr ""
 
-#: ../tun.c:394
+#: ../tun.c:400
 msgid "socketpair"
 msgstr ""
 
-#: ../tun.c:400
+#: ../tun.c:406
 msgid "fork"
 msgstr ""
 
-#: ../tun.c:406
+#: ../tun.c:412
 msgid "execl"
 msgstr ""
 
-#: ../tun.c:411
+#: ../tun.c:417
 msgid "(script)"
 msgstr ""
 
-#: ../tun.c:432
+#: ../tun.c:438
 #, c-format
 msgid "Failed to open tun device: %s\n"
 msgstr ""
 
-#: ../tun.c:443
+#: ../tun.c:449
 #, c-format
 msgid "TUNSETIFF failed: %s\n"
 msgstr ""
 
-#: ../tun.c:456
+#: ../tun.c:462
 msgid "open /dev/ip"
 msgstr ""
 
-#: ../tun.c:462
+#: ../tun.c:468
 msgid "open /dev/tun"
 msgstr ""
 
-#: ../tun.c:469
+#: ../tun.c:475
 msgid "Failed to create new tun"
 msgstr ""
 
-#: ../tun.c:477
+#: ../tun.c:483
 msgid "open /dev/tun again"
 msgstr ""
 
-#: ../tun.c:483
+#: ../tun.c:489
 msgid "Can't push IP"
 msgstr ""
 
-#: ../tun.c:490
+#: ../tun.c:496
 msgid "Can't select unit"
 msgstr ""
 
-#: ../tun.c:498
+#: ../tun.c:504
 msgid "Can't link tun to IP"
 msgstr ""
 
-#: ../tun.c:514
+#: ../tun.c:520
 msgid "Set mux id"
 msgstr ""
 
 #. Solaris tunctl needs this in order to tear it down
-#: ../tun.c:521
+#: ../tun.c:527
 #, c-format
 msgid "mux id is %d\n"
 msgstr ""
 
-#: ../tun.c:535
+#: ../tun.c:541
 msgid "open tun"
 msgstr ""
 
-#: ../tun.c:542
+#: ../tun.c:548
 msgid "TUNSIFHEAD"
 msgstr ""
 
-#: ../tun.c:622
+#: ../tun.c:628
 #, c-format
 msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
 msgstr ""
 
-#: ../tun.c:662
+#: ../tun.c:668
 msgid "ioctl(I_PUNLINK)"
 msgstr ""
 
