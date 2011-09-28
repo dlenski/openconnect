@@ -1,6 +1,7 @@
 
+SUBDIRS = www
 if USE_NLS
-SUBDIRS = po
+SUBDIRS += po
 endif
 
 lib_LTLIBRARIES = libopenconnect.la
@@ -53,14 +54,21 @@ tag: uncommitted-check
 		echo "*** ERROR: Version v$(VERSION) is already tagged"; exit 1; fi
 	@sed 's/AC_INIT.*/AC_INIT(openconnect, $(VERSION))/' -i configure.ac
 	@sed 's/^v=.*/v="v$(VERSION)"/' -i version.sh
+	@( echo '1,/<!-- latest-release-start -->/p' ;\
+	   echo '/<!-- latest-release-end -->/,$$p' ;\
+	   echo  '/<!-- latest-release-start -->/a\' ;\
+	   echo  'The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-$(VERSION).tar.gz">OpenConnect v$(VERSION)</a>, released on $(shell date +%Y-%m-%d) with the following changelog:</p>\' ;\
+	   sed '0,/<b>OpenConnect HEAD/d;/<\/ul><br\/>/,$$d;s/$$/\\/' www/changelog.xml ;\
+	   echo '     </ul>' ) | \
+	 sed -n -f - -i www/download.xml
 	@( echo "s/Last modified: .*/Last modified: $(shell date)/" ;\
-	   echo '/  <LI><B>OpenConnect HEAD/a\' ;\
-	   echo '     <UL>\' ;\
-	   echo '       <LI><I>No changelog entries yet</I></LI>\';\
-	   echo '     </UL><BR>\' ;  echo '  </LI>\' ;\
-	   echo '  <LI><B><A HREF="ftp://ftp.infradead.org/pub/openconnect/openconnect-$(VERSION).tar.gz">OpenConnect v$(VERSION)</a></B> &mdash; $(shell date +%Y-%m-%d)<BR>' ) | \
-		sed -f - -i openconnect.html
+	   echo '/  <li><b>OpenConnect HEAD/a\' ;\
+	   echo '     <ul>\' ;\
+	   echo '       <li><i>No changelog entries yet</i></li>\';\
+	   echo '     </ul><br/>\' ;  echo '  </li>\' ;\
+	   echo '  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-$(VERSION).tar.gz">OpenConnect v$(VERSION)</a></b> &#8212; $(shell date +%Y-%m-%d)' ) | \
+		sed -f - -i www/changelog.xml
 # stupid syntax highlighting '
-	@git commit -s -m "Tag version $(VERSION)" configure.ac version.sh openconnect.html
+	@git commit -s -m "Tag version $(VERSION)" configure.ac version.sh www/download.xml www/changelog.xml
 	@git tag v$(VERSION)
 	@./autogen.sh
