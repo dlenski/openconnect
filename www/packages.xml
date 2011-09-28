@@ -23,9 +23,11 @@
   The <tt>openconnect</tt> and <tt>network-manager-openconnect</tt> packages are available in unstable and testing.<br/>
   Debian's OpenSSL packages include all required patches for DTLS compatibility in unstable and testing.
 </li>
-
 <li><h2>Ubuntu</h2>
   Reasonably current versions of the required packages are finally included in Ubuntu 10.04 "Lucid". Older releases still have <a href="https://bugs.launchpad.net/ubuntu/+source/openssl/+bug/516318">out of date OpenSSL</a> and <a href="https://bugs.launchpad.net/ubuntu/+source/openconnect/+bug/516324">out of date OpenConnect which doesn't work around the latest Cisco bugs</a>.</li>
+<li><h2>OpenSuSE</h2>
+ OpenSuSE 12.1 should finally include <tt>openconnect</tt> and <tt>NetworkManager-openconnect</tt> packages, which are absent from older releases.</li>
+
 <li><h2>Gentoo</h2>
   <a href="http://bugs.gentoo.org/show_bug.cgi?id=263097">Gentoo bug #263097</a> has been filed, asking for <tt>openconnect</tt> to be packaged.
 </li>
