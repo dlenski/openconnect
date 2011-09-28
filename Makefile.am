@@ -1,5 +1,8 @@
 
-SUBDIRS = www
+SUBDIRS =
+if BUILD_WWW
+SUBDIRS += www
+endif
 if USE_NLS
 SUBDIRS += po
 endif

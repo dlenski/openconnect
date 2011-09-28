@@ -84,4 +84,13 @@ AC_CHECK_LIB(ssl, dtls1_stop_timer,
 		  AC_DEFINE(HAVE_DTLS1_STOP_TIMER, [1], [OpenSSL has dtls1_stop_timer() function]),
 		  ,,${OPENSSL_LIBS})
 
-AC_OUTPUT(Makefile openconnect.pc po/Makefile.in)
+AC_PATH_PROG(PYTHON, [python], [], $PATH:/bin:/usr/bin)
+if (test -n "${ac_cv_path_PYTHON}"); then
+   AC_SUBST(PYTHON, ${ac_cv_path_PYTHON})
+else
+   AC_MSG_NOTICE([Python not found; not building HTML pages])
+fi
+AM_CONDITIONAL(BUILD_WWW, [test -n "${ac_cv_path_PYTHON}"])
+		   
+AC_OUTPUT(Makefile openconnect.pc po/Makefile.in www/Makefile \
+	  www/styles/Makefile www/inc/Makefile www/images/Makefile)
