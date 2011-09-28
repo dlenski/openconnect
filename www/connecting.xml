@@ -10,7 +10,7 @@
 	
 	<INCLUDE file="inc/content.tmpl" />
 
-    	<h1>Getting Started</h1>
+    	<h1>Connecting to the VPN</h1>
 
 <p>Once you have <a href="building.html">installed</a> OpenConnect and checked that you have a
 <a href="vpnc-script.html">vpnc-script</a> which will set up the routing and DNS for it, using OpenConnect
