@@ -269,8 +269,20 @@ Disable use of proxy
 Use libproxy to configure proxy automatically (when built with libproxy support)
 .TP
 .B --key-password-from-fsid
-Passphrase for certificate file is automatically generated from the fsid of
-the file system on which it is stored
+Passphrase for certificate file is automatically generated from the
+.I fsid
+of the file system on which it is stored. The
+.I fsid
+is obtained from the 
+.BR statvfs (2)
+or
+.BR statfs (2)
+system call, depending on the operating system. On a Linux or similar system
+with GNU coreutils, the
+.I fsid
+used by this option should be equal to the output of the command
+.BR "stat --file-system --printf=%i\e\en $CERTIFICATE" .
+It is not the same as the 128-bit UUID of the file system.
 .TP
 .B --key-type=TYPE
 Type of private key file (PKCS#12, TPM or PEM)
@@ -379,8 +391,7 @@ Use STRING as 'User-Agent:' field value in HTTP header.
 .SH LIMITATIONS
 The
 .B openconnect
-client is not tested with IPv6 connectivity on OpenBSD or Mac OS X. A
-patch to the tun/tap driver is required on Solaris to make IPv6 work.
+client is not yet tested with IPv6 connectivity on OpenBSD or Mac OS X.
 
 
 Note also that the standard
