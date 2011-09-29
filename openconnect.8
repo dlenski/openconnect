@@ -15,6 +15,10 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .I CERT
 ]
 [
+.B -e,--cert-expire-warning
+.I DAYS
+]
+[
 .B -k,--sslkey
 .I KEY
 ]
@@ -200,6 +204,11 @@ when backgrounding
 .B -c,--certificate=CERT
 Use SSL client certificate
 .I CERT
+.TP
+.B -e,--cert-expire-warning=DAYS
+Give a warning when SSL client certificate has
+.I DAYS
+left before expiry
 .TP
 .B -k,--sslkey=KEY
 Use SSL private key file

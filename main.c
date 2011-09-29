@@ -98,6 +98,7 @@ static struct option long_options[] = {
 	{"cookie", 1, 0, 'C'},
 	{"deflate", 0, 0, 'd'},
 	{"no-deflate", 0, 0, 'D'},
+	{"cert-expire-warning", 1, 0, 'e'},
 	{"usergroup", 1, 0, 'g'},
 	{"help", 0, 0, 'h'},
 	{"interface", 1, 0, 'i'},
@@ -147,6 +148,7 @@ static void usage(void)
 	printf("  -b, --background                Continue in background after startup\n");
 	printf("      --pid-file=PIDFILE          Write the daemons pid to this file\n");
 	printf("  -c, --certificate=CERT          Use SSL client certificate CERT\n");
+	printf("  -e, --cert-expire-warning=DAYS  Warn when certificate lifetime < DAYS\n");
 	printf("  -k, --sslkey=KEY                Use SSL private key file KEY\n");
 	printf("  -K, --key-type=TYPE             Private key type (PKCS#12 / TPM / PEM)\n");
 	printf("  -C, --cookie=COOKIE             Use WebVPN cookie COOKIE\n");
@@ -269,7 +271,7 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "bC:c:Ddg:hi:k:K:lpP:Q:qSs:U:u:Vvx:",
+	while ((opt = getopt_long(argc, argv, "bC:c:e:Ddg:hi:k:K:lpP:Q:qSs:U:u:Vvx:",
 				  long_options, NULL))) {
 		if (opt < 0)
 			break;
@@ -327,6 +329,9 @@ int main(int argc, char **argv)
 			break;
 		case 'c':
 			vpninfo->cert = optarg;
+			break;
+		case 'e':
+			vpninfo->cert_expire_warning = 86400 * atoi(optarg);
 			break;
 		case 'k':
 			vpninfo->sslkey = optarg;
