@@ -17,6 +17,8 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Add <tt>--cert-expire-warning</tt> option.</li>
+       <li>Give visible warning when server dislikes client SSL certificate.</li>
        <li>Add localisation support.</li>
        <li>Fix build on Debian systems where <tt>dtls1_stop_timer()</tt> is not available.</li>
        <li>Fix libproxy detection.</li>
