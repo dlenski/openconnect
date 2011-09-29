@@ -831,7 +831,7 @@ static int check_certificate_expiry(struct openconnect_info *vpninfo)
 	} else if (i < 0) {
 		reason = _("Client certificate has expired at");
 	} else {
-		t += 60 * 86400;
+		t += vpninfo->cert_expire_warning;
 		i = X509_cmp_time(notAfter, &t);
 		if (i < 0) {
 			reason = _("Client certificate expires soon at");

@@ -114,6 +114,7 @@ struct openconnect_info {
 	char *hostname;
 	int port;
 	char *urlpath;
+	int cert_expire_warning;
 	const char *cert;
 	const char *sslkey;
 	X509 *cert_x509;

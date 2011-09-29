@@ -35,6 +35,7 @@ struct openconnect_info *openconnect_vpninfo_new_with_cbdata (char *useragent,
 
 	vpninfo->mtu = 1406;
 	vpninfo->ssl_fd = -1;
+	vpninfo->cert_expire_warning = 60 * 86400;
 	vpninfo->useragent = openconnect_create_useragent (useragent);
 	vpninfo->validate_peer_cert = validate_peer_cert;
 	vpninfo->write_new_config = write_new_config;

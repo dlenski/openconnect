@@ -262,6 +262,7 @@ int main(int argc, char **argv)
 	vpninfo->uid_csd_given = 0;
 	vpninfo->validate_peer_cert = validate_peer_cert;
 	vpninfo->cbdata = vpninfo;
+	vpninfo->cert_expire_warning = 60 * 86400;
 
 	if (!uname(&utsbuf))
 		vpninfo->localname = utsbuf.nodename;
