@@ -212,9 +212,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			if (!strcmp(buf + 7, "Session-ID")) {
 				if (strlen(colon) != 64) {
 					vpn_progress(vpninfo, PRG_ERR,
-						     _("X-DTLS-Session-ID not 64 characters\n"));
-					vpn_progress(vpninfo, PRG_ERR,
-						     _("Is: %s\n"), colon);
+						     _("X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"),
+						     colon);
 					vpninfo->dtls_attempt_period = 0;
 					return -EINVAL;
 				}
