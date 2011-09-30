@@ -20,13 +20,15 @@ you may occasionally find that the FTP server is accessible only by IPv6 and not
 please let me know by sending me an email. Or just join us in the 21st century and <a href="http://en.wikipedia.org/wiki/List_of_IPv6_tunnel_brokers">get IPv6</a>.)</i></p>
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.12.tar.gz">OpenConnect v3.12</a>, released on 2011-09-12 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.13.tar.gz">OpenConnect v3.13</a>, released on 2011-09-30 with the following changelog:</p>
      <ul>
-       <li>Fix DTLS compatibility with ASA firmware 8.4.1(11) and above.</li>
-       <li>Fix build failures on GNU Hurd, on systems with ancient OpenSSL,
-       and on Debian.</li>
-       <li>Add <tt>--pid-file</tt> option.</li>
-       <li>Print SHA1 fingerprint with server certificate details.</li>
+       <li>Add <tt>--cert-expire-warning</tt> option.</li>
+       <li>Give visible warning when server dislikes client SSL certificate.</li>
+       <li>Add localisation support.</li>
+       <li>Fix build on Debian systems where <tt>dtls1_stop_timer()</tt> is not available.</li>
+       <li>Fix libproxy detection.</li>
+       <li>Enable a useful set of compiler warnings by default.</li>
+       <li>Fix various minor compiler warnings.</li>
      </ul>
 <!-- latest-release-end -->
 

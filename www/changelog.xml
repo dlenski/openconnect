@@ -17,6 +17,11 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.13.tar.gz">OpenConnect v3.13</a></b> &#8212; 2011-09-30
+     <ul>
        <li>Add <tt>--cert-expire-warning</tt> option.</li>
        <li>Give visible warning when server dislikes client SSL certificate.</li>
        <li>Add localisation support.</li>
