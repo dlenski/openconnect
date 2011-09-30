@@ -31,9 +31,12 @@
 #include <unistd.h>
 
 #define OPENCONNECT_API_VERSION_MAJOR 1
-#define OPENCONNECT_API_VERSION_MINOR 2
+#define OPENCONNECT_API_VERSION_MINOR 3
 
 /*
+ * API version 1.3:
+ *  - Add openconnect_set_cert_expiry_warning() to change from default 60 days
+ *
  * API version 1.2:
  *  - Add openconnect_vpninfo_new_with_cbdata()
  *
@@ -133,6 +136,8 @@ void openconnect_clear_cookie (struct openconnect_info *);
 
 void openconnect_reset_ssl (struct openconnect_info *vpninfo);
 int openconnect_parse_url (struct openconnect_info *vpninfo, char *url);
+void openconnect_set_cert_expiry_warning (struct openconnect_info *vpninfo,
+					  int seconds);
 const char *openconnect_get_version(void);
 
 /* The first (privdata) argument to each of these functions is either

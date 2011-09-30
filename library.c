@@ -191,6 +191,12 @@ int openconnect_parse_url (struct openconnect_info *vpninfo, char *url)
 				   &vpninfo->port, &vpninfo->urlpath, 443);
 }
 
+void openconnect_set_cert_expiry_warning (struct openconnect_info *vpninfo,
+					  int seconds)
+{
+	vpninfo->cert_expire_warning = seconds;
+}
+
 const char *openconnect_get_version (void)
 {
 	return openconnect_version;
