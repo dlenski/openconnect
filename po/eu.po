@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-28 04:13+0100\n"
-"PO-Revision-Date: 2011-09-28 23:01+0000\n"
+"POT-Creation-Date: 2011-09-29 21:03+0100\n"
+"PO-Revision-Date: 2011-09-30 11:54+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Basque (http://www.transifex.net/projects/p/meego/team/eu/)\n"
 "MIME-Version: 1.0\n"
@@ -114,163 +114,159 @@ msgid "No memory for options\n"
 msgstr ""
 
 #: ../cstp.c:215
-msgid "X-DTLS-Session-ID not 64 characters\n"
-msgstr ""
-
-#: ../cstp.c:217
 #, c-format
-msgid "Is: %s\n"
+msgid "X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"
 msgstr ""
 
-#: ../cstp.c:246
+#: ../cstp.c:245
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
 msgstr ""
 
-#: ../cstp.c:303
+#: ../cstp.c:302
 msgid "No IP address received. Aborting\n"
 msgstr ""
 
-#: ../cstp.c:309
+#: ../cstp.c:308
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr ""
 
-#: ../cstp.c:317
+#: ../cstp.c:316
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr ""
 
-#: ../cstp.c:325
+#: ../cstp.c:324
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
 msgstr ""
 
-#: ../cstp.c:333
+#: ../cstp.c:332
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr ""
 
-#: ../cstp.c:353
+#: ../cstp.c:352
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr ""
 
-#: ../cstp.c:389
+#: ../cstp.c:388
 msgid "Compression setup failed\n"
 msgstr ""
 
-#: ../cstp.c:397
+#: ../cstp.c:396
 msgid "Allocation of deflate buffer failed\n"
 msgstr ""
 
-#: ../cstp.c:429
+#: ../cstp.c:428
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
 msgstr ""
 
-#: ../cstp.c:460
+#: ../cstp.c:459
 msgid "inflate failed\n"
 msgstr ""
 
-#: ../cstp.c:475
+#: ../cstp.c:474
 #, c-format
 msgid "Received compressed data packet of %ld bytes\n"
 msgstr ""
 
-#: ../cstp.c:504
+#: ../cstp.c:503
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
 msgstr ""
 
-#: ../cstp.c:516
+#: ../cstp.c:515
 msgid "Got CSTP DPD request\n"
 msgstr ""
 
-#: ../cstp.c:522
+#: ../cstp.c:521
 msgid "Got CSTP DPD response\n"
 msgstr ""
 
-#: ../cstp.c:527
+#: ../cstp.c:526
 msgid "Got CSTP Keepalive\n"
 msgstr ""
 
-#: ../cstp.c:532
+#: ../cstp.c:531
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr ""
 
-#: ../cstp.c:547
+#: ../cstp.c:546
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
 msgstr ""
 
-#: ../cstp.c:555
+#: ../cstp.c:554
 msgid "Compressed packet received in !deflate mode\n"
 msgstr ""
 
-#: ../cstp.c:563
+#: ../cstp.c:562
 msgid "received server terminate packet\n"
 msgstr ""
 
-#: ../cstp.c:570
+#: ../cstp.c:569
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr ""
 
-#: ../cstp.c:580
+#: ../cstp.c:579
 #, c-format
 msgid "SSL read error %d (server probably closed connection); reconnecting.\n"
 msgstr ""
 
-#: ../cstp.c:609
+#: ../cstp.c:608
 #, c-format
 msgid "SSL_write failed: %d\n"
 msgstr ""
 
-#: ../cstp.c:616
+#: ../cstp.c:615
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr ""
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: ../cstp.c:641
+#: ../cstp.c:640
 msgid "CSTP rekey due\n"
 msgstr ""
 
-#: ../cstp.c:648
+#: ../cstp.c:647
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr ""
 
-#: ../cstp.c:651 ../dtls.c:498
+#: ../cstp.c:650 ../dtls.c:498
 msgid "Reconnect failed\n"
 msgstr ""
 
-#: ../cstp.c:660
+#: ../cstp.c:659
 msgid "Send CSTP DPD\n"
 msgstr ""
 
-#: ../cstp.c:671
+#: ../cstp.c:670
 msgid "Send CSTP Keepalive\n"
 msgstr ""
 
-#: ../cstp.c:698
+#: ../cstp.c:697
 #, c-format
 msgid "deflate failed %d\n"
 msgstr ""
 
-#: ../cstp.c:718
+#: ../cstp.c:717
 #, c-format
 msgid "Sending compressed data packet of %d bytes\n"
 msgstr ""
 
-#: ../cstp.c:729
+#: ../cstp.c:728
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr ""
 
-#: ../cstp.c:767
+#: ../cstp.c:766
 #, c-format
 msgid "Send BYE packet: %s\n"
 msgstr ""
@@ -691,36 +687,36 @@ msgstr ""
 msgid "Only http or socks(5) proxies supported\n"
 msgstr ""
 
-#: ../main.c:572
+#: ../main.c:578
 #, c-format
 msgid "Connected %s as %s%s%s, using %s\n"
 msgstr ""
 
-#: ../main.c:582
+#: ../main.c:588
 msgid "No --script argument provided; DNS and routing are not configured\n"
 msgstr ""
 
-#: ../main.c:593
+#: ../main.c:599
 #, c-format
 msgid "Failed to open '%s' for write: %s\n"
 msgstr ""
 
-#: ../main.c:604
+#: ../main.c:610
 #, c-format
 msgid "Continuing in background; pid %d\n"
 msgstr ""
 
-#: ../main.c:626
+#: ../main.c:632
 #, c-format
 msgid "Failed to open %s for write: %s\n"
 msgstr ""
 
-#: ../main.c:634
+#: ../main.c:640
 #, c-format
 msgid "Failed to write config to %s: %s\n"
 msgstr ""
 
-#: ../main.c:724
+#: ../main.c:730
 #, c-format
 msgid ""
 "\n"
@@ -728,19 +724,19 @@ msgid ""
 "Reason: %s\n"
 msgstr ""
 
-#: ../main.c:732
+#: ../main.c:738
 msgid "Enter 'yes' to accept, 'no' to abort; anything else to view: "
 msgstr ""
 
-#: ../main.c:741
+#: ../main.c:747
 msgid "yes"
 msgstr ""
 
-#: ../main.c:752
+#: ../main.c:758
 msgid "no"
 msgstr ""
 
-#: ../main.c:756
+#: ../main.c:762
 #, c-format
 msgid "SHA1 fingerprint: %s\n"
 msgstr ""
