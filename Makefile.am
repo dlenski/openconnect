@@ -75,3 +75,10 @@ tag: uncommitted-check
 	@git commit -s -m "Tag version $(VERSION)" configure.ac version.sh www/download.xml www/changelog.xml
 	@git tag v$(VERSION)
 	@./autogen.sh
+
+update-translations:
+	@if ! git diff-index --name-only --exit-code HEAD -- po/; then \
+		echo "*** ERROR: Uncommitted changes in above files"; exit 1; fi
+	@tx pull -af
+	@git commit -s -m "Update translations from Transifex" -- po/
+
