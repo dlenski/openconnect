@@ -3,13 +3,14 @@
 # This file is distributed under the same license as the PACKAGE package.
 # 
 # Translators:
+# André Koot <meneer@tken.net>, 2011.
 msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-09-29 21:03+0100\n"
-"PO-Revision-Date: 2011-09-30 11:55+0000\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2011-10-03 13:45+0000\n"
+"Last-Translator: mijnheer <meneer@tken.net>\n"
 "Language-Team: Dutch (http://www.transifex.net/projects/p/meego/team/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,99 +20,99 @@ msgstr ""
 
 #: ../auth.c:124
 msgid "Form choice has no name\n"
-msgstr ""
+msgstr "Formulier keuze heeft geen naam\\n"
 
 #: ../auth.c:188
 #, c-format
 msgid "name %s not input\n"
-msgstr ""
+msgstr "naam %s niet ingevoerd\\n"
 
 #: ../auth.c:195
 msgid "No input type in form\n"
-msgstr ""
+msgstr "Geen inputtype in het formulier\\n\n"
 
 #: ../auth.c:207
 msgid "No input name in form\n"
-msgstr ""
+msgstr "Geen invoernaam in het formulier\\n"
 
 #: ../auth.c:230
 #, c-format
 msgid "Unknown input type %s in form\n"
-msgstr ""
+msgstr "Onbekend inputtype %s in het formulier\\n"
 
 #: ../auth.c:250
 #, c-format
 msgid "Fixed options give %s\n"
-msgstr ""
+msgstr "Vaste opties geven %s\\n"
 
 #: ../auth.c:338
 msgid "Failed to parse server response\n"
-msgstr ""
+msgstr "Vertalen van de serverreactie mislukt\\n"
 
 #: ../auth.c:340
 #, c-format
 msgid "Response was:%s\n"
-msgstr ""
+msgstr "Reactie was: %s\\n"
 
 #: ../auth.c:348
 msgid "XML response has no \"auth\" root node\n"
-msgstr ""
+msgstr "XML response heeft geen \"auth\" root node\\n"
 
 #: ../auth.c:361
 msgid "Asked for password but '--no-passwd' set\n"
-msgstr ""
+msgstr "Vroeg naar wachtwoord, maar '- no-passwd' is ingesteld\\n"
 
 #: ../auth.c:386
 #, c-format
 msgid "Cannot handle form method='%s', action='%s'\n"
-msgstr ""
+msgstr "Kan niet overweg met formuliermethode = '%s', actie = '%s'\\n"
 
 #: ../auth.c:506
 msgid "Failed to create UI\n"
-msgstr ""
+msgstr "Mislukt UI te creëren\\n"
 
 #: ../auth.c:549
 #, c-format
 msgid "Auth choice \"%s\" not available\n"
-msgstr ""
+msgstr "Auth keuze \"%s\" niet beschikbaar\\n"
 
 #. error
 #: ../auth.c:629
 msgid "Invalid inputs\n"
-msgstr ""
+msgstr "Ongeldige invoer\\n"
 
 #: ../auth.c:652
 #, c-format
 msgid "Auth choice \"%s\" not valid\n"
-msgstr ""
+msgstr "Auth keuze \"%s\" niet geldig\\n"
 
 #: ../cstp.c:133 ../http.c:118
 msgid "Error fetching HTTPS response\n"
-msgstr ""
+msgstr "Fout bij het ophalen HTTPS reactie\\n"
 
 #: ../cstp.c:140 ../http.c:635
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
-msgstr ""
+msgstr "Kan geen HTTPS-verbinding openen met %s\\n"
 
 #: ../cstp.c:160
 #, c-format
 msgid "VPN service unavailable; reason: %s\n"
-msgstr ""
+msgstr "VPN-service niet beschikbaar, reden:%s\\n"
 
 #: ../cstp.c:165
 #, c-format
 msgid "Got inappropriate HTTP CONNECT response: %s\n"
-msgstr ""
+msgstr "Onjuiste HTTP CONNECT reactie: %s\\n"
 
 #: ../cstp.c:172
 #, c-format
 msgid "Got CONNECT response: %s\n"
-msgstr ""
+msgstr "CONNECT reactie: %s\\n"
 
 #: ../cstp.c:194 ../cstp.c:202
 msgid "No memory for options\n"
-msgstr ""
+msgstr "Geen geheugen voor opties\\n"
 
 #: ../cstp.c:215
 #, c-format
@@ -121,193 +122,195 @@ msgstr ""
 #: ../cstp.c:245
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
-msgstr ""
+msgstr "Onbekende CSTP-Content-Encoding %s\\n"
 
 #: ../cstp.c:302
 msgid "No IP address received. Aborting\n"
-msgstr ""
+msgstr "Geen IP-adres ontvangen. Afbreken\\n"
 
 #: ../cstp.c:308
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
-msgstr ""
+msgstr "Herverbinden gaf verschillende Legacy IP-adressen (%s != %s)\\n"
 
 #: ../cstp.c:316
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
-msgstr ""
+msgstr "Herverbinden gaf verschillende Legacy IP-netmasks (%s != %s)\\n"
 
 #: ../cstp.c:324
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
-msgstr ""
+msgstr "Herverbinden gaf verschillende IP-adressen (%s != %s)\\n"
 
 #: ../cstp.c:332
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
-msgstr ""
+msgstr "Herverbinden gaf verschillende IPv6-netmasks (%s != %s)\\n"
 
 #: ../cstp.c:352
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
-msgstr ""
+msgstr "CSTP aangesloten. DPD %d, Keepalive %d\\n"
 
 #: ../cstp.c:388
 msgid "Compression setup failed\n"
-msgstr ""
+msgstr "Compressie setup is mislukt\\n"
 
 #: ../cstp.c:396
 msgid "Allocation of deflate buffer failed\n"
-msgstr ""
+msgstr "Toewijzing van leegloop buffer is mislukt\\n"
 
 #: ../cstp.c:428
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
-msgstr ""
+msgstr "slaap %ds, resterende time-out %ds\\n"
 
 #: ../cstp.c:459
 msgid "inflate failed\n"
-msgstr ""
+msgstr "decomprimeren mislukt\\n"
 
 #: ../cstp.c:474
 #, c-format
 msgid "Received compressed data packet of %ld bytes\n"
-msgstr ""
+msgstr "Ontvangen gecomprimeerde datapakket van %ld bytes\\n"
 
 #: ../cstp.c:503
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
-msgstr ""
+msgstr "Onverwachte pakket lengte. SSL_read meldde %d, maar pakket is\\n"
 
 #: ../cstp.c:515
 msgid "Got CSTP DPD request\n"
-msgstr ""
+msgstr "Ontvangen CSTP DPD aanvraag\\n"
 
 #: ../cstp.c:521
 msgid "Got CSTP DPD response\n"
-msgstr ""
+msgstr "Ontvangen CSTP DPD reactie\\n"
 
 #: ../cstp.c:526
 msgid "Got CSTP Keepalive\n"
-msgstr ""
+msgstr "Ontvangen CSTP Keepalive\\n"
 
 #: ../cstp.c:531
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
-msgstr ""
+msgstr "Ontvangen datapakket ongecomprimeerd %d bytes\\n"
 
 #: ../cstp.c:546
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
-msgstr ""
+msgstr "Ontvangen servermelding ontkoppeling: %02x '%s'\\n"
 
 #: ../cstp.c:554
 msgid "Compressed packet received in !deflate mode\n"
-msgstr ""
+msgstr "Gecomprimeerd pakket ontvangen in !deflate mode\\n"
 
 #: ../cstp.c:562
 msgid "received server terminate packet\n"
-msgstr ""
+msgstr "ontvangen server beëindigingspakket\\n"
 
 #: ../cstp.c:569
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
-msgstr ""
+msgstr "Onbekend packet %02x %02x %02x %02x %02x %02x %02x %02x\\n"
 
 #: ../cstp.c:579
 #, c-format
 msgid "SSL read error %d (server probably closed connection); reconnecting.\n"
 msgstr ""
+"SSL lezen fout %d (serververbinding waarschijnlijk gesloten); opnieuw "
+"aansluiten.\\n"
 
 #: ../cstp.c:608
 #, c-format
 msgid "SSL_write failed: %d\n"
-msgstr ""
+msgstr "SSL_write is mislukt: %d\\n"
 
 #: ../cstp.c:615
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
-msgstr ""
+msgstr "SSL schreef te weinig bytes! Gevraagd om %d, verstuurde %d\\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
 #: ../cstp.c:640
 msgid "CSTP rekey due\n"
-msgstr ""
+msgstr "CSTP rekey verwacht\\n"
 
 #: ../cstp.c:647
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
-msgstr ""
+msgstr "CSTP Dead Peer Detection ontdekte dode host!\\n"
 
 #: ../cstp.c:650 ../dtls.c:498
 msgid "Reconnect failed\n"
-msgstr ""
+msgstr "Herverbinden mislukte\\n"
 
 #: ../cstp.c:659
 msgid "Send CSTP DPD\n"
-msgstr ""
+msgstr "Stuur CSTP DPD\\n"
 
 #: ../cstp.c:670
 msgid "Send CSTP Keepalive\n"
-msgstr ""
+msgstr "Stuur CSTP Keepalive\\n"
 
 #: ../cstp.c:697
 #, c-format
 msgid "deflate failed %d\n"
-msgstr ""
+msgstr "compressie mislukt %d\\n"
 
 #: ../cstp.c:717
 #, c-format
 msgid "Sending compressed data packet of %d bytes\n"
-msgstr ""
+msgstr "Verzenden van gecomprimeerd datapakket van %d bytes\\n"
 
 #: ../cstp.c:728
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
-msgstr ""
+msgstr "Verzenden van gedecomprimeerd datapakket van %d bytes\\n"
 
 #: ../cstp.c:766
 #, c-format
 msgid "Send BYE packet: %s\n"
-msgstr ""
+msgstr "Stuur BYE pakket: %s\\n"
 
 #: ../dtls.c:122
 msgid "No DTLS address\n"
-msgstr ""
+msgstr "Geen DTLS adres\\n"
 
 #. We probably didn't offer it any ciphers it liked
 #: ../dtls.c:129
 msgid "Server offered no DTLS cipher option\n"
-msgstr ""
+msgstr "Server bood geen DTLS cipher optie aan\\n"
 
 #. XXX: Theoretically, SOCKS5 proxies can do UDP too
 #: ../dtls.c:136
 msgid "No DTLS when connected via proxy\n"
-msgstr ""
+msgstr "Geen DTLS wanneer deze is aangesloten via een proxy\\n"
 
 #: ../dtls.c:143
 msgid "Open UDP socket for DTLS:"
-msgstr ""
+msgstr "Open UDP-socket voor DTLS:"
 
 #: ../dtls.c:148
 msgid "UDP (DTLS) connect:\n"
-msgstr ""
+msgstr "UDP (DTLS) verbinding:\\n"
 
 #: ../dtls.c:160
 msgid "Initialise DTLSv1 CTX failed\n"
-msgstr ""
+msgstr "Initialiseren DTLSv1 CTX is mislukt\\n"
 
 #: ../dtls.c:171
 msgid "Set DTLS cipher list failed\n"
-msgstr ""
+msgstr "Instellen DTLS cipher lijst is mislukt\\n"
 
 #: ../dtls.c:184
 msgid "Initialise DTLSv1 session failed\n"
-msgstr ""
+msgstr "Initialiseren DTLSv1 sessie is mislukt\\n"
 
 #: ../dtls.c:205
 msgid "Not precisely one DTLS cipher\n"
-msgstr ""
+msgstr "Niet precies één DTLS cipher\\n"
 
 #: ../dtls.c:223
 #, c-format
@@ -317,131 +320,137 @@ msgid ""
 "See http://rt.openssl.org/Ticket/Display.html?id=1751\n"
 "Use the --no-dtls command line option to avoid this message\n"
 msgstr ""
+"SSL_set_session () is mislukt met oude protocol versie 0x%x\\nGebruikt u een"
+" versie van OpenSSL ouder dan 0.9.8m?\\nZie "
+"http://rt.openssl.org/Ticket/Display.html?id=1751\\nGebruik de - no-dtls "
+"commandoregel optie om dit bericht te voorkomoen\\n"
 
 #: ../dtls.c:262
 msgid "Established DTLS connection\n"
-msgstr ""
+msgstr "DTLS aansluiting verricht\\n"
 
 #: ../dtls.c:300
 msgid ""
 "Your OpenSSL is older than the one you built against, so DTLS may fail!"
 msgstr ""
+"Uw OpenSSL is ouder dan de versie die voor uw build nodig is, dus DTLS kan "
+"mislukken!"
 
 #: ../dtls.c:324
 msgid "DTLS handshake timed out\n"
-msgstr ""
+msgstr "DTLS handshake time-out\\n"
 
 #: ../dtls.c:327
 #, c-format
 msgid "DTLS handshake failed: %d\n"
-msgstr ""
+msgstr "DTLS handshake mislukt: %d\\n"
 
 #: ../dtls.c:378
 #, c-format
 msgid "DTLS option %s : %s\n"
-msgstr ""
+msgstr "DTLS optie %s:%s\\n"
 
 #: ../dtls.c:417
 #, c-format
 msgid "Unknown protocol family %d. Cannot do DTLS\n"
-msgstr ""
+msgstr "Onbekende protocolfamilie %d. Kan niet met DTLS\\n"
 
 #: ../dtls.c:427
 #, c-format
 msgid "DTLS connected. DPD %d, Keepalive %d\n"
-msgstr ""
+msgstr "DTLS aangesloten. DPD %d, Keepalive %d\\n"
 
 #: ../dtls.c:443
 #, c-format
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
-msgstr ""
+msgstr "Ontvangen DTLS pakket 0x%02x van %d bytes\\n"
 
 #: ../dtls.c:455
 msgid "Got DTLS DPD request\n"
-msgstr ""
+msgstr "Ontving DTLS DPD aanvraag\\n"
 
 #: ../dtls.c:461
 msgid "Failed to send DPD response. Expect disconnect\n"
-msgstr ""
+msgstr "Mislukt om DPD reactie te versturen. Verwacht ontkoppeling\\n"
 
 #: ../dtls.c:465
 msgid "Got DTLS DPD response\n"
-msgstr ""
+msgstr "Ontving DTLS DPD reactie\\n"
 
 #: ../dtls.c:469
 msgid "Got DTLS Keepalive\n"
-msgstr ""
+msgstr "Ontving DTLS Keepalive\\n"
 
 #: ../dtls.c:474
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
-msgstr ""
+msgstr "Onbekend DTLS pakkettype %02x, len %d\\n"
 
 #: ../dtls.c:493
 msgid "DTLS rekey due\n"
-msgstr ""
+msgstr "DTLS rekey verwacht\\n"
 
 #: ../dtls.c:504
 msgid "DTLS rekey failed\n"
-msgstr ""
+msgstr "DTLS rekey mislukt\\n"
 
 #: ../dtls.c:512
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
-msgstr ""
+msgstr "DTLS Dead Peer Detection ontdekte dode host!\\n"
 
 #: ../dtls.c:518
 msgid "Send DTLS DPD\n"
-msgstr ""
+msgstr "Stuur DTLS DPD\\n"
 
 #: ../dtls.c:533
 msgid "Send DTLS Keepalive\n"
-msgstr ""
+msgstr "Stuur DTLS Keepalive\\n"
 
 #: ../dtls.c:564
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
-msgstr ""
+msgstr "DTLS kreeg schrijffout %d. Terugvallen naar SSL\\n"
 
 #: ../dtls.c:575
 #, c-format
 msgid "Sent DTLS packet of %d bytes; SSL_write() returned %d\n"
-msgstr ""
+msgstr "Verzonden DTLS pakket van %d bytes; SSL_write () retourneerde %d\\n"
 
 #: ../dtls.c:587
 msgid "Built against OpenSSL with no Cisco DTLS support\n"
-msgstr ""
+msgstr "Gebouwd tegen OpenSSL zonder Cisco DTLS ondersteuning\\n"
 
 #: ../http.c:63
 msgid "No memory for allocating cookies\n"
-msgstr ""
+msgstr "Geen geheugen voor de toewijzing van cookies\\n"
 
 #: ../http.c:127
 #, c-format
 msgid "Failed to parse HTTP response '%s'\n"
-msgstr ""
+msgstr "Mislukte poging HTTP reactie '%s' te ontleden\\n"
 
 #: ../http.c:132
 #, c-format
 msgid "Got HTTP response: %s\n"
-msgstr ""
+msgstr "Ontving HTTP reactie: %s\\n"
 
 #: ../http.c:140
 msgid "Error processing HTTP response\n"
-msgstr ""
+msgstr "Fout bij de verwerking van HTTP-reactie\\n"
 
 #: ../http.c:146
 #, c-format
 msgid "Ignoring unknown HTTP response line '%s'\n"
-msgstr ""
+msgstr "Onbekende HTTP response lijn '%s' genegeerd\\n"
 
 #: ../http.c:166
 #, c-format
 msgid "Invalid cookie offered: %s\n"
-msgstr ""
+msgstr "Ongeldige koekje aangeboden: %s\\n"
 
 #: ../http.c:175
 msgid "<elided>"
-msgstr ""
+msgstr "<elided>"
 
 #: ../http.c:185
 msgid "SSL certificate authentication failed\n"
@@ -450,78 +459,82 @@ msgstr ""
 #: ../http.c:216
 #, c-format
 msgid "Response body has negative size (%d)\n"
-msgstr ""
+msgstr "Reactie heeft negatieve grootte (%d)\\n"
 
 #: ../http.c:226
 #, c-format
 msgid "Unknown Transfer-Encoding: %s\n"
-msgstr ""
+msgstr "Onbekend Transfer-Encoding: %s\\n"
 
 #. Now the body, if there is one
 #: ../http.c:240
 #, c-format
 msgid "HTTP body %s (%d)\n"
-msgstr ""
+msgstr "HTTP body %s (%d)\\n"
 
 #: ../http.c:254 ../http.c:282
 msgid "Error reading HTTP response body\n"
-msgstr ""
+msgstr "Fout bij het lezen van HTTP reactie\\n"
 
 #: ../http.c:267
 msgid "Error fetching chunk header\n"
-msgstr ""
+msgstr "Fout bij het ophalen brok header\\n"
 
 #: ../http.c:293
 msgid "Error fetching HTTP response body\n"
-msgstr ""
+msgstr "Fout bij het ophalen HTTP reactietekst\\n"
 
 #: ../http.c:296
 #, c-format
 msgid "Error in chunked decoding. Expected '', got: '%s'"
-msgstr ""
+msgstr "Fout in chunked decodering. Verwacht '', ontving: '%s'"
 
 #: ../http.c:309
 msgid "Cannot receive HTTP 1.0 body without closing connection\n"
 msgstr ""
+"Kan HTTP 1.0 content niet ontvangen zonder het sluiten van de verbinding\\n"
 
 #: ../http.c:390
 msgid "Downloaded config file did not match intended SHA1\n"
-msgstr ""
+msgstr "Gedownloade config-bestand komt niet overeen bedoelde SHA1\\n"
 
 #: ../http.c:407
 msgid ""
 "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 "This facility is disabled by default for security reasons, so you may wish to enable it."
 msgstr ""
+"Fout: Server vroeg ons om een 'Cisco Secure Desktop' trojan te downloaden en"
+" uit te voeren. Deze faciliteit is standaard om veiligheidsredenen "
+"uitgeschakeld. U kunt zelf besluiten om dit mogelijk te maken."
 
 #: ../http.c:414
 msgid "Trying to run Linux CSD trojan script."
-msgstr ""
+msgstr "Poging Linux CSD trojan script uit te voeren."
 
 #: ../http.c:422
 #, c-format
 msgid "Failed to open temporary CSD script file: %s\n"
-msgstr ""
+msgstr "Niet te openen tijdelijk CSD scriptbestand: %s\\n"
 
 #: ../http.c:430
 #, c-format
 msgid "Failed to write temporary CSD script file: %s\n"
-msgstr ""
+msgstr "Niet mogelijk om tijdelijk CSD script file weg te schrijven: %s\\n"
 
 #: ../http.c:449
 #, c-format
 msgid "Failed to set uid %d\n"
-msgstr ""
+msgstr "Mislukt instellen uid %d\\n"
 
 #: ../http.c:454
 #, c-format
 msgid "Invalid user uid=%d\n"
-msgstr ""
+msgstr "Ongeldige gebruikersnaam uid =%d\\n"
 
 #: ../http.c:460
 #, c-format
 msgid "Failed to change to CSD home directory '%s': %s\n"
-msgstr ""
+msgstr "Mislukt om te schakelen naar CSD home directory '%s':%s\\n"
 
 #: ../http.c:466
 #, c-format
@@ -529,71 +542,73 @@ msgid ""
 "Warning: you are running insecure CSD code with root privileges\n"
 "\t Use command line option \"--csd-user\"\n"
 msgstr ""
+"Waarschuwing: je draait onveilige CSD-code met root privileges\\n» Gebruik "
+"commandoregel optie\" -- csd-user\"\\n"
 
 #: ../http.c:513
 #, c-format
 msgid "Failed to exec CSD script %s\n"
-msgstr ""
+msgstr "Niet gelukt om CSD script te draaien %s\\n"
 
 #: ../http.c:702
 #, c-format
 msgid "Failed to parse redirected URL '%s': %s\n"
-msgstr ""
+msgstr "Niet geslaagd om doorgestuurd URL '%s' te vertalen: %s\\n"
 
 #: ../http.c:762
 #, c-format
 msgid "Allocating new path for relative redirect failed: %s\n"
-msgstr ""
+msgstr "Toewijzing van nieuwe pad voor de relatieve redirect is mislukt: %s\\n"
 
 #: ../http.c:775
 #, c-format
 msgid "Unexpected %d result from server\n"
-msgstr ""
+msgstr "Onverwacht %d resultaat van de server\\n"
 
 #: ../http.c:795
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
-msgstr ""
+msgstr "Verversing %s na 1 seconde ...\\n"
 
 #: ../http.c:801
 msgid "Unknown response from server\n"
-msgstr ""
+msgstr "Onbekende reactie van de server\\n"
 
 #: ../http.c:926
 msgid "request granted"
-msgstr ""
+msgstr "verzoek ingewilligd"
 
 #: ../http.c:927
 msgid "general failure"
-msgstr ""
+msgstr "algemene storing"
 
 #: ../http.c:928
 msgid "connection not allowed by ruleset"
-msgstr ""
+msgstr "verbinding niet toegestaan ​​door regelset"
 
 #: ../http.c:929
 msgid "network unreachable"
-msgstr ""
+msgstr "netwerk onbereikbaar"
 
 #: ../http.c:930
 msgid "host unreachable"
-msgstr ""
+msgstr "host onbereikbaar"
 
 #: ../http.c:931
 msgid "connection refused by destination host"
-msgstr ""
+msgstr "verbinding geweigerd door doelhost"
 
 #: ../http.c:932
 msgid "TTL expired"
-msgstr ""
+msgstr "TTL verlopen"
 
 #: ../http.c:933
 msgid "command not supported / protocol error"
-msgstr ""
+msgstr "commando niet ondersteund / protocol fout"
 
 #: ../http.c:934
 msgid "address type not supported"
-msgstr ""
+msgstr "adres type niet ondersteund"
 
 #: ../http.c:948
 #, c-format
@@ -727,14 +742,16 @@ msgstr ""
 #: ../main.c:738
 msgid "Enter 'yes' to accept, 'no' to abort; anything else to view: "
 msgstr ""
+"Invoeren 'ja' om te accepteren, 'nee' om te stoppen, iets anders om te "
+"bekijken:"
 
 #: ../main.c:747
 msgid "yes"
-msgstr ""
+msgstr "ja"
 
 #: ../main.c:758
 msgid "no"
-msgstr ""
+msgstr "nee"
 
 #: ../main.c:762
 #, c-format
@@ -765,11 +782,11 @@ msgstr ""
 
 #: ../ssl.c:184
 msgid "PKCS#12 contained no certificate!"
-msgstr ""
+msgstr "PKCS # 12 bevatte geen certificaat!"
 
 #: ../ssl.c:193
 msgid "PKCS#12 contained no private key!"
-msgstr ""
+msgstr "PKCS # 12 bevatte geen privé-sleutel!"
 
 #: ../ssl.c:212
 #, c-format
@@ -910,7 +927,7 @@ msgstr ""
 
 #: ../ssl.c:746
 msgid "certificate does not match hostname"
-msgstr ""
+msgstr "certificaat komt niet overeen met hostnaam"
 
 #: ../ssl.c:750
 #, c-format
@@ -928,15 +945,15 @@ msgstr ""
 
 #: ../ssl.c:832
 msgid "Client certificate has expired at"
-msgstr ""
+msgstr "Client certificaat is verlopen op"
 
 #: ../ssl.c:837
 msgid "Client certificate expires soon at"
-msgstr ""
+msgstr "Client certificaat vervalt al snel op"
 
 #: ../ssl.c:843
 msgid "<error>"
-msgstr ""
+msgstr "<error>"
 
 #: ../ssl.c:876
 #, c-format
@@ -1011,23 +1028,23 @@ msgstr ""
 
 #: ../tun.c:94
 msgid "open net"
-msgstr ""
+msgstr "Open Net"
 
 #: ../tun.c:104
 msgid "SIOCGIFFLAGS"
-msgstr ""
+msgstr "SIOCGIFFLAGS"
 
 #: ../tun.c:108
 msgid "SIOCSIFFLAGS"
-msgstr ""
+msgstr "SIOCSIFFLAGS"
 
 #: ../tun.c:114
 msgid "SIOCSIFADDR"
-msgstr ""
+msgstr "SIOCSIFADDR"
 
 #: ../tun.c:119
 msgid "SIOCSIFMTU"
-msgstr ""
+msgstr "SIOCSIFMTU"
 
 #: ../tun.c:159
 #, c-format
@@ -1046,19 +1063,19 @@ msgstr ""
 
 #: ../tun.c:400
 msgid "socketpair"
-msgstr ""
+msgstr "socketpair"
 
 #: ../tun.c:406
 msgid "fork"
-msgstr ""
+msgstr "fork"
 
 #: ../tun.c:412
 msgid "execl"
-msgstr ""
+msgstr "execl"
 
 #: ../tun.c:417
 msgid "(script)"
-msgstr ""
+msgstr "(script)"
 
 #: ../tun.c:438
 #, c-format
@@ -1072,35 +1089,35 @@ msgstr ""
 
 #: ../tun.c:462
 msgid "open /dev/ip"
-msgstr ""
+msgstr "open /dev/ip"
 
 #: ../tun.c:468
 msgid "open /dev/tun"
-msgstr ""
+msgstr "open /dev/tun"
 
 #: ../tun.c:475
 msgid "Failed to create new tun"
-msgstr ""
+msgstr "Geen nieuwe tun maken"
 
 #: ../tun.c:483
 msgid "open /dev/tun again"
-msgstr ""
+msgstr "open /dev/tun opnieuw"
 
 #: ../tun.c:489
 msgid "Can't push IP"
-msgstr ""
+msgstr "Kan IP niet doorzetten"
 
 #: ../tun.c:496
 msgid "Can't select unit"
-msgstr ""
+msgstr "Kan geen unit selecteren"
 
 #: ../tun.c:504
 msgid "Can't link tun to IP"
-msgstr ""
+msgstr "Kan niet linken naar IP-tun"
 
 #: ../tun.c:520
 msgid "Set mux id"
-msgstr ""
+msgstr "Instellen mux id"
 
 #. Solaris tunctl needs this in order to tear it down
 #: ../tun.c:527
@@ -1110,11 +1127,11 @@ msgstr ""
 
 #: ../tun.c:541
 msgid "open tun"
-msgstr ""
+msgstr "Open tun"
 
 #: ../tun.c:548
 msgid "TUNSIFHEAD"
-msgstr ""
+msgstr "TUNSIFHEAD"
 
 #: ../tun.c:628
 #, c-format
@@ -1123,7 +1140,7 @@ msgstr ""
 
 #: ../tun.c:668
 msgid "ioctl(I_PUNLINK)"
-msgstr ""
+msgstr "ioctl (I_PUNLINK)"
 
 #: ../xml.c:78
 #, c-format
