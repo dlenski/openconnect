@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-09-29 21:03+0100\n"
-"PO-Revision-Date: 2011-10-03 13:45+0000\n"
+"PO-Revision-Date: 2011-10-07 12:41+0000\n"
 "Last-Translator: mijnheer <meneer@tken.net>\n"
 "Language-Team: Dutch (http://www.transifex.net/projects/p/meego/team/nl/)\n"
 "MIME-Version: 1.0\n"
@@ -117,7 +117,7 @@ msgstr "Geen geheugen voor opties\\n"
 #: ../cstp.c:215
 #, c-format
 msgid "X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"
-msgstr ""
+msgstr "X-DTLS-Session-ID niet 64 tekens; is: \"%s\"\\n"
 
 #: ../cstp.c:245
 #, c-format
@@ -454,7 +454,7 @@ msgstr "<elided>"
 
 #: ../http.c:185
 msgid "SSL certificate authentication failed\n"
-msgstr ""
+msgstr "SSL certificaat authenticatie mislukt\\n"
 
 #: ../http.c:216
 #, c-format
@@ -613,123 +613,125 @@ msgstr "adres type niet ondersteund"
 #: ../http.c:948
 #, c-format
 msgid "Error writing auth request to SOCKS proxy: %s\n"
-msgstr ""
+msgstr "Fout bij het schrijven auth verzoek aan SOCKS proxy: %s\\n"
 
 #: ../http.c:955
 #, c-format
 msgid "Error reading auth response from SOCKS proxy: %s\n"
-msgstr ""
+msgstr "Fout bij het lezen van auth reactie van SOCKS proxy: %s\\n"
 
 #: ../http.c:961
 #, c-format
 msgid "Unexpected auth response from SOCKS proxy: %02x %02x\n"
-msgstr ""
+msgstr "Onverwachte auth reactie van SOCKS proxy: %02x %02x\\n"
 
 #: ../http.c:969
 #, c-format
 msgid "SOCKS proxy error %02x: %s\n"
-msgstr ""
+msgstr "SOCKS proxy fout %02x: %s\\n"
 
 #: ../http.c:973
 #, c-format
 msgid "SOCKS proxy error %02x\n"
-msgstr ""
+msgstr "SOCKS proxy fout %02x\\n"
 
 #: ../http.c:979
 #, c-format
 msgid "Requesting SOCKS proxy connection to %s:%d\n"
-msgstr ""
+msgstr "Het aanvragen van SOCKS proxy verbinding met %s:%d\\n"
 
 #: ../http.c:994
 #, c-format
 msgid "Error writing connect request to SOCKS proxy: %s\n"
-msgstr ""
+msgstr "Fout bij het schrijven verbindingsverzoek aan SOCKS proxy: %s\\n"
 
 #: ../http.c:1002 ../http.c:1035
 #, c-format
 msgid "Error reading connect response from SOCKS proxy: %s\n"
-msgstr ""
+msgstr "Fout bij het lezen van verbindingsreactie van SOCKS proxy: %s\\n"
 
 #: ../http.c:1008
 #, c-format
 msgid "Unexpected connect response from SOCKS proxy: %02x %02x...\n"
-msgstr ""
+msgstr "Onverwachte verbindingsreactie van SOCKS proxy: %02x %02x...\\n"
 
 #: ../http.c:1028
 #, c-format
 msgid "Unexpected address type %02x in SOCKS connect response\n"
-msgstr ""
+msgstr "Onverwacht adres type %02x in SOCKS aansluitreactie\\n"
 
 #: ../http.c:1056
 #, c-format
 msgid "Requesting HTTP proxy connection to %s:%d\n"
-msgstr ""
+msgstr "Aanvragen van HTTP-proxy verbinding met %s:%d\\n"
 
 #: ../http.c:1062
 #, c-format
 msgid "Sending proxy request failed: %s\n"
-msgstr ""
+msgstr "Het verzenden van het proxy verzoek is mislukt: %s\\n"
 
 #: ../http.c:1069
 msgid "Error fetching proxy response\n"
-msgstr ""
+msgstr "Fout bij het ophalen proxy reactie\\n"
 
 #: ../http.c:1076
 #, c-format
 msgid "Failed to parse proxy response '%s'\n"
-msgstr ""
+msgstr "Mislukte ontleding proxy-reactie '%s'\\n"
 
 #: ../http.c:1082
 #, c-format
 msgid "Proxy CONNECT request failed: %s\n"
-msgstr ""
+msgstr "Proxy CONNECT verzoek is mislukt: %s\\n"
 
 #: ../http.c:1089
 msgid "Failed to read proxy response\n"
-msgstr ""
+msgstr "Mislukt proxy reactie te lezen\\n"
 
 #: ../http.c:1093
 #, c-format
 msgid "Unexpected continuation line after CONNECT response: '%s'\n"
-msgstr ""
+msgstr "Onverwachte voortzetting lijn na CONNECT antwoord: '%s'\\n"
 
 #: ../http.c:1109
 #, c-format
 msgid "Unknown proxy type '%s'\n"
-msgstr ""
+msgstr "Onbekend proxy-type '%s'\\n"
 
 #: ../http.c:1137
 msgid "Only http or socks(5) proxies supported\n"
-msgstr ""
+msgstr "Alleen http of socks(5) proxies ondersteund\\n"
 
 #: ../main.c:578
 #, c-format
 msgid "Connected %s as %s%s%s, using %s\n"
-msgstr ""
+msgstr "Verbonden %s als %s%s%s, met behulp van %s\\n"
 
 #: ../main.c:588
 msgid "No --script argument provided; DNS and routing are not configured\n"
 msgstr ""
+"No --script argument meegegeven; DNS en routering zijn niet "
+"geconfigureerd\\n"
 
 #: ../main.c:599
 #, c-format
 msgid "Failed to open '%s' for write: %s\n"
-msgstr ""
+msgstr "Niet gelukt '%s' te openen voor schrijven: %s\\n"
 
 #: ../main.c:610
 #, c-format
 msgid "Continuing in background; pid %d\n"
-msgstr ""
+msgstr "Voortgezet in achtergrond; pid %d\\n"
 
 #: ../main.c:632
 #, c-format
 msgid "Failed to open %s for write: %s\n"
-msgstr ""
+msgstr "Niet gelukt %s te openen voor schrijven: %s\\n"
 
 #: ../main.c:640
 #, c-format
 msgid "Failed to write config to %s: %s\n"
-msgstr ""
+msgstr "Niet gelukt config te schrijven naar %s: %s\\n"
 
 #: ../main.c:730
 #, c-format
@@ -737,7 +739,7 @@ msgid ""
 "\n"
 "Certificate from VPN server \"%s\" failed verification.\n"
 "Reason: %s\n"
-msgstr ""
+msgstr "\\nCertificaat van VPN-server \"%s\" verificatie mislukt.\\nReden: %s\\n"
 
 #: ../main.c:738
 msgid "Enter 'yes' to accept, 'no' to abort; anything else to view: "
@@ -756,29 +758,29 @@ msgstr "nee"
 #: ../main.c:762
 #, c-format
 msgid "SHA1 fingerprint: %s\n"
-msgstr ""
+msgstr "SHA1 vingerafdruk: %s\\n"
 
 #: ../mainloop.c:89
 msgid "Attempt new DTLS connection\n"
-msgstr ""
+msgstr "Probeer nieuwe DTLS verbinding\\n"
 
 #: ../mainloop.c:122
 #, c-format
 msgid "No work to do; sleeping for %d ms...\n"
-msgstr ""
+msgstr "Niets te doen, slapen %d ms...\\n"
 
 #: ../ssl.c:133
 #, c-format
 msgid "PEM password too long (%zd >= %d)\n"
-msgstr ""
+msgstr "PEM wachtwoord te lang (%zd &gt;= %d)\\n"
 
 #: ../ssl.c:169
 msgid "Parse PKCS#12 failed (wrong passphrase?)\n"
-msgstr ""
+msgstr "Ontleden PKCS # 12 mislukt (verkeerde wachtwoord?)\\n"
 
 #: ../ssl.c:175
 msgid "Parse PKCS#12 failed (see above errors)\n"
-msgstr ""
+msgstr "Ontleden PKCS # 12 mislukt (zie bovenstaande fouten)\\n"
 
 #: ../ssl.c:184
 msgid "PKCS#12 contained no certificate!"
@@ -791,139 +793,139 @@ msgstr "PKCS # 12 bevatte geen privé-sleutel!"
 #: ../ssl.c:212
 #, c-format
 msgid "Extra cert from PKCS#12: '%s'\n"
-msgstr ""
+msgstr "Extra cert van PKCS#12: '%s'\\n"
 
 #: ../ssl.c:235
 msgid "Can't load TPM engine.\n"
-msgstr ""
+msgstr "Kan TPM engine niet laden.\\n"
 
 #: ../ssl.c:241
 msgid "Failed to init TPM engine\n"
-msgstr ""
+msgstr "Niet geslaagd om TPM engine te initiëren\\n"
 
 #: ../ssl.c:251
 msgid "Failed to set TPM SRK password\n"
-msgstr ""
+msgstr "Niet geslaagd om TPM SRK wachtwoord in te stellen\\n"
 
 #: ../ssl.c:258
 msgid "Failed to load TPM private key\n"
-msgstr ""
+msgstr "Niet geslaagd om TPM private sleutel te laden\\n"
 
 #: ../ssl.c:265
 msgid "Add key from TPM failed\n"
-msgstr ""
+msgstr "Toevoegen sleutel van TPM is mislukt\\n"
 
 #: ../ssl.c:277
 msgid "This version of OpenConnect was built without TPM support\n"
-msgstr ""
+msgstr "Deze versie van OpenConnect werd gebouwd zonder TPM ondersteuning\\n"
 
 #: ../ssl.c:293
 msgid "Failed to reload X509 cert for expiry check\n"
-msgstr ""
+msgstr "Niet geslaagd om X509 cert te laden voor controle vervaltermijn\\n"
 
 #: ../ssl.c:307
 #, c-format
 msgid "Using certificate file %s\n"
-msgstr ""
+msgstr "Gebruiken van certificatenbestand %s\\n"
 
 #: ../ssl.c:317
 #, c-format
 msgid "Failed to open certificate file %s: %s\n"
-msgstr ""
+msgstr "Niet geslaagd om certificatenbestand %s te openen: %s\\n"
 
 #: ../ssl.c:328
 msgid "Read PKCS#12 failed\n"
-msgstr ""
+msgstr "Lezen van PKCS# 12 is mislukt\\n"
 
 #: ../ssl.c:340
 msgid "Loading certificate failed\n"
-msgstr ""
+msgstr "Laden van certificaat is mislukt\\n"
 
 #: ../ssl.c:354
 #, c-format
 msgid "Failed to open private key file %s: %s\n"
-msgstr ""
+msgstr "Niet geslaagd in het openen van private key bestand %s: %s\\n"
 
 #: ../ssl.c:374
 #, c-format
 msgid "Failed to identify private key type in '%s'\n"
-msgstr ""
+msgstr "Niet geslaag in vaststellen private sleutel type in '%s'\\n"
 
 #: ../ssl.c:405
 msgid "Loading private key failed (wrong passphrase?)\n"
-msgstr ""
+msgstr "Het laden van private sleutel is mislukt (verkeerde wachtwoord?)\\n"
 
 #: ../ssl.c:410
 msgid "Loading private key failed (see above errors)\n"
-msgstr ""
+msgstr "Het laden van private sleutel is mislukt (zie bovenstaande fouten)\\n"
 
 #: ../ssl.c:455
 #, c-format
 msgid "Server SSL certificate didn't match: %s\n"
-msgstr ""
+msgstr "Server SSL certificaat komt niet overeen: %s\\n"
 
 #: ../ssl.c:568
 #, c-format
 msgid "Matched DNS altname '%s'\n"
-msgstr ""
+msgstr "Overeenkomstige DNS altname '%s'\\n"
 
 #: ../ssl.c:575
 #, c-format
 msgid "No match for altname '%s'\n"
-msgstr ""
+msgstr "Geen overeenkomstige altname '%s'\\n"
 
 #: ../ssl.c:589
 #, c-format
 msgid "Certificate has GEN_IPADD altname with bogus length %d\n"
-msgstr ""
+msgstr "Certificaat heeft GEN_IPADD altname met pseudo-lengte %d\\n"
 
 #: ../ssl.c:600
 #, c-format
 msgid "Matched %s address '%s'\n"
-msgstr ""
+msgstr "Overeenkomstig %s adres '%s'\\n"
 
 #: ../ssl.c:607
 #, c-format
 msgid "No match for %s address '%s'\n"
-msgstr ""
+msgstr "Geen overeenkomstig %s adres %s\\n"
 
 #: ../ssl.c:649
 #, c-format
 msgid "URI '%s' has non-empty path; ignoring\n"
-msgstr ""
+msgstr "URI '%s' heeft geen leeg pad; negeren\\n"
 
 #: ../ssl.c:654
 #, c-format
 msgid "Matched URI '%s'\n"
-msgstr ""
+msgstr "Overeenkomstige URI '%s'\\n"
 
 #: ../ssl.c:665
 #, c-format
 msgid "No match for URI '%s'\n"
-msgstr ""
+msgstr "Geen overeenkomst met URI '%s'\\n"
 
 #: ../ssl.c:680
 #, c-format
 msgid "No altname in peer cert matched '%s'\n"
-msgstr ""
+msgstr "Geen altname in peer-cert overeenkomstig met '%s'\\n"
 
 #: ../ssl.c:688
 msgid "No subject name in peer cert!\n"
-msgstr ""
+msgstr "Geen onderwerp naam in peer-cert!\\n"
 
 #: ../ssl.c:708
 msgid "Failed to parse subject name in peer cert\n"
-msgstr ""
+msgstr "Niet gelukt om onderwerpnaam in peer-cert te ontleden\\n"
 
 #: ../ssl.c:715
 #, c-format
 msgid "Peer cert subject mismatch ('%s' != '%s')\n"
-msgstr ""
+msgstr "Peer cert onderwerp mismatch ('%s'! = '%s')\\n"
 
 #: ../ssl.c:720
 #, c-format
 msgid "Matched peer certificate subject name '%s'\n"
-msgstr ""
+msgstr "Overeenkomstig peer-certificaat onderwerpnaam '%s'\\n"
 
 #: ../ssl.c:746
 msgid "certificate does not match hostname"
@@ -932,16 +934,16 @@ msgstr "certificaat komt niet overeen met hostnaam"
 #: ../ssl.c:750
 #, c-format
 msgid "Server certificate verify failed: %s\n"
-msgstr ""
+msgstr "Servercertificaat verificatie mislukt: %s\\n"
 
 #: ../ssl.c:798
 #, c-format
 msgid "Extra cert from cafile: '%s'\n"
-msgstr ""
+msgstr "Extra cert van CAFile: '%s'\\n"
 
 #: ../ssl.c:829
 msgid "Error in client cert notAfter field\n"
-msgstr ""
+msgstr "Fout in client cert notAfter veld\\n"
 
 #: ../ssl.c:832
 msgid "Client certificate has expired at"
@@ -958,73 +960,73 @@ msgstr "<error>"
 #: ../ssl.c:876
 #, c-format
 msgid "Failed to reconnect to proxy %s\n"
-msgstr ""
+msgstr "Niet geslaagd in opnieuw verbinden met proxy %s\\n"
 
 #: ../ssl.c:880
 #, c-format
 msgid "Failed to reconnect to host %s\n"
-msgstr ""
+msgstr "Niet gelukt om te verbinden met host %s\\n"
 
 #: ../ssl.c:943
 #, c-format
 msgid "Proxy from libproxy: %s://%s:%d/\n"
-msgstr ""
+msgstr "Proxy van libproxy: %s://%s:%d/\\n"
 
 #: ../ssl.c:974
 #, c-format
 msgid "getaddrinfo failed for host '%s': %s\n"
-msgstr ""
+msgstr "getaddrinfo mislukt voor '%s' host: %s\\n"
 
 #: ../ssl.c:985
 #, c-format
 msgid "Attempting to connect to %s%s%s:%s\n"
-msgstr ""
+msgstr "Probeert verbinding te maken met %s%s%s:%s\\n"
 
 #: ../ssl.c:1001
 msgid "Failed to allocate sockaddr storage\n"
-msgstr ""
+msgstr "Niet gelukt om sockaddr opslag toe te wijzen\\n"
 
 #: ../ssl.c:1016
 #, c-format
 msgid "Failed to connect to host %s\n"
-msgstr ""
+msgstr "Niet geslaagd in maken verbinding met host %s\\n"
 
 #: ../ssl.c:1045
 msgid "Loading certificate failed. Aborting.\n"
-msgstr ""
+msgstr "Laden van certificaat is mislukt. Afbreken.\\n"
 
 #: ../ssl.c:1068
 #, c-format
 msgid "Failed to open CA file '%s'\n"
-msgstr ""
+msgstr "Niet gelukt om CA bestand '%s' te openen\\n"
 
 #: ../ssl.c:1083
 #, c-format
 msgid "SSL negotiation with %s\n"
-msgstr ""
+msgstr "SSL afstemmen met %s\\n"
 
 #: ../ssl.c:1087
 msgid "SSL connection failure\n"
-msgstr ""
+msgstr "SSL-verbinding niet geslaagd\\n"
 
 #: ../ssl.c:1103
 #, c-format
 msgid "Connected to HTTPS on %s\n"
-msgstr ""
+msgstr "Verbonden met HTTPS op %s\\n"
 
 #: ../ssl.c:1135
 #, c-format
 msgid "statvfs: %s\n"
-msgstr ""
+msgstr "statvfs: %s\\n"
 
 #: ../ssl.c:1152
 #, c-format
 msgid "statfs: %s\n"
-msgstr ""
+msgstr "statfs: %s\\n"
 
 #: ../tun.c:83
 msgid "No vpnc-script configured. Need Solaris IP-setting code\n"
-msgstr ""
+msgstr "Geen vpnc-script geconfigureerd. Solaris IP-instelling code nodig\\n"
 
 #: ../tun.c:94
 msgid "open net"
@@ -1049,17 +1051,17 @@ msgstr "SIOCSIFMTU"
 #: ../tun.c:159
 #, c-format
 msgid "Discard bad split include: \"%s\"\n"
-msgstr ""
+msgstr "Negeren slechte split waaronder: ​​\"%s\"\\n"
 
 #: ../tun.c:163
 #, c-format
 msgid "Discard bad split exclude: \"%s\"\n"
-msgstr ""
+msgstr "Negeren slechte split zonder: \"%s\"\\n"
 
 #: ../tun.c:375 ../tun.c:661
 #, c-format
 msgid "Failed to spawn script '%s': %s\n"
-msgstr ""
+msgstr "Niet gelukt in starten van script '%s':%s\\n"
 
 #: ../tun.c:400
 msgid "socketpair"
@@ -1080,12 +1082,12 @@ msgstr "(script)"
 #: ../tun.c:438
 #, c-format
 msgid "Failed to open tun device: %s\n"
-msgstr ""
+msgstr "Niet gelukt om tun apparaat te openen: %s\\n"
 
 #: ../tun.c:449
 #, c-format
 msgid "TUNSETIFF failed: %s\n"
-msgstr ""
+msgstr "TUNSETIFF mislukt: %s\\n"
 
 #: ../tun.c:462
 msgid "open /dev/ip"
@@ -1123,7 +1125,7 @@ msgstr "Instellen mux id"
 #: ../tun.c:527
 #, c-format
 msgid "mux id is %d\n"
-msgstr ""
+msgstr "mux id is %d\\n"
 
 #: ../tun.c:541
 msgid "open tun"
@@ -1136,7 +1138,7 @@ msgstr "TUNSIFHEAD"
 #: ../tun.c:628
 #, c-format
 msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
-msgstr ""
+msgstr "Onbekend pakket (len %d) ontvangen: %02x %02x %02x %02x...\\n"
 
 #: ../tun.c:668
 msgid "ioctl(I_PUNLINK)"
@@ -1145,6 +1147,6 @@ msgstr "ioctl (I_PUNLINK)"
 #: ../xml.c:78
 #, c-format
 msgid "XML config file SHA1: %s\n"
-msgstr ""
+msgstr "XML-configuratiebestand SHA1: %s\\n"
 
 
