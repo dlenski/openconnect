@@ -2,6 +2,7 @@
 AC_INIT(openconnect, 3.13)
 PKG_PROG_PKG_CONFIG
 AC_LANG_C
+AM_MAINTAINER_MODE([enable])
 AM_INIT_AUTOMAKE([foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
