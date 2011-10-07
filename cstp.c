@@ -106,7 +106,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	if (vpninfo->dtls_times.last_rekey + vpninfo->dtls_times.rekey <
 	    time(NULL) + 300 &&
 	    RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
-		fprintf(stderr, "Failed to initialise DTLS secret\n");
+		fprintf(stderr, _("Failed to initialise DTLS secret\n"));
 		exit(1);
 	}
 

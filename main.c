@@ -202,11 +202,11 @@ static void read_stdin(char **string)
 {
 	char *c = malloc(100);
 	if (!c) {
-		fprintf(stderr, "Allocation failure for string from stdin\n");
+		fprintf(stderr, _("Allocation failure for string from stdin\n"));
 		exit(1);
 	}
 	if (!fgets(c, 100, stdin)) {
-		perror("fgets (stdin)");
+		perror(_("fgets (stdin)"));
 		exit(1);
 	}
 
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 
 	vpninfo = malloc(sizeof(*vpninfo));
 	if (!vpninfo) {
-		fprintf(stderr, "Failed to allocate vpninfo structure\n");
+		fprintf(stderr, _("Failed to allocate vpninfo structure\n"));
 		exit(1);
 	}
 	memset(vpninfo, 0, sizeof(*vpninfo));
@@ -345,7 +345,7 @@ int main(int argc, char **argv)
 			} else if (!strcasecmp(optarg, "PEM")) {
 				vpninfo->cert_type = CERT_TYPE_PEM;
 			} else {
-				fprintf(stderr, "Unknown certificate type '%s'\n",
+				fprintf(stderr, _("Unknown certificate type '%s'\n"),
 					optarg);
 				usage();
 			}
@@ -370,7 +370,7 @@ int main(int argc, char **argv)
 		case 'm':
 			vpninfo->mtu = atol(optarg);
 			if (vpninfo->mtu < 576) {
-				fprintf(stderr, "MTU %d too small\n", vpninfo->mtu);
+				fprintf(stderr, _("MTU %d too small\n"), vpninfo->mtu);
 				vpninfo->mtu = 576;
 			}
 			break;
@@ -389,8 +389,9 @@ int main(int argc, char **argv)
 			proxy = NULL;
 			break;
 		case OPT_NO_HTTP_KEEPALIVE:
-			fprintf(stderr, "Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
-				"If this helps, please report to <openconnect-devel@lists.infradead.org>.\n");
+			fprintf(stderr,
+				_("Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
+				  "If this helps, please report to <openconnect-devel@lists.infradead.org>.\n"));
 			vpninfo->no_http_keepalive = 1;
 			break;
 		case OPT_NO_CERT_CHECK:
@@ -411,7 +412,7 @@ int main(int argc, char **argv)
 			if (strend[0]) {
 				struct passwd *pw = getpwnam(optarg);
 				if (!pw) {
-					fprintf(stderr, "Invalid user \"%s\"\n",
+					fprintf(stderr, _("Invalid user \"%s\"\n"),
 						optarg);
 					exit(1);
 				}
@@ -425,7 +426,7 @@ int main(int argc, char **argv)
 			if (strend[0]) {
 				struct passwd *pw = getpwnam(optarg);
 				if (!pw) {
-					fprintf(stderr, "Invalid user \"%s\"\n",
+					fprintf(stderr, _("Invalid user \"%s\"\n"),
 						optarg);
 					exit(1);
 				}
@@ -443,7 +444,7 @@ int main(int argc, char **argv)
 		case 'Q':
 			vpninfo->max_qlen = atol(optarg);
 			if (!vpninfo->max_qlen) {
-				fprintf(stderr, "Queue length zero not permitted; using 1\n");
+				fprintf(stderr, _("Queue length zero not permitted; using 1\n"));
 				vpninfo->max_qlen = 1;
 			}
 			break;
@@ -454,7 +455,7 @@ int main(int argc, char **argv)
 			verbose = PRG_TRACE;
 			break;
 		case 'V':
-			printf("OpenConnect version %s\n", openconnect_version);
+			printf(_("OpenConnect version %s\n"), openconnect_version);
 			exit(0);
 		case 'x':
 			vpninfo->xmlconfig = optarg;
@@ -476,7 +477,7 @@ int main(int argc, char **argv)
 	}
 
 	if (optind != argc - 1) {
-		fprintf(stderr, "No server specified\n");
+		fprintf(stderr, _("No server specified\n"));
 		usage();
 	}
 
@@ -489,7 +490,7 @@ int main(int argc, char **argv)
 #ifdef LIBPROXY_HDR
 		vpninfo->proxy_factory = px_proxy_factory_new();
 #else
-		fprintf(stderr, "This version of openconnect was built without libproxy support\n");
+		fprintf(stderr, _("This version of openconnect was built without libproxy support\n"));
 		exit(1);
 #endif
 	}
@@ -523,12 +524,12 @@ int main(int argc, char **argv)
 
 		if (internal_parse_url(url, &scheme, &vpninfo->hostname, &vpninfo->port,
 			      &group, 443)) {
-			fprintf(stderr, "Failed to parse server URL '%s'\n",
+			fprintf(stderr, _("Failed to parse server URL '%s'\n"),
 				url);
 			exit(1);
 		}
 		if (scheme && strcmp(scheme, "https")) {
-			fprintf(stderr, "Only https:// permitted for server URL\n");
+			fprintf(stderr, _("Only https:// permitted for server URL\n"));
 			exit(1);
 		}
 		if (group) {
@@ -544,7 +545,7 @@ int main(int argc, char **argv)
 #endif
 
 	if (!vpninfo->cookie && openconnect_obtain_cookie(vpninfo)) {
-		fprintf(stderr, "Failed to obtain WebVPN cookie\n");
+		fprintf(stderr, _("Failed to obtain WebVPN cookie\n"));
 		exit(1);
 	}
 
@@ -555,24 +556,24 @@ int main(int argc, char **argv)
 			exit(0);
 	}
 	if (make_cstp_connection(vpninfo)) {
-		fprintf(stderr, "Creating SSL connection failed\n");
+		fprintf(stderr, _("Creating SSL connection failed\n"));
 		exit(1);
 	}
 
 	if (setup_tun(vpninfo)) {
-		fprintf(stderr, "Set up tun device failed\n");
+		fprintf(stderr, _("Set up tun device failed\n"));
 		exit(1);
 	}
 
 	if (uid != getuid()) {
 		if (setuid(uid)) {
-			fprintf(stderr, "Failed to set uid %d\n", uid);
+			fprintf(stderr, _("Failed to set uid %d\n"), uid);
 			exit(1);
 		}
 	}
 
 	if (vpninfo->dtls_attempt_period && setup_dtls(vpninfo))
-		fprintf(stderr, "Set up DTLS failed; using SSL instead\n");
+		fprintf(stderr, _("Set up DTLS failed; using SSL instead\n"));
 
 	vpn_progress(vpninfo, PRG_INFO,
 		     _("Connected %s as %s%s%s, using %s\n"), vpninfo->ifname,

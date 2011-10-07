@@ -51,19 +51,20 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 
 	fd = open(vpninfo->xmlconfig, O_RDONLY);
 	if (fd < 0) {
-		perror("Open XML config file");
-		fprintf(stderr, "Treating host \"%s\" as a raw hostname\n", host);
+		perror(_("Open XML config file"));
+		fprintf(stderr, _("Treating host \"%s\" as a raw hostname\n"),
+			host);
 		return 0;
 	}
 
 	if (fstat(fd, &st)) {
-		perror("fstat XML config file");
+		perror(_("fstat XML config file"));
 		return -1;
 	}
 
 	xmlfile = mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
 	if (xmlfile == MAP_FAILED) {
-		perror("mmap XML config file");
+		perror(_("mmap XML config file"));
 		close(fd);
 		return -1;
 	}
@@ -82,8 +83,10 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 	munmap(xmlfile, st.st_size);
 	close(fd);
 	if (!xml_doc) {
-		fprintf(stderr, "Failed to parse XML config file %s\n", vpninfo->xmlconfig);
-		fprintf(stderr, "Treating host \"%s\" as a raw hostname\n", host);
+		fprintf(stderr, _("Failed to parse XML config file %s\n"),
+			vpninfo->xmlconfig);
+		fprintf(stderr, _("Treating host \"%s\" as a raw hostname\n"),
+			host);
 		return 0;
 	}
 	xml_node = xmlDocGetRootElement(xml_doc);
@@ -117,7 +120,7 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 							char *content = (char *)xmlNodeGetContent(xml_node2);
 							if (content) {
 								vpninfo->hostname = content;
-								printf("Host \"%s\" has address \"%s\"\n",
+								printf(_("Host \"%s\" has address \"%s\"\n"),
 								       host, content);
 							}
 						} else if (match &&
@@ -126,7 +129,7 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 							if (content) {
 								free(vpninfo->urlpath);
 								vpninfo->urlpath = content;
-								printf("Host \"%s\" has UserGroup \"%s\"\n",
+								printf(_("Host \"%s\" has UserGroup \"%s\"\n"),
 								       host, content);
 							}
 						}
@@ -140,7 +143,7 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 	xmlFreeDoc(xml_doc);
 
 	if (!vpninfo->hostname) {
-		fprintf(stderr, "Host \"%s\" not listed in config; treating as raw hostname\n",
+		fprintf(stderr, _("Host \"%s\" not listed in config; treating as raw hostname\n"),
 			host);
 	}
 
