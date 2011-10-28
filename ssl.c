@@ -814,7 +814,7 @@ static int ssl_app_verify_callback(X509_STORE_CTX *ctx, void *arg)
 static int check_certificate_expiry(struct openconnect_info *vpninfo)
 {
 	ASN1_TIME *notAfter;
-	char *reason = NULL;
+	const char *reason = NULL;
 	time_t t;
 	int i;
 
@@ -840,7 +840,7 @@ static int check_certificate_expiry(struct openconnect_info *vpninfo)
 	if (reason) {
 		BIO *bp = BIO_new(BIO_s_mem());
 		BUF_MEM *bm;
-		char *expiry = _("<error>");
+		const char *expiry = _("<error>");
 		char zero = 0;
 
 		if (bp) {
