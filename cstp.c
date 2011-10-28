@@ -439,9 +439,11 @@ int cstp_reconnect(struct openconnect_info *vpninfo)
 	return 0;
 }
 
-static int inflate_and_queue_packet(struct openconnect_info *vpninfo, void *buf, int len)
+static int inflate_and_queue_packet(struct openconnect_info *vpninfo,
+				    unsigned char *buf, int len)
 {
 	struct pkt *new = malloc(sizeof(struct pkt) + vpninfo->mtu);
+	uint32_t pkt_sum;
 
 	if (!new)
 		return -ENOMEM;
@@ -466,7 +468,10 @@ static int inflate_and_queue_packet(struct openconnect_info *vpninfo, void *buf,
 	vpninfo->inflate_adler32 = adler32(vpninfo->inflate_adler32,
 					   new->data, new->len);
 
-	if (vpninfo->inflate_adler32 != ntohl( *(uint32_t *) (buf + len - 4) )) {
+	pkt_sum = buf[len - 1] | (buf[len - 2] << 8) |
+		(buf[len - 3] << 16) | (buf[len - 4] << 24);
+
+	if (vpninfo->inflate_adler32 != pkt_sum) {
 		vpninfo->quit_reason = "Compression (inflate) adler32 failure";
 	}
 
