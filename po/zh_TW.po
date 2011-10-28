@@ -3,13 +3,14 @@
 # This file is distributed under the same license as the PACKAGE package.
 # 
 # Translators:
+# Cheng-Chia Tseng <pswo10680@gmail.com>, 2011.
 msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-10-08 01:03+0100\n"
-"PO-Revision-Date: 2011-09-22 22:31+0000\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2011-10-25 14:17+0000\n"
+"Last-Translator: zerng07 <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.net/projects/p/meego/team/zh_TW/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -24,15 +25,15 @@ msgstr ""
 #: ../auth.c:188
 #, c-format
 msgid "name %s not input\n"
-msgstr ""
+msgstr "名稱 %s 未輸入\n"
 
 #: ../auth.c:195
 msgid "No input type in form\n"
-msgstr ""
+msgstr "表單內無輸入類型\n"
 
 #: ../auth.c:207
 msgid "No input name in form\n"
-msgstr ""
+msgstr "表單內無輸入名稱\n"
 
 #: ../auth.c:230
 #, c-format
