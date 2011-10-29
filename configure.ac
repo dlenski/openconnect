@@ -6,7 +6,24 @@ AM_MAINTAINER_MODE([enable])
 AM_INIT_AUTOMAKE([foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
-IT_PROG_INTLTOOL
+# Black magic: putting this before the conditional IT_PROG_LIBTOOL below
+# seems to avoid complaints about AMDEP being conditionally defined.
+AC_PROG_LIBTOOL
+
+# Ick. IT_PROG_INTLTOOL isn't capable of doing this for itself? And hell,
+# we don't even *need* intltool for a build-from-tarball on most systems,
+# do we? But to avoid a whole chain of dependencies, we need it to be
+# optional.
+AC_PATH_PROG(INTLTOOL_UPDATE, [intltool-update])
+AC_PATH_PROG(INTLTOOL_MERGE, [intltool-merge])
+AC_PATH_PROG(INTLTOOL_EXTRACT, [intltool-extract])
+if test -z "$INTLTOOL_UPDATE" -o -z "$INTLTOOL_MERGE" -o -z "$INTLTOOL_EXTRACT"; then
+    AC_MSG_NOTICE([The intltool scripts were not found. Disabling NLS.])
+    USE_NLS=no
+else
+    IT_PROG_INTLTOOL
+fi
+
 AC_SUBST(GETTEXT_PACKAGE, [openconnect])
 AM_CONDITIONAL(USE_NLS, [test "$USE_NLS" = "yes"])
 if (test "$USE_NLS" = "yes"); then
