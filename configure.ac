@@ -44,10 +44,8 @@ AS_COMPILER_FLAGS(CFLAGS,
          -Winit-self
          -Wmissing-declarations
          -Wmissing-include-dirs
-         -Wmissing-noreturn
          -Wnested-externs
          -Wpointer-arith
-         -Wundef
          -Wwrite-strings")
 
 AC_ARG_WITH([openssl],
