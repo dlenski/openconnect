@@ -20,19 +20,27 @@ if test "$USE_NLS" = "yes"; then
       AC_ERROR([msgfmt could not be found. Try configuring with --disable-nls])
    fi
 fi
+LIBINTL=
 if test "$USE_NLS" = "yes"; then
-   AC_CHECK_DECL([dgettext(char *, char *)], [],
-      AC_ERROR([dgettext() is not declared in libintl.h. Try configuring with --disable-nls]),
-		  [#include <libintl.h>])
-fi
-if test "$USE_NLS" = "yes"; then
-   AC_SEARCH_LIBS(dgettext, intl,
-		  [if test "$ac_cv_search_dgettext" != "none required"; then
-			LIBINTL="$ac_cv_search_dgettext"; fi],
-		  AC_ERROR([dgettext() could not be found. Try configuring with --disable-nls]))
-fi
-if test "$USE_NLS" = "absent"; then
-   AC_MSG_NOTICE([Native Language Support will not be supported in this build])
+   AC_MSG_CHECKING([for functional NLS support])
+   AC_LINK_IFELSE([AC_LANG_PROGRAM([
+    #include <locale.h>
+    #include <libintl.h>],[
+    setlocale(LC_ALL, "");
+    (void)dgettext("openconnect", "foo");])],
+    [AC_MSG_RESULT(yes)],
+    [oldLIBS="$LIBS"
+     LIBS="$LIBS -lintl"
+     AC_LINK_IFELSE([AC_LANG_PROGRAM([
+      #include <locale.h>
+      #include <libintl.h>],[
+      setlocale(LC_ALL, "");
+      (void)dgettext("openconnect", "foo");])],
+      [AC_MSG_RESULT(yes (with -lintl))]
+       LIBINTL="-lintl",
+      [AC_MSG_RESULT(no)
+       USE_NLS=no])
+     LIBS="$oldLIBS"])
 fi
 
 if test "$USE_NLS" = "yes"; then
