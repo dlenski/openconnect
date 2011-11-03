@@ -34,7 +34,7 @@ version.c: $(filter-out version.c, $(libopenconnect_la_SOURCES)) \
 	   $(openconnect_SOURCES) Makefile.am configure.ac \
 	   openconnect.h openconnect-internal.h version.sh \
 	   $(wildcard .git/index .git/refs/tags)
-	@./version.sh
+	@$(srcdir)/version.sh
 
 tmp-dist: uncommitted-check
 	$(MAKE) $(AM_MAKEFLAGS) VERSION=$(patsubst v%,%,$(shell git describe --tags)) NODISTHOOK=1 dist
