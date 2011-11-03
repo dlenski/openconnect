@@ -17,7 +17,9 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li><i>No changelog entries yet</i></li>
+       <li>Fix non-portable <tt>(void *)</tt> arithmetic.</li>
+       <li>Make more messages translatable.</li>
+       <li>Attempt to make NLS support more portable (with fewer dependencies).</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.13.tar.gz">OpenConnect v3.13</a></b> &#8212; 2011-09-30
