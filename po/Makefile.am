@@ -23,7 +23,7 @@ install-data-hook: all
 	  $(INSTALL_DATA) $$l.mo $$dir/$(PACKAGE).mo; \
 	done
 
-$(GETTEXT_PACKAGE).pot: $(POTFILES) Makefile
+$(PACKAGE).pot: $(POTFILES) Makefile
 	rm -f $@ && \
 	xgettext --directory=$(top_srcdir) \
 	  --add-comments --keyword=_ --keyword=N_ \

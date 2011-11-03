@@ -45,7 +45,6 @@ fi
 
 if test "$USE_NLS" = "yes"; then
    AC_SUBST(LIBINTL)
-   AC_SUBST(GETTEXT_PACKAGE, [openconnect])
    AC_DEFINE(ENABLE_NLS, 1)
 fi
 AM_CONDITIONAL(USE_NLS, [test "$USE_NLS" = "yes"])
