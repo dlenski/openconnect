@@ -14,11 +14,11 @@ man8_MANS = openconnect.8
 openconnect_SOURCES = xml.c main.c dtls.c cstp.c mainloop.c tun.c
 
 openconnect_CFLAGS = $(OPENSSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS)
-openconnect_LDADD = libopenconnect.la $(OPENSSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS)
+openconnect_LDADD = libopenconnect.la $(OPENSSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(LIBINTL)
 
 libopenconnect_la_SOURCES = ssl.c http.c version.c auth.c library.c
 libopenconnect_la_CFLAGS = $(OPENSSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS)
-libopenconnect_la_LIBADD = $(OPENSSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS)
+libopenconnect_la_LIBADD = $(OPENSSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LIBINTL)
 libopenconnect_la_LDFLAGS = -version-number 1:2
 noinst_HEADERS = openconnect-internal.h openconnect.h
 include_HEADERS = openconnect.h

@@ -6,29 +6,41 @@ AM_MAINTAINER_MODE([enable])
 AM_INIT_AUTOMAKE([foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
-# Black magic: putting this before the conditional IT_PROG_LIBTOOL below
+# Black magic: putting this before the conditional NLS bits below
 # seems to avoid complaints about AMDEP being conditionally defined.
 AC_PROG_LIBTOOL
 
-# Ick. IT_PROG_INTLTOOL isn't capable of doing this for itself? And hell,
-# we don't even *need* intltool for a build-from-tarball on most systems,
-# do we? But to avoid a whole chain of dependencies, we need it to be
-# optional.
-AC_PATH_PROG(INTLTOOL_UPDATE, [intltool-update])
-AC_PATH_PROG(INTLTOOL_MERGE, [intltool-merge])
-AC_PATH_PROG(INTLTOOL_EXTRACT, [intltool-extract])
-if test -z "$INTLTOOL_UPDATE" -o -z "$INTLTOOL_MERGE" -o -z "$INTLTOOL_EXTRACT"; then
-    AC_MSG_NOTICE([The intltool scripts were not found. Disabling NLS.])
-    USE_NLS=no
-else
-    IT_PROG_INTLTOOL
+AC_ARG_ENABLE([nls],
+	[ --disable-nls           do not use Native Language Support],
+	[USE_NLS=$enableval], [USE_NLS=yes])
+LIBINTL=
+if test "$USE_NLS" = "yes"; then
+   AC_PATH_PROG(MSGFMT, msgfmt)
+   if test "$MSGFMT" = ""; then
+      AC_ERROR([msgfmt could not be found. Try configuring with --disable-nls])
+   fi
+fi
+if test "$USE_NLS" = "yes"; then
+   AC_CHECK_DECL([dgettext(char *, char *)], [],
+      AC_ERROR([dgettext() is not declared in libintl.h. Try configuring with --disable-nls]),
+		  [#include <libintl.h>])
+fi
+if test "$USE_NLS" = "yes"; then
+   AC_SEARCH_LIBS(dgettext, intl,
+		  [if test "$ac_cv_search_dgettext" != "none required"; then
+			LIBINTL="$ac_cv_search_dgettext"; fi],
+		  AC_ERROR([dgettext() could not be found. Try configuring with --disable-nls]))
+fi
+if test "$USE_NLS" = "absent"; then
+   AC_MSG_NOTICE([Native Language Support will not be supported in this build])
 fi
 
-AC_SUBST(GETTEXT_PACKAGE, [openconnect])
-AM_CONDITIONAL(USE_NLS, [test "$USE_NLS" = "yes"])
-if (test "$USE_NLS" = "yes"); then
+if test "$USE_NLS" = "yes"; then
+   AC_SUBST(LIBINTL)
+   AC_SUBST(GETTEXT_PACKAGE, [openconnect])
    AC_DEFINE(ENABLE_NLS, 1)
 fi
+AM_CONDITIONAL(USE_NLS, [test "$USE_NLS" = "yes"])
 
 AS_COMPILER_FLAGS(CFLAGS,
         "-Wall
@@ -108,5 +120,5 @@ else
 fi
 AM_CONDITIONAL(BUILD_WWW, [test -n "${ac_cv_path_PYTHON}"])
 		   
-AC_OUTPUT(Makefile openconnect.pc po/Makefile.in www/Makefile \
+AC_OUTPUT(Makefile openconnect.pc po/Makefile www/Makefile \
 	  www/styles/Makefile www/inc/Makefile www/images/Makefile)
