@@ -2,7 +2,7 @@
 
 v="v3.13"
 
-if tag=`git describe --tags`; then
+if [ -d .git ] && tag=`git describe --tags`; then
 	v="$tag"
 
 	# Update the index from working tree first
