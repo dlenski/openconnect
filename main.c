@@ -23,6 +23,8 @@
  *   Boston, MA 02110-1301 USA
  */
 
+#define _BSD_SOURCE
+#define _POSIX_SOURCE
 #include <stdio.h>
 #ifdef ANDROID
 #include <android/log.h>
@@ -33,6 +35,9 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>

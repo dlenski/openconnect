@@ -22,6 +22,7 @@
  *   Boston, MA 02110-1301 USA
  */
 
+#define _BSD_SOURCE
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -185,7 +186,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 			vpninfo->dtls_attempt_period = 0;
 			return -EINVAL;
 		}
-		vpninfo->dtls_session->ssl_version = 0x0100; // DTLS1_BAD_VER
+		vpninfo->dtls_session->ssl_version = 0x0100; /* DTLS1_BAD_VER */
 	}
 
 	/* Do this every time; it may have changed due to a rekey */
