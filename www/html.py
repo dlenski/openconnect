@@ -22,10 +22,16 @@ import xml.sax
 import commands
 import codecs
 
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
+lookupdir = ''
+
 # Print the usage information
 def usage():
 	print "USAGE:"
 	print "html.py <-f -h file.xml>"
+	print "  -d DIR    use DIR as base directory for opening files"
 	print "  -f        write output to file.html (default is stdout)"
 	print "  -h        help"
 	return
@@ -91,7 +97,10 @@ class docHandler(xml.sax.ContentHandler):
 		if name == "PAGE":
 			return
 		elif name == "INCLUDE":
-			fd = open(attrs.get('file'), 'r')
+			try:
+				fd = open(attrs.get('file'), 'r')
+			except:
+				fd = open(lookupdir + attrs.get('file'), 'r')
 			lines = fd.readlines()
 			fd.close()
 			for line in lines:
@@ -188,7 +197,10 @@ def parseConfig(file):
 	parser.setContentHandler(dh)
 	parser.setErrorHandler(eh)
 
-	fd = open(file, 'r')
+	try:
+		fd = open(file, 'r')
+	except:
+		fd = open(lookupdir + file, 'r')
 
 	# Parse the file
 	parser.parse(fd)
@@ -201,7 +213,7 @@ def parseConfig(file):
 writefile = 0
 
 try:
-	(options, arguments) = getopt.getopt(sys.argv[1:],'fh')
+	(options, arguments) = getopt.getopt(sys.argv[1:],'fhd:')
 except getopt.GetoptError, ex:
 	print
 	print "ERROR:"
@@ -211,6 +223,8 @@ except getopt.GetoptError, ex:
 	pass
 
 for option, value in options:
+	if option == '-d':
+		lookupdir = value + '/'
 	if option == '-f':
 		writefile = 1
 	elif option == '-h':
