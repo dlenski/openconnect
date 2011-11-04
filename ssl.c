@@ -479,7 +479,14 @@ static int match_hostname_elem(const char *hostname, int helem_len,
 		return -1;
 	}
 
-	if (toupper(hostname[0]) == toupper(match[0]))
+	/* From the NetBSD (5.1) man page for ctype(3):
+           Values of type char or signed char must first be cast to unsigned char,
+	   to ensure that the values are within the correct range.  The result
+	   should then be cast to int to avoid warnings from some compilers.
+	   We do indeed get warning "array subscript has type 'char'" without
+	   the casts. Ick. */
+	if (toupper((int)(unsigned char)hostname[0]) ==
+	    toupper((int)(unsigned char)match[0]))
 		return match_hostname_elem(hostname + 1, helem_len - 1,
 					   match + 1, melem_len - 1);
 

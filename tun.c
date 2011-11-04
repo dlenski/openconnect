@@ -258,7 +258,8 @@ static void set_banner(struct openconnect_info *vpninfo)
 	q = banner;
 	
 	while (*p) {
-		if (*p == '%' && isxdigit(p[1]) && isxdigit(p[2])) {
+		if (*p == '%' && isxdigit((int)(unsigned char)p[1]) &&
+		    isxdigit((int)(unsigned char)p[2])) {
 			*(q++) = unhex(p + 1);
 			p += 3;
 		} else 

@@ -51,7 +51,7 @@ static int append_opt(char *body, int bodylen, char *opt, char *name)
 	}
 
 	while (*opt) {
-		if (isalnum(*opt)) {
+		if (isalnum((int)(unsigned char)*opt)) {
 			if (len >= bodylen - 1)
 				return -ENOSPC;
 			body[len++] = *opt;
@@ -69,7 +69,7 @@ static int append_opt(char *body, int bodylen, char *opt, char *name)
 	body[len++] = '=';
 
 	while (name && *name) {
-		if (isalnum(*name)) {
+		if (isalnum((int)(unsigned char)*name)) {
 			if (len >= bodylen - 1)
 				return -ENOSPC;
 			body[len++] = *name;
