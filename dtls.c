@@ -22,7 +22,6 @@
  *   Boston, MA 02110-1301 USA
  */
 
-#define _BSD_SOURCE
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>

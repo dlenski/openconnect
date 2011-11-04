@@ -23,8 +23,6 @@
  *   Boston, MA 02110-1301 USA
  */
 
-#define _BSD_SOURCE
-#define _POSIX_SOURCE
 #include <stdio.h>
 #ifdef ANDROID
 #include <android/log.h>
@@ -49,7 +47,6 @@
 #include LIBPROXY_HDR
 #endif
 
-#define _GNU_SOURCE
 #include <getopt.h>
 
 #include "openconnect-internal.h"

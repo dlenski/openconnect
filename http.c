@@ -23,7 +23,6 @@
  *   Boston, MA 02110-1301 USA
  */
 
-#define _GNU_SOURCE
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
