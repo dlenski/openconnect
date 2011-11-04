@@ -37,20 +37,21 @@ version.c: $(filter-out version.c, $(libopenconnect_la_SOURCES)) \
 	@$(srcdir)/version.sh
 
 tmp-dist: uncommitted-check
-	$(MAKE) $(AM_MAKEFLAGS) VERSION=$(patsubst v%,%,$(shell git describe --tags)) NODISTHOOK=1 dist
+	$(MAKE) $(AM_MAKEFLAGS) VERSION=$(patsubst v%,%,$(shell git describe --tags)) DISTHOOK=0 dist
 
 uncommitted-check:
 	@if ! git update-index --refresh --unmerged || \
 	    ! git diff-index --name-only --exit-code HEAD; then \
 		echo "*** ERROR: Uncommitted changes in above files"; exit 1; fi
 
+DISTHOOK=1
 dist-hook: uncommitted-check
- ifndef NODISTHOOK
-	@if ! git rev-parse --verify v$(VERSION) &> /dev/null; then \
-		echo "*** ERROR: Version v$(VERSION) is not tagged"; exit 1; fi
-	@if ! git diff --name-only --exit-code v$(VERSION) HEAD > /dev/null; then \
-		echo "*** ERROR: Git checkout not at version v$(VERSION)"; exit 1; fi
- endif
+	@if [ $(DISTHOOK) = 1 ]; then \
+	    if ! git rev-parse --verify v$(VERSION) &> /dev/null; then \
+		echo "*** ERROR: Version v$(VERSION) is not tagged"; exit 1; fi ; \
+	    if ! git diff --name-only --exit-code v$(VERSION) HEAD > /dev/null; then \
+		echo "*** ERROR: Git checkout not at version v$(VERSION)"; exit 1; fi ; \
+	fi
 
 tag: uncommitted-check
 	@if git rev-parse --verify v$(VERSION) &> /dev/null; then \
