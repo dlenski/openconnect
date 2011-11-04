@@ -138,6 +138,12 @@ else
    AC_MSG_NOTICE([Python not found; not building HTML pages])
 fi
 AM_CONDITIONAL(BUILD_WWW, [test -n "${ac_cv_path_PYTHON}"])
-		   
+
+AC_SUBST([CONFIG_STATUS_DEPENDENCIES], ['$(top_srcdir)/po/LINGUAS'])
+RAWLINGUAS=`sed -e "/^#/d" -e "s/#.*//" "${srcdir}/po/LINGUAS"`
+# Remove newlines
+LINGUAS=`echo $RAWLINGUAS`
+AC_SUBST(LINGUAS)
+
 AC_OUTPUT(Makefile openconnect.pc po/Makefile www/Makefile \
 	  www/styles/Makefile www/inc/Makefile www/images/Makefile)
