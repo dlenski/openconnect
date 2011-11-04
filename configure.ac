@@ -80,10 +80,22 @@ AC_ARG_WITH([openssl],
 	     AC_ENABLE_SHARED
 	     AC_DISABLE_STATIC])
 
-AC_PROG_LIBTOOL
-
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0)
-PKG_CHECK_MODULES(ZLIB, zlib)
+
+PKG_CHECK_MODULES(ZLIB, zlib, [],
+		  [oldLIBS="$LIBS"
+		  LIBS="$LIBS -lz" 
+		  AC_MSG_CHECKING([for zlib without pkg-config])
+		  AC_LINK_IFELSE([AC_LANG_PROGRAM([
+		   #include <zlib.h>],[
+		   z_stream zs;
+		   deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
+		   		-12, 9, Z_DEFAULT_STRATEGY);])],
+		  [AC_MSG_RESULT(yes)
+		   AC_SUBST([ZLIB_LIBS], [-lz])
+		   AC_SUBST([ZLIB_CFLAGS], [])],
+  		  [AC_MSG_RESULT(no)
+		   AC_ERROR([Could not build against zlib])])])
 
 PKG_CHECK_MODULES(LIBPROXY, libproxy-1.0,
 		[AC_SUBST(LIBPROXY_PC, libproxy-1.0)
