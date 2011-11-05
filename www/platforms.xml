@@ -14,7 +14,7 @@
 	<h1>Supported Platforms</h1>
 
 <p>OpenConnect is known to work on Linux (including Android), OpenBSD,
-FreeBSD, NetBSD, DragonFly BSD, OpenSolaris
+FreeBSD, NetBSD, DragonFly BSD, OpenIndiana/OpenSolaris
 and Mac OS X platforms, and should be trivially portable to any other platform
 supporting <a href="http://en.wikipedia.org/wiki/TUN/TAP">TUN/TAP</a>
 devices and on which <a href="http://www.openssl.org/">OpenSSL</a> runs.

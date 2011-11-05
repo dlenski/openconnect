@@ -60,7 +60,7 @@ it still doesn't build, please send the full output in a plain-text mail to the
 <h2>TUN/TAP driver</h2>
 
 <p>Mac OS X users will also need to install the
-<a href="http://tuntaposx.sourceforge.net/">Mac OS X tun/tap driver</a>, and Solaris users will need the <a href="http://www.whiteboard.ne.jp/~admin2/tuntap/">Solaris one</a>. Note that for IPv6 support, the Solaris tun/tap driver from 16th Nov 2009 or newer is required.</p>
+<a href="http://tuntaposx.sourceforge.net/">Mac OS X tun/tap driver</a>, and Solaris/OpenIndiana users will need the <a href="http://www.whiteboard.ne.jp/~admin2/tuntap/">Solaris one</a>. Note that for IPv6 support, the Solaris tun/tap driver from 16th Nov 2009 or newer is required.</p>
 
 	<INCLUDE file="inc/footer.tmpl" />
 </PAGE>
