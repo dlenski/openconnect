@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Fix build issues on OSX, OpenIndiana, DragonFlyBSD, OpenBSD, FreeBSD &amp;amp; NetBSD.</li>
        <li>Fix non-portable <tt>(void *)</tt> arithmetic.</li>
        <li>Make more messages translatable.</li>
        <li>Attempt to make NLS support more portable (with fewer dependencies).</li>
