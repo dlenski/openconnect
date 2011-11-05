@@ -526,7 +526,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 }
 
 #ifdef __sun__
-char *local_strcasestr(const char *haystack, const char *needle)
+static char *local_strcasestr(const char *haystack, const char *needle)
 {
 	int hlen = strlen(haystack);
 	int nlen = strlen(needle);
