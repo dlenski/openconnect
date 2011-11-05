@@ -478,7 +478,7 @@ static int inflate_and_queue_packet(struct openconnect_info *vpninfo,
 
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Received compressed data packet of %ld bytes\n"),
-		     vpninfo->inflate_strm.total_out);
+		     (long)vpninfo->inflate_strm.total_out);
 
 	queue_packet(&vpninfo->incoming_queue, new);
 	return 0;
