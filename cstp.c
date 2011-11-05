@@ -29,7 +29,6 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
-#include <arpa/inet.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
