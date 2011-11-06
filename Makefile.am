@@ -16,7 +16,8 @@ openconnect_SOURCES = xml.c main.c dtls.c cstp.c mainloop.c tun.c
 openconnect_CFLAGS = $(OPENSSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS)
 openconnect_LDADD = libopenconnect.la $(OPENSSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(LIBINTL)
 
-libopenconnect_la_SOURCES = ssl.c http.c version.c auth.c library.c
+library_srcs = ssl.c http.c auth.c library.c
+libopenconnect_la_SOURCES = version.c $(library_srcs)
 libopenconnect_la_CFLAGS = $(OPENSSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS)
 libopenconnect_la_LIBADD = $(OPENSSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LIBINTL)
 libopenconnect_la_LDFLAGS = -version-number 1:2
@@ -30,8 +31,7 @@ EXTRA_DIST = version.sh openconnect.html openconnect.8 COPYING.LGPL
 
 DISTCLEANFILES = $(pkgconfig_DATA) version.c
 
-version.c: $(filter-out version.c, $(libopenconnect_la_SOURCES)) \
-	   $(openconnect_SOURCES) Makefile.am configure.ac \
+version.c: $(library_srcs) $(openconnect_SOURCES) Makefile.am configure.ac \
 	   openconnect.h openconnect-internal.h version.sh \
 	   $(wildcard .git/index .git/refs/tags)
 	@$(srcdir)/version.sh
