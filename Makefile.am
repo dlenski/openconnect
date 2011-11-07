@@ -83,3 +83,5 @@ update-translations:
 	@tx pull -af
 	@git commit -s -m "Update translations from Transifex" -- po/
 
+upload-pot:
+	@make -C po openconnect.pot && tx push -s
