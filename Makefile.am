@@ -8,7 +8,7 @@ SUBDIRS += po
 endif
 
 lib_LTLIBRARIES = libopenconnect.la
-bin_PROGRAMS = openconnect
+sbin_PROGRAMS = openconnect
 man8_MANS = openconnect.8
 
 openconnect_SOURCES = xml.c main.c dtls.c cstp.c mainloop.c tun.c
