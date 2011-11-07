@@ -33,7 +33,7 @@ DISTCLEANFILES = $(pkgconfig_DATA)
 
 version.c: $(library_srcs) $(openconnect_SOURCES) Makefile.am configure.ac \
 	   openconnect.h openconnect-internal.h version.sh @GITVERSIONDEPS@
-	@$(srcdir)/version.sh
+	@cd $(srcdir) && ./version.sh $@
 
 tmp-dist: uncommitted-check
 	$(MAKE) $(AM_MAKEFLAGS) VERSION=$(patsubst v%,%,$(shell git describe --tags)) DISTHOOK=0 dist
