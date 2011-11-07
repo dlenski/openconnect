@@ -168,5 +168,17 @@ RAWLINGUAS=`sed -e "/^#/d" -e "s/#.*//" "${srcdir}/po/LINGUAS"`
 LINGUAS=`echo $RAWLINGUAS`
 AC_SUBST(LINGUAS)
 
+# We want version.c to depend on the files that would affect the
+# output of version.sh. But we cannot assume that they'll exist,
+# and we cannot use $(wildcard) in a non-GNU makefile. So we just
+# depend on the files which happen to exist at configure time.
+GITVERSIONDEPS=
+for a in .git/index .git/packed-refs .git/refs/tags .git/HEAD; do
+    if test -r $a ; then
+       GITVERSIONDEPS="$GITVERSIONDEPS $a"
+    fi
+done
+AC_SUBST(GITVERSIONDEPS)
+
 AC_OUTPUT(Makefile openconnect.pc po/Makefile www/Makefile \
 	  www/styles/Makefile www/inc/Makefile www/images/Makefile)

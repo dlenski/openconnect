@@ -32,8 +32,7 @@ EXTRA_DIST = version.sh openconnect.html openconnect.8 COPYING.LGPL
 DISTCLEANFILES = $(pkgconfig_DATA)
 
 version.c: $(library_srcs) $(openconnect_SOURCES) Makefile.am configure.ac \
-	   openconnect.h openconnect-internal.h version.sh \
-	   $(wildcard .git/index .git/refs/tags)
+	   openconnect.h openconnect-internal.h version.sh @GITVERSIONDEPS@
 	@$(srcdir)/version.sh
 
 tmp-dist: uncommitted-check
