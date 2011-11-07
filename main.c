@@ -60,6 +60,12 @@ static void syslog_progress(void *_vpninfo,
 static int validate_peer_cert(void *_vpninfo,
 			      X509 *peer_cert, const char *reason);
 
+/* A sanity check that the openconnect executable is running against a
+   library of the same version */
+#define openconnect_version openconnect_binary_version
+#include "version.c"
+#undef openconnect_version
+
 int verbose = PRG_INFO;
 int background;
 int do_passphrase_from_fsid;
@@ -244,6 +250,12 @@ int main(int argc, char **argv)
 	setlocale(LC_ALL, "");
 #endif
 
+	if (strcmp(openconnect_version, openconnect_binary_version)) {
+		fprintf(stderr, _("WARNING: This version of openconnect is %s but\n"
+				  "         the libopenconnect library is %s\n"),
+			openconnect_binary_version, openconnect_version);
+	}
+			
 	openconnect_init_openssl();
 
 	vpninfo = malloc(sizeof(*vpninfo));
