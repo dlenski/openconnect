@@ -13,7 +13,7 @@ ALL_PAGES = $(FTR_PAGES) $(START_PAGES) $(INDEX_PAGES) $(TOPLEVEL_PAGES)
 pkgdata_DATA = $(ALL_PAGES)
 
 .xml.html:
-	$(PYTHON) $(CONV) -f -d $(srcdir) $< || (rm $@; exit 1)
+	$(PYTHON) $(CONV) -d $(srcdir) $< > $@ || (rm $@; exit 1)
 
 clean-local:
 	rm -f $(ALL_PAGES) openconnect.8.inc
