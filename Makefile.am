@@ -66,7 +66,9 @@ tag: uncommitted-check
 	@( echo '1,/<!-- latest-release-start -->/p' ;\
 	   echo '/<!-- latest-release-end -->/,$$p' ;\
 	   echo  '/<!-- latest-release-start -->/a\' ;\
-	   echo  'The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-$(VERSION).tar.gz">OpenConnect v$(VERSION)</a>, released on $(shell date +%Y-%m-%d) with the following changelog:</p>\' ;\
+	   echo  'The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-$(VERSION).tar.gz">OpenConnect v$(VERSION)</a>\' ;\
+	   echo  '<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-$(VERSION).tar.gz.asc">PGP signature</a>)</i>,\' ;\
+	   echo 'released on $(shell date +%Y-%m-%d) with the following changelog:</p>\' ;\
 	   sed '0,/<b>OpenConnect HEAD/d;/<\/ul><br\/>/,$$d;s/$$/\\/' www/changelog.xml ;\
 	   echo '     </ul>' ) | \
 	 sed -n -f - -i www/download.xml
@@ -75,7 +77,8 @@ tag: uncommitted-check
 	   echo '     <ul>\' ;\
 	   echo '       <li><i>No changelog entries yet</i></li>\';\
 	   echo '     </ul><br/>\' ;  echo '  </li>\' ;\
-	   echo '  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-$(VERSION).tar.gz">OpenConnect v$(VERSION)</a></b> &#8212; $(shell date +%Y-%m-%d)' ) | \
+	   echo '  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-$(VERSION).tar.gz">OpenConnect v$(VERSION)</a></b>\' ;\
+	   echo '     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-$(VERSION).tar.gz.asc">PGP signature</a>)</i> &#8212; $(shell date +%Y-%m-%d)' ) | \
 		sed -f - -i www/changelog.xml
 # stupid syntax highlighting '
 	@git commit -s -m "Tag version $(VERSION)" configure.ac version.sh www/download.xml www/changelog.xml

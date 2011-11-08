@@ -15,12 +15,13 @@
 <p>Released versions of OpenConnect are available from the FTP site:</p>
 <ul><li><a href="ftp://ftp.infradead.org/pub/openconnect/"><tt>ftp://ftp.infradead.org/pub/openconnect/</tt></a></li></ul>
 
-<p><i>(Note: Due to a longstanding <a href="https://bugzilla.redhat.com/show_bug.cgi?id=450853">Fedora bug</a>
-you may occasionally find that the FTP server is accessible only by IPv6 and not Legacy IP. If this happens,
-please let me know by sending me an email. Or just join us in the 21st century and <a href="http://en.wikipedia.org/wiki/List_of_IPv6_tunnel_brokers">get IPv6</a>.)</i></p>
+<p>Release tarballs (since 3.13) are signed with the PGP key <a href="http://pgp.mit.edu:11371/pks/lookup?op=vindex&amp;search=0x63762CDA67E2F359">67E2F359</a>.</p>
+
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.13.tar.gz">OpenConnect v3.13</a>, released on 2011-09-30 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.13.tar.gz">OpenConnect v3.13</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.13.tar.gz.asc">PGP signature</a>)</i>,
+released on 2011-09-30 with the following changelog:</p>
      <ul>
        <li>Add <tt>--cert-expire-warning</tt> option.</li>
        <li>Give visible warning when server dislikes client SSL certificate.</li>
@@ -32,7 +33,11 @@ The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconne
      </ul>
 <!-- latest-release-end -->
 
-For older releases and change logs, see the <a href="changelog.html">changelog page</a>.
+<p>For older releases and change logs, see the <a href="changelog.html">changelog page</a>.</p>
+
+<p><i>(Note: Due to a longstanding <a href="https://bugzilla.redhat.com/show_bug.cgi?id=450853">Fedora bug</a>
+you may occasionally find that the FTP server is accessible only by IPv6 and not Legacy IP. If this happens,
+please let me know by sending me an email. Or just join us in the 21st century and <a href="http://en.wikipedia.org/wiki/List_of_IPv6_tunnel_brokers">get IPv6</a>.)</i></p>
 
 <h2>Latest sources</h2>
 
