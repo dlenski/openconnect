@@ -53,6 +53,11 @@ dist-hook: uncommitted-check
 		echo "*** ERROR: Git checkout not at version v$(VERSION)"; exit 1; fi ; \
 	fi
 
+sign-dist: dist
+	@for a in $(DIST_ARCHIVES); do \
+		gpg --default-key 67E2F359 --detach-sign -a $$a ; \
+	done
+
 tag: uncommitted-check
 	@if git rev-parse --verify v$(VERSION) &> /dev/null; then \
 		echo "*** ERROR: Version v$(VERSION) is already tagged"; exit 1; fi
