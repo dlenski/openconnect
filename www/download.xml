@@ -19,17 +19,15 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.13.tar.gz">OpenConnect v3.13</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.13.tar.gz.asc">PGP signature</a>)</i>,
-released on 2011-09-30 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.14.tar.gz">OpenConnect v3.14</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.14.tar.gz.asc">PGP signature</a>)</i>,
+released on 2011-11-08 with the following changelog:</p>
      <ul>
-       <li>Add <tt>--cert-expire-warning</tt> option.</li>
-       <li>Give visible warning when server dislikes client SSL certificate.</li>
-       <li>Add localisation support.</li>
-       <li>Fix build on Debian systems where <tt>dtls1_stop_timer()</tt> is not available.</li>
-       <li>Fix libproxy detection.</li>
-       <li>Enable a useful set of compiler warnings by default.</li>
-       <li>Fix various minor compiler warnings.</li>
+       <li>Move executable to <tt>$prefix/sbin</tt>.</li>
+       <li>Fix build issues on OSX, OpenIndiana, DragonFlyBSD, OpenBSD, FreeBSD &amp;amp; NetBSD.</li>
+       <li>Fix non-portable <tt>(void *)</tt> arithmetic.</li>
+       <li>Make more messages translatable.</li>
+       <li>Attempt to make NLS support more portable (with fewer dependencies).</li>
      </ul>
 <!-- latest-release-end -->
 

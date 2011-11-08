@@ -1,5 +1,5 @@
 
-AC_INIT(openconnect, 3.13)
+AC_INIT(openconnect, 3.14)
 PKG_PROG_PKG_CONFIG
 AC_LANG_C
 AC_CANONICAL_TARGET

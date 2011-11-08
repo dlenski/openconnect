@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.14.tar.gz">OpenConnect v3.14</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.14.tar.gz.asc">PGP signature</a>)</i> &#8212; 2011-11-08
+     <ul>
        <li>Move executable to <tt>$prefix/sbin</tt>.</li>
        <li>Fix build issues on OSX, OpenIndiana, DragonFlyBSD, OpenBSD, FreeBSD &amp;amp; NetBSD.</li>
        <li>Fix non-portable <tt>(void *)</tt> arithmetic.</li>
