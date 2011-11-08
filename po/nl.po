@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
 "POT-Creation-Date: 2011-11-07 23:17+0000\n"
-"PO-Revision-Date: 2011-11-07 23:14+0000\n"
+"PO-Revision-Date: 2011-11-07 23:53+0000\n"
 "Last-Translator: dwmw2 <dwmw2@infradead.org>\n"
 "Language-Team: Dutch (http://www.transifex.net/projects/p/meego/team/nl/)\n"
 "MIME-Version: 1.0\n"
@@ -548,7 +548,7 @@ msgid ""
 "\t Use command line option \"--csd-user\"\n"
 msgstr ""
 "Waarschuwing: je draait onveilige CSD-code met root privileges\n"
-"» Gebruik commandoregel optie\" -- csd-user\"\n"
+"\t Gebruik commandoregel optie \"--csd-user\"\n"
 
 #: http.c:512
 #, c-format
@@ -927,6 +927,8 @@ msgid ""
 "WARNING: This version of openconnect is %s but\n"
 "         the libopenconnect library is %s\n"
 msgstr ""
+"Waarschuwing: De versie van openconnect is %s maar de\n"
+"              versie van de libopenconnect library is %s\n"
 
 #: main.c:263
 #, c-format
