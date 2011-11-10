@@ -24,7 +24,7 @@ certificate with the <tt>-c</tt> option. You might need to steal the
 certificate from your Windows certificate store using a tool like <a
 href="http://www.isecpartners.com/application-security-tools/jailbreak.html">Jailbreak</a>.
 <p>
-To start with, you can ignore anything you see in the <a href="compatibility.html">compatibility</a>
+To start with, you can ignore anything you see in the <a href="technical.html">technical</a>
 page about needing to patch OpenSSL so that DTLS works &#8212; you
 don't really need it, although it will make your connections much
 faster if you're experiencing packet loss between you and the VPN
