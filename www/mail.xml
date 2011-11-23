@@ -8,29 +8,35 @@
 	
 	<INCLUDE file="inc/content.tmpl" />
 
-    	<h1>Mailing lists</h1>
+	<h1>Getting help</h1>
+
+	<p>If you have problems building or using OpenConnect, or other questions or comments,
+	<em>please</em> send email to the mailing list described below. You don't need to be
+	subscribed to the list; you only need to click on the email address below, and send
+	a <em>plain text</em> (not HTML) mail.</p>
+
+	<p>A lot of people seem to post questions about OpenConnect on random web forums,
+	where they are unlikely to get a quick or knowledgeable response. It's almost as if
+	they don't <em>want</em> a coherent response, which is strange. Please, don't do
+	that.</p>
+
+    	<h1>Mailing list</h1>
 
 	<p>There is a mailing list at <tt><a href="mailto:openconnect-devel@lists.infradead.org">
-	openconnect-devel@lists.infradead.org</a></tt>.</p>
+	openconnect-devel@lists.infradead.org</a></tt>. The list does not accept HTML email,
+	so please make sure you post as plain text only.</p>
 
-	<p>Please read the recent messages in the <a
+	<p>As mentioned above, you do <em>not</em> have to be subscribed to the list in order
+	to post a question.</p>
+
+	<p>It's usually best to read the recent messages in the <a
 	href="http://lists.infradead.org/pipermail/openconnect-devel/">archive</a> before
 	posting a question that is likely to have been asked before.</p>
-
-	<p>You do <em>not</em> have to be subscribed to the list in order to post a question. If you have
-	questions or problems, <em>PLEASE</em> post them to the mailing list rather than putting
-	them on some random web forum where they are unlikely to get a quick or knowledgeable response.</p>
 
 	<p>If you do want to subscribe to the mailing list, you can do so from the <a
 	href="http://lists.infradead.org/mailman/listinfo/openconnect-devel">Mailman admin page</a>.</p>
 
-	<p>Please note that the mailing list, like many technical mailing lists, does not accept
-	HTML messages. You should post as plain text only. Other tips on 'netiquette' can be found
-	on <a href="http://david.woodhou.se/email.html">this page</a>.</p>
 
-
-
-	Before posting to the list, read this:
 	<p>
 	  <b>SECURITY WARNING:</b><br/>
 	  If you are posting debugging output from openconnect to the mailing list, do <em>not</em> include a line which looks like this:
