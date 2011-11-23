@@ -579,10 +579,39 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	unsigned char buf[2000];
 	int len;
 	int work_done = 0;
+	int moredata = 1;
 
 	if (FD_ISSET(vpninfo->tun_fd, &vpninfo->select_rfds)) {
-		while ((len = read(vpninfo->tun_fd, buf, sizeof(buf))) > 0) {
+		while (moredata) {
 			unsigned char *pkt = buf;
+#ifdef __sun__
+			/* On Solaris, if we're actually using tuntap and *not* just
+			   passing packets through a UNIX socket to a child process,
+			   we have to use getmsg() to ensure that we only get *one*
+			   packet at a time. */
+			if (!vpninfo->script_tun) {
+				struct strbuf strb;
+				int flags = 0;
+				int ret;
+				
+				strb.buf = buf;
+				strb.maxlen = sizeof(buf);
+				strb.len = 0;
+				ret = getmsg(vpninfo->tun_fd, NULL, &strb, &flags);
+				if (ret < 0)
+					break;
+
+				if (!(ret & MOREDATA))
+					moredata = 0;
+				len = strb.len;
+			} else
+#endif /* __sun__ ... */
+			{
+				len = read(vpninfo->tun_fd, buf, sizeof(buf));
+				if (len <= 0)
+					break;
+			}
+
 #ifdef TUN_HAS_AF_PREFIX
 			if (!vpninfo->script_tun) {
 				pkt += 4;
