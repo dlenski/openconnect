@@ -16,7 +16,7 @@ clean-local:
 install-data-hook: all
 	linguas="$(LINGUAS)"; \
 	for l in $$linguas; do \
-	  dir="$(DESTDIR)$(datadir)/locale/$$l/LC_MESSAGES"; \
+	  dir="$(DESTDIR)$(localedir)/$$l/LC_MESSAGES"; \
 	  $(mkdir_p) $$dir; \
 	  echo Installing $$l.mo to $$dir/$(PACKAGE).mo ; \
 	  $(INSTALL_DATA) $$l.mo $$dir/$(PACKAGE).mo; \
