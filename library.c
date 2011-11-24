@@ -43,6 +43,10 @@ struct openconnect_info *openconnect_vpninfo_new_with_cbdata (char *useragent,
 	vpninfo->progress = progress;
 	vpninfo->cbdata = privdata?:vpninfo;
 
+#ifdef ENABLE_NLS
+	bindtextdomain("openconnect", LOCALEDIR);
+#endif
+
 	return vpninfo;
 }
 

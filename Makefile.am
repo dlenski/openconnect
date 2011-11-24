@@ -11,6 +11,7 @@ lib_LTLIBRARIES = libopenconnect.la
 sbin_PROGRAMS = openconnect
 man8_MANS = openconnect.8
 
+AM_CPPFLAGS = -DLOCALEDIR="\"$(localedir)\""
 openconnect_SOURCES = xml.c main.c dtls.c cstp.c mainloop.c tun.c
 
 openconnect_CFLAGS = $(OPENSSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS)

@@ -247,6 +247,7 @@ int main(int argc, char **argv)
 	FILE *fp = NULL;
 
 #ifdef ENABLE_NLS
+	bindtextdomain("openconnect", LOCALEDIR);
 	setlocale(LC_ALL, "");
 #endif
 

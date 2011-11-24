@@ -28,6 +28,7 @@ if test "$USE_NLS" = "yes"; then
     #include <locale.h>
     #include <libintl.h>],[
     setlocale(LC_ALL, "");
+    bindtextdomain("openconnect", "/tmp");
     (void)dgettext("openconnect", "foo");])],
     [AC_MSG_RESULT(yes)],
     [oldLIBS="$LIBS"
@@ -36,6 +37,7 @@ if test "$USE_NLS" = "yes"; then
       #include <locale.h>
       #include <libintl.h>],[
       setlocale(LC_ALL, "");
+      bindtextdomain("openconnect", "/tmp");
       (void)dgettext("openconnect", "foo");])],
       [AC_MSG_RESULT(yes (with -lintl))]
        LIBINTL="-lintl",
