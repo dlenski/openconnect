@@ -22,6 +22,15 @@ install-data-hook: all
 	  $(INSTALL_DATA) $$l.mo $$dir/$(PACKAGE).mo; \
 	done
 
+uninstall-hook:
+	linguas="$(LINGUAS)"; \
+	for l in $$linguas; do \
+	  file="$(DESTDIR)$(localedir)/$$l/LC_MESSAGES/$(PACKAGE).mo"; \
+	  if [ -r "$$file" ]; then \
+	    echo "Removing $$file"; rm -f "$$file"; \
+	  fi ; \
+	done
+
 # This is a GNUism but I don't care; it's not a default target.
 POTFILESIN = $(shell grep -v '^\#' $(srcdir)/POTFILES.in)
 POTFILES = $(POTFILESIN:%=$(top_srcdir)/%)
