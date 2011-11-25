@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2011-11-07 23:17+0000\n"
-"PO-Revision-Date: 2011-11-07 23:14+0000\n"
+"POT-Creation-Date: 2011-11-23 14:03+0000\n"
+"PO-Revision-Date: 2011-11-08 22:53+0000\n"
 "Last-Translator: dwmw2 <dwmw2@infradead.org>\n"
 "Language-Team: Czech (http://www.transifex.net/projects/p/meego/team/cs/)\n"
 "MIME-Version: 1.0\n"
@@ -1359,7 +1359,7 @@ msgstr "Zahodit špatné zahrnutí rozdělení: \"%s\"\n"
 msgid "Discard bad split exclude: \"%s\"\n"
 msgstr "Zahodit špatné vyloučení rozdělení: \"%s\"\n"
 
-#: tun.c:376 tun.c:662
+#: tun.c:376 tun.c:691
 #, c-format
 msgid "Failed to spawn script '%s': %s\n"
 msgstr "Nepodařilo se zrodit skript '%s': %s\n"
@@ -1438,12 +1438,12 @@ msgstr "Otevřít tun"
 msgid "TUNSIFHEAD"
 msgstr "TUNSIFHEAD"
 
-#: tun.c:629
+#: tun.c:658
 #, c-format
 msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
 msgstr "Přijat neznámý paket (len %d): %02x %02x %02x %02x...\n"
 
-#: tun.c:669
+#: tun.c:698
 msgid "ioctl(I_PUNLINK)"
 msgstr "ioctl(I_PUNLINK)"
 

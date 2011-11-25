@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2011-11-07 23:17+0000\n"
-"PO-Revision-Date: 2011-11-07 23:14+0000\n"
+"POT-Creation-Date: 2011-11-23 14:03+0000\n"
+"PO-Revision-Date: 2011-11-08 22:53+0000\n"
 "Last-Translator: dwmw2 <dwmw2@infradead.org>\n"
 "Language-Team: Finnish <gnome-fi-laatu@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -1342,7 +1342,7 @@ msgstr ""
 msgid "Discard bad split exclude: \"%s\"\n"
 msgstr ""
 
-#: tun.c:376 tun.c:662
+#: tun.c:376 tun.c:691
 #, c-format
 msgid "Failed to spawn script '%s': %s\n"
 msgstr ""
@@ -1419,12 +1419,12 @@ msgstr ""
 msgid "TUNSIFHEAD"
 msgstr ""
 
-#: tun.c:629
+#: tun.c:658
 #, c-format
 msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
 msgstr ""
 
-#: tun.c:669
+#: tun.c:698
 msgid "ioctl(I_PUNLINK)"
 msgstr ""
 
