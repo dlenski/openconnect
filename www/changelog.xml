@@ -18,6 +18,7 @@
    <li><b>OpenConnect HEAD</b>
      <ul>
        <li>Fix for reading multiple packets from Solaris tun device.</li>
+       <li>Call <tt>bindtextdomain()</tt> to ensure that translations are found in install path.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.14.tar.gz">OpenConnect v3.14</a></b>
