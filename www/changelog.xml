@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.15.tar.gz">OpenConnect v3.15</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.15.tar.gz.asc">PGP signature</a>)</i> &#8212; 2011-11-25
+     <ul>
        <li>Fix for reading multiple packets from Solaris tun device.</li>
        <li>Call <tt>bindtextdomain()</tt> to ensure that translations are found in install path.</li>
      </ul><br/>

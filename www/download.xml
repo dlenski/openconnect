@@ -19,15 +19,12 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.14.tar.gz">OpenConnect v3.14</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.14.tar.gz.asc">PGP signature</a>)</i>,
-released on 2011-11-08 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.15.tar.gz">OpenConnect v3.15</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.15.tar.gz.asc">PGP signature</a>)</i>,
+released on 2011-11-25 with the following changelog:</p>
      <ul>
-       <li>Move executable to <tt>$prefix/sbin</tt>.</li>
-       <li>Fix build issues on OSX, OpenIndiana, DragonFlyBSD, OpenBSD, FreeBSD &amp;amp; NetBSD.</li>
-       <li>Fix non-portable <tt>(void *)</tt> arithmetic.</li>
-       <li>Make more messages translatable.</li>
-       <li>Attempt to make NLS support more portable (with fewer dependencies).</li>
+       <li>Fix for reading multiple packets from Solaris tun device.</li>
+       <li>Call <tt>bindtextdomain()</tt> to ensure that translations are found in install path.</li>
      </ul>
 <!-- latest-release-end -->
 
