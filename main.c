@@ -599,9 +599,12 @@ int main(int argc, char **argv)
 		     (vpninfo->deflate ? "SSL + deflate" : "SSL")
 		     : "DTLS");
 
-	if (!vpninfo->vpnc_script)
+	if (!vpninfo->vpnc_script) {
 		vpn_progress(vpninfo, PRG_INFO,
 			     _("No --script argument provided; DNS and routing are not configured\n"));
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("See http://www.infradead.org/openconnect/vpnc-script.html\n"));
+	}
 
 	if (background) {
 		int pid;
