@@ -12,10 +12,15 @@
 
 <h1>Install a <tt>vpnc-script</tt>.</h1>
 
-<p>This script is what sets up all the addresses and routes for you; it's the
-same as <tt>vpnc</tt>'s, and if you have the <tt>vpnc</tt> package installed
-then you may already have a <tt>vpnc-script</tt> installed with it, perhaps in
-a directory like <tt>/etc/vpnc/vpnc-script</tt>.</p>
+<p>OpenConnect just handles the communication with the VPN server; it does
+not know how to configure the network routing and name service on all the
+various operating systems that it runs on.</p>
+
+<p>To set the routing and name service up, it uses an external script
+which is usually called <tt>vpnc-script</tt>. It's exactly the same script that
+<a href="http://www.unix-ag.uni-kl.de/~massar/vpnc/">vpnc</a> uses.
+You may already have a <tt>vpnc-script</tt> installed on your system,
+perhaps in a location such as <tt>/etc/vpnc/vpnc-script</tt>.</p>
 
 <p>If you don't already have it, you can get a current version from <a
 href="http://git.infradead.org/users/dwmw2/vpnc-scripts.git/blob_plain/HEAD:/vpnc-script">here</a>.
@@ -26,6 +31,13 @@ kernels amongst other bug fixes.</p>
 <p>Note that the script needs to be executable, and stored somewhere
 where SELinux or similar security systems won't prevent the root user
 from accessing it.</p>
+
+<p>To tell OpenConnect where to find the script, you use the <tt>--script</tt>
+argument on the command line. For example:
+ <ul><li><tt>openconnect --script /etc/vpnc/vpnc-script https://vpn.example.com/</tt></li></ul></p>
+
+<p>If OpenConnect is invoked without a suitable script, it will not be able
+to configure the routing or name service for the VPN.</p>
 
 	<INCLUDE file="inc/footer.tmpl" />
 </PAGE>
