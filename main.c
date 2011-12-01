@@ -149,6 +149,12 @@ static struct option long_options[] = {
 	{NULL, 0, 0, 0},
 };
 
+static void helpmessage(void)
+{
+	printf(_("For assistance with OpenConnect, please see the web page at\n"
+		 "  http://www.infradead.org/openconnect/mail.html\n"));
+}
+
 static void usage(void)
 {
 	printf(_("Usage:  openconnect [options] <server>\n"));
@@ -203,6 +209,9 @@ static void usage(void)
 	printf("      --reconnect-timeout         %s\n", _("Connection retry timeout in seconds"));
 	printf("      --servercert=FINGERPRINT    %s\n", _("Server's certificate SHA1 fingerprint"));
 	printf("      --useragent=STRING          %s\n", _("HTTP header User-Agent: field"));
+	printf("\n");
+
+	helpmessage();
 	exit(1);
 }
 
