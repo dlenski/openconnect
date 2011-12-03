@@ -130,12 +130,21 @@ PKG_CHECK_MODULES(LIBPROXY, libproxy-1.0,
 dnl Libproxy *can* exist without a .pc file, and its header may be called
 dnl libproxy.h in that case.
 if (test "$libproxy_pkg" = "no"); then
-   AC_CHECK_HEADER([proxy.h],
-	[AC_DEFINE([LIBPROXY_HDR], ["proxy.h"])
-	 AC_SUBST([LIBPROXY_LIBS], [-lproxy])],
-    [AC_CHECK_HEADER([libproxy.h],
-	[AC_DEFINE([LIBPROXY_HDR], ["libproxy.h"])
-	 AC_SUBST([LIBPROXY_LIBS], [-lproxy])])])
+   AC_MSG_CHECKING([for libproxy])
+   oldLIBS="$LIBS"
+   LIBS="$LIBS -lproxy"
+   AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <libproxy.h>],
+			   [(void)px_proxy_factory_new();])],
+	  [AC_MSG_RESULT(yes (with libproxy.h))
+	   AC_DEFINE([LIBPROXY_HDR], ["libproxy.h"])
+	   AC_SUBST([LIBPROXY_LIBS], [-lproxy])],
+	  [AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <proxy.h>],
+				  [(void)px_proxy_factory_new();])],
+		  [AC_MSG_RESULT(yes (with proxy.h))
+		   AC_DEFINE([LIBPROXY_HDR], ["proxy.h"])
+		   AC_SUBST([LIBPROXY_LIBS], [-lproxy])],
+		   [AC_MSG_RESULT(no)])])
+   LIBS="$oldLIBS"
 fi
 
 AC_CHECK_HEADER([if_tun.h],
