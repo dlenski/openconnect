@@ -18,6 +18,7 @@
    <li><b>OpenConnect HEAD</b>
      <ul>
        <li>Refer to <a href="vpnc-script.html">vpnc-script</a> and <a href="mail.html">help</a> web pages in openconnect output.</li>
+       <li>Fix potential crash when processing libproxy results.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.15.tar.gz">OpenConnect v3.15</a></b>

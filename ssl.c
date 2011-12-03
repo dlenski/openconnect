@@ -932,6 +932,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			proxies = px_proxy_factory_get_proxies(vpninfo->proxy_factory,
 							       url);
 
+			i = 0;
 			while (proxies && proxies[i]) {
 				if (!vpninfo->proxy &&
 				    (!strncmp(proxies[i], "http://", 7) ||
