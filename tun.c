@@ -668,10 +668,15 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 #endif
 		vpninfo->incoming_queue = this->next;
 
-		if (write(vpninfo->tun_fd, data, len) < 0 &&
-		    errno == ENOTCONN) {
-			vpninfo->quit_reason = "Client connection terminated";
-			return 1;
+		if (write(vpninfo->tun_fd, data, len) < 0) {
+			/* Handle death of "script" socket */
+			if (vpninfo->script_tun && errno == ENOTCONN) {
+				vpninfo->quit_reason = "Client connection terminated";
+				return 1;
+			}
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to write incoming packet: %s\n"),
+				     strerror(errno));
 		}
 		free(this);
 	}
