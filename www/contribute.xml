@@ -46,7 +46,7 @@ Other items on the TODO list include:
 <p>Patches can be sent to the <a href="mail.html">mailing list</a> or directly to <a
 href="mailto:dwmw2@infradead.org">the author</a> in private email. </p>
 <p>When sending patches to be included in OpenConnect, please certify that your
-patch meets the criteria below by inluding include a <i>sign-off</i>
+patch meets the criteria below by including include a <i>sign-off</i>
 line in your email which looks like this:
 </p>
 <tt>Signed-off-by: Random J Developer &amp;lt;random@developer.example.org&amp;gt;</tt>
