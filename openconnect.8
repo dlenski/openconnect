@@ -398,13 +398,12 @@ Use STRING as 'User-Agent:' field value in HTTP header.
 (e.g. --useragent 'Cisco AnyConnect VPN Agent for Windows 2.2.0133')
 
 .SH LIMITATIONS
-The
+Note that although IPv6 has been tested on all platforms on which
 .B openconnect
-client is not yet tested with IPv6 connectivity on Mac OS X.
-
-
-Note also that the standard
-.B vpnc-script 
+is known to run, it depends on a suitable
+.B vpnc-script
+to configure the network. The standard
+.B vpnc-script
 shipped with vpnc 0.5.3 is not capable of setting up IPv6 routes; the one from
 .B git://git.infradead.org/users/dwmw2/vpnc-scripts.git
 will be required.

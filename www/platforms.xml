@@ -13,12 +13,12 @@
 
 	<h1>Supported Platforms</h1>
 
-<p>OpenConnect is known to work on Linux (including Android), OpenBSD,
-FreeBSD, NetBSD, DragonFly BSD, OpenIndiana/OpenSolaris
-and Mac OS X platforms, and should be trivially portable to any other platform
-supporting <a href="http://en.wikipedia.org/wiki/TUN/TAP">TUN/TAP</a>
-devices and on which <a href="http://www.openssl.org/">OpenSSL</a> runs.
-IPv6 support is tested all of the above except Mac OS X.</p>
+<p>OpenConnect is known to work, with both IPv6 and Legacy IP, on Linux
+(including Android), OpenBSD, FreeBSD, NetBSD, DragonFly BSD,
+OpenIndiana/OpenSolaris and Mac OS X platforms, and should be trivially
+portable to any other platform supporting
+<a href="http://en.wikipedia.org/wiki/TUN/TAP">TUN/TAP</a>devices and
+on which <a href="http://www.openssl.org/">OpenSSL</a> runs.</p>
 
 <p>For Solaris support, and for IPv6 on any platform, the
 <tt>vpnc-script</tt> shipped with vpnc itself (as of v0.5.3)
