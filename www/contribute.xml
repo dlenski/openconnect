@@ -35,7 +35,6 @@ ask or make suggestions on the mailing list.</p>
 Other items on the TODO list include:
 
 <ul>
-  <li>Testing IPv6 on more platforms (only Linux, FreeBSD, Solaris are tested so far).</li>
   <li>Better support for running or emulating the '<a href="csd.html">Cisco Secure Desktop</a>' trojan.</li>
   <li>More platform support: Windows, Symbian, etc.</li>
   <li>GUI for OS X, perhaps based on <a href="http://code.google.com/p/tunnelblick/">Tunnelblick</a>.</li>
