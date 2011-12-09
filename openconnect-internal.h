@@ -190,7 +190,6 @@ struct openconnect_info {
 
 #ifdef __sun__
 	int ip_fd;
-	int tun_muxid;
 #endif
 	int tun_fd;
 	int ssl_fd;

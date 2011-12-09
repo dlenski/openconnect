@@ -500,7 +500,7 @@ int setup_tun(struct openconnect_info *vpninfo)
 			close(ip_fd);
 			return -EIO;
 		}
-		mux_id = ioctl(ip_fd, I_PLINK, tun2_fd);
+		mux_id = ioctl(ip_fd, I_LINK, tun2_fd);
 		if (mux_id < 0) {
 			perror(_("Can't link tun to IP"));
 			close(tun2_fd);
@@ -520,13 +520,9 @@ int setup_tun(struct openconnect_info *vpninfo)
 		if (ioctl(ip_fd, SIOCSIFMUXID, &ifr) < 0) {
 			perror(_("Set mux id"));
 			close(tun_fd);
-			ioctl(ip_fd, I_PUNLINK, mux_id);
 			close(ip_fd);
 			return -EIO;
 		}
-		/* Solaris tunctl needs this in order to tear it down */
-		vpn_progress(vpninfo, PRG_DEBUG, _("mux id is %d\n"), mux_id);
-		vpninfo->tun_muxid = mux_id;
 		vpninfo->ip_fd = ip_fd;
 
 #else /* BSD et al have /dev/tun$x devices */
@@ -699,9 +695,6 @@ void shutdown_tun(struct openconnect_info *vpninfo)
 			}
 		}
 #ifdef __sun__
-		if (ioctl(vpninfo->ip_fd, I_PUNLINK, vpninfo->tun_muxid) < 0)
-			perror(_("ioctl(I_PUNLINK)"));
-
 		close(vpninfo->ip_fd);
 		vpninfo->ip_fd = -1;
 #endif
