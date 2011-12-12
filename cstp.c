@@ -394,11 +394,14 @@ int make_cstp_connection(struct openconnect_info *vpninfo)
 			if (!vpninfo->deflate_pkt) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Allocation of deflate buffer failed\n"));
+				inflateEnd(&vpninfo->inflate_strm);
+				deflateEnd(&vpninfo->deflate_strm);
 				vpninfo->deflate = 0;
+			} else {
+				memset(vpninfo->deflate_pkt, 0, sizeof(struct pkt));
+				memcpy(vpninfo->deflate_pkt->hdr, data_hdr, 8);
+				vpninfo->deflate_pkt->hdr[6] = AC_PKT_COMPRESSED;
 			}
-			memset(vpninfo->deflate_pkt, 0, sizeof(struct pkt));
-			memcpy(vpninfo->deflate_pkt->hdr, data_hdr, 8);
-			vpninfo->deflate_pkt->hdr[6] = AC_PKT_COMPRESSED;
 		}
 	}
 
@@ -419,7 +422,10 @@ int cstp_reconnect(struct openconnect_info *vpninfo)
 		queue_packet(&vpninfo->outgoing_queue, vpninfo->pending_deflated_pkt);
 		vpninfo->pending_deflated_pkt = NULL;
 	}
-
+	if (vpninfo->deflate) {
+		inflateEnd(&vpninfo->inflate_strm);
+		deflateEnd(&vpninfo->deflate_strm);
+	}
 	timeout = vpninfo->reconnect_timeout;
 	interval = vpninfo->reconnect_interval;
 
