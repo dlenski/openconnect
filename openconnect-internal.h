@@ -146,6 +146,7 @@ struct openconnect_info {
 	int owe_ssl_dpd_response;
 	struct pkt *deflate_pkt;
 	struct pkt *current_ssl_pkt;
+	struct pkt *pending_deflated_pkt;
 
 	z_stream inflate_strm;
 	uint32_t inflate_adler32;

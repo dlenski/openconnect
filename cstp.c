@@ -413,10 +413,12 @@ int cstp_reconnect(struct openconnect_info *vpninfo)
 
 	openconnect_close_https(vpninfo);
 
-	/* It's already deflated in the old stream. Extremely
-	   non-trivial to reconstitute it; just throw it away */
-	if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt)
+	/* Requeue the original packet that was deflated */
+	if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt) {
 		vpninfo->current_ssl_pkt = NULL;
+		queue_packet(&vpninfo->outgoing_queue, vpninfo->pending_deflated_pkt);
+		vpninfo->pending_deflated_pkt = NULL;
+	}
 
 	timeout = vpninfo->reconnect_timeout;
 	interval = vpninfo->reconnect_interval;
@@ -623,10 +625,11 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			return 1;
 		}
 		/* Don't free the 'special' packets */
-		if (vpninfo->current_ssl_pkt != vpninfo->deflate_pkt &&
-		    vpninfo->current_ssl_pkt != &dpd_pkt &&
-		    vpninfo->current_ssl_pkt != &dpd_resp_pkt &&
-		    vpninfo->current_ssl_pkt != &keepalive_pkt)
+		if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt)
+			free(vpninfo->pending_deflated_pkt);
+		else if (vpninfo->current_ssl_pkt != &dpd_pkt &&
+			 vpninfo->current_ssl_pkt != &dpd_resp_pkt &&
+			 vpninfo->current_ssl_pkt != &keepalive_pkt)
 			free(vpninfo->current_ssl_pkt);
 
 		vpninfo->current_ssl_pkt = NULL;
@@ -722,6 +725,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				     _("Sending compressed data packet of %d bytes\n"),
 				     this->len);
 
+			vpninfo->pending_deflated_pkt = this;
 			vpninfo->current_ssl_pkt = vpninfo->deflate_pkt;
 		} else {
 		uncompr:
