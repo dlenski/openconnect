@@ -73,6 +73,9 @@
  */
 #if defined(__OpenBSD__) || defined(TUNSIFHEAD)
 #define TUN_HAS_AF_PREFIX 1
+#define AF_PREFIX_SIZE (sizeof(int))
+#else
+#define AF_PREFIX_SIZE (0)
 #endif
 
 #ifdef __sun__
@@ -570,16 +573,25 @@ int setup_tun(struct openconnect_info *vpninfo)
 	return 0;
 }
 
+static struct pkt *out_pkt;
+
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
-	unsigned char buf[2000];
-	int len;
 	int work_done = 0;
 	int moredata = 1;
 
 	if (FD_ISSET(vpninfo->tun_fd, &vpninfo->select_rfds)) {
 		while (moredata) {
-			unsigned char *pkt = buf;
+			int len = vpninfo->mtu;
+
+			if (!out_pkt) {
+				out_pkt = malloc(sizeof(struct pkt) + len);
+				if (!out_pkt) {
+					vpn_progress(vpninfo, PRG_ERR, "Allocation failed\n");
+					break;
+				}
+			}
+
 #ifdef __sun__
 			/* On Solaris, if we're actually using tuntap and *not* just
 			   passing packets through a UNIX socket to a child process,
@@ -590,8 +602,8 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				int flags = 0;
 				int ret;
 				
-				strb.buf = buf;
-				strb.maxlen = sizeof(buf);
+				strb.buf = out_pkt->data;
+				strb.maxlen = len;
 				strb.len = 0;
 				ret = getmsg(vpninfo->tun_fd, NULL, &strb, &flags);
 				if (ret < 0)
@@ -599,24 +611,19 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 				if (!(ret & MOREDATA))
 					moredata = 0;
-				len = strb.len;
+				out_pkt->len = strb.len;
 			} else
 #endif /* __sun__ ... */
 			{
-				len = read(vpninfo->tun_fd, buf, sizeof(buf));
+				len = read(vpninfo->tun_fd, out_pkt->data - AF_PREFIX_SIZE, len + AF_PREFIX_SIZE);
 				if (len <= 0)
 					break;
+
+				out_pkt->len = len - AF_PREFIX_SIZE;
 			}
 
-#ifdef TUN_HAS_AF_PREFIX
-			if (!vpninfo->script_tun) {
-				pkt += 4;
-				len -= 4;
-			}
-#endif
-			if (queue_new_packet(&vpninfo->outgoing_queue, pkt,
-					     len))
-				break;
+			queue_packet(&vpninfo->outgoing_queue, out_pkt);
+			out_pkt = NULL;
 
 			work_done = 1;
 			vpninfo->outgoing_qlen++;
