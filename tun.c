@@ -389,6 +389,62 @@ void script_reconnect (struct openconnect_info *vpninfo)
 	script_config_tun(vpninfo);
 }
 
+#ifdef __sun__
+static int link_proto(int unit_nr, const char *devname, uint64_t flags)
+{
+	int ip_fd, mux_id, tun2_fd;
+	struct lifreq ifr;
+
+	tun2_fd = open("/dev/tun", O_RDWR);
+	if (tun2_fd < 0) {
+		perror(_("Could not /dev/tun for plumbing"));
+		return -EIO;
+	}
+	if (ioctl(tun2_fd, I_PUSH, "ip") < 0) {
+		perror(_("Can't push IP"));
+		close(tun2_fd);
+		return -EIO;
+	}
+
+	sprintf(ifr.lifr_name, "tun%d", unit_nr);
+	ifr.lifr_ppa = unit_nr;
+	ifr.lifr_flags = flags;
+
+	if (ioctl(tun2_fd, SIOCSLIFNAME, &ifr) < 0) {
+		perror(_("Can't set ifname"));
+		close(tun2_fd);
+		return -1;
+	}
+
+	ip_fd = open(devname, O_RDWR);
+	if (ip_fd < 0) {
+		fprintf(stderr, _("Can't open %s: %s"), devname,
+			strerror(errno));
+		close(tun2_fd);
+		return -1;
+	}
+	if (ioctl(ip_fd, I_PUSH, "arp") < 0) {
+		perror(_("Can't push ARP"));
+		close(tun2_fd);
+		close(ip_fd);
+		return -1;
+	}
+
+	mux_id = ioctl(ip_fd, I_LINK, tun2_fd);
+	if (mux_id < 0) {
+		fprintf(stderr, _("Can't plumb %s for IPv%d: %s\n"),
+			 ifr.lifr_name, (flags == IFF_IPV4) ? 4 : 6,
+			 strerror(errno));
+		close(tun2_fd);
+		close(ip_fd);
+		return -1;
+	}
+
+	close(tun2_fd);
+
+	return ip_fd;
+}
+#endif
 /* Set up a tuntap device. */
 int setup_tun(struct openconnect_info *vpninfo)
 {
@@ -458,19 +514,11 @@ int setup_tun(struct openconnect_info *vpninfo)
 			vpninfo->ifname = strdup(ifr.ifr_name);
 #elif defined (__sun__)
 		static char tun_name[80];
-		int tun2_fd, ip_fd = open("/dev/ip", O_RDWR);
-		int unit_nr, mux_id;
-		struct ifreq ifr;
-
-		if (ip_fd < 0) {
-			perror(_("open /dev/ip"));
-			return -EIO;
-		}
+		int unit_nr;
 
 		tun_fd = open("/dev/tun", O_RDWR);
 		if (tun_fd < 0) {
 			perror(_("open /dev/tun"));
-			close(ip_fd);
 			return -EIO;
 		}
 
@@ -478,55 +526,28 @@ int setup_tun(struct openconnect_info *vpninfo)
 		if (unit_nr < 0) {
 			perror(_("Failed to create new tun"));
 			close(tun_fd);
-			close(ip_fd);
 			return -EIO;
 		}
-		
-		tun2_fd = open("/dev/tun", O_RDWR);
-		if (tun2_fd < 0) {
-			perror(_("open /dev/tun again"));
-			close(tun_fd);
-			close(ip_fd);
-			return -EIO;
-		}
-		if (ioctl(tun2_fd, I_PUSH, "ip") < 0) {
-			perror(_("Can't push IP"));
-			close(tun2_fd);
-			close(tun_fd);
-			close(ip_fd);
-			return -EIO;
-		}
-		if (ioctl(tun2_fd, IF_UNITSEL, &unit_nr) < 0) {
-			perror(_("Can't select unit"));
-			close(tun2_fd);
-			close(tun_fd);
-			close(ip_fd);
-			return -EIO;
-		}
-		mux_id = ioctl(ip_fd, I_LINK, tun2_fd);
-		if (mux_id < 0) {
-			perror(_("Can't link tun to IP"));
-			close(tun2_fd);
-			close(tun_fd);
-			close(ip_fd);
-			return -EIO;
-		}
-		close(tun2_fd);
 
 		sprintf(tun_name, "tun%d", unit_nr);
 		vpninfo->ifname = strdup(tun_name);
 
-		memset(&ifr, 0, sizeof(ifr));
-		strcpy(ifr.ifr_name, tun_name);
-		ifr.ifr_ip_muxid = mux_id;
-
-		if (ioctl(ip_fd, SIOCSIFMUXID, &ifr) < 0) {
-			perror(_("Set mux id"));
+		vpninfo->ip_fd = link_proto(unit_nr, "/dev/udp", IFF_IPV4);
+		if (vpninfo->ip_fd < 0) {
 			close(tun_fd);
-			close(ip_fd);
 			return -EIO;
 		}
-		vpninfo->ip_fd = ip_fd;
+
+		if (vpninfo->vpn_addr6) {
+			vpninfo->ip6_fd = link_proto(unit_nr, "/dev/udp6", IFF_IPV6);
+			if (vpninfo->ip6_fd < 0) {
+				close(tun_fd);
+				close(vpninfo->ip_fd);
+				vpninfo->ip_fd = -1;
+				return -EIO;
+			}
+		} else
+			vpninfo->ip6_fd = -1;
 
 #else /* BSD et al have /dev/tun$x devices */
 		static char tun_name[80];
@@ -704,6 +725,10 @@ void shutdown_tun(struct openconnect_info *vpninfo)
 #ifdef __sun__
 		close(vpninfo->ip_fd);
 		vpninfo->ip_fd = -1;
+		if (vpninfo->ip6_fd != -1) {
+			close(vpninfo->ip6_fd);
+			vpninfo->ip6_fd = -1;
+		}
 #endif
 	}
 

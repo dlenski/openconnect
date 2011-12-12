@@ -191,6 +191,7 @@ struct openconnect_info {
 
 #ifdef __sun__
 	int ip_fd;
+	int ip6_fd;
 #endif
 	int tun_fd;
 	int ssl_fd;
