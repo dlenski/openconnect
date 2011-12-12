@@ -623,7 +623,7 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				int flags = 0;
 				int ret;
 				
-				strb.buf = out_pkt->data;
+				strb.buf = (caddr_t)out_pkt->data;
 				strb.maxlen = len;
 				strb.len = 0;
 				ret = getmsg(vpninfo->tun_fd, NULL, &strb, &flags);
