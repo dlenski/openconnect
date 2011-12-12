@@ -17,6 +17,9 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Fix memory leak of deflated packets.</li>
+       <li>Fix memory leak of zlib state on CSTP reconnect.</li>
+       <li>Eliminate <tt>memcpy()</tt> calls on packets from DTLS and tunnel device.</li>
        <li>Use <tt>I_LINK</tt> instead of <tt>I_PLINK</tt> on Solaris to plumb interface.</li>
        <li>Refer to <a href="vpnc-script.html">vpnc-script</a> and <a href="mail.html">help</a> web pages in openconnect output.</li>
        <li>Fix potential crash when processing libproxy results.</li>
