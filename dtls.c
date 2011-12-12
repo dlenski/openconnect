@@ -430,14 +430,29 @@ int setup_dtls(struct openconnect_info *vpninfo)
 	return 0;
 }
 
+static struct pkt *dtls_pkt;
+
 int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
-	unsigned char buf[2000];
-	int len;
 	int work_done = 0;
 	char magic_pkt;
 
-	while ( (len = SSL_read(vpninfo->dtls_ssl, buf, sizeof(buf))) > 0 ) {
+	while (1) {
+		int len = vpninfo->mtu;
+		unsigned char *buf;
+
+		if (!dtls_pkt) {
+			dtls_pkt = malloc(sizeof(struct pkt) + len);
+			if (!dtls_pkt) {
+				vpn_progress(vpninfo, PRG_ERR, "Allocation failed\n");
+				break;
+			}
+		}
+
+		buf = dtls_pkt->data - 1;
+		len = SSL_read(vpninfo->dtls_ssl, buf, len + 1);
+		if (len <= 0)
+			break;
 
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("Received DTLS packet 0x%02x of %d bytes\n"),
