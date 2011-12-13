@@ -73,9 +73,6 @@
  */
 #if defined(__OpenBSD__) || defined(TUNSIFHEAD)
 #define TUN_HAS_AF_PREFIX 1
-#define AF_PREFIX_SIZE (sizeof(int))
-#else
-#define AF_PREFIX_SIZE (0)
 #endif
 
 #ifdef __sun__
@@ -529,6 +526,12 @@ int setup_tun(struct openconnect_info *vpninfo)
 			return -EIO;
 		}
 
+		if (ioctl(tun_fd, I_SRDOPT, RMSGD) < 0) {
+			perror(_("Failed to put tun file descriptor into message-discard mode"));
+			close(tun_fd);
+			return -EIO;
+		}
+
 		sprintf(tun_name, "tun%d", unit_nr);
 		vpninfo->ifname = strdup(tun_name);
 
@@ -599,10 +602,15 @@ static struct pkt *out_pkt;
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
 	int work_done = 0;
-	int moredata = 1;
+	int prefix_size = 0;
+
+#ifdef TUN_HAS_AF_PREFIX
+	if (!vpninfo->script_tun)
+		prefix_size = sizeof(int);
+#endif
 
 	if (FD_ISSET(vpninfo->tun_fd, &vpninfo->select_rfds)) {
-		while (moredata) {
+		while (1) {
 			int len = vpninfo->mtu;
 
 			if (!out_pkt) {
@@ -613,35 +621,10 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				}
 			}
 
-#ifdef __sun__
-			/* On Solaris, if we're actually using tuntap and *not* just
-			   passing packets through a UNIX socket to a child process,
-			   we have to use getmsg() to ensure that we only get *one*
-			   packet at a time. */
-			if (!vpninfo->script_tun) {
-				struct strbuf strb;
-				int flags = 0;
-				int ret;
-				
-				strb.buf = (caddr_t)out_pkt->data;
-				strb.maxlen = len;
-				strb.len = 0;
-				ret = getmsg(vpninfo->tun_fd, NULL, &strb, &flags);
-				if (ret < 0)
-					break;
-
-				if (!(ret & MOREDATA))
-					moredata = 0;
-				out_pkt->len = strb.len;
-			} else
-#endif /* __sun__ ... */
-			{
-				len = read(vpninfo->tun_fd, out_pkt->data - AF_PREFIX_SIZE, len + AF_PREFIX_SIZE);
-				if (len <= 0)
-					break;
-
-				out_pkt->len = len - AF_PREFIX_SIZE;
-			}
+			len = read(vpninfo->tun_fd, out_pkt->data - prefix_size, len + prefix_size);
+			if (len <= prefix_size)
+				break;
+			out_pkt->len = len - prefix_size;
 
 			queue_packet(&vpninfo->outgoing_queue, out_pkt);
 			out_pkt = NULL;
