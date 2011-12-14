@@ -462,7 +462,9 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		switch(buf[0]) {
 		case AC_PKT_DATA:
-			queue_new_packet(&vpninfo->incoming_queue, buf+1, len-1);
+			dtls_pkt->len = len - 1;
+			queue_packet(&vpninfo->incoming_queue, dtls_pkt);
+			dtls_pkt = NULL;
 			work_done = 1;
 			break;
 
