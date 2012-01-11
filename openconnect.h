@@ -141,19 +141,47 @@ void openconnect_set_cert_expiry_warning (struct openconnect_info *vpninfo,
 const char *openconnect_get_version(void);
 
 /* The first (privdata) argument to each of these functions is either
-   the privdata argument provided to openconnect_vpninfo_new(), or
-   if that argument was NULL then it'll be the vpninfo itself. */
+   the privdata argument provided to openconnect_vpninfo_new_with_cbdata(),
+   or if that argument was NULL then it'll be the vpninfo itself. */
+
+/* When the server's certificate fails validation via the normal means,
+   this function is called with the offending certificate along with 
+   a textual reason for the failure (which may not be translated, if
+   it comes directly from OpenSSL, but will be if it is rejected for
+   "certificate does not match hostname", because that check is done
+   in OpenConnect and *is* translated). The function shall return zero
+   if the certificate is (or has in the past been) explicitly accepted
+   by the user, and non-zero to abort the connection. */
 typedef int (*openconnect_validate_peer_cert_vfn) (void *privdata,
 						  struct x509_st *cert,
 						  const char *reason);
+/* On a successful connection, the server may provide us with a new XML
+   configuration file. This contains the list of servers that can be
+   chosen by the user to connect to, amongst other stuff that we mostly
+   ignore. By "new", we mean that the SHA1 indicated by the server does
+   not match the SHA1 set with the openconnect_set_xmlsha1() above. If
+   they don't match, or openconnect_set_xmlsha1() has not been called,
+   then the new XML is downloaded and this function is invoked. */
 typedef int (*openconnect_write_new_config_vfn) (void *privdata, char *buf,
 						int buflen);
+/* Handle an authentication form, requesting input from the user. */
 typedef int (*openconnect_process_auth_form_vfn) (void *privdata,
 						 struct oc_auth_form *form);
+/* Logging output which the user *may* want to see. */
 typedef void __attribute__ ((format(printf, 3, 4)))
 		(*openconnect_progress_vfn) (void *privdata, int level,
 					    const char *fmt, ...);
+struct openconnect_info *openconnect_vpninfo_new_with_cbdata (char *useragent,
+						  openconnect_validate_peer_cert_vfn,
+						  openconnect_write_new_config_vfn,
+						  openconnect_process_auth_form_vfn,
+						  openconnect_progress_vfn,
+						  void *privdata);
+void openconnect_vpninfo_free (struct openconnect_info *vpninfo);
 
+/* Old prototypes of the callback functions, which used to be passed the
+   vpninfo instead of a caller-provided pointer. You probably don't want to
+   use these; they're here for compatibility only. */
 typedef int (*openconnect_validate_peer_cert_fn) (struct openconnect_info *,
 						  struct x509_st *cert,
 						  const char *reason);
@@ -164,18 +192,11 @@ typedef int (*openconnect_process_auth_form_fn) (struct openconnect_info *,
 typedef void __attribute__ ((format(printf, 3, 4)))
 		(*openconnect_progress_fn) (struct openconnect_info *, int level,
 					    const char *fmt, ...);
-
+/* Don't use this. Use the _with_cbdata version instead. */
 struct openconnect_info *openconnect_vpninfo_new (char *useragent,
 						  openconnect_validate_peer_cert_fn,
 						  openconnect_write_new_config_fn,
 						  openconnect_process_auth_form_fn,
 						  openconnect_progress_fn);
-struct openconnect_info *openconnect_vpninfo_new_with_cbdata (char *useragent,
-						  openconnect_validate_peer_cert_vfn,
-						  openconnect_write_new_config_vfn,
-						  openconnect_process_auth_form_vfn,
-						  openconnect_progress_vfn,
-						  void *privdata);
-void openconnect_vpninfo_free (struct openconnect_info *vpninfo);
 
 #endif /* __OPENCONNECT_H__ */
