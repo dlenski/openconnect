@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Fix build failure on Debian/kFreeBSD and Hurd.</li>
        <li>Fix memory leak of deflated packets.</li>
        <li>Fix memory leak of zlib state on CSTP reconnect.</li>
        <li>Eliminate <tt>memcpy()</tt> calls on packets from DTLS and tunnel device.</li>

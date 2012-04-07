@@ -2,7 +2,7 @@
 AC_INIT(openconnect, 3.15)
 PKG_PROG_PKG_CONFIG
 AC_LANG_C
-AC_CANONICAL_TARGET
+AC_CANONICAL_HOST
 AM_MAINTAINER_MODE([enable])
 AM_INIT_AUTOMAKE([foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
@@ -52,9 +52,9 @@ if test "$USE_NLS" = "yes"; then
 fi
 AM_CONDITIONAL(USE_NLS, [test "$USE_NLS" = "yes"])
 
-case $target_os in
- *linux*)
-    AC_MSG_NOTICE([Applying feature macros for Linux build])
+case $host_os in
+ *linux* | *gnu*)
+    AC_MSG_NOTICE([Applying feature macros for GNU build])
     AC_DEFINE(_POSIX_C_SOURCE, 200112L)
     # For strcasecmp() 
     AC_DEFINE(_BSD_SOURCE)
