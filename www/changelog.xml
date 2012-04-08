@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.16.tar.gz">OpenConnect v3.16</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.16.tar.gz.asc">PGP signature</a>)</i> &#8212; 2012-04-08
+     <ul>
        <li>Fix build failure on Debian/kFreeBSD and Hurd.</li>
        <li>Fix memory leak of deflated packets.</li>
        <li>Fix memory leak of zlib state on CSTP reconnect.</li>

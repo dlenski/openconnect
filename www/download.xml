@@ -19,12 +19,19 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.15.tar.gz">OpenConnect v3.15</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.15.tar.gz.asc">PGP signature</a>)</i>,
-released on 2011-11-25 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.16.tar.gz">OpenConnect v3.16</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.16.tar.gz.asc">PGP signature</a>)</i>,
+released on 2012-04-08 with the following changelog:</p>
      <ul>
-       <li>Fix for reading multiple packets from Solaris tun device.</li>
-       <li>Call <tt>bindtextdomain()</tt> to ensure that translations are found in install path.</li>
+       <li>Fix build failure on Debian/kFreeBSD and Hurd.</li>
+       <li>Fix memory leak of deflated packets.</li>
+       <li>Fix memory leak of zlib state on CSTP reconnect.</li>
+       <li>Eliminate <tt>memcpy()</tt> calls on packets from DTLS and tunnel device.</li>
+       <li>Use <tt>I_LINK</tt> instead of <tt>I_PLINK</tt> on Solaris to plumb interface for Legacy IP.</li>
+       <li>Plumb interface for IPv6 on Solaris, instead of expecting <tt>vpnc-script</tt> to do it.</li>
+       <li>Refer to <a href="vpnc-script.html">vpnc-script</a> and <a href="mail.html">help</a> web pages in openconnect output.</li>
+       <li>Fix potential crash when processing libproxy results.</li>
+       <li>Be more conservative in detecting libproxy without pkg-config.</li>
      </ul>
 <!-- latest-release-end -->
 
