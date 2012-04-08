@@ -9,10 +9,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2011-12-14 02:03+0000\n"
-"PO-Revision-Date: 2011-12-15 14:01+0000\n"
+"POT-Creation-Date: 2012-01-11 02:03+0000\n"
+"PO-Revision-Date: 2012-02-14 17:18+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
-"Language-Team: Chinese (China) (http://www.transifex.net/projects/p/meego/team/zh_CN/)\n"
+"Language-Team: Chinese (China) (http://www.transifex.net/projects/p/meego/language/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -246,7 +246,7 @@ msgstr ""
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr ""
 
-#: cstp.c:664 dtls.c:513
+#: cstp.c:664 dtls.c:515
 msgid "Reconnect failed\n"
 msgstr "重连失败\n"
 
@@ -363,58 +363,58 @@ msgstr ""
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
 msgstr ""
 
-#: dtls.c:470
+#: dtls.c:472
 msgid "Got DTLS DPD request\n"
 msgstr "收到 DTLS DPD 请求\n"
 
-#: dtls.c:476
+#: dtls.c:478
 msgid "Failed to send DPD response. Expect disconnect\n"
 msgstr ""
 
-#: dtls.c:480
+#: dtls.c:482
 msgid "Got DTLS DPD response\n"
 msgstr "收到 DTLS DPD 响应\n"
 
-#: dtls.c:484
+#: dtls.c:486
 msgid "Got DTLS Keepalive\n"
 msgstr ""
 
-#: dtls.c:489
+#: dtls.c:491
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
 msgstr ""
 
-#: dtls.c:508
+#: dtls.c:510
 msgid "DTLS rekey due\n"
 msgstr ""
 
-#: dtls.c:519
+#: dtls.c:521
 msgid "DTLS rekey failed\n"
 msgstr ""
 
-#: dtls.c:527
+#: dtls.c:529
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
 msgstr ""
 
-#: dtls.c:533
+#: dtls.c:535
 msgid "Send DTLS DPD\n"
 msgstr "发送 DTLS DPD\n"
 
-#: dtls.c:548
+#: dtls.c:550
 msgid "Send DTLS Keepalive\n"
 msgstr ""
 
-#: dtls.c:579
+#: dtls.c:581
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
 msgstr ""
 
-#: dtls.c:590
+#: dtls.c:592
 #, c-format
 msgid "Sent DTLS packet of %d bytes; SSL_write() returned %d\n"
 msgstr ""
 
-#: dtls.c:602
+#: dtls.c:604
 msgid "Built against OpenSSL with no Cisco DTLS support\n"
 msgstr ""
 
@@ -1482,5 +1482,3 @@ msgstr ""
 #, c-format
 msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""
-
-

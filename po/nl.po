@@ -3,15 +3,15 @@
 # This file is distributed under the same license as the PACKAGE package.
 # 
 # Translators:
-# André Koot <meneer@tken.net>, 2011.
+# André Koot <meneer@tken.net>, 2011, 2012.
 msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2011-12-14 02:03+0000\n"
-"PO-Revision-Date: 2011-12-16 22:50+0000\n"
+"POT-Creation-Date: 2012-01-11 02:03+0000\n"
+"PO-Revision-Date: 2012-02-14 17:18+0000\n"
 "Last-Translator: André Koot <meneer@tken.net>\n"
-"Language-Team: Dutch (http://www.transifex.net/projects/p/meego/team/nl/)\n"
+"Language-Team: Dutch (http://www.transifex.net/projects/p/meego/language/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -223,9 +223,7 @@ msgstr "Onbekend packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 #: cstp.c:592
 #, c-format
 msgid "SSL read error %d (server probably closed connection); reconnecting.\n"
-msgstr ""
-"SSL lezen fout %d (serververbinding waarschijnlijk gesloten); opnieuw "
-"aansluiten.\n"
+msgstr "SSL lezen fout %d (serververbinding waarschijnlijk gesloten); opnieuw aansluiten.\n"
 
 #: cstp.c:621
 #, c-format
@@ -247,7 +245,7 @@ msgstr "CSTP rekey verwacht\n"
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr "CSTP Dead Peer Detection ontdekte dode host!\n"
 
-#: cstp.c:664 dtls.c:513
+#: cstp.c:664 dtls.c:515
 msgid "Reconnect failed\n"
 msgstr "Herverbinden mislukte\n"
 
@@ -324,11 +322,7 @@ msgid ""
 "Are you using a version of OpenSSL older than 0.9.8m?\n"
 "See http://rt.openssl.org/Ticket/Display.html?id=1751\n"
 "Use the --no-dtls command line option to avoid this message\n"
-msgstr ""
-"SSL_set_session () is mislukt met oude protocol versie 0x%x\n"
-"Gebruikt u een versie van OpenSSL ouder dan 0.9.8m?\n"
-"Zie http://rt.openssl.org/Ticket/Display.html?id=1751\n"
-"Gebruik de - no-dtls commandoregel optie om dit bericht te voorkomoen\n"
+msgstr "SSL_set_session () is mislukt met oude protocol versie 0x%x\nGebruikt u een versie van OpenSSL ouder dan 0.9.8m?\nZie http://rt.openssl.org/Ticket/Display.html?id=1751\nGebruik de - no-dtls commandoregel optie om dit bericht te voorkomoen\n"
 
 #: dtls.c:262
 msgid "Established DTLS connection\n"
@@ -337,9 +331,7 @@ msgstr "DTLS aansluiting verricht\n"
 #: dtls.c:300
 msgid ""
 "Your OpenSSL is older than the one you built against, so DTLS may fail!"
-msgstr ""
-"Uw OpenSSL is ouder dan de versie die voor uw build nodig is, dus DTLS kan "
-"mislukken!"
+msgstr "Uw OpenSSL is ouder dan de versie die voor uw build nodig is, dus DTLS kan mislukken!"
 
 #: dtls.c:324
 msgid "DTLS handshake timed out\n"
@@ -370,58 +362,58 @@ msgstr "DTLS aangesloten. DPD %d, Keepalive %d\n"
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
 msgstr "Ontvangen DTLS pakket 0x%02x van %d bytes\n"
 
-#: dtls.c:470
+#: dtls.c:472
 msgid "Got DTLS DPD request\n"
 msgstr "Ontving DTLS DPD aanvraag\n"
 
-#: dtls.c:476
+#: dtls.c:478
 msgid "Failed to send DPD response. Expect disconnect\n"
 msgstr "Mislukt om DPD reactie te versturen. Verwacht ontkoppeling\n"
 
-#: dtls.c:480
+#: dtls.c:482
 msgid "Got DTLS DPD response\n"
 msgstr "Ontving DTLS DPD reactie\n"
 
-#: dtls.c:484
+#: dtls.c:486
 msgid "Got DTLS Keepalive\n"
 msgstr "Ontving DTLS Keepalive\n"
 
-#: dtls.c:489
+#: dtls.c:491
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
 msgstr "Onbekend DTLS pakkettype %02x, len %d\n"
 
-#: dtls.c:508
+#: dtls.c:510
 msgid "DTLS rekey due\n"
 msgstr "DTLS rekey verwacht\n"
 
-#: dtls.c:519
+#: dtls.c:521
 msgid "DTLS rekey failed\n"
 msgstr "DTLS rekey mislukt\n"
 
-#: dtls.c:527
+#: dtls.c:529
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
 msgstr "DTLS Dead Peer Detection ontdekte dode host!\n"
 
-#: dtls.c:533
+#: dtls.c:535
 msgid "Send DTLS DPD\n"
 msgstr "Stuur DTLS DPD\n"
 
-#: dtls.c:548
+#: dtls.c:550
 msgid "Send DTLS Keepalive\n"
 msgstr "Stuur DTLS Keepalive\n"
 
-#: dtls.c:579
+#: dtls.c:581
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
 msgstr "DTLS kreeg schrijffout %d. Terugvallen naar SSL\n"
 
-#: dtls.c:590
+#: dtls.c:592
 #, c-format
 msgid "Sent DTLS packet of %d bytes; SSL_write() returned %d\n"
 msgstr "Verzonden DTLS pakket van %d bytes; SSL_write () retourneerde %d\n"
 
-#: dtls.c:602
+#: dtls.c:604
 msgid "Built against OpenSSL with no Cisco DTLS support\n"
 msgstr "Gebouwd tegen OpenSSL zonder Cisco DTLS ondersteuning\n"
 
@@ -496,8 +488,7 @@ msgstr "Fout in chunked decodering. Verwacht '', ontving: '%s'"
 
 #: http.c:308
 msgid "Cannot receive HTTP 1.0 body without closing connection\n"
-msgstr ""
-"Kan HTTP 1.0 content niet ontvangen zonder het sluiten van de verbinding\n"
+msgstr "Kan HTTP 1.0 content niet ontvangen zonder het sluiten van de verbinding\n"
 
 #: http.c:389
 msgid "Downloaded config file did not match intended SHA1\n"
@@ -507,10 +498,7 @@ msgstr "Gedownloade config-bestand komt niet overeen bedoelde SHA1\n"
 msgid ""
 "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 "This facility is disabled by default for security reasons, so you may wish to enable it."
-msgstr ""
-"Fout: Server vroeg ons om een 'Cisco Secure Desktop' trojan te downloaden en"
-" uit te voeren. Deze faciliteit is standaard om veiligheidsredenen "
-"uitgeschakeld. U kunt zelf besluiten om dit mogelijk te maken."
+msgstr "Fout: Server vroeg ons om een 'Cisco Secure Desktop' trojan te downloaden en uit te voeren. Deze faciliteit is standaard om veiligheidsredenen uitgeschakeld. U kunt zelf besluiten om dit mogelijk te maken."
 
 #: http.c:413
 msgid "Trying to run Linux CSD trojan script."
@@ -546,9 +534,7 @@ msgstr "Mislukt om te schakelen naar CSD home directory '%s':%s\n"
 msgid ""
 "Warning: you are running insecure CSD code with root privileges\n"
 "\t Use command line option \"--csd-user\"\n"
-msgstr ""
-"Waarschuwing: je draait onveilige CSD-code met root privileges\n"
-"\t Gebruik commandoregel optie \"--csd-user\"\n"
+msgstr "Waarschuwing: je draait onveilige CSD-code met root privileges\n\t Gebruik commandoregel optie \"--csd-user\"\n"
 
 #: http.c:512
 #, c-format
@@ -712,7 +698,7 @@ msgstr "Alleen http of socks(5) proxies ondersteund\n"
 msgid ""
 "For assistance with OpenConnect, please see the web page at\n"
 "  http://www.infradead.org/openconnect/mail.html\n"
-msgstr ""
+msgstr "Voor hulp bij OpenConnect, bezoek de website op/n\n  http://www.infradead.org/openconnect/mail.html/n\n"
 
 #: main.c:160
 #, c-format
@@ -836,8 +822,7 @@ msgstr "Instellen maximale packet lengte tot LEN pkts"
 
 #: main.c:191
 msgid "Shell command line for using a vpnc-compatible config script"
-msgstr ""
-"Shell command oregel voor het gebruik van een vpnc-compatibele config script"
+msgstr "Shell command oregel voor het gebruik van een vpnc-compatibele config script"
 
 #: main.c:192
 msgid "Pass traffic to 'script' program, not tun"
@@ -933,9 +918,7 @@ msgstr "fgets (stdin)"
 msgid ""
 "WARNING: This version of openconnect is %s but\n"
 "         the libopenconnect library is %s\n"
-msgstr ""
-"Waarschuwing: De versie van openconnect is %s maar de\n"
-"              versie van de libopenconnect library is %s\n"
+msgstr "Waarschuwing: De versie van openconnect is %s maar de\n              versie van de libopenconnect library is %s\n"
 
 #: main.c:273
 #, c-format
@@ -957,9 +940,7 @@ msgstr "MTU %d te klein\n"
 msgid ""
 "Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
 "If this helps, please report to <openconnect-devel@lists.infradead.org>.\n"
-msgstr ""
-"Deactiveren hergebruiken alle HTTP-verbindingen als gevolg van - no-http-keepalive optie.\n"
-"Als dit helpt, meldt u zich bij <openconnect-devel@lists.infradead.org>.\n"
+msgstr "Deactiveren hergebruiken alle HTTP-verbindingen als gevolg van - no-http-keepalive optie.\nAls dit helpt, meldt u zich bij <openconnect-devel@lists.infradead.org>.\n"
 
 #: main.c:439 main.c:453
 #, c-format
@@ -984,8 +965,7 @@ msgstr "Geen server opgegeven\n"
 #: main.c:517
 #, c-format
 msgid "This version of openconnect was built without libproxy support\n"
-msgstr ""
-"Deze versie van openconnect werd gebouwd zonder libproxy ondersteuning\n"
+msgstr "Deze versie van openconnect werd gebouwd zonder libproxy ondersteuning\n"
 
 #: main.c:551
 #, c-format
@@ -1024,8 +1004,7 @@ msgstr "Verbonden %s als %s%s%s, met behulp van %s\n"
 
 #: main.c:613
 msgid "No --script argument provided; DNS and routing are not configured\n"
-msgstr ""
-"No --script argument meegegeven; DNS en routering zijn niet geconfigureerd\n"
+msgstr "No --script argument meegegeven; DNS en routering zijn niet geconfigureerd\n"
 
 #: main.c:615
 msgid "See http://www.infradead.org/openconnect/vpnc-script.html\n"
@@ -1057,16 +1036,11 @@ msgid ""
 "\n"
 "Certificate from VPN server \"%s\" failed verification.\n"
 "Reason: %s\n"
-msgstr ""
-"\n"
-"Certificaat van VPN-server \"%s\" verificatie mislukt.\n"
-"Reden: %s\n"
+msgstr "\nCertificaat van VPN-server \"%s\" verificatie mislukt.\nReden: %s\n"
 
 #: main.c:766
 msgid "Enter 'yes' to accept, 'no' to abort; anything else to view: "
-msgstr ""
-"Invoeren 'ja' om te accepteren, 'nee' om te stoppen, iets anders om te "
-"bekijken:"
+msgstr "Invoeren 'ja' om te accepteren, 'nee' om te stoppen, iets anders om te bekijken:"
 
 #: main.c:775
 msgid "yes"
@@ -1386,7 +1360,7 @@ msgstr "Niet gelukt in starten van script '%s':%s\n"
 
 #: tun.c:397
 msgid "Could not /dev/tun for plumbing"
-msgstr ""
+msgstr "Kon /dev/tun niet gebruiken voor overloop"
 
 #: tun.c:401
 msgid "Can't push IP"
@@ -1403,12 +1377,12 @@ msgstr "Kan niet openen %s: %s"
 
 #: tun.c:424
 msgid "Can't push ARP"
-msgstr ""
+msgstr "Kan ARP niet pushen"
 
 #: tun.c:432
 #, c-format
 msgid "Can't plumb %s for IPv%d: %s\n"
-msgstr ""
+msgstr "Kon %s niet gebruiken voor overloop voor IPv%d: %s/n\n"
 
 #: tun.c:457
 msgid "socketpair"
@@ -1446,7 +1420,7 @@ msgstr "Geen nieuwe tun maken"
 
 #: tun.c:530
 msgid "Failed to put tun file descriptor into message-discard mode"
-msgstr ""
+msgstr "Kon tun bestandsbeschrijving niet in message-discard mode plaatsen"
 
 #: tun.c:565
 msgid "open tun"
@@ -1464,7 +1438,7 @@ msgstr "Onbekend pakket (len %d) ontvangen: %02x %02x %02x %02x...\n"
 #: tun.c:685
 #, c-format
 msgid "Failed to write incoming packet: %s\n"
-msgstr ""
+msgstr "Niet geslaag in wegschrijven inkomend pakket: %s/n\n"
 
 #: xml.c:54
 msgid "Open XML config file"
@@ -1506,8 +1480,4 @@ msgstr "Host \"%s\" heeft gebruikersgroep \"%s\"\n"
 #: xml.c:146
 #, c-format
 msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
-msgstr ""
-"Host \"%s\" is niet vermeld in de configuratie, behandeling als kale "
-"hostname\n"
-
-
+msgstr "Host \"%s\" is niet vermeld in de configuratie, behandeling als kale hostname\n"

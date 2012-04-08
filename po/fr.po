@@ -3,15 +3,16 @@
 # This file is distributed under the same license as the PACKAGE package.
 # 
 # Translators:
+# Camille Baldock <mademoisellegeek42@gmail.com>, 2012.
 # Mademoiselle Geek <mademoisellegeek42@gmail.com>, 2011.
 msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2011-12-14 02:03+0000\n"
-"PO-Revision-Date: 2011-12-17 20:39+0000\n"
-"Last-Translator: Mademoiselle Geek <mademoisellegeek42@gmail.com>\n"
-"Language-Team: French (http://www.transifex.net/projects/p/meego/team/fr/)\n"
+"POT-Creation-Date: 2012-01-11 02:03+0000\n"
+"PO-Revision-Date: 2012-02-14 17:18+0000\n"
+"Last-Translator: Camille Baldock <mademoisellegeek42@gmail.com>\n"
+"Language-Team: French (http://www.transifex.net/projects/p/meego/language/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -218,7 +219,7 @@ msgstr ""
 #: cstp.c:582
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
-msgstr ""
+msgstr "Paquet inconnu %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
 #: cstp.c:592
 #, c-format
@@ -245,7 +246,7 @@ msgstr ""
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr ""
 
-#: cstp.c:664 dtls.c:513
+#: cstp.c:664 dtls.c:515
 msgid "Reconnect failed\n"
 msgstr ""
 
@@ -362,58 +363,58 @@ msgstr ""
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
 msgstr ""
 
-#: dtls.c:470
+#: dtls.c:472
 msgid "Got DTLS DPD request\n"
 msgstr ""
 
-#: dtls.c:476
+#: dtls.c:478
 msgid "Failed to send DPD response. Expect disconnect\n"
 msgstr ""
 
-#: dtls.c:480
+#: dtls.c:482
 msgid "Got DTLS DPD response\n"
 msgstr ""
 
-#: dtls.c:484
+#: dtls.c:486
 msgid "Got DTLS Keepalive\n"
 msgstr ""
 
-#: dtls.c:489
+#: dtls.c:491
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
 msgstr ""
 
-#: dtls.c:508
+#: dtls.c:510
 msgid "DTLS rekey due\n"
 msgstr ""
 
-#: dtls.c:519
+#: dtls.c:521
 msgid "DTLS rekey failed\n"
 msgstr ""
 
-#: dtls.c:527
+#: dtls.c:529
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
 msgstr ""
 
-#: dtls.c:533
+#: dtls.c:535
 msgid "Send DTLS DPD\n"
 msgstr ""
 
-#: dtls.c:548
+#: dtls.c:550
 msgid "Send DTLS Keepalive\n"
 msgstr ""
 
-#: dtls.c:579
+#: dtls.c:581
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
 msgstr ""
 
-#: dtls.c:590
+#: dtls.c:592
 #, c-format
 msgid "Sent DTLS packet of %d bytes; SSL_write() returned %d\n"
 msgstr ""
 
-#: dtls.c:602
+#: dtls.c:604
 msgid "Built against OpenSSL with no Cisco DTLS support\n"
 msgstr ""
 
@@ -447,7 +448,7 @@ msgstr ""
 
 #: http.c:174
 msgid "<elided>"
-msgstr ""
+msgstr "<elided>"
 
 #: http.c:184
 msgid "SSL certificate authentication failed\n"
@@ -591,7 +592,7 @@ msgstr ""
 
 #: http.c:931
 msgid "TTL expired"
-msgstr ""
+msgstr "TTL expiré"
 
 #: http.c:932
 msgid "command not supported / protocol error"
@@ -734,7 +735,7 @@ msgstr ""
 
 #: main.c:167
 msgid "Private key type (PKCS#12 / TPM / PEM)"
-msgstr ""
+msgstr "Type de clé privée (PKCS#12 / TPM / PEM)"
 
 #: main.c:168
 msgid "Use WebVPN cookie COOKIE"
@@ -798,15 +799,15 @@ msgstr ""
 
 #: main.c:183
 msgid "Set proxy server"
-msgstr ""
+msgstr "Sélectionner le serveur proxy"
 
 #: main.c:184
 msgid "Disable proxy"
-msgstr ""
+msgstr "Désactiver le proxy"
 
 #: main.c:185
 msgid "Use libproxy to automatically configure proxy"
-msgstr ""
+msgstr "Utiliser libproxy pour configurer le proxy automatiquement"
 
 #: main.c:187
 msgid "(NOTE: libproxy disabled in this build)"
@@ -874,7 +875,7 @@ msgstr "Désactiver DTLS"
 
 #: main.c:204
 msgid "Disable HTTP connection re-use"
-msgstr ""
+msgstr "Désactiver la réutilisation de la connexion HTTP"
 
 #: main.c:205
 msgid "Disable password/SecurID authentication"
@@ -1044,11 +1045,11 @@ msgstr ""
 
 #: main.c:775
 msgid "yes"
-msgstr ""
+msgstr "oui"
 
 #: main.c:786
 msgid "no"
-msgstr ""
+msgstr "non"
 
 #: main.c:790
 #, c-format
@@ -1250,7 +1251,7 @@ msgstr ""
 
 #: ssl.c:849
 msgid "<error>"
-msgstr ""
+msgstr "<error>"
 
 #: ssl.c:882
 #, c-format
@@ -1293,12 +1294,12 @@ msgstr ""
 #: ssl.c:1075
 #, c-format
 msgid "Failed to open CA file '%s'\n"
-msgstr ""
+msgstr "Impossible d'ouvrir le fichier CA '%s'\n"
 
 #: ssl.c:1090
 #, c-format
 msgid "SSL negotiation with %s\n"
-msgstr ""
+msgstr "Négociation SSL avec %s\n"
 
 #: ssl.c:1094
 msgid "SSL connection failure\n"
@@ -1312,12 +1313,12 @@ msgstr ""
 #: ssl.c:1142
 #, c-format
 msgid "statvfs: %s\n"
-msgstr ""
+msgstr "statvfs: %s\n"
 
 #: ssl.c:1159
 #, c-format
 msgid "statfs: %s\n"
-msgstr ""
+msgstr "statfs: %s\n"
 
 #: tun.c:83
 msgid "No vpnc-script configured. Need Solaris IP-setting code\n"
@@ -1412,7 +1413,7 @@ msgstr ""
 
 #: tun.c:518
 msgid "open /dev/tun"
-msgstr ""
+msgstr "ouvrir /dev/tun"
 
 #: tun.c:524
 msgid "Failed to create new tun"
@@ -1424,7 +1425,7 @@ msgstr ""
 
 #: tun.c:565
 msgid "open tun"
-msgstr ""
+msgstr "ouvrir tun"
 
 #: tun.c:572
 msgid "TUNSIFHEAD"
@@ -1470,7 +1471,7 @@ msgstr ""
 #: xml.c:123
 #, c-format
 msgid "Host \"%s\" has address \"%s\"\n"
-msgstr ""
+msgstr "L'hôte \"%s\" a pour adresse \"%s\"\n"
 
 #: xml.c:132
 #, c-format
@@ -1481,5 +1482,3 @@ msgstr ""
 #, c-format
 msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""
-
-
