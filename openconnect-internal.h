@@ -244,7 +244,7 @@ struct openconnect_info {
 int setup_tun(struct openconnect_info *vpninfo);
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout);
 void shutdown_tun(struct openconnect_info *vpninfo);
-void script_reconnect (struct openconnect_info *vpninfo);
+int script_config_tun (struct openconnect_info *vpninfo, const char *reason);
 
 /* dtls.c */
 unsigned char unhex(const char *data);

@@ -277,7 +277,6 @@ static void set_script_env(struct openconnect_info *vpninfo)
 	if (!ret)
 		setenv("VPNGATEWAY", host, 1);
 
-	setenv("reason", "connect", 1);
 	set_banner(vpninfo);
 	unsetenv("CISCO_SPLIT_INC");
 	unsetenv("CISCO_SPLIT_EXC");
@@ -368,22 +367,20 @@ static void set_script_env(struct openconnect_info *vpninfo)
 	setenv_cstp_opts(vpninfo);
 }
 
-static int script_config_tun(struct openconnect_info *vpninfo)
+int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
 {
+	if (!vpninfo->vpnc_script)
+		return 0;
+
+	setenv("reason", reason, 1);
 	if (system(vpninfo->vpnc_script)) {
 		int e = errno;
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to spawn script '%s': %s\n"),
-			     vpninfo->vpnc_script, strerror(e));
+			     _("Failed to spawn script '%s' for %s: %s\n"),
+			     vpninfo->vpnc_script, reason, strerror(e));
 		return -e;
 	}
 	return 0;
-}
-
-void script_reconnect (struct openconnect_info *vpninfo)
-{
-	setenv("reason", "reconnect", 1);
-	script_config_tun(vpninfo);
 }
 
 #ifdef __sun__
@@ -442,6 +439,115 @@ static int link_proto(int unit_nr, const char *devname, uint64_t flags)
 	return ip_fd;
 }
 #endif
+
+static int os_setup_tun(struct openconnect_info *vpninfo)
+{
+	int tun_fd;
+
+#ifdef IFF_TUN /* Linux */
+	struct ifreq ifr;
+	int tunerr;
+
+	tun_fd = open("/dev/net/tun", O_RDWR);
+	if (tun_fd < 0) {
+		/* Android has /dev/tun instead of /dev/net/tun
+		   Since other systems might have too, just try it
+		   as a fallback instead of using ifdef __ANDROID__ */
+		tunerr = errno;
+		tun_fd = open("/dev/tun", O_RDWR);
+	}
+	if (tun_fd < 0) {
+		/* If the error on /dev/tun is ENOENT, that's boring.
+		   Use the error we got on /dev/net/tun instead */
+		if (errno != -ENOENT)
+			tunerr = errno;
+
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to open tun device: %s\n"),
+			     strerror(tunerr));
+		exit(1);
+	}
+	memset(&ifr, 0, sizeof(ifr));
+	ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
+	if (vpninfo->ifname)
+		strncpy(ifr.ifr_name, vpninfo->ifname,
+			sizeof(ifr.ifr_name) - 1);
+	if (ioctl(tun_fd, TUNSETIFF, (void *) &ifr) < 0) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("TUNSETIFF failed: %s\n"),
+			     strerror(errno));
+		exit(1);
+	}
+	if (!vpninfo->ifname)
+		vpninfo->ifname = strdup(ifr.ifr_name);
+#elif defined (__sun__)
+	static char tun_name[80];
+	int unit_nr;
+
+	tun_fd = open("/dev/tun", O_RDWR);
+	if (tun_fd < 0) {
+		perror(_("open /dev/tun"));
+		return -EIO;
+	}
+
+	unit_nr = ioctl(tun_fd, TUNNEWPPA, -1);
+	if (unit_nr < 0) {
+		perror(_("Failed to create new tun"));
+		close(tun_fd);
+		return -EIO;
+	}
+
+	if (ioctl(tun_fd, I_SRDOPT, RMSGD) < 0) {
+		perror(_("Failed to put tun file descriptor into message-discard mode"));
+		close(tun_fd);
+		return -EIO;
+	}
+
+	sprintf(tun_name, "tun%d", unit_nr);
+	vpninfo->ifname = strdup(tun_name);
+
+	vpninfo->ip_fd = link_proto(unit_nr, "/dev/udp", IFF_IPV4);
+	if (vpninfo->ip_fd < 0) {
+		close(tun_fd);
+		return -EIO;
+	}
+
+	if (vpninfo->vpn_addr6) {
+		vpninfo->ip6_fd = link_proto(unit_nr, "/dev/udp6", IFF_IPV6);
+		if (vpninfo->ip6_fd < 0) {
+			close(tun_fd);
+			close(vpninfo->ip_fd);
+			vpninfo->ip_fd = -1;
+			return -EIO;
+		}
+	} else
+		vpninfo->ip6_fd = -1;
+
+#else /* BSD et al have /dev/tun$x devices */
+	static char tun_name[80];
+	int i;
+	for (i = 0; i < 255; i++) {
+		sprintf(tun_name, "/dev/tun%d", i);
+		tun_fd = open(tun_name, O_RDWR);
+		if (tun_fd >= 0)
+			break;
+	}
+	if (tun_fd < 0) {
+		perror(_("open tun"));
+		exit(1);
+	}
+	vpninfo->ifname = strdup(tun_name + 5);
+#ifdef TUNSIFHEAD
+	i = 1;
+	if (ioctl(tun_fd, TUNSIFHEAD, &i) < 0) {
+		perror(_("TUNSIFHEAD"));
+		exit(1);
+	}
+#endif
+#endif
+	return tun_fd;
+}
+
 /* Set up a tuntap device. */
 int setup_tun(struct openconnect_info *vpninfo)
 {
@@ -473,110 +579,15 @@ int setup_tun(struct openconnect_info *vpninfo)
 		vpninfo->script_tun = child;
 		vpninfo->ifname = strdup(_("(script)"));
 	} else {
-#ifdef IFF_TUN /* Linux */
-		struct ifreq ifr;
-		int tunerr;
+		script_config_tun(vpninfo, "pre-init");
 
-		tun_fd = open("/dev/net/tun", O_RDWR);
-		if (tun_fd < 0) {
-			/* Android has /dev/tun instead of /dev/net/tun
-			   Since other systems might have too, just try it
-			   as a fallback instead of using ifdef __ANDROID__ */
-			tunerr = errno;
-			tun_fd = open("/dev/tun", O_RDWR);
-		}
-		if (tun_fd < 0) {
-			/* If the error on /dev/tun is ENOENT, that's boring.
-			   Use the error we got on /dev/net/tun instead */
-			if (errno != -ENOENT)
-				tunerr = errno;
+		tun_fd = os_setup_tun(vpninfo);
+		if (tun_fd < 0)
+			return tun_fd;
 
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Failed to open tun device: %s\n"),
-				     strerror(tunerr));
-			exit(1);
-		}
-		memset(&ifr, 0, sizeof(ifr));
-		ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
-		if (vpninfo->ifname)
-			strncpy(ifr.ifr_name, vpninfo->ifname,
-				sizeof(ifr.ifr_name) - 1);
-		if (ioctl(tun_fd, TUNSETIFF, (void *) &ifr) < 0) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("TUNSETIFF failed: %s\n"),
-				     strerror(errno));
-			exit(1);
-		}
-		if (!vpninfo->ifname)
-			vpninfo->ifname = strdup(ifr.ifr_name);
-#elif defined (__sun__)
-		static char tun_name[80];
-		int unit_nr;
-
-		tun_fd = open("/dev/tun", O_RDWR);
-		if (tun_fd < 0) {
-			perror(_("open /dev/tun"));
-			return -EIO;
-		}
-
-		unit_nr = ioctl(tun_fd, TUNNEWPPA, -1);
-		if (unit_nr < 0) {
-			perror(_("Failed to create new tun"));
-			close(tun_fd);
-			return -EIO;
-		}
-
-		if (ioctl(tun_fd, I_SRDOPT, RMSGD) < 0) {
-			perror(_("Failed to put tun file descriptor into message-discard mode"));
-			close(tun_fd);
-			return -EIO;
-		}
-
-		sprintf(tun_name, "tun%d", unit_nr);
-		vpninfo->ifname = strdup(tun_name);
-
-		vpninfo->ip_fd = link_proto(unit_nr, "/dev/udp", IFF_IPV4);
-		if (vpninfo->ip_fd < 0) {
-			close(tun_fd);
-			return -EIO;
-		}
-
-		if (vpninfo->vpn_addr6) {
-			vpninfo->ip6_fd = link_proto(unit_nr, "/dev/udp6", IFF_IPV6);
-			if (vpninfo->ip6_fd < 0) {
-				close(tun_fd);
-				close(vpninfo->ip_fd);
-				vpninfo->ip_fd = -1;
-				return -EIO;
-			}
-		} else
-			vpninfo->ip6_fd = -1;
-
-#else /* BSD et al have /dev/tun$x devices */
-		static char tun_name[80];
-		int i;
-		for (i = 0; i < 255; i++) {
-			sprintf(tun_name, "/dev/tun%d", i);
-			tun_fd = open(tun_name, O_RDWR);
-			if (tun_fd >= 0)
-				break;
-		}
-		if (tun_fd < 0) {
-			perror(_("open tun"));
-			exit(1);
-		}
-		vpninfo->ifname = strdup(tun_name + 5);
-#ifdef TUNSIFHEAD
-		i = 1;
-		if (ioctl(tun_fd, TUNSIFHEAD, &i) < 0) {
-			perror(_("TUNSIFHEAD"));
-			exit(1);
-		}
-#endif
-#endif
 		if (vpninfo->vpnc_script) {
 			setenv("TUNDEV", vpninfo->ifname, 1);
-			script_config_tun(vpninfo);
+			script_config_tun(vpninfo, "connect");
 			/* We have to set the MTU for ourselves, because the script doesn't */
 			local_config_tun(vpninfo, 1);
 		} else
@@ -696,15 +707,7 @@ void shutdown_tun(struct openconnect_info *vpninfo)
 	if (vpninfo->script_tun) {
 		kill(vpninfo->script_tun, SIGHUP);
 	} else {
-		if (vpninfo->vpnc_script) {
-			setenv("reason", "disconnect", 1);
-			if (system(vpninfo->vpnc_script) == -1) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("Failed to spawn script '%s': %s\n"),
-					     vpninfo->vpnc_script,
-					     strerror(errno));
-			}
-		}
+		script_config_tun(vpninfo, "disconnect");
 #ifdef __sun__
 		close(vpninfo->ip_fd);
 		vpninfo->ip_fd = -1;
