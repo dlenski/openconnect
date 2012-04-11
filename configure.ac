@@ -7,6 +7,14 @@ AM_MAINTAINER_MODE([enable])
 AM_INIT_AUTOMAKE([foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
+# Define htmldir and localedir for users of ancient autoconf building from git
+AC_PREREQ([2.59c], [], [AC_SUBST([htmldir], [m4_ifset([AC_PACKAGE_TARNAME],
+	  ['${datadir}/doc/${PACKAGE_TARNAME}'],
+	  ['${datadir}/doc/${PACKAGE}'])
+])])
+
+AC_PREREQ([2.60], [], [AC_SUBST([localedir], ['$(datadir)/locale'])])
+
 AC_ARG_ENABLE([nls],
 	[ --disable-nls           do not use Native Language Support],
 	[USE_NLS=$enableval], [USE_NLS=yes])
