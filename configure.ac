@@ -7,10 +7,6 @@ AM_MAINTAINER_MODE([enable])
 AM_INIT_AUTOMAKE([foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
-# Black magic: putting this before the conditional NLS bits below
-# seems to avoid complaints about AMDEP being conditionally defined.
-AC_PROG_LIBTOOL
-
 AC_ARG_ENABLE([nls],
 	[ --disable-nls           do not use Native Language Support],
 	[USE_NLS=$enableval], [USE_NLS=yes])
@@ -104,6 +100,9 @@ AC_ARG_WITH([openssl],
 	    [PKG_CHECK_MODULES(OPENSSL, openssl)
 	     AC_ENABLE_SHARED
 	     AC_DISABLE_STATIC])
+
+# Needs to happen after we default to static/shared libraries based on OpenSSL
+AC_PROG_LIBTOOL
 
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0)
 
