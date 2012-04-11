@@ -10,7 +10,6 @@ TOPLEVEL_PAGES = contribute.html mail.html technical.html
 
 ALL_PAGES = $(FTR_PAGES) $(START_PAGES) $(INDEX_PAGES) $(TOPLEVEL_PAGES)
 
-htmldir = $(docdir)/html
 html_DATA = $(ALL_PAGES)
 
 .xml.html:

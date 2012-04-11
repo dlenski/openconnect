@@ -1,3 +1,3 @@
-tmpldatadir = $(docdir)/html/inc
+tmpldatadir = $(htmldir)/inc
 dist_tmpldata_DATA = $(srcdir)/*.tmpl
 

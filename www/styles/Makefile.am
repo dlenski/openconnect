@@ -1,3 +1,3 @@
-stylesdatadir = $(docdir)/html/styles
+stylesdatadir = $(htmldir)/styles
 dist_stylesdata_DATA = main.css
 
