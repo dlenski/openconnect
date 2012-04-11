@@ -22,6 +22,8 @@
  *   Boston, MA 02110-1301 USA
  */
 
+#include <string.h>
+
 #include "openconnect-internal.h"
 
 struct openconnect_info *openconnect_vpninfo_new_with_cbdata (char *useragent,
