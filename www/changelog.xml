@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Stop building static library by default.</li>
        <li>Invoke <tt>vpnc-script</tt> with "pre-init" reason to load tun module if necessary.</li>
      </ul><br/>
   </li>
