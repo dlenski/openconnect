@@ -105,7 +105,23 @@ AC_ARG_WITH([openssl],
 	     AC_SUBST(OPENSSL_LIBS)
 	     AC_ENABLE_STATIC
 	     AC_DISABLE_SHARED],
-	    [PKG_CHECK_MODULES(OPENSSL, openssl)
+	    [PKG_CHECK_MODULES(OPENSSL, openssl, [],
+	    		       [oldLIBS="$LIBS"
+			       LIBS="$LIBS -lssl -lcrypto"
+			       AC_MSG_CHECKING([for OpenSSL without pkg-config])
+			       AC_LINK_IFELSE([AC_LANG_PROGRAM([
+			        #include <openssl/ssl.h>
+				#include <openssl/err.h>],[
+				SSL_library_init();
+				ERR_clear_error();
+				SSL_load_error_strings();
+				OpenSSL_add_all_algorithms();])],
+			       [AC_MSG_RESULT(yes)
+			        AC_SUBST([OPENSSL_LIBS], ["-lssl -lcrypto"])
+				AC_SUBST([OPENSSL_CFLAGS], [])],
+			       [AC_MSG_RESULT(no)
+				AC_ERROR([Could not build against OpenSSL])])
+				LIBS="$oldLIBS"])
 	     AC_ENABLE_SHARED
 	     AC_DISABLE_STATIC])
 
