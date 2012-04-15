@@ -143,7 +143,8 @@ PKG_CHECK_MODULES(ZLIB, zlib, [],
 		   AC_SUBST([ZLIB_LIBS], [-lz])
 		   AC_SUBST([ZLIB_CFLAGS], [])],
   		  [AC_MSG_RESULT(no)
-		   AC_ERROR([Could not build against zlib])])])
+		   AC_ERROR([Could not build against zlib])])
+		  LIBS="$oldLIBS"])
 
 PKG_CHECK_MODULES(LIBPROXY, libproxy-1.0,
 		[AC_SUBST(LIBPROXY_PC, libproxy-1.0)
