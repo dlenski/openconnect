@@ -15,6 +15,36 @@ AC_PREREQ([2.59c], [], [AC_SUBST([htmldir], [m4_ifset([AC_PACKAGE_TARNAME],
 
 AC_PREREQ([2.60], [], [AC_SUBST([localedir], ['$(datadir)/locale'])])
 
+AC_ARG_WITH([vpnc-script],
+	[AS_HELP_STRING([--with-vpnc-script],
+	  [default location of vpnc-script helper])])
+
+if test "$with_vpnc_script" = "yes" || test "$with_vpnc_script" = ""; then
+   with_vpnc_script=/etc/vpnc/vpnc-script
+   if ! test -x "$with_vpnc_script"; then
+      AC_MSG_ERROR([${with_vpnc_script} does not seem to be executable.]
+    [OpenConnect will not function correctly without a vpnc-script.]
+    [See http://www.infradead.org/openconnect/vpnc-script.html for more details.]
+    []
+    [If you are building a distribution package, please ensure that your]
+    [packaging is correct, and that a vpnc-script will be installed when the]
+    [user installs your package. You should provide a --with-vpnc-script=]
+    [argument to this configure script, giving the full path where the script]
+    [will be installed.]
+    []
+    [The standard location is ${with_vpnc_script}. To bypass this error and]
+    [build OpenConnect to use the script from this location, even though it's]
+    [not present at the time you are building OpenConnect, pass the argument]
+    ["--with-vpnc-script=${with_vpnc_script}"])
+  fi
+elif test "$with_vpnc_script" = "no"; then
+   AC_ERROR([You cannot disable vpnc-script.]
+   [OpenConnect will not function correctly without it.]
+   [See http://www.infradead.org/openconnect/vpnc-script.html])
+fi
+
+AC_DEFINE_UNQUOTED(DEFAULT_VPNCSCRIPT, "${with_vpnc_script}")
+	  
 AC_ARG_ENABLE([nls],
 	[ --disable-nls           do not use Native Language Support],
 	[USE_NLS=$enableval], [USE_NLS=yes])

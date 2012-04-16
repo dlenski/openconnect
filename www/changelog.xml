@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Make <tt>vpnc-script</tt> mandatory, like it is for <tt>vpnc</tt></li>
        <li>Don't set Legacy IP address on tun device; let <tt>vpnc-script</tt> do it.</li>
        <li>Detect OpenSSL even without pkg-config.</li>
        <li>Stop building static library by default.</li>

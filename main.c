@@ -189,6 +189,7 @@ static void usage(void)
 	printf("  -q, --quiet                     %s\n", _("Less output"));
 	printf("  -Q, --queue-len=LEN             %s\n", _("Set packet queue limit to LEN pkts"));
 	printf("  -s, --script=SCRIPT             %s\n", _("Shell command line for using a vpnc-compatible config script"));
+	printf("                                  %s: \"%s\"\n", _("default"), DEFAULT_VPNCSCRIPT);
 	printf("  -S, --script-tun                %s\n", _("Pass traffic to 'script' program, not tun"));
 	printf("  -u, --user=NAME                 %s\n", _("Set login username"));
 	printf("  -V, --version                   %s\n", _("Report version number"));
@@ -289,6 +290,7 @@ int main(int argc, char **argv)
 	vpninfo->validate_peer_cert = validate_peer_cert;
 	vpninfo->cbdata = vpninfo;
 	vpninfo->cert_expire_warning = 60 * 86400;
+	vpninfo->vpnc_script = DEFAULT_VPNCSCRIPT;
 
 	if (!uname(&utsbuf))
 		vpninfo->localname = utsbuf.nodename;
