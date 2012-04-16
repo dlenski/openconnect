@@ -75,17 +75,9 @@
 #define TUN_HAS_AF_PREFIX 1
 #endif
 
-#ifdef __sun__
-static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
+static int set_tun_mtu(struct openconnect_info *vpninfo)
 {
-	if (!mtu_only)
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("No vpnc-script configured. Need Solaris IP-setting code\n"));
-	return 0;
-}
-#else
-static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
-{
+#ifndef __sun__ /* We don't know how to do this on Solaris */
 	struct ifreq ifr;
 	int net_fd;
 
@@ -94,35 +86,19 @@ static int local_config_tun(struct openconnect_info *vpninfo, int mtu_only)
 		perror(_("open net"));
 		return -EINVAL;
 	}
+
 	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, vpninfo->ifname, sizeof(ifr.ifr_name) - 1);
-
-	if (!mtu_only) {
-		struct sockaddr_in addr;
-
-		if (ioctl(net_fd, SIOCGIFFLAGS, &ifr) < 0)
-			perror(_("SIOCGIFFLAGS"));
-
-		ifr.ifr_flags |= IFF_UP | IFF_POINTOPOINT;
-		if (ioctl(net_fd, SIOCSIFFLAGS, &ifr) < 0)
-			perror(_("SIOCSIFFLAGS"));
-
-		addr.sin_family = AF_INET;
-		addr.sin_addr.s_addr = inet_addr(vpninfo->vpn_addr);
-		memcpy(&ifr.ifr_addr, &addr, sizeof(addr));
-		if (ioctl(net_fd, SIOCSIFADDR, &ifr) < 0)
-			perror(_("SIOCSIFADDR"));
-	}
-
 	ifr.ifr_mtu = vpninfo->mtu;
+
 	if (ioctl(net_fd, SIOCSIFMTU, &ifr) < 0)
 		perror(_("SIOCSIFMTU"));
 
 	close(net_fd);
-
+#endif
 	return 0;
 }
-#endif
+
 
 static int setenv_int(const char *opt, int value)
 {
@@ -585,13 +561,11 @@ int setup_tun(struct openconnect_info *vpninfo)
 		if (tun_fd < 0)
 			return tun_fd;
 
-		if (vpninfo->vpnc_script) {
-			setenv("TUNDEV", vpninfo->ifname, 1);
-			script_config_tun(vpninfo, "connect");
-			/* We have to set the MTU for ourselves, because the script doesn't */
-			local_config_tun(vpninfo, 1);
-		} else
-			local_config_tun(vpninfo, 0);
+		setenv("TUNDEV", vpninfo->ifname, 1);
+		script_config_tun(vpninfo, "connect");
+
+		/* Ancient vpnc-scripts might not get this right */
+		set_tun_mtu(vpninfo);
 	}
 
 	fcntl(tun_fd, F_SETFD, FD_CLOEXEC);
