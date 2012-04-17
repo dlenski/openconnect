@@ -126,6 +126,9 @@ AS_COMPILER_FLAGS(CFLAGS,
          -Wpointer-arith
          -Wwrite-strings")
 
+AC_ENABLE_SHARED
+AC_DISABLE_STATIC
+
 AC_ARG_WITH([openssl],
             AS_HELP_STRING([--with-openssl],
                            [Location of OpenSSL build dir]),
@@ -133,8 +136,8 @@ AC_ARG_WITH([openssl],
              OPENSSL_LIBS="${with_openssl}/libssl.a ${with_openssl}/libcrypto.a -ldl -lz"
 	     AC_SUBST(OPENSSL_CFLAGS)
 	     AC_SUBST(OPENSSL_LIBS)
-	     AC_ENABLE_STATIC
-	     AC_DISABLE_SHARED],
+	     enable_static=yes
+	     enable_shared=no],
 	    [PKG_CHECK_MODULES(OPENSSL, openssl, [],
 	    		       [oldLIBS="$LIBS"
 			       LIBS="$LIBS -lssl -lcrypto"
@@ -151,9 +154,7 @@ AC_ARG_WITH([openssl],
 				AC_SUBST([OPENSSL_CFLAGS], [])],
 			       [AC_MSG_RESULT(no)
 				AC_ERROR([Could not build against OpenSSL])])
-				LIBS="$oldLIBS"])
-	     AC_ENABLE_SHARED
-	     AC_DISABLE_STATIC])
+				LIBS="$oldLIBS"])])
 
 # Needs to happen after we default to static/shared libraries based on OpenSSL
 AC_PROG_LIBTOOL
