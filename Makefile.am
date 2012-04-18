@@ -28,7 +28,7 @@ include_HEADERS = openconnect.h
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = openconnect.pc
 
-EXTRA_DIST = version.sh openconnect.html openconnect.8 COPYING.LGPL
+EXTRA_DIST = version.sh openconnect.8 COPYING.LGPL
 
 DISTCLEANFILES = $(pkgconfig_DATA)
 
