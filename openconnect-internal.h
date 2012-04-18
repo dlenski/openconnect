@@ -239,6 +239,13 @@ struct openconnect_info {
 #define vpn_progress(vpninfo, ...) (vpninfo)->progress ((vpninfo)->cbdata, __VA_ARGS__)
 
 /****************************************************************************/
+/* Oh Solaris how we hate thee! */
+#ifndef HAVE_ASPRINTF
+#define asprintf openconnect__asprintf
+int openconnect__asprintf(char **strp, const char *fmt, ...);
+#endif
+
+/****************************************************************************/
 
 /* tun.c */
 int setup_tun(struct openconnect_info *vpninfo);

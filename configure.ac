@@ -108,6 +108,34 @@ case $host_os in
     ;;
 esac
 
+AC_CHECK_FUNC(strcasestr, [AC_DEFINE(HAVE_STRCASESTR, 1)], [])
+need_vacopy=no
+AC_CHECK_FUNC(asprintf, [AC_DEFINE(HAVE_ASPRINTF, 1)], [need_vacopy=yes])
+if test "$need_vacopy" = "yes"; then
+  AC_MSG_CHECKING([for va_copy])
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([
+	#include <stdarg.h>
+	va_list a;],[
+	va_list b;
+	va_copy(b,a);
+	va_end(b);])],
+	[AC_DEFINE(HAVE_VA_COPY, 1)
+	AC_MSG_RESULT(va_copy)],
+	[AC_LINK_IFELSE([AC_LANG_PROGRAM([
+		#include <stdarg.h>
+		va_list a;],[
+		va_list b;
+		__va_copy(b,a);
+		va_end(b);])],
+		[AC_DEFINE(HAVE___VA_COPY, 1)
+		AC_MSG_RESULT(__va_copy)],
+		[AC_MSG_RESULT(no)
+		AC_MSG_ERROR([Your system lacks asprintf() and va_copy()])])
+	])
+fi
+
+
+
 AS_COMPILER_FLAGS(CFLAGS,
         "-Wall
          -Wextra
