@@ -17,6 +17,9 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Work around <tt>time()</tt> brokenness on Solaris.</li>
+       <li>Fix interface plumbing on Solaris 10.</li>
+       <li>Provide <tt>asprintf()</tt> function for (unpatched) Solaris 10.</li>
        <li>Make <tt>vpnc-script</tt> mandatory, like it is for <tt>vpnc</tt></li>
        <li>Don't set Legacy IP address on tun device; let <tt>vpnc-script</tt> do it.</li>
        <li>Detect OpenSSL even without pkg-config.</li>
