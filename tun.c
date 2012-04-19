@@ -393,12 +393,6 @@ static int link_proto(int unit_nr, const char *devname, uint64_t flags)
 		close(tun2_fd);
 		return -1;
 	}
-	if (ioctl(ip_fd, I_PUSH, "arp") < 0) {
-		perror(_("Can't push ARP"));
-		close(tun2_fd);
-		close(ip_fd);
-		return -1;
-	}
 
 	mux_id = ioctl(ip_fd, I_LINK, tun2_fd);
 	if (mux_id < 0) {
