@@ -603,7 +603,8 @@ int main(int argc, char **argv)
 
 	if (uid != getuid()) {
 		if (setuid(uid)) {
-			fprintf(stderr, _("Failed to set uid %d\n"), uid);
+			fprintf(stderr, _("Failed to set uid %ld\n"),
+				(long)uid);
 			exit(1);
 		}
 	}
