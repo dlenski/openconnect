@@ -240,6 +240,10 @@ struct openconnect_info {
 
 /****************************************************************************/
 /* Oh Solaris how we hate thee! */
+#ifdef __sun__
+#define time(x) openconnect__time(x)
+time_t openconnect__time(time_t *t);
+#endif
 #ifndef HAVE_ASPRINTF
 #define asprintf openconnect__asprintf
 int openconnect__asprintf(char **strp, const char *fmt, ...);
