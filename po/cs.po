@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-01-11 02:03+0000\n"
-"PO-Revision-Date: 2012-02-14 17:18+0000\n"
+"POT-Creation-Date: 2012-04-16 16:03+0100\n"
+"PO-Revision-Date: 2012-04-17 08:21+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Czech (http://www.transifex.net/projects/p/meego/language/cs/)\n"
 "MIME-Version: 1.0\n"
@@ -1320,123 +1320,107 @@ msgstr "statvfs: %s\n"
 msgid "statfs: %s\n"
 msgstr "statfs: %s\n"
 
-#: tun.c:83
-msgid "No vpnc-script configured. Need Solaris IP-setting code\n"
-msgstr "Nenastaven žádný skript vpnc. Potřeba kódu nastavení IP Solaris\n"
-
-#: tun.c:94
+#: tun.c:86
 msgid "open net"
 msgstr "Otevřít síť"
 
-#: tun.c:104
-msgid "SIOCGIFFLAGS"
-msgstr "SIOCGIFFLAGS"
-
-#: tun.c:108
-msgid "SIOCSIFFLAGS"
-msgstr "SIOCSIFFLAGS"
-
-#: tun.c:114
-msgid "SIOCSIFADDR"
-msgstr "SIOCSIFADDR"
-
-#: tun.c:119
+#: tun.c:95
 msgid "SIOCSIFMTU"
 msgstr "SIOCSIFMTU"
 
-#: tun.c:159
+#: tun.c:135
 #, c-format
 msgid "Discard bad split include: \"%s\"\n"
 msgstr "Zahodit špatné zahrnutí rozdělení: \"%s\"\n"
 
-#: tun.c:163
+#: tun.c:139
 #, c-format
 msgid "Discard bad split exclude: \"%s\"\n"
 msgstr "Zahodit špatné vyloučení rozdělení: \"%s\"\n"
 
-#: tun.c:376 tun.c:703
+#: tun.c:355
 #, c-format
-msgid "Failed to spawn script '%s': %s\n"
-msgstr "Nepodařilo se zrodit skript '%s': %s\n"
+msgid "Failed to spawn script '%s' for %s: %s\n"
+msgstr ""
 
-#: tun.c:397
+#: tun.c:370
 msgid "Could not /dev/tun for plumbing"
 msgstr ""
 
-#: tun.c:401
+#: tun.c:374
 msgid "Can't push IP"
 msgstr "Nelze protlačit IP"
 
-#: tun.c:411
+#: tun.c:384
 msgid "Can't set ifname"
 msgstr ""
 
-#: tun.c:418
+#: tun.c:391
 #, c-format
 msgid "Can't open %s: %s"
 msgstr ""
 
-#: tun.c:424
+#: tun.c:397
 msgid "Can't push ARP"
 msgstr ""
 
-#: tun.c:432
+#: tun.c:405
 #, c-format
 msgid "Can't plumb %s for IPv%d: %s\n"
 msgstr ""
 
-#: tun.c:457
-msgid "socketpair"
-msgstr "Dvojice zásuvek"
-
-#: tun.c:463
-msgid "fork"
-msgstr "Rozdvojení"
-
-#: tun.c:469
-msgid "execl"
-msgstr "execl"
-
-#: tun.c:474
-msgid "(script)"
-msgstr "(skript)"
-
-#: tun.c:495
+#: tun.c:442
 #, c-format
 msgid "Failed to open tun device: %s\n"
 msgstr "Nepodařilo se otevřít zařízení tun: %s\n"
 
-#: tun.c:506
+#: tun.c:453
 #, c-format
 msgid "TUNSETIFF failed: %s\n"
 msgstr "TUNSETIFF se nepodařilo\n: %s\n"
 
-#: tun.c:518
+#: tun.c:465
 msgid "open /dev/tun"
 msgstr "Otevřít /dev/tun"
 
-#: tun.c:524
+#: tun.c:471
 msgid "Failed to create new tun"
 msgstr "Nepodařilo se vytvořit nové tun"
 
-#: tun.c:530
+#: tun.c:477
 msgid "Failed to put tun file descriptor into message-discard mode"
 msgstr ""
 
-#: tun.c:565
+#: tun.c:512
 msgid "open tun"
 msgstr "Otevřít tun"
 
-#: tun.c:572
+#: tun.c:519
 msgid "TUNSIFHEAD"
 msgstr "TUNSIFHEAD"
 
-#: tun.c:665
+#: tun.c:539
+msgid "socketpair"
+msgstr "Dvojice zásuvek"
+
+#: tun.c:545
+msgid "fork"
+msgstr "Rozdvojení"
+
+#: tun.c:551
+msgid "execl"
+msgstr "execl"
+
+#: tun.c:556
+msgid "(script)"
+msgstr "(skript)"
+
+#: tun.c:650
 #, c-format
 msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
 msgstr "Přijat neznámý paket (len %d): %02x %02x %02x %02x...\n"
 
-#: tun.c:685
+#: tun.c:670
 #, c-format
 msgid "Failed to write incoming packet: %s\n"
 msgstr ""
