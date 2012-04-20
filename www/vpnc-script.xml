@@ -32,8 +32,16 @@ kernels amongst other bug fixes.</p>
 where SELinux or similar security systems won't prevent the root user
 from accessing it.</p>
 
-<p>To tell OpenConnect where to find the script, you use the <tt>--script</tt>
-argument on the command line. For example:
+<p>Current versions of OpenConnect <i>(since version 3.17)</i> are configured
+with the location of the script at build time, and will use the script
+automatically. If you are using a packaged build of OpenConnect rather than
+building it yourself, then the OpenConnect package should have a dependency
+on a suitable version of <tt>vpnc-script</tt> and should be built to look in
+the right place for it. Hopefully your distributions gets that right.</p>
+
+<p>If you're using an older version of OpenConnect, or if you want to use
+a script other than the one that OpenConnect was configured to use, you
+can use the <tt>--script</tt> argument on the command line. For example:
  <ul><li><tt>openconnect --script /etc/vpnc/vpnc-script https://vpn.example.com/</tt></li></ul></p>
 
 <p>If OpenConnect is invoked without a suitable script, it will not be able
