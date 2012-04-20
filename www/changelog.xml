@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.17.tar.gz">OpenConnect v3.17</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.17.tar.gz.asc">PGP signature</a>)</i> &#8212; 2012-04-20
+     <ul>
        <li>Work around <tt>time()</tt> brokenness on Solaris.</li>
        <li>Fix interface plumbing on Solaris 10.</li>
        <li>Provide <tt>asprintf()</tt> function for (unpatched) Solaris 10.</li>
