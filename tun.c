@@ -224,7 +224,7 @@ static void set_banner(struct openconnect_info *vpninfo)
 	char *banner, *q;
 	const char *p;
 
-	if (!vpninfo->banner || !(banner = malloc(strlen(vpninfo->banner)))) {
+	if (!vpninfo->banner || !(banner = malloc(strlen(vpninfo->banner)+1))) {
 		unsetenv("CISCO_BANNER");
 		return;
 	}
