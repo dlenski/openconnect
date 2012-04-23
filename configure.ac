@@ -44,47 +44,6 @@ elif test "$with_vpnc_script" = "no"; then
 fi
 
 AC_DEFINE_UNQUOTED(DEFAULT_VPNCSCRIPT, "${with_vpnc_script}")
-	  
-AC_ARG_ENABLE([nls],
-	[ --disable-nls           do not use Native Language Support],
-	[USE_NLS=$enableval], [USE_NLS=yes])
-LIBINTL=
-if test "$USE_NLS" = "yes"; then
-   AC_PATH_PROG(MSGFMT, msgfmt)
-   if test "$MSGFMT" = ""; then
-      AC_ERROR([msgfmt could not be found. Try configuring with --disable-nls])
-   fi
-fi
-LIBINTL=
-if test "$USE_NLS" = "yes"; then
-   AC_MSG_CHECKING([for functional NLS support])
-   AC_LINK_IFELSE([AC_LANG_PROGRAM([
-    #include <locale.h>
-    #include <libintl.h>],[
-    setlocale(LC_ALL, "");
-    bindtextdomain("openconnect", "/tmp");
-    (void)dgettext("openconnect", "foo");])],
-    [AC_MSG_RESULT(yes)],
-    [oldLIBS="$LIBS"
-     LIBS="$LIBS -lintl"
-     AC_LINK_IFELSE([AC_LANG_PROGRAM([
-      #include <locale.h>
-      #include <libintl.h>],[
-      setlocale(LC_ALL, "");
-      bindtextdomain("openconnect", "/tmp");
-      (void)dgettext("openconnect", "foo");])],
-      [AC_MSG_RESULT(yes (with -lintl))]
-       LIBINTL="-lintl",
-      [AC_MSG_RESULT(no)
-       USE_NLS=no])
-     LIBS="$oldLIBS"])
-fi
-
-if test "$USE_NLS" = "yes"; then
-   AC_SUBST(LIBINTL)
-   AC_DEFINE(ENABLE_NLS, 1)
-fi
-AM_CONDITIONAL(USE_NLS, [test "$USE_NLS" = "yes"])
 
 case $host_os in
  *linux* | *gnu*)
@@ -156,6 +115,47 @@ AS_COMPILER_FLAGS(CFLAGS,
 
 AC_ENABLE_SHARED
 AC_DISABLE_STATIC
+
+AC_ARG_ENABLE([nls],
+	[ --disable-nls           do not use Native Language Support],
+	[USE_NLS=$enableval], [USE_NLS=yes])
+LIBINTL=
+if test "$USE_NLS" = "yes"; then
+   AC_PATH_PROG(MSGFMT, msgfmt)
+   if test "$MSGFMT" = ""; then
+      AC_ERROR([msgfmt could not be found. Try configuring with --disable-nls])
+   fi
+fi
+LIBINTL=
+if test "$USE_NLS" = "yes"; then
+   AC_MSG_CHECKING([for functional NLS support])
+   AC_LINK_IFELSE([AC_LANG_PROGRAM([
+    #include <locale.h>
+    #include <libintl.h>],[
+    setlocale(LC_ALL, "");
+    bindtextdomain("openconnect", "/tmp");
+    (void)dgettext("openconnect", "foo");])],
+    [AC_MSG_RESULT(yes)],
+    [oldLIBS="$LIBS"
+     LIBS="$LIBS -lintl"
+     AC_LINK_IFELSE([AC_LANG_PROGRAM([
+      #include <locale.h>
+      #include <libintl.h>],[
+      setlocale(LC_ALL, "");
+      bindtextdomain("openconnect", "/tmp");
+      (void)dgettext("openconnect", "foo");])],
+      [AC_MSG_RESULT(yes (with -lintl))]
+       LIBINTL="-lintl",
+      [AC_MSG_RESULT(no)
+       USE_NLS=no])
+     LIBS="$oldLIBS"])
+fi
+
+if test "$USE_NLS" = "yes"; then
+   AC_SUBST(LIBINTL)
+   AC_DEFINE(ENABLE_NLS, 1)
+fi
+AM_CONDITIONAL(USE_NLS, [test "$USE_NLS" = "yes"])
 
 AC_ARG_WITH([openssl],
             AS_HELP_STRING([--with-openssl],
