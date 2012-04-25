@@ -17,7 +17,8 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li><i>No changelog entries yet</i></li>
+       <li>Fix autohate breakage with <tt>--disable-nls</tt>... hopefully.</li>
+       <li>Fix buffer overflow in banner handling.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.17.tar.gz">OpenConnect v3.17</a></b>
