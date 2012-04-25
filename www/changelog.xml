@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.18.tar.gz">OpenConnect v3.18</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.18.tar.gz.asc">PGP signature</a>)</i> &#8212; 2012-04-25
+     <ul>
        <li>Fix autohate breakage with <tt>--disable-nls</tt>... hopefully.</li>
        <li>Fix buffer overflow in banner handling.</li>
      </ul><br/>

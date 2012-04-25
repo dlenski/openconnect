@@ -19,18 +19,12 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.17.tar.gz">OpenConnect v3.17</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.17.tar.gz.asc">PGP signature</a>)</i>,
-released on 2012-04-20 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.18.tar.gz">OpenConnect v3.18</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.18.tar.gz.asc">PGP signature</a>)</i>,
+released on 2012-04-25 with the following changelog:</p>
      <ul>
-       <li>Work around <tt>time()</tt> brokenness on Solaris.</li>
-       <li>Fix interface plumbing on Solaris 10.</li>
-       <li>Provide <tt>asprintf()</tt> function for (unpatched) Solaris 10.</li>
-       <li>Make <tt>vpnc-script</tt> mandatory, like it is for <tt>vpnc</tt></li>
-       <li>Don't set Legacy IP address on tun device; let <tt>vpnc-script</tt> do it.</li>
-       <li>Detect OpenSSL even without pkg-config.</li>
-       <li>Stop building static library by default.</li>
-       <li>Invoke <tt>vpnc-script</tt> with "pre-init" reason to load tun module if necessary.</li>
+       <li>Fix autohate breakage with <tt>--disable-nls</tt>... hopefully.</li>
+       <li>Fix buffer overflow in banner handling.</li>
      </ul>
 <!-- latest-release-end -->
 
