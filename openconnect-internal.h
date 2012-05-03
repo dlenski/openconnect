@@ -248,6 +248,10 @@ time_t openconnect__time(time_t *t);
 #define asprintf openconnect__asprintf
 int openconnect__asprintf(char **strp, const char *fmt, ...);
 #endif
+#ifndef HAVE_GETLINE
+#define getline openconnect__getline
+ssize_t openconnect__getline(char **lineptr, size_t *n, FILE *stream);
+#endif
 
 /****************************************************************************/
 

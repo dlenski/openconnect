@@ -67,6 +67,7 @@ case $host_os in
     ;;
 esac
 
+AC_CHECK_FUNC(getline, [AC_DEFINE(HAVE_GETLINE, 1)], [])
 AC_CHECK_FUNC(strcasestr, [AC_DEFINE(HAVE_STRCASESTR, 1)], [])
 need_vacopy=no
 AC_CHECK_FUNC(asprintf, [AC_DEFINE(HAVE_ASPRINTF, 1)], [need_vacopy=yes])
