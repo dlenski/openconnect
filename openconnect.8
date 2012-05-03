@@ -3,6 +3,7 @@
 openconnect \- Connect to Cisco AnyConnect VPN
 .SH SYNOPSIS
 .SY openconnect
+.OP \-\-config configfile
 .OP \-b,\-\-background
 .OP \-\-pid\-file pidfile
 .OP \-c,\-\-certificate cert
@@ -75,6 +76,18 @@ exchanged, which allows data transport over UDP to occur.
 
 
 .SH OPTIONS
+.TP
+.B \-\-config=CONFIGFILE
+Read further options from
+.I CONFIGFILE
+before continuing to process options from the command line. The file
+should contain long-format options as would be accepted on the command line,
+but without the two leading \-\- dashes. Empty lines, or lines where the
+first non-space character is a # character, are ignored.
+
+Any option except the
+.B config
+option may be specified in the file.
 .TP
 .B \-b,\-\-background
 Continue in background after startup

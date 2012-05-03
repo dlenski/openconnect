@@ -75,6 +75,7 @@ int non_inter;
 enum {
 	OPT_AUTHGROUP = 0x100,
 	OPT_CAFILE,
+	OPT_CONFIGFILE,
 	OPT_COOKIEONLY,
 	OPT_COOKIE_ON_STDIN,
 	OPT_CSD_USER,
@@ -132,6 +133,7 @@ static struct option long_options[] = {
 	OPTION("verbose", 0, 'v'),
 	OPTION("version", 0, 'V'),
 	OPTION("cafile", 1, OPT_CAFILE),
+	OPTION("config", 1, OPT_CONFIGFILE),
 	OPTION("no-dtls", 0, OPT_NO_DTLS),
 	OPTION("cookieonly", 0, OPT_COOKIEONLY),
 	OPTION("printcookie", 0, OPT_PRINTCOOKIE),
@@ -169,6 +171,7 @@ static void usage(void)
 {
 	printf(_("Usage:  openconnect [options] <server>\n"));
 	printf(_("Open client for Cisco AnyConnect VPN, version %s\n\n"), openconnect_version);
+	printf("      --config=CONFIGFILE         %s\n", _("Read options from config file"));
 	printf("  -b, --background                %s\n", _("Continue in background after startup"));
 	printf("      --pid-file=PIDFILE          %s\n", _("Write the daemons pid to this file"));
 	printf("  -c, --certificate=CERT          %s\n", _("Use SSL client certificate CERT"));
@@ -251,16 +254,104 @@ static void handle_sigusr(int sig)
 	else if (sig == SIGUSR2)
 		verbose = PRG_INFO;
 }
+
+static FILE *config_file = NULL;
+static int config_line_num = 0;
+
 #define keep_config_arg() (config_arg)
 
 static int next_option(int argc, char **argv, char **config_arg)
 {
-	int opt = getopt_long(argc, argv,
-			      "bC:c:e:Ddg:hi:k:K:lpP:Q:qSs:U:u:Vvx:",
-			      long_options, NULL);
+	/* These get re-used */
+	static char *line_buf = NULL;
+	static size_t line_size = 0;
 
-	*config_arg = optarg;
-	return opt;
+	ssize_t llen;
+	int opt, optlen;
+	struct option *this;
+	char *line;
+	int ate_equals = 0;
+
+ next:
+	if (!config_file) {
+		opt = getopt_long(argc, argv,
+				  "bC:c:e:Ddg:hi:k:K:lpP:Q:qSs:U:u:Vvx:",
+				  long_options, NULL);
+
+		*config_arg = optarg;
+		return opt;
+	}
+
+	llen = getline(&line_buf, &line_size, config_file);
+	if (llen < 0) {
+		if (feof(config_file)) {
+			fclose(config_file);
+			config_file = NULL;
+			goto next;
+		}
+		fprintf(stderr, _("Failed to get line from config file: %s\n"),
+			strerror(errno));
+		exit(1);
+	}
+	line = line_buf;
+
+	/* Strip the trailing newline (coping with DOS newlines) */
+	if (llen && line[llen-1] == '\n')
+		line[--llen] = 0;
+	if (llen && line[llen-1] == '\r')
+		line[--llen] = 0;
+
+	/* Skip and leading whitespace */
+	while (line[0] == ' ' || line[0] == '\t' || line[0] == '\r')
+		line++;
+
+	/* Ignore comments and empty lines */
+	if (!line[0] || line[0] == '#') {
+		config_line_num++;
+		goto next;
+	}
+
+	/* Try to match on a known option... naïvely. This could be improved. */
+	for (this = long_options; this->name; this++) {
+		optlen = strlen(this->name);
+		/* If the option isn't followed by whitespace or NUL, or
+		   perhaps an equals sign if the option takes an argument,
+		   then it's not a match */
+		if (!strncmp(this->name, line, optlen) &&
+		    (!line[optlen] || line[optlen] == ' ' || line[optlen] == '\t' ||
+		     line[optlen] == '='))
+		    break;
+	}
+	if (!this->name) {
+		char *l;
+
+		for (l = line; *l && *l != ' ' && *l != '\t'; l++)
+			;
+
+		*l = 0;
+		fprintf(stderr, _("Unrecognised option at line %d: '%s'\n"),
+			config_line_num, line);
+		return '?';
+	}
+	line += optlen;
+	while (*line == ' ' || *line == '\t' ||
+	       (*line == '=' && this->has_arg && !ate_equals && ++ate_equals))
+		line++;
+
+	if (!this->has_arg && *line) {
+		fprintf(stderr, _("Option '%s' does not take an argument at line %d\n"),
+			this->name, config_line_num);
+		return '?';
+	} else if (this->has_arg && !*line) {
+		fprintf(stderr, _("Option '%s' requires an argument at line %d\n"),
+			this->name, config_line_num);
+		return '?';
+	}
+
+	config_line_num++;
+	*config_arg = line;
+	return this->val;
+
 }
 
 int main(int argc, char **argv)
@@ -325,6 +416,20 @@ int main(int argc, char **argv)
 			break;
 
 		switch (opt) {
+		case OPT_CONFIGFILE:
+			if (config_file) {
+				fprintf(stderr, _("Cannot use 'config' option inside config file\n"));
+				exit(1);
+			}
+			config_file = fopen(config_arg, "r");
+			if (!config_file) {
+				fprintf(stderr, _("Cannot open config file '%s': %s\n"),
+					config_arg, strerror(errno));
+				exit(1);
+			}
+			config_line_num = 1;
+			/* The next option will come from the file... */
+			break;
 		case OPT_CAFILE:
 			vpninfo->cafile = keep_config_arg();
 			break;
