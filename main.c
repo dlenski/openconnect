@@ -251,6 +251,17 @@ static void handle_sigusr(int sig)
 	else if (sig == SIGUSR2)
 		verbose = PRG_INFO;
 }
+#define keep_config_arg() (config_arg)
+
+static int next_option(int argc, char **argv, char **config_arg)
+{
+	int opt = getopt_long(argc, argv,
+			      "bC:c:e:Ddg:hi:k:K:lpP:Q:qSs:U:u:Vvx:",
+			      long_options, NULL);
+
+	*config_arg = optarg;
+	return opt;
+}
 
 int main(int argc, char **argv)
 {
@@ -265,6 +276,7 @@ int main(int argc, char **argv)
 	int opt;
 	char *pidfile = NULL;
 	FILE *fp = NULL;
+	char *config_arg;
 
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
@@ -307,20 +319,20 @@ int main(int argc, char **argv)
 	else
 		vpninfo->localname = "localhost";
 
-	while ((opt = getopt_long(argc, argv, "bC:c:e:Ddg:hi:k:K:lpP:Q:qSs:U:u:Vvx:",
-				  long_options, NULL))) {
+	while ((opt = next_option(argc, argv, &config_arg))) {
+
 		if (opt < 0)
 			break;
 
 		switch (opt) {
 		case OPT_CAFILE:
-			vpninfo->cafile = optarg;
+			vpninfo->cafile = keep_config_arg();
 			break;
 		case OPT_PIDFILE:
-			pidfile = optarg;
+			pidfile = keep_config_arg();
 			break;
 		case OPT_SERVERCERT:
-			vpninfo->servercert = optarg;
+			vpninfo->servercert = keep_config_arg();
 			break;
 		case OPT_NO_DTLS:
 			vpninfo->dtls_attempt_period = 0;
@@ -349,40 +361,40 @@ int main(int argc, char **argv)
 			vpninfo->nopasswd = 1;
 			break;
 		case OPT_RECONNECT_TIMEOUT:
-			vpninfo->reconnect_timeout = atoi(optarg);
+			vpninfo->reconnect_timeout = atoi(config_arg);
 			break;
 		case OPT_DTLS_CIPHERS:
-			vpninfo->dtls_ciphers = optarg;
+			vpninfo->dtls_ciphers = keep_config_arg();
 			break;
 		case OPT_AUTHGROUP:
-			vpninfo->authgroup = optarg;
+			vpninfo->authgroup = keep_config_arg();
 			break;
 		case 'b':
 			background = 1;
 			break;
 		case 'C':
-			vpninfo->cookie = optarg;
+			vpninfo->cookie = keep_config_arg();
 			break;
 		case 'c':
-			vpninfo->cert = optarg;
+			vpninfo->cert = keep_config_arg();
 			break;
 		case 'e':
-			vpninfo->cert_expire_warning = 86400 * atoi(optarg);
+			vpninfo->cert_expire_warning = 86400 * atoi(config_arg);
 			break;
 		case 'k':
-			vpninfo->sslkey = optarg;
+			vpninfo->sslkey = keep_config_arg();
 			break;
 		case 'K':
-			if (!strcasecmp(optarg, "PKCS#12") ||
-			    !strcasecmp(optarg, "PKCS12")) {
+			if (!strcasecmp(config_arg, "PKCS#12") ||
+			    !strcasecmp(config_arg, "PKCS12")) {
 				vpninfo->cert_type = CERT_TYPE_PKCS12;
-			} else if (!strcasecmp(optarg, "TPM")) {
+			} else if (!strcasecmp(config_arg, "TPM")) {
 				vpninfo->cert_type = CERT_TYPE_TPM;
-			} else if (!strcasecmp(optarg, "PEM")) {
+			} else if (!strcasecmp(config_arg, "PEM")) {
 				vpninfo->cert_type = CERT_TYPE_PEM;
 			} else {
 				fprintf(stderr, _("Unknown certificate type '%s'\n"),
-					optarg);
+					config_arg);
 				usage();
 			}
 		case 'd':
@@ -393,28 +405,28 @@ int main(int argc, char **argv)
 			break;
 		case 'g':
 			free(vpninfo->urlpath);
-			vpninfo->urlpath = strdup(optarg);
+			vpninfo->urlpath = strdup(config_arg);
 			break;
 		case 'h':
 			usage();
 		case 'i':
-			vpninfo->ifname = optarg;
+			vpninfo->ifname = keep_config_arg();
 			break;
 		case 'l':
 			use_syslog = 1;
 			break;
 		case 'm':
-			vpninfo->mtu = atol(optarg);
+			vpninfo->mtu = atol(config_arg);
 			if (vpninfo->mtu < 576) {
 				fprintf(stderr, _("MTU %d too small\n"), vpninfo->mtu);
 				vpninfo->mtu = 576;
 			}
 			break;
 		case 'p':
-			vpninfo->cert_password = optarg;
+			vpninfo->cert_password = keep_config_arg();
 			break;
 		case 'P': 
-			proxy = optarg;
+			proxy = keep_config_arg();
 			autoproxy = 0;
 			break;
 		case OPT_NO_PROXY:
@@ -434,22 +446,22 @@ int main(int argc, char **argv)
 			nocertcheck = 1;
 			break;
 		case 's':
-			vpninfo->vpnc_script = optarg;
+			vpninfo->vpnc_script = keep_config_arg();
 			break;
 		case 'S':
 			vpninfo->script_tun = 1;
 			break;
 		case 'u':
-			vpninfo->username = optarg;
+			vpninfo->username = keep_config_arg();
 			break;
 		case 'U': {
 			char *strend;
-			uid = strtol(optarg, &strend, 0);
+			uid = strtol(config_arg, &strend, 0);
 			if (strend[0]) {
-				struct passwd *pw = getpwnam(optarg);
+				struct passwd *pw = getpwnam(config_arg);
 				if (!pw) {
 					fprintf(stderr, _("Invalid user \"%s\"\n"),
-						optarg);
+						config_arg);
 					exit(1);
 				}
 				uid = pw->pw_uid;
@@ -458,12 +470,12 @@ int main(int argc, char **argv)
 		}
 		case OPT_CSD_USER: {
 			char *strend;
-			vpninfo->uid_csd = strtol(optarg, &strend, 0);
+			vpninfo->uid_csd = strtol(config_arg, &strend, 0);
 			if (strend[0]) {
-				struct passwd *pw = getpwnam(optarg);
+				struct passwd *pw = getpwnam(config_arg);
 				if (!pw) {
 					fprintf(stderr, _("Invalid user \"%s\"\n"),
-						optarg);
+						config_arg);
 					exit(1);
 				}
 				vpninfo->uid_csd = pw->pw_uid;
@@ -472,13 +484,13 @@ int main(int argc, char **argv)
 			break;
 		}
 		case OPT_CSD_WRAPPER:
-			vpninfo->csd_wrapper = optarg;
+			vpninfo->csd_wrapper = keep_config_arg();
 			break;
 		case OPT_DISABLE_IPV6:
 			vpninfo->disable_ipv6 = 1;
 			break;
 		case 'Q':
-			vpninfo->max_qlen = atol(optarg);
+			vpninfo->max_qlen = atol(config_arg);
 			if (!vpninfo->max_qlen) {
 				fprintf(stderr, _("Queue length zero not permitted; using 1\n"));
 				vpninfo->max_qlen = 1;
@@ -494,7 +506,7 @@ int main(int argc, char **argv)
 			printf(_("OpenConnect version %s\n"), openconnect_version);
 			exit(0);
 		case 'x':
-			vpninfo->xmlconfig = optarg;
+			vpninfo->xmlconfig = keep_config_arg();
 			vpninfo->write_new_config = write_new_config;
 			break;
 		case OPT_KEY_PASSWORD_FROM_FSID:
@@ -502,10 +514,10 @@ int main(int argc, char **argv)
 			break;
 		case OPT_USERAGENT:
 			free(vpninfo->useragent);
-			vpninfo->useragent = optarg;
+			vpninfo->useragent = strdup(config_arg);
 			break;
 		case OPT_FORCE_DPD:
-			vpninfo->dtls_times.dpd = vpninfo->ssl_times.dpd = atoi(optarg);
+			vpninfo->dtls_times.dpd = vpninfo->ssl_times.dpd = atoi(config_arg);
 			break;
 		default:
 			usage();
