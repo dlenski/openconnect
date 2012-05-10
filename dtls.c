@@ -300,19 +300,39 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 				     _("Your OpenSSL is older than the one you built against, so DTLS may fail!"));
 		}
 #elif defined (HAVE_DTLS1_STOP_TIMER)
+		/*
+		 * This works for any normal OpenSSL that supports
+		 * Cisco DTLS compatibility (0.9.8m to 1.0.0d inclusive,
+		 * and even later versions although it isn't needed there.
+		 */
 		dtls1_stop_timer(vpninfo->dtls_ssl);
-#else
-		/* Debian restricts visibility of dtls1_stop_timer()
-		   so do it manually. Thankfully this *should* work,
-		   from 0.9.8m to 1.0.0d inclusive, and we don't have
-		   to worry about future changes because we don't do
-		   this for 1.0.0e and above anyway */
+#elif defined (BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT)
+		/*
+		 * Debian restricts visibility of dtls1_stop_timer()
+		 * so do it manually. This version also works on all
+		 * sane versions of OpenSSL:
+		 */
 		memset (&(vpninfo->dtls_ssl->d1->next_timeout), 0,
 			sizeof((vpninfo->dtls_ssl->d1->next_timeout)));
 		vpninfo->dtls_ssl->d1->timeout_duration = 1;
 		BIO_ctrl(SSL_get_rbio(vpninfo->dtls_ssl),
 			 BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT, 0,
 			 &(vpninfo->dtls_ssl->d1->next_timeout));
+#elif defined (BIO_CTRL_DGRAM_SET_TIMEOUT)
+		/*
+		 * OK, here it gets more fun... this shoul handle the case
+		 * of older OpenSSL which has the Cisco DTLS compatibility
+		 * backported, but *not* the fix for RT#1922.
+		 */
+		BIO_ctrl(SSL_get_rbio(vpninfo->dtls_ssl),
+			 BIO_CTRL_DGRAM_SET_TIMEOUT, 0, NULL);
+#else
+		/*
+		 * And if they don't have any of the above, they probably
+		 * don't have RT#1829 fixed either, but that's OK because
+		 * that's the "fix" that *introduces* the timeout we're
+		 * trying to disable. So do nothing...
+		 */
 #endif
 		return 0;
 	}
