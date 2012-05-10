@@ -240,14 +240,28 @@ AC_CHECK_HEADER([if_tun.h],
             [AC_CHECK_HEADER([net/tun/if_tun.h],
                 [AC_DEFINE([IF_TUN_HDR], ["net/tun/if_tun.h"])])])])])
 
-AC_CHECK_LIB(ssl, ENGINE_by_id,
-	     AC_DEFINE(HAVE_ENGINE, [1], [OpenSSL has ENGINE support]),
-	     AC_MSG_NOTICE([Building without OpenSSL TPM ENGINE support]),
-	     ${OPENSSL_LIBS})
+oldLIBS="$LIBS"
+LIBS="$LIBS $OPENSSL_LIBS"
 
-AC_CHECK_LIB(ssl, dtls1_stop_timer,
-		  AC_DEFINE(HAVE_DTLS1_STOP_TIMER, [1], [OpenSSL has dtls1_stop_timer() function]),
-		  ,,${OPENSSL_LIBS})
+AC_MSG_CHECKING([for ENGINE_by_id() in OpenSSL])
+AC_LINK_IFELSE([AC_LANG_PROGRAM(
+	[#include <openssl/engine.h>],
+	[ENGINE_by_id("foo");])],
+	[AC_MSG_RESULT(yes)
+	 AC_DEFINE(HAVE_ENGINE, [1], [OpenSSL has ENGINE support])],
+	[AC_MSG_RESULT(no)
+	 AC_MSG_NOTICE([Building without OpenSSL TPM ENGINE support])])
+
+AC_MSG_CHECKING([for dtls1_stop_timer() in OpenSSL])
+AC_LINK_IFELSE([AC_LANG_PROGRAM(
+	[#include <openssl/ssl.h>
+	 #include <stdlib.h>
+	 extern void dtls1_stop_timer(SSL *);],
+	[dtls1_stop_timer(NULL);])],
+	[AC_MSG_RESULT(yes)
+	 AC_DEFINE(HAVE_DTLS1_STOP_TIMER, [1], [OpenSSL has dtls1_stop_timer() function])],
+	[AC_MSG_RESULT(no)])
+LIBS="$oldLIBS"
 
 AC_PATH_PROG(PYTHON, [python], [], $PATH:/bin:/usr/bin)
 if (test -n "${ac_cv_path_PYTHON}"); then
