@@ -813,6 +813,7 @@ void write_progress(void *_vpninfo, int level, const char *fmt, ...)
 		va_start(args, fmt);
 		vfprintf(outf, fmt, args);
 		va_end(args);
+		fflush(outf);
 	}
 }
 

@@ -19,6 +19,7 @@
      <ul>
        <li>Add <tt>--config</tt> option for reading options from file.</li>
        <li>Improve OpenSSL DTLS compatibility to work on Ubuntu 10.04.</li>
+       <li>Flush progress logging output promptly after each message.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.18.tar.gz">OpenConnect v3.18</a></b>
