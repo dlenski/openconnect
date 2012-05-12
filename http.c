@@ -244,6 +244,9 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		     bodylen==BODY_CHUNKED?"chunked" : "length: ",
 		     bodylen);
 
+	/* We don't cope with nonblocking mode... yet */
+	fcntl(vpninfo->ssl_fd, F_SETFL, fcntl(vpninfo->ssl_fd, F_GETFL) & ~O_NONBLOCK);
+
 	/* If we were given Content-Length, it's nice and easy... */
 	if (bodylen > 0) {
 		body = malloc(bodylen + 1);
@@ -640,9 +643,6 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	/* We don't cope with nonblocking mode... yet */
-	fcntl(vpninfo->ssl_fd, F_SETFL, fcntl(vpninfo->ssl_fd, F_GETFL) & ~O_NONBLOCK);
-
 	/*
 	 * It would be nice to use cURL for this, but we really need to guarantee
 	 * that we'll be using OpenSSL (for the TPM stuff), and it doesn't seem
@@ -683,7 +683,9 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			     method, vpninfo->hostname, vpninfo->port,
 			     vpninfo->urlpath ?: "");
 
-	SSL_write(vpninfo->https_ssl, buf, strlen(buf));
+	result = openconnect_SSL_write(vpninfo, buf, strlen(buf));
+	if (result < 0)
+		return result;
 
 	buflen = process_http_response(vpninfo, &result, NULL, &form_buf);
 	if (buflen < 0) {
