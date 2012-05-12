@@ -1071,9 +1071,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		}
 	}
 
-	/* Stick it back in blocking mode for now... */
-	fcntl(ssl_sock, F_SETFL, fcntl(ssl_sock, F_GETFL) & ~O_NONBLOCK);
-
 	ssl3_method = TLSv1_client_method();
 	if (!vpninfo->https_ctx) {
 		vpninfo->https_ctx = SSL_CTX_new(ssl3_method);
@@ -1129,12 +1126,39 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	vpn_progress(vpninfo, PRG_INFO, _("SSL negotiation with %s\n"),
 		     vpninfo->hostname);
 
-	if (SSL_connect(https_ssl) <= 0) {
-		vpn_progress(vpninfo, PRG_ERR, _("SSL connection failure\n"));
-		report_ssl_errors(vpninfo);
-		SSL_free(https_ssl);
-		close(ssl_sock);
-		return -EINVAL;
+	while ((err = SSL_connect(https_ssl)) <= 0) {
+		fd_set wr_set, rd_set;
+		int maxfd = ssl_sock;
+		
+		FD_ZERO(&wr_set);
+		FD_ZERO(&rd_set);
+
+		err = SSL_get_error(https_ssl, err);
+		if (err == SSL_ERROR_WANT_READ)
+			FD_SET(ssl_sock, &rd_set);
+		else if (err == SSL_ERROR_WANT_WRITE)
+			FD_SET(ssl_sock, &wr_set);
+		else {
+			vpn_progress(vpninfo, PRG_ERR, _("SSL connection failure\n"));
+			report_ssl_errors(vpninfo);
+			SSL_free(https_ssl);
+			close(ssl_sock);
+			return -EINVAL;
+		}
+
+		if (vpninfo->cancel_fd != -1) {
+			FD_SET(vpninfo->cancel_fd, &rd_set);
+			if (vpninfo->cancel_fd > ssl_sock)
+				maxfd = vpninfo->cancel_fd;
+		}
+		select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
+		if (vpninfo->cancel_fd != -1 &&
+		    FD_ISSET(vpninfo->cancel_fd, &rd_set)) {
+			vpn_progress(vpninfo, PRG_ERR, _("SSL connection cancelled\n"));
+			SSL_free(https_ssl);
+			close(ssl_sock);
+			return -EINVAL;
+		}
 	}
 
 	if (verify_peer(vpninfo, https_ssl)) {
@@ -1148,6 +1172,9 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 	vpn_progress(vpninfo, PRG_INFO, _("Connected to HTTPS on %s\n"),
 		     vpninfo->hostname);
+
+	/* Stick it back in blocking mode for now... */
+	fcntl(ssl_sock, F_SETFL, fcntl(ssl_sock, F_GETFL) & ~O_NONBLOCK);
 
 	return 0;
 }
