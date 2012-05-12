@@ -39,7 +39,10 @@
 
 #include "openconnect-internal.h"
 
-static int proxy_write(int fd, unsigned char *buf, size_t len);
+static int proxy_write(struct openconnect_info *vpninfo, int fd,
+		       unsigned char *buf, size_t len);
+static int proxy_read(struct openconnect_info *vpninfo, int fd,
+		      unsigned char *buf, size_t len);
 
 #define MAX_BUF_LEN 131072
 /*
@@ -423,7 +426,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		return err;
 	}
 
-	ret = proxy_write(fd, (void *)buf, buflen);
+	ret = proxy_write(vpninfo, fd, (void *)buf, buflen);
 	if (ret) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to write temporary CSD script file: %s\n"),
@@ -863,7 +866,8 @@ char *openconnect_create_useragent(const char *base)
 	return uagent;
 }
 
-static int proxy_gets(int fd, char *buf, size_t len)
+static int proxy_gets(struct openconnect_info *vpninfo, int fd,
+		      char *buf, size_t len)
 {
 	int i = 0;
 	int ret;
@@ -871,7 +875,7 @@ static int proxy_gets(int fd, char *buf, size_t len)
 	if (len < 2)
 		return -EINVAL;
 
-	while ( (ret = read(fd, buf + i, 1)) == 1) {
+	while ( (ret = proxy_read(vpninfo, fd, (void *)(buf + i), 1)) == 0) {
 		if (buf[i] == '\n') {
 			buf[i] = 0;
 			if (i && buf[i-1] == '\r') {
@@ -887,14 +891,12 @@ static int proxy_gets(int fd, char *buf, size_t len)
 			return i;
 		}
 	}
-	if (ret < 0)
-		ret = -errno;
-
 	buf[i] = 0;
 	return i ?: ret;
 }
 
-static int proxy_write(int fd, unsigned char *buf, size_t len)
+static int proxy_write(struct openconnect_info *vpninfo, int fd,
+		       unsigned char *buf, size_t len)
 {
 	size_t count;
 	
@@ -908,7 +910,8 @@ static int proxy_write(int fd, unsigned char *buf, size_t len)
 	return 0;
 }
 
-static int proxy_read(int fd, unsigned char *buf, size_t len)
+static int proxy_read(struct openconnect_info *vpninfo, int fd,
+		      unsigned char *buf, size_t len)
 {
 	size_t count;
 
@@ -943,14 +946,14 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	buf[1] = 1; /* # auth methods */
 	buf[2] = 0; /* No auth supported */
 
-	if ((i = proxy_write(ssl_sock, buf, 3))) {
+	if ((i = proxy_write(vpninfo, ssl_sock, buf, 3))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error writing auth request to SOCKS proxy: %s\n"),
 			     strerror(-i));
 		return i;
 	}
 	
-	if ((i = proxy_read(ssl_sock, buf, 2))) {
+	if ((i = proxy_read(vpninfo, ssl_sock, buf, 2))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error reading auth response from SOCKS proxy: %s\n"),
 			     strerror(-i));
@@ -989,7 +992,7 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	buf[i++] = vpninfo->port >> 8;
 	buf[i++] = vpninfo->port & 0xff;
 
-	if ((i = proxy_write(ssl_sock, buf, i))) {
+	if ((i = proxy_write(vpninfo, ssl_sock, buf, i))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error writing connect request to SOCKS proxy: %s\n"),
 			     strerror(-i));
@@ -997,7 +1000,7 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	}
 	/* Read 5 bytes -- up to and including the first byte of the returned
 	   address (which might be the length byte of a domain name) */
-	if ((i = proxy_read(ssl_sock, buf, 5))) {
+	if ((i = proxy_read(vpninfo, ssl_sock, buf, 5))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error reading connect response from SOCKS proxy: %s\n"),
 			     strerror(-i));
@@ -1030,7 +1033,7 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 		return -EIO;
 	}
 
-	if ((i = proxy_read(ssl_sock, buf, i))) {
+	if ((i = proxy_read(vpninfo, ssl_sock, buf, i))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error reading connect response from SOCKS proxy: %s\n"),
 			     strerror(-i));
@@ -1056,7 +1059,7 @@ static int process_http_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 		     _("Requesting HTTP proxy connection to %s:%d\n"),
 		     vpninfo->hostname, vpninfo->port);
 
-	if (proxy_write(ssl_sock, (unsigned char *)buf, strlen(buf))) {
+	if (proxy_write(vpninfo, ssl_sock, (unsigned char *)buf, strlen(buf))) {
 		result = -errno;
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Sending proxy request failed: %s\n"),
@@ -1064,7 +1067,7 @@ static int process_http_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 		return result;
 	}
 
-	if (proxy_gets(ssl_sock, buf, sizeof(buf)) < 0) {
+	if (proxy_gets(vpninfo, ssl_sock, buf, sizeof(buf)) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error fetching proxy response\n"));
 		return -EIO;
@@ -1083,7 +1086,7 @@ static int process_http_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 		return -EIO;
 	}
 
-	while ((buflen = proxy_gets(ssl_sock, buf, sizeof(buf)))) {
+	while ((buflen = proxy_gets(vpninfo, ssl_sock, buf, sizeof(buf)))) {
 		if (buflen < 0) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to read proxy response\n"));
