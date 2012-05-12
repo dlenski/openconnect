@@ -869,7 +869,7 @@ char *openconnect_create_useragent(const char *base)
 {
 	char *uagent;
 
-	if (asprintf(&uagent, "%s %s", base, openconnect_version) < 0)
+	if (asprintf(&uagent, "%s %s", base, openconnect_version_str) < 0)
 		return NULL;
 
 	return uagent;

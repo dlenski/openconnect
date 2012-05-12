@@ -15,5 +15,5 @@ else
 	v="$v"-unknown
 fi
 
-echo "char openconnect_version[] = \"$v\";" > $1
+echo "const char *openconnect_version_str = \"$v\";" > $1
 echo "New version: $v"

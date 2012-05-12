@@ -319,6 +319,6 @@ int generate_securid_tokencodes(struct openconnect_info *vpninfo);
 int add_securid_pin(char *token, char *pin);
 
 /* version.c */
-extern char openconnect_version[];
+extern const char *openconnect_version_str;
 
 #endif /* __OPENCONNECT_INTERNAL_H__ */

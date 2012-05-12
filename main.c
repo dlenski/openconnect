@@ -62,9 +62,9 @@ static int validate_peer_cert(void *_vpninfo,
 
 /* A sanity check that the openconnect executable is running against a
    library of the same version */
-#define openconnect_version openconnect_binary_version
+#define openconnect_version_str openconnect_binary_version
 #include "version.c"
-#undef openconnect_version
+#undef openconnect_version_str
 
 int verbose = PRG_INFO;
 int background;
@@ -170,7 +170,7 @@ static void helpmessage(void)
 static void usage(void)
 {
 	printf(_("Usage:  openconnect [options] <server>\n"));
-	printf(_("Open client for Cisco AnyConnect VPN, version %s\n\n"), openconnect_version);
+	printf(_("Open client for Cisco AnyConnect VPN, version %s\n\n"), openconnect_version_str);
 	printf("      --config=CONFIGFILE         %s\n", _("Read options from config file"));
 	printf("  -b, --background                %s\n", _("Continue in background after startup"));
 	printf("      --pid-file=PIDFILE          %s\n", _("Write the daemons pid to this file"));
@@ -374,10 +374,10 @@ int main(int argc, char **argv)
 	setlocale(LC_ALL, "");
 #endif
 
-	if (strcmp(openconnect_version, openconnect_binary_version)) {
+	if (strcmp(openconnect_version_str, openconnect_binary_version)) {
 		fprintf(stderr, _("WARNING: This version of openconnect is %s but\n"
 				  "         the libopenconnect library is %s\n"),
-			openconnect_binary_version, openconnect_version);
+			openconnect_binary_version, openconnect_version_str);
 	}
 			
 	openconnect_init_openssl();
@@ -609,7 +609,7 @@ int main(int argc, char **argv)
 			verbose = PRG_TRACE;
 			break;
 		case 'V':
-			printf(_("OpenConnect version %s\n"), openconnect_version);
+			printf(_("OpenConnect version %s\n"), openconnect_version_str);
 			exit(0);
 		case 'x':
 			vpninfo->xmlconfig = keep_config_arg();

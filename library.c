@@ -211,5 +211,5 @@ void openconnect_set_cancel_fd (struct openconnect_info *vpninfo, int fd)
 
 const char *openconnect_get_version (void)
 {
-	return openconnect_version;
+	return openconnect_version_str;
 }
