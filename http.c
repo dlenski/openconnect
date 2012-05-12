@@ -899,9 +899,31 @@ static int proxy_write(struct openconnect_info *vpninfo, int fd,
 		       unsigned char *buf, size_t len)
 {
 	size_t count;
-	
+
 	for (count = 0; count < len; ) {
-		int i = write(fd, buf + count, len - count);
+		fd_set rd_set, wr_set;
+		int maxfd = fd;
+		int i;
+
+		FD_ZERO(&wr_set);
+		FD_ZERO(&rd_set);
+		FD_SET(fd, &wr_set);
+		if (vpninfo->cancel_fd != -1) {
+			FD_SET(vpninfo->cancel_fd, &rd_set);
+			if (vpninfo->cancel_fd > fd)
+				maxfd = vpninfo->cancel_fd;
+		}
+
+		select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
+		if (vpninfo->cancel_fd != -1 &&
+		    FD_ISSET(vpninfo->cancel_fd, &rd_set))
+			return -EINTR;
+
+		/* Not that this should ever be able to happen... */
+		if (!FD_ISSET(fd, &wr_set))
+			continue;
+
+		i = write(fd, buf + count, len - count);
 		if (i < 0)
 			return -errno;
 
@@ -916,7 +938,28 @@ static int proxy_read(struct openconnect_info *vpninfo, int fd,
 	size_t count;
 
 	for (count = 0; count < len; ) {
-		int i = read(fd, buf + count, len - count);
+		fd_set rd_set;
+		int maxfd = fd;
+		int i;
+
+		FD_ZERO(&rd_set);
+		FD_SET(fd, &rd_set);
+		if (vpninfo->cancel_fd != -1) {
+			FD_SET(vpninfo->cancel_fd, &rd_set);
+			if (vpninfo->cancel_fd > fd)
+				maxfd = vpninfo->cancel_fd;
+		}
+
+		select(maxfd + 1, &rd_set, NULL, NULL, NULL);
+		if (vpninfo->cancel_fd != -1 &&
+		    FD_ISSET(vpninfo->cancel_fd, &rd_set))
+			return -EINTR;
+
+		/* Not that this should ever be able to happen... */
+		if (!FD_ISSET(fd, &rd_set))
+			continue;
+
+		i = read(fd, buf + count, len - count);
 		if (i < 0)
 			return -errno;
 

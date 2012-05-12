@@ -1062,8 +1062,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		}
 	}
 	fcntl(ssl_sock, F_SETFD, FD_CLOEXEC);
-	/* Stick it back in blocking mode for now... */
-	fcntl(ssl_sock, F_SETFL, fcntl(ssl_sock, F_GETFL) & ~O_NONBLOCK);
 
 	if (vpninfo->proxy) {
 		err = process_proxy(vpninfo, ssl_sock);
@@ -1072,6 +1070,9 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			return err;
 		}
 	}
+
+	/* Stick it back in blocking mode for now... */
+	fcntl(ssl_sock, F_SETFL, fcntl(ssl_sock, F_GETFL) & ~O_NONBLOCK);
 
 	ssl3_method = TLSv1_client_method();
 	if (!vpninfo->https_ctx) {
