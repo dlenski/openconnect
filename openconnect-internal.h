@@ -279,6 +279,7 @@ int cstp_reconnect(struct openconnect_info *vpninfo);
 int  __attribute__ ((format (printf, 2, 3)))
     openconnect_SSL_printf(struct openconnect_info *vpninfo, const char *fmt, ...);
 int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len);
+int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t len);
 int openconnect_open_https(struct openconnect_info *vpninfo);
 void openconnect_close_https(struct openconnect_info *vpninfo);
 int get_cert_md5_fingerprint(struct openconnect_info *vpninfo, X509 *cert,

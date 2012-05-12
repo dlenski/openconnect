@@ -60,6 +60,48 @@
 /* Helper functions for reading/writing lines over SSL.
    We could use cURL for the HTTP stuff, but it's overkill */
 
+int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t len)
+{
+	size_t orig_len = len;
+
+	while (len) {
+		int done = SSL_write(vpninfo->https_ssl, buf, len);
+
+		if (done > 0)
+			len -= done;
+		else {
+			int err = SSL_get_error(vpninfo->https_ssl, done);
+			fd_set wr_set, rd_set;
+			int maxfd = vpninfo->ssl_fd;
+
+			FD_ZERO(&wr_set);
+			FD_ZERO(&rd_set);
+			
+			if (err == SSL_ERROR_WANT_READ)
+				FD_SET(vpninfo->ssl_fd, &rd_set);
+			else if (err == SSL_ERROR_WANT_WRITE)
+				FD_SET(vpninfo->ssl_fd, &wr_set);
+			else {
+				vpn_progress(vpninfo, PRG_ERR, _("Failed to write to SSL socket"));
+				report_ssl_errors(vpninfo);
+				return -EIO;
+			}
+			if (vpninfo->cancel_fd != -1) {
+				FD_SET(vpninfo->cancel_fd, &rd_set);
+				if (vpninfo->cancel_fd > vpninfo->ssl_fd)
+					maxfd = vpninfo->cancel_fd;
+			}
+			select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
+			if (vpninfo->cancel_fd != -1 &&
+			    FD_ISSET(vpninfo->cancel_fd, &rd_set)) {
+				vpn_progress(vpninfo, PRG_ERR, _("SSL write cancelled\n"));
+				return -EINTR;
+			}
+		}
+	}
+	return orig_len;
+}
+
 int  __attribute__ ((format (printf, 2, 3)))
     openconnect_SSL_printf(struct openconnect_info *vpninfo, const char *fmt, ...)
 {
@@ -71,7 +113,7 @@ int  __attribute__ ((format (printf, 2, 3)))
 	va_start(args, fmt);
 	vsnprintf(buf, 1023, fmt, args);
 	va_end(args);
-	return SSL_write(vpninfo->https_ssl, buf, strlen(buf));
+	return openconnect_SSL_write(vpninfo, buf, strlen(buf));
 
 }
 

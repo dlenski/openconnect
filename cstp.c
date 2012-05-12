@@ -111,9 +111,6 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	}
 
  retry:
-	/* We don't cope with nonblocking mode... yet */
-	fcntl(vpninfo->ssl_fd, F_SETFL, fcntl(vpninfo->ssl_fd, F_GETFL) & ~O_NONBLOCK);
-
 	openconnect_SSL_printf(vpninfo, "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
 	openconnect_SSL_printf(vpninfo, "Host: %s\r\n", vpninfo->hostname);
 	openconnect_SSL_printf(vpninfo, "User-Agent: %s\r\n", vpninfo->useragent);
@@ -131,6 +128,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	openconnect_SSL_printf(vpninfo, "\r\nX-DTLS-CipherSuite: %s\r\n\r\n",
 			       vpninfo->dtls_ciphers?:"AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA");
 
+	fcntl(vpninfo->ssl_fd, F_SETFL, fcntl(vpninfo->ssl_fd, F_GETFL) & ~O_NONBLOCK);
 	if (openconnect_SSL_gets(vpninfo, buf, 65536) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error fetching HTTPS response\n"));
