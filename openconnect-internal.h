@@ -197,6 +197,7 @@ struct openconnect_info {
 	int ssl_fd;
 	int dtls_fd;
 	int new_dtls_fd;
+	int cancel_fd;
 
 	struct pkt *incoming_queue;
 	struct pkt *outgoing_queue;

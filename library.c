@@ -44,6 +44,7 @@ struct openconnect_info *openconnect_vpninfo_new_with_cbdata (char *useragent,
 	vpninfo->process_auth_form = process_auth_form;
 	vpninfo->progress = progress;
 	vpninfo->cbdata = privdata?:vpninfo;
+	vpninfo->cancel_fd = -1;
 
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
