@@ -862,6 +862,42 @@ static int check_certificate_expiry(struct openconnect_info *vpninfo)
 	return 0;
 }
 
+static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
+			       const struct sockaddr *addr, socklen_t addrlen)
+{
+	struct sockaddr_storage peer;
+	socklen_t peerlen = sizeof(peer);
+	fd_set wr_set, rd_set;
+	int maxfd = sockfd;
+
+	fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK);
+
+	if (connect(sockfd, addr, addrlen) < 0 && errno != EINPROGRESS)
+		return -1;
+
+	FD_ZERO(&wr_set);
+	FD_ZERO(&rd_set);
+	FD_SET(sockfd, &wr_set);
+	if (vpninfo->cancel_fd != -1) {
+		FD_SET(vpninfo->cancel_fd, &rd_set);
+		if (vpninfo->cancel_fd > sockfd)
+			maxfd = vpninfo->cancel_fd;
+	}
+	
+	/* Later we'll render this whole exercise non-pointless by
+	   including a 'cancelfd' here too. */
+	select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
+	if (vpninfo->cancel_fd != -1 && FD_ISSET(vpninfo->cancel_fd, &rd_set)) {
+		vpninfo->progress(vpninfo, PRG_ERR, _("Socket connect cancelled\n"));
+		errno = EINTR;
+		return -1;
+	}
+		
+	/* Check whether connect() succeeded or failed by using
+	   getpeername(). See http://cr.yp.to/docs/connect.html */
+	return getpeername(sockfd, (void *)&peer, &peerlen);
+}
+
 int openconnect_open_https(struct openconnect_info *vpninfo)
 {
 	method_const SSL_METHOD *ssl3_method;
@@ -888,7 +924,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			}
 			return -EINVAL;
 		}
-		if (connect(ssl_sock, vpninfo->peer_addr, vpninfo->peer_addrlen))
+		if (cancellable_connect(vpninfo, ssl_sock, vpninfo->peer_addr, vpninfo->peer_addrlen))
 			goto reconn_err;
 		
 	} else {
@@ -999,7 +1035,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 					  rp->ai_protocol);
 			if (ssl_sock < 0)
 				continue;
-			if (connect(ssl_sock, rp->ai_addr, rp->ai_addrlen) >= 0) {
+			if (cancellable_connect(vpninfo, ssl_sock, rp->ai_addr, rp->ai_addrlen) >= 0) {
 				/* Store the peer address we actually used, so that DTLS can
 				   use it again later */
 				vpninfo->peer_addr = malloc(rp->ai_addrlen);
@@ -1026,6 +1062,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		}
 	}
 	fcntl(ssl_sock, F_SETFD, FD_CLOEXEC);
+	/* Stick it back in blocking mode for now... */
+	fcntl(ssl_sock, F_SETFL, fcntl(ssl_sock, F_GETFL) & ~O_NONBLOCK);
 
 	if (vpninfo->proxy) {
 		err = process_proxy(vpninfo, ssl_sock);
