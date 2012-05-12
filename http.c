@@ -244,16 +244,13 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		     bodylen==BODY_CHUNKED?"chunked" : "length: ",
 		     bodylen);
 
-	/* We don't cope with nonblocking mode... yet */
-	fcntl(vpninfo->ssl_fd, F_SETFL, fcntl(vpninfo->ssl_fd, F_GETFL) & ~O_NONBLOCK);
-
 	/* If we were given Content-Length, it's nice and easy... */
 	if (bodylen > 0) {
 		body = malloc(bodylen + 1);
 		if (!body)
 			return -ENOMEM;
 		while (done < bodylen) {
-			i = SSL_read(vpninfo->https_ssl, body + done, bodylen - done);
+			i = openconnect_SSL_read(vpninfo, body + done, bodylen - done);
 			if (i < 0) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Error reading HTTP response body\n"));
@@ -281,7 +278,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			if (!body)
 				return -ENOMEM;
 			while (chunklen) {
-				i = SSL_read(vpninfo->https_ssl, body + done, chunklen);
+				i = openconnect_SSL_read(vpninfo, body + done, chunklen);
 				if (i < 0) {
 					vpn_progress(vpninfo, PRG_ERR,
 						     _("Error reading HTTP response body\n"));
@@ -320,14 +317,21 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			body = realloc(body, done + 16384);
 			if (!body)
 				return -ENOMEM;
-			i = SSL_read(vpninfo->https_ssl, body + done, 16384);
-			if (i <= 0) {
+			i = openconnect_SSL_read(vpninfo, body + done, 16384);
+			if (i > 0) {
+				/* Got more data */
+				done += i;
+			} else if (i < 0) {
+				/* Error */
+				free(body);
+				return i;
+			} else {
+				/* Connection closed. Reduce allocation to just what we need */
 				body = realloc(body, done + 1);
 				if (!body)
 					return -ENOMEM;
 				break;
                         }
-			done += i;
 		}
 	}
 
