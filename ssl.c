@@ -1173,9 +1173,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	vpn_progress(vpninfo, PRG_INFO, _("Connected to HTTPS on %s\n"),
 		     vpninfo->hostname);
 
-	/* Stick it back in blocking mode for now... */
-	fcntl(ssl_sock, F_SETFL, fcntl(ssl_sock, F_GETFL) & ~O_NONBLOCK);
-
 	return 0;
 }
 

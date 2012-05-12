@@ -111,6 +111,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	}
 
  retry:
+	/* We don't cope with nonblocking mode... yet */
+	fcntl(vpninfo->ssl_fd, F_SETFL, fcntl(vpninfo->ssl_fd, F_GETFL) & ~O_NONBLOCK);
+
 	openconnect_SSL_printf(vpninfo, "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
 	openconnect_SSL_printf(vpninfo, "Host: %s\r\n", vpninfo->hostname);
 	openconnect_SSL_printf(vpninfo, "User-Agent: %s\r\n", vpninfo->useragent);

@@ -640,6 +640,9 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
+	/* We don't cope with nonblocking mode... yet */
+	fcntl(vpninfo->ssl_fd, F_SETFL, fcntl(vpninfo->ssl_fd, F_GETFL) & ~O_NONBLOCK);
+
 	/*
 	 * It would be nice to use cURL for this, but we really need to guarantee
 	 * that we'll be using OpenSSL (for the TPM stuff), and it doesn't seem
