@@ -1059,11 +1059,11 @@ static int process_http_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 		     _("Requesting HTTP proxy connection to %s:%d\n"),
 		     vpninfo->hostname, vpninfo->port);
 
-	if (proxy_write(vpninfo, ssl_sock, (unsigned char *)buf, strlen(buf))) {
-		result = -errno;
+	result = proxy_write(vpninfo, ssl_sock, (unsigned char *)buf, strlen(buf));
+	if (result) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Sending proxy request failed: %s\n"),
-			     strerror(errno));
+			     strerror(-result));
 		return result;
 	}
 
