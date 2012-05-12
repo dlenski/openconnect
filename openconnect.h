@@ -31,9 +31,12 @@
 #include <unistd.h>
 
 #define OPENCONNECT_API_VERSION_MAJOR 1
-#define OPENCONNECT_API_VERSION_MINOR 3
+#define OPENCONNECT_API_VERSION_MINOR 4
 
 /*
+ * API version 1.4:
+ *  - Add openconnect_set_cancel_fd()
+ *
  * API version 1.3:
  *  - Add openconnect_set_cert_expiry_warning() to change from default 60 days
  *
@@ -138,6 +141,18 @@ void openconnect_reset_ssl (struct openconnect_info *vpninfo);
 int openconnect_parse_url (struct openconnect_info *vpninfo, char *url);
 void openconnect_set_cert_expiry_warning (struct openconnect_info *vpninfo,
 					  int seconds);
+
+/* If this is set, then openconnect_obtain_cookie() will abort and return
+   failure if the file descriptor is readable. Typically a user may create
+   a pair of pipes with the pipe(2) system call, hand the readable one to
+   this function, and then write a byte to the other end if it ever wants
+   to cancel the connection. This way, a multi-threaded UI (which will be
+   running openconnect_obtain_cookie() in a separate thread since it blocks)
+   has the ability to cancel that call, reap its thread and free the
+   vpninfo structure (or retry). An 'fd' argument of -1 will render the
+   cancellation mechanism inactive. */
+void openconnect_set_cancel_fd (struct openconnect_info *vpninfo, int fd);
+
 const char *openconnect_get_version(void);
 
 /* The first (privdata) argument to each of these functions is either
