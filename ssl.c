@@ -61,7 +61,7 @@
    We could use cURL for the HTTP stuff, but it's overkill */
 
 int  __attribute__ ((format (printf, 2, 3)))
-	openconnect_SSL_printf(SSL *ssl, const char *fmt, ...)
+    openconnect_SSL_printf(struct openconnect_info *vpninfo, const char *fmt, ...)
 {
 	char buf[1024];
 	va_list args;
@@ -71,7 +71,7 @@ int  __attribute__ ((format (printf, 2, 3)))
 	va_start(args, fmt);
 	vsnprintf(buf, 1023, fmt, args);
 	va_end(args);
-	return SSL_write(ssl, buf, strlen(buf));
+	return SSL_write(vpninfo->https_ssl, buf, strlen(buf));
 
 }
 
@@ -88,7 +88,7 @@ void report_ssl_errors(struct openconnect_info *vpninfo)
 	ERR_print_errors_cb(print_err, vpninfo);
 }
 
-int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len)
+int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len)
 {
 	int i = 0;
 	int ret;
@@ -96,7 +96,7 @@ int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len)
 	if (len < 2)
 		return -EINVAL;
 
-	while ( (ret = SSL_read(ssl, buf + i, 1)) == 1) {
+	while ( (ret = SSL_read(vpninfo->https_ssl, buf + i, 1)) == 1) {
 		if (buf[i] == '\n') {
 			buf[i] = 0;
 			if (i && buf[i-1] == '\r') {
@@ -113,7 +113,7 @@ int openconnect_SSL_gets(SSL *ssl, char *buf, size_t len)
 		}
 	}
 	if (ret == 0) {
-		ret = -SSL_get_error(ssl, ret);
+		ret = -SSL_get_error(vpninfo->https_ssl, ret);
 	}
 	buf[i] = 0;
 	return i ?: ret;

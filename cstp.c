@@ -111,24 +111,24 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	}
 
  retry:
-	openconnect_SSL_printf(vpninfo->https_ssl, "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
-	openconnect_SSL_printf(vpninfo->https_ssl, "Host: %s\r\n", vpninfo->hostname);
-	openconnect_SSL_printf(vpninfo->https_ssl, "User-Agent: %s\r\n", vpninfo->useragent);
-	openconnect_SSL_printf(vpninfo->https_ssl, "Cookie: webvpn=%s\r\n", vpninfo->cookie);
-	openconnect_SSL_printf(vpninfo->https_ssl, "X-CSTP-Version: 1\r\n");
-	openconnect_SSL_printf(vpninfo->https_ssl, "X-CSTP-Hostname: %s\r\n", vpninfo->localname);
+	openconnect_SSL_printf(vpninfo, "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
+	openconnect_SSL_printf(vpninfo, "Host: %s\r\n", vpninfo->hostname);
+	openconnect_SSL_printf(vpninfo, "User-Agent: %s\r\n", vpninfo->useragent);
+	openconnect_SSL_printf(vpninfo, "Cookie: webvpn=%s\r\n", vpninfo->cookie);
+	openconnect_SSL_printf(vpninfo, "X-CSTP-Version: 1\r\n");
+	openconnect_SSL_printf(vpninfo, "X-CSTP-Hostname: %s\r\n", vpninfo->localname);
 	if (vpninfo->deflate)
-		openconnect_SSL_printf(vpninfo->https_ssl, "X-CSTP-Accept-Encoding: deflate;q=1.0\r\n");
-	openconnect_SSL_printf(vpninfo->https_ssl, "X-CSTP-MTU: %d\r\n", vpninfo->mtu);
-	openconnect_SSL_printf(vpninfo->https_ssl, "X-CSTP-Address-Type: %s\r\n",
+		openconnect_SSL_printf(vpninfo, "X-CSTP-Accept-Encoding: deflate;q=1.0\r\n");
+	openconnect_SSL_printf(vpninfo, "X-CSTP-MTU: %d\r\n", vpninfo->mtu);
+	openconnect_SSL_printf(vpninfo, "X-CSTP-Address-Type: %s\r\n",
 			       vpninfo->disable_ipv6?"IPv4":"IPv6,IPv4");
-	openconnect_SSL_printf(vpninfo->https_ssl, "X-DTLS-Master-Secret: ");
+	openconnect_SSL_printf(vpninfo, "X-DTLS-Master-Secret: ");
 	for (i = 0; i < sizeof(vpninfo->dtls_secret); i++)
-		openconnect_SSL_printf(vpninfo->https_ssl, "%02X", vpninfo->dtls_secret[i]);
-	openconnect_SSL_printf(vpninfo->https_ssl, "\r\nX-DTLS-CipherSuite: %s\r\n\r\n",
+		openconnect_SSL_printf(vpninfo, "%02X", vpninfo->dtls_secret[i]);
+	openconnect_SSL_printf(vpninfo, "\r\nX-DTLS-CipherSuite: %s\r\n\r\n",
 			       vpninfo->dtls_ciphers?:"AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA");
 
-	if (openconnect_SSL_gets(vpninfo->https_ssl, buf, 65536) < 0) {
+	if (openconnect_SSL_gets(vpninfo, buf, 65536) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error fetching HTTPS response\n"));
 		if (!retried) {
@@ -150,7 +150,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		if (!strncmp(buf, "HTTP/1.1 503 ", 13)) {
 			/* "Service Unavailable. Why? */
 			const char *reason = "<unknown>";
-			while ((i = openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+			while ((i = openconnect_SSL_gets(vpninfo, buf, sizeof(buf)))) {
 				if (!strncmp(buf, "X-Reason: ", 10)) {
 					reason = buf + 10;
 					break;
@@ -174,7 +174,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	/* We may have advertised it, but we only do it if the server agrees */
 	vpninfo->deflate = 0;
 
-	while ((i = openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+	while ((i = openconnect_SSL_gets(vpninfo, buf, sizeof(buf)))) {
 		struct vpn_option *new_option;
 		char *colon = strchr(buf, ':');
 		if (!colon)

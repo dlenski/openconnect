@@ -115,7 +115,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	int i;
 
  cont:
-	if (openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)) < 0) {
+	if (openconnect_SSL_gets(vpninfo, buf, sizeof(buf)) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error fetching HTTPS response\n"));
 		return -EINVAL;
@@ -134,7 +134,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		     _("Got HTTP response: %s\n"), buf);
 
 	/* Eat headers... */
-	while ((i = openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+	while ((i = openconnect_SSL_gets(vpninfo, buf, sizeof(buf)))) {
 		char *colon;
 
 		if (i < 0) {
@@ -261,7 +261,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		}
 	} else if (bodylen == BODY_CHUNKED) {
 		/* ... else, chunked */
-		while ((i = openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+		while ((i = openconnect_SSL_gets(vpninfo, buf, sizeof(buf)))) {
 			int chunklen, lastchunk = 0;
 
 			if (i < 0) {
@@ -289,7 +289,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				done += i;
 			}
 		skip:
-			if ((i = openconnect_SSL_gets(vpninfo->https_ssl, buf, sizeof(buf)))) {
+			if ((i = openconnect_SSL_gets(vpninfo, buf, sizeof(buf)))) {
 				if (i < 0) {
 					vpn_progress(vpninfo, PRG_ERR,
 						     _("Error fetching HTTP response body\n"));
