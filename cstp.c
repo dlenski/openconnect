@@ -128,8 +128,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	openconnect_SSL_printf(vpninfo, "\r\nX-DTLS-CipherSuite: %s\r\n\r\n",
 			       vpninfo->dtls_ciphers?:"AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA");
 
-	fcntl(vpninfo->ssl_fd, F_SETFL, fcntl(vpninfo->ssl_fd, F_GETFL) & ~O_NONBLOCK);
-	if (openconnect_SSL_gets(vpninfo, buf, 65536) < 0) {
+	if ((i = openconnect_SSL_gets(vpninfo, buf, 65536) < 0)) {
+		if (i == -EINTR)
+			return i;
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error fetching HTTPS response\n"));
 		if (!retried) {
@@ -177,7 +178,12 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
 	while ((i = openconnect_SSL_gets(vpninfo, buf, sizeof(buf)))) {
 		struct vpn_option *new_option;
-		char *colon = strchr(buf, ':');
+		char *colon;
+
+		if (i < 0)
+			return i;
+
+		colon = strchr(buf, ':');
 		if (!colon)
 			continue;
 
@@ -356,7 +362,6 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	BIO_set_nbio(SSL_get_rbio(vpninfo->https_ssl), 1);
 	BIO_set_nbio(SSL_get_wbio(vpninfo->https_ssl), 1);
 
-	fcntl(vpninfo->ssl_fd, F_SETFL, fcntl(vpninfo->ssl_fd, F_GETFL) | O_NONBLOCK);
 	if (vpninfo->select_nfds <= vpninfo->ssl_fd)
 		vpninfo->select_nfds = vpninfo->ssl_fd + 1;
 
