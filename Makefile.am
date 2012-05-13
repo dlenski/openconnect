@@ -21,7 +21,7 @@ library_srcs = ssl.c http.c auth.c library.c compat.c
 libopenconnect_la_SOURCES = version.c $(library_srcs)
 libopenconnect_la_CFLAGS = $(OPENSSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS)
 libopenconnect_la_LIBADD = $(OPENSSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LIBINTL)
-libopenconnect_la_LDFLAGS = -version-number 1:4
+libopenconnect_la_LDFLAGS = -version-number @APIMAJOR@:@APIMINOR@
 noinst_HEADERS = openconnect-internal.h openconnect.h
 include_HEADERS = openconnect.h
 if HAVE_SYMBOL_VERSIONING

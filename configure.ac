@@ -303,11 +303,16 @@ else
 fi
 AM_CONDITIONAL(BUILD_WWW, [test -n "${ac_cv_path_PYTHON}"])
 
-AC_SUBST([CONFIG_STATUS_DEPENDENCIES], ['$(top_srcdir)/po/LINGUAS'])
+AC_SUBST([CONFIG_STATUS_DEPENDENCIES], ['$(top_srcdir)/po/LINGUAS $(top_srcdir)/openconnect.h'])
 RAWLINGUAS=`sed -e "/^#/d" -e "s/#.*//" "${srcdir}/po/LINGUAS"`
 # Remove newlines
 LINGUAS=`echo $RAWLINGUAS`
 AC_SUBST(LINGUAS)
+
+APIMAJOR="`sed -n 's/^#define OPENCONNECT_API_VERSION_MAJOR \(.*\)/\1/p' openconnect.h`"
+APIMINOR="`sed -n 's/^#define OPENCONNECT_API_VERSION_MINOR \(.*\)/\1/p' openconnect.h`"
+AC_SUBST(APIMAJOR)
+AC_SUBST(APIMINOR)
 
 # We want version.c to depend on the files that would affect the
 # output of version.sh. But we cannot assume that they'll exist,
