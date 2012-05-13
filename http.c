@@ -267,7 +267,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			if (i < 0) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Error fetching chunk header\n"));
-				exit(1);
+				return i;
 			}
 			chunklen = strtol(buf, NULL, 16);
 			if (!chunklen) {
@@ -694,7 +694,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	buflen = process_http_response(vpninfo, &result, NULL, &form_buf);
 	if (buflen < 0) {
 		/* We'll already have complained about whatever offended us */
-		exit(1);
+		return buflen;
 	}
 
 	if (result != 200 && vpninfo->redirect_url) {
