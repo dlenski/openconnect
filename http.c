@@ -613,6 +613,8 @@ int internal_parse_url(char *url, char **res_proto, char **res_host,
 		*res_path = (path && *path) ? strdup(path) : NULL;
 
 	/* Undo the damage we did to the original string */
+	if (port_str)
+		*(port_str) = ':';
 	if (path)
 		*(path - 1) = '/';
 	if (proto)
