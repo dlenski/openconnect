@@ -1,5 +1,5 @@
 OPENCONNECT_1.2 {
- global: @SYMVER_TIME@ @SYMVER_ASPRINTF@ @SYMVER_GETLINE@
+ global: 
 	openconnect_clear_cookie;
 	openconnect_get_cert_sha1;
 	openconnect_get_cookie;
@@ -38,7 +38,7 @@ OPENCONNECT_1.4 {
 } OPENCONNECT_1.3;
 
 OPENCONNECT_PRIVATE {
- global:
+ global: @SYMVER_TIME@ @SYMVER_ASPRINTF@ @SYMVER_GETLINE@
 	openconnect_SSL_gets;
 	openconnect_close_https;
 	openconnect_open_https;
