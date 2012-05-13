@@ -188,6 +188,25 @@ AC_ARG_WITH([openssl],
 # Needs to happen after we default to static/shared libraries based on OpenSSL
 AC_PROG_LIBTOOL
 
+# Ick. This seems like it's likely to be very fragile, but I can't see a better
+# way. I shall console myself with the observation that the failure mode isn't
+# particularly horrible — you just don't get symbol versioning if it fails.
+symvers=no
+if test "$enable_shared" = "yes" ; then
+   AC_MSG_CHECKING([if library symbol versioning is available]);
+   echo 'FOO { global: foo; };' > conftest.map
+   echo 'int foo = 0;' > conftest.$ac_ext
+   if AC_TRY_EVAL(ac_compile); then
+      soname=conftest
+      libobjs=conftest.$ac_objext
+      if AC_TRY_EVAL(archive_cmds ${wl}--version-script ${wl}conftest.map); then
+         symvers=yes
+      fi
+   fi
+   AC_MSG_RESULT(${symvers})
+fi
+AM_CONDITIONAL(HAVE_SYMBOL_VERSIONING, [test "${symvers}" = "yes"])
+
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0)
 
 PKG_CHECK_MODULES(ZLIB, zlib, [],

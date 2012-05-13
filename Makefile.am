@@ -24,11 +24,15 @@ libopenconnect_la_LIBADD = $(OPENSSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LI
 libopenconnect_la_LDFLAGS = -version-number 1:4
 noinst_HEADERS = openconnect-internal.h openconnect.h
 include_HEADERS = openconnect.h
+if HAVE_SYMBOL_VERSIONING
+libopenconnect_la_LDFLAGS += -Wl,--version-script,libopenconnect.map
+libopenconnect_la_DEPENDENCIES = libopenconnect.map
+endif
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = openconnect.pc
 
-EXTRA_DIST = version.sh openconnect.8 COPYING.LGPL
+EXTRA_DIST = version.sh openconnect.8 COPYING.LGPL libopenconnect.map
 
 DISTCLEANFILES = $(pkgconfig_DATA)
 
