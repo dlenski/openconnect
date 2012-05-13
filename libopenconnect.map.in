@@ -1,4 +1,4 @@
-OPENCONNECT_1.2 {
+OPENCONNECT_1.0 {
  global: 
 	openconnect_clear_cookie;
 	openconnect_get_cert_sha1;
@@ -20,12 +20,19 @@ OPENCONNECT_1.2 {
 	openconnect_setup_csd;
 	openconnect_set_urlpath;
 	openconnect_set_xmlsha1;
-	openconnect_vpninfo_free;
 	openconnect_vpninfo_new;
-	openconnect_vpninfo_new_with_cbdata;
  local:
 	*;
 };
+OPENCONNECT_1.1 {
+ global:
+	openconnect_vpninfo_free;
+} OPENCONNECT_1.0;
+
+OPENCONNECT_1.2 {
+ global:
+	openconnect_vpninfo_new_with_cbdata;
+} OPENCONNECT_1.1;
 
 OPENCONNECT_1.3 {
  global:
