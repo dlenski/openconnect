@@ -1,9 +1,11 @@
 # List of source files containing translatable strings.
 # Please keep this list in alphabetic order.
 auth.c
+compat.c
 cstp.c
 dtls.c
 http.c
+library.c
 main.c
 mainloop.c
 ssl.c
