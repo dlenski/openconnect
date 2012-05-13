@@ -716,6 +716,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 					     _("Failed to parse redirected URL '%s': %s\n"),
 					     vpninfo->redirect_url, strerror(-ret));
 				free(vpninfo->redirect_url);
+				vpninfo->redirect_url = NULL;
 				free(form_buf);
 				return ret;
 			}
@@ -750,6 +751,14 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			vpninfo->redirect_url = NULL;
 
 			goto retry;
+		} else if (strstr(vpninfo->redirect_url, "://")) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Cannot follow redirection to non-https URL '%s'\n"),
+				     vpninfo->redirect_url);
+			free(vpninfo->redirect_url);
+			vpninfo->redirect_url = NULL;
+			free(form_buf);
+			return -EINVAL;
 		} else if (vpninfo->redirect_url[0] == '/') {
 			/* Absolute redirect within same host */
 			free(vpninfo->urlpath);
