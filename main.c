@@ -366,6 +366,7 @@ int main(int argc, char **argv)
 	struct sigaction sa;
 	int cookieonly = 0;
 	int use_syslog = 0;
+	char *urlpath = NULL;
 	char *proxy = getenv("https_proxy");
 	int autoproxy = 0;
 	uid_t uid = getuid();
@@ -515,8 +516,8 @@ int main(int argc, char **argv)
 			vpninfo->deflate = 0;
 			break;
 		case 'g':
-			free(vpninfo->urlpath);
-			vpninfo->urlpath = strdup(config_arg);
+			free(urlpath);
+			urlpath = strdup(config_arg);
 			break;
 		case 'h':
 			usage();
@@ -678,26 +679,21 @@ int main(int argc, char **argv)
 
 	if (!vpninfo->hostname) {
 		char *url = strdup(argv[optind]);
-		char *scheme;
-		char *group;
 
-		if (internal_parse_url(url, &scheme, &vpninfo->hostname, &vpninfo->port,
-			      &group, 443)) {
-			fprintf(stderr, _("Failed to parse server URL '%s'\n"),
-				url);
+		if (openconnect_parse_url(vpninfo, url))
 			exit(1);
-		}
-		if (scheme && strcmp(scheme, "https")) {
-			fprintf(stderr, _("Only https:// permitted for server URL\n"));
-			exit(1);
-		}
-		if (group) {
-			free(vpninfo->urlpath);
-			vpninfo->urlpath = group;
-		}
-		free(scheme);
+
 		free(url);
 	}
+
+	/* Historically, the path in the URL superseded the one in the
+	 * --usergroup argument, just because of the order in which they
+	 * were processed. Preserve that behaviour. */
+	if (urlpath && !vpninfo->urlpath) {
+		vpninfo->urlpath = urlpath;
+		urlpath = NULL;
+	}
+	free(urlpath);
 
 #ifdef SSL_UI
 	set_openssl_ui();
