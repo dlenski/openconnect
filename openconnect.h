@@ -50,6 +50,20 @@
  *  - Initial version
  */
 
+/* Before API version 1.4 (OpenConnect 3.19) this macro didn't exist.
+ * Somewhat ironic, that the API version check itself needs to be
+ * conditionally used depending on the API version. A very simple way
+ * for users to handle this with an approximately correct answer is
+ *   #include <openconnect.h>
+ *   #ifndef OPENCONNECT_CHECK_VER
+ *   #define OPENCONNECT_CHECK_VER(x,y) 0
+ *   #endif
+ */
+#define OPENCONNECT_CHECK_VER(maj,min) \
+	(OPENCONNECT_API_VERSION_MAJOR > (maj) || \
+	(OPENCONNECT_API_VERSION_MAJOR == (maj) && \
+	 OPENCONNECT_API_VERSION_MINOR >= (min)))
+
 /****************************************************************************/
 
 /* Authentication form processing */
