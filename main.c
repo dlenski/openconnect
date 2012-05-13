@@ -23,6 +23,11 @@
  *   Boston, MA 02110-1301 USA
  */
 
+#ifdef HAVE_GETLINE
+/* Various BSD systems require this for getline() to be visible */
+#define _WITH_GETLINE
+#endif
+
 #include <stdio.h>
 #ifdef ANDROID
 #include <android/log.h>
