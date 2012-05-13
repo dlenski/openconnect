@@ -25,7 +25,7 @@ libopenconnect_la_LDFLAGS = -version-number 1:4
 noinst_HEADERS = openconnect-internal.h openconnect.h
 include_HEADERS = openconnect.h
 if HAVE_SYMBOL_VERSIONING
-libopenconnect_la_LDFLAGS += -Wl,--version-script,libopenconnect.map
+libopenconnect_la_LDFLAGS += -Wl,@VERSION_SCRIPT_ARG@,libopenconnect.map
 libopenconnect_la_DEPENDENCIES = libopenconnect.map
 endif
 

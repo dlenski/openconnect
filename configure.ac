@@ -1,4 +1,3 @@
-
 AC_INIT(openconnect, 3.18)
 PKG_PROG_PKG_CONFIG
 AC_LANG_C
@@ -67,11 +66,20 @@ case $host_os in
     ;;
 esac
 
-AC_CHECK_FUNC(getline, [AC_DEFINE(HAVE_GETLINE, 1)], [])
+symver_time=
+symver_getline=
+symver_asprintf=
+
+case $host_os in
+ *solaris*|*sunos*)
+    symver_time="openconnect__time;"
+    ;;
+esac
+
+AC_CHECK_FUNC(getline, [AC_DEFINE(HAVE_GETLINE, 1)], [symver_getline="openconnect__getline;"])
 AC_CHECK_FUNC(strcasestr, [AC_DEFINE(HAVE_STRCASESTR, 1)], [])
-need_vacopy=no
-AC_CHECK_FUNC(asprintf, [AC_DEFINE(HAVE_ASPRINTF, 1)], [need_vacopy=yes])
-if test "$need_vacopy" = "yes"; then
+AC_CHECK_FUNC(asprintf, [AC_DEFINE(HAVE_ASPRINTF, 1)], [symver_asprintf="openconnect__asprintf;"])
+if test -n "$symver_asprintf"; then
   AC_MSG_CHECKING([for va_copy])
   AC_LINK_IFELSE([AC_LANG_PROGRAM([
 	#include <stdarg.h>
@@ -93,8 +101,9 @@ if test "$need_vacopy" = "yes"; then
 		AC_MSG_ERROR([Your system lacks asprintf() and va_copy()])])
 	])
 fi
-
-
+AC_SUBST(SYMVER_TIME, $symver_time)
+AC_SUBST(SYMVER_GETLINE, $symver_getline)
+AC_SUBST(SYMVER_ASPRINTF, $symver_asprintf)
 
 AS_COMPILER_FLAGS(CFLAGS,
         "-Wall
@@ -194,18 +203,22 @@ AC_PROG_LIBTOOL
 symvers=no
 if test "$enable_shared" = "yes" ; then
    AC_MSG_CHECKING([if library symbol versioning is available]);
-   echo 'FOO { global: foo; };' > conftest.map
+   echo 'FOO { global: foo; local: *; };' > conftest.map
    echo 'int foo = 0;' > conftest.$ac_ext
    if AC_TRY_EVAL(ac_compile); then
       soname=conftest
       libobjs=conftest.$ac_objext
       if AC_TRY_EVAL(archive_cmds ${wl}--version-script ${wl}conftest.map); then
-         symvers=yes
+         AC_SUBST(VERSION_SCRIPT_ARG, [--version-script])
+         symvers="yes (with --version-script)"
+      elif AC_TRY_EVAL(archive_cmds ${wl}-M ${wl}conftest.map); then
+         AC_SUBST(VERSION_SCRIPT_ARG, [-M])
+         symvers="yes (with -M)"
       fi
    fi
    AC_MSG_RESULT(${symvers})
 fi
-AM_CONDITIONAL(HAVE_SYMBOL_VERSIONING, [test "${symvers}" = "yes"])
+AM_CONDITIONAL(HAVE_SYMBOL_VERSIONING, [test "${symvers}" != "no"])
 
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0)
 
@@ -308,5 +321,5 @@ for a in .git/index .git/packed-refs .git/refs/tags .git/HEAD; do
 done
 AC_SUBST(GITVERSIONDEPS)
 
-AC_OUTPUT(Makefile openconnect.pc po/Makefile www/Makefile \
+AC_OUTPUT(Makefile openconnect.pc po/Makefile www/Makefile libopenconnect.map \
 	  www/styles/Makefile www/inc/Makefile www/images/Makefile)
