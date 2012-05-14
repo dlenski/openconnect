@@ -359,9 +359,6 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	vpn_progress(vpninfo, PRG_INFO, _("CSTP connected. DPD %d, Keepalive %d\n"),
 		     vpninfo->ssl_times.dpd, vpninfo->ssl_times.keepalive);
 
-	BIO_set_nbio(SSL_get_rbio(vpninfo->https_ssl), 1);
-	BIO_set_nbio(SSL_get_wbio(vpninfo->https_ssl), 1);
-
 	if (vpninfo->select_nfds <= vpninfo->ssl_fd)
 		vpninfo->select_nfds = vpninfo->ssl_fd + 1;
 

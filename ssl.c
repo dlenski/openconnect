@@ -1229,6 +1229,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	workaround_openssl_certchain_bug(vpninfo, https_ssl);
 
 	https_bio = BIO_new_socket(ssl_sock, BIO_NOCLOSE);
+	BIO_set_nbio(https_bio, 1);
 	SSL_set_bio(https_ssl, https_bio, https_bio);
 
 	vpn_progress(vpninfo, PRG_INFO, _("SSL negotiation with %s\n"),
