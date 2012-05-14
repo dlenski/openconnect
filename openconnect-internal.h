@@ -285,7 +285,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo);
 void openconnect_close_https(struct openconnect_info *vpninfo);
 int get_cert_md5_fingerprint(struct openconnect_info *vpninfo, X509 *cert,
 			     char *buf);
-void report_ssl_errors(struct openconnect_info *vpninfo);
+void openconnect_report_ssl_errors(struct openconnect_info *vpninfo);
 
 /* mainloop.c */
 int vpn_add_pollfd(struct openconnect_info *vpninfo, int fd, short events);

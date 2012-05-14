@@ -83,7 +83,7 @@ int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t le
 				FD_SET(vpninfo->ssl_fd, &wr_set);
 			else {
 				vpn_progress(vpninfo, PRG_ERR, _("Failed to write to SSL socket"));
-				report_ssl_errors(vpninfo);
+				openconnect_report_ssl_errors(vpninfo);
 				return -EIO;
 			}
 			if (vpninfo->cancel_fd != -1) {
@@ -120,7 +120,7 @@ int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len
 			FD_SET(vpninfo->ssl_fd, &wr_set);
 		else {
 			vpn_progress(vpninfo, PRG_ERR, _("Failed to read from SSL socket"));
-			report_ssl_errors(vpninfo);
+			openconnect_report_ssl_errors(vpninfo);
 			return -EIO;
 		}
 		if (vpninfo->cancel_fd != -1) {
@@ -161,7 +161,7 @@ static int print_err(const char *str, size_t len, void *ptr)
 	return 0;
 }
 
-void report_ssl_errors(struct openconnect_info *vpninfo)
+void openconnect_report_ssl_errors(struct openconnect_info *vpninfo)
 {
 	ERR_print_errors_cb(print_err, vpninfo);
 }
@@ -205,7 +205,7 @@ int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len
 				FD_SET(vpninfo->ssl_fd, &wr_set);
 			else {
 				vpn_progress(vpninfo, PRG_ERR, _("Failed to read from SSL socket\n"));
-				report_ssl_errors(vpninfo);
+				openconnect_report_ssl_errors(vpninfo);
 				ret = -EIO;
 				break;
 			}
@@ -267,7 +267,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 	if (!PKCS12_parse(p12, vpninfo->cert_password?:pass, &pkey, &cert, &ca)) {
 		unsigned long err = ERR_peek_error();
 
-		report_ssl_errors(vpninfo);
+		openconnect_report_ssl_errors(vpninfo);
 
 		if (ERR_GET_LIB(err) == ERR_LIB_PKCS12 &&
 		    ERR_GET_FUNC(err) == PKCS12_F_PKCS12_PARSE &&
@@ -340,13 +340,13 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 	e = ENGINE_by_id("tpm");
 	if (!e) {
 		vpn_progress(vpninfo, PRG_ERR, _("Can't load TPM engine.\n"));
-		report_ssl_errors(vpninfo);
+		openconnect_report_ssl_errors(vpninfo);
 		return -EINVAL;
 	}
 	if (!ENGINE_init(e) || !ENGINE_set_default_RSA(e) ||
 	    !ENGINE_set_default_RAND(e)) {
 		vpn_progress(vpninfo, PRG_ERR, _("Failed to init TPM engine\n"));
-		report_ssl_errors(vpninfo);
+		openconnect_report_ssl_errors(vpninfo);
 		ENGINE_free(e);
 		return -EINVAL;
 	}
@@ -356,21 +356,21 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 				     vpninfo->cert_password, NULL, 0)) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to set TPM SRK password\n"));
-			report_ssl_errors(vpninfo);
+			openconnect_report_ssl_errors(vpninfo);
 		}
 	}
 	key = ENGINE_load_private_key(e, vpninfo->sslkey, NULL, NULL);
 	if (!key) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to load TPM private key\n"));
-		report_ssl_errors(vpninfo);
+		openconnect_report_ssl_errors(vpninfo);
 		ENGINE_free(e);
 		ENGINE_finish(e);
 		return -EINVAL;
 	}
 	if (!SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key)) {
 		vpn_progress(vpninfo, PRG_ERR, _("Add key from TPM failed\n"));
-		report_ssl_errors(vpninfo);
+		openconnect_report_ssl_errors(vpninfo);
 		ENGINE_free(e);
 		ENGINE_finish(e);
 		return -EINVAL;
@@ -398,7 +398,7 @@ static int reload_pem_cert(struct openconnect_info *vpninfo)
 		BIO_free(b);
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to reload X509 cert for expiry check\n"));
-		report_ssl_errors(vpninfo);
+		openconnect_report_ssl_errors(vpninfo);
 		return -EIO;
 	}
 	vpninfo->cert_x509 = PEM_read_bio_X509_AUX(b, NULL, NULL, NULL);
@@ -433,7 +433,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		/* Not PKCS#12 */
 		if (vpninfo->cert_type == CERT_TYPE_PKCS12) {
 			vpn_progress(vpninfo, PRG_ERR, _("Read PKCS#12 failed\n"));
-			report_ssl_errors(vpninfo);
+			openconnect_report_ssl_errors(vpninfo);
 			return -EINVAL;
 		}
 		/* Clear error and fall through to see if it's a PEM file... */
@@ -445,7 +445,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 						vpninfo->cert)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Loading certificate failed\n"));
-		report_ssl_errors(vpninfo);
+		openconnect_report_ssl_errors(vpninfo);
 		return -EINVAL;
 	}
 
@@ -499,7 +499,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 					    SSL_FILETYPE_PEM)) {
 		unsigned long err = ERR_peek_error();
 		
-		report_ssl_errors(vpninfo);
+		openconnect_report_ssl_errors(vpninfo);
 
 #ifndef EVP_F_EVP_DECRYPTFINAL_EX
 #define EVP_F_EVP_DECRYPTFINAL_EX EVP_F_EVP_DECRYPTFINAL
@@ -1218,7 +1218,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to open CA file '%s'\n"),
 					     vpninfo->cafile);
-				report_ssl_errors(vpninfo);
+				openconnect_report_ssl_errors(vpninfo);
 				close(ssl_sock);
 				return -EINVAL;
 			}
@@ -1248,7 +1248,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			FD_SET(ssl_sock, &wr_set);
 		else {
 			vpn_progress(vpninfo, PRG_ERR, _("SSL connection failure\n"));
-			report_ssl_errors(vpninfo);
+			openconnect_report_ssl_errors(vpninfo);
 			SSL_free(https_ssl);
 			close(ssl_sock);
 			return -EINVAL;
