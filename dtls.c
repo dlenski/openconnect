@@ -230,16 +230,14 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	}
 
 	/* Go Go Go! */
+	fcntl(dtls_fd, F_SETFL, fcntl(dtls_fd, F_GETFL) | O_NONBLOCK);
+
 	dtls_bio = BIO_new_socket(dtls_fd, BIO_NOCLOSE);
+	/* Set non-blocking */
+	BIO_set_nbio(dtls_bio, 1);
 	SSL_set_bio(dtls_ssl, dtls_bio, dtls_bio);
 
 	SSL_set_options(dtls_ssl, SSL_OP_CISCO_ANYCONNECT);
-
-	/* Set non-blocking */
-	BIO_set_nbio(SSL_get_rbio(dtls_ssl), 1);
-	BIO_set_nbio(SSL_get_wbio(dtls_ssl), 1);
-
-	fcntl(dtls_fd, F_SETFL, fcntl(dtls_fd, F_GETFL) | O_NONBLOCK);
 
 	vpninfo->new_dtls_fd = dtls_fd;
 	vpninfo->new_dtls_ssl = dtls_ssl;
