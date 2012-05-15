@@ -636,7 +636,10 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (optind != argc - 1) {
+	if (optind < argc - 1) {
+		fprintf(stderr, _("Too many arguments on command line\n"));
+		usage();
+	} else if (optind > argc - 1) {
 		fprintf(stderr, _("No server specified\n"));
 		usage();
 	}
