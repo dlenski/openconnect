@@ -359,6 +359,20 @@ static int next_option(int argc, char **argv, char **config_arg)
 
 }
 
+static int null_ui_open(UI *ui)
+{
+	fprintf(stderr, _("Cannot ask for user input while in non-interactive mode\n"));
+	fflush(stderr);
+	return 0;
+}
+
+static void disable_openssl_ui()
+{
+	UI_METHOD *ui_method = UI_create_method((char *)"OpenConnect non-interactive UI");
+	UI_method_set_opener(ui_method, null_ui_open);
+	UI_set_default_method(ui_method);
+}
+
 int main(int argc, char **argv)
 {
 	struct openconnect_info *vpninfo;
@@ -470,7 +484,7 @@ int main(int argc, char **argv)
 			break;
 		case OPT_NON_INTER:
 			non_inter = 1;
-			vpninfo->nopasswd = 1;
+			disable_openssl_ui();
 			break;
 		case OPT_RECONNECT_TIMEOUT:
 			vpninfo->reconnect_timeout = atoi(config_arg);
@@ -893,12 +907,16 @@ static int validate_peer_cert(void *_vpninfo, X509 *peer_cert,
 		fprintf(stderr,
 			_("\nCertificate from VPN server \"%s\" failed verification.\n"
 			  "Reason: %s\n"), vpninfo->hostname, reason);
+		fflush(stderr);
+
 		if (non_inter)
 			return -EINVAL;
 
-		fflush(stderr);
-
 		ui = UI_new();
+		if (!ui) {
+			fprintf(stderr, _("Failed to create UI\n"));
+			return -EINVAL;
+		}
 		UI_add_input_string(ui, _("Enter 'yes' to accept, 'no' to abort; anything else to view: "),
 				    UI_INPUT_FLAG_ECHO, buf, 2, 5);
 		ret = UI_process(ui);
