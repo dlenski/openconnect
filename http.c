@@ -693,6 +693,12 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	if (result < 0)
 		return result;
 
+	/* Remember the peer's SSL certificate; it may disconnect during
+	   the response and then we wouldn't be able to find it */
+	if (vpninfo->peer_cert)
+		X509_free(vpninfo->peer_cert);
+	vpninfo->peer_cert = SSL_get_peer_certificate(vpninfo->https_ssl);
+
 	buflen = process_http_response(vpninfo, &result, NULL, &form_buf);
 	if (buflen < 0) {
 		/* We'll already have complained about whatever offended us */

@@ -17,7 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li><i>No changelog entries yet</i></li>
+       <li>Cope with non-keepalive HTTP response on authentication success.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.19.tar.gz">OpenConnect v3.19</a></b>

@@ -1293,6 +1293,10 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 void openconnect_close_https(struct openconnect_info *vpninfo)
 {
+	if (vpninfo->peer_cert) {
+		X509_free(vpninfo->peer_cert);
+		vpninfo->peer_cert = NULL;
+	}
 	SSL_free(vpninfo->https_ssl);
 	vpninfo->https_ssl = NULL;
 	close(vpninfo->ssl_fd);

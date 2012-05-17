@@ -135,6 +135,8 @@ struct openconnect_info {
 	int uid_csd_given;
 	int no_http_keepalive;
 
+	X509 *peer_cert;
+
 	char *cookie; /* Pointer to within cookies list */
 	struct vpn_option *cookies;
 	struct vpn_option *cstp_options;

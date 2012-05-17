@@ -146,7 +146,13 @@ void openconnect_set_xmlsha1 (struct openconnect_info *, char *, int size);
 void openconnect_set_cafile (struct openconnect_info *, char *);
 void openconnect_setup_csd (struct openconnect_info *, uid_t, int silent, char *wrapper);
 void openconnect_set_client_cert (struct openconnect_info *, char *cert, char *sslkey);
+
+/* This is *not* yours and must not be destroyed with X509_free(). It
+ * will be valid when a cookie has been obtained successfully, and will
+ * be valid until the connection is destroyed or another attempt it made
+ * to use it. */
 struct x509_st *openconnect_get_peer_cert (struct openconnect_info *);
+
 int openconnect_get_port (struct openconnect_info *);
 char *openconnect_get_cookie (struct openconnect_info *);
 void openconnect_clear_cookie (struct openconnect_info *);

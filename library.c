@@ -99,6 +99,8 @@ void openconnect_vpninfo_free (struct openconnect_info *vpninfo)
 	if (vpninfo->cert != vpninfo->sslkey)
 		free((void *)vpninfo->sslkey);
 	free((void *)vpninfo->cert);
+	if (vpninfo->peer_cert)
+		X509_free(vpninfo->peer_cert);
 	/* No need to free deflate streams; they weren't initialised */
 	free(vpninfo);
 }
@@ -154,7 +156,7 @@ void openconnect_set_client_cert (struct openconnect_info *vpninfo, char *cert, 
 
 struct x509_st *openconnect_get_peer_cert (struct openconnect_info *vpninfo)
 {
-	return SSL_get_peer_certificate(vpninfo->https_ssl);
+	return vpninfo->peer_cert;
 }
 
 int openconnect_get_port (struct openconnect_info *vpninfo)
