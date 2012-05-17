@@ -1018,8 +1018,17 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		vpninfo->port = 443;
 
 	if (vpninfo->peer_addr) {
-		ssl_sock = socket(vpninfo->peer_addr->sa_family, SOCK_STREAM, IPPROTO_IP);
-		if (ssl_sock < 0) {
+#ifdef SOCK_CLOEXEC
+		ssl_sock = socket(vpninfo->peer_addr->sa_family, SOCK_STREAM | SOCK_CLOEXEC, IPPROTO_IP);
+		if (ssl_sock < 0)
+#endif
+		{
+			ssl_sock = socket(vpninfo->peer_addr->sa_family, SOCK_STREAM, IPPROTO_IP);
+			if (ssl_sock < 0)
+				goto reconn_err;
+			fcntl(ssl_sock, F_SETFD, fcntl(ssl_sock, F_GETFD) | FD_CLOEXEC);
+		}
+		if (cancellable_connect(vpninfo, ssl_sock, vpninfo->peer_addr, vpninfo->peer_addrlen)) {
 		reconn_err:
 			if (vpninfo->proxy) {
 				vpn_progress(vpninfo, PRG_ERR, 
@@ -1032,8 +1041,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			}
 			return -EINVAL;
 		}
-		if (cancellable_connect(vpninfo, ssl_sock, vpninfo->peer_addr, vpninfo->peer_addrlen))
-			goto reconn_err;
 		
 	} else {
 		struct addrinfo hints, *result, *rp;
@@ -1169,7 +1176,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			return -EINVAL;
 		}
 	}
-	fcntl(ssl_sock, F_SETFD, FD_CLOEXEC);
 
 	if (vpninfo->proxy) {
 		err = process_proxy(vpninfo, ssl_sock);
