@@ -19,12 +19,19 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.18.tar.gz">OpenConnect v3.18</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.18.tar.gz.asc">PGP signature</a>)</i>,
-released on 2012-04-25 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.19.tar.gz">OpenConnect v3.19</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.19.tar.gz.asc">PGP signature</a>)</i>,
+released on 2012-05-17 with the following changelog:</p>
      <ul>
-       <li>Fix autohate breakage with <tt>--disable-nls</tt>... hopefully.</li>
-       <li>Fix buffer overflow in banner handling.</li>
+       <li>Add <tt>--config</tt> option for reading options from file.</li>
+       <li>Improve OpenSSL DTLS compatibility to work on Ubuntu 10.04.</li>
+       <li>Flush progress logging output promptly after each message.</li>
+       <li>Add symbol versioning for shared library (on sane platforms).</li>
+       <li>Add <tt>openconnect_set_cancel_fd()</tt> function to allow clean cancellation.</li>
+       <li>Fix corruption of URL in <tt>openconnect_parse_url()</tt> if it specifies a port number.</li>
+       <li>Fix inappropriate <tt>exit()</tt> calls from library code.</li>
+       <li>Library namespace cleanup &#8212; all symbols now have the prefix <tt>openconnect_</tt> on platforms where symbol versioning works.</li>
+       <li>Fix <tt>--non-inter</tt> option so it still uses login information from command line.</li>
      </ul>
 <!-- latest-release-end -->
 

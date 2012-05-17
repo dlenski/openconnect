@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.19.tar.gz">OpenConnect v3.19</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.19.tar.gz.asc">PGP signature</a>)</i> &#8212; 2012-05-17
+     <ul>
        <li>Add <tt>--config</tt> option for reading options from file.</li>
        <li>Improve OpenSSL DTLS compatibility to work on Ubuntu 10.04.</li>
        <li>Flush progress logging output promptly after each message.</li>
