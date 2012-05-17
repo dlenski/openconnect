@@ -25,6 +25,7 @@
        <li>Fix corruption of URL in <tt>openconnect_parse_url()</tt> if it specifies a port number.</li>
        <li>Fix inappropriate <tt>exit()</tt> calls from library code.</li>
        <li>Library namespace cleanup &#8212; all symbols now have the prefix <tt>openconnect_</tt> on platforms where symbol versioning works.</li>
+       <li>Fix <tt>--non-inter</tt> option so it still uses login information from command line.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.18.tar.gz">OpenConnect v3.18</a></b>
