@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-05-15 15:55+0100\n"
-"PO-Revision-Date: 2012-05-15 14:55+0000\n"
+"POT-Creation-Date: 2012-05-17 00:45+0100\n"
+"PO-Revision-Date: 2012-05-16 23:51+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Dutch (http://www.transifex.net/projects/p/meego/language/nl/)\n"
 "MIME-Version: 1.0\n"
@@ -67,7 +67,8 @@ msgstr "Vroeg naar wachtwoord, maar '- no-passwd' is ingesteld\n"
 msgid "Cannot handle form method='%s', action='%s'\n"
 msgstr "Kan niet overweg met formuliermethode = '%s', actie = '%s'\n"
 
-#: auth.c:505
+#: auth.c:505 main.c:917
+#, c-format
 msgid "Failed to create UI\n"
 msgstr "Mislukt UI te creëren\n"
 
@@ -514,7 +515,7 @@ msgstr "Niet te openen tijdelijk CSD scriptbestand: %s\n"
 msgid "Failed to write temporary CSD script file: %s\n"
 msgstr "Niet mogelijk om tijdelijk CSD script file weg te schrijven: %s\n"
 
-#: http.c:458 main.c:728
+#: http.c:458 main.c:742
 #, c-format
 msgid "Failed to set uid %ld\n"
 msgstr "Mislukt instellen uid %ld\n"
@@ -955,129 +956,134 @@ msgstr ""
 msgid "Option '%s' requires an argument at line %d\n"
 msgstr ""
 
-#: main.c:384
+#: main.c:364
+#, c-format
+msgid "Cannot ask for user input while in non-interactive mode\n"
+msgstr ""
+
+#: main.c:398
 #, c-format
 msgid ""
 "WARNING: This version of openconnect is %s but\n"
 "         the libopenconnect library is %s\n"
 msgstr "Waarschuwing: De versie van openconnect is %s maar de\n              versie van de libopenconnect library is %s\n"
 
-#: main.c:393
+#: main.c:407
 #, c-format
 msgid "Failed to allocate vpninfo structure\n"
 msgstr "Niet gelukt vpninfo structuur toe te wijzen\n"
 
-#: main.c:428
+#: main.c:442
 #, c-format
 msgid "Cannot use 'config' option inside config file\n"
 msgstr ""
 
-#: main.c:433
+#: main.c:447
 #, c-format
 msgid "Cannot open config file '%s': %s\n"
 msgstr ""
 
-#: main.c:508
+#: main.c:522
 #, c-format
 msgid "Unknown certificate type '%s'\n"
 msgstr "Onbekend certificaat type '%s'\n"
 
-#: main.c:533
+#: main.c:547
 #, c-format
 msgid "MTU %d too small\n"
 msgstr "MTU %d te klein\n"
 
-#: main.c:553
+#: main.c:567
 #, c-format
 msgid ""
 "Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
 "If this helps, please report to <openconnect-devel@lists.infradead.org>.\n"
 msgstr "Deactiveren hergebruiken alle HTTP-verbindingen als gevolg van - no-http-keepalive optie.\nAls dit helpt, meldt u zich bij <openconnect-devel@lists.infradead.org>.\n"
 
-#: main.c:575 main.c:589
+#: main.c:589 main.c:603
 #, c-format
 msgid "Invalid user \"%s\"\n"
 msgstr "Ongeldige gebruiker \"%s\"\n"
 
-#: main.c:607
+#: main.c:621
 #, c-format
 msgid "Queue length zero not permitted; using 1\n"
 msgstr "0-lengte van de wachtrij niet toegestaan, gebruik 1\n"
 
-#: main.c:618
+#: main.c:632
 #, c-format
 msgid "OpenConnect version %s\n"
 msgstr "OpenConnect versie %s\n"
 
-#: main.c:640
+#: main.c:654
 #, c-format
 msgid "Too many arguments on command line\n"
 msgstr ""
 
-#: main.c:643
+#: main.c:657
 #, c-format
 msgid "No server specified\n"
 msgstr "Geen server opgegeven\n"
 
-#: main.c:656
+#: main.c:670
 #, c-format
 msgid "This version of openconnect was built without libproxy support\n"
 msgstr "Deze versie van openconnect werd gebouwd zonder libproxy ondersteuning\n"
 
-#: main.c:706
+#: main.c:720
 #, c-format
 msgid "Failed to obtain WebVPN cookie\n"
 msgstr "Niet gelukt WebVPN cookie te verkrijgen\n"
 
-#: main.c:717
+#: main.c:731
 #, c-format
 msgid "Creating SSL connection failed\n"
 msgstr "Het maken van SSL-verbinding is mislukt\n"
 
-#: main.c:722
+#: main.c:736
 #, c-format
 msgid "Set up tun device failed\n"
 msgstr "Instellen tun apparaat is mislukt\n"
 
-#: main.c:735
+#: main.c:749
 #, c-format
 msgid "Set up DTLS failed; using SSL instead\n"
 msgstr "Instellen DTLS mislukt, gebruik SSL in plaats daarvan\n"
 
-#: main.c:738
+#: main.c:752
 #, c-format
 msgid "Connected %s as %s%s%s, using %s\n"
 msgstr "Verbonden %s als %s%s%s, met behulp van %s\n"
 
-#: main.c:748
+#: main.c:762
 msgid "No --script argument provided; DNS and routing are not configured\n"
 msgstr "No --script argument meegegeven; DNS en routering zijn niet geconfigureerd\n"
 
-#: main.c:750
+#: main.c:764
 msgid "See http://www.infradead.org/openconnect/vpnc-script.html\n"
 msgstr "Bekijk http://www.infradead.org/openconnect/vpnc-script.html\n"
 
-#: main.c:762
+#: main.c:776
 #, c-format
 msgid "Failed to open '%s' for write: %s\n"
 msgstr "Niet gelukt '%s' te openen voor schrijven: %s\n"
 
-#: main.c:773
+#: main.c:787
 #, c-format
 msgid "Continuing in background; pid %d\n"
 msgstr "Voortgezet in achtergrond; pid %d\n"
 
-#: main.c:795
+#: main.c:809
 #, c-format
 msgid "Failed to open %s for write: %s\n"
 msgstr "Niet gelukt %s te openen voor schrijven: %s\n"
 
-#: main.c:803
+#: main.c:817
 #, c-format
 msgid "Failed to write config to %s: %s\n"
 msgstr "Niet gelukt config te schrijven naar %s: %s\n"
 
-#: main.c:894
+#: main.c:908
 #, c-format
 msgid ""
 "\n"
@@ -1085,19 +1091,19 @@ msgid ""
 "Reason: %s\n"
 msgstr "\nCertificaat van VPN-server \"%s\" verificatie mislukt.\nReden: %s\n"
 
-#: main.c:902
+#: main.c:920
 msgid "Enter 'yes' to accept, 'no' to abort; anything else to view: "
 msgstr "Invoeren 'ja' om te accepteren, 'nee' om te stoppen, iets anders om te bekijken:"
 
-#: main.c:911
+#: main.c:929
 msgid "yes"
 msgstr "ja"
 
-#: main.c:922
+#: main.c:940
 msgid "no"
 msgstr "nee"
 
-#: main.c:926
+#: main.c:944
 #, c-format
 msgid "SHA1 fingerprint: %s\n"
 msgstr "SHA1 vingerafdruk: %s\n"
@@ -1323,73 +1329,73 @@ msgstr "<error>"
 msgid "Socket connect cancelled\n"
 msgstr ""
 
-#: ssl.c:1026
+#: ssl.c:1035
 #, c-format
 msgid "Failed to reconnect to proxy %s\n"
 msgstr "Niet geslaagd in opnieuw verbinden met proxy %s\n"
 
-#: ssl.c:1030
+#: ssl.c:1039
 #, c-format
 msgid "Failed to reconnect to host %s\n"
 msgstr "Niet gelukt om te verbinden met host %s\n"
 
-#: ssl.c:1094
+#: ssl.c:1101
 #, c-format
 msgid "Proxy from libproxy: %s://%s:%d/\n"
 msgstr "Proxy van libproxy: %s://%s:%d/\n"
 
-#: ssl.c:1125
+#: ssl.c:1132
 #, c-format
 msgid "getaddrinfo failed for host '%s': %s\n"
 msgstr "getaddrinfo mislukt voor '%s' host: %s\n"
 
-#: ssl.c:1136
+#: ssl.c:1143
 #, c-format
 msgid "Attempting to connect to %s%s%s:%s\n"
 msgstr "Probeert verbinding te maken met %s%s%s:%s\n"
 
-#: ssl.c:1152
+#: ssl.c:1159
 msgid "Failed to allocate sockaddr storage\n"
 msgstr "Niet gelukt om sockaddr opslag toe te wijzen\n"
 
-#: ssl.c:1167
+#: ssl.c:1174
 #, c-format
 msgid "Failed to connect to host %s\n"
 msgstr "Niet geslaagd in maken verbinding met host %s\n"
 
-#: ssl.c:1196
+#: ssl.c:1203
 msgid "Loading certificate failed. Aborting.\n"
 msgstr "Laden van certificaat is mislukt. Afbreken.\n"
 
-#: ssl.c:1219
+#: ssl.c:1226
 #, c-format
 msgid "Failed to open CA file '%s'\n"
 msgstr "Niet gelukt om CA bestand '%s' te openen\n"
 
-#: ssl.c:1235
+#: ssl.c:1242
 #, c-format
 msgid "SSL negotiation with %s\n"
 msgstr "SSL afstemmen met %s\n"
 
-#: ssl.c:1251
+#: ssl.c:1258
 msgid "SSL connection failure\n"
 msgstr "SSL-verbinding niet geslaagd\n"
 
-#: ssl.c:1266
+#: ssl.c:1273
 msgid "SSL connection cancelled\n"
 msgstr ""
 
-#: ssl.c:1282
+#: ssl.c:1289
 #, c-format
 msgid "Connected to HTTPS on %s\n"
 msgstr "Verbonden met HTTPS op %s\n"
 
-#: ssl.c:1314
+#: ssl.c:1321
 #, c-format
 msgid "statvfs: %s\n"
 msgstr "statvfs: %s\n"
 
-#: ssl.c:1331
+#: ssl.c:1338
 #, c-format
 msgid "statfs: %s\n"
 msgstr "statfs: %s\n"
