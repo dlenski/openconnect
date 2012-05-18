@@ -996,7 +996,7 @@ static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 	   including a 'cancelfd' here too. */
 	select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
 	if (vpninfo->cancel_fd != -1 && FD_ISSET(vpninfo->cancel_fd, &rd_set)) {
-		vpninfo->progress(vpninfo, PRG_ERR, _("Socket connect cancelled\n"));
+		vpn_progress(vpninfo, PRG_ERR, _("Socket connect cancelled\n"));
 		errno = EINTR;
 		return -1;
 	}

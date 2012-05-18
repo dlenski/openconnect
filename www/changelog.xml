@@ -18,6 +18,7 @@
    <li><b>OpenConnect HEAD</b>
      <ul>
        <li>Cope with non-keepalive HTTP response on authentication success.</li>
+       <li>Fix progress callback with incorrect <tt>cbdata</tt> which caused KDE crash.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.19.tar.gz">OpenConnect v3.19</a></b>
