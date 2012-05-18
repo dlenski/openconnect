@@ -29,7 +29,6 @@ libopenconnect_la_LDFLAGS += -Wl,@VERSION_SCRIPT_ARG@,libopenconnect.map
 libopenconnect_la_DEPENDENCIES = libopenconnect.map
 endif
 
-pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = openconnect.pc
 
 EXTRA_DIST = version.sh openconnect.8 COPYING.LGPL libopenconnect.map

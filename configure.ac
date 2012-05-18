@@ -14,6 +14,16 @@ AC_PREREQ([2.59c], [], [AC_SUBST([htmldir], [m4_ifset([AC_PACKAGE_TARNAME],
 
 AC_PREREQ([2.60], [], [AC_SUBST([localedir], ['$(datadir)/locale'])])
 
+# Upstream's pkg.m4 (since 0.27) offers this now, but define our own
+# compatible version in case the local version of pkgconfig isn't new enough.
+# https://bugs.freedesktop.org/show_bug.cgi?id=48743
+m4_ifdef([PKG_INSTALLDIR], [PKG_INSTALLDIR],
+	  [AC_ARG_WITH([pkgconfigdir],
+		       [AS_HELP_STRING([--with-pkgconfigdir],
+		       [install directory for openconnect.pc pkg-config file])],
+			[],[with_pkgconfigdir='$(libdir)/pkgconfig'])
+	   AC_SUBST([pkgconfigdir], [${with_pkgconfigdir}])])
+
 AC_ARG_WITH([vpnc-script],
 	[AS_HELP_STRING([--with-vpnc-script],
 	  [default location of vpnc-script helper])])

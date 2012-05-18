@@ -17,7 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li><i>No changelog entries yet</i></li>
+       <li>Add <tt>--with-pkgconfigdir=</tt> option to <tt>configure</tt> for FreeBSD's benefit <i>(<a href="https://bugs.freedesktop.org/show_bug.cgi?id=48743">fd#48743</a>)</i>.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.20.tar.gz">OpenConnect v3.20</a></b>
