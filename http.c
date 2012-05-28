@@ -335,12 +335,8 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		}
 	}
 
-	if (closeconn || vpninfo->no_http_keepalive) {
-		SSL_free(vpninfo->https_ssl);
-		vpninfo->https_ssl = NULL;
-		close(vpninfo->ssl_fd);
-		vpninfo->ssl_fd = -1;
-	}
+	if (closeconn || vpninfo->no_http_keepalive)
+		openconnect_close_https(vpninfo);
 
 	if (body)
 		body[done] = 0;
@@ -646,7 +642,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		free(form_buf);
 		form_buf = NULL;
 	}
-	if (!vpninfo->https_ssl && openconnect_open_https(vpninfo)) {
+	if (openconnect_open_https(vpninfo)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to open HTTPS connection to %s\n"),
 			     vpninfo->hostname);
@@ -739,12 +735,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 				/* Kill the existing connection, and a new one will happen */
 				free(vpninfo->peer_addr);
 				vpninfo->peer_addr = NULL;
-				if (vpninfo->https_ssl) {
-					SSL_free(vpninfo->https_ssl);
-					vpninfo->https_ssl = NULL;
-					close(vpninfo->ssl_fd);
-					vpninfo->ssl_fd = -1;
-				}
+				openconnect_close_https(vpninfo);
 
 				for (opt = vpninfo->cookies; opt; opt = next) {
 					next = opt->next;

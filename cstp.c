@@ -378,7 +378,8 @@ int make_cstp_connection(struct openconnect_info *vpninfo)
 {
 	int ret;
 
-	if (!vpninfo->https_ssl && (ret = openconnect_open_https(vpninfo)))
+	ret = openconnect_open_https(vpninfo);
+	if (ret)
 		return ret;
 
 	if (vpninfo->deflate) {

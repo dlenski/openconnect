@@ -177,9 +177,7 @@ void openconnect_clear_cookie (struct openconnect_info *vpninfo)
 
 void openconnect_reset_ssl (struct openconnect_info *vpninfo)
 {
-	if (vpninfo->https_ssl) {
-		openconnect_close_https(vpninfo);
-	}
+	openconnect_close_https(vpninfo);
 	if (vpninfo->peer_addr) {
 		free(vpninfo->peer_addr);
 		vpninfo->peer_addr = NULL;
