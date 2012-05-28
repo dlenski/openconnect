@@ -137,7 +137,7 @@ AC_ENABLE_SHARED
 AC_DISABLE_STATIC
 
 AC_ARG_ENABLE([nls],
-	[ --disable-nls           do not use Native Language Support],
+	[  --disable-nls           do not use Native Language Support],
 	[USE_NLS=$enableval], [USE_NLS=yes])
 LIBINTL=
 if test "$USE_NLS" = "yes"; then
@@ -177,32 +177,72 @@ if test "$USE_NLS" = "yes"; then
 fi
 AM_CONDITIONAL(USE_NLS, [test "$USE_NLS" = "yes"])
 
+AC_ARG_WITH([gnutls],
+	AS_HELP_STRING([--with-gnutls], 
+		       [Use GnuTLS instead of OpenSSL (EXPERIMENTAL)]))
 AC_ARG_WITH([openssl],
             AS_HELP_STRING([--with-openssl],
-                           [Location of OpenSSL build dir]),
-            [OPENSSL_CFLAGS="-I${with_openssl}/include"
-             OPENSSL_LIBS="${with_openssl}/libssl.a ${with_openssl}/libcrypto.a -ldl -lz"
-	     AC_SUBST(OPENSSL_CFLAGS)
-	     AC_SUBST(OPENSSL_LIBS)
-	     enable_static=yes
-	     enable_shared=no],
-	    [PKG_CHECK_MODULES(OPENSSL, openssl, [],
-	    		       [oldLIBS="$LIBS"
-			       LIBS="$LIBS -lssl -lcrypto"
-			       AC_MSG_CHECKING([for OpenSSL without pkg-config])
-			       AC_LINK_IFELSE([AC_LANG_PROGRAM([
+                           [Location of OpenSSL build dir]))
+ssl_library=
+
+if test "$with_gnutls" = "yes"; then
+    AC_MSG_ERROR([GnuTLS support is experimental. It does not work yet.])
+elif test "$with_gnutls" = "shibboleet"; then
+    if test "$with_openssl" != "no" && test "$with_openssl" != ""; then
+	AC_MSG_ERROR([Cannot use both OpenSSL and GnuTLS simultaneously])
+    fi
+    PKG_CHECK_MODULES(GNUTLS, gnutls)
+    with_openssl=no
+    ssl_library=gnutls
+elif test "$with_gnutls" != "" && test "$with_gnutls" != "no"; then
+    AC_MSG_ERROR([Values other than 'yes' or 'no' for --with-gnutls are not supported])
+fi
+
+if test "$with_openssl" = "yes" || test "$with_openssl" = "" ; then
+    PKG_CHECK_MODULES(OPENSSL, openssl, [],
+	[oldLIBS="$LIBS"
+	 LIBS="$LIBS -lssl -lcrypto"
+	 AC_MSG_CHECKING([for OpenSSL without pkg-config])
+	 AC_LINK_IFELSE([AC_LANG_PROGRAM([
 			        #include <openssl/ssl.h>
 				#include <openssl/err.h>],[
 				SSL_library_init();
 				ERR_clear_error();
 				SSL_load_error_strings();
 				OpenSSL_add_all_algorithms();])],
-			       [AC_MSG_RESULT(yes)
-			        AC_SUBST([OPENSSL_LIBS], ["-lssl -lcrypto"])
-				AC_SUBST([OPENSSL_CFLAGS], [])],
-			       [AC_MSG_RESULT(no)
-				AC_ERROR([Could not build against OpenSSL])])
-				LIBS="$oldLIBS"])])
+			[AC_MSG_RESULT(yes)
+			 AC_SUBST([OPENSSL_LIBS], ["-lssl -lcrypto"])
+			 AC_SUBST([OPENSSL_CFLAGS], [])],
+			[AC_MSG_RESULT(no)
+			 AC_ERROR([Could not build against OpenSSL])])
+	 LIBS="$oldLIBS"])
+    ssl_library=openssl
+elif test "$with_openssl" != "no" ; then
+    OPENSSL_CFLAGS="-I${with_openssl}/include"
+    OPENSSL_LIBS="${with_openssl}/libssl.a ${with_openssl}/libcrypto.a -ldl -lz"
+    AC_SUBST(OPENSSL_CFLAGS)
+    AC_SUBST(OPENSSL_LIBS)
+    enable_static=yes
+    enable_shared=no
+    ssl_library=openssl
+fi
+
+case "$ssl_library" in
+    gnutls)
+	AC_DEFINE(OPENCONNECT_GNUTLS, 1)
+	AC_SUBST(SSL_LIBS, [$GNUTLS_LIBS])
+	AC_SUBST(SSL_CFLAGS, [$GNUTLS_CFLAGS])
+	;;
+    openssl)
+	AC_DEFINE(OPENCONNECT_OPENSSL, 1)
+	AC_SUBST(SSL_LIBS, [$OPENSSL_LIBS])
+	AC_SUBST(SSL_CFLAGS, [$OPENSSL_CFLAGS])
+	;;
+    *)
+	AC_MSG_ERROR([Neither OpenSSL nor GnuTLS selected for SSL.])
+	;;
+esac
+AC_SUBST(SSL_LIBRARY, $ssl_library)
 
 # Needs to happen after we default to static/shared libraries based on OpenSSL
 AC_PROG_LIBTOOL
@@ -282,11 +322,12 @@ AC_CHECK_HEADER([if_tun.h],
             [AC_CHECK_HEADER([net/tun/if_tun.h],
                 [AC_DEFINE([IF_TUN_HDR], ["net/tun/if_tun.h"])])])])])
 
-oldLIBS="$LIBS"
-LIBS="$LIBS $OPENSSL_LIBS"
+if test "${ssl_library}" = "openssl"; then
+    oldLIBS="$LIBS"
+    LIBS="$LIBS $OPENSSL_LIBS"
 
-AC_MSG_CHECKING([for ENGINE_by_id() in OpenSSL])
-AC_LINK_IFELSE([AC_LANG_PROGRAM(
+    AC_MSG_CHECKING([for ENGINE_by_id() in OpenSSL])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM(
 	[#include <openssl/engine.h>],
 	[ENGINE_by_id("foo");])],
 	[AC_MSG_RESULT(yes)
@@ -294,8 +335,8 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM(
 	[AC_MSG_RESULT(no)
 	 AC_MSG_NOTICE([Building without OpenSSL TPM ENGINE support])])
 
-AC_MSG_CHECKING([for dtls1_stop_timer() in OpenSSL])
-AC_LINK_IFELSE([AC_LANG_PROGRAM(
+    AC_MSG_CHECKING([for dtls1_stop_timer() in OpenSSL])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM(
 	[#include <openssl/ssl.h>
 	 #include <stdlib.h>
 	 extern void dtls1_stop_timer(SSL *);],
@@ -303,7 +344,8 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM(
 	[AC_MSG_RESULT(yes)
 	 AC_DEFINE(HAVE_DTLS1_STOP_TIMER, [1], [OpenSSL has dtls1_stop_timer() function])],
 	[AC_MSG_RESULT(no)])
-LIBS="$oldLIBS"
+    LIBS="$oldLIBS"
+fi
 
 AC_PATH_PROG(PYTHON, [python], [], $PATH:/bin:/usr/bin)
 if (test -n "${ac_cv_path_PYTHON}"); then
