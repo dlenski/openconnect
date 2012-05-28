@@ -374,7 +374,11 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 	}
 	sprintf(buf + strlen(buf),  "X-Transcend-Version: 1\r\n\r\n");
 
-	SSL_write(vpninfo->https_ssl, buf, strlen(buf));
+	if (openconnect_SSL_write(vpninfo, buf, strlen(buf))) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to send GET request for new config\n"));
+		return -EIO;
+	}
 
 	buflen = process_http_response(vpninfo, &result, NULL, &config_buf);
 	if (buflen < 0) {
