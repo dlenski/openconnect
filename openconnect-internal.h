@@ -48,6 +48,8 @@
 #endif
 #define N_(s) s
 
+#define SHA1_SIZE 20
+
 /****************************************************************************/
 
 struct pkt {
@@ -124,7 +126,7 @@ struct openconnect_info {
 	const char *cafile;
 	const char *servercert;
 	const char *xmlconfig;
-	char xmlsha1[(SHA_DIGEST_LENGTH * 2) + 1];
+	char xmlsha1[(SHA1_SIZE * 2) + 1];
 	char *username;
 	char *password;
 	char *authgroup;
@@ -288,6 +290,9 @@ void openconnect_close_https(struct openconnect_info *vpninfo);
 int get_cert_md5_fingerprint(struct openconnect_info *vpninfo, X509 *cert,
 			     char *buf);
 void openconnect_report_ssl_errors(struct openconnect_info *vpninfo);
+
+/* ${SSL_LIBRARY}.c */
+int openconnect_sha1(unsigned char *result, void *data, int len);
 
 /* mainloop.c */
 int vpn_add_pollfd(struct openconnect_info *vpninfo, int fd, short events);

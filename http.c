@@ -351,9 +351,8 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 	char buf[MAX_BUF_LEN];
 	char *config_buf = NULL;
 	int result, buflen;
-	unsigned char local_sha1_bin[SHA_DIGEST_LENGTH];
-	char local_sha1_ascii[(SHA_DIGEST_LENGTH * 2)+1];
-	EVP_MD_CTX c;
+	unsigned char local_sha1_bin[SHA1_SIZE];
+	char local_sha1_ascii[(SHA1_SIZE * 2)+1];
 	int i;
 
 	sprintf(buf, "GET %s%s HTTP/1.1\r\n", fu, bu);
@@ -387,11 +386,9 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 		return -EINVAL;
 	}
 
-	EVP_MD_CTX_init(&c);
-	EVP_Digest(config_buf, buflen, local_sha1_bin, NULL, EVP_sha1(), NULL);
-	EVP_MD_CTX_cleanup(&c);
+	openconnect_sha1(local_sha1_bin, config_buf, buflen);
 
-	for (i = 0; i < SHA_DIGEST_LENGTH; i++)
+	for (i = 0; i < SHA1_SIZE; i++)
 		sprintf(&local_sha1_ascii[i*2], "%02x", local_sha1_bin[i]);
 
 	if (strcasecmp(server_sha1, local_sha1_ascii)) {
@@ -853,7 +850,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 					fu = tok + 3;
 				else if (!strncmp(tok, "fh:", 3)) {
 					if (!strncasecmp(tok+3, vpninfo->xmlsha1,
-							 SHA_DIGEST_LENGTH * 2))
+							 SHA1_SIZE * 2))
 						break;
 					sha = tok + 3;
 				}

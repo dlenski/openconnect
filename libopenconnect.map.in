@@ -54,4 +54,5 @@ OPENCONNECT_PRIVATE {
 	openconnect_create_useragent;
 	openconnect_report_ssl_errors;
 	openconnect_get_cert_details;
+	openconnect_sha1;
 };

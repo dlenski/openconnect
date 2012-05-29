@@ -41,8 +41,7 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 	int fd, i;
 	struct stat st;
 	char *xmlfile;
-	EVP_MD_CTX c;
-	unsigned char sha1[SHA_DIGEST_LENGTH];
+	unsigned char sha1[SHA1_SIZE];
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node, *xml_node2;
 
@@ -69,11 +68,13 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 		return -1;
 	}
 
-	EVP_MD_CTX_init(&c);
-	EVP_Digest(xmlfile, st.st_size, sha1, NULL, EVP_sha1(), NULL);
-	EVP_MD_CTX_cleanup(&c);
+	if (openconnect_sha1(sha1, xmlfile, st.st_size)) {
+		fprintf(stderr, _("Failed to SHA1 existing file\n"));
+		close(fd);
+		return -1;
+	}
 
-	for (i = 0; i < SHA_DIGEST_LENGTH; i++)
+	for (i = 0; i < SHA1_SIZE; i++)
 		sprintf(&vpninfo->xmlsha1[i*2], "%02x", sha1[i]);
 
 	vpn_progress(vpninfo, PRG_TRACE, _("XML config file SHA1: %s\n"),
