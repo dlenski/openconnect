@@ -192,6 +192,9 @@ elif test "$with_gnutls" = "shibboleet"; then
 	AC_MSG_ERROR([Cannot use both OpenSSL and GnuTLS simultaneously])
     fi
     PKG_CHECK_MODULES(GNUTLS, gnutls)
+    if ! $PKG_CONFIG --atleast-version=2.12.16 gnutls; then
+       AC_MSG_ERROR([Your GnuTLS is too old. At least v2.12.16 is required])
+    fi
     with_openssl=no
     ssl_library=gnutls
 elif test "$with_gnutls" != "" && test "$with_gnutls" != "no"; then
