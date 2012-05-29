@@ -1007,21 +1007,10 @@ static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 	return getpeername(sockfd, (void *)&peer, &peerlen);
 }
 
-int openconnect_open_https(struct openconnect_info *vpninfo)
+static int connect_https_socket(struct openconnect_info *vpninfo)
 {
-	method_const SSL_METHOD *ssl3_method;
-	SSL *https_ssl;
-	BIO *https_bio;
 	int ssl_sock = -1;
 	int err;
-
-	if (vpninfo->https_ssl)
-		return 0;
-
-	if (vpninfo->peer_cert) {
-		X509_free(vpninfo->peer_cert);
-		vpninfo->peer_cert = NULL;
-	}
 
 	if (!vpninfo->port)
 		vpninfo->port = 443;
@@ -1193,6 +1182,29 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			return err;
 		}
 	}
+
+	return ssl_sock;
+}
+
+int openconnect_open_https(struct openconnect_info *vpninfo)
+{
+	method_const SSL_METHOD *ssl3_method;
+	SSL *https_ssl;
+	BIO *https_bio;
+	int ssl_sock;
+	int err;
+
+	if (vpninfo->https_ssl)
+		return 0;
+
+	if (vpninfo->peer_cert) {
+		X509_free(vpninfo->peer_cert);
+		vpninfo->peer_cert = NULL;
+	}
+
+	ssl_sock = connect_https_socket(vpninfo);
+	if (ssl_sock < 0)
+		return ssl_sock;
 
 	ssl3_method = TLSv1_client_method();
 	if (!vpninfo->https_ctx) {
