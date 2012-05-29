@@ -54,7 +54,7 @@ unsigned char unhex(const char *data)
 	return (nybble(data[0]) << 4) | nybble(data[1]);
 }
 
-#ifdef SSL_OP_CISCO_ANYCONNECT
+#if defined (OPENCONNECT_OPENSSL) && defined (SSL_OP_CISCO_ANYCONNECT)
 #if 0
 /*
  * Useful for catching test cases, where we want everything to be
