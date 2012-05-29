@@ -361,8 +361,8 @@ RAWLINGUAS=`sed -e "/^#/d" -e "s/#.*//" "${srcdir}/po/LINGUAS"`
 LINGUAS=`echo $RAWLINGUAS`
 AC_SUBST(LINGUAS)
 
-APIMAJOR="`sed -n 's/^#define OPENCONNECT_API_VERSION_MAJOR \(.*\)/\1/p' openconnect.h`"
-APIMINOR="`sed -n 's/^#define OPENCONNECT_API_VERSION_MINOR \(.*\)/\1/p' openconnect.h`"
+APIMAJOR="`sed -n 's/^#define OPENCONNECT_API_VERSION_MAJOR \(.*\)/\1/p' ${srcdir}/openconnect.h`"
+APIMINOR="`sed -n 's/^#define OPENCONNECT_API_VERSION_MINOR \(.*\)/\1/p' ${srcdir}/openconnect.h`"
 AC_SUBST(APIMAJOR)
 AC_SUBST(APIMINOR)
 
