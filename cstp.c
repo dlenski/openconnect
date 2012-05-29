@@ -29,6 +29,9 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
