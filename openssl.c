@@ -25,6 +25,7 @@
 #include <errno.h>
 
 #include <openssl/evp.h>
+#include <openssl/rand.h>
 
 #include "openconnect-internal.h"
 
@@ -61,4 +62,11 @@ int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
 	memcpy(*buf, certinfo->data, l);
 	BIO_free(bp);
 	return l;
+}
+
+int openconnect_random(void *bytes, int len)
+{
+	if (RAND_bytes(bytes, len) != 1)
+		return -EIO;
+	return 0;
 }

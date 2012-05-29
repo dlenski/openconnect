@@ -293,6 +293,7 @@ void openconnect_report_ssl_errors(struct openconnect_info *vpninfo);
 
 /* ${SSL_LIBRARY}.c */
 int openconnect_sha1(unsigned char *result, void *data, int len);
+int openconnect_random(void *bytes, int len);
 
 /* mainloop.c */
 int vpn_add_pollfd(struct openconnect_info *vpninfo, int fd, short events);

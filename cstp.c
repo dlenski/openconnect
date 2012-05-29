@@ -35,7 +35,6 @@
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#include <openssl/rand.h>
 
 #include "openconnect-internal.h"
 
@@ -108,7 +107,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	/* Create (new) random master key for DTLS connection, if needed */
 	if (vpninfo->dtls_times.last_rekey + vpninfo->dtls_times.rekey <
 	    time(NULL) + 300 &&
-	    RAND_bytes(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)) != 1) {
+	    openconnect_random(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret))) {
 		fprintf(stderr, _("Failed to initialise DTLS secret\n"));
 		exit(1);
 	}
