@@ -64,6 +64,8 @@ static void syslog_progress(void *_vpninfo,
 			    int level, const char *fmt, ...);
 static int validate_peer_cert(void *_vpninfo,
 			      X509 *peer_cert, const char *reason);
+static int process_auth_form(void *_vpninfo,
+			     struct oc_auth_form *form);
 
 /* A sanity check that the openconnect executable is running against a
    library of the same version */
@@ -421,6 +423,7 @@ int main(int argc, char **argv)
 	vpninfo->uid_csd = 0;
 	vpninfo->uid_csd_given = 0;
 	vpninfo->validate_peer_cert = validate_peer_cert;
+	vpninfo->process_auth_form = process_auth_form;
 	vpninfo->cbdata = vpninfo;
 	vpninfo->cert_expire_warning = 60 * 86400;
 	vpninfo->vpnc_script = DEFAULT_VPNCSCRIPT;
@@ -947,4 +950,184 @@ static int validate_peer_cert(void *_vpninfo, X509 *peer_cert,
 		fprintf(stderr, _("SHA1 fingerprint: %s\n"), fingerprint);
 	}
 				
+}
+
+
+/* Return value:
+ *  < 0, on error
+ *  = 0, when form was parsed and POST required
+ *  = 1, when response was cancelled by user
+ */
+static int process_auth_form(void *_vpninfo,
+			     struct oc_auth_form *form)
+{
+	struct openconnect_info *vpninfo = _vpninfo;
+	UI *ui = UI_new();
+	char banner_buf[1024], msg_buf[1024], err_buf[1024];
+	char choice_prompt[1024], choice_resp[80];
+	int ret = 0, input_count=0;
+	struct oc_form_opt *opt;
+	struct oc_form_opt_select *select_opt = NULL;
+
+	choice_resp[0] = 0;
+
+	if (!ui) {
+		vpn_progress(vpninfo, PRG_ERR, _("Failed to create UI\n"));
+		return -EINVAL;
+	}
+	if (form->banner) {
+		banner_buf[1023] = 0;
+		snprintf(banner_buf, 1023, "%s\n", form->banner);
+		UI_add_info_string(ui, banner_buf);
+	}
+	if (form->error) {
+		err_buf[1023] = 0;
+		snprintf(err_buf, 1023, "%s\n", form->error);
+		UI_add_error_string(ui, err_buf);
+	}
+	if (form->message) {
+		msg_buf[1023] = 0;
+		snprintf(msg_buf, 1023, "%s\n", form->message);
+		UI_add_info_string(ui, msg_buf);
+	}
+
+	/* scan for select options first so they are displayed first */
+	for (opt = form->opts; opt; opt = opt->next) {
+		if (opt->type == OC_FORM_OPT_SELECT) {
+			struct oc_choice *choice = NULL;
+			int i;
+
+			select_opt = (void *)opt;
+
+			if (!select_opt->nr_choices)
+				continue;
+
+			if (vpninfo->authgroup &&
+			    !strcmp(opt->name, "group_list")) {
+				for (i = 0; i < select_opt->nr_choices; i++) {
+					choice = &select_opt->choices[i];
+
+					if (!strcmp(vpninfo->authgroup,
+						    choice->label)) {
+						opt->value = choice->name;
+						break;
+					}
+				}
+				if (!opt->value)
+					vpn_progress(vpninfo, PRG_ERR,
+						     _("Auth choice \"%s\" not available\n"),
+						     vpninfo->authgroup);
+			}
+			if (!opt->value && select_opt->nr_choices == 1) {
+				choice = &select_opt->choices[0];
+				opt->value = choice->name;
+			}
+			if (opt->value) {
+				select_opt = NULL;
+				continue;
+			}
+			snprintf(choice_prompt, 1023, "%s [", opt->label);
+			for (i = 0; i < select_opt->nr_choices; i++) {
+				choice = &select_opt->choices[i];
+				if (i)
+					strncat(choice_prompt, "|", 1023 - strlen(choice_prompt));
+
+				strncat(choice_prompt, choice->label, 1023 - strlen(choice_prompt));
+			}
+			strncat(choice_prompt, "]:", 1023 - strlen(choice_prompt));
+
+			UI_add_input_string(ui, choice_prompt, UI_INPUT_FLAG_ECHO, choice_resp, 1, 80);
+			input_count++;
+		}
+	}
+
+	for (opt = form->opts; opt; opt = opt->next) {
+
+		if (opt->type == OC_FORM_OPT_TEXT) {
+			if (vpninfo->username &&
+			    !strcmp(opt->name, "username")) {
+				opt->value = strdup(vpninfo->username);
+				if (!opt->value) {
+					ret = -ENOMEM;
+					goto out_ui;
+				}
+			} else {
+				opt->value=malloc(80);
+				if (!opt->value) {
+					ret = -ENOMEM;
+					goto out_ui;
+				}
+				UI_add_input_string(ui, opt->label, UI_INPUT_FLAG_ECHO, opt->value, 1, 80);
+				input_count++;
+			}
+
+		} else if (opt->type == OC_FORM_OPT_PASSWORD) {
+			if (vpninfo->password &&
+			    !strcmp(opt->name, "password")) {
+				opt->value = strdup(vpninfo->password);
+				vpninfo->password = NULL;
+				if (!opt->value) {
+					ret = -ENOMEM;
+					goto out_ui;
+				}
+			} else {
+				opt->value=malloc(80);
+				if (!opt->value) {
+					ret = -ENOMEM;
+					goto out_ui;
+				}
+				UI_add_input_string(ui, opt->label, 0, opt->value, 1, 80);
+				input_count++;
+			}
+
+		}
+	}
+
+	if (!input_count) {
+		ret = 0;
+		goto out_ui;
+	}
+
+	switch (UI_process(ui)) {
+	case -2:
+		/* cancelled */
+		ret = 1;
+		goto out_ui;
+	case -1:
+		/* error */
+		vpn_progress(vpninfo, PRG_ERR, _("Invalid inputs\n"));
+		ret = -EINVAL;
+	out_ui:
+		UI_free(ui);
+		return ret;
+	}
+
+	UI_free(ui);
+
+	if (select_opt) {
+		struct oc_choice *choice = NULL;
+		int i;
+
+		for (i = 0; i < select_opt->nr_choices; i++) {
+			choice = &select_opt->choices[i];
+
+			if (!strcmp(choice_resp, choice->label)) {
+				select_opt->form.value = choice->name;
+				break;
+			}
+		}
+		if (!select_opt->form.value) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Auth choice \"%s\" not valid\n"),
+				     choice_resp);
+			return -EINVAL;
+		}
+	}
+
+	if (vpninfo->password) {
+		free(vpninfo->password);
+		vpninfo->password = NULL;
+	}
+
+	return 0;
 }

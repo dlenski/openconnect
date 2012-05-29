@@ -201,7 +201,12 @@ typedef int (*openconnect_validate_peer_cert_vfn) (void *privdata,
    then the new XML is downloaded and this function is invoked. */
 typedef int (*openconnect_write_new_config_vfn) (void *privdata, char *buf,
 						int buflen);
-/* Handle an authentication form, requesting input from the user. */
+/* Handle an authentication form, requesting input from the user. 
+ * Return value:
+ *  < 0, on error
+ *  = 0, when form was parsed and POST required
+ *  = 1, when response was cancelled by user
+ */
 typedef int (*openconnect_process_auth_form_vfn) (void *privdata,
 						 struct oc_auth_form *form);
 /* Logging output which the user *may* want to see. */
