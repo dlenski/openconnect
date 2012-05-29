@@ -155,7 +155,7 @@ void openconnect_set_client_cert (struct openconnect_info *vpninfo, char *cert, 
 		vpninfo->sslkey = cert;
 }
 
-struct x509_st *openconnect_get_peer_cert (struct openconnect_info *vpninfo)
+OPENCONNECT_X509 *openconnect_get_peer_cert (struct openconnect_info *vpninfo)
 {
 	return vpninfo->peer_cert;
 }

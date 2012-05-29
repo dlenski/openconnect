@@ -138,7 +138,7 @@ struct openconnect_info {
 	int uid_csd_given;
 	int no_http_keepalive;
 
-	X509 *peer_cert;
+	OPENCONNECT_X509 *peer_cert;
 
 	char *cookie; /* Pointer to within cookies list */
 	struct vpn_option *cookies;
@@ -291,7 +291,7 @@ int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t le
 int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len);
 int openconnect_open_https(struct openconnect_info *vpninfo);
 void openconnect_close_https(struct openconnect_info *vpninfo);
-int get_cert_md5_fingerprint(struct openconnect_info *vpninfo, X509 *cert,
+int get_cert_md5_fingerprint(struct openconnect_info *vpninfo, OPENCONNECT_X509 *cert,
 			     char *buf);
 /* This one is actually OpenSSL-specific */
 void openconnect_report_ssl_errors(struct openconnect_info *vpninfo);

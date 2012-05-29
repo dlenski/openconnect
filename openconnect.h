@@ -119,21 +119,29 @@ struct oc_auth_form {
 #define PRG_TRACE	3
 
 struct openconnect_info;
-/* We don't want to have to pull in OpenSSL stuff just for this */
+
+#if defined (OPENCONNECT_OPENSSL)
 struct x509_st;
+#define OPENCONNECT_X509 struct x509_st
+#elif defined (OPENCONNECT_GNUTLS)
+struct gnutls_x509_crt_int;
+#define OPENCONNECT_X509 struct gnutls_x509_crt_int
+#else
+#error You are not building correctly using pkg-config.
+#endif
 
 
 
 /* Unless otherwise specified, all functions which set strings will take ownership of those strings
    and should free them later in openconnect_vpninfo_free() */
 int openconnect_get_cert_sha1(struct openconnect_info *vpninfo,
-			      struct x509_st *cert, char *buf);
+			      OPENCONNECT_X509 *cert, char *buf);
 char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
-				   struct x509_st *cert);
+				   OPENCONNECT_X509 *cert);
 /* Returns the length of the created DER output, in a newly-allocated buffer
    that will need to be freed by the caller. */
 int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
-			     struct x509_st *cert, unsigned char **buf);
+			     OPENCONNECT_X509 *cert, unsigned char **buf);
 int openconnect_set_http_proxy(struct openconnect_info *vpninfo, char *proxy);
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo);
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo);
@@ -157,7 +165,7 @@ void openconnect_set_client_cert (struct openconnect_info *, char *cert, char *s
  * will be valid when a cookie has been obtained successfully, and will
  * be valid until the connection is destroyed or another attempt it made
  * to use it. */
-struct x509_st *openconnect_get_peer_cert (struct openconnect_info *);
+OPENCONNECT_X509 *openconnect_get_peer_cert (struct openconnect_info *);
 
 int openconnect_get_port (struct openconnect_info *);
 char *openconnect_get_cookie (struct openconnect_info *);
@@ -194,8 +202,8 @@ const char *openconnect_get_version(void);
    if the certificate is (or has in the past been) explicitly accepted
    by the user, and non-zero to abort the connection. */
 typedef int (*openconnect_validate_peer_cert_vfn) (void *privdata,
-						  struct x509_st *cert,
-						  const char *reason);
+						   OPENCONNECT_X509 *cert,
+						   const char *reason);
 /* On a successful connection, the server may provide us with a new XML
    configuration file. This contains the list of servers that can be
    chosen by the user to connect to, amongst other stuff that we mostly
@@ -229,7 +237,7 @@ void openconnect_vpninfo_free (struct openconnect_info *vpninfo);
    vpninfo instead of a caller-provided pointer. You probably don't want to
    use these; they're here for compatibility only. */
 typedef int (*openconnect_validate_peer_cert_fn) (struct openconnect_info *,
-						  struct x509_st *cert,
+						  OPENCONNECT_X509 *cert,
 						  const char *reason);
 typedef int (*openconnect_write_new_config_fn) (struct openconnect_info *, char *buf,
 						int buflen);

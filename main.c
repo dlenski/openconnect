@@ -63,7 +63,8 @@ static void write_progress(void *_vpninfo,
 static void syslog_progress(void *_vpninfo,
 			    int level, const char *fmt, ...);
 static int validate_peer_cert(void *_vpninfo,
-			      X509 *peer_cert, const char *reason);
+			      OPENCONNECT_X509 *peer_cert,
+			      const char *reason);
 static int process_auth_form(void *_vpninfo,
 			     struct oc_auth_form *form);
 
@@ -877,15 +878,15 @@ void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
 
 struct accepted_cert {
 	struct accepted_cert *next;
-	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
+	char fingerprint[SHA1_SIZE * 2 + 1];
 	char host[0];
 } *accepted_certs;
 
-static int validate_peer_cert(void *_vpninfo, X509 *peer_cert,
+static int validate_peer_cert(void *_vpninfo, OPENCONNECT_X509 *peer_cert,
 			      const char *reason)
 {
 	struct openconnect_info *vpninfo = _vpninfo;
-	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
+	char fingerprint[SHA1_SIZE * 2 + 1];
 	struct accepted_cert *this;
 	int ret;
 
