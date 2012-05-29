@@ -1166,3 +1166,17 @@ char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
 	return ret;
 }
 
+
+int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
+			       char *buf)
+{
+	buf[0] = 0;
+
+	if (!vpninfo->cert_x509)
+		return -EIO;
+
+	if (get_cert_md5_fingerprint(vpninfo, vpninfo->cert_x509, buf))
+		return -EIO;
+
+	return 0;
+}

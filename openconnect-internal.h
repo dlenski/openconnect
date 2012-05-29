@@ -49,6 +49,7 @@
 #define N_(s) s
 
 #define SHA1_SIZE 20
+#define MD5_SIZE 16
 
 /****************************************************************************/
 
@@ -296,6 +297,8 @@ int get_cert_md5_fingerprint(struct openconnect_info *vpninfo, X509 *cert,
 void openconnect_report_ssl_errors(struct openconnect_info *vpninfo);
 int openconnect_sha1(unsigned char *result, void *data, int len);
 int openconnect_random(void *bytes, int len);
+int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
+			       char *buf);
 
 /* mainloop.c */
 int vpn_add_pollfd(struct openconnect_info *vpninfo, int fd, short events);

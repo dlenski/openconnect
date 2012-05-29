@@ -32,10 +32,9 @@
 #include <pwd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <openssl/engine.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "openconnect-internal.h"
 
@@ -441,10 +440,8 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 	close(fd);
 
 	if (!fork()) {
-		X509 *scert = SSL_get_peer_certificate(vpninfo->https_ssl);
-		X509 *ccert = SSL_get_certificate(vpninfo->https_ssl);
-		char scertbuf[EVP_MAX_MD_SIZE * 2 + 1];
-		char ccertbuf[EVP_MAX_MD_SIZE * 2 + 1];
+		char scertbuf[MD5_SIZE * 2 + 1];
+		char ccertbuf[MD5_SIZE * 2 + 1];
 		char *csd_argv[32];
 		int i = 0;
 
@@ -490,15 +487,13 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->authgroup?:"") == -1)
 			return -ENOMEM;
 
-		get_cert_md5_fingerprint(vpninfo, scert, scertbuf);
-		if (ccert)
-			get_cert_md5_fingerprint(vpninfo, ccert, ccertbuf);
-		else
-			ccertbuf[0] = 0;
-
+		openconnect_local_cert_md5(vpninfo, ccertbuf);
+		scertbuf[0] = 0;
+		get_cert_md5_fingerprint(vpninfo, vpninfo->peer_cert, scertbuf);
 		csd_argv[i++]= (char *)"-certhash";
 		if (asprintf(&csd_argv[i++], "\"%s:%s\"", scertbuf, ccertbuf) == -1)
 			return -ENOMEM;
+
 		csd_argv[i++]= (char *)"-url";
 		if (asprintf(&csd_argv[i++], "\"https://%s%s\"", vpninfo->hostname, vpninfo->csd_starturl) == -1)
 			return -ENOMEM;
