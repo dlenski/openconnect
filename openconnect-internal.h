@@ -280,6 +280,9 @@ int cstp_bye(struct openconnect_info *vpninfo, const char *reason);
 int cstp_reconnect(struct openconnect_info *vpninfo);
 
 /* ssl.c */
+int connect_https_socket(struct openconnect_info *vpninfo);
+
+/* ${SSL_LIBRARY}.c */
 int  __attribute__ ((format (printf, 2, 3)))
     openconnect_SSL_printf(struct openconnect_info *vpninfo, const char *fmt, ...);
 int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len);
@@ -289,9 +292,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo);
 void openconnect_close_https(struct openconnect_info *vpninfo);
 int get_cert_md5_fingerprint(struct openconnect_info *vpninfo, X509 *cert,
 			     char *buf);
+/* This one is actually OpenSSL-specific */
 void openconnect_report_ssl_errors(struct openconnect_info *vpninfo);
-
-/* ${SSL_LIBRARY}.c */
 int openconnect_sha1(unsigned char *result, void *data, int len);
 int openconnect_random(void *bytes, int len);
 
