@@ -28,7 +28,13 @@
 
 #include "openconnect.h"
 
+#if defined (OPENCONNECT_OPENSSL)
 #include <openssl/ssl.h>
+#elif defined (OPENCONNECT_GNUTLS)
+#include <gnutls/gnutls.h>
+#include <gnutls/x509.h>
+#endif
+
 #include <zlib.h>
 #include <stdint.h>
 #include <sys/socket.h>
@@ -36,9 +42,11 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+
 #ifdef LIBPROXY_HDR
 #include LIBPROXY_HDR
 #endif
+
 #ifdef ENABLE_NLS
 #include <locale.h>
 #include <libintl.h>
@@ -121,7 +129,6 @@ struct openconnect_info {
 	int cert_expire_warning;
 	const char *cert;
 	const char *sslkey;
-	X509 *cert_x509;
 	int cert_type;
 	char *cert_password;
 	const char *cafile;
@@ -145,8 +152,14 @@ struct openconnect_info {
 	struct vpn_option *cstp_options;
 	struct vpn_option *dtls_options;
 
+#if defined(OPENCONNECT_OPENSSL)
+	X509 *cert_x509;
 	SSL_CTX *https_ctx;
 	SSL *https_ssl;
+#elif defined(OPENCONNECT_GNUTLS)
+	gnutls_session_t https_sess;
+	gnutls_certificate_credentials_t https_cred;
+#endif
 	struct keepalive_info ssl_times;
 	int owe_ssl_dpd_response;
 	struct pkt *deflate_pkt;
@@ -163,10 +176,14 @@ struct openconnect_info {
 	int reconnect_interval;
 	int dtls_attempt_period;
 	time_t new_dtls_started;
+#if defined(OPENCONNECT_OPENSSL)
 	SSL_CTX *dtls_ctx;
 	SSL *dtls_ssl;
 	SSL *new_dtls_ssl;
 	SSL_SESSION *dtls_session;
+#elif defined(OPENCONNECT_GNUTLS)
+	/* FIXME */
+#endif
 	struct keepalive_info dtls_times;
 	unsigned char dtls_session_id[32];
 	unsigned char dtls_secret[48];

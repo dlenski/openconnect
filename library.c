@@ -100,8 +100,14 @@ void openconnect_vpninfo_free (struct openconnect_info *vpninfo)
 	if (vpninfo->cert != vpninfo->sslkey)
 		free((void *)vpninfo->sslkey);
 	free((void *)vpninfo->cert);
-	if (vpninfo->peer_cert)
+	if (vpninfo->peer_cert) {
+#if defined (OPENCONNECT_OPENSSL)
 		X509_free(vpninfo->peer_cert);
+#elif defined (OPENCONNECT_GNUTLS)
+		gnutls_x509_crt_deinit(vpninfo->peer_cert);
+#endif
+		vpninfo->peer_cert = NULL;
+	}
 	/* No need to free deflate streams; they weren't initialised */
 	free(vpninfo);
 }
@@ -183,10 +189,18 @@ void openconnect_reset_ssl (struct openconnect_info *vpninfo)
 		free(vpninfo->peer_addr);
 		vpninfo->peer_addr = NULL;
 	}
+#if defined (OPENCONNECT_OPENSSL)
 	if (vpninfo->https_ctx) {
 		SSL_CTX_free(vpninfo->https_ctx);
 		vpninfo->https_ctx = NULL;
 	}
+#elif defined (OPENCONNECT_GNUTLS)
+	if (vpninfo->https_cred) {
+		gnutls_certificate_free_credentials(vpninfo->https_cred);
+		vpninfo->https_cred = NULL;
+	}
+#endif
+
 }
 
 int openconnect_parse_url (struct openconnect_info *vpninfo, char *url)

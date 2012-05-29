@@ -497,6 +497,88 @@ static int inflate_and_queue_packet(struct openconnect_info *vpninfo,
 	return 0;
 }
 
+#if defined (OPENCONNECT_OPENSSL)
+static int cstp_read(struct openconnect_info *vpninfo, void *buf, int maxlen)
+{
+	int len, ret;
+
+	len = SSL_read(vpninfo->https_ssl, buf, maxlen);
+	if (len > 0)
+		return len;
+
+	ret = SSL_get_error(vpninfo->https_ssl, len);
+	if (ret == SSL_ERROR_SYSCALL || ret == SSL_ERROR_ZERO_RETURN) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("SSL read error %d (server probably closed connection); reconnecting.\n"),
+			     ret);
+		return -EIO;
+	}
+	return 0;
+}
+
+static int cstp_write(struct openconnect_info *vpninfo, void *buf, int buflen)
+{
+	int ret;
+
+	ret = SSL_write(vpninfo->https_ssl, buf, buflen);
+	if (ret > 0)
+		return ret;
+
+	ret = SSL_get_error(vpninfo->https_ssl, ret);
+	switch (ret) {
+	case SSL_ERROR_WANT_WRITE:
+		/* Waiting for the socket to become writable -- it's
+		   probably stalled, and/or the buffers are full */
+		FD_SET(vpninfo->ssl_fd, &vpninfo->select_wfds);
+	case SSL_ERROR_WANT_READ:
+		return 0;
+
+	default:
+		vpn_progress(vpninfo, PRG_ERR, _("SSL_write failed: %d\n"), ret);
+		openconnect_report_ssl_errors(vpninfo);
+		return -1;
+	}
+}
+#elif defined (OPENCONNECT_GNUTLS)
+static int cstp_read(struct openconnect_info *vpninfo, void *buf, int maxlen)
+{
+	int ret;
+
+	ret = gnutls_record_recv(vpninfo->https_sess, buf, maxlen);
+	if (ret > 0)
+		return ret;
+
+	if (ret != GNUTLS_E_AGAIN) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("SSL read error: %s; reconnecting.\n"),
+			     gnutls_strerror(ret));
+		return -EIO;
+	}
+	return 0;
+}
+
+static int cstp_write(struct openconnect_info *vpninfo, void *buf, int buflen)
+{
+	int ret;
+
+	ret = gnutls_record_send(vpninfo->https_sess, buf, buflen);
+	if (ret > 0)
+		return ret;
+
+	if (ret == GNUTLS_E_AGAIN) {
+		if (gnutls_record_get_direction(vpninfo->https_sess)) {
+			/* Waiting for the socket to become writable -- it's
+			   probably stalled, and/or the buffers are full */
+			FD_SET(vpninfo->ssl_fd, &vpninfo->select_wfds);
+		}
+		return 0;
+	}
+	vpn_progress(vpninfo, PRG_ERR, _("SSL send failed: %s\n"),
+		     gnutls_strerror(ret));
+	return -1;
+}
+#endif
+
 int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
 	unsigned char buf[16384];
@@ -509,7 +591,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	   we should probably remove POLLIN from the events we're looking for,
 	   and add POLLOUT. As it is, though, it'll just chew CPU time in that
 	   fairly unlikely situation, until the write backlog clears. */
-	while ( (len = SSL_read(vpninfo->https_ssl, buf, sizeof(buf))) > 0) {
+	while ( (len = cstp_read(vpninfo, buf, sizeof(buf))) > 0) {
 		int payload_len;
 
 		if (buf[0] != 'S' || buf[1] != 'T' ||
@@ -591,14 +673,8 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpninfo->quit_reason = "Unknown packet received";
 		return 1;
 	}
-
-	ret = SSL_get_error(vpninfo->https_ssl, len);
-	if (ret == SSL_ERROR_SYSCALL || ret == SSL_ERROR_ZERO_RETURN) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("SSL read error %d (server probably closed connection); reconnecting.\n"),
-			     ret);
-			goto do_reconnect;
-	}
+	if (len < 0)
+		goto do_reconnect;
 
 
 	/* If SSL_write() fails we are expected to try again. With exactly
@@ -608,27 +684,16 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	handle_outgoing:
 		vpninfo->ssl_times.last_tx = time(NULL);
 		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_wfds);
-		ret = SSL_write(vpninfo->https_ssl,
-				vpninfo->current_ssl_pkt->hdr,
-				vpninfo->current_ssl_pkt->len + 8);
-		if (ret <= 0) {
-			ret = SSL_get_error(vpninfo->https_ssl, ret);
-			switch (ret) {
-			case SSL_ERROR_WANT_WRITE:
-				/* Waiting for the socket to become writable -- it's
-				   probably stalled, and/or the buffers are full */
-				FD_SET(vpninfo->ssl_fd, &vpninfo->select_wfds);
 
-			case SSL_ERROR_WANT_READ:
-				if (ka_stalled_dpd_time(&vpninfo->ssl_times, timeout))
-					goto peer_dead;
-				return work_done;
-			default:
-				vpn_progress(vpninfo, PRG_ERR, _("SSL_write failed: %d\n"), ret);
-				openconnect_report_ssl_errors(vpninfo);
-				goto do_reconnect;
-			}
-		}
+		ret = cstp_write(vpninfo,
+				 vpninfo->current_ssl_pkt->hdr,
+				 vpninfo->current_ssl_pkt->len + 8);
+		
+		if (ret < 0)
+			goto do_reconnect;
+		else if (!ret && ka_stalled_dpd_time(&vpninfo->ssl_times, timeout))
+			goto peer_dead;
+
 		if (ret != vpninfo->current_ssl_pkt->len + 8) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("SSL wrote too few bytes! Asked for %d, sent %d\n"),
@@ -764,8 +829,13 @@ int cstp_bye(struct openconnect_info *vpninfo, const char *reason)
 	int reason_len;
 
 	/* already lost connection? */
+#if defined (OPENCONNECT_OPENSSL)
 	if (!vpninfo->https_ssl)
 		return 0;
+#elif defined (OPENCONNECT_GNUTLS)
+	if (!vpninfo->https_sess)
+		return 0;
+#endif
 
 	reason_len = strlen(reason);
 	bye_pkt = malloc(reason_len + 9);
@@ -780,11 +850,11 @@ int cstp_bye(struct openconnect_info *vpninfo, const char *reason)
 	bye_pkt[6] = AC_PKT_DISCONN;
 	bye_pkt[8] = 0xb0;
 
-	SSL_write(vpninfo->https_ssl, bye_pkt, reason_len + 9);
-	free(bye_pkt);
-
 	vpn_progress(vpninfo, PRG_INFO,
 		     _("Send BYE packet: %s\n"), reason);
+
+	cstp_write(vpninfo, bye_pkt, reason_len + 9);
+	free(bye_pkt);
 
 	return 0;
 }
