@@ -1017,6 +1017,11 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	if (vpninfo->https_ssl)
 		return 0;
 
+	if (vpninfo->peer_cert) {
+		X509_free(vpninfo->peer_cert);
+		vpninfo->peer_cert = NULL;
+	}
+
 	if (!vpninfo->port)
 		vpninfo->port = 443;
 
@@ -1287,6 +1292,10 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 	vpninfo->ssl_fd = ssl_sock;
 	vpninfo->https_ssl = https_ssl;
+
+	/* Stash this now, because it might not be available later if the
+	   server has disconnected. */
+	vpninfo->peer_cert = SSL_get_peer_certificate(vpninfo->https_ssl);
 
 	vpn_progress(vpninfo, PRG_INFO, _("Connected to HTTPS on %s\n"),
 		     vpninfo->hostname);
