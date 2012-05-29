@@ -22,6 +22,8 @@
  *   Boston, MA 02110-1301 USA
  */
 
+#include <errno.h>
+
 #include <openssl/evp.h>
 
 #include "openconnect-internal.h"
@@ -35,4 +37,28 @@ int openconnect_sha1(unsigned char *result, void *data, int len)
         EVP_MD_CTX_cleanup(&c);
 
         return 0;
+}
+
+int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
+			     struct x509_st *cert, unsigned char **buf)
+{
+	BIO *bp = BIO_new(BIO_s_mem());
+	BUF_MEM *certinfo;
+	size_t l;
+
+	if (!i2d_X509_bio(bp, cert)) {
+		BIO_free(bp);
+		return -EIO;
+	}
+
+	BIO_get_mem_ptr(bp, &certinfo);
+	l = certinfo->length;
+	*buf = malloc(l);
+	if (!*buf) {
+		BIO_free(bp);
+		return -ENOMEM;
+	}
+	memcpy(*buf, certinfo->data, l);
+	BIO_free(bp);
+	return l;
 }

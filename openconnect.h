@@ -130,6 +130,10 @@ int openconnect_get_cert_sha1(struct openconnect_info *vpninfo,
 			      struct x509_st *cert, char *buf);
 char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
 				   struct x509_st *cert);
+/* Returns the length of the created DER output, in a newly-allocated buffer
+   that will need to be freed by the caller. */
+int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
+			     struct x509_st *cert, unsigned char **buf);
 int openconnect_set_http_proxy(struct openconnect_info *vpninfo, char *proxy);
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo);
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo);
