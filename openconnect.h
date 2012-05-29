@@ -128,6 +128,8 @@ struct x509_st;
    and should free them later in openconnect_vpninfo_free() */
 int openconnect_get_cert_sha1(struct openconnect_info *vpninfo,
 			      struct x509_st *cert, char *buf);
+char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
+				   struct x509_st *cert);
 int openconnect_set_http_proxy(struct openconnect_info *vpninfo, char *proxy);
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo);
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo);

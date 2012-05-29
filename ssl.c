@@ -1330,6 +1330,23 @@ void openconnect_init_openssl(void)
 	OpenSSL_add_all_algorithms ();
 }
 
+char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
+				   struct x509_st *cert)
+{
+	BIO *bp = BIO_new(BIO_s_mem());
+	BUF_MEM *certinfo;
+	char zero = 0;
+	char *ret;
+
+	X509_print_ex(bp, cert, 0, 0);
+	BIO_write(bp, &zero, 1);
+	BIO_get_mem_ptr(bp, &certinfo);
+
+	ret = strdup(certinfo->data);
+	BIO_free(bp);
+	return ret;
+}
+
 #if defined(__sun__) || defined(__NetBSD__) || defined(__DragonFly__)
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 {

@@ -903,6 +903,7 @@ static int validate_peer_cert(void *_vpninfo, X509 *peer_cert,
 		UI *ui;
 		char buf[6];
 		int ret;
+		char *details;
 
 		fprintf(stderr,
 			_("\nCertificate from VPN server \"%s\" failed verification.\n"
@@ -940,7 +941,9 @@ static int validate_peer_cert(void *_vpninfo, X509 *peer_cert,
 		if (!strcasecmp(buf, _("no")))
 			return -EINVAL;
 
-		X509_print_fp(stderr, peer_cert);
+		details = openconnect_get_cert_details(vpninfo, peer_cert);
+		fputs(details, stderr);
+		free(details);
 		fprintf(stderr, _("SHA1 fingerprint: %s\n"), fingerprint);
 	}
 				
