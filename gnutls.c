@@ -23,6 +23,7 @@
  */
 
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
@@ -39,6 +40,7 @@
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 #include <gnutls/crypto.h>
+#include <gnutls/pkcs12.h>
 
 #include "openconnect-internal.h"
 
@@ -202,20 +204,262 @@ int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len
 	return i ?: ret;
 }
 
-static int load_certificate(struct openconnect_info *vpninfo)
+static int request_passphrase(struct openconnect_info *vpninfo,
+			      char **response, const char *fmt, ...)
 {
+	struct oc_auth_form f;
+	struct oc_form_opt o;
+	char buf[1024];
+	va_list args;
+	int ret;
+
+	buf[1023] = 0;
+	memset(&f, 0, sizeof(f));
+	va_start(args, fmt);
+	vsnprintf(buf, 1023, fmt, args);
+	va_end(args);
+
+	f.auth_id = (char *)"gnutls_certificate";
+	f.opts = &o;
+
+	o.next = NULL;
+	o.type = OC_FORM_OPT_PASSWORD;
+	o.name = (char *)"passphrase";
+	o.label = buf;
+	o.value = NULL;
+
+	ret = vpninfo->process_auth_form(vpninfo, &f);
+	if (!ret) {
+		*response = o.value;
+		return 0;
+	}
+
+	return -EIO;
+}
+
+static int load_datum(struct openconnect_info *vpninfo,
+		      gnutls_datum_t *datum, const char *fname)
+{
+	struct stat st;
+	int fd, err;
+
+	fd = open(fname, O_RDONLY|O_CLOEXEC);
+	if (fd == -1) {
+		err = errno;
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to open certificate file %s: %s\n"),
+			     vpninfo->cert, strerror(err));
+		return -ENOENT;
+	}
+	if (fstat(fd, &st)) {
+		err = errno;
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to stat certificate file %s: %s\n"),
+			     vpninfo->cert, strerror(err));
+		close(fd);
+		return -EIO;
+	}			
+	datum->size = st.st_size;
+	datum->data = gnutls_malloc(st.st_size);
+	if (!datum->data) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to allocate certificate buffer\n"));
+		close(fd);
+		return -ENOMEM;
+	}
+	errno = EAGAIN;
+	if (read(fd, datum->data, datum->size) != datum->size) {
+		err = errno;
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to read certificate into memory: %s\n"),
+			     strerror(err));
+		close(fd);
+		gnutls_free(datum->data);
+		return -EIO;
+	}
+	close(fd);
+	return 0;
+}
+
+static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
+				   gnutls_datum_t *datum)
+{
+	gnutls_pkcs12_t p12;
+	char *pass;
 	int err;
 
+	err = gnutls_pkcs12_init(&p12);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to setup PKCS#12 data structure: %s\n"),
+			     gnutls_strerror(err));
+		return -EIO;
+	}
+
+	err = gnutls_pkcs12_import(p12, datum, GNUTLS_X509_FMT_DER, 0);
+	if (err) {
+		gnutls_pkcs12_deinit(p12);
+		if (vpninfo->cert_type == CERT_TYPE_UNKNOWN)
+			return 1; /* Try PEM */
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to import PKCS#12 file: %s\n"),
+			     gnutls_strerror(err));
+		return -EINVAL;
+	}
+
+	pass = vpninfo->cert_password;
+	while (gnutls_pkcs12_verify_mac(p12, pass)) {
+		if (pass)
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to decrypt PKCS#12 certificate file\n"));
+		free(pass);
+		err = request_passphrase(vpninfo, &pass,
+					 _("Enter PKCS#12 pass phrase:"));
+		if (err) {
+			gnutls_pkcs12_deinit(p12);
+			return -EINVAL;
+		}
+	}
+	/* We can't actually *use* this gnutls_pkcs12_t, AFAICT.
+	   We have to let GnuTLS re-import it all again. */
+	gnutls_pkcs12_deinit(p12);
+
+	err = gnutls_certificate_set_x509_simple_pkcs12_mem(vpninfo->https_cred, datum,
+							    GNUTLS_X509_FMT_DER, pass);
+		
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to load PKCS#12 certificate: %s\n"),
+			     gnutls_strerror(err));
+		return -EINVAL;
+	}
+	return 0;
+}
+
+static int load_certificate(struct openconnect_info *vpninfo)
+{
+	gnutls_datum_t fdata;
+	gnutls_x509_crt_t cert;
+	gnutls_x509_privkey_t key;
+	int err;
+
+	if (vpninfo->cert_type == CERT_TYPE_TPM) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("TPM support not available with GnuTLS\n"));
+		return -EINVAL;
+	}
+
+	if (!strncmp(vpninfo->cert, "pkcs11:", 7)) {
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Using PKCS#11 certificate %s\n"), vpninfo->cert);
+
+		err = gnutls_certificate_set_x509_key_file(vpninfo->https_cred,
+							   vpninfo->cert, 
+							   vpninfo->sslkey,
+							   GNUTLS_X509_FMT_PEM);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Error loading PKCS#11 certificate: %s\n"),
+				     gnutls_strerror(err));
+			return -EIO;
+		}
+		return 0;
+	}
+		
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Using certificate file %s\n"), vpninfo->cert);
 	
-	err = gnutls_certificate_set_x509_key_file(vpninfo->https_cred, vpninfo->cert, vpninfo->sslkey,
-						   GNUTLS_X509_FMT_PEM);
+	err = load_datum(vpninfo, &fdata, vpninfo->cert);
+	if (err)
+		return err;
+
+	if (vpninfo->cert_type == CERT_TYPE_PKCS12 ||
+	    vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
+		err = load_pkcs12_certificate(vpninfo, &fdata);
+		/* Either it's printed and error and failed, or it's succeeded */
+		if (err <= 0) {
+			gnutls_free(fdata.data);
+			return err;
+		}
+		/* ... or it falls through to try PEM formats */
+	}
+
+	gnutls_x509_crt_init(&cert);
+	err = gnutls_x509_crt_import(cert, &fdata, GNUTLS_X509_FMT_PEM);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to load certificate: %s\n"),
+			     _("Loading certificate failed: %s\n"),
 			     gnutls_strerror(err));
+		gnutls_free(fdata.data);
 		return -EINVAL;
+	}
+
+	if (vpninfo->sslkey != vpninfo->cert) {
+		gnutls_free(fdata.data);
+
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Using private key file %s\n"), vpninfo->cert);
+
+		err = load_datum(vpninfo, &fdata, vpninfo->sslkey);
+		if (err) {
+			gnutls_x509_crt_deinit(cert);
+			return err;
+		}
+	}
+	
+	gnutls_x509_privkey_init(&key);
+	/* Try PKCS#1 (and PKCS#8 without password) first. GnuTLS doesn't
+	   support OpenSSL's old PKCS#1-based encrypted format. We should
+	   probably check for it and give a more coherent failure mode. */
+	err = gnutls_x509_privkey_import(key, &fdata, GNUTLS_X509_FMT_PEM);
+	if (err) {
+		/* If that fails, try PKCS#8 */
+		char *pass = vpninfo->cert_password;
+
+		/* Yay, just for fun this is *different* to PKCS#12. Where we could
+		   try an empty password there, in this case the empty-password case
+		   has already been *tried* by gnutls_x509_privkey_import(). If we
+		   just call gnutls_x509_privkey_import_pkcs8() with a NULL password,
+		   it'll SEGV. You have to set the GNUTLS_PKCS_PLAIN flag if you want
+		   to try without a password. Passing NULL evidently isn't enough of
+		   a hint. */
+		while ((err = gnutls_x509_privkey_import_pkcs8(key, &fdata,
+							       GNUTLS_X509_FMT_PEM,
+							       pass?pass:"", 0))) {
+			if (err != GNUTLS_E_DECRYPTION_FAILED) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to load private key as PKCS#8: %s\n"),
+					     gnutls_strerror(err));
+				gnutls_x509_crt_deinit(cert);
+				gnutls_free(fdata.data);
+				return -EINVAL;
+			}
+			if (pass) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to decrypt PKCS#8 certificate file\n"));
+				free (pass);
+			}
+			err = request_passphrase(vpninfo, &pass,
+						 _("Enter PEM pass phrase:"));
+			if (err) {
+				gnutls_x509_crt_deinit(cert);
+				gnutls_free(fdata.data);
+				return -EINVAL;
+			}
+		}
+	}
+	/* FIXME: We need to work around OpenSSL RT#1942 on the server, by including
+	   as much of the chain of issuer certificates as we can. */
+	err = gnutls_certificate_set_x509_key(vpninfo->https_cred,
+					      &cert, 1, key);
+	gnutls_x509_privkey_deinit(key);
+	gnutls_x509_crt_deinit(cert);
+	gnutls_free(fdata.data);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Setting certificate failed: %s\n"),
+			     gnutls_strerror(err));
+		return -EIO;
 	}
 	return 0;
 }
