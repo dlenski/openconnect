@@ -662,8 +662,15 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 	}
 	gnutls_init (&vpninfo->https_sess, GNUTLS_CLIENT);
-	gnutls_priority_set_direct (vpninfo->https_sess, "NORMAL", NULL);
+	err = gnutls_priority_set_direct (vpninfo->https_sess, "NONE:+VERS-TLS1.0:+SHA1:+AES-128-CBC:+RSA:+COMP-NULL:%COMPAT:%DISABLE_SAFE_RENEGOTIATION", NULL);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to set TLS priority string: %s\n"),
+			     gnutls_strerror(err));
+		return -EIO;
+	}
 
+	gnutls_record_disable_padding (vpninfo->https_sess);
 	workaround_openssl_certchain_bug(vpninfo);
 	gnutls_credentials_set (vpninfo->https_sess, GNUTLS_CRD_CERTIFICATE, vpninfo->https_cred);
 	gnutls_transport_set_ptr(vpninfo->https_sess, /* really? */(gnutls_transport_ptr_t)(long) ssl_sock);
