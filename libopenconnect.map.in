@@ -50,6 +50,7 @@ OPENCONNECT_PRIVATE {
 	openconnect_close_https;
 	openconnect_open_https;
 	openconnect_SSL_printf;
+	openconnect_SSL_write;
 	openconnect_version_str;
 	openconnect_create_useragent;
 	openconnect_report_ssl_errors;

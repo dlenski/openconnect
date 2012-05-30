@@ -66,6 +66,25 @@ static struct pkt dpd_resp_pkt = {
 	.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_RESP, 0 },
 };
 
+static int  __attribute__ ((format (printf, 3, 4)))
+    buf_append(char *buf, int len, const char *fmt, ...)
+{
+	int start = strlen(buf);
+	int ret;
+	va_list args;
+
+	if (start >= len)
+		return 0;
+
+	va_start(args, fmt);
+	ret = vsnprintf(buf + start, len - start, fmt, args);
+	va_end(args);
+
+	if (ret > len)
+		ret = len;
+
+	return ret;
+}
 
 static int start_cstp_connection(struct openconnect_info *vpninfo)
 {
@@ -113,22 +132,25 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	}
 
  retry:
-	openconnect_SSL_printf(vpninfo, "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
-	openconnect_SSL_printf(vpninfo, "Host: %s\r\n", vpninfo->hostname);
-	openconnect_SSL_printf(vpninfo, "User-Agent: %s\r\n", vpninfo->useragent);
-	openconnect_SSL_printf(vpninfo, "Cookie: webvpn=%s\r\n", vpninfo->cookie);
-	openconnect_SSL_printf(vpninfo, "X-CSTP-Version: 1\r\n");
-	openconnect_SSL_printf(vpninfo, "X-CSTP-Hostname: %s\r\n", vpninfo->localname);
-	if (vpninfo->deflate)
-		openconnect_SSL_printf(vpninfo, "X-CSTP-Accept-Encoding: deflate;q=1.0\r\n");
-	openconnect_SSL_printf(vpninfo, "X-CSTP-MTU: %d\r\n", vpninfo->mtu);
-	openconnect_SSL_printf(vpninfo, "X-CSTP-Address-Type: %s\r\n",
+	buf[0] = 0;
+	buf_append(buf, sizeof(buf), "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
+	buf_append(buf, sizeof(buf), "Host: %s\r\n", vpninfo->hostname);
+	buf_append(buf, sizeof(buf), "User-Agent: %s\r\n", vpninfo->useragent);
+	buf_append(buf, sizeof(buf), "Cookie: webvpn=%s\r\n", vpninfo->cookie);
+	buf_append(buf, sizeof(buf), "X-CSTP-Version: 1\r\n");
+	buf_append(buf, sizeof(buf), "X-CSTP-Hostname: %s\r\n", vpninfo->localname);
+	if (vpninfo->deflate && i < sizeof(buf))
+		buf_append(buf, sizeof(buf), "X-CSTP-Accept-Encoding: deflate;q=1.0\r\n");
+	buf_append(buf, sizeof(buf), "X-CSTP-MTU: %d\r\n", vpninfo->mtu);
+	buf_append(buf, sizeof(buf), "X-CSTP-Address-Type: %s\r\n",
 			       vpninfo->disable_ipv6?"IPv4":"IPv6,IPv4");
-	openconnect_SSL_printf(vpninfo, "X-DTLS-Master-Secret: ");
+	buf_append(buf, sizeof(buf), "X-DTLS-Master-Secret: ");
 	for (i = 0; i < sizeof(vpninfo->dtls_secret); i++)
-		openconnect_SSL_printf(vpninfo, "%02X", vpninfo->dtls_secret[i]);
-	openconnect_SSL_printf(vpninfo, "\r\nX-DTLS-CipherSuite: %s\r\n\r\n",
+		buf_append(buf, sizeof(buf), "%02X", vpninfo->dtls_secret[i]);
+	buf_append(buf, sizeof(buf), "\r\nX-DTLS-CipherSuite: %s\r\n\r\n",
 			       vpninfo->dtls_ciphers?:"AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA");
+
+	openconnect_SSL_write(vpninfo, buf, strlen(buf));
 
 	if ((i = openconnect_SSL_gets(vpninfo, buf, 65536) < 0)) {
 		if (i == -EINTR)
