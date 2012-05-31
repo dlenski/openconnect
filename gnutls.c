@@ -553,23 +553,6 @@ int openconnect_get_cert_sha1(struct openconnect_info *vpninfo,
 	return get_cert_fingerprint(vpninfo, cert, GNUTLS_DIG_SHA1, buf);
 }
 
-static int check_server_cert(struct openconnect_info *vpninfo, OPENCONNECT_X509 *cert)
-{
-	char fingerprint[41];
-	int ret;
-
-	ret = openconnect_get_cert_sha1(vpninfo, cert, fingerprint);
-	if (ret)
-		return ret;
-
-	if (strcasecmp(vpninfo->servercert, fingerprint)) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Server SSL certificate didn't match: %s\n"), fingerprint);
-		return -EINVAL;
-	}
-	return 0;
-}
-
 char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
 				   OPENCONNECT_X509 *cert)
 {
@@ -607,47 +590,99 @@ int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
 	*buf = ret;
 	return l;
 }
-#if 0
-static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
-{
-	X509 *peer_cert;
-	int ret;
 
-	peer_cert = SSL_get_peer_certificate(https_ssl);
+static int verify_peer(gnutls_session_t session)
+{
+	struct openconnect_info *vpninfo = gnutls_session_get_ptr(session);
+	const gnutls_datum_t *cert_list;
+	gnutls_x509_crt_t cert;
+	unsigned int status, cert_list_size;
+	char *reason = NULL;
+	int err;
+
+	cert_list = gnutls_certificate_get_peers (session, &cert_list_size);
+	if (!cert_list) {
+		vpn_progress(vpninfo, PRG_ERR, _("Server presented no certificate\n"));
+		return GNUTLS_E_CERTIFICATE_ERROR;
+	}
 
 	if (vpninfo->servercert) {
-		/* If given a cert fingerprint on the command line, that's
-		   all we look for */
-		ret = check_server_cert(vpninfo, peer_cert);
-	} else {
-		int vfy = SSL_get_verify_result(https_ssl);
-		const char *err_string = NULL;
-
-		if (vfy != X509_V_OK)
-			err_string = X509_verify_cert_error_string(vfy);
-		else if (match_cert_hostname(vpninfo, peer_cert))
-			err_string = _("certificate does not match hostname");
-
-		if (err_string) {
-			vpn_progress(vpninfo, PRG_INFO,
-				     _("Server certificate verify failed: %s\n"),
-				     err_string);
-
-			if (vpninfo->validate_peer_cert)
-				ret = vpninfo->validate_peer_cert(vpninfo->cbdata,
-								  peer_cert,
-								  err_string);
-			else
-				ret = -EINVAL;
-		} else {
-			ret = 0;
+		unsigned char sha1bin[SHA1_SIZE];
+		char fingerprint[(SHA1_SIZE * 2) + 1];
+		int i;
+		
+		err = openconnect_sha1(sha1bin, cert_list[0].data, cert_list[0].size);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Could not calculate SHA1 of server's certificate\n"));
+			return GNUTLS_E_CERTIFICATE_ERROR;
 		}
-	}
-	X509_free(peer_cert);
+		for (i=0; i < SHA1_SIZE; i++)
+			sprintf(&fingerprint[i*2], "%02X", sha1bin[i]);
 
-	return ret;
+		if (strcasecmp(vpninfo->servercert, fingerprint)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Server SSL certificate didn't match: %s\n"), fingerprint);
+			return GNUTLS_E_CERTIFICATE_ERROR;
+		}
+		return 0;
+	}
+
+	err = gnutls_certificate_verify_peers2 (session, &status);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR, _("Error checking server cert status\n"));
+		return GNUTLS_E_CERTIFICATE_ERROR;
+	}
+
+	if (status & GNUTLS_CERT_REVOKED)
+		reason = _("certificate revoked");
+	else if (status & GNUTLS_CERT_SIGNER_NOT_FOUND)
+		reason = _("signer not found");
+	else if (status & GNUTLS_CERT_SIGNER_NOT_CA)
+		reason = _("signer not a CA certificate");
+	else if (status & GNUTLS_CERT_INSECURE_ALGORITHM)
+		reason = _("insecure algorithm");
+	else if (status & GNUTLS_CERT_NOT_ACTIVATED)
+		reason = _("certificate not yet activated");
+	else if (status & GNUTLS_CERT_EXPIRED)
+		reason = _("certificate expired");
+	else if (status & GNUTLS_CERT_INVALID)
+		/* If this is set and no other reason, it apparently means
+		   that signature verification failed. Not entirely sure
+		   why we don't just set a bit for that too. */
+		reason = _("signature verification failed");
+
+	err = gnutls_x509_crt_init(&cert);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR, _("Error initialising X509 cert structure\n"));
+		return GNUTLS_E_CERTIFICATE_ERROR;
+	}
+
+	err = gnutls_x509_crt_import(cert, &cert_list[0], GNUTLS_X509_FMT_DER);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR, _("Error importing server's cert\n"));
+		gnutls_x509_crt_deinit(cert);
+		return GNUTLS_E_CERTIFICATE_ERROR;
+	}
+
+	if (!reason && !gnutls_x509_crt_check_hostname(cert, vpninfo->hostname))
+		reason = _("certificate does not match hostname");
+
+	if (reason) {
+		vpn_progress(vpninfo, PRG_ERR, "Server certificate verify failed: %s\n",
+			     reason);
+		if (vpninfo->validate_peer_cert)
+			err = vpninfo->validate_peer_cert(vpninfo->cbdata,
+							  cert,
+							  reason) ? GNUTLS_E_CERTIFICATE_ERROR : 0;
+		else
+			err = GNUTLS_E_CERTIFICATE_ERROR;
+	}
+
+	gnutls_x509_crt_deinit(cert);
+	return err;
 }
-#endif
+
 static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo)
 {
 	/* OpenSSL has problems with certificate chains -- if there are
@@ -879,7 +914,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		gnutls_certificate_set_x509_trust_file(vpninfo->https_cred,
 						       "/etc/pki/tls/certs/ca-bundle.crt",
 						       GNUTLS_X509_FMT_PEM);
-
+		gnutls_certificate_set_verify_function (vpninfo->https_cred,
+							verify_peer);
 		/* FIXME: Ensure TLSv1.0, no options */
 
 		if (vpninfo->cert) {
@@ -904,7 +940,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			err = gnutls_certificate_set_x509_trust_file(vpninfo->https_cred,
 								     vpninfo->cafile,
 								     GNUTLS_X509_FMT_PEM);
-			if (err) {
+			if (err < 0) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to open CA file '%s': %s\n"),
 					     vpninfo->cafile, gnutls_strerror(err));
@@ -915,6 +951,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 	}
 	gnutls_init (&vpninfo->https_sess, GNUTLS_CLIENT);
+	gnutls_session_set_ptr (vpninfo->https_sess, (void *) vpninfo);
 	err = gnutls_priority_set_direct (vpninfo->https_sess, "NONE:+VERS-TLS1.0:+SHA1:+AES-128-CBC:+RSA:+COMP-NULL:%COMPAT:%DISABLE_SAFE_RENEGOTIATION", NULL);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -972,13 +1009,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 				     gnutls_strerror(err));
 		}
 	}
-#if 0
-	if (verify_peer(vpninfo, https_ssl)) {
-		SSL_free(https_ssl);
-		close(ssl_sock);
-		return -EINVAL;
-	}
-#endif
+
 	vpninfo->ssl_fd = ssl_sock;
 
 	vpn_progress(vpninfo, PRG_INFO, _("Connected to HTTPS on %s\n"),
