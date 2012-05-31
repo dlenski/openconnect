@@ -287,9 +287,9 @@ static int load_datum(struct openconnect_info *vpninfo,
 			     vpninfo->cert, strerror(err));
 		close(fd);
 		return -EIO;
-	}			
+	}
 	datum->size = st.st_size;
-	datum->data = gnutls_malloc(st.st_size);
+	datum->data = gnutls_malloc(st.st_size + 1);
 	if (!datum->data) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to allocate certificate buffer\n"));
@@ -306,6 +306,7 @@ static int load_datum(struct openconnect_info *vpninfo,
 		gnutls_free(datum->data);
 		return -EIO;
 	}
+	datum->data[st.st_size] = 0;
 	close(fd);
 	return 0;
 }
@@ -423,6 +424,23 @@ static int check_issuer_sanity(gnutls_x509_crt_t cert, gnutls_x509_crt_t issuer)
 #endif
 }
 
+static int count_x509_certificates(gnutls_datum_t *datum)
+{
+	int count = 0;
+	char *p = (char *)datum->data;
+
+	while (p) {
+		p = strstr(p, "-----BEGIN ");
+		if (!p)
+			break;
+		p += 11;
+		if (!strncmp(p, "CERTIFICATE", 11) ||
+		    !strncmp(p, "X509 CERTIFICATE", 16))
+		    count++;
+	}
+	return count;
+}
+
 static int load_certificate(struct openconnect_info *vpninfo)
 {
 	gnutls_datum_t fdata;
@@ -434,6 +452,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	int err; /* GnuTLS error */
 	int ret = 0; /* our error (zero or -errno) */
 	int i;
+	unsigned char key_id[20];
+	size_t key_id_size = sizeof(key_id);
 
 	if (vpninfo->cert_type == CERT_TYPE_TPM) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -469,25 +489,44 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	    vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
 		ret = load_pkcs12_certificate(vpninfo, &fdata, &key, &cert,
 					      &extra_certs, &nr_extra_certs, &crl);
-		if (ret < 0) {
-			gnutls_free(fdata.data);
-			return ret;
-		} else if (!ret)
+		if (ret < 0)
+			goto out;
+		else if (!ret)
 			goto got_cert;
 
 		/* It returned NOT_PKCS12.
 		   Fall through to try PEM formats. */
 	}
 
-	gnutls_x509_crt_init(&cert);
-	err = gnutls_x509_crt_import(cert, &fdata, GNUTLS_X509_FMT_PEM);
-	if (err) {
+	/* We need to know how many there are in *advance*; it won't just allocate
+	   the array for us :( */
+	nr_extra_certs = count_x509_certificates(&fdata);
+	if (!nr_extra_certs)
+		nr_extra_certs = 1; /* wtf? Oh well, we'll fail later... */
+
+	extra_certs = calloc(nr_extra_certs, sizeof(cert));
+	if (!extra_certs) {
+		nr_extra_certs = 0;
+		ret = -ENOMEM;
+		goto out;
+	}
+	err = gnutls_x509_crt_list_import(extra_certs, &nr_extra_certs, &fdata,
+					  GNUTLS_X509_FMT_PEM, 0);
+	if (err <= 0) {
+		const char *reason;
+		if (!err || err == GNUTLS_E_NO_CERTIFICATE_FOUND)
+			reason = _("No certificate found in file");
+		else
+			reason = gnutls_strerror(err);
+
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Loading certificate failed: %s\n"),
-			     gnutls_strerror(err));
-		gnutls_free(fdata.data);
-		return -EINVAL;
+			     reason);
+		ret = -EINVAL;
+		goto out;
 	}
+	nr_extra_certs = err;
+	err = 0;
 
 	if (vpninfo->sslkey != vpninfo->cert) {
 		gnutls_free(fdata.data);
@@ -539,6 +578,38 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			}
 		}
 	}
+	err = gnutls_x509_privkey_get_key_id(key, 0, key_id, &key_id_size);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to get key ID: %s\n"),
+			     gnutls_strerror(err));
+		goto out;
+	}
+	for (i = 0; i < nr_extra_certs; i++) {
+		unsigned char cert_id[20];
+		size_t cert_id_size = sizeof(cert_id);
+
+		err = gnutls_x509_crt_get_key_id(extra_certs[i], 0, cert_id, &cert_id_size);
+		if (err)
+			continue;
+
+		if (cert_id_size == key_id_size && !memcmp(cert_id, key_id, key_id_size)) {
+			cert = extra_certs[i];
+
+			/* Move the rest of the array down */
+			for (; i < nr_extra_certs - 1; i++)
+				extra_certs[i] = extra_certs[i+1];
+
+			nr_extra_certs--;
+			goto got_cert;
+		}
+	}
+	/* We shouldn't reach this. It means that we didn't find *any* matching cert */
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("No SSL certificate found to match private key\n"));
+	ret = -EINVAL;
+	goto out;
+
  got_cert:
 	check_certificate_expiry(vpninfo, cert);
 
@@ -644,8 +715,10 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		gnutls_x509_privkey_deinit(key);
 	if (cert)
 		gnutls_x509_crt_deinit(cert);
-	for (i = 0; i < nr_extra_certs; i++)
-		gnutls_x509_crt_deinit(extra_certs[i]);
+	for (i = 0; i < nr_extra_certs; i++) {
+		if (extra_certs[i])
+			gnutls_x509_crt_deinit(extra_certs[i]);
+	}
 	free(extra_certs);
 	free(supporting_certs);
 	gnutls_free(fdata.data);
