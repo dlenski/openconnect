@@ -812,17 +812,6 @@ static int verify_peer(gnutls_session_t session)
 	return err;
 }
 
-static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo)
-{
-	/* OpenSSL has problems with certificate chains -- if there are
-	   multiple certs with the same name, it doesn't necessarily
-	   choose the _right_ one. (RT#1942)
-	   Pick the right ones for ourselves and add them manually. */
-	
-	/* FIXME: Of course we still have to do this with GnuTLS, to work
-	   around the issue on the server side */
-}
-
 static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 			       const struct sockaddr *addr, socklen_t addrlen)
 {
@@ -1090,7 +1079,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	}
 
 	gnutls_record_disable_padding (vpninfo->https_sess);
-	workaround_openssl_certchain_bug(vpninfo);
 	gnutls_credentials_set (vpninfo->https_sess, GNUTLS_CRD_CERTIFICATE, vpninfo->https_cred);
 	gnutls_transport_set_ptr(vpninfo->https_sess, /* really? */(gnutls_transport_ptr_t)(long) ssl_sock);
 
