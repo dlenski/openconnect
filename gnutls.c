@@ -797,6 +797,11 @@ static int verify_peer(gnutls_session_t session)
 	char *reason = NULL;
 	int err;
 
+	if (vpninfo->peer_cert) {
+		gnutls_x509_crt_deinit(vpninfo->peer_cert);
+		vpninfo->peer_cert = NULL;
+	}
+
 	cert_list = gnutls_certificate_get_peers (session, &cert_list_size);
 	if (!cert_list) {
 		vpn_progress(vpninfo, PRG_ERR, _("Server presented no certificate\n"));
@@ -876,7 +881,8 @@ static int verify_peer(gnutls_session_t session)
 			err = GNUTLS_E_CERTIFICATE_ERROR;
 	}
 
-	gnutls_x509_crt_deinit(cert);
+	vpninfo->peer_cert = cert;
+
 	return err;
 }
 
@@ -1004,12 +1010,10 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 void openconnect_close_https(struct openconnect_info *vpninfo)
 {
-#if 0
 	if (vpninfo->peer_cert) {
-		X509_free(vpninfo->peer_cert);
+		gnutls_x509_crt_deinit(vpninfo->peer_cert);
 		vpninfo->peer_cert = NULL;
 	}
-#endif
 	if (vpninfo->https_sess) {
 		gnutls_deinit(vpninfo->https_sess);
 		vpninfo->https_sess = NULL;
