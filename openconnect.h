@@ -158,7 +158,7 @@ void openconnect_set_urlpath (struct openconnect_info *, char *);
 
 /* This function does *not* take ownership of the string; it's copied
    into a static buffer in the vpninfo */
-void openconnect_set_xmlsha1 (struct openconnect_info *, char *, int size);
+void openconnect_set_xmlsha1 (struct openconnect_info *, const char *, int size);
 
 void openconnect_set_cafile (struct openconnect_info *, char *);
 void openconnect_setup_csd (struct openconnect_info *, uid_t, int silent, char *wrapper);

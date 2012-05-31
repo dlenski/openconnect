@@ -132,7 +132,7 @@ void openconnect_set_urlpath (struct openconnect_info *vpninfo, char *urlpath)
 	vpninfo->urlpath = urlpath;
 }
 
-void openconnect_set_xmlsha1 (struct openconnect_info *vpninfo, char *xmlsha1, int size)
+void openconnect_set_xmlsha1 (struct openconnect_info *vpninfo, const char *xmlsha1, int size)
 {
 	if (size != sizeof (vpninfo->xmlsha1))
 		return;
