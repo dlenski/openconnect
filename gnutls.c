@@ -237,6 +237,35 @@ static int request_passphrase(struct openconnect_info *vpninfo,
 	return -EIO;
 }
 
+static int check_certificate_expiry(struct openconnect_info *vpninfo, gnutls_x509_crt_t cert)
+{
+	const char *reason = NULL;
+	time_t expires = gnutls_x509_crt_get_expiration_time(cert);
+	time_t now = time(NULL);
+
+	if (expires == -1) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Could not extract expiration time of certificate\n"));
+		return -EINVAL;
+	}
+
+	if (expires < now)
+		reason = _("Client certificate has expired at");
+	else if (expires < now + vpninfo->cert_expire_warning)
+		reason = _("Client certificate expires soon at");
+
+	if (reason) {
+		struct tm tm;
+		char buf[80];
+
+		gmtime_r(&expires, &tm);
+		strftime(buf, 80, "%a, %d %b %Y %T %Z", &tm);
+
+		vpn_progress(vpninfo, PRG_ERR, "%s: %s\n", reason, buf);
+	}
+	return 0;
+}
+
 static int load_datum(struct openconnect_info *vpninfo,
 		      gnutls_datum_t *datum, const char *fname)
 {
@@ -333,6 +362,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 			     gnutls_strerror(err));
 		return -EINVAL;
 	}
+	/* FIXME: We haven't checked the certificate expiry */
 	return 0;
 }
 
@@ -453,6 +483,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	err = gnutls_certificate_set_x509_key(vpninfo->https_cred,
 					      &cert, 1, key);
 	gnutls_x509_privkey_deinit(key);
+	check_certificate_expiry(vpninfo, cert);
 	gnutls_x509_crt_deinit(cert);
 	gnutls_free(fdata.data);
 	if (err) {
@@ -598,55 +629,6 @@ static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo)
 	
 	/* FIXME: Of course we still have to do this with GnuTLS, to work
 	   around the issue on the server side */
-}
-
-static int check_certificate_expiry(struct openconnect_info *vpninfo)
-{
-	/* FIXME */
-	return 0;
-#if 0
-	ASN1_TIME *notAfter;
-	const char *reason = NULL;
-	time_t t;
-	int i;
-
-	if (!vpninfo->cert_x509)
-		return 0;
-
-	t = time(NULL);
-	notAfter = X509_get_notAfter(vpninfo->cert_x509);
-	i = X509_cmp_time(notAfter, &t);
-	if (!i) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Error in client cert notAfter field\n"));
-		return -EINVAL;
-	} else if (i < 0) {
-		reason = _("Client certificate has expired at");
-	} else {
-		t += vpninfo->cert_expire_warning;
-		i = X509_cmp_time(notAfter, &t);
-		if (i < 0) {
-			reason = _("Client certificate expires soon at");
-		}
-	}
-	if (reason) {
-		BIO *bp = BIO_new(BIO_s_mem());
-		BUF_MEM *bm;
-		const char *expiry = _("<error>");
-		char zero = 0;
-
-		if (bp) {
-			ASN1_TIME_print(bp, notAfter);
-			BIO_write(bp, &zero, 1);
-			BIO_get_mem_ptr(bp, &bm);
-			expiry = bm->data;
-		}
-		vpn_progress(vpninfo, PRG_ERR, "%s: %s\n", reason, expiry);
-		if (bp)
-			BIO_free(bp);
-	}
-	return 0;
-#endif
 }
 
 static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
@@ -879,7 +861,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 					     _("Loading certificate failed. Aborting.\n"));
 				return err;
 			}
-			check_certificate_expiry(vpninfo);
 		}
 
 		/* We just want to do:
