@@ -310,12 +310,18 @@ static int load_datum(struct openconnect_info *vpninfo,
 	return 0;
 }
 
+/* Pull in our local copy of GnuTLS's parse_pkcs12() function, for now */
+#include "gnutls_pkcs12.c"
+
 /* A non-zero, non-error return to make load_certificate() continue and
    interpreting the file as other types */
 #define NOT_PKCS12	1
 
 static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
-				   gnutls_datum_t *datum)
+				   gnutls_datum_t *datum,
+				   gnutls_x509_privkey_t *key,
+				   gnutls_x509_crt_t *cert,
+				   gnutls_x509_crl_t * crl)
 {
 	gnutls_pkcs12_t p12;
 	char *pass;
@@ -377,28 +383,23 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 		return ret;
 	}
 
-	/* We can't actually *use* this gnutls_pkcs12_t, AFAICT.
-	   We have to let GnuTLS re-import it all again. */
+	err = parse_pkcs12(vpninfo->https_cred, p12, pass, key, cert, crl);
 	gnutls_pkcs12_deinit(p12);
-
-	err = gnutls_certificate_set_x509_simple_pkcs12_mem(vpninfo->https_cred, datum,
-							    GNUTLS_X509_FMT_DER, pass);
-		
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to load PKCS#12 certificate: %s\n"),
 			     gnutls_strerror(err));
 		return -EINVAL;
 	}
-	/* FIXME: We haven't checked the certificate expiry */
 	return 0;
 }
 
 static int load_certificate(struct openconnect_info *vpninfo)
 {
 	gnutls_datum_t fdata;
-	gnutls_x509_crt_t cert;
-	gnutls_x509_privkey_t key;
+	gnutls_x509_privkey_t key = NULL;
+	gnutls_x509_crt_t cert = NULL;
+	gnutls_x509_crl_t crl = NULL;
 	int err;
 
 	if (vpninfo->cert_type == CERT_TYPE_TPM) {
@@ -433,13 +434,15 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 	if (vpninfo->cert_type == CERT_TYPE_PKCS12 ||
 	    vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
-		err = load_pkcs12_certificate(vpninfo, &fdata);
-		/* Either it's printed and error and failed, or it's succeeded */
-		if (err <= 0) {
+		err = load_pkcs12_certificate(vpninfo, &fdata, &key, &cert, &crl);
+		if (!err)
+			goto got_cert;
+		else if (err <= 0) {
 			gnutls_free(fdata.data);
 			return err;
 		}
-		/* ... or it falls through to try PEM formats */
+		/* It returned NOT_PKCS12.
+		   Fall through to try PEM formats. */
 	}
 
 	gnutls_x509_crt_init(&cert);
@@ -506,14 +509,28 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			}
 		}
 	}
+ got_cert:
+	gnutls_free(fdata.data);
+	check_certificate_expiry(vpninfo, cert);
+
+	if (crl) {
+		err = gnutls_certificate_set_x509_crl(vpninfo->https_cred, &crl, 1);
+		gnutls_x509_crl_deinit(crl);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Setting certificate recovation list failed: %s\n"),
+				     gnutls_strerror(err));
+			gnutls_x509_privkey_deinit(key);
+			gnutls_x509_crt_deinit(cert);
+			return -EIO;
+		}
+	}
 	/* FIXME: We need to work around OpenSSL RT#1942 on the server, by including
 	   as much of the chain of issuer certificates as we can. */
 	err = gnutls_certificate_set_x509_key(vpninfo->https_cred,
 					      &cert, 1, key);
 	gnutls_x509_privkey_deinit(key);
-	check_certificate_expiry(vpninfo, cert);
 	gnutls_x509_crt_deinit(cert);
-	gnutls_free(fdata.data);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Setting certificate failed: %s\n"),
