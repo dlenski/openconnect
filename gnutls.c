@@ -124,21 +124,6 @@ int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len
 	return done;
 }
 
-int  __attribute__ ((format (printf, 2, 3)))
-    openconnect_SSL_printf(struct openconnect_info *vpninfo, const char *fmt, ...)
-{
-	char buf[1024];
-	va_list args;
-
-	buf[1023] = 0;
-
-	va_start(args, fmt);
-	vsnprintf(buf, 1023, fmt, args);
-	va_end(args);
-	return openconnect_SSL_write(vpninfo, buf, strlen(buf));
-
-}
-
 int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len)
 {
 	int i = 0;

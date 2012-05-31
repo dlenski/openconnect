@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #if defined(__linux__)
 #include <sys/vfs.h>
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__) || defined(__APPLE__)
@@ -262,6 +263,21 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 	}
 
 	return ssl_sock;
+}
+
+int  __attribute__ ((format (printf, 2, 3)))
+    openconnect_SSL_printf(struct openconnect_info *vpninfo, const char *fmt, ...)
+{
+	char buf[1024];
+	va_list args;
+
+	buf[1023] = 0;
+
+	va_start(args, fmt);
+	vsnprintf(buf, 1023, fmt, args);
+	va_end(args);
+	return openconnect_SSL_write(vpninfo, buf, strlen(buf));
+
 }
 
 #if defined(__sun__) || defined(__NetBSD__) || defined(__DragonFly__)
