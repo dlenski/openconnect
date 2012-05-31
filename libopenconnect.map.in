@@ -44,6 +44,12 @@ OPENCONNECT_1.4 {
 	openconnect_set_cancel_fd;
 } OPENCONNECT_1.3;
 
+OPENCONNECT_1.5 {
+ global:
+	openconnect_get_cert_details;
+	openconnect_get_cert_DER;
+} OPENCONNECT_1.4;
+
 OPENCONNECT_PRIVATE {
  global: @SYMVER_TIME@ @SYMVER_ASPRINTF@ @SYMVER_GETLINE@
 	openconnect_SSL_gets;
@@ -54,8 +60,6 @@ OPENCONNECT_PRIVATE {
 	openconnect_version_str;
 	openconnect_create_useragent;
 	openconnect_report_ssl_errors;
-	openconnect_get_cert_details;
-	openconnect_get_cert_DER;
 	openconnect_sha1;
 	openconnect_random;
 };

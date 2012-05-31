@@ -31,9 +31,12 @@
 #include <unistd.h>
 
 #define OPENCONNECT_API_VERSION_MAJOR 1
-#define OPENCONNECT_API_VERSION_MINOR 4
+#define OPENCONNECT_API_VERSION_MINOR 5
 
 /*
+ * API version 1.5:
+ *  - Add openconnect_get_cert_details(), openconnect_get_cert_DER().
+ *
  * API version 1.4:
  *  - Add openconnect_set_cancel_fd()
  *
