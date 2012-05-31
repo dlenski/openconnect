@@ -310,6 +310,10 @@ static int load_datum(struct openconnect_info *vpninfo,
 	return 0;
 }
 
+/* A non-zero, non-error return to make load_certificate() continue and
+   interpreting the file as other types */
+#define NOT_PKCS12	1
+
 static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 				   gnutls_datum_t *datum)
 {
@@ -329,7 +333,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 	if (err) {
 		gnutls_pkcs12_deinit(p12);
 		if (vpninfo->cert_type == CERT_TYPE_UNKNOWN)
-			return 1; /* Try PEM */
+			return NOT_PKCS12;
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to import PKCS#12 file: %s\n"),
 			     gnutls_strerror(err));
@@ -337,11 +341,12 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 	}
 
 	pass = vpninfo->cert_password;
-	while (gnutls_pkcs12_verify_mac(p12, pass)) {
+	while ((err = gnutls_pkcs12_verify_mac(p12, pass)) == GNUTLS_E_MAC_VERIFY_FAILED) {
 		if (pass)
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to decrypt PKCS#12 certificate file\n"));
 		free(pass);
+		vpninfo->cert_password = NULL;
 		err = request_passphrase(vpninfo, &pass,
 					 _("Enter PKCS#12 pass phrase:"));
 		if (err) {
@@ -349,6 +354,29 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 			return -EINVAL;
 		}
 	}
+	/* If it wasn't GNUTLS_E_MAC_VERIFY_FAILED, then the problem wasn't just a
+	   bad password. Give up. */
+	if (err) {
+		int level = PRG_ERR;
+		int ret = -EINVAL;
+
+		gnutls_pkcs12_deinit(p12);
+
+		/* If the first attempt, and we didn't know for sure it was PKCS#12
+		   anyway, bail out and try loading it as something different. */
+		if (pass == vpninfo->cert_password &&
+		    vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
+			/* Make it non-fatal... */
+			level = PRG_TRACE;
+			ret = NOT_PKCS12;
+		}
+
+		vpn_progress(vpninfo, level,
+			     _("Failed to process PKCS#12 file: %s\n"),
+			       gnutls_strerror(err));
+		return ret;
+	}
+
 	/* We can't actually *use* this gnutls_pkcs12_t, AFAICT.
 	   We have to let GnuTLS re-import it all again. */
 	gnutls_pkcs12_deinit(p12);
