@@ -1036,6 +1036,19 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 							verify_peer);
 		/* FIXME: Ensure TLSv1.0, no options */
 
+		if (vpninfo->cafile) {
+			err = gnutls_certificate_set_x509_trust_file(vpninfo->https_cred,
+								     vpninfo->cafile,
+								     GNUTLS_X509_FMT_PEM);
+			if (err < 0) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to open CA file '%s': %s\n"),
+					     vpninfo->cafile, gnutls_strerror(err));
+				close(ssl_sock);
+				return -EINVAL;
+			}
+		}
+
 		if (vpninfo->cert) {
 			err = load_certificate(vpninfo);
 			if (err) {
@@ -1054,18 +1067,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		   I don't know of _any_ workaround which will, and can't
 		   be bothered to find out either. */
 
-		if (vpninfo->cafile) {
-			err = gnutls_certificate_set_x509_trust_file(vpninfo->https_cred,
-								     vpninfo->cafile,
-								     GNUTLS_X509_FMT_PEM);
-			if (err < 0) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("Failed to open CA file '%s': %s\n"),
-					     vpninfo->cafile, gnutls_strerror(err));
-				close(ssl_sock);
-				return -EINVAL;
-			}
-		}
 
 	}
 	gnutls_init (&vpninfo->https_sess, GNUTLS_CLIENT);
