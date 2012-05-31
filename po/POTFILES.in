@@ -9,5 +9,7 @@ library.c
 main.c
 mainloop.c
 ssl.c
+openssl.c
+gnutls.c
 tun.c
 xml.c
