@@ -961,7 +961,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 			if (vpninfo->cancel_fd != -1) {
 				FD_SET(vpninfo->cancel_fd, &rd_set);
-				if (vpninfo->cancel_fd > vpninfo->ssl_fd)
+				if (vpninfo->cancel_fd > ssl_sock)
 					maxfd = vpninfo->cancel_fd;
 			}
 			select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
