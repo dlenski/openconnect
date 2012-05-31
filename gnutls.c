@@ -631,11 +631,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		} else {
 			err = gnutls_certificate_get_issuer(vpninfo->https_cred,
 							    last_cert, &issuer, 0);
-			if (err) {
-				printf("can't get issuer for %p: %s\n",
-				       last_cert, gnutls_strerror(err));
+			if (err)
 				break;
-			}
 		}
 
 		/* The check_issuer_sanity() function works fine as a workaround where
