@@ -397,13 +397,43 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 	return 0;
 }
 
+/* Older versions of GnuTLS didn't actually bother to check this, so we'll
+   do it for them. */
+static int check_issuer_sanity(gnutls_x509_crt_t cert, gnutls_x509_crt_t issuer)
+{
+#if GNUTLS_VERSION_NUMBER > 0x300014
+	return 0;
+#else
+	unsigned char id1[512], id2[512];
+	size_t id1_size = 512, id2_size = 512;
+	int err;
+
+	err = gnutls_x509_crt_get_authority_key_id(cert, id1, &id1_size, NULL);
+	if (err)
+		return 0;
+
+	err = gnutls_x509_crt_get_subject_key_id(issuer, id2, &id2_size, NULL);
+	if (err)
+		return 0;
+	if (id1_size == id2_size && !memcmp(id1, id2, id1_size))
+		return 0;
+
+	/* EEP! */
+	return -EIO;
+#endif
+}
+
 static int load_certificate(struct openconnect_info *vpninfo)
 {
 	gnutls_datum_t fdata;
 	gnutls_x509_privkey_t key = NULL;
-	gnutls_x509_crt_t cert = NULL;
 	gnutls_x509_crl_t crl = NULL;
-	int err;
+	gnutls_x509_crt_t last_cert, cert = NULL;
+	gnutls_x509_crt_t *extra_certs = NULL, *supporting_certs = NULL;
+	unsigned int nr_supporting_certs, nr_extra_certs = 0;
+	int err; /* GnuTLS error */
+	int ret = 0; /* our error (zero or -errno) */
+	int i;
 
 	if (vpninfo->cert_type == CERT_TYPE_TPM) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -416,7 +446,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			     _("Using PKCS#11 certificate %s\n"), vpninfo->cert);
 
 		err = gnutls_certificate_set_x509_key_file(vpninfo->https_cred,
-							   vpninfo->cert, 
+							   vpninfo->cert,
 							   vpninfo->sslkey,
 							   GNUTLS_X509_FMT_PEM);
 		if (err) {
@@ -427,24 +457,24 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		}
 		return 0;
 	}
-		
+
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Using certificate file %s\n"), vpninfo->cert);
-	
-	err = load_datum(vpninfo, &fdata, vpninfo->cert);
-	if (err)
-		return err;
+
+	ret = load_datum(vpninfo, &fdata, vpninfo->cert);
+	if (ret)
+		return ret;
 
 	if (vpninfo->cert_type == CERT_TYPE_PKCS12 ||
 	    vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
-		err = load_pkcs12_certificate(vpninfo, &fdata, &key, &cert,
-					      NULL, NULL, &crl);
-		if (!err)
-			goto got_cert;
-		else if (err <= 0) {
+		ret = load_pkcs12_certificate(vpninfo, &fdata, &key, &cert,
+					      &extra_certs, &nr_extra_certs, &crl);
+		if (ret < 0) {
 			gnutls_free(fdata.data);
-			return err;
-		}
+			return ret;
+		} else if (!ret)
+			goto got_cert;
+
 		/* It returned NOT_PKCS12.
 		   Fall through to try PEM formats. */
 	}
@@ -465,13 +495,11 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("Using private key file %s\n"), vpninfo->cert);
 
-		err = load_datum(vpninfo, &fdata, vpninfo->sslkey);
-		if (err) {
-			gnutls_x509_crt_deinit(cert);
-			return err;
-		}
+		ret = load_datum(vpninfo, &fdata, vpninfo->sslkey);
+		if (ret)
+			goto out;
 	}
-	
+
 	gnutls_x509_privkey_init(&key);
 	/* Try PKCS#1 (and PKCS#8 without password) first. GnuTLS doesn't
 	   support OpenSSL's old PKCS#1-based encrypted format. We should
@@ -495,9 +523,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to load private key as PKCS#8: %s\n"),
 					     gnutls_strerror(err));
-				gnutls_x509_crt_deinit(cert);
-				gnutls_free(fdata.data);
-				return -EINVAL;
+				ret = -EINVAL;
+				goto out;
 			}
 			if (pass) {
 				vpn_progress(vpninfo, PRG_ERR,
@@ -507,41 +534,122 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			err = request_passphrase(vpninfo, &pass,
 						 _("Enter PEM pass phrase:"));
 			if (err) {
-				gnutls_x509_crt_deinit(cert);
-				gnutls_free(fdata.data);
-				return -EINVAL;
+				ret = -EINVAL;
+				goto out;
 			}
 		}
 	}
  got_cert:
-	gnutls_free(fdata.data);
 	check_certificate_expiry(vpninfo, cert);
 
 	if (crl) {
 		err = gnutls_certificate_set_x509_crl(vpninfo->https_cred, &crl, 1);
-		gnutls_x509_crl_deinit(crl);
 		if (err) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Setting certificate recovation list failed: %s\n"),
 				     gnutls_strerror(err));
-			gnutls_x509_privkey_deinit(key);
-			gnutls_x509_crt_deinit(cert);
-			return -EIO;
+			goto out;
 		}
 	}
-	/* FIXME: We need to work around OpenSSL RT#1942 on the server, by including
-	   as much of the chain of issuer certificates as we can. */
+
+	/* OpenSSL has problems with certificate chains — if there are
+	   multiple certs with the same name, it doesn't necessarily
+	   choose the _right_ one. (RT#1942)
+	   Pick the right ones for ourselves and add them manually. */
+	last_cert = cert;
+	nr_supporting_certs = 1; /* Our starting cert */
+	while (1) {
+		gnutls_x509_crt_t issuer;
+		char name[80];
+		size_t namelen;
+
+		for (i = 0; i < nr_extra_certs; i++) {
+			if (gnutls_x509_crt_check_issuer(last_cert, extra_certs[i]) &&
+			    !check_issuer_sanity(last_cert, extra_certs[i]))
+				break;
+		}
+
+		if (i < nr_extra_certs) {
+			issuer = extra_certs[i];
+		} else {
+			err = gnutls_certificate_get_issuer(vpninfo->https_cred,
+							    last_cert, &issuer, 0);
+			if (err) {
+				printf("can't get issuer for %p: %s\n",
+				       last_cert, gnutls_strerror(err));
+				break;
+			}
+		}
+
+		/* The check_issuer_sanity() function works fine as a workaround where
+		   it was used above, but when gnutls_certificate_get_issuer() returns
+		   a bogus cert, there's nothing we can do to fix it up. We don't get
+		   to iterate over all the available certs like we can over our own
+		   list. */
+		if (check_issuer_sanity(last_cert, issuer)) {
+			/* Hm, is there a bug reference for this? Or just the git commit
+			   reference (c1ef7efb in master, 5196786c in gnutls_3_0_x-2)? */
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("WARNING: GnuTLS returned incorrect issuer certs; authentication may fail!\n"));
+			break;
+		}
+
+		if (issuer == last_cert)
+			break;
+
+		/* OK, we found a new cert to add to our chain. */
+		supporting_certs = realloc(supporting_certs,
+					   sizeof(cert) * ++nr_supporting_certs);
+		if (!supporting_certs) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to allocate memory for supporting certificates\n"));
+			/* The world is probably about to end, but try without them anyway */
+			break;
+		}
+
+		/* First time we actually allocated an array? Copy the first cert into it */
+		if (nr_supporting_certs == 2)
+			supporting_certs[0] = cert;
+
+		/* Append the new one */
+		supporting_certs[nr_supporting_certs-1] = issuer;
+		last_cert = issuer;
+
+		/* Logging. */
+		sprintf(name, "<unknown>");
+		namelen = sizeof(name);
+		if (gnutls_x509_crt_get_dn_by_oid(issuer, GNUTLS_OID_X520_COMMON_NAME, 0, 0,
+						  name, &namelen) &&
+		    gnutls_x509_crt_get_dn(issuer, name, &namelen))
+			sprintf(name, "<unknown>");
+
+		vpn_progress(vpninfo, PRG_DEBUG,
+			     _("Adding supporting CA '%s'\n"), name);
+	}
+
 	err = gnutls_certificate_set_x509_key(vpninfo->https_cred,
-					      &cert, 1, key);
-	gnutls_x509_privkey_deinit(key);
-	gnutls_x509_crt_deinit(cert);
+					      supporting_certs ? supporting_certs : &cert,
+					      supporting_certs ? 1 : nr_supporting_certs,
+					      key);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Setting certificate failed: %s\n"),
 			     gnutls_strerror(err));
-		return -EIO;
+		ret = -EIO;
 	}
-	return 0;
+ out:
+	if (crl)
+		gnutls_x509_crl_deinit(crl);
+	if (key)
+		gnutls_x509_privkey_deinit(key);
+	if (cert)
+		gnutls_x509_crt_deinit(cert);
+	for (i = 0; i < nr_extra_certs; i++)
+		gnutls_x509_crt_deinit(extra_certs[i]);
+	free(extra_certs);
+	free(supporting_certs);
+	gnutls_free(fdata.data);
+	return ret;
 }
 
 static int get_cert_fingerprint(struct openconnect_info *vpninfo,
