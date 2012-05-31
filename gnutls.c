@@ -193,13 +193,16 @@ static int request_passphrase(struct openconnect_info *vpninfo,
 	va_list args;
 	int ret;
 
+	if (!vpninfo->process_auth_form)
+		return -EINVAL;
+
 	buf[1023] = 0;
 	memset(&f, 0, sizeof(f));
 	va_start(args, fmt);
 	vsnprintf(buf, 1023, fmt, args);
 	va_end(args);
 
-	f.auth_id = (char *)"gnutls_certificate";
+	f.auth_id = (char *)"ssl_certificate";
 	f.opts = &o;
 
 	o.next = NULL;
