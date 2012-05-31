@@ -44,9 +44,14 @@ parse_pkcs12 (gnutls_certificate_credentials_t res,
               gnutls_pkcs12_t p12,
               const char *password,
               gnutls_x509_privkey_t * key,
-              gnutls_x509_crt_t * cert, gnutls_x509_crl_t * crl)
+              gnutls_x509_crt_t * cert,
+              gnutls_x509_crt_t ** extra_certs_ret,
+              unsigned int * extra_certs_ret_len,
+              gnutls_x509_crl_t * crl)
 {
   gnutls_pkcs12_bag_t bag = NULL;
+  gnutls_x509_crt_t *extra_certs = NULL;
+  int extra_certs_len = 0;
   int idx = 0;
   int ret;
   size_t cert_id_size = 0;
@@ -237,6 +242,7 @@ parse_pkcs12 (gnutls_certificate_credentials_t res,
         {
           int type;
           gnutls_datum_t data;
+          gnutls_x509_crt_t this_cert;
 
           type = gnutls_pkcs12_bag_get_type (bag, i);
           if (type < 0)
@@ -255,13 +261,7 @@ parse_pkcs12 (gnutls_certificate_credentials_t res,
           switch (type)
             {
             case GNUTLS_BAG_CERTIFICATE:
-              if (*cert != NULL)        /* no need to set it again */
-                {
-                  gnutls_assert ();
-                  break;
-                }
-
-              ret = gnutls_x509_crt_init (cert);
+              ret = gnutls_x509_crt_init (&this_cert);
               if (ret < 0)
                 {
                   gnutls_assert ();
@@ -269,29 +269,56 @@ parse_pkcs12 (gnutls_certificate_credentials_t res,
                 }
 
               ret =
-                gnutls_x509_crt_import (*cert, &data, GNUTLS_X509_FMT_DER);
+                gnutls_x509_crt_import (this_cert, &data, GNUTLS_X509_FMT_DER);
               if (ret < 0)
                 {
                   gnutls_assert ();
-                  gnutls_x509_crt_deinit (*cert);
+                  gnutls_x509_crt_deinit (this_cert);
                   goto done;
                 }
 
               /* check if the key id match */
               cert_id_size = sizeof (cert_id);
               ret =
-                gnutls_x509_crt_get_key_id (*cert, 0, cert_id, &cert_id_size);
+                gnutls_x509_crt_get_key_id (this_cert, 0, cert_id, &cert_id_size);
               if (ret < 0)
                 {
                   gnutls_assert ();
-                  gnutls_x509_crt_deinit (*cert);
+                  gnutls_x509_crt_deinit (this_cert);
                   goto done;
                 }
 
               if (memcmp (cert_id, key_id, cert_id_size) != 0)
                 {               /* they don't match - skip the certificate */
-                  gnutls_x509_crt_deinit (*cert);
-                  *cert = NULL;
+                  if (extra_certs_ret)
+                    {
+                      extra_certs = gnutls_realloc (extra_certs,
+                                                    sizeof(extra_certs[0]) *
+                                                    ++extra_certs_len);
+                      if (!extra_certs)
+                        {
+                          gnutls_assert ();
+                          ret = GNUTLS_E_MEMORY_ERROR;
+                          goto done;
+                        }
+                      extra_certs[extra_certs_len - 1] = this_cert;
+                      this_cert = NULL;
+                    }
+                  else
+                    {
+                       gnutls_x509_crt_deinit (this_cert);
+                    }
+                  break;
+                }
+              else
+                {
+                   if (*cert != NULL)        /* no need to set it again */
+                     {
+                        gnutls_assert ();
+                        break;
+                     }
+                   *cert = this_cert;
+                   this_cert = NULL;
                 }
               break;
 
@@ -336,6 +363,26 @@ parse_pkcs12 (gnutls_certificate_credentials_t res,
 done:
   if (bag)
     gnutls_pkcs12_bag_deinit (bag);
+
+  if (ret)
+    {
+      if (*key)
+        gnutls_x509_privkey_deinit(*key);
+      if (*cert)
+        gnutls_x509_crt_deinit(*cert);
+      if (extra_certs_len)
+        {
+          int i;
+          for (i = 0; i < extra_certs_len; i++)
+            gnutls_x509_crt_deinit(extra_certs[i]);
+          gnutls_free(extra_certs);
+        }
+    }
+  else if (extra_certs_ret)
+    {
+      *extra_certs_ret = extra_certs;
+      *extra_certs_ret_len = extra_certs_len;
+    }
 
   return ret;
 }

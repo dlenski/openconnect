@@ -321,7 +321,9 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 				   gnutls_datum_t *datum,
 				   gnutls_x509_privkey_t *key,
 				   gnutls_x509_crt_t *cert,
-				   gnutls_x509_crl_t * crl)
+				   gnutls_x509_crt_t **extra_certs,
+				   unsigned int *nr_extra_certs,
+				   gnutls_x509_crl_t *crl)
 {
 	gnutls_pkcs12_t p12;
 	char *pass;
@@ -383,7 +385,8 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 		return ret;
 	}
 
-	err = parse_pkcs12(vpninfo->https_cred, p12, pass, key, cert, crl);
+	err = parse_pkcs12(vpninfo->https_cred, p12, pass, key, cert,
+			   extra_certs, nr_extra_certs, crl);
 	gnutls_pkcs12_deinit(p12);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -434,7 +437,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 	if (vpninfo->cert_type == CERT_TYPE_PKCS12 ||
 	    vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
-		err = load_pkcs12_certificate(vpninfo, &fdata, &key, &cert, &crl);
+		err = load_pkcs12_certificate(vpninfo, &fdata, &key, &cert,
+					      NULL, NULL, &crl);
 		if (!err)
 			goto got_cert;
 		else if (err <= 0) {
