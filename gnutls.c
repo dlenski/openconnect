@@ -794,7 +794,7 @@ static int verify_peer(gnutls_session_t session)
 	const gnutls_datum_t *cert_list;
 	gnutls_x509_crt_t cert;
 	unsigned int status, cert_list_size;
-	char *reason = NULL;
+	const char *reason = NULL;
 	int err;
 
 	if (vpninfo->peer_cert) {
