@@ -498,17 +498,40 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 #else /* BSD et al have /dev/tun$x devices */
 	static char tun_name[80];
 	int i;
-	for (i = 0; i < 255; i++) {
-		sprintf(tun_name, "/dev/tun%d", i);
+
+	if (vpninfo->ifname) {
+		char *endp = NULL;
+		if (strncmp(vpninfo->ifname, "tun", 3) ||
+		    ((void)strtol(vpninfo->ifname + 3, &endp, 10), !endp) ||
+		    *endp) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Invalid interface name '%s'; must match 'tun%%d'\n"),
+				     vpninfo->ifname);
+			return -EINVAL;
+		}
+		snprintf(tun_name, sizeof(tun_name),
+			 "/dev/%s", vpninfo->ifname);
 		tun_fd = open(tun_name, O_RDWR);
-		if (tun_fd >= 0)
-			break;
+		if (tun_fd < 0) {
+			int err = errno;
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Cannot open '%s': %s\n"),
+				     tun_name, strerror(err));
+			return -EINVAL;
+		}
+	} else {
+		for (i = 0; i < 255; i++) {
+			sprintf(tun_name, "/dev/tun%d", i);
+			tun_fd = open(tun_name, O_RDWR);
+			if (tun_fd >= 0)
+				break;
+		}
+		if (tun_fd < 0) {
+			perror(_("open tun"));
+			exit(1);
+		}
+		vpninfo->ifname = strdup(tun_name + 5);
 	}
-	if (tun_fd < 0) {
-		perror(_("open tun"));
-		exit(1);
-	}
-	vpninfo->ifname = strdup(tun_name + 5);
 #ifdef TUNSIFHEAD
 	i = 1;
 	if (ioctl(tun_fd, TUNSIFHEAD, &i) < 0) {
