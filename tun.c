@@ -412,9 +412,37 @@ static int link_proto(int unit_nr, const char *devname, uint64_t flags)
 }
 #endif
 
+#ifdef SIOCIFCREATE
+static int bsd_open_tun(char *tun_name)
+{
+	int fd;
+	int s;
+	struct ifreq ifr;
+
+	fd = open(tun_name, O_RDWR);
+	if (fd >= 0) {
+		return fd;
+
+		s = socket(AF_INET, SOCK_DGRAM, 0);
+		if (s < 0)
+			return -1;
+
+		memset(&ifr, 0, sizeof(ifr));
+		strncpy(ifr.ifr_name, tun_name + 5, sizeof(ifr.ifr_name) - 1);
+		if (!ioctl(s, SIOCIFCREATE, &ifr))
+			fd = open(tun_name, O_RDWR);
+
+		close(s);
+	}
+	return fd;
+}
+#else
+#define bsd_open_tun(tun_name) open(tun_name, O_RDWR)
+#endif
+
 static int os_setup_tun(struct openconnect_info *vpninfo)
 {
-	int tun_fd;
+	int tun_fd = -1;
 
 #ifdef IFF_TUN /* Linux */
 	struct ifreq ifr;
@@ -511,7 +539,7 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 		}
 		snprintf(tun_name, sizeof(tun_name),
 			 "/dev/%s", vpninfo->ifname);
-		tun_fd = open(tun_name, O_RDWR);
+		tun_fd = bsd_open_tun(tun_name);
 		if (tun_fd < 0) {
 			int err = errno;
 			vpn_progress(vpninfo, PRG_ERR,
@@ -519,10 +547,27 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 				     tun_name, strerror(err));
 			return -EINVAL;
 		}
-	} else {
+	}
+#ifdef HAVE_FDEVNAME_R
+	/* We don't have to iterate over the possible devices; on FreeBSD
+	   at least, opening /dev/tun will give us the next available
+	   device. */
+	if (tun_fd < 0) {
+		tun_fd = open("/dev/tun", O_RDWR);
+		if (tun_fd >= 0) {
+			if (!fdevname_r(tun_fd, tun_name, sizeof(tun_name)) ||
+			    strncmp(tun_name, "tun", 3)) {
+				close(tun_fd);
+				tun_fd = -1;
+			} else
+				vpninfo->ifname = strdup(tun_name);
+		}
+	}
+#endif
+	if (tun_fd < 0) {
 		for (i = 0; i < 255; i++) {
 			sprintf(tun_name, "/dev/tun%d", i);
-			tun_fd = open(tun_name, O_RDWR);
+			tun_fd = bsd_open_tun(tun_name);
 			if (tun_fd >= 0)
 				break;
 		}
