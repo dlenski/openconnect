@@ -649,8 +649,14 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			break;
 		}
 
-		if (issuer == last_cert)
+		if (issuer == last_cert) {
+			/* Don't actually include the root CA. If they don't already trust it,
+			   then handing it to them isn't going to help. But don't omit the
+			   original certificate if it's self-signed. */
+			if (nr_supporting_certs > 1)
+				nr_supporting_certs--;
 			break;
+		}
 
 		/* OK, we found a new cert to add to our chain. */
 		supporting_certs = realloc(supporting_certs,
