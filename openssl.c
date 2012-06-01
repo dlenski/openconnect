@@ -320,6 +320,8 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 
 				if (cert2 == cert)
 					break;
+				if (X509_check_issued(cert2, cert2) == X509_V_OK)
+					break;
 
 				X509_NAME_oneline(X509_get_subject_name(cert2),
 						  buf, sizeof(buf));
@@ -912,6 +914,8 @@ static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 	while (ctx.get_issuer(&cert2, &ctx, cert) == 1) {
 		char buf[200];
 		if (cert2 == cert)
+			break;
+		if (X509_check_issued(cert2, cert2) == X509_V_OK)
 			break;
 		cert = cert2;
 		X509_NAME_oneline(X509_get_subject_name(cert),
