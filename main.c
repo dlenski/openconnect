@@ -48,6 +48,7 @@
 #include <sys/utsname.h>
 #include <sys/types.h>
 #include <openssl/ui.h>
+#include <termios.h>
 #ifdef LIBPROXY_HDR
 #include LIBPROXY_HDR
 #endif
@@ -361,20 +362,20 @@ static int next_option(int argc, char **argv, char **config_arg)
 	return this->val;
 
 }
-
+#ifdef OPENCONNECT_OPENSSL
 static int null_ui_open(UI *ui)
 {
 	fprintf(stderr, _("Cannot ask for user input while in non-interactive mode\n"));
 	fflush(stderr);
 	return 0;
 }
-
 static void disable_openssl_ui()
 {
 	UI_METHOD *ui_method = UI_create_method((char *)"OpenConnect non-interactive UI");
 	UI_method_set_opener(ui_method, null_ui_open);
 	UI_set_default_method(ui_method);
 }
+#endif
 
 int main(int argc, char **argv)
 {
@@ -488,7 +489,9 @@ int main(int argc, char **argv)
 			break;
 		case OPT_NON_INTER:
 			non_inter = 1;
+#ifdef OPENCONNECT_OPENSSL
 			disable_openssl_ui();
+#endif
 			break;
 		case OPT_RECONNECT_TIMEOUT:
 			vpninfo->reconnect_timeout = atoi(config_arg);
@@ -904,32 +907,23 @@ static int validate_peer_cert(void *_vpninfo, OPENCONNECT_X509 *peer_cert,
 	}
 	
 	while (1) {
-		UI *ui;
-		char buf[6];
-		int ret;
+		char buf[80];
 		char *details;
+		char *p;
 
-		fprintf(stderr,
-			_("\nCertificate from VPN server \"%s\" failed verification.\n"
-			  "Reason: %s\n"), vpninfo->hostname, reason);
-		fflush(stderr);
+		printf(_("\nCertificate from VPN server \"%s\" failed verification.\n"
+			 "Reason: %s\n"), vpninfo->hostname, reason);
 
 		if (non_inter)
 			return -EINVAL;
 
-		ui = UI_new();
-		if (!ui) {
-			fprintf(stderr, _("Failed to create UI\n"));
+		printf(_("Enter '%s' to accept, '%s' to abort; anything else to view: "),
+		       _("yes"), _("no"));
+		if (!fgets(buf, sizeof(buf), stdin))
 			return -EINVAL;
-		}
-		UI_add_input_string(ui, _("Enter 'yes' to accept, 'no' to abort; anything else to view: "),
-				    UI_INPUT_FLAG_ECHO, buf, 2, 5);
-		ret = UI_process(ui);
-		UI_free(ui);
-		if (ret == -2)
-			return -EINVAL;
-		if (ret == -1)
-			buf[0] = 0;
+		p = strchr(buf, '\n');
+		if (p)
+			*p = 0;
 
 		if (!strcasecmp(buf, _("yes"))) {
 			struct accepted_cert *newcert = malloc(sizeof(*newcert) +
@@ -963,42 +957,25 @@ static int process_auth_form(void *_vpninfo,
 			     struct oc_auth_form *form)
 {
 	struct openconnect_info *vpninfo = _vpninfo;
-	UI *ui = UI_new();
-	char banner_buf[1024], msg_buf[1024], err_buf[1024];
-	char choice_prompt[1024], choice_resp[80];
-	int ret = 0, input_count=0;
 	struct oc_form_opt *opt;
-	struct oc_form_opt_select *select_opt = NULL;
+	char response[1024];
+	char *p;
 
-	choice_resp[0] = 0;
+	if (form->banner)
+		puts(form->banner);
 
-	if (!ui) {
-		vpn_progress(vpninfo, PRG_ERR, _("Failed to create UI\n"));
-		return -EINVAL;
-	}
-	if (form->banner) {
-		banner_buf[1023] = 0;
-		snprintf(banner_buf, 1023, "%s\n", form->banner);
-		UI_add_info_string(ui, banner_buf);
-	}
-	if (form->error) {
-		err_buf[1023] = 0;
-		snprintf(err_buf, 1023, "%s\n", form->error);
-		UI_add_error_string(ui, err_buf);
-	}
-	if (form->message) {
-		msg_buf[1023] = 0;
-		snprintf(msg_buf, 1023, "%s\n", form->message);
-		UI_add_info_string(ui, msg_buf);
-	}
+	if (form->error)
+		puts(form->error);
+
+	if (form->message)
+		puts(form->message);
 
 	/* scan for select options first so they are displayed first */
 	for (opt = form->opts; opt; opt = opt->next) {
 		if (opt->type == OC_FORM_OPT_SELECT) {
+			struct oc_form_opt_select *select_opt = (void *)opt;
 			struct oc_choice *choice = NULL;
 			int i;
-
-			select_opt = (void *)opt;
 
 			if (!select_opt->nr_choices)
 				continue;
@@ -1027,18 +1004,37 @@ static int process_auth_form(void *_vpninfo,
 				select_opt = NULL;
 				continue;
 			}
-			snprintf(choice_prompt, 1023, "%s [", opt->label);
+			printf("%s [", opt->label);
 			for (i = 0; i < select_opt->nr_choices; i++) {
 				choice = &select_opt->choices[i];
 				if (i)
-					strncat(choice_prompt, "|", 1023 - strlen(choice_prompt));
+					printf("|");
 
-				strncat(choice_prompt, choice->label, 1023 - strlen(choice_prompt));
+				printf("%s", choice->label);
 			}
-			strncat(choice_prompt, "]:", 1023 - strlen(choice_prompt));
+			printf("]:");
 
-			UI_add_input_string(ui, choice_prompt, UI_INPUT_FLAG_ECHO, choice_resp, 1, 80);
-			input_count++;
+			if (!fgets(response, sizeof(response), stdin) || !strlen(response))
+				return -EINVAL;
+
+			p = strchr(response, '\n');
+			if (p)
+				*p = 0;
+
+			for (i = 0; i < select_opt->nr_choices; i++) {
+				choice = &select_opt->choices[i];
+
+				if (!strcmp(response, choice->label)) {
+					select_opt->form.value = choice->name;
+					break;
+				}
+			}
+			if (!select_opt->form.value) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Auth choice \"%s\" not valid\n"),
+					     response);
+				return -EINVAL;
+			}
 		}
 	}
 
@@ -1048,18 +1044,21 @@ static int process_auth_form(void *_vpninfo,
 			if (vpninfo->username &&
 			    !strcmp(opt->name, "username")) {
 				opt->value = strdup(vpninfo->username);
-				if (!opt->value) {
-					ret = -ENOMEM;
-					goto out_ui;
-				}
+				if (!opt->value)
+					return -ENOMEM;
 			} else {
 				opt->value=malloc(80);
-				if (!opt->value) {
-					ret = -ENOMEM;
-					goto out_ui;
-				}
-				UI_add_input_string(ui, opt->label, UI_INPUT_FLAG_ECHO, opt->value, 1, 80);
-				input_count++;
+				if (!opt->value)
+					return -ENOMEM;
+
+				printf("%s", opt->label);
+				
+				if (!fgets(opt->value, 80, stdin) || !strlen(opt->value))
+					return -EINVAL;
+
+				p = strchr(opt->value, '\n');
+				if (p)
+					*p = 0;
 			}
 
 		} else if (opt->type == OC_FORM_OPT_PASSWORD) {
@@ -1067,61 +1066,34 @@ static int process_auth_form(void *_vpninfo,
 			    !strcmp(opt->name, "password")) {
 				opt->value = strdup(vpninfo->password);
 				vpninfo->password = NULL;
-				if (!opt->value) {
-					ret = -ENOMEM;
-					goto out_ui;
-				}
+				if (!opt->value)
+					return -ENOMEM;
 			} else {
+				struct termios t;
 				opt->value=malloc(80);
-				if (!opt->value) {
-					ret = -ENOMEM;
-					goto out_ui;
-				}
-				UI_add_input_string(ui, opt->label, 0, opt->value, 1, 80);
-				input_count++;
+				if (!opt->value)
+					return -ENOMEM;
+
+				printf("%s", opt->label);
+
+				tcgetattr(0, &t);
+				t.c_lflag &= ~ECHO;
+				tcsetattr(0, TCSANOW, &t);
+
+				p = fgets(opt->value, 80, stdin);
+
+				t.c_lflag |= ECHO;
+				tcsetattr(0, TCSANOW, &t);
+				printf("\n");
+				
+				if (!p || !strlen(opt->value))
+					return -EINVAL;
+
+				p = strchr(opt->value, '\n');
+				if (p)
+					*p = 0;
 			}
 
-		}
-	}
-
-	if (!input_count) {
-		ret = 0;
-		goto out_ui;
-	}
-
-	switch (UI_process(ui)) {
-	case -2:
-		/* cancelled */
-		ret = 1;
-		goto out_ui;
-	case -1:
-		/* error */
-		vpn_progress(vpninfo, PRG_ERR, _("Invalid inputs\n"));
-		ret = -EINVAL;
-	out_ui:
-		UI_free(ui);
-		return ret;
-	}
-
-	UI_free(ui);
-
-	if (select_opt) {
-		struct oc_choice *choice = NULL;
-		int i;
-
-		for (i = 0; i < select_opt->nr_choices; i++) {
-			choice = &select_opt->choices[i];
-
-			if (!strcmp(choice_resp, choice->label)) {
-				select_opt->form.value = choice->name;
-				break;
-			}
-		}
-		if (!select_opt->form.value) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Auth choice \"%s\" not valid\n"),
-				     choice_resp);
-			return -EINVAL;
 		}
 	}
 
