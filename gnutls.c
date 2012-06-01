@@ -620,8 +620,6 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	nr_supporting_certs = 1; /* Our starting cert */
 	while (1) {
 		gnutls_x509_crt_t issuer;
-		char name[80];
-		size_t namelen;
 
 		for (i = 0; i < nr_extra_certs; i++) {
 			if (gnutls_x509_crt_check_issuer(last_cert, extra_certs[i]) &&
@@ -672,12 +670,17 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		supporting_certs[nr_supporting_certs-1] = issuer;
 		last_cert = issuer;
 
-		/* Logging. */
+	}
+	for (i = 1; i < nr_supporting_certs; i++) {
+		char name[80];
+		size_t namelen;
+
 		sprintf(name, "<unknown>");
 		namelen = sizeof(name);
-		if (gnutls_x509_crt_get_dn_by_oid(issuer, GNUTLS_OID_X520_COMMON_NAME, 0, 0,
-						  name, &namelen) &&
-		    gnutls_x509_crt_get_dn(issuer, name, &namelen))
+		if (gnutls_x509_crt_get_dn_by_oid(supporting_certs[i],
+						  GNUTLS_OID_X520_COMMON_NAME,
+						  0, 0, name, &namelen) &&
+		    gnutls_x509_crt_get_dn(supporting_certs[i], name, &namelen))
 			sprintf(name, "<unknown>");
 
 		vpn_progress(vpninfo, PRG_DEBUG,
