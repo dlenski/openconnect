@@ -52,7 +52,9 @@
 #ifdef LIBPROXY_HDR
 #include LIBPROXY_HDR
 #endif
-
+#ifdef OPENCONNECT_GNUTLS
+#include <gnutls/pkcs11.h>
+#endif
 #include <getopt.h>
 
 #include "openconnect-internal.h"
@@ -377,6 +379,55 @@ static void disable_openssl_ui()
 }
 #endif
 
+#ifdef OPENCONNECT_GNUTLS
+static int gtls_pin_func(void *user, int attempt, const char *token_url,
+			 const char *token_label, unsigned int flags, char *pin,
+			 size_t pin_max)
+{
+	char *password, *p;
+	struct termios t;
+	int len;
+
+	printf ("PIN required for token '%s' with URL '%s'\n", token_label,
+		token_url);
+	if (flags & GNUTLS_PKCS11_PIN_FINAL_TRY)
+		printf ("*** This is the final try before locking!\n");
+	if (flags & GNUTLS_PKCS11_PIN_COUNT_LOW)
+		printf ("*** Only few tries left before locking!\n");
+	if (flags & GNUTLS_PKCS11_PIN_WRONG)
+		printf ("*** Wrong PIN\n");
+
+	password = malloc(pin_max + 1);
+	if (!password)
+		return GNUTLS_E_MEMORY_ERROR;
+
+	printf("Enter PIN: ");
+	tcgetattr(0, &t);
+	t.c_lflag &= ~ECHO;
+	tcsetattr(0, TCSANOW, &t);
+
+	p = fgets(password, pin_max + 1, stdin);
+
+	t.c_lflag |= ECHO;
+	tcsetattr(0, TCSANOW, &t);
+	printf("\n");
+				
+	if (!p || !strlen(password)) {
+		free(password);
+		return -GNUTLS_E_INSUFFICIENT_CREDENTIALS;
+	}
+
+	len = strlen(password);
+	if (len > pin_max)
+		len = pin_max;
+
+	memcpy(pin, password, len);
+	free(password);
+
+	return 0;
+}
+#endif
+
 int main(int argc, char **argv)
 {
 	struct openconnect_info *vpninfo;
@@ -664,6 +715,11 @@ int main(int argc, char **argv)
 		fprintf(stderr, _("No server specified\n"));
 		usage();
 	}
+
+#ifdef OPENCONNECT_GNUTLS
+	if (!non_inter)
+		gnutls_pkcs11_set_pin_function(gtls_pin_func, vpninfo);
+#endif
 
 	if (!vpninfo->sslkey)
 		vpninfo->sslkey = vpninfo->cert;
