@@ -299,10 +299,12 @@ int cstp_reconnect(struct openconnect_info *vpninfo);
 
 /* ssl.c */
 int connect_https_socket(struct openconnect_info *vpninfo);
-
-/* ${SSL_LIBRARY}.c */
+int request_passphrase(struct openconnect_info *vpninfo,
+		       char **response, const char *fmt, ...);
 int  __attribute__ ((format (printf, 2, 3)))
     openconnect_SSL_printf(struct openconnect_info *vpninfo, const char *fmt, ...);
+
+/* ${SSL_LIBRARY}.c */
 int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len);
 int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t len);
 int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len);
