@@ -543,7 +543,10 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		   just call gnutls_x509_privkey_import_pkcs8() with a NULL password,
 		   it'll SEGV. You have to set the GNUTLS_PKCS_PLAIN flag if you want
 		   to try without a password. Passing NULL evidently isn't enough of
-		   a hint. */
+		   a hint. And in GnuTLS 3.1 where that crash has been fixed, passing
+		   NULL will cause it to return GNUTLS_E_ENCRYPTED_STRUCTURE (a new
+		   error code) rather than GNUTLS_E_DECRYPTION_FAILED. So just pass ""
+		   instead of NULL, and don't worry about either case. */
 		while ((err = gnutls_x509_privkey_import_pkcs8(key, &fdata,
 							       GNUTLS_X509_FMT_PEM,
 							       pass?pass:"", 0))) {
