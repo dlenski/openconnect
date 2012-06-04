@@ -260,20 +260,22 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 	X509 *cert = NULL;
 	STACK_OF(X509) *ca;
 	int ret = 0;
-	char pass[PEM_BUFSIZE];
+	char *pass;
 
+	pass = vpninfo->cert_password;
+	vpninfo->cert_password = NULL;
  retrypass:
 	/* We do this every time round the loop, to work around a bug in
 	   OpenSSL < 1.0.0-beta2 -- where the stack at *ca will be freed
 	   when PKCS12_parse() returns an error, but *ca is left pointing
 	   to the freed memory. */
 	ca = NULL;
-	if (!vpninfo->cert_password) {
-		if (EVP_read_pw_string(pass, PEM_BUFSIZE,
-				       "Enter PKCS#12 pass phrase:", 0))
-			return -EINVAL;
+	if (!pass && request_passphrase(vpninfo, &pass,
+					_("Enter PKCS#12 pass phrase:")) < 0) {
+		PKCS12_free(p12);
+		return -EINVAL;
 	}
-	if (!PKCS12_parse(p12, vpninfo->cert_password?:pass, &pkey, &cert, &ca)) {
+	if (!PKCS12_parse(p12, pass, &pkey, &cert, &ca)) {
 		unsigned long err = ERR_peek_error();
 
 		openconnect_report_ssl_errors(vpninfo);
@@ -283,7 +285,8 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 		    ERR_GET_REASON(err) == PKCS12_R_MAC_VERIFY_FAILURE) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Parse PKCS#12 failed (wrong passphrase?)\n"));
-			vpninfo->cert_password = NULL;
+			free(pass);
+			pass = NULL;
 			goto retrypass;
 		}
 
