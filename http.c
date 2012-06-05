@@ -354,6 +354,13 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 	char local_sha1_ascii[(SHA1_SIZE * 2)+1];
 	int i;
 
+	if (openconnect_open_https(vpninfo)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to open HTTPS connection to %s\n"),
+			     vpninfo->hostname);
+		return -EINVAL;
+	}
+
 	sprintf(buf, "GET %s%s HTTP/1.1\r\n", fu, bu);
 	sprintf(buf + strlen(buf), "Host: %s\r\n", vpninfo->hostname);
 	sprintf(buf + strlen(buf),  "User-Agent: %s\r\n", vpninfo->useragent);
@@ -368,7 +375,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 	}
 	sprintf(buf + strlen(buf),  "X-Transcend-Version: 1\r\n\r\n");
 
-	if (openconnect_SSL_write(vpninfo, buf, strlen(buf))) {
+	if (openconnect_SSL_write(vpninfo, buf, strlen(buf)) != strlen(buf)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to send GET request for new config\n"));
 		return -EIO;
