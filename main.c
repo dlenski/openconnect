@@ -269,7 +269,18 @@ static void handle_sigusr(int sig)
 static FILE *config_file = NULL;
 static int config_line_num = 0;
 
-#define keep_config_arg() (config_arg)
+/* There are three ways to handle config_arg:
+ *
+ * 1. We only care about it transiently and it can be lost entirely
+ *    (e.g. vpninfo->reconnect_timeout = atoi(config_arg);
+ * 2. We need to kep it, but it's a static string and will never be freed
+ *    so when it's part of argv[] we can use it in place, but when it comes
+ *    from a file we have to strdup() because otherwise it'll be overwritten.
+ *    For this we use the keep_config_arg() macro below.
+ * 3. It may be freed during normal operation, so we have to use strdup()
+ *    even when it's an option from argv[]. (e.g. vpninfo->cert_password).
+ */
+#define keep_config_arg() (config_file?strdup(config_arg):config_arg)
 
 static int next_option(int argc, char **argv, char **config_arg)
 {
@@ -607,7 +618,7 @@ int main(int argc, char **argv)
 			}
 			break;
 		case 'p':
-			vpninfo->cert_password = keep_config_arg();
+			vpninfo->cert_password = strdup(config_arg);
 			break;
 		case 'P': 
 			proxy = keep_config_arg();
