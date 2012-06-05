@@ -239,19 +239,29 @@ int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len
 static int pem_pw_cb(char *buf, int len, int w, void *v)
 {
 	struct openconnect_info *vpninfo = v;
+	char *pass = NULL;
+	int plen;
 
-	/* Only try the provided password once... */
-	SSL_CTX_set_default_passwd_cb(vpninfo->https_ctx, NULL);
-	SSL_CTX_set_default_passwd_cb_userdata(vpninfo->https_ctx, NULL);
+	if (vpninfo->cert_password) {
+		pass = vpninfo->cert_password;
+		vpninfo->cert_password = NULL;
+	} else if (request_passphrase(vpninfo, &pass,
+				      _("Enter PEM pass phrase:")))
+		return -1;
 
-	if (len <= strlen(vpninfo->cert_password)) {
+	plen = strlen(pass);
+
+	if (len <= plen) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("PEM password too long (%zd >= %d)\n"),
-			     strlen(vpninfo->cert_password), len);
+			     _("PEM password too long (%d >= %d)\n"),
+			     plen, len);
+		free(pass);
 		return -1;
 	}
-	strcpy(buf, vpninfo->cert_password);
-	return strlen(vpninfo->cert_password);
+
+	memcpy(buf, pass, plen+1);
+	free(pass);
+	return plen;
 }
 
 static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12)
@@ -502,12 +512,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		return load_tpm_certificate(vpninfo);
 
 	/* Standard PEM certificate */
-	if (vpninfo->cert_password) {
-		SSL_CTX_set_default_passwd_cb(vpninfo->https_ctx,
-					      pem_pw_cb);
-		SSL_CTX_set_default_passwd_cb_userdata(vpninfo->https_ctx,
-						       vpninfo);
-	}
+	SSL_CTX_set_default_passwd_cb(vpninfo->https_ctx, pem_pw_cb);
+	SSL_CTX_set_default_passwd_cb_userdata(vpninfo->https_ctx, vpninfo);
  again:
 	if (!SSL_CTX_use_RSAPrivateKey_file(vpninfo->https_ctx, vpninfo->sslkey,
 					    SSL_FILETYPE_PEM)) {
