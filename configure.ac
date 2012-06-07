@@ -201,8 +201,8 @@ if test "$with_gnutls" = "yes" || test "$with_gnutls" = "shibboleet"; then
     LIBS="$LIBS $GNUTLS_LIBS"
     AC_CHECK_FUNC(gnutls_pkcs12_simple_parse,
 		 [AC_DEFINE(HAVE_GNUTLS_PKCS12_SIMPLE_PARSE, 1)], [])
-    AC_CHECK_FUNC(gnutls_session_set_master,
-		 [AC_DEFINE(HAVE_GNUTLS_SESSION_SET_MASTER, 1)], [])
+    AC_CHECK_FUNC(gnutls_session_set_premaster,
+		 [AC_DEFINE(HAVE_GNUTLS_SESSION_SET_PREMASTER, 1)], [])
     LIBS="$oldLIBS"
 elif test "$with_gnutls" != "" && test "$with_gnutls" != "no"; then
     AC_MSG_ERROR([Values other than 'yes' or 'no' for --with-gnutls are not supported])

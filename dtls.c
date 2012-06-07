@@ -356,10 +356,10 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 	master_secret.size = sizeof(vpninfo->dtls_secret);
 	session_id.data = vpninfo->dtls_session_id;
 	session_id.size = sizeof(vpninfo->dtls_session_id);
-	err = gnutls_session_set_master(dtls_ssl, GNUTLS_CLIENT, GNUTLS_DTLS0_9,
-					GNUTLS_KX_RSA, GNUTLS_CIPHER_AES_128_CBC,
-					GNUTLS_MAC_SHA1, GNUTLS_COMP_NULL,
-					&master_secret, &session_id);
+	err = gnutls_session_set_premaster(dtls_ssl, GNUTLS_CLIENT, GNUTLS_DTLS0_9,
+					   GNUTLS_KX_RSA, GNUTLS_CIPHER_AES_128_CBC,
+					   GNUTLS_MAC_SHA1, GNUTLS_COMP_NULL,
+					   &master_secret, &session_id);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to set DTLS session parameters: %s\n"),

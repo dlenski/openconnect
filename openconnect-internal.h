@@ -249,7 +249,7 @@ struct openconnect_info {
 };
 
 #if (defined (OPENCONNECT_OPENSSL) && defined (SSL_OP_CISCO_ANYCONNECT)) || \
-    (defined(OPENCONNECT_GNUTLS) && defined (HAVE_GNUTLS_SESSION_SET_MASTER))
+    (defined(OPENCONNECT_GNUTLS) && defined (HAVE_GNUTLS_SESSION_SET_PREMASTER))
 #define HAVE_DTLS 1
 #endif
 
