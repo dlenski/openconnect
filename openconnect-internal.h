@@ -182,7 +182,13 @@ struct openconnect_info {
 	SSL *new_dtls_ssl;
 	SSL_SESSION *dtls_session;
 #elif defined(OPENCONNECT_GNUTLS)
-	/* FIXME */
+	/* Call these *_ssl rather than *_sess because they're just
+	   pointers, and generic code (in mainloop.c for example)
+	   wants to check if they're NULL or not. No point in being
+	   differently named to the OpenSSL variant, and forcing us to
+	   have ifdefs or accessor macros for them. */
+	gnutls_session_t dtls_ssl;
+	gnutls_session_t new_dtls_ssl;
 #endif
 	struct keepalive_info dtls_times;
 	unsigned char dtls_session_id[32];
@@ -241,6 +247,11 @@ struct openconnect_info {
 	openconnect_process_auth_form_vfn process_auth_form;
 	openconnect_progress_vfn progress;
 };
+
+#if (defined (OPENCONNECT_OPENSSL) && defined (SSL_OP_CISCO_ANYCONNECT)) || \
+    (defined(OPENCONNECT_GNUTLS) && defined (HAVE_GNUTLS_SESSION_SET_MASTER))
+#define HAVE_DTLS 1
+#endif
 
 /* Packet types */
 
