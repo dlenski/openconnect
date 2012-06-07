@@ -1,14 +1,8 @@
 /*
- * Ick. This is (or at least started off as) a straight copy of
- * parse_pkcs12() from GnuTLS lib/gnutls_x509.c, as of commit ID
- * 77670476814c078bbad56ce8772b192a3b5736b6 on the gnutls_2_12_x
- * branch.
- *
- * We need to *see* the cert so that we can check its expiry, and
- * we'll also want to get all the other certs in the PKCS#12 file
- * rather than only the leaf node. Hopefully these changes can be
- * merged back into GnuTLS as soon as possible, it can be made a
- * public function, and this copy can die.
+ * This is (now) gnutls_pkcs12_simple_parse() from GnuTLS 3.1, although
+ * it was actually taken from parse_pkcs12() in GnuTLS 2.12.x (where it
+ * was under LGPLv2.1) and modified locally. The modifications were
+ * accepted back into GnuTLS in commit 9a43e8fa.
  */
 #define opaque unsigned char
 #define gnutls_assert() do {} while(0)
@@ -40,14 +34,14 @@
 
 
 static int
-parse_pkcs12 (gnutls_certificate_credentials_t res,
-              gnutls_pkcs12_t p12,
-              const char *password,
-              gnutls_x509_privkey_t * key,
-              gnutls_x509_crt_t * cert,
-              gnutls_x509_crt_t ** extra_certs_ret,
-              unsigned int * extra_certs_ret_len,
-              gnutls_x509_crl_t * crl)
+gnutls_pkcs12_simple_parse (gnutls_certificate_credentials_t res,
+			    gnutls_pkcs12_t p12,
+			    const char *password,
+			    gnutls_x509_privkey_t * key,
+			    gnutls_x509_crt_t * cert,
+			    gnutls_x509_crt_t ** extra_certs_ret,
+			    unsigned int * extra_certs_ret_len,
+			    gnutls_x509_crl_t * crl)
 {
   gnutls_pkcs12_bag_t bag = NULL;
   gnutls_x509_crt_t *extra_certs = NULL;

@@ -198,6 +198,11 @@ elif test "$with_gnutls" = "shibboleet"; then
     fi
     with_openssl=no
     ssl_library=gnutls
+    oldlibs="$LIBS"
+    LIBS="$LIBS $GNUTLS_LIBS"
+    AC_CHECK_FUNC(gnutls_pkcs12_simple_parse,
+		 [AC_DEFINE(HAVE_GNUTLS_PKCS12_SIMPLE_PARSE, 1)], [])
+    LIBS="$oldLIBS"
 elif test "$with_gnutls" != "" && test "$with_gnutls" != "no"; then
     AC_MSG_ERROR([Values other than 'yes' or 'no' for --with-gnutls are not supported])
 fi

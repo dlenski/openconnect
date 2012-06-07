@@ -264,8 +264,11 @@ static int load_datum(struct openconnect_info *vpninfo,
 	return 0;
 }
 
-/* Pull in our local copy of GnuTLS's parse_pkcs12() function, for now */
+#ifndef HAVE_GNUTLS_PKCS12_SIMPLE_PARSE
+/* If we're using a version of GnuTLS from before this was 
+   exported, pull in our local copy. */
 #include "gnutls_pkcs12.c"
+#endif
 
 /* A non-zero, non-error return to make load_certificate() continue and
    interpreting the file as other types */
@@ -339,8 +342,8 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 		return ret;
 	}
 
-	err = parse_pkcs12(vpninfo->https_cred, p12, pass, key, cert,
-			   extra_certs, nr_extra_certs, crl);
+	err = gnutls_pkcs12_simple_parse(vpninfo->https_cred, p12, pass, key,
+					 cert, extra_certs, nr_extra_certs, crl);
 	gnutls_pkcs12_deinit(p12);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
