@@ -24,7 +24,7 @@ $(START_PAGES): menu2-started.xml
 $(MAIN_PAGES): menu2.xml
 
 manual.html: openconnect.8.inc
-openconnect.8.inc: $(top_srcdir)/openconnect.8
+openconnect.8.inc: ../openconnect.8
 	groff -t -K UTF-8 -mandoc -Txhtml $? | sed -e '1,/<body>/d' -e '/<\/body>/,$$d' > $@
 
 EXTRA_DIST = $(patsubst %.html,%.xml,$(ALL_PAGES)) menu1.xml menu2*.xml html.py

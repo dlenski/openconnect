@@ -211,9 +211,9 @@ compatible with the
 .B vpnc\-script
 which is shipped with the "vpnc" VPN client. See
 .I http://www.infradead.org/openconnect/vpnc-script.html
-for more information. Unless OpenConnect was built in a non-standard way,
-the default is
-.B /etc/vpnc/vpnc-script
+for more information. This version of OpenConnect is configured to use
+.B @DEFAULT_VPNCSCRIPT@
+by default.
 .TP
 .B \-S,\-\-script\-tun
 Pass traffic to 'script' program over a UNIX socket, instead of to a kernel

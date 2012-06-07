@@ -53,6 +53,7 @@ elif test "$with_vpnc_script" = "no"; then
 fi
 
 AC_DEFINE_UNQUOTED(DEFAULT_VPNCSCRIPT, "${with_vpnc_script}")
+AC_SUBST(DEFAULT_VPNCSCRIPT, "${with_vpnc_script}")
 
 case $host_os in
  *linux* | *gnu*)
@@ -390,4 +391,4 @@ done
 AC_SUBST(GITVERSIONDEPS)
 
 AC_OUTPUT(Makefile openconnect.pc po/Makefile www/Makefile libopenconnect.map \
-	  www/styles/Makefile www/inc/Makefile www/images/Makefile)
+	  openconnect.8 www/styles/Makefile www/inc/Makefile www/images/Makefile)

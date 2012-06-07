@@ -31,7 +31,7 @@ endif
 
 pkgconfig_DATA = openconnect.pc
 
-EXTRA_DIST = version.sh openconnect.8 COPYING.LGPL
+EXTRA_DIST = version.sh COPYING.LGPL
 
 DISTCLEANFILES = $(pkgconfig_DATA)
 
