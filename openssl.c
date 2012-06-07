@@ -236,6 +236,162 @@ int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len
 	return i ?: ret;
 }
 
+
+/* UI handling. All this just to handle the PIN callback from the TPM ENGINE,
+   and turn it into a call to our ->process_auth_form function */
+
+struct ui_data {
+	struct openconnect_info *vpninfo;
+	struct oc_form_opt **last_opt;
+	struct oc_auth_form form;
+};
+
+struct ui_form_opt {
+	struct oc_form_opt opt;
+	UI_STRING *uis;
+};
+
+ /* Ick. But there is no way to pass this sanely through OpenSSL */
+static struct openconnect_info *ui_vpninfo;
+
+static int ui_open(UI *ui)
+{
+	struct openconnect_info *vpninfo = ui_vpninfo; /* Ick */
+	struct ui_data *ui_data;
+
+	if (!vpninfo || !vpninfo->process_auth_form)
+		return 0;
+	
+	ui_data = malloc(sizeof(*ui_data));
+	if (!ui_data)
+		return 0;
+
+	memset(ui_data, 0, sizeof(*ui_data));
+	ui_data->last_opt = &ui_data->form.opts;
+	ui_data->vpninfo = vpninfo;
+	UI_add_user_data(ui, ui_data);
+
+	return 1;
+}
+
+static int ui_write(UI *ui, UI_STRING *uis)
+{
+	struct ui_data *ui_data = UI_get0_user_data(ui);
+	struct ui_form_opt *opt;
+
+	switch(UI_get_string_type(uis)) {
+	case UIT_ERROR:
+		ui_data->form.error = (char *)UI_get0_output_string(uis);
+		break;
+	case UIT_INFO:
+		ui_data->form.message = (char *)UI_get0_output_string(uis);
+		break;
+	case UIT_PROMPT:
+		opt = malloc(sizeof(*opt));
+		if (!opt)
+			return 1;
+		memset(opt, 0, sizeof(*opt));
+		opt->uis = uis;
+		opt->opt.label = opt->opt.name = (char *)UI_get0_output_string(uis);
+		if (UI_get_input_flags(uis) & UI_INPUT_FLAG_ECHO)
+			opt->opt.type = OC_FORM_OPT_TEXT;
+		else
+			opt->opt.type = OC_FORM_OPT_PASSWORD;
+		*(ui_data->last_opt) = &opt->opt;
+		ui_data->last_opt = &opt->opt.next;
+		break;
+
+	default:
+		fprintf(stderr, "Unhandled SSL UI request type %d\n",
+			UI_get_string_type(uis));
+		return 0;
+	}
+	return 1;
+}
+
+static int ui_flush(UI *ui)
+{
+	struct ui_data *ui_data = UI_get0_user_data(ui);
+	struct openconnect_info *vpninfo = ui_data->vpninfo;
+	struct ui_form_opt *opt;
+	int ret;
+
+	ret = vpninfo->process_auth_form(vpninfo, &ui_data->form);
+	if (ret)
+		return 0;
+
+	for (opt = (struct ui_form_opt *)ui_data->form.opts; opt;
+	     opt = (struct ui_form_opt *)opt->opt.next) {
+		if (opt->opt.value && opt->uis)
+			UI_set_result(ui, opt->uis, opt->opt.value);
+	}
+	return 1;
+}
+
+static int ui_close(UI *ui)
+{
+	struct ui_data *ui_data = UI_get0_user_data(ui);
+	struct ui_form_opt *opt, *next_opt;
+
+	opt = (struct ui_form_opt *)ui_data->form.opts;
+	while (opt) {
+		next_opt = (struct ui_form_opt *)opt->opt.next;
+		if (opt->opt.value)
+			free(opt->opt.value);
+		free(opt);
+		opt = next_opt;
+	}
+	free(ui_data);
+	UI_add_user_data(ui, NULL);
+
+	return 1;
+}
+
+static UI_METHOD *create_openssl_ui(struct openconnect_info *vpninfo)
+{
+	UI_METHOD *ui_method = UI_create_method((char *)"AnyConnect VPN UI");
+
+	/* There is a race condition here because of the use of the
+	   static ui_vpninfo pointer. This sucks, but it's OpenSSL's
+	   fault and in practice it's *never* going to hurt us.
+
+	   This UI is only used for loading certificates from a TPM; for
+	   PKCS#12 and PEM files we hook the passphrase request differently.
+	   The ui_vpninfo variable is set here, and is used from ui_open()
+	   when the TPM ENGINE decides it needs to ask the user for a PIN.
+
+	   The race condition exists because theoretically, there
+	   could be more than one thread using libopenconnect and
+	   trying to authenticate to a VPN server, within the *same*
+	   process. And if *both* are using certificates from the TPM,
+	   and *both* manage to be within that short window of time
+	   between setting ui_vpninfo and invoking ui_open() to fetch
+	   the PIN, then one connection's ->process_auth_form() could
+	   get a PIN request for the *other* connection. 
+
+	   However, the only thing that ever does run libopenconnect more
+	   than once from the same process is KDE's NetworkManager support,
+	   and NetworkManager doesn't *support* having more than one VPN
+	   connected anyway, so first that would have to be fixed and then
+	   you'd have to connect to two VPNs simultaneously by clicking
+	   'connect' on both at *exactly* the same time and then getting
+	   *really* unlucky.
+
+	   Oh, and the KDE support won't be using OpenSSL anyway because of
+	   licensing conflicts... so although this sucks, I'm not going to
+	   lose sleep over it.
+	*/
+	ui_vpninfo = vpninfo;
+
+	/* Set up a UI method of our own for password/passphrase requests */
+	UI_method_set_opener(ui_method, ui_open);
+	UI_method_set_writer(ui_method, ui_write);
+	UI_method_set_flusher(ui_method, ui_flush);
+	UI_method_set_closer(ui_method, ui_close);
+
+	return ui_method;
+}
+
 static int pem_pw_cb(char *buf, int len, int w, void *v)
 {
 	struct openconnect_info *vpninfo = v;
@@ -359,6 +515,7 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 {
 	ENGINE *e;
 	EVP_PKEY *key;
+	UI_METHOD *meth = NULL;
 	ENGINE_load_builtin_engines();
 
 	e = ENGINE_by_id("tpm");
@@ -382,8 +539,13 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 				     _("Failed to set TPM SRK password\n"));
 			openconnect_report_ssl_errors(vpninfo);
 		}
+	} else {
+		/* Provide our own UI method to handle the PIN callback. */
+		meth = create_openssl_ui(vpninfo);
 	}
-	key = ENGINE_load_private_key(e, vpninfo->sslkey, NULL, NULL);
+	key = ENGINE_load_private_key(e, vpninfo->sslkey, meth, NULL);
+	if (meth)
+		UI_destroy_method(meth);
 	if (!key) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to load TPM private key\n"));
