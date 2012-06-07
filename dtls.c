@@ -109,48 +109,13 @@ int RAND_bytes(char *buf, int len)
  * their clients use anyway.
  */
 
-int connect_dtls_socket(struct openconnect_info *vpninfo)
+static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 {
 	STACK_OF(SSL_CIPHER) *ciphers;
 	method_const SSL_METHOD *dtls_method;
 	SSL_CIPHER *dtls_cipher;
 	SSL *dtls_ssl;
 	BIO *dtls_bio;
-	int dtls_fd;
-
-	if (!vpninfo->dtls_addr) {
-		vpn_progress(vpninfo, PRG_ERR, _("No DTLS address\n"));
-		vpninfo->dtls_attempt_period = 0;
-		return -EINVAL;
-	}
-
-	if (!vpninfo->dtls_cipher) {
-		/* We probably didn't offer it any ciphers it liked */
-		vpn_progress(vpninfo, PRG_ERR, _("Server offered no DTLS cipher option\n"));
-		vpninfo->dtls_attempt_period = 0;
-		return -EINVAL;
-	}
-
-	if (vpninfo->proxy) {
-		/* XXX: Theoretically, SOCKS5 proxies can do UDP too */
-		vpn_progress(vpninfo, PRG_ERR, _("No DTLS when connected via proxy\n"));
-		vpninfo->dtls_attempt_period = 0;
-		return -EINVAL;
-	}
-
-	dtls_fd = socket(vpninfo->peer_addr->sa_family, SOCK_DGRAM, IPPROTO_UDP);
-	if (dtls_fd < 0) {
-		perror(_("Open UDP socket for DTLS:"));
-		return -EINVAL;
-	}
-
-	if (connect(dtls_fd, vpninfo->dtls_addr, vpninfo->peer_addrlen)) {
-		perror(_("UDP (DTLS) connect:\n"));
-		close(dtls_fd);
-		return -EINVAL;
-	}
-
-	fcntl(dtls_fd, F_SETFD, FD_CLOEXEC);
 
 	if (!vpninfo->dtls_ctx) {
 		dtls_method = DTLSv1_client_method();
@@ -229,9 +194,6 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	/* Go Go Go! */
-	fcntl(dtls_fd, F_SETFL, fcntl(dtls_fd, F_GETFL) | O_NONBLOCK);
-
 	dtls_bio = BIO_new_socket(dtls_fd, BIO_NOCLOSE);
 	/* Set non-blocking */
 	BIO_set_nbio(dtls_bio, 1);
@@ -239,17 +201,9 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 
 	SSL_set_options(dtls_ssl, SSL_OP_CISCO_ANYCONNECT);
 
-	vpninfo->new_dtls_fd = dtls_fd;
 	vpninfo->new_dtls_ssl = dtls_ssl;
 
-	if (vpninfo->select_nfds <= dtls_fd)
-		vpninfo->select_nfds = dtls_fd + 1;
-
-	FD_SET(dtls_fd, &vpninfo->select_rfds);
-	FD_SET(dtls_fd, &vpninfo->select_efds);
-
-	time(&vpninfo->new_dtls_started);
-	return dtls_try_handshake(vpninfo);
+	return 0;
 }
 
 int dtls_try_handshake(struct openconnect_info *vpninfo)
@@ -368,6 +322,63 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 
 	time(&vpninfo->new_dtls_started);
 	return -EINVAL;
+}
+
+int connect_dtls_socket(struct openconnect_info *vpninfo)
+{
+	int dtls_fd, ret;
+
+	if (!vpninfo->dtls_addr) {
+		vpn_progress(vpninfo, PRG_ERR, _("No DTLS address\n"));
+		vpninfo->dtls_attempt_period = 0;
+		return -EINVAL;
+	}
+
+	if (!vpninfo->dtls_cipher) {
+		/* We probably didn't offer it any ciphers it liked */
+		vpn_progress(vpninfo, PRG_ERR, _("Server offered no DTLS cipher option\n"));
+		vpninfo->dtls_attempt_period = 0;
+		return -EINVAL;
+	}
+
+	if (vpninfo->proxy) {
+		/* XXX: Theoretically, SOCKS5 proxies can do UDP too */
+		vpn_progress(vpninfo, PRG_ERR, _("No DTLS when connected via proxy\n"));
+		vpninfo->dtls_attempt_period = 0;
+		return -EINVAL;
+	}
+
+	dtls_fd = socket(vpninfo->peer_addr->sa_family, SOCK_DGRAM, IPPROTO_UDP);
+	if (dtls_fd < 0) {
+		perror(_("Open UDP socket for DTLS:"));
+		return -EINVAL;
+	}
+
+	if (connect(dtls_fd, vpninfo->dtls_addr, vpninfo->peer_addrlen)) {
+		perror(_("UDP (DTLS) connect:\n"));
+		close(dtls_fd);
+		return -EINVAL;
+	}
+
+	fcntl(dtls_fd, F_SETFD, FD_CLOEXEC);
+	fcntl(dtls_fd, F_SETFL, fcntl(dtls_fd, F_GETFL) | O_NONBLOCK);
+
+	ret = start_dtls_handshake(vpninfo, dtls_fd);
+	if (ret) {
+		close(dtls_fd);
+		return ret;
+	}
+
+	vpninfo->new_dtls_fd = dtls_fd;
+	if (vpninfo->select_nfds <= dtls_fd)
+		vpninfo->select_nfds = dtls_fd + 1;
+
+	FD_SET(dtls_fd, &vpninfo->select_rfds);
+	FD_SET(dtls_fd, &vpninfo->select_efds);
+
+	time(&vpninfo->new_dtls_started);
+
+	return dtls_try_handshake(vpninfo);
 }
 
 static int dtls_restart(struct openconnect_info *vpninfo)
