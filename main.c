@@ -397,7 +397,6 @@ static int gtls_pin_func(void *user, int attempt, const char *token_url,
 {
 	char *password, *p;
 	struct termios t;
-	int len;
 
 	printf ("PIN required for token '%s' with URL '%s'\n", token_label,
 		token_url);
@@ -422,17 +421,18 @@ static int gtls_pin_func(void *user, int attempt, const char *token_url,
 	t.c_lflag |= ECHO;
 	tcsetattr(0, TCSANOW, &t);
 	printf("\n");
-				
-	if (!p || !strlen(password)) {
+
+	if (!p || !strlen(password) || password[0] == '\n') {
 		free(password);
 		return -GNUTLS_E_INSUFFICIENT_CREDENTIALS;
 	}
 
-	len = strlen(password);
-	if (len > pin_max)
-		len = pin_max;
+	p = strchr(password, '\n');
+	if (p)
+		*p = 0;
 
-	memcpy(pin, password, len);
+	strncpy(pin, password, pin_max);
+	pin[pin_max-1] = 0;
 	free(password);
 
 	return 0;
