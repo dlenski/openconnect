@@ -186,9 +186,7 @@ AC_ARG_WITH([openssl],
                            [Location of OpenSSL build dir]))
 ssl_library=
 
-if test "$with_gnutls" = "yes"; then
-    AC_MSG_ERROR([GnuTLS support is experimental. It does not work yet.])
-elif test "$with_gnutls" = "shibboleet"; then
+if test "$with_gnutls" = "yes" || test "$with_gnutls" = "shibboleet"; then
     if test "$with_openssl" != "no" && test "$with_openssl" != ""; then
 	AC_MSG_ERROR([Cannot use both OpenSSL and GnuTLS simultaneously])
     fi
