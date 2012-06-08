@@ -329,6 +329,18 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 }
 
 #elif defined (OPENCONNECT_GNUTLS)
+struct {
+	const char *name;
+	gnutls_cipher_algorithm_t cipher;
+	gnutls_mac_algorithm_t mac;
+	const char *prio;
+} gnutls_dtls_ciphers[] = {
+	{ "AES128-SHA", GNUTLS_CIPHER_AES_128_CBC, GNUTLS_MAC_SHA1,
+	  "NONE:+VERS-DTLS0.9:+COMP-NULL:+AES-128-CBC:+SHA1:+RSA:%COMPAT:%DISABLE_SAFE_RENEGOTIATION" },
+	{ "DES-CBC3-SHA", GNUTLS_CIPHER_3DES_CBC, GNUTLS_MAC_SHA1,
+	  "NONE:+VERS-DTLS0.9:+COMP-NULL:+3DES-CBC:+SHA1:+RSA:%COMPAT:%DISABLE_SAFE_RENEGOTIATION" },
+};
+
 #define DTLS_SEND gnutls_record_send
 #define DTLS_RECV gnutls_record_recv
 static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
@@ -336,10 +348,22 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 	gnutls_session_t dtls_ssl;
 	gnutls_datum_t master_secret, session_id;
 	int err;
+	int cipher;
 
+	for (cipher = 0; cipher < sizeof(gnutls_dtls_ciphers)/sizeof(gnutls_dtls_ciphers[0]); cipher++) {
+		if (!strcmp(vpninfo->dtls_cipher, gnutls_dtls_ciphers[cipher].name))
+			goto found_cipher;
+	}
+	vpn_progress(vpninfo, PRG_ERR, _("Unknown DTLS parameters for requested CipherSuite '%s'\n"),
+		     vpninfo->dtls_cipher);
+	vpninfo->dtls_attempt_period = 0;
+
+	return -EINVAL;
+
+ found_cipher:
 	gnutls_init(&dtls_ssl, GNUTLS_CLIENT|GNUTLS_DATAGRAM|GNUTLS_NONBLOCK);
 	err = gnutls_priority_set_direct(dtls_ssl,
-					 "NONE:+VERS-DTLS0.9:+COMP-NULL:+AES-128-CBC:+SHA1:+RSA:%COMPAT:%DISABLE_SAFE_RENEGOTIATION",
+					 gnutls_dtls_ciphers[cipher].prio,
 					 NULL);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -357,8 +381,8 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 	session_id.data = vpninfo->dtls_session_id;
 	session_id.size = sizeof(vpninfo->dtls_session_id);
 	err = gnutls_session_set_premaster(dtls_ssl, GNUTLS_CLIENT, GNUTLS_DTLS0_9,
-					   GNUTLS_KX_RSA, GNUTLS_CIPHER_AES_128_CBC,
-					   GNUTLS_MAC_SHA1, GNUTLS_COMP_NULL,
+					   GNUTLS_KX_RSA, gnutls_dtls_ciphers[cipher].cipher,
+					   gnutls_dtls_ciphers[cipher].mac, GNUTLS_COMP_NULL,
 					   &master_secret, &session_id);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
