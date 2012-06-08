@@ -31,10 +31,11 @@ endif
 
 pkgconfig_DATA = openconnect.pc
 
-EXTRA_DIST = version.sh COPYING.LGPL
+EXTRA_DIST = version.sh COPYING.LGPL gnutls_pkcs12.c
 
 DISTCLEANFILES = $(pkgconfig_DATA)
 
+gnutls.o: gnutls_pkcs12.c
 main.o: version.c
 version.c: $(library_srcs) $(openconnect_SOURCES) Makefile.am configure.ac \
 	   openconnect.h openconnect-internal.h version.sh @GITVERSIONDEPS@
