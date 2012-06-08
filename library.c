@@ -28,7 +28,7 @@
 
 #include "openconnect-internal.h"
 
-struct openconnect_info *openconnect_vpninfo_new_with_cbdata (char *useragent,
+struct openconnect_info *openconnect_vpninfo_new (char *useragent,
 						  openconnect_validate_peer_cert_vfn validate_peer_cert,
 						  openconnect_write_new_config_vfn write_new_config,
 						  openconnect_process_auth_form_vfn process_auth_form,
@@ -53,19 +53,6 @@ struct openconnect_info *openconnect_vpninfo_new_with_cbdata (char *useragent,
 #endif
 
 	return vpninfo;
-}
-
-struct openconnect_info *openconnect_vpninfo_new (char *useragent,
-						  openconnect_validate_peer_cert_fn validate_peer_cert,
-						  openconnect_write_new_config_fn write_new_config,
-						  openconnect_process_auth_form_fn process_auth_form,
-						  openconnect_progress_fn progress)
-{
-	return openconnect_vpninfo_new_with_cbdata (useragent,
-						    (void *)validate_peer_cert,
-						    (void *)write_new_config,
-						    (void *)process_auth_form,
-						    (void *)progress, NULL);
 }
 
 static void free_optlist (struct vpn_option *opt)

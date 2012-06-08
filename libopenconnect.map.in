@@ -21,7 +21,6 @@ OPENCONNECT_2.0 {
 	openconnect_set_xmlsha1;
 	openconnect_vpninfo_new;
 	openconnect_vpninfo_free;
-	openconnect_vpninfo_new_with_cbdata;
 	openconnect_set_cert_expiry_warning;
 	openconnect_set_cancel_fd;
 	openconnect_get_cert_details;

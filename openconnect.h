@@ -37,6 +37,8 @@
  * API version 2.0:
  *  - OPENCONNECT_X509 is now an opaque type.
  *  - Rename openconnect_init_openssl() -> openconnect_init_ssl()
+ *  - Rename openconnect_vpninfo_new_with_cbdata() -> openconnect_vpninfo_new()
+ *    and kill the old openconnect_vpninfo_new() and its callback types.
  *
  * API version 1.5:
  *  - Add openconnect_get_cert_details(), openconnect_get_cert_DER().
@@ -222,32 +224,12 @@ typedef int (*openconnect_process_auth_form_vfn) (void *privdata,
 typedef void __attribute__ ((format(printf, 3, 4)))
 		(*openconnect_progress_vfn) (void *privdata, int level,
 					    const char *fmt, ...);
-struct openconnect_info *openconnect_vpninfo_new_with_cbdata (char *useragent,
+struct openconnect_info *openconnect_vpninfo_new (char *useragent,
 						  openconnect_validate_peer_cert_vfn,
 						  openconnect_write_new_config_vfn,
 						  openconnect_process_auth_form_vfn,
 						  openconnect_progress_vfn,
 						  void *privdata);
 void openconnect_vpninfo_free (struct openconnect_info *vpninfo);
-
-/* Old prototypes of the callback functions, which used to be passed the
-   vpninfo instead of a caller-provided pointer. You probably don't want to
-   use these; they're here for compatibility only. */
-typedef int (*openconnect_validate_peer_cert_fn) (struct openconnect_info *,
-						  OPENCONNECT_X509 *cert,
-						  const char *reason);
-typedef int (*openconnect_write_new_config_fn) (struct openconnect_info *, char *buf,
-						int buflen);
-typedef int (*openconnect_process_auth_form_fn) (struct openconnect_info *,
-						 struct oc_auth_form *form);
-typedef void __attribute__ ((format(printf, 3, 4)))
-		(*openconnect_progress_fn) (struct openconnect_info *, int level,
-					    const char *fmt, ...);
-/* Don't use this. Use the _with_cbdata version instead. */
-struct openconnect_info *openconnect_vpninfo_new (char *useragent,
-						  openconnect_validate_peer_cert_fn,
-						  openconnect_write_new_config_fn,
-						  openconnect_process_auth_form_fn,
-						  openconnect_progress_fn);
 
 #endif /* __OPENCONNECT_H__ */
