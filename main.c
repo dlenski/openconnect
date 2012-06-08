@@ -82,6 +82,7 @@ int non_inter;
 
 enum {
 	OPT_AUTHGROUP = 0x100,
+	OPT_BASEMTU,
 	OPT_CAFILE,
 	OPT_CONFIGFILE,
 	OPT_COOKIEONLY,
@@ -130,6 +131,7 @@ static struct option long_options[] = {
 	OPTION("help", 0, 'h'),
 	OPTION("interface", 1, 'i'),
 	OPTION("mtu", 1, 'm'),
+	OPTION("base-mtu", 1, OPT_BASEMTU),
 	OPTION("setuid", 1, 'U'),
 	OPTION("script", 1, 's'),
 	OPTION("script-tun", 0, 'S'),
@@ -199,6 +201,7 @@ static void usage(void)
 	printf("      --csd-user=USER             %s\n", _("Drop privileges during CSD execution"));
 	printf("      --csd-wrapper=SCRIPT        %s\n", _("Run SCRIPT instead of CSD binary"));
 	printf("  -m, --mtu=MTU                   %s\n", _("Request MTU from server"));
+	printf("      --base-mtu=MTU              %s\n", _("Indicate path MTU to/from server"));
 	printf("  -p, --key-password=PASS         %s\n", _("Set key passphrase or TPM SRK PIN"));
 	printf("      --key-password-from-fsid    %s\n", _("Key passphrase is fsid of file system"));
 	printf("  -P, --proxy=URL                 %s\n", _("Set proxy server"));
@@ -412,7 +415,7 @@ int main(int argc, char **argv)
 	/* Set up some defaults */
 	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = vpninfo->new_dtls_fd = -1;
 	vpninfo->useragent = openconnect_create_useragent("Open AnyConnect VPN Agent");
-	vpninfo->mtu = 1406;
+	vpninfo->mtu = 0;
 	vpninfo->deflate = 1;
 	vpninfo->dtls_attempt_period = 60;
 	vpninfo->max_qlen = 10;
@@ -546,6 +549,13 @@ int main(int argc, char **argv)
 			if (vpninfo->mtu < 576) {
 				fprintf(stderr, _("MTU %d too small\n"), vpninfo->mtu);
 				vpninfo->mtu = 576;
+			}
+			break;
+		case OPT_BASEMTU:
+			vpninfo->basemtu = atol(config_arg);
+			if (vpninfo->basemtu < 576) {
+				fprintf(stderr, _("MTU %d too small\n"), vpninfo->basemtu);
+				vpninfo->basemtu = 576;
 			}
 			break;
 		case 'p':

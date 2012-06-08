@@ -32,6 +32,9 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <netinet/tcp.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -86,6 +89,64 @@ static int  __attribute__ ((format (printf, 3, 4)))
 	return ret;
 }
 
+/* Calculate MTU to request. Old servers simply use the X-CSTP-MTU: header,
+ * which represents the tunnel MTU, while new servers do calculations on the
+ * X-CSTP-Base-MTU: header which represents the cleartext MTU between client
+ * and server.
+ *
+ * If possible, the legacy MTU value should be the TCP MSS less 5 bytes of
+ * TLS and 8 bytes of CSTP overhead. We can get the MSS from either the
+ * TCP_INFO or TCP_MAXSEG sockopts.
+ *
+ * The base MTU comes from the TCP_INFO sockopt under Linux, but I don't know
+ * how to work it out on other systems. So leave it blank and do things the
+ * legacy way there. Contributions welcome...
+ *
+ * If we don't even have TCP_MAXSEG, then default to sending a legacy MTU of
+ * 1406 which is what we always used to do.
+ */
+static void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *mtu)
+{
+	*mtu = vpninfo->mtu;
+	*base_mtu = vpninfo->basemtu;
+
+#ifdef TCP_INFO
+	if (!*mtu || !*base_mtu) {
+		struct tcp_info ti;
+		socklen_t ti_size = sizeof(ti);
+
+		if (!getsockopt(vpninfo->ssl_fd, SOL_TCP, TCP_INFO,
+				&ti, &ti_size)) {
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"),
+				     ti.tcpi_rcv_mss, ti.tcpi_snd_mss, ti.tcpi_advmss, ti.tcpi_pmtu);
+			if (!*base_mtu) *base_mtu = ti.tcpi_pmtu;
+			if (!*mtu) {
+				if (ti.tcpi_rcv_mss < ti.tcpi_snd_mss)
+					*mtu = ti.tcpi_rcv_mss - 13;
+				else
+					*mtu = ti.tcpi_snd_mss - 13;
+			}
+		}
+	}
+#endif
+#ifdef TCP_MAXSEG
+	if (!*mtu) {
+		int mss;
+		socklen_t mss_size = sizeof(mss);
+		if (!getsockopt(vpninfo->ssl_fd, SOL_TCP, TCP_MAXSEG,
+				&mss, &mss_size)) {
+			vpn_progress(vpninfo, PRG_TRACE, _("TCP_MAXSEG %d\n"), mss);
+			*mtu = mss - 13;
+		}
+	}
+#endif
+	if (!*mtu) {
+		/* Default */
+		*mtu = 1406;
+	}
+}
+
 static int start_cstp_connection(struct openconnect_info *vpninfo)
 {
 	char buf[65536];
@@ -100,6 +161,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	const char *old_addr6 = vpninfo->vpn_addr6;
 	const char *old_netmask6 = vpninfo->vpn_netmask6;
 	struct split_include *inc;
+	int base_mtu, mtu;
 
 	/* Clear old options which will be overwritten */
 	vpninfo->vpn_addr = vpninfo->vpn_netmask = NULL;
@@ -132,6 +194,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	}
 
  retry:
+	calculate_mtu(vpninfo, &base_mtu, &mtu);
+
 	buf[0] = 0;
 	buf_append(buf, sizeof(buf), "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
 	buf_append(buf, sizeof(buf), "Host: %s\r\n", vpninfo->hostname);
@@ -141,7 +205,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	buf_append(buf, sizeof(buf), "X-CSTP-Hostname: %s\r\n", vpninfo->localname);
 	if (vpninfo->deflate && i < sizeof(buf))
 		buf_append(buf, sizeof(buf), "X-CSTP-Accept-Encoding: deflate;q=1.0\r\n");
-	buf_append(buf, sizeof(buf), "X-CSTP-MTU: %d\r\n", vpninfo->mtu);
+	if (base_mtu)
+		buf_append(buf, sizeof(buf), "X-CSTP-Base-MTU: %d\r\n", base_mtu);
+	buf_append(buf, sizeof(buf), "X-CSTP-MTU: %d\r\n", mtu);
 	buf_append(buf, sizeof(buf), "X-CSTP-Address-Type: %s\r\n",
 			       vpninfo->disable_ipv6?"IPv4":"IPv6,IPv4");
 	buf_append(buf, sizeof(buf), "X-DTLS-Master-Secret: ");

@@ -199,7 +199,7 @@ struct openconnect_info {
 	int script_tun;
 	char *ifname;
 
-	int mtu;
+	int mtu, basemtu;
 	const char *banner;
 	const char *vpn_addr;
 	const char *vpn_netmask;
