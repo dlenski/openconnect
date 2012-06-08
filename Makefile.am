@@ -19,8 +19,8 @@ openconnect_LDADD = libopenconnect.la $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIB
 
 library_srcs = ssl.c http.c auth.c library.c compat.c @SSL_LIBRARY@.c
 libopenconnect_la_SOURCES = version.c $(library_srcs)
-libopenconnect_la_CFLAGS = $(SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS)
-libopenconnect_la_LIBADD = $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LIBINTL)
+libopenconnect_la_CFLAGS = $(SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(P11KIT_CFLAGS)
+libopenconnect_la_LIBADD = $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LIBINTL) $(P11KIT_LIBS)
 libopenconnect_la_LDFLAGS = -version-number @APIMAJOR@:@APIMINOR@
 noinst_HEADERS = openconnect-internal.h openconnect.h
 include_HEADERS = openconnect.h

@@ -7,7 +7,7 @@ includedir=@includedir@
 Name: openconnect
 Description: OpenConnect VPN client
 Version: @VERSION@
-Requires: @LIBPROXY_PC@ zlib @SSL_LIBRARY@ libxml-2.0
+Requires: @LIBPROXY_PC@ zlib @SSL_LIBRARY@ @P11KIT_PC@ libxml-2.0
 Libs: -L${libdir} -lopenconnect
 Libs.private: @LIBINTL@
 Cflags: -I${includedir} @SSL_DEFINE@

@@ -42,6 +42,16 @@
 #include <gnutls/crypto.h>
 #include <gnutls/pkcs12.h>
 
+#ifdef HAVE_P11KIT
+#include <p11-kit/p11-kit.h>
+#include <p11-kit/pin.h>
+
+static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
+			       const char *pin_description,
+			       P11KitPinFlags flags,
+			       void *_vpninfo);
+#endif
+
 #include "openconnect-internal.h"
 
 /* Helper functions for reading/writing lines over SSL.
@@ -418,13 +428,51 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	}
 
 	if (!strncmp(vpninfo->cert, "pkcs11:", 7)) {
+		char *cert_url = (char *)vpninfo->cert;
+		char *key_url = (char *)vpninfo->sslkey;
+#ifdef HAVE_P11KIT
+		char pin_source[40];
+		P11KitUri *uri;
+
+		sprintf(pin_source, "openconnect:%p", vpninfo);
+
+		uri = p11_kit_uri_new();
+		if (p11_kit_uri_parse(vpninfo->cert, P11_KIT_URI_FOR_OBJECT, uri) != P11_KIT_URI_OK) {
+			vpn_progress(vpninfo, PRG_ERR, _("Failed to parse PKCS#11 URL '%s'\n"),
+				     vpninfo->cert);
+			p11_kit_uri_free(uri);
+			return -EINVAL;
+		}
+		if (!p11_kit_uri_get_pin_source(uri)) {
+			p11_kit_uri_set_pin_source(uri, pin_source);
+			p11_kit_uri_format(uri, P11_KIT_URI_FOR_OBJECT, &cert_url);
+		}
+
+		if (p11_kit_uri_parse(vpninfo->sslkey, P11_KIT_URI_FOR_OBJECT, uri) != P11_KIT_URI_OK) {
+			vpn_progress(vpninfo, PRG_ERR, _("Failed to parse PKCS#11 URL '%s'\n"),
+				     vpninfo->sslkey);
+			p11_kit_uri_free(uri);
+			free(cert_url);
+			return -EINVAL;
+		}
+		if (!p11_kit_uri_get_pin_source(uri)) {
+			p11_kit_uri_set_pin_source(uri, pin_source);
+			p11_kit_uri_format(uri, P11_KIT_URI_FOR_OBJECT, &key_url);
+		}
+		p11_kit_uri_free(uri);
+		p11_kit_pin_register_callback(pin_source, pin_callback, vpninfo, NULL);
+#endif
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("Using PKCS#11 certificate %s\n"), vpninfo->cert);
 
 		err = gnutls_certificate_set_x509_key_file(vpninfo->https_cred,
-							   vpninfo->cert,
-							   vpninfo->sslkey,
+							   cert_url, key_url,
 							   GNUTLS_X509_FMT_PEM);
+		if (cert_url != vpninfo->cert)
+			free(cert_url);
+		if (key_url != vpninfo->sslkey)
+			free(key_url);
+
 		if (err) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Error loading PKCS#11 certificate: %s\n"),
@@ -980,6 +1028,15 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 void openconnect_close_https(struct openconnect_info *vpninfo)
 {
+#ifdef HAVE_P11KIT
+	if (!strncmp(vpninfo->cert, "pkcs11:", 7)) {
+		char pin_source[40];
+
+		sprintf(pin_source, "openconnect:%p", vpninfo);
+		p11_kit_pin_unregister_callback(pin_source, pin_callback, vpninfo);
+	}
+#endif
+
 	if (vpninfo->peer_cert) {
 		gnutls_x509_crt_deinit(vpninfo->peer_cert);
 		vpninfo->peer_cert = NULL;
@@ -1040,3 +1097,56 @@ int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 	return 0;
 }
 
+#ifdef HAVE_P11KIT
+static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
+			const char *pin_description,
+			P11KitPinFlags flags,
+			void *_vpninfo)
+{
+	struct openconnect_info *vpninfo = _vpninfo;
+	struct oc_auth_form f;
+	struct oc_form_opt o;
+	char message[1024];
+	P11KitPin *pin;
+	int ret;
+
+	if (!vpninfo || !vpninfo->process_auth_form)
+		return NULL;
+
+	memset(&f, 0, sizeof(f));
+	f.auth_id = (char *)"pkcs11_pin";
+	f.opts = &o;
+
+	message[sizeof(message)-1] = 0;
+	snprintf(message, sizeof(message) - 1, _("PIN required for %s"), pin_description);
+	f.message = message;
+	
+	/* 
+	 * p11-kit flags are *odd*.
+	 * RETRY is 0xa, FINAL_TRY is 0x14 and MANY_TRIES is 0x28.
+	 * So don't treat it like a sane bitmask.
+	 */
+	if ((flags & P11_KIT_PIN_FLAGS_RETRY) == P11_KIT_PIN_FLAGS_RETRY)
+		f.error = _("Wrong PIN");
+
+	if ((flags & P11_KIT_PIN_FLAGS_FINAL_TRY) == P11_KIT_PIN_FLAGS_FINAL_TRY)
+		f.banner = _("This is the final try before locking!");
+	else if ((flags & P11_KIT_PIN_FLAGS_MANY_TRIES) == P11_KIT_PIN_FLAGS_MANY_TRIES)
+		f.banner = _("Only a few tries left before locking!");
+
+	o.next = NULL;
+	o.type = OC_FORM_OPT_PASSWORD;
+	o.name = (char *)"pkcs11_pin";
+	o.label = _("Enter PIN:");
+	o.value = NULL;
+
+	ret = vpninfo->process_auth_form(vpninfo, &f);
+	if (ret || !o.value)
+		return NULL;
+
+	pin = p11_kit_pin_new_for_string(o.value);
+	free(o.value);
+
+	return pin;
+}
+#endif
