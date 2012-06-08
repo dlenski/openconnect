@@ -309,7 +309,7 @@ int request_passphrase(struct openconnect_info *vpninfo,
 	o.label = buf;
 	o.value = NULL;
 
-	ret = vpninfo->process_auth_form(vpninfo, &f);
+	ret = vpninfo->process_auth_form(vpninfo->cbdata, &f);
 	if (!ret) {
 		*response = o.value;
 		return 0;
