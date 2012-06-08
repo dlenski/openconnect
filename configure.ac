@@ -384,7 +384,8 @@ AC_SUBST(APIMINOR)
 # and we cannot use $(wildcard) in a non-GNU makefile. So we just
 # depend on the files which happen to exist at configure time.
 GITVERSIONDEPS=
-for a in .git/index .git/packed-refs .git/refs/tags .git/HEAD; do
+for a in ${srcdir}/.git/index ${srcdir}/.git/packed-refs \
+         ${srcdir}/.git/refs/tags ${srcdir}/.git/HEAD; do
     if test -r $a ; then
        GITVERSIONDEPS="$GITVERSIONDEPS $a"
     fi
