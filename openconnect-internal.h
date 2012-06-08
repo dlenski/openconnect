@@ -209,6 +209,7 @@ struct openconnect_info {
 	const char *vpn_nbns[3];
 	const char *vpn_domain;
 	const char *vpn_proxy_pac;
+	struct split_include *split_dns;
 	struct split_include *split_includes;
 	struct split_include *split_excludes;
 

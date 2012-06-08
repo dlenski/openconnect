@@ -183,7 +183,12 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		free(inc);
 		inc = next;
 	}
-	vpninfo->split_includes = vpninfo->split_excludes = NULL;
+	for (inc = vpninfo->split_dns; inc; ) {
+		struct split_include *next = inc->next;
+		free(inc);
+		inc = next;
+	}
+	vpninfo->split_dns = vpninfo->split_includes = vpninfo->split_excludes = NULL;
 
 	/* Create (new) random master key for DTLS connection, if needed */
 	if (vpninfo->dtls_times.last_rekey + vpninfo->dtls_times.rekey <
@@ -377,6 +382,13 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			vpninfo->vpn_proxy_pac = new_option->value;
 		} else if (!strcmp(buf + 7, "Banner")) {
 			vpninfo->banner = new_option->value;
+		} else if (!strcmp(buf + 7, "Split-DNS")) {
+			struct split_include *dns = malloc(sizeof(*dns));
+			if (!dns)
+				continue;
+			dns->route = new_option->value;
+			dns->next = vpninfo->split_dns;
+			vpninfo->split_dns = dns;
 		} else if (!strcmp(buf + 7, "Split-Include")) {
 			struct split_include *inc = malloc(sizeof(*inc));
 			if (!inc)

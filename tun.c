@@ -310,6 +310,32 @@ static void set_script_env(struct openconnect_info *vpninfo)
 	if (vpninfo->vpn_proxy_pac)
 		setenv("CISCO_PROXY_PAC", vpninfo->vpn_proxy_pac, 1);
 
+	if (vpninfo->split_dns) {
+		char *list;
+		int len = 0;
+		struct split_include *dns = vpninfo->split_dns;
+
+		while (dns) {
+			len += strlen(dns->route) + 1;
+			dns = dns->next;
+		}
+		list = malloc(len);
+		if (list) {
+			char *p = list;
+
+			dns = vpninfo->split_dns;
+			while (1) {
+				strcpy(p, dns->route);
+				p += strlen(p);
+				dns = dns->next;
+				if (!dns)
+					break;
+				*(p++) = ' ';
+			}
+			setenv("CISCO_SPLIT_DNS", list, 1);
+			free(list);
+		}
+	}
 	if (vpninfo->split_includes) {
 		struct split_include *this = vpninfo->split_includes;
 		int nr_split_includes = 0;
