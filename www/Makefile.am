@@ -27,4 +27,4 @@ manual.html: openconnect.8.inc
 openconnect.8.inc: ../openconnect.8
 	groff -t -K UTF-8 -mandoc -Txhtml $? | sed -e '1,/<body>/d' -e '/<\/body>/,$$d' > $@
 
-EXTRA_DIST = $(patsubst %.html,%.xml,$(ALL_PAGES)) menu1.xml menu2*.xml html.py
+EXTRA_DIST = $(patsubst %.html,%.xml,$(ALL_PAGES)) $(srcdir)/menu1.xml $(srcdir)/menu2*.xml $(srcdir)/html.py
