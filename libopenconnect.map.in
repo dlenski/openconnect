@@ -1,4 +1,4 @@
-OPENCONNECT_1.0 {
+OPENCONNECT_2.0 {
  global: 
 	openconnect_clear_cookie;
 	openconnect_get_cert_sha1;
@@ -8,7 +8,6 @@ OPENCONNECT_1.0 {
 	openconnect_get_port;
 	openconnect_get_urlpath;
 	openconnect_get_version;
-	openconnect_init_openssl;
 	openconnect_obtain_cookie;
 	openconnect_parse_url;
 	openconnect_passphrase_from_fsid;
@@ -21,34 +20,14 @@ OPENCONNECT_1.0 {
 	openconnect_set_urlpath;
 	openconnect_set_xmlsha1;
 	openconnect_vpninfo_new;
- local:
-	*;
-};
-OPENCONNECT_1.1 {
- global:
 	openconnect_vpninfo_free;
-} OPENCONNECT_1.0;
-
-OPENCONNECT_1.2 {
- global:
 	openconnect_vpninfo_new_with_cbdata;
-} OPENCONNECT_1.1;
-
-OPENCONNECT_1.3 {
- global:
 	openconnect_set_cert_expiry_warning;
-} OPENCONNECT_1.2;
-
-OPENCONNECT_1.4 {
- global:
 	openconnect_set_cancel_fd;
-} OPENCONNECT_1.3;
-
-OPENCONNECT_1.5 {
- global:
 	openconnect_get_cert_details;
 	openconnect_get_cert_DER;
-} OPENCONNECT_1.4;
+	openconnect_init_ssl;
+};
 
 OPENCONNECT_PRIVATE {
  global: @SYMVER_TIME@ @SYMVER_ASPRINTF@ @SYMVER_GETLINE@
@@ -62,4 +41,6 @@ OPENCONNECT_PRIVATE {
 	openconnect_report_ssl_errors;
 	openconnect_sha1;
 	openconnect_random;
+ local:
+	*;
 };

@@ -400,7 +400,7 @@ int main(int argc, char **argv)
 			openconnect_binary_version, openconnect_version_str);
 	}
 			
-	openconnect_init_openssl();
+	openconnect_init_ssl();
 
 	vpninfo = malloc(sizeof(*vpninfo));
 	if (!vpninfo) {

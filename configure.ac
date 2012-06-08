@@ -245,13 +245,11 @@ case "$ssl_library" in
 	AC_DEFINE(OPENCONNECT_GNUTLS, 1)
 	AC_SUBST(SSL_LIBS, [$GNUTLS_LIBS])
 	AC_SUBST(SSL_CFLAGS, [$GNUTLS_CFLAGS])
-	AC_SUBST(SSL_DEFINE, [-DOPENCONNECT_GNUTLS])
 	;;
     openssl)
 	AC_DEFINE(OPENCONNECT_OPENSSL, 1)
 	AC_SUBST(SSL_LIBS, [$OPENSSL_LIBS])
 	AC_SUBST(SSL_CFLAGS, [$OPENSSL_CFLAGS])
-	AC_SUBST(SSL_DEFINE, [-DOPENCONNECT_OPENSSL])
 	;;
     *)
 	AC_MSG_ERROR([Neither OpenSSL nor GnuTLS selected for SSL.])
@@ -370,7 +368,7 @@ else
 fi
 AM_CONDITIONAL(BUILD_WWW, [test -n "${ac_cv_path_PYTHON}"])
 
-AC_SUBST([CONFIG_STATUS_DEPENDENCIES], ['$(top_srcdir)/po/LINGUAS $(top_srcdir)/openconnect.h'])
+AC_SUBST([CONFIG_STATUS_DEPENDENCIES], ['$(top_srcdir)/po/LINGUAS $(top_srcdir)/openconnect.h ${top_srcdir}/libopenconnect.map.in'])
 RAWLINGUAS=`sed -e "/^#/d" -e "s/#.*//" "${srcdir}/po/LINGUAS"`
 # Remove newlines
 LINGUAS=`echo $RAWLINGUAS`

@@ -51,7 +51,7 @@ int openconnect_sha1(unsigned char *result, void *data, int len)
 }
 
 int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
-			     struct x509_st *cert, unsigned char **buf)
+			     OPENCONNECT_X509 *cert, unsigned char **buf)
 {
 	BIO *bp = BIO_new(BIO_s_mem());
 	BUF_MEM *certinfo;
@@ -703,7 +703,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 }
 
 static int get_cert_fingerprint(struct openconnect_info *vpninfo,
-				X509 *cert, const EVP_MD *type,
+				OPENCONNECT_X509 *cert, const EVP_MD *type,
 				char *buf)
 {
 	unsigned char md[EVP_MAX_MD_SIZE];
@@ -719,13 +719,13 @@ static int get_cert_fingerprint(struct openconnect_info *vpninfo,
 }
 
 int get_cert_md5_fingerprint(struct openconnect_info *vpninfo,
-			     X509 *cert, char *buf)
+			     OPENCONNECT_X509 *cert, char *buf)
 {
 	return get_cert_fingerprint(vpninfo, cert, EVP_md5(), buf);
 }
 
 int openconnect_get_cert_sha1(struct openconnect_info *vpninfo,
-			      X509 *cert, char *buf)
+			      OPENCONNECT_X509 *cert, char *buf)
 {
 	return get_cert_fingerprint(vpninfo, cert, EVP_sha1(), buf);
 }
@@ -1302,7 +1302,7 @@ void openconnect_close_https(struct openconnect_info *vpninfo)
 	}
 }
 
-void openconnect_init_openssl(void)
+void openconnect_init_ssl(void)
 {
 	SSL_library_init ();
 	ERR_clear_error ();
@@ -1311,7 +1311,7 @@ void openconnect_init_openssl(void)
 }
 
 char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
-				   struct x509_st *cert)
+				   OPENCONNECT_X509 *cert)
 {
 	BIO *bp = BIO_new(BIO_s_mem());
 	BUF_MEM *certinfo;

@@ -30,10 +30,14 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define OPENCONNECT_API_VERSION_MAJOR 1
-#define OPENCONNECT_API_VERSION_MINOR 5
+#define OPENCONNECT_API_VERSION_MAJOR 2
+#define OPENCONNECT_API_VERSION_MINOR 0
 
 /*
+ * API version 2.0:
+ *  - OPENCONNECT_X509 is now an opaque type.
+ *  - Rename openconnect_init_openssl() -> openconnect_init_ssl()
+ *
  * API version 1.5:
  *  - Add openconnect_get_cert_details(), openconnect_get_cert_DER().
  *
@@ -123,17 +127,7 @@ struct oc_auth_form {
 
 struct openconnect_info;
 
-#if defined (OPENCONNECT_OPENSSL)
-struct x509_st;
-#define OPENCONNECT_X509 struct x509_st
-#elif defined (OPENCONNECT_GNUTLS)
-struct gnutls_x509_crt_int;
-#define OPENCONNECT_X509 struct gnutls_x509_crt_int
-#else
-#error You are not building correctly using pkg-config.
-#endif
-
-
+#define OPENCONNECT_X509 void
 
 /* Unless otherwise specified, all functions which set strings will take ownership of those strings
    and should free them later in openconnect_vpninfo_free() */
@@ -148,7 +142,7 @@ int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
 int openconnect_set_http_proxy(struct openconnect_info *vpninfo, char *proxy);
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo);
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo);
-void openconnect_init_openssl(void);
+void openconnect_init_ssl(void);
 
 char *openconnect_get_vpn_name (struct openconnect_info *);
 char *openconnect_get_hostname (struct openconnect_info *);

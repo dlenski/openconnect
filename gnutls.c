@@ -1054,7 +1054,7 @@ void openconnect_close_https(struct openconnect_info *vpninfo)
 	}
 }
 
-void openconnect_init_openssl(void)
+void openconnect_init_ssl(void)
 {
 	gnutls_global_init();
 }
