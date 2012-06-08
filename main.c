@@ -52,9 +52,6 @@
 #ifdef LIBPROXY_HDR
 #include LIBPROXY_HDR
 #endif
-#ifdef OPENCONNECT_GNUTLS
-#include <gnutls/pkcs11.h>
-#endif
 #include <getopt.h>
 
 #include "openconnect-internal.h"
@@ -375,69 +372,6 @@ static int next_option(int argc, char **argv, char **config_arg)
 	return this->val;
 
 }
-#ifdef OPENCONNECT_OPENSSL
-static int null_ui_open(UI *ui)
-{
-	fprintf(stderr, _("Cannot ask for user input while in non-interactive mode\n"));
-	fflush(stderr);
-	return 0;
-}
-static void disable_openssl_ui()
-{
-	UI_METHOD *ui_method = UI_create_method((char *)"OpenConnect non-interactive UI");
-	UI_method_set_opener(ui_method, null_ui_open);
-	UI_set_default_method(ui_method);
-}
-#endif
-
-#ifdef OPENCONNECT_GNUTLS
-static int gtls_pin_func(void *user, int attempt, const char *token_url,
-			 const char *token_label, unsigned int flags, char *pin,
-			 size_t pin_max)
-{
-	char *password, *p;
-	struct termios t;
-
-	printf ("PIN required for token '%s' with URL '%s'\n", token_label,
-		token_url);
-	if (flags & GNUTLS_PKCS11_PIN_FINAL_TRY)
-		printf ("*** This is the final try before locking!\n");
-	if (flags & GNUTLS_PKCS11_PIN_COUNT_LOW)
-		printf ("*** Only few tries left before locking!\n");
-	if (flags & GNUTLS_PKCS11_PIN_WRONG)
-		printf ("*** Wrong PIN\n");
-
-	password = malloc(pin_max + 1);
-	if (!password)
-		return GNUTLS_E_MEMORY_ERROR;
-
-	printf("Enter PIN: ");
-	tcgetattr(0, &t);
-	t.c_lflag &= ~ECHO;
-	tcsetattr(0, TCSANOW, &t);
-
-	p = fgets(password, pin_max + 1, stdin);
-
-	t.c_lflag |= ECHO;
-	tcsetattr(0, TCSANOW, &t);
-	printf("\n");
-
-	if (!p || !strlen(password) || password[0] == '\n') {
-		free(password);
-		return -GNUTLS_E_INSUFFICIENT_CREDENTIALS;
-	}
-
-	p = strchr(password, '\n');
-	if (p)
-		*p = 0;
-
-	strncpy(pin, password, pin_max);
-	pin[pin_max-1] = 0;
-	free(password);
-
-	return 0;
-}
-#endif
 
 int main(int argc, char **argv)
 {
@@ -551,9 +485,6 @@ int main(int argc, char **argv)
 			break;
 		case OPT_NON_INTER:
 			non_inter = 1;
-#ifdef OPENCONNECT_OPENSSL
-			disable_openssl_ui();
-#endif
 			break;
 		case OPT_RECONNECT_TIMEOUT:
 			vpninfo->reconnect_timeout = atoi(config_arg);
@@ -726,11 +657,6 @@ int main(int argc, char **argv)
 		fprintf(stderr, _("No server specified\n"));
 		usage();
 	}
-
-#ifdef OPENCONNECT_GNUTLS
-	if (!non_inter)
-		gnutls_pkcs11_set_pin_function(gtls_pin_func, vpninfo);
-#endif
 
 	if (!vpninfo->sslkey)
 		vpninfo->sslkey = vpninfo->cert;
