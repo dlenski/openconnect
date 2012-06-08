@@ -311,7 +311,11 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			*next_dtls_option = new_option;
 			next_dtls_option = &new_option->next;
 
-			if (!strcmp(buf + 7, "Session-ID")) {
+			if (!strcmp(buf + 7, "MTU")) {
+				int mtu = atol(colon);
+				if (mtu > vpninfo->mtu)
+					vpninfo->mtu = mtu;
+			} else if (!strcmp(buf + 7, "Session-ID")) {
 				if (strlen(colon) != 64) {
 					vpn_progress(vpninfo, PRG_ERR,
 						     _("X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"),
@@ -349,7 +353,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 				return -EINVAL;
 			}
 		} else if (!strcmp(buf + 7, "MTU")) {
-			vpninfo->mtu = atol(colon);
+			int mtu = atol(colon);
+			if (mtu > vpninfo->mtu)
+				vpninfo->mtu = mtu;
 		} else if (!strcmp(buf + 7, "Address")) {
 			if (strchr(new_option->value, ':'))
 				vpninfo->vpn_addr6 = new_option->value;
