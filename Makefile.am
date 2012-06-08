@@ -31,7 +31,7 @@ endif
 
 pkgconfig_DATA = openconnect.pc
 
-EXTRA_DIST = version.sh COPYING.LGPL gnutls_pkcs12.c
+EXTRA_DIST = version.sh COPYING.LGPL gnutls_pkcs12.c gnutls.c openssl.c
 
 DISTCLEANFILES = $(pkgconfig_DATA)
 
