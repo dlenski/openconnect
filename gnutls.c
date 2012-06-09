@@ -287,9 +287,10 @@ static int load_datum(struct openconnect_info *vpninfo,
 static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 				   gnutls_datum_t *datum,
 				   gnutls_x509_privkey_t *key,
-				   gnutls_x509_crt_t *cert,
+				   gnutls_x509_crt_t **chain,
+				   unsigned int *chain_len,
 				   gnutls_x509_crt_t **extra_certs,
-				   unsigned int *nr_extra_certs,
+				   unsigned int *extra_certs_len,
 				   gnutls_x509_crl_t *crl)
 {
 	gnutls_pkcs12_t p12;
@@ -352,8 +353,8 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 		return ret;
 	}
 
-	err = gnutls_pkcs12_simple_parse(vpninfo->https_cred, p12, pass, key,
-					 cert, extra_certs, nr_extra_certs, crl);
+	err = gnutls_pkcs12_simple_parse(p12, pass, key, chain, chain_len,
+					 extra_certs, extra_certs_len, crl, 0);
 	gnutls_pkcs12_deinit(p12);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -414,7 +415,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	gnutls_x509_crl_t crl = NULL;
 	gnutls_x509_crt_t last_cert, cert = NULL;
 	gnutls_x509_crt_t *extra_certs = NULL, *supporting_certs = NULL;
-	unsigned int nr_supporting_certs, nr_extra_certs = 0;
+	unsigned int nr_supporting_certs = 0, nr_extra_certs = 0;
+	unsigned int certs_to_free = 0; /* How many of supporting_certs */
 	int err; /* GnuTLS error */
 	int ret = 0; /* our error (zero or -errno) */
 	int i;
@@ -491,12 +493,22 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 	if (vpninfo->cert_type == CERT_TYPE_PKCS12 ||
 	    vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
-		ret = load_pkcs12_certificate(vpninfo, &fdata, &key, &cert,
-					      &extra_certs, &nr_extra_certs, &crl);
+		ret = load_pkcs12_certificate(vpninfo, &fdata, &key,
+					      &supporting_certs, &nr_supporting_certs,
+					      &extra_certs, &nr_extra_certs,
+					      &crl);
 		if (ret < 0)
 			goto out;
-		else if (!ret)
-			goto got_cert;
+		else if (!ret) {
+			if (nr_supporting_certs) {
+				cert = supporting_certs[0];
+				goto got_cert;
+			}
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("PKCS#11 file contained no certificate\n"));
+			ret = -EINVAL;
+			goto out;
+		}
 
 		/* It returned NOT_PKCS12.
 		   Fall through to try PEM formats. */
@@ -634,8 +646,18 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	   multiple certs with the same name, it doesn't necessarily
 	   choose the _right_ one. (RT#1942)
 	   Pick the right ones for ourselves and add them manually. */
-	last_cert = cert;
-	nr_supporting_certs = 1; /* Our starting cert */
+
+	if (nr_supporting_certs) {
+		/* We already got a bunch of certs from PKCS#12 file. 
+		   Remember how many need to be freed when we're done,
+		   since we'll expand the supporting_certs array with
+		   more from the cafile if we can. */
+		last_cert = supporting_certs[nr_supporting_certs-1];
+		certs_to_free = nr_supporting_certs;
+	} else {
+		last_cert = cert;
+		certs_to_free = nr_supporting_certs = 1;
+	}
 	while (1) {
 		gnutls_x509_crt_t issuer;
 
@@ -677,13 +699,15 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		}
 
 		/* OK, we found a new cert to add to our chain. */
-		supporting_certs = realloc(supporting_certs,
-					   sizeof(cert) * ++nr_supporting_certs);
+		supporting_certs = gnutls_realloc(supporting_certs,
+						  sizeof(cert) * ++nr_supporting_certs);
 		if (!supporting_certs) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to allocate memory for supporting certificates\n"));
 			/* The world is probably about to end, but try without them anyway */
-			break;
+			certs_to_free = 0;
+			ret = -ENOMEM;
+			goto out;
 		}
 
 		/* First time we actually allocated an array? Copy the first cert into it */
@@ -728,12 +752,18 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		gnutls_x509_privkey_deinit(key);
 	if (cert)
 		gnutls_x509_crt_deinit(cert);
+	/* From 1 because cert is the first one (and might exist
+	   even if supporting_certs is NULL) */
+	for (i = 1; i < certs_to_free; i++) {
+		if (supporting_certs[i])
+			gnutls_x509_crt_deinit(supporting_certs[i]);
+	}
 	for (i = 0; i < nr_extra_certs; i++) {
 		if (extra_certs[i])
 			gnutls_x509_crt_deinit(extra_certs[i]);
 	}
-	free(extra_certs);
-	free(supporting_certs);
+	gnutls_free(extra_certs);
+	gnutls_free(supporting_certs);
 	gnutls_free(fdata.data);
 	return ret;
 }
