@@ -431,7 +431,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	if (!strncmp(vpninfo->cert, "pkcs11:", 7)) {
+	if (!strncmp(vpninfo->sslkey, "pkcs11:", 7)) {
 		char *cert_url = (char *)vpninfo->cert;
 		char *key_url = (char *)vpninfo->sslkey;
 #ifdef HAVE_P11KIT
@@ -441,25 +441,14 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		sprintf(pin_source, "openconnect:%p", vpninfo);
 
 		uri = p11_kit_uri_new();
-		if (p11_kit_uri_parse(vpninfo->cert, P11_KIT_URI_FOR_OBJECT, uri) != P11_KIT_URI_OK) {
-			vpn_progress(vpninfo, PRG_ERR, _("Failed to parse PKCS#11 URL '%s'\n"),
-				     vpninfo->cert);
-			p11_kit_uri_free(uri);
-			return -EINVAL;
-		}
-		if (!p11_kit_uri_get_pin_source(uri)) {
+		if (p11_kit_uri_parse(vpninfo->cert, P11_KIT_URI_FOR_OBJECT, uri) == P11_KIT_URI_OK
+		    && !p11_kit_uri_get_pin_source(uri)) {
 			p11_kit_uri_set_pin_source(uri, pin_source);
 			p11_kit_uri_format(uri, P11_KIT_URI_FOR_OBJECT, &cert_url);
 		}
 
-		if (p11_kit_uri_parse(vpninfo->sslkey, P11_KIT_URI_FOR_OBJECT, uri) != P11_KIT_URI_OK) {
-			vpn_progress(vpninfo, PRG_ERR, _("Failed to parse PKCS#11 URL '%s'\n"),
-				     vpninfo->sslkey);
-			p11_kit_uri_free(uri);
-			free(cert_url);
-			return -EINVAL;
-		}
-		if (!p11_kit_uri_get_pin_source(uri)) {
+		if (p11_kit_uri_parse(vpninfo->sslkey, P11_KIT_URI_FOR_OBJECT, uri) == P11_KIT_URI_OK
+		    && !p11_kit_uri_get_pin_source(uri)) {
 			p11_kit_uri_set_pin_source(uri, pin_source);
 			p11_kit_uri_format(uri, P11_KIT_URI_FOR_OBJECT, &key_url);
 		}
