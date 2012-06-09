@@ -239,15 +239,15 @@ static int load_datum(struct openconnect_info *vpninfo,
 	if (fd == -1) {
 		err = errno;
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to open certificate file %s: %s\n"),
-			     vpninfo->cert, strerror(err));
+			     _("Failed to open key/certificate file %s: %s\n"),
+			     fname, strerror(err));
 		return -ENOENT;
 	}
 	if (fstat(fd, &st)) {
 		err = errno;
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to stat certificate file %s: %s\n"),
-			     vpninfo->cert, strerror(err));
+			     _("Failed to stat key/certificate file %s: %s\n"),
+			     fname, strerror(err));
 		close(fd);
 		return -EIO;
 	}
@@ -423,6 +423,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	unsigned char key_id[20];
 	size_t key_id_size = sizeof(key_id);
 
+	fdata.data = NULL;
+
 	if (vpninfo->cert_type == CERT_TYPE_TPM) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("TPM support not available with GnuTLS\n"));
@@ -546,9 +548,10 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 	if (vpninfo->sslkey != vpninfo->cert) {
 		gnutls_free(fdata.data);
+		fdata.data = NULL;
 
 		vpn_progress(vpninfo, PRG_TRACE,
-			     _("Using private key file %s\n"), vpninfo->cert);
+			     _("Using private key file %s\n"), vpninfo->sslkey);
 
 		ret = load_datum(vpninfo, &fdata, vpninfo->sslkey);
 		if (ret)
