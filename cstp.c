@@ -230,7 +230,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			     _("Error fetching HTTPS response\n"));
 		if (!retried) {
 			retried = 1;
-			openconnect_close_https(vpninfo);
+			openconnect_close_https(vpninfo, 0);
 
 			if (openconnect_open_https(vpninfo)) {
 				vpn_progress(vpninfo, PRG_ERR,
@@ -526,7 +526,7 @@ int cstp_reconnect(struct openconnect_info *vpninfo)
 	int timeout;
 	int interval;
 
-	openconnect_close_https(vpninfo);
+	openconnect_close_https(vpninfo, 0);
 
 	/* Requeue the original packet that was deflated */
 	if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt) {

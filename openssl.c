@@ -1283,7 +1283,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	return 0;
 }
 
-void openconnect_close_https(struct openconnect_info *vpninfo)
+void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 {
 	if (vpninfo->peer_cert) {
 		X509_free(vpninfo->peer_cert);
@@ -1299,6 +1299,10 @@ void openconnect_close_https(struct openconnect_info *vpninfo)
 		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_wfds);
 		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_efds);
 		vpninfo->ssl_fd = -1;
+	}
+	if (final && vpninfo->https_ctx) {
+		SSL_CTX_free(vpninfo->https_ctx);
+		vpninfo->https_ctx = NULL;
 	}
 }
 

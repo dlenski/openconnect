@@ -321,7 +321,7 @@ int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len
 int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t len);
 int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len);
 int openconnect_open_https(struct openconnect_info *vpninfo);
-void openconnect_close_https(struct openconnect_info *vpninfo);
+void openconnect_close_https(struct openconnect_info *vpninfo, int final);
 int get_cert_md5_fingerprint(struct openconnect_info *vpninfo, OPENCONNECT_X509 *cert,
 			     char *buf);
 /* This one is actually OpenSSL-specific */

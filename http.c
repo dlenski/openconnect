@@ -335,7 +335,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	}
 
 	if (closeconn || vpninfo->no_http_keepalive)
-		openconnect_close_https(vpninfo);
+		openconnect_close_https(vpninfo, 0);
 
 	if (body)
 		body[done] = 0;
@@ -728,7 +728,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 				/* Kill the existing connection, and a new one will happen */
 				free(vpninfo->peer_addr);
 				vpninfo->peer_addr = NULL;
-				openconnect_close_https(vpninfo);
+				openconnect_close_https(vpninfo, 0);
 
 				for (opt = vpninfo->cookies; opt; opt = next) {
 					next = opt->next;

@@ -1056,17 +1056,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	return 0;
 }
 
-void openconnect_close_https(struct openconnect_info *vpninfo)
+void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 {
-#ifdef HAVE_P11KIT
-	if (!strncmp(vpninfo->cert, "pkcs11:", 7)) {
-		char pin_source[40];
-
-		sprintf(pin_source, "openconnect:%p", vpninfo);
-		p11_kit_pin_unregister_callback(pin_source, pin_callback, vpninfo);
-	}
-#endif
-
 	if (vpninfo->peer_cert) {
 		gnutls_x509_crt_deinit(vpninfo->peer_cert);
 		vpninfo->peer_cert = NULL;
@@ -1081,6 +1072,18 @@ void openconnect_close_https(struct openconnect_info *vpninfo)
 		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_wfds);
 		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_efds);
 		vpninfo->ssl_fd = -1;
+	}
+	if (final && vpninfo->https_cred) {
+		gnutls_certificate_free_credentials(vpninfo->https_cred);
+		vpninfo->https_cred = NULL;
+#ifdef HAVE_P11KIT
+		if (!strncmp(vpninfo->cert, "pkcs11:", 7)) {
+			char pin_source[40];
+
+			sprintf(pin_source, "openconnect:%p", vpninfo);
+			p11_kit_pin_unregister_callback(pin_source, pin_callback, vpninfo);
+		}
+#endif
 	}
 }
 

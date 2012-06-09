@@ -171,23 +171,11 @@ void openconnect_clear_cookie (struct openconnect_info *vpninfo)
 
 void openconnect_reset_ssl (struct openconnect_info *vpninfo)
 {
-	openconnect_close_https(vpninfo);
+	openconnect_close_https(vpninfo, 1);
 	if (vpninfo->peer_addr) {
 		free(vpninfo->peer_addr);
 		vpninfo->peer_addr = NULL;
 	}
-#if defined (OPENCONNECT_OPENSSL)
-	if (vpninfo->https_ctx) {
-		SSL_CTX_free(vpninfo->https_ctx);
-		vpninfo->https_ctx = NULL;
-	}
-#elif defined (OPENCONNECT_GNUTLS)
-	if (vpninfo->https_cred) {
-		gnutls_certificate_free_credentials(vpninfo->https_cred);
-		vpninfo->https_cred = NULL;
-	}
-#endif
-
 }
 
 int openconnect_parse_url (struct openconnect_info *vpninfo, char *url)
