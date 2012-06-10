@@ -45,6 +45,7 @@
 
 #ifdef HAVE_P11KIT
 #include <p11-kit/p11-kit.h>
+#include <p11-kit/pkcs11.h>
 #include <p11-kit/pin.h>
 
 static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
@@ -447,6 +448,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	/* Install PIN handler if either certificate or key are coming from PKCS#11 */
 	if (key_is_p11 || cert_is_p11) {
 #ifdef HAVE_P11KIT
+		CK_OBJECT_CLASS class;
+		CK_ATTRIBUTE attr;
 		char pin_source[40];
 		P11KitUri *uri;
 
@@ -455,17 +458,31 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 		uri = p11_kit_uri_new();
 
+		attr.type = CKA_CLASS;
+		attr.pValue = &class;
+		attr.ulValueLen = sizeof(class);
+
+		/* Add appropriate pin-source and object-type attributes to
+		   both certificate and key URLs, unless they already exist. */
 		if (cert_is_p11 &&
-		    !p11_kit_uri_parse(cert_url, P11_KIT_URI_FOR_OBJECT, uri) &&
-		    !p11_kit_uri_get_pin_source(uri)) {
-			p11_kit_uri_set_pin_source(uri, pin_source);
+		    !p11_kit_uri_parse(cert_url, P11_KIT_URI_FOR_OBJECT, uri)) {
+			if (!p11_kit_uri_get_pin_source(uri))
+				p11_kit_uri_set_pin_source(uri, pin_source);
+			if (!p11_kit_uri_get_attribute(uri, CKA_CLASS)) {
+				class = CKO_CERTIFICATE;
+				p11_kit_uri_set_attribute(uri, &attr);
+			}
 			p11_kit_uri_format(uri, P11_KIT_URI_FOR_OBJECT, &cert_url);
 		}
 
 		if (key_is_p11 &&
-		    !p11_kit_uri_parse(key_url, P11_KIT_URI_FOR_OBJECT, uri) &&
-		    !p11_kit_uri_get_pin_source(uri)) {
-			p11_kit_uri_set_pin_source(uri, pin_source);
+		    !p11_kit_uri_parse(key_url, P11_KIT_URI_FOR_OBJECT, uri)) {
+			if (!p11_kit_uri_get_pin_source(uri))
+				p11_kit_uri_set_pin_source(uri, pin_source);
+			if (!p11_kit_uri_get_attribute(uri, CKA_CLASS)) {
+				class = CKO_PRIVATE_KEY;
+				p11_kit_uri_set_attribute(uri, &attr);
+			}
 			p11_kit_uri_format(uri, P11_KIT_URI_FOR_OBJECT, &key_url);
 		}
 
