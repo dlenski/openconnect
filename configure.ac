@@ -199,6 +199,8 @@ if test "$with_gnutls" = "yes" || test "$with_gnutls" = "shibboleet"; then
     ssl_library=gnutls
     oldlibs="$LIBS"
     LIBS="$LIBS $GNUTLS_LIBS"
+    AC_CHECK_FUNC(gnutls_certificate_set_x509_system_trust,
+		 [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_X509_SYSTEM_TRUST, 1)], [])
     AC_CHECK_FUNC(gnutls_pkcs12_simple_parse,
 		 [AC_DEFINE(HAVE_GNUTLS_PKCS12_SIMPLE_PARSE, 1)], [])
     AC_CHECK_FUNC(gnutls_session_set_premaster,

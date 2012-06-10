@@ -941,9 +941,13 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 	if (!vpninfo->https_cred) {
 		gnutls_certificate_allocate_credentials(&vpninfo->https_cred);
+#ifdef HAVE_GNUTLS_CERTIFICATE_SET_X509_SYSTEM_TRUST
+		gnutls_certificate_set_x509_system_trust(vpninfo->https_cred);
+#else
 		gnutls_certificate_set_x509_trust_file(vpninfo->https_cred,
 						       "/etc/pki/tls/certs/ca-bundle.crt",
 						       GNUTLS_X509_FMT_PEM);
+#endif
 		gnutls_certificate_set_verify_function (vpninfo->https_cred,
 							verify_peer);
 		/* FIXME: Ensure TLSv1.0, no options */
