@@ -41,6 +41,7 @@
 #include <gnutls/x509.h>
 #include <gnutls/crypto.h>
 #include <gnutls/pkcs12.h>
+#include <gnutls/abstract.h>
 
 #ifdef HAVE_P11KIT
 #include <p11-kit/p11-kit.h>
@@ -412,6 +413,11 @@ static int load_certificate(struct openconnect_info *vpninfo)
 {
 	gnutls_datum_t fdata;
 	gnutls_x509_privkey_t key = NULL;
+#ifdef HAVE_P11KIT
+	gnutls_privkey_t pkey = NULL;
+	char *cert_url = (char *)vpninfo->cert;
+	char *key_url = (char *)vpninfo->sslkey;
+#endif
 	gnutls_x509_crl_t crl = NULL;
 	gnutls_x509_crt_t last_cert, cert = NULL;
 	gnutls_x509_crt_t *extra_certs = NULL, *supporting_certs = NULL;
@@ -420,6 +426,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	int err; /* GnuTLS error */
 	int ret = 0; /* our error (zero or -errno) */
 	int i;
+	int cert_is_p11 = 0, key_is_p11 = 0;
 	unsigned char key_id[20];
 	size_t key_id_size = sizeof(key_id);
 
@@ -431,49 +438,67 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	if (!strncmp(vpninfo->sslkey, "pkcs11:", 7)) {
-		char *cert_url = (char *)vpninfo->cert;
-		char *key_url = (char *)vpninfo->sslkey;
+	key_is_p11 = !strncmp(vpninfo->sslkey, "pkcs11:", 7);
+	cert_is_p11 = !strncmp(vpninfo->cert, "pkcs11:", 7);
+
+	/* Install PIN handler if either certificate or key are coming from PKCS#11 */
+	if (key_is_p11 || cert_is_p11) {
 #ifdef HAVE_P11KIT
 		char pin_source[40];
 		P11KitUri *uri;
 
 		sprintf(pin_source, "openconnect:%p", vpninfo);
+		p11_kit_pin_register_callback(pin_source, pin_callback, vpninfo, NULL);
 
 		uri = p11_kit_uri_new();
-		if (p11_kit_uri_parse(vpninfo->cert, P11_KIT_URI_FOR_OBJECT, uri) == P11_KIT_URI_OK
-		    && !p11_kit_uri_get_pin_source(uri)) {
+
+		if (cert_is_p11 &&
+		    !p11_kit_uri_parse(cert_url, P11_KIT_URI_FOR_OBJECT, uri) &&
+		    !p11_kit_uri_get_pin_source(uri)) {
 			p11_kit_uri_set_pin_source(uri, pin_source);
 			p11_kit_uri_format(uri, P11_KIT_URI_FOR_OBJECT, &cert_url);
 		}
 
-		if (p11_kit_uri_parse(vpninfo->sslkey, P11_KIT_URI_FOR_OBJECT, uri) == P11_KIT_URI_OK
-		    && !p11_kit_uri_get_pin_source(uri)) {
+		if (key_is_p11 &&
+		    !p11_kit_uri_parse(key_url, P11_KIT_URI_FOR_OBJECT, uri) &&
+		    !p11_kit_uri_get_pin_source(uri)) {
 			p11_kit_uri_set_pin_source(uri, pin_source);
 			p11_kit_uri_format(uri, P11_KIT_URI_FOR_OBJECT, &key_url);
 		}
+
 		p11_kit_uri_free(uri);
-		p11_kit_pin_register_callback(pin_source, pin_callback, vpninfo, NULL);
+#else
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("This binary built without PKCS#11 support\n"));
+		return -EINVAL;
 #endif
+	}
+
+	/* Load certificate(s) first... */
+#ifdef HAVE_P11KIT
+	if (cert_is_p11) {
 		vpn_progress(vpninfo, PRG_TRACE,
-			     _("Using PKCS#11 certificate %s\n"), vpninfo->cert);
+			     _("Using PKCS#11 certificate %s\n"), cert_url);
 
-		err = gnutls_certificate_set_x509_key_file(vpninfo->https_cred,
-							   cert_url, key_url,
-							   GNUTLS_X509_FMT_PEM);
-		if (cert_url != vpninfo->cert)
-			free(cert_url);
-		if (key_url != vpninfo->sslkey)
-			free(key_url);
-
+		err = gnutls_x509_crt_init(&cert);
+		if (err) {
+			ret = -ENOMEM;
+			goto out;
+		}
+		err = gnutls_x509_crt_import_pkcs11_url(cert, cert_url, 0);
+		if (err == GNUTLS_E_REQUESTED_DATA_NOT_AVAILABLE)
+			err = gnutls_x509_crt_import_pkcs11_url(cert, cert_url,
+								GNUTLS_PKCS11_OBJ_FLAG_LOGIN);
 		if (err) {
 			vpn_progress(vpninfo, PRG_ERR,
-				     _("Error loading PKCS#11 certificate: %s\n"),
+				     _("Error loading certificate from PKCS#11: %s\n"),
 				     gnutls_strerror(err));
-			return -EIO;
+			ret = -EIO;
+			goto out;
 		}
-		return 0;
+		goto got_certs;
 	}
+#endif
 
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Using certificate file %s\n"), vpninfo->cert);
@@ -482,8 +507,9 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	if (ret)
 		return ret;
 
-	if (vpninfo->cert_type == CERT_TYPE_PKCS12 ||
-	    vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
+	if (!key_is_p11 && (vpninfo->cert_type == CERT_TYPE_PKCS12 ||
+			    vpninfo->cert_type == CERT_TYPE_UNKNOWN)) {
+		/* PKCS#12 should actually contain certificates *and* private key */
 		ret = load_pkcs12_certificate(vpninfo, &fdata, &key,
 					      &supporting_certs, &nr_supporting_certs,
 					      &extra_certs, &nr_extra_certs,
@@ -493,7 +519,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		else if (!ret) {
 			if (nr_supporting_certs) {
 				cert = supporting_certs[0];
-				goto got_cert;
+				goto got_key;
 			}
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("PKCS#11 file contained no certificate\n"));
@@ -535,7 +561,73 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	nr_extra_certs = err;
 	err = 0;
 
-	if (vpninfo->sslkey != vpninfo->cert) {
+
+	/* Now we have the certificate(s) and we're looking for the private key... */
+#ifdef HAVE_P11KIT
+ got_certs:
+	if (key_is_p11) {
+		gnutls_pkcs11_privkey_t p11key = NULL;
+
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Using PKCS#11 key %s\n"), key_url);
+
+		err = gnutls_pkcs11_privkey_init(&p11key);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Error initialising PKCS#11 key structure: %s\n"),
+				     gnutls_strerror(err));
+			ret = -EIO;
+			goto out;
+		}
+
+		err = gnutls_pkcs11_privkey_import_url(p11key, key_url, 0);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Error importing PKCS#11 URL %s: %s\n"),
+				     key_url, gnutls_strerror(err));
+			gnutls_pkcs11_privkey_deinit(p11key);
+			ret = -EIO;
+			goto out;
+		}
+
+		err = gnutls_privkey_init(&pkey);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Error initialising private key structure: %s\n"),
+				     gnutls_strerror(err));
+			gnutls_pkcs11_privkey_deinit(p11key);
+			ret = -EIO;
+			goto out;
+		}
+
+		err = gnutls_privkey_import_pkcs11(pkey, p11key, GNUTLS_PRIVKEY_IMPORT_AUTO_RELEASE);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Error importing PKCS#11 key into private key structure: %s\n"),
+				     gnutls_strerror(err));
+			gnutls_pkcs11_privkey_deinit(p11key);
+			ret = -EIO;
+			goto out;
+		}
+
+		/* FIXME: How do we check which cert matches the pkey?
+		   For now we just assume that the first one in the list is the right one. */
+		if (!cert) {
+			cert = extra_certs[0];
+
+			/* Move the rest of the array down */
+			for (i = 0; i < nr_extra_certs - 1; i++)
+				extra_certs[i] = extra_certs[i+1];
+
+			nr_extra_certs--;
+		}
+		goto got_key;
+	}
+#endif
+
+	/* We're loading the private key from a file. Load the file into memory
+	   unless it's the same as the certificate and we already loaded that. */
+	if (!fdata.data || vpninfo->sslkey != vpninfo->cert) {
 		gnutls_free(fdata.data);
 		fdata.data = NULL;
 
@@ -589,6 +681,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			}
 		}
 	}
+
+	/* Now attempt to make sure we use the *correct* certificate, to match the key */
 	err = gnutls_x509_privkey_get_key_id(key, 0, key_id, &key_id_size);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -596,23 +690,25 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			     gnutls_strerror(err));
 		goto out;
 	}
-	for (i = 0; i < nr_extra_certs; i++) {
+	for (i = 0; i < (extra_certs?nr_extra_certs:1); i++) {
 		unsigned char cert_id[20];
 		size_t cert_id_size = sizeof(cert_id);
 
-		err = gnutls_x509_crt_get_key_id(extra_certs[i], 0, cert_id, &cert_id_size);
+		err = gnutls_x509_crt_get_key_id(extra_certs?extra_certs[i]:cert, 0, cert_id, &cert_id_size);
 		if (err)
 			continue;
 
 		if (cert_id_size == key_id_size && !memcmp(cert_id, key_id, key_id_size)) {
-			cert = extra_certs[i];
+			if (extra_certs) {
+				cert = extra_certs[i];
 
-			/* Move the rest of the array down */
-			for (; i < nr_extra_certs - 1; i++)
-				extra_certs[i] = extra_certs[i+1];
+				/* Move the rest of the array down */
+				for (; i < nr_extra_certs - 1; i++)
+					extra_certs[i] = extra_certs[i+1];
 
-			nr_extra_certs--;
-			goto got_cert;
+				nr_extra_certs--;
+			}
+			goto got_key;
 		}
 	}
 	/* We shouldn't reach this. It means that we didn't find *any* matching cert */
@@ -621,7 +717,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	ret = -EINVAL;
 	goto out;
 
- got_cert:
+ got_key:
+	/* Now we have both cert(s) and key, and we should be ready to go. */
 	check_certificate_expiry(vpninfo, cert);
 
 	if (crl) {
@@ -665,7 +762,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			err = gnutls_certificate_get_issuer(vpninfo->https_cred,
 							    last_cert, &issuer, 0);
 			if (err)
-				break;
+ 				break;
 		}
 
 		/* The check_issuer_sanity() function works fine as a workaround where
@@ -727,10 +824,50 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			     _("Adding supporting CA '%s'\n"), name);
 	}
 
-	err = gnutls_certificate_set_x509_key(vpninfo->https_cred,
-					      supporting_certs ? supporting_certs : &cert,
-					      supporting_certs ? 1 : nr_supporting_certs,
-					      key);
+#ifdef HAVE_P11KIT
+	if (pkey) {
+		/* Ug. If we got a gnutls_privkey_t from PKCS#11 rather than the
+		   gnutls_x509_privkey_t that we get from PEM or PKCS#12 files, then
+		   we can't use gnutls_certificate_set_x509_key(). Instead we have
+		   to convert our chain of X509 certificates to gnutls_pcert_st and
+		   then use gnutls_certificate_set_key() with that instead. */
+		gnutls_pcert_st *pcerts = calloc(nr_supporting_certs, sizeof(*pcerts));
+
+		if (!pcerts) {
+			ret = -ENOMEM;
+			goto out;
+		}
+
+		for (i=0 ; i < nr_supporting_certs; i++) {
+			err = gnutls_pcert_import_x509(pcerts + i, supporting_certs?supporting_certs[i]:cert, 0);
+			if (err) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Importing X509 certificate failed: %s\n"),
+					     gnutls_strerror(err));
+				goto free_pcerts;
+			}
+		}
+
+		err = gnutls_certificate_set_key(vpninfo->https_cred, NULL, 0, pcerts, nr_supporting_certs, pkey);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Setting PKCS#11 certificate failed: %s\n"),
+				     gnutls_strerror(err));
+		free_pcerts:
+			for (i=0 ; i < nr_supporting_certs; i++)
+				gnutls_pcert_deinit(pcerts + i);
+			free (pcerts);
+			ret = -EIO;
+			goto out;
+		}
+		pkey = NULL; /* we gave it away, along with pcerts */
+	} else
+#endif
+		err = gnutls_certificate_set_x509_key(vpninfo->https_cred,
+						      supporting_certs ? supporting_certs : &cert,
+						      supporting_certs ? nr_supporting_certs : 1,
+						      key);
+
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Setting certificate failed: %s\n"),
@@ -757,6 +894,14 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	gnutls_free(extra_certs);
 	gnutls_free(supporting_certs);
 	gnutls_free(fdata.data);
+#ifdef HAVE_P11KIT
+	if (pkey)
+		gnutls_privkey_deinit(pkey);
+	if (cert_url != vpninfo->cert)
+		free(cert_url);
+	if (key_url != vpninfo->sslkey)
+		free(key_url);
+#endif
 	return ret;
 }
 
