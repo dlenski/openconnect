@@ -1261,6 +1261,16 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 
 			sprintf(pin_source, "openconnect:%p", vpninfo);
 			p11_kit_pin_unregister_callback(pin_source, pin_callback, vpninfo);
+
+			while (vpninfo->pin_cache) {
+				struct pin_cache *cache = vpninfo->pin_cache;
+
+				free(cache->token);
+				memset(cache->pin, 0x5a, strlen(cache->pin));
+				free(cache->pin);
+				vpninfo->pin_cache = cache->next;
+				free(cache);
+			}
 		}
 #endif
 	}
@@ -1316,14 +1326,42 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 			void *_vpninfo)
 {
 	struct openconnect_info *vpninfo = _vpninfo;
+	struct pin_cache **cache = &vpninfo->pin_cache;
 	struct oc_auth_form f;
 	struct oc_form_opt o;
 	char message[1024];
+	char *uri;
 	P11KitPin *pin;
 	int ret;
 
 	if (!vpninfo || !vpninfo->process_auth_form)
 		return NULL;
+
+	if (p11_kit_uri_format(pin_uri, P11_KIT_URI_FOR_TOKEN, &uri))
+		return NULL;
+	
+	while (*cache) {
+		if (!strcmp(uri, (*cache)->token)) {
+			free(uri);
+			uri = NULL;
+			if ((*cache)->pin) {
+				if ((flags & P11_KIT_PIN_FLAGS_RETRY) != P11_KIT_PIN_FLAGS_RETRY)
+					return p11_kit_pin_new_for_string((*cache)->pin);
+				memset((*cache)->pin, 0x5a, strlen((*cache)->pin));
+				free((*cache)->pin);
+				(*cache)->pin = NULL;
+			}
+			break;
+		}
+	}
+	if (!*cache) {
+		*cache = calloc(1, sizeof(struct pin_cache));
+		if (!*cache) {
+			free(uri);
+			return NULL;
+		}
+		(*cache)->token = uri;
+	}
 
 	memset(&f, 0, sizeof(f));
 	f.auth_id = (char *)"pkcs11_pin";
@@ -1334,9 +1372,10 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 	f.message = message;
 	
 	/* 
-	 * p11-kit flags are *odd*.
+	 * In p11-kit <= 0.12, these flags are *odd*.
 	 * RETRY is 0xa, FINAL_TRY is 0x14 and MANY_TRIES is 0x28.
-	 * So don't treat it like a sane bitmask.
+	 * So don't treat it like a sane bitmask. Fixed in
+	 * http://cgit.freedesktop.org/p11-glue/p11-kit/commit/?id=59774b11
 	 */
 	if ((flags & P11_KIT_PIN_FLAGS_RETRY) == P11_KIT_PIN_FLAGS_RETRY)
 		f.error = _("Wrong PIN");
@@ -1357,7 +1396,7 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 		return NULL;
 
 	pin = p11_kit_pin_new_for_string(o.value);
-	free(o.value);
+	(*cache)->pin = o.value;
 
 	return pin;
 }

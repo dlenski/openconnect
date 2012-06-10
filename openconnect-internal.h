@@ -95,6 +95,12 @@ struct split_include {
 	struct split_include *next;
 };
 
+struct pin_cache {
+	struct pin_cache *next;
+	char *token;
+	char *pin;
+};
+
 #define RECONNECT_INTERVAL_MIN	10
 #define RECONNECT_INTERVAL_MAX	100
 
@@ -159,6 +165,7 @@ struct openconnect_info {
 #elif defined(OPENCONNECT_GNUTLS)
 	gnutls_session_t https_sess;
 	gnutls_certificate_credentials_t https_cred;
+	struct pin_cache *pin_cache;
 #endif
 	struct keepalive_info ssl_times;
 	int owe_ssl_dpd_response;
