@@ -51,6 +51,9 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 			       const char *pin_description,
 			       P11KitPinFlags flags,
 			       void *_vpninfo);
+#if GNUTLS_VERSION_MAJOR >= 3
+#define HAVE_P11KIT_AND_GNUTLS_3
+#endif
 #endif
 
 #include "openconnect-internal.h"
@@ -476,6 +479,24 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 	/* Load certificate(s) first... */
 #ifdef HAVE_P11KIT
+#ifndef HAVE_P11KIT_AND_GNUTLS_3
+	if (key_is_p11) {
+		/* With GnuTLS 2.12 we can't *see* the key so we can't
+		   do the expiry check or fill in intermediate CAs. */
+		err = gnutls_certificate_set_x509_key_file(vpninfo->https_cred,
+							   cert_url, key_url,
+							   GNUTLS_X509_FMT_PEM);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Error loading PKCS#11 certificate: %s\n"),
+				     gnutls_strerror(err));
+			ret = -EIO;
+			goto out;
+		}
+		ret = 0;
+		goto out;
+	}
+#endif
 	if (cert_is_p11) {
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("Using PKCS#11 certificate %s\n"), cert_url);
@@ -561,10 +582,10 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	nr_extra_certs = err;
 	err = 0;
 
-
-	/* Now we have the certificate(s) and we're looking for the private key... */
-#ifdef HAVE_P11KIT
+	goto got_certs;
  got_certs:
+	/* Now we have the certificate(s) and we're looking for the private key... */
+#ifdef HAVE_P11KIT_AND_GNUTLS_3
 	if (key_is_p11) {
 		gnutls_pkcs11_privkey_t p11key = NULL;
 
@@ -824,7 +845,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			     _("Adding supporting CA '%s'\n"), name);
 	}
 
-#ifdef HAVE_P11KIT
+#ifdef HAVE_P11KIT_AND_GNUTLS_3
 	if (pkey) {
 		/* Ug. If we got a gnutls_privkey_t from PKCS#11 rather than the
 		   gnutls_x509_privkey_t that we get from PEM or PKCS#12 files, then
