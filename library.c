@@ -226,3 +226,12 @@ const char *openconnect_get_version (void)
 {
 	return openconnect_version_str;
 }
+
+int openconnect_has_pkcs11_support(void)
+{
+#if defined (OPENCONNECT_GNUTLS) && defined (HAVE_P11KIT)
+	return 1;
+#else
+	return 0;
+#endif
+}

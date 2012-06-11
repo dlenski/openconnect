@@ -26,6 +26,7 @@ OPENCONNECT_2.0 {
 	openconnect_get_cert_details;
 	openconnect_get_cert_DER;
 	openconnect_init_ssl;
+	openconnect_has_pkcs11_support;
 };
 
 OPENCONNECT_PRIVATE {
