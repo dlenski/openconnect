@@ -91,10 +91,11 @@ tag: uncommitted-check
 	@./autogen.sh
 
 update-translations:
-	@if ! git diff-index --name-only --exit-code HEAD -- po/; then \
-		echo "*** ERROR: Uncommitted changes in above files"; exit 1; fi
-	@tx pull -af
-	@git commit -s -m "Update translations from Transifex" -- po/
+	@cd $(top_srcdir); if ! git diff-index --name-only --exit-code HEAD -- po/; then \
+		echo "*** ERROR: Uncommitted changes in above files"; exit 1; \
+	else \
+		tx pull -af ; git commit -s -m "Update translations from Transifex" -- po/ ; \
+	fi
 
 upload-pot:
 	@make -C po openconnect.pot && tx push -s
