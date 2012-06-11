@@ -135,7 +135,6 @@ static struct option long_options[] = {
 	OPTION("script", 1, 's'),
 	OPTION("script-tun", 0, 'S'),
 	OPTION("syslog", 0, 'l'),
-	OPTION("key-type", 1, 'K'),
 	OPTION("key-password", 1, 'p'),
 	OPTION("proxy", 1, 'P'),
 	OPTION("user", 1, 'u'),
@@ -321,7 +320,7 @@ static int next_option(int argc, char **argv, char **config_arg)
  next:
 	if (!config_file) {
 		opt = getopt_long(argc, argv,
-				  "bC:c:e:Ddg:hi:k:K:lpP:Q:qSs:U:u:Vvx:",
+				  "bC:c:e:Ddg:hi:k:lpP:Q:qSs:U:u:Vvx:",
 				  long_options, NULL);
 
 		*config_arg = optarg;
@@ -537,19 +536,6 @@ int main(int argc, char **argv)
 		case 'k':
 			vpninfo->sslkey = keep_config_arg();
 			break;
-		case 'K':
-			if (!strcasecmp(config_arg, "PKCS#12") ||
-			    !strcasecmp(config_arg, "PKCS12")) {
-				vpninfo->cert_type = CERT_TYPE_PKCS12;
-			} else if (!strcasecmp(config_arg, "TPM")) {
-				vpninfo->cert_type = CERT_TYPE_TPM;
-			} else if (!strcasecmp(config_arg, "PEM")) {
-				vpninfo->cert_type = CERT_TYPE_PEM;
-			} else {
-				fprintf(stderr, _("Unknown certificate type '%s'\n"),
-					config_arg);
-				usage();
-			}
 		case 'd':
 			vpninfo->deflate = 1;
 			break;

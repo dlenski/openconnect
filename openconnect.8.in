@@ -9,7 +9,6 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-c,\-\-certificate cert
 .OP \-e,\-\-cert\-expire\-warning days
 .OP \-k,\-\-sslkey key
-.OP \-K,\-\-key\-type type
 .OP \-C,\-\-cookie cookie
 .OP \-\-cookie\-on\-stdin
 .OP \-d,\-\-deflate
@@ -28,7 +27,6 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-\-no\-proxy
 .OP \-\-libproxy
 .OP \-\-key\-password\-from\-fsid
-.OP \-\-key\-type type
 .OP \-q,\-\-quiet
 .OP \-Q,\-\-queue\-len len
 .OP \-s,\-\-script vpnc\-script
@@ -202,9 +200,6 @@ used by this option should be equal to the output of the command:
 stat \-\-file\-system \-\-printf=%i\e\en $CERTIFICATE
 .EE
 It is not the same as the 128\-bit UUID of the file system.
-.TP
-.B \-\-key\-type=TYPE
-Type of private key file (PKCS#12, TPM or PEM)
 .TP
 .B \-q,\-\-quiet
 Less output
