@@ -1133,7 +1133,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 #endif
 		gnutls_certificate_set_verify_function (vpninfo->https_cred,
 							verify_peer);
-		/* FIXME: Ensure TLSv1.0, no options */
 
 		if (vpninfo->cafile) {
 			err = gnutls_certificate_set_x509_trust_file(vpninfo->https_cred,
@@ -1156,17 +1155,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 				return err;
 			}
 		}
-
-		/* We just want to do:
-		   SSL_CTX_set_purpose(vpninfo->https_ctx, X509_PURPOSE_ANY); 
-		   ... but it doesn't work with OpenSSL < 0.9.8k because of 
-		   problems with inheritance (fixed in v1.1.4.6 of
-		   crypto/x509/x509_vpm.c) so we have to play silly buggers
-		   instead. This trick doesn't work _either_ in < 0.9.7 but
-		   I don't know of _any_ workaround which will, and can't
-		   be bothered to find out either. */
-
-
 	}
 	gnutls_init (&vpninfo->https_sess, GNUTLS_CLIENT);
 	gnutls_session_set_ptr (vpninfo->https_sess, (void *) vpninfo);
