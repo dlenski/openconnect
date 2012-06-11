@@ -32,9 +32,10 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <netinet/tcp.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -110,12 +111,12 @@ static void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *
 	*mtu = vpninfo->mtu;
 	*base_mtu = vpninfo->basemtu;
 
-#ifdef TCP_INFO
+#if defined(__linux__) && defined(TCP_INFO)
 	if (!*mtu || !*base_mtu) {
 		struct tcp_info ti;
 		socklen_t ti_size = sizeof(ti);
 
-		if (!getsockopt(vpninfo->ssl_fd, SOL_TCP, TCP_INFO,
+		if (!getsockopt(vpninfo->ssl_fd, IPPROTO_TCP, TCP_INFO,
 				&ti, &ti_size)) {
 			vpn_progress(vpninfo, PRG_TRACE,
 				     _("TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"),
@@ -134,7 +135,7 @@ static void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *
 	if (!*mtu) {
 		int mss;
 		socklen_t mss_size = sizeof(mss);
-		if (!getsockopt(vpninfo->ssl_fd, SOL_TCP, TCP_MAXSEG,
+		if (!getsockopt(vpninfo->ssl_fd, IPPROTO_TCP, TCP_MAXSEG,
 				&mss, &mss_size)) {
 			vpn_progress(vpninfo, PRG_TRACE, _("TCP_MAXSEG %d\n"), mss);
 			*mtu = mss - 13;
