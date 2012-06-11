@@ -176,10 +176,35 @@ static void helpmessage(void)
 		 "  http://www.infradead.org/openconnect/mail.html\n"));
 }
 
+static void print_build_opts(void)
+{
+#if defined (OPENCONNECT_OPENSSL) && defined (HAVE_ENGINE)
+	printf("Using OpenSSL with TPM ENGINE support\n");
+#elif defined (OPENCONNECT_OPENSSL)
+	printf("Using OpenSSL without TPM ENGINE support\n");
+#elif defined (OPENCONNECT_GNUTLS) && defined (HAVE_P11KIT)
+	printf("Using GnuTLS with PKCS#11 token support\n");
+#elif defined (OPENCONNECT_GNUTLS)	
+	printf("Using GnuTLS without PKCS#11 token support\n");
+#else
+#error wtf
+#endif
+#ifndef HAVE_DTLS
+	printf("No DTLS support in this binary\n");
+#elif defined (DTLS_OPENSSL)
+	printf("Using OpenSSL for DTLS support\n");
+#elif defined (DTLS_GNUTLS)
+	printf("Using GnuTLS for DTLS support\n");
+#else
+#error wtf
+#endif
+}
+
 static void usage(void)
 {
 	printf(_("Usage:  openconnect [options] <server>\n"));
 	printf(_("Open client for Cisco AnyConnect VPN, version %s\n\n"), openconnect_version_str);
+	print_build_opts();
 	printf("      --config=CONFIGFILE         %s\n", _("Read options from config file"));
 	printf("  -b, --background                %s\n", _("Continue in background after startup"));
 	printf("      --pid-file=PIDFILE          %s\n", _("Write the daemons pid to this file"));
@@ -639,6 +664,7 @@ int main(int argc, char **argv)
 			break;
 		case 'V':
 			printf(_("OpenConnect version %s\n"), openconnect_version_str);
+			print_build_opts();
 			exit(0);
 		case 'x':
 			vpninfo->xmlconfig = keep_config_arg();
