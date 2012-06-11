@@ -163,19 +163,6 @@ int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len
 	return done;
 }
 
-static int print_err(const char *str, size_t len, void *ptr)
-{
-	struct openconnect_info *vpninfo = ptr;
-
-	vpn_progress(vpninfo, PRG_ERR, "%s", str);
-	return 0;
-}
-
-void openconnect_report_ssl_errors(struct openconnect_info *vpninfo)
-{
-	ERR_print_errors_cb(print_err, vpninfo);
-}
-
 int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len)
 {
 	int i = 0;

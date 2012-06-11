@@ -28,9 +28,11 @@
 
 #include "openconnect.h"
 
-#if defined (OPENCONNECT_OPENSSL)
+#if defined (OPENCONNECT_OPENSSL) || defined(DTLS_OPENSSL)
 #include <openssl/ssl.h>
-#elif defined (OPENCONNECT_GNUTLS)
+#include <openssl/err.h>
+#endif
+#if defined (OPENCONNECT_GNUTLS)
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 #endif
@@ -183,12 +185,12 @@ struct openconnect_info {
 	int reconnect_interval;
 	int dtls_attempt_period;
 	time_t new_dtls_started;
-#if defined(OPENCONNECT_OPENSSL)
+#if defined(DTLS_OPENSSL)
 	SSL_CTX *dtls_ctx;
 	SSL *dtls_ssl;
 	SSL *new_dtls_ssl;
 	SSL_SESSION *dtls_session;
-#elif defined(OPENCONNECT_GNUTLS)
+#elif defined(DTLS_GNUTLS)
 	/* Call these *_ssl rather than *_sess because they're just
 	   pointers, and generic code (in mainloop.c for example)
 	   wants to check if they're NULL or not. No point in being
@@ -256,8 +258,8 @@ struct openconnect_info {
 	openconnect_progress_vfn progress;
 };
 
-#if (defined (OPENCONNECT_OPENSSL) && defined (SSL_OP_CISCO_ANYCONNECT)) || \
-    (defined(OPENCONNECT_GNUTLS) && defined (HAVE_GNUTLS_SESSION_SET_PREMASTER))
+#if (defined (DTLS_OPENSSL) && defined (SSL_OP_CISCO_ANYCONNECT)) || \
+    (defined (DTLS_GNUTLS) && defined (HAVE_GNUTLS_SESSION_SET_PREMASTER))
 #define HAVE_DTLS 1
 #endif
 
@@ -272,10 +274,12 @@ struct openconnect_info {
 #define AC_PKT_TERM_SERVER	9	/* Server kick */
 
 /* Ick */
+#ifdef DTLS_OPENSSL
 #if OPENSSL_VERSION_NUMBER >= 0x00909000L
 #define method_const const
 #else
 #define method_const
+#endif
 #endif
 
 #define vpn_progress(vpninfo, ...) (vpninfo)->progress ((vpninfo)->cbdata, __VA_ARGS__)
@@ -322,6 +326,9 @@ int request_passphrase(struct openconnect_info *vpninfo,
 		       char **response, const char *fmt, ...);
 int  __attribute__ ((format (printf, 2, 3)))
     openconnect_SSL_printf(struct openconnect_info *vpninfo, const char *fmt, ...);
+#if defined(OPENCONNECT_OPENSSL) || defined (DTLS_OPENSSL)
+void openconnect_report_ssl_errors(struct openconnect_info *vpninfo);
+#endif
 
 /* ${SSL_LIBRARY}.c */
 int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len);
@@ -331,8 +338,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo);
 void openconnect_close_https(struct openconnect_info *vpninfo, int final);
 int get_cert_md5_fingerprint(struct openconnect_info *vpninfo, OPENCONNECT_X509 *cert,
 			     char *buf);
-/* This one is actually OpenSSL-specific */
-void openconnect_report_ssl_errors(struct openconnect_info *vpninfo);
 int openconnect_sha1(unsigned char *result, void *data, int len);
 int openconnect_random(void *bytes, int len);
 int openconnect_local_cert_md5(struct openconnect_info *vpninfo,

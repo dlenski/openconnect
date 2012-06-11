@@ -30,6 +30,9 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <string.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "openconnect-internal.h"
 
@@ -108,7 +111,7 @@ int RAND_bytes(char *buf, int len)
  * their clients use anyway.
  */
 
-#if defined (OPENCONNECT_OPENSSL)
+#if defined (DTLS_OPENSSL)
 #define DTLS_SEND SSL_write
 #define DTLS_RECV SSL_read
 static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
@@ -125,6 +128,7 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 		if (!vpninfo->dtls_ctx) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Initialise DTLSv1 CTX failed\n"));
+			openconnect_report_ssl_errors(vpninfo);
 			vpninfo->dtls_attempt_period = 0;
 			return -EINVAL;
 		}
@@ -213,7 +217,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	int ret = SSL_do_handshake(vpninfo->new_dtls_ssl);
 
 	if (ret == 1) {
-		vpn_progress(vpninfo, PRG_INFO, _("Established DTLS connection\n"));
+		vpn_progress(vpninfo, PRG_INFO, _("Established DTLS connection (using OpenSSL)\n"));
 
 		if (vpninfo->dtls_ssl) {
 			/* We are replacing an old connection */
@@ -326,7 +330,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	return -EINVAL;
 }
 
-#elif defined (OPENCONNECT_GNUTLS)
+#elif defined (DTLS_GNUTLS)
 struct {
 	const char *name;
 	gnutls_cipher_algorithm_t cipher;
@@ -400,7 +404,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	int err = gnutls_handshake(vpninfo->new_dtls_ssl);
 
 	if (!err) {
-		vpn_progress(vpninfo, PRG_INFO, _("Established DTLS connection\n"));
+		vpn_progress(vpninfo, PRG_INFO, _("Established DTLS connection (using GnuTLS)\n"));
 
 		if (vpninfo->dtls_ssl) {
 			/* We are replacing an old connection */
@@ -517,9 +521,9 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 static int dtls_restart(struct openconnect_info *vpninfo)
 {
 	if (vpninfo->dtls_ssl) {
-#if defined (OPENCONNECT_OPENSSL)
+#if defined (DTLS_OPENSSL)
 		SSL_free(vpninfo->dtls_ssl);
-#elif defined (OPENCONNECT_GNUTLS)
+#elif defined (DTLS_GNUTLS)
 		gnutls_deinit(vpninfo->dtls_ssl);
 #endif
 		close(vpninfo->dtls_fd);
@@ -538,6 +542,15 @@ int setup_dtls(struct openconnect_info *vpninfo)
 {
 	struct vpn_option *dtls_opt = vpninfo->dtls_options;
 	int dtls_port = 0;
+
+#if defined (OPENCONNECT_GNUTLS) && defined (DTLS_OPENSSL)
+	/* If we're using GnuTLS for authentication but OpenSSL for DTLS,
+	   we'll need to initialise OpenSSL now... */
+	SSL_library_init ();
+	ERR_clear_error ();
+	SSL_load_error_strings ();
+	OpenSSL_add_all_algorithms ();
+#endif
 
 	while (dtls_opt) {
 		vpn_progress(vpninfo, PRG_TRACE,
@@ -741,7 +754,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		/* One byte of header */
 		this->hdr[7] = AC_PKT_DATA;
 
-#if defined(OPENCONNECT_OPENSSL)
+#if defined(DTLS_OPENSSL)
 		ret = SSL_write(vpninfo->dtls_ssl, &this->hdr[7], this->len + 1);
 		if (ret <= 0) {
 			ret = SSL_get_error(vpninfo->dtls_ssl, ret);
@@ -759,7 +772,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			}
 			return 1;
 		}
-#elif defined (OPENCONNECT_GNUTLS)
+#elif defined (DTLS_GNUTLS)
 		ret = gnutls_record_send(vpninfo->dtls_ssl, &this->hdr[7], this->len + 1);
 		if (ret <= 0) {
 			if (ret != GNUTLS_E_AGAIN) {

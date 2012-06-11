@@ -14,8 +14,8 @@ man8_MANS = openconnect.8
 AM_CPPFLAGS = -DLOCALEDIR="\"$(localedir)\""
 openconnect_SOURCES = xml.c main.c dtls.c cstp.c mainloop.c tun.c
 
-openconnect_CFLAGS = $(SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS)
-openconnect_LDADD = libopenconnect.la $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(LIBINTL)
+openconnect_CFLAGS = $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS)
+openconnect_LDADD = libopenconnect.la $(SSL_LIBS) $(DTLS_SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(LIBINTL)
 
 library_srcs = ssl.c http.c auth.c library.c compat.c @SSL_LIBRARY@.c
 libopenconnect_la_SOURCES = version.c $(library_srcs)
