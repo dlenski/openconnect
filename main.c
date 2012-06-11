@@ -1007,6 +1007,11 @@ static int process_auth_form(void *_vpninfo,
 				select_opt = NULL;
 				continue;
 			}
+			if (non_inter) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("User input required in non-interactive mode\n"));
+				return -EINVAL;
+			}
 			printf("%s [", opt->label);
 			for (i = 0; i < select_opt->nr_choices; i++) {
 				choice = &select_opt->choices[i];
@@ -1049,6 +1054,10 @@ static int process_auth_form(void *_vpninfo,
 				opt->value = strdup(vpninfo->username);
 				if (!opt->value)
 					return -ENOMEM;
+			} else if (non_inter) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("User input required in non-interactive mode\n"));
+				return -EINVAL;
 			} else {
 				opt->value=malloc(80);
 				if (!opt->value)
@@ -1067,10 +1076,14 @@ static int process_auth_form(void *_vpninfo,
 		} else if (opt->type == OC_FORM_OPT_PASSWORD) {
 			if (vpninfo->password &&
 			    !strcmp(opt->name, "password")) {
-				opt->value = strdup(vpninfo->password);
+				opt->value = vpninfo->password;
 				vpninfo->password = NULL;
 				if (!opt->value)
 					return -ENOMEM;
+			} else if (non_inter) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("User input required in non-interactive mode\n"));
+				return -EINVAL;
 			} else {
 				struct termios t;
 				opt->value=malloc(80);
