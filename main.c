@@ -47,7 +47,6 @@
 #include <pwd.h>
 #include <sys/utsname.h>
 #include <sys/types.h>
-#include <openssl/ui.h>
 #include <termios.h>
 #ifdef LIBPROXY_HDR
 #include LIBPROXY_HDR

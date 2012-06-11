@@ -36,9 +36,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-
-#include <openssl/ssl.h>
-#include <openssl/err.h>
+#include <stdarg.h>
 
 #include "openconnect-internal.h"
 

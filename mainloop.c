@@ -30,8 +30,6 @@
 #include <unistd.h>
 #include <string.h>
 
-#include <openssl/ssl.h>
-
 #include "openconnect-internal.h"
 
 void queue_packet(struct pkt **q, struct pkt *new)

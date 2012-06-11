@@ -30,9 +30,7 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
-
-#include <openssl/err.h>
-#include <openssl/ui.h>
+#include <errno.h>
 
 #include <libxml/parser.h>
 #include <libxml/tree.h>
