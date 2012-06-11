@@ -593,6 +593,13 @@ static int reload_pem_cert(struct openconnect_info *vpninfo)
 
 static int load_certificate(struct openconnect_info *vpninfo)
 {
+	if (!strncmp(vpninfo->sslkey, "pkcs11:", 7) ||
+	    !strncmp(vpninfo->cert, "pkcs11:", 7)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("This binary built without PKCS#11 support\n"));
+		return -EINVAL;
+	}
+		     
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Using certificate file %s\n"), vpninfo->cert);
 
