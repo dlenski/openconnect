@@ -36,6 +36,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-v,\-\-verbose
 .OP \-x,\-\-xmlconfig config
 .OP \-\-authgroup group
+.OP \-\-authenticate
 .OP \-\-cookieonly
 .OP \-\-printcookie
 .OP \-\-cafile file
@@ -243,6 +244,26 @@ XML config file
 .TP
 .B \-\-authgroup=GROUP
 Choose authentication login selection
+.TP
+.B \-\-authentiate
+Authenticate only, and output the information needed to make the connection
+a form which can be used to set shell environment variables. When invoked with
+this option, openconnect will not make the connection, but if successful will
+output something like the following to stdout:
+.nf
+.B COOKIE=3311180634@13561856@1339425499@B315A0E29D16C6FD92EE...
+.B HOST=10.0.0.1
+.B FINGERPRINT=469bb424ec8835944d30bc77c77e8fc1d8e23a42
+.fi
+Thus, you can invoke openconnect as a non-privileged user
+.I (with access to the user's PKCS#11 tokens, etc.)
+for authentication, and then invoke openconnect separately to make the actual
+connection as root:
+.nf
+.B eval `openconnect --authenticate https://vpnserver.example.com`;
+.B [ -n "$COOKIE" ] && echo "$COOKIE" |
+.B \ \ sudo openconnect --cookie-on-stdin $HOST --servercert $FINGERPRINT
+.fi
 .TP
 .B \-\-cookieonly
 Fetch webvpn cookie only; don't connect

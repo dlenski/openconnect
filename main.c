@@ -78,9 +78,11 @@ int background;
 int do_passphrase_from_fsid;
 int nocertcheck;
 int non_inter;
+int cookieonly;
 
 enum {
-	OPT_AUTHGROUP = 0x100,
+	OPT_AUTHENTICATE = 0x100,
+	OPT_AUTHGROUP,
 	OPT_BASEMTU,
 	OPT_CAFILE,
 	OPT_CONFIGFILE,
@@ -143,6 +145,7 @@ static struct option long_options[] = {
 	OPTION("cafile", 1, OPT_CAFILE),
 	OPTION("config", 1, OPT_CONFIGFILE),
 	OPTION("no-dtls", 0, OPT_NO_DTLS),
+	OPTION("authenticate", 0, OPT_AUTHENTICATE),
 	OPTION("cookieonly", 0, OPT_COOKIEONLY),
 	OPTION("printcookie", 0, OPT_PRINTCOOKIE),
 	OPTION("quiet", 0, 'q'),
@@ -244,6 +247,7 @@ static void usage(void)
 	printf("  -v, --verbose                   %s\n", _("More output"));
 	printf("  -x, --xmlconfig=CONFIG          %s\n", _("XML config file"));
 	printf("      --authgroup=GROUP           %s\n", _("Choose authentication login selection"));
+	printf("      --authenticate              %s\n", _("Authenticate only and print login info"));
 	printf("      --cookieonly                %s\n", _("Fetch webvpn cookie only; don't connect"));
 	printf("      --printcookie               %s\n", _("Print webvpn cookie before connecting"));
 	printf("      --cafile=FILE               %s\n", _("Cert file for server verification"));
@@ -405,7 +409,6 @@ int main(int argc, char **argv)
 	struct openconnect_info *vpninfo;
 	struct utsname utsbuf;
 	struct sigaction sa;
-	int cookieonly = 0;
 	int use_syslog = 0;
 	char *urlpath = NULL;
 	char *proxy = getenv("https_proxy");
@@ -496,6 +499,9 @@ int main(int argc, char **argv)
 			break;
 		case OPT_PRINTCOOKIE:
 			cookieonly = 2;
+			break;
+		case OPT_AUTHENTICATE:
+			cookieonly = 3;
 			break;
 		case OPT_COOKIE_ON_STDIN:
 			read_stdin(&vpninfo->cookie);
@@ -743,7 +749,17 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	if (cookieonly) {
+	if (cookieonly == 3) {
+		/* --authenticate */
+		printf("COOKIE='%s'\n", vpninfo->cookie);
+		printf("HOST='%s'\n", vpninfo->hostname);
+		if (vpninfo->peer_cert) {
+			char buf[41] = {0, };
+			openconnect_get_cert_sha1(vpninfo, vpninfo->peer_cert, buf);
+			printf("FINGERPRINT='%s'\n", buf);
+		}
+		exit(0);
+	} else if (cookieonly) {
 		printf("%s\n", vpninfo->cookie);
 		if (cookieonly == 1)
 			/* We use cookieonly=2 for 'print it and continue' */
@@ -850,6 +866,9 @@ void write_progress(void *_vpninfo, int level, const char *fmt, ...)
 	FILE *outf = level ? stdout : stderr;
 	va_list args;
 
+	if (cookieonly)
+		outf = stderr;
+
 	if (verbose >= level) {
 		va_start(args, fmt);
 		vfprintf(outf, fmt, args);
@@ -926,13 +945,13 @@ static int validate_peer_cert(void *_vpninfo, OPENCONNECT_X509 *peer_cert,
 		char *details;
 		char *p;
 
-		printf(_("\nCertificate from VPN server \"%s\" failed verification.\n"
+		fprintf(stderr, _("\nCertificate from VPN server \"%s\" failed verification.\n"
 			 "Reason: %s\n"), vpninfo->hostname, reason);
 
 		if (non_inter)
 			return -EINVAL;
 
-		printf(_("Enter '%s' to accept, '%s' to abort; anything else to view: "),
+		fprintf(stderr, _("Enter '%s' to accept, '%s' to abort; anything else to view: "),
 		       _("yes"), _("no"));
 		if (!fgets(buf, sizeof(buf), stdin))
 			return -EINVAL;
@@ -977,13 +996,13 @@ static int process_auth_form(void *_vpninfo,
 	char *p;
 
 	if (form->banner)
-		puts(form->banner);
+		fprintf(stderr, "%s\n", form->banner);
 
 	if (form->error)
-		puts(form->error);
+		fprintf(stderr, "%s\n", form->error);
 
 	if (form->message)
-		puts(form->message);
+		fprintf(stderr, "%s\n", form->message);
 
 	/* scan for select options first so they are displayed first */
 	for (opt = form->opts; opt; opt = opt->next) {
@@ -1024,15 +1043,16 @@ static int process_auth_form(void *_vpninfo,
 					     _("User input required in non-interactive mode\n"));
 				return -EINVAL;
 			}
-			printf("%s [", opt->label);
+			fprintf(stderr, "%s [", opt->label);
 			for (i = 0; i < select_opt->nr_choices; i++) {
 				choice = &select_opt->choices[i];
 				if (i)
-					printf("|");
+					fprintf(stderr, "|");
 
-				printf("%s", choice->label);
+				fprintf(stderr, "%s", choice->label);
 			}
-			printf("]:");
+			fprintf(stderr, "]:");
+			fflush(stderr);
 
 			if (!fgets(response, sizeof(response), stdin) || !strlen(response))
 				return -EINVAL;
@@ -1075,8 +1095,9 @@ static int process_auth_form(void *_vpninfo,
 				if (!opt->value)
 					return -ENOMEM;
 
-				printf("%s", opt->label);
-				
+				fprintf(stderr, "%s", opt->label);
+				fflush(stderr);
+
 				if (!fgets(opt->value, 80, stdin) || !strlen(opt->value))
 					return -EINVAL;
 
@@ -1102,7 +1123,8 @@ static int process_auth_form(void *_vpninfo,
 				if (!opt->value)
 					return -ENOMEM;
 
-				printf("%s", opt->label);
+				fprintf(stderr, "%s", opt->label);
+				fflush(stderr);
 
 				tcgetattr(0, &t);
 				t.c_lflag &= ~ECHO;
@@ -1112,7 +1134,7 @@ static int process_auth_form(void *_vpninfo,
 
 				t.c_lflag |= ECHO;
 				tcsetattr(0, TCSANOW, &t);
-				printf("\n");
+				fprintf(stderr, "\n");
 				
 				if (!p || !strlen(opt->value))
 					return -EINVAL;
