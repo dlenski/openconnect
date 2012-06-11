@@ -413,6 +413,18 @@ static int count_x509_certificates(gnutls_datum_t *datum)
 	return count;
 }
 
+static int get_cert_name(gnutls_x509_crt_t cert, char *name, size_t namelen)
+{
+	if (gnutls_x509_crt_get_dn_by_oid(cert, GNUTLS_OID_X520_COMMON_NAME,
+					  0, 0, name, &namelen) &&
+	    gnutls_x509_crt_get_dn(cert, name, &namelen)) {
+		name[namelen-1] = 0;
+		snprintf(name, namelen-1, "<unknown>");
+		return -EINVAL;
+	}
+	return 0;
+}
+
 static int load_certificate(struct openconnect_info *vpninfo)
 {
 	gnutls_datum_t fdata;
@@ -433,6 +445,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	int cert_is_p11 = 0, key_is_p11 = 0;
 	unsigned char key_id[20];
 	size_t key_id_size = sizeof(key_id);
+	char name[80];
 
 	fdata.data = NULL;
 
@@ -758,6 +771,9 @@ static int load_certificate(struct openconnect_info *vpninfo)
  got_key:
 	/* Now we have both cert(s) and key, and we should be ready to go. */
 	check_certificate_expiry(vpninfo, cert);
+	get_cert_name(cert, name, sizeof(name));
+	vpn_progress(vpninfo, PRG_INFO, _("Using client certificate '%s'\n"),
+		     name);
 
 	if (crl) {
 		err = gnutls_certificate_set_x509_crl(vpninfo->https_cred, &crl, 1);
@@ -847,16 +863,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 	}
 	for (i = 1; i < nr_supporting_certs; i++) {
-		char name[80];
-		size_t namelen;
-
-		sprintf(name, "<unknown>");
-		namelen = sizeof(name);
-		if (gnutls_x509_crt_get_dn_by_oid(supporting_certs[i],
-						  GNUTLS_OID_X520_COMMON_NAME,
-						  0, 0, name, &namelen) &&
-		    gnutls_x509_crt_get_dn(supporting_certs[i], name, &namelen))
-			sprintf(name, "<unknown>");
+		get_cert_name(supporting_certs[i], name, sizeof(name));
 
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Adding supporting CA '%s'\n"), name);
