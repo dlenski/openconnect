@@ -463,8 +463,12 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 		return -EINVAL;
 	}
 	if (cert) {
+		char buf[200];
 		vpninfo->cert_x509 = cert;
 		SSL_CTX_use_certificate(vpninfo->https_ctx, cert);
+		X509_NAME_oneline(X509_get_subject_name(cert), buf, sizeof(buf));
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("Using client certificate '%s'\n"), buf);
 	} else {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("PKCS#12 contained no certificate!"));
@@ -576,6 +580,7 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 static int reload_pem_cert(struct openconnect_info *vpninfo)
 {
 	BIO *b = BIO_new(BIO_s_file_internal());
+	char buf[200];
 
 	if (!b)
 		return -ENOMEM;
@@ -591,6 +596,10 @@ static int reload_pem_cert(struct openconnect_info *vpninfo)
 	vpninfo->cert_x509 = PEM_read_bio_X509_AUX(b, NULL, NULL, NULL);
 	if (!vpninfo->cert_x509)
 		goto err;
+
+	X509_NAME_oneline(X509_get_subject_name(vpninfo->cert_x509), buf, sizeof(buf));
+	vpn_progress(vpninfo, PRG_INFO,
+			     _("Using client certificate '%s'\n"), buf);
 
 	return 0;
 }
