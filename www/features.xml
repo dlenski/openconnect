@@ -12,6 +12,7 @@
 	<h1>Features</h1>
 
 <ul>
+  <li>Use of SSL certificates from smart cards / PKCS#11 tokens <i>(when built with GnuTLS)</i> or from TPM <i>(when built with OpenSSL)</i>.</li>
   <li>Connection through HTTP proxy, including <a href="http://code.google.com/p/libproxy/">libproxy</a> support for automatic proxy configuration.</li>
   <li>Connection through SOCKS5 proxy.</li>
   <li>Automatic detection of IPv4 and IPv6 address, routes.</li>

@@ -101,6 +101,8 @@ when backgrounding
 .B \-c,\-\-certificate=CERT
 Use SSL client certificate
 .I CERT
+which may be either a file name or, if OpenConnect has been built with an appropriate
+version of GnuTLS, a PKCS#11 URL.
 .TP
 .B \-e,\-\-cert\-expire\-warning=DAYS
 Give a warning when SSL client certificate has
@@ -108,8 +110,10 @@ Give a warning when SSL client certificate has
 left before expiry
 .TP
 .B \-k,\-\-sslkey=KEY
-Use SSL private key file
+Use SSL private key
 .I KEY
+which may be either a file name or, if OpenConnect has been built with an appropriate
+version of GnuTLS, a PKCS#11 URL.
 .TP
 .B \-C,\-\-cookie=COOKIE
 Use WebVPN cookie

@@ -25,7 +25,7 @@ libraries and tools installed:</p>
 <ul>
   <li><b><tt>libxml2</tt></b></li>
   <li><b><tt>zlib</tt></b></li>
-  <li><b><tt>OpenSSL</tt></b></li>
+  <li>Either <b><tt>OpenSSL</tt></b> or <b><tt>GnuTLS</tt></b></li>
   <li><b><tt>pkg-config</tt></b></li>
 </ul>
 And <em>optionally</em> also:
@@ -39,9 +39,9 @@ environment, without having to manually give it the <tt>--proxy</tt> argument
 on the command line.</p>
 
 <h2>Install vpnc-script</h2>
- <p>Since version 3.17, OpenConnect automatically uses a <a href="vpnc-script.html">vpnc-script</a>
- to configure the network. It needs to be told where that script is, when it is
- being compiled.</p>
+ <p>Since version 3.17, The <a href="vpnc-script.html">vpnc-script</a> that OpenConnect
+ uses to configure the network is no longer optional, so it needs to be told at compile
+ time where to find that script.</p>
  <p>The <tt>configure</tt> script will check whether <tt>/etc/vpnc/vpnc-script</tt>
  exists and can be executed, and will fail if not. If you don't already have
  a copy then you should install one. It might be in a separate <tt>vpnc-script</tt>
@@ -68,6 +68,10 @@ well without it, so you'll still have to install it later.</p>
     <li><tt>make</tt></li>
     <li><tt>make install</tt> <i>(If you want to install it)</i></li>
   </ul>
+
+<p>Note that OpenConnect will attempt to use the OpenSSL library by default.
+If you want it to use GnuTLS instead, then add <tt>--with-gnutls</tt> to the
+<tt>./configure</tt> command above.</p>
 
 <p>If compilation fails, please make sure you have a working compiler and the
 <b>development</b> packages for all the required libraries mentioned above. If
