@@ -1373,17 +1373,17 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 	 * http://cgit.freedesktop.org/p11-glue/p11-kit/commit/?id=59774b11
 	 */
 	if ((flags & P11_KIT_PIN_FLAGS_RETRY) == P11_KIT_PIN_FLAGS_RETRY)
-		f.error = _("Wrong PIN");
+		f.error = (char *)_("Wrong PIN");
 
 	if ((flags & P11_KIT_PIN_FLAGS_FINAL_TRY) == P11_KIT_PIN_FLAGS_FINAL_TRY)
-		f.banner = _("This is the final try before locking!");
+		f.banner = (char *)_("This is the final try before locking!");
 	else if ((flags & P11_KIT_PIN_FLAGS_MANY_TRIES) == P11_KIT_PIN_FLAGS_MANY_TRIES)
-		f.banner = _("Only a few tries left before locking!");
+		f.banner = (char *)_("Only a few tries left before locking!");
 
 	o.next = NULL;
 	o.type = OC_FORM_OPT_PASSWORD;
 	o.name = (char *)"pkcs11_pin";
-	o.label = _("Enter PIN:");
+	o.label = (char *)_("Enter PIN:");
 	o.value = NULL;
 
 	ret = vpninfo->process_auth_form(vpninfo->cbdata, &f);
