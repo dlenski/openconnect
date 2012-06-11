@@ -44,3 +44,4 @@ $(PACKAGE).pot: $(POTFILES) Makefile
 	  --msgid-bugs-address=openconnect-devel@lists.infradead.org -o $@
 
 EXTRA_DIST = $(POFILES) LINGUAS POTFILES.in
+DISTCLEANFILES=$(PACKAGE).pot

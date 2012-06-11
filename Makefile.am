@@ -98,4 +98,6 @@ update-translations:
 	fi
 
 upload-pot:
+	if [ ${abs_top_builddir} != $(abs_top_srcdir) ]; then \
+		ln -sf ${abs_top_srcdir}/.tx .tx; fi
 	@make -C po openconnect.pot && tx push -s
