@@ -180,9 +180,11 @@ static void helpmessage(void)
 
 static void print_build_opts(void)
 {
-	openconnect_init_ssl();
 #if defined (OPENCONNECT_OPENSSL) && defined (HAVE_ENGINE)
-	printf(_("Using OpenSSL with TPM ENGINE support\n"));
+	if (openconnect_has_tss_blob_support())
+		printf(_("Using OpenSSL with TPM ENGINE support. Loading TPM engine succeeded.\n"));
+	else
+		printf(_("Using OpenSSL with TPM ENGINE support, but loading TPM engine failed.\n"));
 #elif defined (OPENCONNECT_OPENSSL)
 	printf(_("Using OpenSSL without TPM ENGINE support\n"));
 #elif defined (OPENCONNECT_GNUTLS) && defined (HAVE_P11KIT)

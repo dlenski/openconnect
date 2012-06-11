@@ -235,3 +235,22 @@ int openconnect_has_pkcs11_support(void)
 	return 0;
 #endif
 }
+
+#if defined (OPENCONNECT_OPENSSL) && defined (HAVE_ENGINE)
+#include <openssl/engine.h>
+#endif
+int openconnect_has_tss_blob_support(void)
+{
+#if defined (OPENCONNECT_OPENSSL) && defined (HAVE_ENGINE)
+	ENGINE *e;
+
+	ENGINE_load_builtin_engines();
+
+	e = ENGINE_by_id("tpm");
+	if (e) {
+		ENGINE_free(e);
+		return 1;
+	}
+#endif
+	return 0;
+}

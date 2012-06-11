@@ -36,7 +36,7 @@
 /*
  * API version 2.0:
  *  - OPENCONNECT_X509 is now an opaque type.
- *  - Add openconnect_has_pkcs11_support()
+ *  - Add openconnect_has_pkcs11_support(), openconnect_has_tss_blob_support()
  *  - Rename openconnect_init_openssl() -> openconnect_init_ssl()
  *  - Rename openconnect_vpninfo_new_with_cbdata() -> openconnect_vpninfo_new()
  *    and kill the old openconnect_vpninfo_new() and its callback types.
@@ -236,5 +236,10 @@ void openconnect_vpninfo_free (struct openconnect_info *vpninfo);
 /* SSL certificate capabilities. openconnect_has_pkcs11_support() means that we
    can accept PKCS#11 URLs in place of filenames, for the certificate and key. */
 int openconnect_has_pkcs11_support(void);
+
+/* The OpenSSL TPM ENGINE stores keys in a PEM file labelled with the string
+   -----BEGIN TSS KEY BLOB-----. GnuTLS may learn to support this format too,
+   in the near future. */
+int openconnect_has_tss_blob_support(void);
 
 #endif /* __OPENCONNECT_H__ */
