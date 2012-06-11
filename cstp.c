@@ -356,14 +356,16 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			if (mtu > vpninfo->mtu)
 				vpninfo->mtu = mtu;
 		} else if (!strcmp(buf + 7, "Address")) {
-			if (strchr(new_option->value, ':'))
-				vpninfo->vpn_addr6 = new_option->value;
-			else
+			if (strchr(new_option->value, ':')) {
+				if (!vpninfo->disable_ipv6)
+					vpninfo->vpn_addr6 = new_option->value;
+			} else
 				vpninfo->vpn_addr = new_option->value;
 		} else if (!strcmp(buf + 7, "Netmask")) {
-			if (strchr(new_option->value, ':'))
-				vpninfo->vpn_netmask6 = new_option->value;
-			else
+			if (strchr(new_option->value, ':')) {
+				if (!vpninfo->disable_ipv6)
+					vpninfo->vpn_netmask6 = new_option->value;
+			} else
 				vpninfo->vpn_netmask = new_option->value;
 		} else if (!strcmp(buf + 7, "DNS")) {
 			int j;
