@@ -177,23 +177,24 @@ static void helpmessage(void)
 
 static void print_build_opts(void)
 {
+	openconnect_init_ssl();
 #if defined (OPENCONNECT_OPENSSL) && defined (HAVE_ENGINE)
-	printf("Using OpenSSL with TPM ENGINE support\n");
+	printf(_("Using OpenSSL with TPM ENGINE support\n"));
 #elif defined (OPENCONNECT_OPENSSL)
-	printf("Using OpenSSL without TPM ENGINE support\n");
+	printf(_("Using OpenSSL without TPM ENGINE support\n"));
 #elif defined (OPENCONNECT_GNUTLS) && defined (HAVE_P11KIT)
-	printf("Using GnuTLS with PKCS#11 token support\n");
+	printf(_("Using GnuTLS with PKCS#11 token support\n"));
 #elif defined (OPENCONNECT_GNUTLS)	
-	printf("Using GnuTLS without PKCS#11 token support\n");
+	printf(_("Using GnuTLS without PKCS#11 token support\n"));
 #else
 #error wtf
 #endif
 #ifndef HAVE_DTLS
-	printf("No DTLS support in this binary\n");
+	printf(_("No DTLS support in this binary\n"));
 #elif defined (DTLS_OPENSSL)
-	printf("Using OpenSSL for DTLS support\n");
+	printf(_("Using OpenSSL for DTLS support\n"));
 #elif defined (DTLS_GNUTLS)
-	printf("Using GnuTLS for DTLS support\n");
+	printf(_("Using GnuTLS for DTLS support\n"));
 #else
 #error wtf
 #endif
