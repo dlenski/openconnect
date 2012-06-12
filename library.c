@@ -95,6 +95,7 @@ void openconnect_vpninfo_free (struct openconnect_info *vpninfo)
 #endif
 		vpninfo->peer_cert = NULL;
 	}
+	free(vpninfo->useragent);
 	/* No need to free deflate streams; they weren't initialised */
 	free(vpninfo);
 }
