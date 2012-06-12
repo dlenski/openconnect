@@ -52,9 +52,6 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 			       const char *pin_description,
 			       P11KitPinFlags flags,
 			       void *_vpninfo);
-#if GNUTLS_VERSION_MAJOR >= 3
-#define HAVE_P11KIT_AND_GNUTLS_3
-#endif
 #endif
 
 #include "openconnect-internal.h"
@@ -431,8 +428,10 @@ static int load_certificate(struct openconnect_info *vpninfo)
 {
 	gnutls_datum_t fdata;
 	gnutls_x509_privkey_t key = NULL;
-#ifdef HAVE_P11KIT
+#ifdef HAVE_GNUTLS_CERTIFICATE_SET_KEY
 	gnutls_privkey_t pkey = NULL;
+#endif
+#ifdef HAVE_P11KIT
 	char *cert_url = (char *)vpninfo->cert;
 	char *key_url = (char *)vpninfo->sslkey;
 #endif
@@ -450,12 +449,6 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	char name[80];
 
 	fdata.data = NULL;
-
-	if (vpninfo->cert_type == CERT_TYPE_TPM) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("TPM support not available with GnuTLS\n"));
-		return -EINVAL;
-	}
 
 	key_is_p11 = !strncmp(vpninfo->sslkey, "pkcs11:", 7);
 	cert_is_p11 = !strncmp(vpninfo->cert, "pkcs11:", 7);
@@ -511,7 +504,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 	/* Load certificate(s) first... */
 #ifdef HAVE_P11KIT
-#ifndef HAVE_P11KIT_AND_GNUTLS_3
+#ifndef HAVE_GNUTLS_CERTIFICATE_SET_KEY
 	if (key_is_p11) {
 		/* With GnuTLS 2.12 we can't *see* the key so we can't
 		   do the expiry check or fill in intermediate CAs. */
@@ -528,7 +521,10 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		ret = 0;
 		goto out;
 	}
-#endif
+#endif /* PKCS#11 for GnuTLS v2.12 */
+
+	/* GnuTLS 2.12 *can* handle the cert being in PKCS#11, if the key
+	   isn't. Although it's not clear why anyone would ever do that. */
 	if (cert_is_p11) {
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("Using PKCS#11 certificate %s\n"), cert_url);
@@ -551,7 +547,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		}
 		goto got_certs;
 	}
-#endif
+#endif /* HAVE_P11KIT */
 
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Using certificate file %s\n"), vpninfo->cert);
@@ -617,7 +613,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	goto got_certs;
  got_certs:
 	/* Now we have the certificate(s) and we're looking for the private key... */
-#ifdef HAVE_P11KIT_AND_GNUTLS_3
+#if defined (HAVE_P11KIT) && defined (HAVE_GNUTLS_CERTIFICATE_SET_KEY)
 	if (key_is_p11) {
 		gnutls_pkcs11_privkey_t p11key = NULL;
 
@@ -690,6 +686,14 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		ret = load_datum(vpninfo, &fdata, vpninfo->sslkey);
 		if (ret)
 			goto out;
+	}
+
+	if (vpninfo->cert_type == CERT_TYPE_TPM ||
+	    (vpninfo->cert_type == CERT_TYPE_UNKNOWN &&
+	     strstr((char *)fdata.data, "-----BEGIN TSS KEY BLOB-----"))) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("This version of OpenConnect was built without TPM support\n"));
+		return -EINVAL;
 	}
 
 	gnutls_x509_privkey_init(&key);
@@ -874,7 +878,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			     _("Adding supporting CA '%s'\n"), name);
 	}
 
-#ifdef HAVE_P11KIT_AND_GNUTLS_3
+#if defined(HAVE_GNUTLS_CERTIFICATE_SET_KEY)
 	if (pkey) {
 		/* Ug. If we got a gnutls_privkey_t from PKCS#11 rather than the
 		   gnutls_x509_privkey_t that we get from PEM or PKCS#12 files, then
@@ -944,9 +948,11 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	gnutls_free(extra_certs);
 	gnutls_free(supporting_certs);
 	gnutls_free(fdata.data);
-#ifdef HAVE_P11KIT
+#ifdef HAVE_GNUTLS_CERTIFICATE_SET_KEY
 	if (pkey)
 		gnutls_privkey_deinit(pkey);
+#endif
+#ifdef HAVE_P11KIT
 	if (cert_url != vpninfo->cert)
 		free(cert_url);
 	if (key_url != vpninfo->sslkey)
