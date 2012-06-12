@@ -252,6 +252,8 @@ int openconnect_has_tss_blob_support(void)
 		ENGINE_free(e);
 		return 1;
 	}
+#elif defined (OPENCONNECT_GNUTLS) && defined (HAVE_TROUSERS)
+	return 1;
 #endif
 	return 0;
 }

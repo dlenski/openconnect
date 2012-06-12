@@ -43,6 +43,10 @@
 #include <gnutls/pkcs12.h>
 #include <gnutls/abstract.h>
 
+#ifdef HAVE_TROUSERS
+#include <trousers/tss.h>
+#include <trousers/trousers.h>
+#endif
 #ifdef HAVE_P11KIT
 #include <p11-kit/p11-kit.h>
 #include <p11-kit/pkcs11.h>
@@ -424,6 +428,182 @@ static int get_cert_name(gnutls_x509_crt_t cert, char *name, size_t namelen)
 	return 0;
 }
 
+#ifdef HAVE_TROUSERS
+
+/* TPM code based on client-tpm.c from Carolin Latze <latze@angry-red-pla.net>
+   and Tobias Soder */
+static int tpm_sign_fn(gnutls_privkey_t key, void *_vpninfo,
+		       const gnutls_datum_t *data, gnutls_datum_t *sig)
+{
+	struct openconnect_info *vpninfo = _vpninfo;
+	TSS_HHASH hash;
+	int err;
+
+	vpn_progress(vpninfo, PRG_TRACE,
+		     _("TPM sign function called for %d bytes.\n"),
+		     data->size);
+
+	err = Tspi_Context_CreateObject(vpninfo->tpm_context, TSS_OBJECT_TYPE_HASH,
+					TSS_HASH_OTHER, &hash);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to create TPM hash object.\n"));
+		return GNUTLS_E_PK_SIGN_FAILED;
+	}
+	err = Tspi_Hash_SetHashValue(hash, data->size, data->data);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to set value in TPM hash object.\n"));
+		Tspi_Context_CloseObject(vpninfo->tpm_context, hash);
+		return GNUTLS_E_PK_SIGN_FAILED;
+	}
+	err = Tspi_Hash_Sign(hash, vpninfo->tpm_key, &sig->size, &sig->data);
+	Tspi_Context_CloseObject(vpninfo->tpm_context, hash);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("TPM hash signature failed\n"));
+		return GNUTLS_E_PK_SIGN_FAILED;
+	}
+	return 0;
+}
+
+static int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata, gnutls_privkey_t *pkey)
+{
+	static const TSS_UUID SRK_UUID = TSS_UUID_SRK;
+	gnutls_datum_t asn1;
+	unsigned int tss_len;
+	char *pass;
+	int ofs, err;
+
+	err = gnutls_pem_base64_decode_alloc("TSS KEY BLOB", fdata, &asn1);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Error decoding TSS key blob: %s\n"),
+			     gnutls_strerror(err));
+		return -EINVAL;
+	}
+	/* Ick. We have to parse the ASN1 OCTET_STRING for ourselves. */
+	if (asn1.size < 2 || asn1.data[0] != 0x04 /* OCTET_STRING */) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Error in TSS key blob\n"));
+		goto out_blob;
+	}
+
+	tss_len = asn1.data[1];
+	ofs = 2;
+	if (tss_len & 0x80) {
+		int lenlen = tss_len & 0x7f;
+
+		if (asn1.size < 2 + lenlen || lenlen > 3) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Error in TSS key blob\n"));
+			goto out_blob;
+		}
+
+		tss_len = 0;
+		while (lenlen) {
+			tss_len <<= 8;
+			tss_len |= asn1.data[ofs++];
+			lenlen--;
+		}
+	}
+	if (tss_len + ofs != asn1.size) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Error in TSS key blob\n"));
+		goto out_blob;
+	}
+
+	err = Tspi_Context_Create(&vpninfo->tpm_context);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to create TPM context: %s\n"),
+			     Trspi_Error_String(err));
+		goto out_blob;
+	}
+	err = Tspi_Context_Connect(vpninfo->tpm_context, NULL);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to connect TPM context: %s\n"),
+			     Trspi_Error_String(err));
+		goto out_context;
+	}
+	err = Tspi_Context_LoadKeyByUUID(vpninfo->tpm_context, TSS_PS_TYPE_SYSTEM,
+					 SRK_UUID, &vpninfo->srk);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to load TPM SRK key: %s\n"),
+			     Trspi_Error_String(err));
+		goto out_context;
+	}
+	err = Tspi_GetPolicyObject(vpninfo->srk, TSS_POLICY_USAGE, &vpninfo->srk_policy);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to load TPM SRK policy object: %s\n"),
+			     Trspi_Error_String(err));
+		goto out_srk;
+	}
+
+	pass = vpninfo->cert_password;
+	vpninfo->cert_password = NULL;
+	while (1) {
+		if (!pass) {
+			err = request_passphrase(vpninfo, &pass, _("Enter TPM SRK PIN:"));
+			if (err)
+				goto out_srkpol;
+		}
+		/* We don't seem to get the error here... */
+		err = Tspi_Policy_SetSecret(vpninfo->srk_policy, TSS_SECRET_MODE_PLAIN,
+					    strlen(pass), (void *)pass);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to set TPM PIN: %s\n"),
+				     Trspi_Error_String(err));
+			goto out_srkpol;
+		}
+
+		free(pass);
+		pass = NULL;
+
+		/* ... we get it here instead. */
+		err = Tspi_Context_LoadKeyByBlob(vpninfo->tpm_context, vpninfo->srk,
+						 tss_len, asn1.data + ofs, &vpninfo->tpm_key);
+		if (!err)
+			break;
+
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to load TPM key blob: %s\n"),
+			     Trspi_Error_String(err));
+
+		if (err != TPM_E_AUTHFAIL)
+			goto out_srkpol;
+	}
+
+	gnutls_privkey_init(pkey);
+	/* This would be nicer if there was a destructor callback. I could
+	   allocate a data structure with the TPM handles and the vpninfo
+	   pointer, and destroy that properly when the key is destroyed. */
+	gnutls_privkey_import_ext(*pkey, GNUTLS_PK_RSA, vpninfo, tpm_sign_fn, NULL, 0);
+
+	/* FIXME: Get key id using TSS_TSPATTRIB_KEYINFO_RSA_MODULUS etc. so
+	   that we can ensure we have a matching cert. */
+	free (asn1.data);
+	return 0;
+
+ out_srkpol:
+	Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->srk_policy);
+	vpninfo->srk_policy = 0;
+ out_srk:
+	Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->srk);
+	vpninfo->srk = 0;
+ out_context:
+	Tspi_Context_Close(vpninfo->tpm_context);
+	vpninfo->tpm_context = 0;
+ out_blob:
+	free (asn1.data);
+	return -EIO;
+}
+#endif /* HAVE_TROUSERS */
+
 static int load_certificate(struct openconnect_info *vpninfo)
 {
 	gnutls_datum_t fdata;
@@ -691,9 +871,28 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	if (vpninfo->cert_type == CERT_TYPE_TPM ||
 	    (vpninfo->cert_type == CERT_TYPE_UNKNOWN &&
 	     strstr((char *)fdata.data, "-----BEGIN TSS KEY BLOB-----"))) {
+#ifndef HAVE_TROUSERS
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("This version of OpenConnect was built without TPM support\n"));
 		return -EINVAL;
+#else
+		ret = load_tpm_key(vpninfo, &fdata, &pkey);
+		if (ret)
+			goto out;
+
+		if (!cert) {
+			/* FIXME: How do we check which cert matches the pkey?
+			   For now we just assume that the first one in the list is the right one. */
+			cert = extra_certs[0];
+
+			/* Move the rest of the array down */
+			for (i = 0; i < nr_extra_certs - 1; i++)
+				extra_certs[i] = extra_certs[i+1];
+
+			nr_extra_certs--;
+		}
+		goto got_key;
+#endif
 	}
 
 	gnutls_x509_privkey_init(&key);
@@ -1277,6 +1476,24 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 				vpninfo->pin_cache = cache->next;
 				free(cache);
 			}
+		}
+#endif
+#ifdef HAVE_TROUSERS
+		if (vpninfo->tpm_key) {
+			Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->tpm_key);
+			vpninfo->tpm_key = 0;
+		}
+		if (vpninfo->srk_policy) {
+			Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->srk_policy);
+			vpninfo->srk_policy = 0;
+		}
+		if (vpninfo->srk) {
+			Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->srk);
+			vpninfo->srk = 0;
+		}
+		if (vpninfo->tpm_context) {
+			Tspi_Context_Close(vpninfo->tpm_context);
+			vpninfo->tpm_context = 0;
 		}
 #endif
 	}

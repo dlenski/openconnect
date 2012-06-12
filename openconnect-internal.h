@@ -35,6 +35,10 @@
 #if defined (OPENCONNECT_GNUTLS)
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
+#ifdef HAVE_TROUSERS
+#include <trousers/tss.h>
+#include <trousers/trousers.h>
+#endif
 #endif
 
 #include <zlib.h>
@@ -168,6 +172,12 @@ struct openconnect_info {
 	gnutls_session_t https_sess;
 	gnutls_certificate_credentials_t https_cred;
 	struct pin_cache *pin_cache;
+#ifdef HAVE_TROUSERS
+	TSS_HCONTEXT tpm_context;
+	TSS_HKEY srk;
+	TSS_HPOLICY srk_policy;
+	TSS_HKEY tpm_key;
+#endif
 #endif
 	struct keepalive_info ssl_times;
 	int owe_ssl_dpd_response;

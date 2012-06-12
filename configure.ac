@@ -210,7 +210,9 @@ if test "$with_gnutls" = "yes"; then
     AC_CHECK_FUNC(gnutls_pkcs12_simple_parse,
 		 [AC_DEFINE(HAVE_GNUTLS_PKCS12_SIMPLE_PARSE, 1)], [])
     AC_CHECK_FUNC(gnutls_certificate_set_key,
-		 [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_KEY, 1)], [])
+		 [have_set_key=yes
+		  AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_KEY, 1)],
+		 [have_set_key=no])
     if test "$with_openssl" = "" || test "$with_openssl" = "no"; then
 	AC_CHECK_FUNC(gnutls_session_set_premaster,
 		 [have_gnutls_dtls=yes], [have_gnutls_dtls=no])
@@ -244,6 +246,21 @@ if test "$with_gnutls" = "yes"; then
 		 [PKG_CHECK_MODULES(P11KIT, p11-kit-1, [AC_DEFINE(HAVE_P11KIT)
     			      		  AC_SUBST(P11KIT_PC, p11-kit-1)], [:])], [])
     LIBS="$oldLIBS"
+    if test "$have_set_key" = "yes"; then
+       LIBS="$oldlibs -ltspi"
+       AC_MSG_CHECKING([for tss library])
+       AC_LINK_IFELSE([AC_LANG_PROGRAM([
+		   #include <trousers/tss.h>
+		   #include <trousers/trousers.h>],[
+		   int err = Tspi_Context_Create((void *)0);
+		   Trspi_Error_String(err);])],
+		  [AC_MSG_RESULT(yes)
+		   AC_SUBST([TSS_LIBS], [-ltspi])
+		   AC_SUBST([TSS_CFLAGS], [])
+		   AC_DEFINE(HAVE_TROUSERS, 1)],
+		  [AC_MSG_RESULT(no)])
+       LIBS="$oldlibs"
+    fi
 elif test "$with_gnutls" != "" && test "$with_gnutls" != "no"; then
     AC_MSG_ERROR([Values other than 'yes' or 'no' for --with-gnutls are not supported])
 fi

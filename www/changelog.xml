@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Enable native TPM support when built with GnuTLS.</li>
        <li>Enable PKCS#11 token support when built with GnuTLS.</li>
        <li>Eliminate all SSL library exposure through <tt>libopenconnect</tt>.</li>
        <li>Parse split DNS information, provide <tt>$CISCO_SPLIT_DNS</tt> environment variable to <tt>vpnc-script</tt>.</li>
