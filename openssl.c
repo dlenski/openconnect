@@ -447,8 +447,10 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Parse PKCS#12 failed (see above errors)\n"));
 		PKCS12_free(p12);
+		free(pass);
 		return -EINVAL;
 	}
+	free(pass);
 	if (cert) {
 		char buf[200];
 		vpninfo->cert_x509 = cert;
@@ -531,6 +533,8 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 				     _("Failed to set TPM SRK password\n"));
 			openconnect_report_ssl_errors(vpninfo);
 		}
+		vpninfo->cert_password = NULL;
+		free(vpninfo->cert_password);
 	} else {
 		/* Provide our own UI method to handle the PIN callback. */
 		meth = create_openssl_ui(vpninfo);
