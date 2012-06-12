@@ -1312,9 +1312,15 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_efds);
 		vpninfo->ssl_fd = -1;
 	}
-	if (final && vpninfo->https_ctx) {
-		SSL_CTX_free(vpninfo->https_ctx);
-		vpninfo->https_ctx = NULL;
+	if (final) {
+		if (vpninfo->https_ctx) {
+			SSL_CTX_free(vpninfo->https_ctx);
+			vpninfo->https_ctx = NULL;
+		}
+		if (vpninfo->cert_x509) {
+			X509_free(vpninfo->cert_x509);
+			vpninfo->cert_x509 = NULL;
+		}
 	}
 }
 
