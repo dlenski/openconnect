@@ -510,6 +510,8 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 	ENGINE *e;
 	EVP_PKEY *key;
 	UI_METHOD *meth = NULL;
+	int ret = 0;
+
 	ENGINE_load_builtin_engines();
 
 	e = ENGINE_by_id("tpm");
@@ -546,18 +548,19 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to load TPM private key\n"));
 		openconnect_report_ssl_errors(vpninfo);
-		ENGINE_free(e);
-		ENGINE_finish(e);
-		return -EINVAL;
+		ret = -EINVAL;
+		goto out;
 	}
 	if (!SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key)) {
 		vpn_progress(vpninfo, PRG_ERR, _("Add key from TPM failed\n"));
 		openconnect_report_ssl_errors(vpninfo);
-		ENGINE_free(e);
-		ENGINE_finish(e);
-		return -EINVAL;
+		ret = -EINVAL;
 	}
-	return 0;
+	EVP_PKEY_free(key);
+ out:
+	ENGINE_finish(e);
+	ENGINE_free(e);
+	return ret;
 }
 #else
 static int load_tpm_certificate(struct openconnect_info *vpninfo)
