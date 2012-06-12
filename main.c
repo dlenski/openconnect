@@ -537,13 +537,13 @@ int main(int argc, char **argv)
 			vpninfo->cookie = keep_config_arg();
 			break;
 		case 'c':
-			vpninfo->cert = keep_config_arg();
+			vpninfo->cert = strdup(config_arg);
 			break;
 		case 'e':
 			vpninfo->cert_expire_warning = 86400 * atoi(config_arg);
 			break;
 		case 'k':
-			vpninfo->sslkey = keep_config_arg();
+			vpninfo->sslkey = strdup(config_arg);
 			break;
 		case 'd':
 			vpninfo->deflate = 1;
@@ -760,12 +760,15 @@ int main(int argc, char **argv)
 			openconnect_get_cert_sha1(vpninfo, vpninfo->peer_cert, buf);
 			printf("FINGERPRINT='%s'\n", buf);
 		}
+		openconnect_vpninfo_free(vpninfo);
 		exit(0);
 	} else if (cookieonly) {
 		printf("%s\n", vpninfo->cookie);
-		if (cookieonly == 1)
+		if (cookieonly == 1) {
 			/* We use cookieonly=2 for 'print it and continue' */
+			openconnect_vpninfo_free(vpninfo);
 			exit(0);
+		}
 	}
 	if (make_cstp_connection(vpninfo)) {
 		fprintf(stderr, _("Creating SSL connection failed\n"));
