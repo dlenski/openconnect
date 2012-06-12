@@ -357,9 +357,11 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 			       gnutls_strerror(err));
 		return ret;
 	}
-
 	err = gnutls_pkcs12_simple_parse(p12, pass, key, chain, chain_len,
 					 extra_certs, extra_certs_len, crl, 0);
+	free(pass);
+	vpninfo->cert_password = NULL;
+
 	gnutls_pkcs12_deinit(p12);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -719,10 +721,11 @@ static int load_certificate(struct openconnect_info *vpninfo)
 				ret = -EINVAL;
 				goto out;
 			}
+			vpninfo->cert_password = NULL;
 			if (pass) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to decrypt PKCS#8 certificate file\n"));
-				free (pass);
+				free(pass);
 			}
 			err = request_passphrase(vpninfo, &pass,
 						 _("Enter PEM pass phrase:"));
@@ -731,6 +734,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 				goto out;
 			}
 		}
+		free(pass);
+		vpninfo->cert_password = NULL;
 	}
 
 	/* Now attempt to make sure we use the *correct* certificate, to match the key */
