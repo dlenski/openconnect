@@ -588,6 +588,7 @@ static int reload_pem_cert(struct openconnect_info *vpninfo)
 		return -EIO;
 	}
 	vpninfo->cert_x509 = PEM_read_bio_X509_AUX(b, NULL, NULL, NULL);
+	BIO_free(b);
 	if (!vpninfo->cert_x509)
 		goto err;
 
