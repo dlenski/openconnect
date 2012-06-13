@@ -180,28 +180,37 @@ static void helpmessage(void)
 
 static void print_build_opts(void)
 {
-#if defined (OPENCONNECT_OPENSSL) && defined (HAVE_ENGINE)
-	if (openconnect_has_tss_blob_support())
-		printf(_("Using OpenSSL with TPM ENGINE support. Loading TPM engine succeeded.\n"));
-	else
-		printf(_("Using OpenSSL with TPM ENGINE support, but loading TPM engine failed.\n"));
-#elif defined (OPENCONNECT_OPENSSL)
-	printf(_("Using OpenSSL without TPM ENGINE support\n"));
-#elif defined (OPENCONNECT_GNUTLS) && defined (HAVE_P11KIT)
-	printf(_("Using GnuTLS with PKCS#11 token support\n"));
-#elif defined (OPENCONNECT_GNUTLS)	
-	printf(_("Using GnuTLS without PKCS#11 token support\n"));
-#else
-#error wtf
+	const char *comma = ", ", *sep = comma + 1;
+
+#if defined (OPENCONNECT_OPENSSL)
+	printf(_("Using OpenSSL. Features present:"));
+#elif defined (OPENCONNECT_GNUTLS)
+	printf(_("Using GnuTLS. Features present:"));
 #endif
-#ifndef HAVE_DTLS
-	printf(_("No DTLS support in this binary\n"));
-#elif defined (DTLS_OPENSSL)
-	printf(_("Using OpenSSL for DTLS support\n"));
-#elif defined (DTLS_GNUTLS)
-	printf(_("Using GnuTLS for DTLS support\n"));
+
+	if (openconnect_has_tss_blob_support()) {
+		printf("%sTPM", sep);
+		sep = comma;
+	}
+#if defined (OPENCONNECT_OPENSSL) && defined (HAVE_ENGINE)
+	else {
+		printf("%sTPM (%s)", sep, _("OpenSSL ENGINE not present"));
+		sep = comma;
+	}
+#endif
+	if (openconnect_has_pkcs11_support()) {
+		printf("%sPKCS#11", sep);
+		sep = comma;
+	}
+
+#ifdef HAVE_DTLS
+	printf("%sDTLS", sep);
+#if defined (OPENCONNECT_GNUTLS) && defined (DTLS_OPENSSL)
+	printf(" (%s)", _("using OpenSSL"));
+#endif
+	printf("\n");
 #else
-#error wtf
+	printf(_("\nWARNING: No DTLS support in this binary. Performance will be impaired.\n"));
 #endif
 }
 
