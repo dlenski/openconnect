@@ -839,18 +839,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			goto out;
 		}
 
-		/* FIXME: How do we check which cert matches the pkey?
-		   For now we just assume that the first one in the list is the right one. */
-		if (!cert) {
-			cert = extra_certs[0];
-
-			/* Move the rest of the array down */
-			for (i = 0; i < nr_extra_certs - 1; i++)
-				extra_certs[i] = extra_certs[i+1];
-
-			nr_extra_certs--;
-		}
-		goto got_key;
+		goto match_cert;
 	}
 #endif
 
@@ -880,18 +869,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		if (ret)
 			goto out;
 
-		if (!cert) {
-			/* FIXME: How do we check which cert matches the pkey?
-			   For now we just assume that the first one in the list is the right one. */
-			cert = extra_certs[0];
-
-			/* Move the rest of the array down */
-			for (i = 0; i < nr_extra_certs - 1; i++)
-				extra_certs[i] = extra_certs[i+1];
-
-			nr_extra_certs--;
-		}
-		goto got_key;
+		goto match_cert;
 #endif
 	}
 
@@ -975,6 +953,21 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		     _("No SSL certificate found to match private key\n"));
 	ret = -EINVAL;
 	goto out;
+
+#ifdef HAVE_GNUTLS_CERTIFICATE_SET_KEY
+ match_cert:
+	if (!cert) {
+		/* FIXME: How do we check which cert matches the pkey?
+		   For now we just assume that the first one in the list is the right one. */
+		cert = extra_certs[0];
+
+		/* Move the rest of the array down */
+		for (i = 0; i < nr_extra_certs - 1; i++)
+			extra_certs[i] = extra_certs[i+1];
+
+		nr_extra_certs--;
+	}
+#endif
 
  got_key:
 	/* Now we have both cert(s) and key, and we should be ready to go. */
