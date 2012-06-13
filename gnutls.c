@@ -948,27 +948,70 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			goto got_key;
 		}
 	}
+	/* There's no pkey (there's an x509 key), so we'll fall straight through the
+	 * bit at match_cert: below, and go directly to the bit where it prints the
+	 * 'no match found' error and exits. */
+
+#ifdef HAVE_GNUTLS_CERTIFICATE_SET_KEY
+ match_cert:
+	/* We only get here if we have a key in pkey from PKCS#11 or TPM anyway, but
+	   the check makes it clearer... and allows us to define some local variables. */
+	if (pkey) {
+		gnutls_datum_t input;
+		gnutls_datum_t sig;
+
+		input.data = (void *)&load_certificate;
+		input.size = 20;
+
+		err = gnutls_privkey_sign_data(pkey, GNUTLS_DIG_SHA1, 0,
+					       &input, &sig);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Error signing test data with private key: %s\n"),
+				       gnutls_strerror(err));
+			goto out;
+		}
+
+		for (i=0; i < (extra_certs?nr_extra_certs:1); i++) {
+			gnutls_pubkey_t pubkey;
+
+			gnutls_pubkey_init(&pubkey);
+			err = gnutls_pubkey_import_x509(pubkey, extra_certs?extra_certs[i]:cert, 0);
+			if (err) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Error validating signature against certificate: %s\n"),
+					     gnutls_strerror(err));
+				/* We'll probably fail shortly if we don't find it. */
+				gnutls_pubkey_deinit(pubkey);
+				continue;
+			}
+			err = gnutls_pubkey_verify_data(pubkey, 0, &input, &sig);
+			gnutls_pubkey_deinit(pubkey);
+
+			if (err >= 0) {
+				if (extra_certs) {
+					cert = extra_certs[i];
+
+					/* Move the rest of the array down */
+					for (; i < nr_extra_certs - 1; i++)
+						extra_certs[i] = extra_certs[i+1];
+
+					nr_extra_certs--;
+				}
+				gnutls_free(sig.data);
+				goto got_key;
+			}
+		}
+		gnutls_free(sig.data);
+	}
+#endif
 	/* We shouldn't reach this. It means that we didn't find *any* matching cert */
 	vpn_progress(vpninfo, PRG_ERR,
 		     _("No SSL certificate found to match private key\n"));
 	ret = -EINVAL;
 	goto out;
 
-#ifdef HAVE_GNUTLS_CERTIFICATE_SET_KEY
- match_cert:
-	if (!cert) {
-		/* FIXME: How do we check which cert matches the pkey?
-		   For now we just assume that the first one in the list is the right one. */
-		cert = extra_certs[0];
-
-		/* Move the rest of the array down */
-		for (i = 0; i < nr_extra_certs - 1; i++)
-			extra_certs[i] = extra_certs[i+1];
-
-		nr_extra_certs--;
-	}
-#endif
-
+	/********************************************************************/
  got_key:
 	/* Now we have both cert(s) and key, and we should be ready to go. */
 	check_certificate_expiry(vpninfo, cert);
