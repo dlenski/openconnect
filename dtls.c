@@ -36,12 +36,6 @@
 
 #include "openconnect-internal.h"
 
-#ifdef HAVE_DTLS1_STOP_TIMER
-/* OpenSSL doesn't deliberately export this, but we need it to
-   workaround a DTLS bug in versions < 1.0.0e */
-extern void dtls1_stop_timer (SSL *);
-#endif
-
 static unsigned char nybble(unsigned char n)
 {
 	if      (n >= '0' && n <= '9') return n - '0';
@@ -114,6 +108,13 @@ int RAND_bytes(char *buf, int len)
 #if defined (DTLS_OPENSSL)
 #define DTLS_SEND SSL_write
 #define DTLS_RECV SSL_read
+
+#ifdef HAVE_DTLS1_STOP_TIMER
+/* OpenSSL doesn't deliberately export this, but we need it to
+   workaround a DTLS bug in versions < 1.0.0e */
+extern void dtls1_stop_timer (SSL *);
+#endif
+
 static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 {
 	STACK_OF(SSL_CIPHER) *ciphers;
