@@ -330,7 +330,7 @@ static void set_script_env(struct openconnect_info *vpninfo)
 				dns = dns->next;
 				if (!dns)
 					break;
-				*(p++) = ' ';
+				*(p++) = ',';
 			}
 			setenv("CISCO_SPLIT_DNS", list, 1);
 			free(list);
