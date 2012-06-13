@@ -621,7 +621,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	unsigned int nr_supporting_certs = 0, nr_extra_certs = 0;
 	unsigned int certs_to_free = 0; /* How many of supporting_certs */
 	int err; /* GnuTLS error */
-	int ret = 0; /* our error (zero or -errno) */
+	int ret;
 	int i;
 	int cert_is_p11 = 0, key_is_p11 = 0;
 	unsigned char key_id[20];
@@ -925,6 +925,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to get key ID: %s\n"),
 			     gnutls_strerror(err));
+		ret = -EINVAL;
 		goto out;
 	}
 	for (i = 0; i < (extra_certs?nr_extra_certs:1); i++) {
@@ -969,6 +970,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Error signing test data with private key: %s\n"),
 				       gnutls_strerror(err));
+			ret = -EINVAL;
 			goto out;
 		}
 
@@ -1025,6 +1027,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Setting certificate recovation list failed: %s\n"),
 				     gnutls_strerror(err));
+			ret = -EINVAL;
 			goto out;
 		}
 	}
@@ -1162,7 +1165,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			     _("Setting certificate failed: %s\n"),
 			     gnutls_strerror(err));
 		ret = -EIO;
-	}
+	} else
+		ret = 0;
  out:
 	if (crl)
 		gnutls_x509_crl_deinit(crl);
