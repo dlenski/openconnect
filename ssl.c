@@ -282,7 +282,7 @@ int  __attribute__ ((format (printf, 2, 3)))
 
 }
 
-int request_passphrase(struct openconnect_info *vpninfo,
+int request_passphrase(struct openconnect_info *vpninfo, const char *label,
 		       char **response, const char *fmt, ...)
 {
 	struct oc_auth_form f;
@@ -300,12 +300,12 @@ int request_passphrase(struct openconnect_info *vpninfo,
 	vsnprintf(buf, 1023, fmt, args);
 	va_end(args);
 
-	f.auth_id = (char *)"ssl_certificate";
+	f.auth_id = (char *)label;
 	f.opts = &o;
 
 	o.next = NULL;
 	o.type = OC_FORM_OPT_PASSWORD;
-	o.name = (char *)"passphrase";
+	o.name = (char *)label;
 	o.label = buf;
 	o.value = NULL;
 

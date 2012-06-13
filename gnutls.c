@@ -329,7 +329,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 				     _("Failed to decrypt PKCS#12 certificate file\n"));
 		free(pass);
 		vpninfo->cert_password = NULL;
-		err = request_passphrase(vpninfo, &pass,
+		err = request_passphrase(vpninfo, "openconnect_pkcs12", &pass,
 					 _("Enter PKCS#12 pass phrase:"));
 		if (err) {
 			gnutls_pkcs12_deinit(p12);
@@ -586,7 +586,8 @@ static int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata,
 		if (err != TPM_E_AUTHFAIL)
 			goto out_srkpol;
 
-		err = request_passphrase(vpninfo, &pass, _("Enter TPM SRK PIN:"));
+		err = request_passphrase(vpninfo, "openconnect_tpm_srk",
+					 &pass, _("Enter TPM SRK PIN:"));
 		if (err)
 			goto out_srkpol;
 	}
@@ -620,7 +621,8 @@ static int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata,
 				goto out_key_policy;
 			}
 		}
-	        err = request_passphrase(vpninfo, &pass, _("Enter TPM key PIN:"));
+	        err = request_passphrase(vpninfo, "openconnect_tpm_key",
+					 &pass, _("Enter TPM key PIN:"));
 		if (err)
 			goto out_key_policy;
 
@@ -965,8 +967,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 					     _("Failed to decrypt PKCS#8 certificate file\n"));
 				free(pass);
 			}
-			err = request_passphrase(vpninfo, &pass,
-						 _("Enter PEM pass phrase:"));
+			err = request_passphrase(vpninfo, "openconnect_pem",
+						 &pass, _("Enter PEM pass phrase:"));
 			if (err) {
 				ret = -EINVAL;
 				goto out;

@@ -257,6 +257,7 @@ static int ui_open(UI *ui)
 	memset(ui_data, 0, sizeof(*ui_data));
 	ui_data->last_opt = &ui_data->form.opts;
 	ui_data->vpninfo = vpninfo;
+	ui_data->form.auth_id = (char *)"openssl_ui";
 	UI_add_user_data(ui, ui_data);
 
 	return 1;
@@ -389,8 +390,8 @@ static int pem_pw_cb(char *buf, int len, int w, void *v)
 	if (vpninfo->cert_password) {
 		pass = vpninfo->cert_password;
 		vpninfo->cert_password = NULL;
-	} else if (request_passphrase(vpninfo, &pass,
-				      _("Enter PEM pass phrase:")))
+	} else if (request_passphrase(vpninfo, "openconnect_pem",
+				      &pass, _("Enter PEM pass phrase:")))
 		return -1;
 
 	plen = strlen(pass);
@@ -424,7 +425,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 	   when PKCS12_parse() returns an error, but *ca is left pointing
 	   to the freed memory. */
 	ca = NULL;
-	if (!pass && request_passphrase(vpninfo, &pass,
+	if (!pass && request_passphrase(vpninfo, "openconnect_pkcs12", &pass,
 					_("Enter PKCS#12 pass phrase:")) < 0) {
 		PKCS12_free(p12);
 		return -EINVAL;

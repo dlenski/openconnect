@@ -333,7 +333,7 @@ int cstp_reconnect(struct openconnect_info *vpninfo);
 
 /* ssl.c */
 int connect_https_socket(struct openconnect_info *vpninfo);
-int request_passphrase(struct openconnect_info *vpninfo,
+int request_passphrase(struct openconnect_info *vpninfo, const char *label,
 		       char **response, const char *fmt, ...);
 int  __attribute__ ((format (printf, 2, 3)))
     openconnect_SSL_printf(struct openconnect_info *vpninfo, const char *fmt, ...);
