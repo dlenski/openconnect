@@ -447,13 +447,15 @@ static int tpm_sign_fn(gnutls_privkey_t key, void *_vpninfo,
 					TSS_HASH_OTHER, &hash);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to create TPM hash object.\n"));
+			     _("Failed to create TPM hash object: %s\n"),
+			     Trspi_Error_String(err));
 		return GNUTLS_E_PK_SIGN_FAILED;
 	}
 	err = Tspi_Hash_SetHashValue(hash, data->size, data->data);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to set value in TPM hash object.\n"));
+			     _("Failed to set value in TPM hash object: %s\n"),
+			     Trspi_Error_String(err));
 		Tspi_Context_CloseObject(vpninfo->tpm_context, hash);
 		return GNUTLS_E_PK_SIGN_FAILED;
 	}
@@ -461,8 +463,12 @@ static int tpm_sign_fn(gnutls_privkey_t key, void *_vpninfo,
 	Tspi_Context_CloseObject(vpninfo->tpm_context, hash);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("TPM hash signature failed\n"));
-		return GNUTLS_E_PK_SIGN_FAILED;
+			     _("TPM hash signature failed: %s\n"),
+			     Trspi_Error_String(err));
+		if (err == TPM_E_AUTHFAIL)
+			return GNUTLS_E_INSUFFICIENT_CREDENTIALS;
+		else
+			return GNUTLS_E_PK_SIGN_FAILED;
 	}
 	return 0;
 }
