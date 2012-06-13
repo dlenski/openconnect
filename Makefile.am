@@ -66,17 +66,17 @@ sign-dist: dist
 tag: uncommitted-check
 	@if git rev-parse --verify v$(VERSION) &> /dev/null; then \
 		echo "*** ERROR: Version v$(VERSION) is already tagged"; exit 1; fi
-	@sed 's/AC_INIT.*/AC_INIT(openconnect, $(VERSION))/' -i configure.ac
-	@sed 's/^v=.*/v="v$(VERSION)"/' -i version.sh
+	@sed 's/AC_INIT.*/AC_INIT(openconnect, $(VERSION))/' -i $(srcdir)/configure.ac
+	@sed 's/^v=.*/v="v$(VERSION)"/' -i $(srcdir)/version.sh
 	@( echo '1,/<!-- latest-release-start -->/p' ;\
 	   echo '/<!-- latest-release-end -->/,$$p' ;\
 	   echo  '/<!-- latest-release-start -->/a\' ;\
 	   echo  'The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-$(VERSION).tar.gz">OpenConnect v$(VERSION)</a>\' ;\
 	   echo  '<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-$(VERSION).tar.gz.asc">PGP signature</a>)</i>,\' ;\
 	   echo 'released on $(shell date +%Y-%m-%d) with the following changelog:</p>\' ;\
-	   sed '0,/<b>OpenConnect HEAD/d;/<\/ul><br\/>/,$$d;s/$$/\\/' www/changelog.xml ;\
+	   sed '0,/<b>OpenConnect HEAD/d;/<\/ul><br\/>/,$$d;s/$$/\\/' $(srcdir)/www/changelog.xml ;\
 	   echo '     </ul>' ) | \
-	 sed -n -f - -i www/download.xml
+	 sed -n -f - -i $(srcdir)/www/download.xml
 	@( echo "s/Last modified: .*/Last modified: $(shell date)/" ;\
 	   echo '/  <li><b>OpenConnect HEAD/a\' ;\
 	   echo '     <ul>\' ;\
@@ -84,11 +84,11 @@ tag: uncommitted-check
 	   echo '     </ul><br/>\' ;  echo '  </li>\' ;\
 	   echo '  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-$(VERSION).tar.gz">OpenConnect v$(VERSION)</a></b>\' ;\
 	   echo '     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-$(VERSION).tar.gz.asc">PGP signature</a>)</i> &#8212; $(shell date +%Y-%m-%d)' ) | \
-		sed -f - -i www/changelog.xml
+		sed -f - -i $(srcdir)/www/changelog.xml
 # stupid syntax highlighting '
-	@git commit -s -m "Tag version $(VERSION)" configure.ac version.sh www/download.xml www/changelog.xml
+	@cd $(srcdir) && git commit -s -m "Tag version $(VERSION)" configure.ac version.sh www/download.xml www/changelog.xml
 	@git tag v$(VERSION)
-	@./autogen.sh
+	@cd $(srcdir) && ./autogen.sh
 
 update-translations:
 	@cd $(top_srcdir); if ! git diff-index --name-only --exit-code HEAD -- po/; then \
