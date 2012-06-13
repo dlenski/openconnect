@@ -1250,12 +1250,12 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	}
 	gnutls_free(extra_certs);
 	gnutls_free(supporting_certs);
-	if (fdata.data != dummy_hash_data)
-		gnutls_free(fdata.data);
 #ifdef HAVE_GNUTLS_CERTIFICATE_SET_KEY
 	if (pkey)
 		gnutls_privkey_deinit(pkey);
-#endif
+	if (fdata.data != dummy_hash_data)
+#endif /* It's conditional if we support arbitrary privkeys: */
+		gnutls_free(fdata.data);
 #ifdef HAVE_P11KIT
 	if (cert_url != vpninfo->cert)
 		free(cert_url);
