@@ -211,7 +211,7 @@ if test "$with_gnutls" = "yes"; then
 		 [AC_DEFINE(HAVE_GNUTLS_PKCS12_SIMPLE_PARSE, 1)], [])
     AC_CHECK_FUNC(gnutls_certificate_set_key,
 		 [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_KEY, 1)], [])
-    if test "$with_openssl" != "" || test "$with_openssl" = "no"; then
+    if test "$with_openssl" = "" || test "$with_openssl" = "no"; then
 	AC_CHECK_FUNC(gnutls_session_set_premaster,
 		 [have_gnutls_dtls=yes], [have_gnutls_dtls=no])
     else
