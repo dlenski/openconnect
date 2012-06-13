@@ -462,9 +462,10 @@ static int tpm_sign_fn(gnutls_privkey_t key, void *_vpninfo,
 	err = Tspi_Hash_Sign(hash, vpninfo->tpm_key, &sig->size, &sig->data);
 	Tspi_Context_CloseObject(vpninfo->tpm_context, hash);
 	if (err) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("TPM hash signature failed: %s\n"),
-			     Trspi_Error_String(err));
+		if (vpninfo->tpm_key_policy || err != TPM_E_AUTHFAIL)
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("TPM hash signature failed: %s\n"),
+				     Trspi_Error_String(err));
 		if (err == TPM_E_AUTHFAIL)
 			return GNUTLS_E_INSUFFICIENT_CREDENTIALS;
 		else
@@ -473,7 +474,8 @@ static int tpm_sign_fn(gnutls_privkey_t key, void *_vpninfo,
 	return 0;
 }
 
-static int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata, gnutls_privkey_t *pkey)
+static int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata, gnutls_privkey_t *pkey,
+			gnutls_datum_t *pkey_sig)
 {
 	static const TSS_UUID SRK_UUID = TSS_UUID_SRK;
 	gnutls_datum_t asn1;
@@ -595,11 +597,53 @@ static int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata,
 	   pointer, and destroy that properly when the key is destroyed. */
 	gnutls_privkey_import_ext(*pkey, GNUTLS_PK_RSA, vpninfo, tpm_sign_fn, NULL, 0);
 
-	/* FIXME: Get key id using TSS_TSPATTRIB_KEYINFO_RSA_MODULUS etc. so
-	   that we can ensure we have a matching cert. */
+ retry_sign:
+	err = gnutls_privkey_sign_data(*pkey, GNUTLS_DIG_SHA1, 0, fdata, pkey_sig);
+	if (err == GNUTLS_E_INSUFFICIENT_CREDENTIALS) {
+		if (!vpninfo->tpm_key_policy) {
+			err = Tspi_Context_CreateObject(vpninfo->tpm_context,
+							TSS_OBJECT_TYPE_POLICY,
+							TSS_POLICY_USAGE,
+							&vpninfo->tpm_key_policy);
+			if (err) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to create key policy object: %s\n"),
+					     Trspi_Error_String(err));
+				goto out_key;
+			}
+			err = Tspi_Policy_AssignToObject(vpninfo->tpm_key_policy,
+							 vpninfo->tpm_key);
+			if (err) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to assign policy to key: %s\n"),
+					     Trspi_Error_String(err));
+				goto out_key_policy;
+			}
+		}
+	        err = request_passphrase(vpninfo, &pass, _("Enter TPM key PIN:"));
+		if (err)
+			goto out_key_policy;
+
+		err = Tspi_Policy_SetSecret(vpninfo->tpm_key_policy,
+					    TSS_SECRET_MODE_PLAIN,
+					    strlen(pass), (void *)pass);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to set key PIN: %s\n"),
+				     Trspi_Error_String(err));
+			goto out_key_policy;
+		}
+		goto retry_sign;
+	}
+
 	free (asn1.data);
 	return 0;
-
+ out_key_policy:
+	Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->tpm_key_policy);
+	vpninfo->tpm_key_policy = 0;
+ out_key:
+	Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->tpm_key);
+	vpninfo->tpm_key = 0;
  out_srkpol:
 	Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->srk_policy);
 	vpninfo->srk_policy = 0;
@@ -621,6 +665,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	gnutls_x509_privkey_t key = NULL;
 #ifdef HAVE_GNUTLS_CERTIFICATE_SET_KEY
 	gnutls_privkey_t pkey = NULL;
+	gnutls_datum_t pkey_sig = {NULL, 0};
+	void *dummy_hash_data = &load_certificate;
 #endif
 #ifdef HAVE_P11KIT
 	char *cert_url = (char *)vpninfo->cert;
@@ -876,7 +922,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			     _("This version of OpenConnect was built without TPM support\n"));
 		return -EINVAL;
 #else
-		ret = load_tpm_key(vpninfo, &fdata, &pkey);
+		ret = load_tpm_key(vpninfo, &fdata, &pkey, &pkey_sig);
 		if (ret)
 			goto out;
 
@@ -969,20 +1015,25 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	/* We only get here if we have a key in pkey from PKCS#11 or TPM anyway, but
 	   the check makes it clearer... and allows us to define some local variables. */
 	if (pkey) {
-		gnutls_datum_t input;
-		gnutls_datum_t sig;
 
-		input.data = (void *)&load_certificate;
-		input.size = 20;
+		/* The TPM code may have already signed it, to test authorisation. We
+		   only sign here for PKCS#11 keys, in which ccase fdata might be
+		   empty too so point it at dummy data. */
+		if (!pkey_sig.data) {
+			if (!fdata.data) {
+				fdata.data = dummy_hash_data;
+				fdata.size = 20;
+			}
 
-		err = gnutls_privkey_sign_data(pkey, GNUTLS_DIG_SHA1, 0,
-					       &input, &sig);
-		if (err) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Error signing test data with private key: %s\n"),
-				       gnutls_strerror(err));
-			ret = -EINVAL;
-			goto out;
+			err = gnutls_privkey_sign_data(pkey, GNUTLS_DIG_SHA1, 0,
+						       &fdata, &pkey_sig);
+			if (err) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Error signing test data with private key: %s\n"),
+					     gnutls_strerror(err));
+				ret = -EINVAL;
+				goto out;
+			}
 		}
 
 		for (i=0; i < (extra_certs?nr_extra_certs:1); i++) {
@@ -998,7 +1049,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 				gnutls_pubkey_deinit(pubkey);
 				continue;
 			}
-			err = gnutls_pubkey_verify_data(pubkey, 0, &input, &sig);
+			err = gnutls_pubkey_verify_data(pubkey, 0, &fdata, &pkey_sig);
 			gnutls_pubkey_deinit(pubkey);
 
 			if (err >= 0) {
@@ -1011,11 +1062,11 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 					nr_extra_certs--;
 				}
-				gnutls_free(sig.data);
+				gnutls_free(pkey_sig.data);
 				goto got_key;
 			}
 		}
-		gnutls_free(sig.data);
+		gnutls_free(pkey_sig.data);
 	}
 #endif
 	/* We shouldn't reach this. It means that we didn't find *any* matching cert */
@@ -1197,7 +1248,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	}
 	gnutls_free(extra_certs);
 	gnutls_free(supporting_certs);
-	gnutls_free(fdata.data);
+	if (fdata.data != dummy_hash_data)
+		gnutls_free(fdata.data);
 #ifdef HAVE_GNUTLS_CERTIFICATE_SET_KEY
 	if (pkey)
 		gnutls_privkey_deinit(pkey);
@@ -1531,6 +1583,10 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 		}
 #endif
 #ifdef HAVE_TROUSERS
+		if (vpninfo->tpm_key_policy) {
+			Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->tpm_key_policy);
+			vpninfo->tpm_key = 0;
+		}
 		if (vpninfo->tpm_key) {
 			Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->tpm_key);
 			vpninfo->tpm_key = 0;

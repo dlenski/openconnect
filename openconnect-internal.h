@@ -177,6 +177,7 @@ struct openconnect_info {
 	TSS_HKEY srk;
 	TSS_HPOLICY srk_policy;
 	TSS_HKEY tpm_key;
+	TSS_HPOLICY tpm_key_policy;
 #endif
 #endif
 	struct keepalive_info ssl_times;
