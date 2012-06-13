@@ -31,7 +31,7 @@ OPENCONNECT_2.0 {
 };
 
 OPENCONNECT_PRIVATE {
- global: @SYMVER_TIME@ @SYMVER_ASPRINTF@ @SYMVER_GETLINE@
+ global: @SYMVER_TIME@ @SYMVER_ASPRINTF@ @SYMVER_GETLINE@ @SYMVER_PRINT_ERR@
 	openconnect_SSL_gets;
 	openconnect_close_https;
 	openconnect_open_https;

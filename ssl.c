@@ -357,17 +357,11 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 #if defined(OPENCONNECT_OPENSSL) || defined (DTLS_OPENSSL)
 /* We put this here rather than in openssl.c because it might be needed
    for OpenSSL DTLS support even when GnuTLS is being used for HTTPS */
-#include <openssl/err.h>
-static int print_err(const char *str, size_t len, void *ptr)
+int openconnect_print_err_cb(const char *str, size_t len, void *ptr)
 {
 	struct openconnect_info *vpninfo = ptr;
 
 	vpn_progress(vpninfo, PRG_ERR, "%s", str);
 	return 0;
-}
-
-void openconnect_report_ssl_errors(struct openconnect_info *vpninfo)
-{
-	ERR_print_errors_cb(print_err, vpninfo);
 }
 #endif

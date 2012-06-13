@@ -316,6 +316,7 @@ case "$ssl_library" in
 	AC_SUBST(SSL_LIBRARY, [openssl])
 	AC_SUBST(SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
+	AC_SUBST(SYMVER_PRINT_ERR, ["openconnect_print_err_cb;"])
 	;;
     both)
 	# GnuTLS for TCP, OpenSSL for DTLS
@@ -326,6 +327,7 @@ case "$ssl_library" in
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
 	AC_SUBST(DTLS_SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(DTLS_SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
+	AC_SUBST(SYMVER_PRINT_ERR, ["openconnect_print_err_cb;"])
 	;;
     *)
 	AC_MSG_ERROR([Neither OpenSSL nor GnuTLS selected for SSL.])

@@ -337,9 +337,8 @@ int request_passphrase(struct openconnect_info *vpninfo, const char *label,
 		       char **response, const char *fmt, ...);
 int  __attribute__ ((format (printf, 2, 3)))
     openconnect_SSL_printf(struct openconnect_info *vpninfo, const char *fmt, ...);
-#if defined(OPENCONNECT_OPENSSL) || defined (DTLS_OPENSSL)
-void openconnect_report_ssl_errors(struct openconnect_info *vpninfo);
-#endif
+int openconnect_print_err_cb(const char *str, size_t len, void *ptr);
+#define openconnect_report_ssl_errors(v) ERR_print_errors_cb(openconnect_print_err_cb, (v))
 
 /* ${SSL_LIBRARY}.c */
 int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len);
