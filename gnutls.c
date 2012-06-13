@@ -546,14 +546,15 @@ static int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata,
 	pass = vpninfo->cert_password;
 	vpninfo->cert_password = NULL;
 	while (1) {
-		if (!pass) {
-			err = request_passphrase(vpninfo, &pass, _("Enter TPM SRK PIN:"));
-			if (err)
-				goto out_srkpol;
-		}
+		static const char nullpass[20];
+
 		/* We don't seem to get the error here... */
-		err = Tspi_Policy_SetSecret(vpninfo->srk_policy, TSS_SECRET_MODE_PLAIN,
-					    strlen(pass), (void *)pass);
+		if (pass)
+			err = Tspi_Policy_SetSecret(vpninfo->srk_policy, TSS_SECRET_MODE_PLAIN,
+						    strlen(pass), (BYTE *)pass);
+		else /* Well-known NULL key */
+			err = Tspi_Policy_SetSecret(vpninfo->srk_policy, TSS_SECRET_MODE_SHA1,
+						    sizeof(nullpass), (BYTE *)nullpass);
 		if (err) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to set TPM PIN: %s\n"),
@@ -562,7 +563,6 @@ static int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata,
 		}
 
 		free(pass);
-		pass = NULL;
 
 		/* ... we get it here instead. */
 		err = Tspi_Context_LoadKeyByBlob(vpninfo->tpm_context, vpninfo->srk,
@@ -570,11 +570,16 @@ static int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata,
 		if (!err)
 			break;
 
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to load TPM key blob: %s\n"),
-			     Trspi_Error_String(err));
+		if (pass)
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to load TPM key blob: %s\n"),
+				     Trspi_Error_String(err));
 
 		if (err != TPM_E_AUTHFAIL)
+			goto out_srkpol;
+
+		err = request_passphrase(vpninfo, &pass, _("Enter TPM SRK PIN:"));
+		if (err)
 			goto out_srkpol;
 	}
 
