@@ -466,6 +466,52 @@ static int gtls_cert_cb(gnutls_session_t sess, const gnutls_datum_t *req_ca_dn,
 
 	return 0;
 }
+
+static int assign_privkey_gtls2(struct openconnect_info *vpninfo,
+				gnutls_privkey_t pkey,
+				gnutls_x509_crt_t *certs,
+				unsigned int nr_certs,
+				gnutls_x509_crt_t *extra_certs,
+				unsigned int nr_extra_certs)
+{
+	int i;
+
+	vpninfo->my_certs = gnutls_calloc(nr_certs, sizeof(*certs));
+	if (!vpninfo->my_certs)
+		return GNUTLS_E_MEMORY_ERROR;
+
+	memcpy(vpninfo->my_certs, certs, nr_certs * sizeof(*certs));
+	vpninfo->nr_my_certs = nr_certs;
+
+	/* We are *keeping* the certs, unlike in GnuTLS 3 where we can
+	   free them after calling gnutls_certificate_set_key(). So
+	   first wipe the 'certs' array (which is either '&cert' or
+	   'supporting_certs' in load_certificate())... */
+	memset(certs, 0, nr_certs * sizeof(*certs));
+
+	/* ... and then also zero out the entries in the extra_certs
+	   array that correspond to certs that were added into the
+	   supporting_certs array (but above the certs_to_free index).
+
+	   The first one is 'cert', which was already stolen by the
+	   load_certificate() function and put into our certs[0]..
+	   So start at 1. */
+	for (i = 1; i < nr_certs; i++) {
+		int j;
+		for (j = 0; j < nr_extra_certs; j++) {
+			if (vpninfo->my_certs[i] == extra_certs[j]) {
+				extra_certs[j] = NULL;
+				break;
+			}
+		}
+	}
+
+	gnutls_certificate_set_retrieve_function(vpninfo->https_cred,
+						 gtls_cert_cb);
+	vpninfo->my_pkey = pkey;
+
+	return 0;
+}
 #else /* !SET_KEY */
 static int assign_privkey_gtls3(struct openconnect_info *vpninfo,
 				gnutls_privkey_t pkey,
@@ -1016,43 +1062,15 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			goto out;
 		}
 #else /* !HAVE_GNUTLS_CERTIFICATE_SET_KEY so fake it using sign_callback */
-		vpninfo->my_pkey = pkey;
 #ifdef HAVE_P11KIT
 		vpninfo->my_p11key = p11key;
 #endif
-
-		if (supporting_certs) {
-			vpninfo->my_certs = supporting_certs;
-			vpninfo->nr_my_certs = nr_supporting_certs;
-			/* We are *keeping* the certs in supporting_certs, unlike in
-			   GnuTLS 3 where we can free them after calling g_c_set_key().
-			   So steal the ones we need out of the extra_certs array.
-			   The first one is 'cert', which was already stolen. So
-			   start at 1. */
-			for (i = 1; i < nr_supporting_certs; i++) {
-				int j;
-				for (j = 0; j < nr_extra_certs; j++) {
-					if (supporting_certs[i] == extra_certs[j]) {
-						extra_certs[j] = NULL;
-						break;
-					}
-				}
-			}
-			supporting_certs = NULL;
-		} else {
-			vpninfo->my_certs = gnutls_calloc(1, sizeof(cert));
-			if (!vpninfo->my_certs) {
-				ret = -ENOMEM;
-				goto out;
-			}
-			vpninfo->my_certs[0] = cert;
-			vpninfo->nr_my_certs = 1;
+		err = assign_privkey_gtls2(vpninfo, pkey, supporting_certs?:&cert, nr_supporting_certs,
+					   extra_certs, nr_extra_certs);
+		if (err) {
+			ret = -EIO;
+			goto out;
 		}
-		cert = NULL;
-		gnutls_certificate_set_retrieve_function(vpninfo->https_cred,
-							 gtls_cert_cb);
-		err = 0;
-		vpninfo->my_pkey = pkey;
 #endif
 		pkey = NULL; /* we gave it away, along with pcerts */
 	} else
@@ -1074,20 +1092,22 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		gnutls_x509_crl_deinit(crl);
 	if (key)
 		gnutls_x509_privkey_deinit(key);
-	if (cert)
+	if (supporting_certs) {
+		for (i = 0; i < certs_to_free; i++) {
+			if (supporting_certs[i])
+				gnutls_x509_crt_deinit(supporting_certs[i]);
+		}
+		gnutls_free(supporting_certs);
+	} else if (cert) {
+		/* Not if supporting_certs. It's supporting_certs[0] then and
+		   was already freed. */
 		gnutls_x509_crt_deinit(cert);
-	/* From 1 because cert is the first one (and might exist
-	   even if supporting_certs is NULL) */
-	for (i = 1; i < certs_to_free; i++) {
-		if (supporting_certs[i])
-			gnutls_x509_crt_deinit(supporting_certs[i]);
 	}
 	for (i = 0; i < nr_extra_certs; i++) {
 		if (extra_certs[i])
 			gnutls_x509_crt_deinit(extra_certs[i]);
 	}
 	gnutls_free(extra_certs);
-	gnutls_free(supporting_certs);
 #if defined (HAVE_P11KIT) || defined (HAVE_TROUSERS)
 	if (pkey && pkey != OPENCONNECT_TPM_PKEY)
 		gnutls_privkey_deinit(pkey);
