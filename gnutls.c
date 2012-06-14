@@ -893,12 +893,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		if (cert_id_size == key_id_size && !memcmp(cert_id, key_id, key_id_size)) {
 			if (extra_certs) {
 				cert = extra_certs[i];
-
-				/* Move the rest of the array down */
-				for (; i < nr_extra_certs - 1; i++)
-					extra_certs[i] = extra_certs[i+1];
-
-				nr_extra_certs--;
+				extra_certs[i] = NULL;
 			}
 			goto got_key;
 		}
@@ -953,12 +948,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			if (err >= 0) {
 				if (extra_certs) {
 					cert = extra_certs[i];
-
-					/* Move the rest of the array down */
-					for (; i < nr_extra_certs - 1; i++)
-						extra_certs[i] = extra_certs[i+1];
-
-					nr_extra_certs--;
+					extra_certs[i] = NULL;
 				}
 				gnutls_free(pkey_sig.data);
 				goto got_key;
@@ -1016,7 +1006,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		gnutls_x509_crt_t issuer;
 
 		for (i = 0; i < nr_extra_certs; i++) {
-			if (gnutls_x509_crt_check_issuer(last_cert, extra_certs[i]) &&
+			if (extra_certs[i] &&
+			    gnutls_x509_crt_check_issuer(last_cert, extra_certs[i]) &&
 			    !check_issuer_sanity(last_cert, extra_certs[i]))
 				break;
 		}
