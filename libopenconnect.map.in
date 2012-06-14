@@ -39,7 +39,6 @@ OPENCONNECT_PRIVATE {
 	openconnect_SSL_write;
 	openconnect_version_str;
 	openconnect_create_useragent;
-	openconnect_report_ssl_errors;
 	openconnect_sha1;
 	openconnect_random;
  local:
