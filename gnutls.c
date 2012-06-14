@@ -769,10 +769,19 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			ret = -EIO;
 			goto out;
 		}
-
+#ifndef HAVE_GNUTLS_CERTIFICATE_SET_KEY
+		/* This can be set now and doesn't need to be separately freed.
+		   It goes with the pkey. This is a PITA; it would be better
+		   if there was a way to get the p11key *back* from a privkey
+		   that we *know* is based on one. In fact, since this is only
+		   for GnuTLS 2.12 and we *know* the gnutls_privkey_st won't
+		   ever change there, so we *could* do something evil... but
+		   we won't :) */
+		vpninfo->my_p11key = p11key;
+#endif /* !SET_KEY */
 		goto match_cert;
 	}
-#endif
+#endif /* HAVE_P11KIT */
 
 	/* We're loading the private key from a file. Load the file into memory
 	   unless it's the same as the certificate and we already loaded that. */
@@ -1062,9 +1071,6 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			goto out;
 		}
 #else /* !HAVE_GNUTLS_CERTIFICATE_SET_KEY so fake it using sign_callback */
-#ifdef HAVE_P11KIT
-		vpninfo->my_p11key = p11key;
-#endif
 		err = assign_privkey_gtls2(vpninfo, pkey, supporting_certs?:&cert, nr_supporting_certs,
 					   extra_certs, nr_extra_certs);
 		if (err) {
