@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Support TPM, and also additional checks on PKCS#11 certs, even with GnuTLS 2.12</li> 
        <li>Fix library references to OpenSSL's <tt>ERR_print_errors_cb()</tt> when built against GnuTLS v2.12</li>
      </ul><br/>
   </li>

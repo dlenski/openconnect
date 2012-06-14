@@ -34,6 +34,7 @@
 #endif
 #if defined (OPENCONNECT_GNUTLS)
 #include <gnutls/gnutls.h>
+#include <gnutls/abstract.h>
 #include <gnutls/x509.h>
 #ifdef HAVE_TROUSERS
 #include <trousers/tss.h>
@@ -179,7 +180,15 @@ struct openconnect_info {
 	TSS_HKEY tpm_key;
 	TSS_HPOLICY tpm_key_policy;
 #endif
+#ifndef HAVE_GNUTLS_CERTIFICATE_SET_KEY
+#ifdef HAVE_P11KIT
+	gnutls_pkcs11_privkey_t my_p11key;
 #endif
+	gnutls_privkey_t my_pkey;
+	gnutls_x509_crt_t *my_certs;
+	unsigned int nr_my_certs;
+#endif
+#endif /* OPENCONNECT_GNUTLS */
 	struct keepalive_info ssl_times;
 	int owe_ssl_dpd_response;
 	struct pkt *deflate_pkt;
