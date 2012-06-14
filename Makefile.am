@@ -18,7 +18,7 @@ openconnect_CFLAGS = $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPRO
 openconnect_LDADD = libopenconnect.la $(SSL_LIBS) $(DTLS_SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(LIBINTL)
 
 library_srcs = ssl.c http.c auth.c library.c compat.c
-lib_srcs_gnutls = gnutls.c gnutls_pkcs12.c
+lib_srcs_gnutls = gnutls.c gnutls_pkcs12.c gnutls_tpm.c
 lib_srcs_openssl = openssl.c
 if OPENCONNECT_GNUTLS
 library_srcs += $(lib_srcs_gnutls)
