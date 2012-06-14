@@ -132,8 +132,8 @@ struct openconnect_info;
 
 #define OPENCONNECT_X509 void
 
-/* Unless otherwise specified, all functions which set strings will
-   take ownership of those strings and should free them later in
+/* Unless otherwise specified, all functions which set strings will take
+   ownership of those strings and the library will free them later in
    openconnect_vpninfo_free() */
 
 
