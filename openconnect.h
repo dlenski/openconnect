@@ -132,8 +132,13 @@ struct openconnect_info;
 
 #define OPENCONNECT_X509 void
 
-/* Unless otherwise specified, all functions which set strings will take ownership of those strings
-   and should free them later in openconnect_vpninfo_free() */
+/* Unless otherwise specified, all functions which set strings will
+   take ownership of those strings and should free them later in
+   openconnect_vpninfo_free() */
+
+
+/* The buffer 'buf' must be at least 41 bytes. It will receive a hex string
+   with trailing NUL, representing the SHA1 fingerprint of the certificate. */
 int openconnect_get_cert_sha1(struct openconnect_info *vpninfo,
 			      OPENCONNECT_X509 *cert, char *buf);
 char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
@@ -154,7 +159,9 @@ char *openconnect_get_urlpath (struct openconnect_info *);
 void openconnect_set_urlpath (struct openconnect_info *, char *);
 
 /* This function does *not* take ownership of the string; it's copied
-   into a static buffer in the vpninfo */
+   into a static buffer in the vpninfo. The size must be 41 bytes,
+   since that's the size of a 20-byte SHA1 represented as hex with
+   a trailing NUL. */
 void openconnect_set_xmlsha1 (struct openconnect_info *, const char *, int size);
 
 void openconnect_set_cafile (struct openconnect_info *, char *);
