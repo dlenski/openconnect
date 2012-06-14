@@ -328,6 +328,8 @@ case "$ssl_library" in
 	AC_MSG_ERROR([Neither OpenSSL nor GnuTLS selected for SSL.])
 	;;
 esac
+AM_CONDITIONAL(OPENCONNECT_GNUTLS,  [ test "$ssl_library" != "openssl" ])
+AM_CONDITIONAL(OPENCONNECT_OPENSSL, [ test "$ssl_library" = "openssl" ])
 
 # Needs to happen after we default to static/shared libraries based on OpenSSL
 AC_PROG_LIBTOOL

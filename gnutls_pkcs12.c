@@ -7,6 +7,11 @@
  * explicit permission.
  */
 
+#ifndef HAVE_GNUTLS_PKCS12_SIMPLE_PARSE
+
+#include <string.h>
+#include "gnutls.h"
+
 #define opaque unsigned char
 #define gnutls_assert() do {} while(0)
 #define gnutls_assert_val(x) (x)
@@ -124,7 +129,7 @@ unsigned int i;
  *
  * Since: 3.1
  **/
-static int
+int
 gnutls_pkcs12_simple_parse (gnutls_pkcs12_t p12,
                      const char *password,
                      gnutls_x509_privkey_t * key,
@@ -519,3 +524,5 @@ done:
 
   return ret;
 }
+
+#endif /* HAVE_GNUTLS_PKCS12_SIMPLE_PARSE */

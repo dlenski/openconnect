@@ -17,7 +17,15 @@ openconnect_SOURCES = xml.c main.c dtls.c cstp.c mainloop.c tun.c
 openconnect_CFLAGS = $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS)
 openconnect_LDADD = libopenconnect.la $(SSL_LIBS) $(DTLS_SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(LIBINTL)
 
-library_srcs = ssl.c http.c auth.c library.c compat.c @SSL_LIBRARY@.c
+library_srcs = ssl.c http.c auth.c library.c compat.c
+lib_srcs_gnutls = gnutls.c gnutls_pkcs12.c
+lib_srcs_openssl = openssl.c
+if OPENCONNECT_GNUTLS
+library_srcs += $(lib_srcs_gnutls)
+endif
+if OPENCONNECT_OPENSSL
+library_srcs += $(lib_srcs_openssl)
+endif
 libopenconnect_la_SOURCES = version.c $(library_srcs)
 libopenconnect_la_CFLAGS = $(SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(P11KIT_CFLAGS) $(TSS_CFLAGS)
 libopenconnect_la_LIBADD = $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LIBINTL) $(P11KIT_LIBS) $(TSS_LIBS)
@@ -31,13 +39,13 @@ endif
 
 pkgconfig_DATA = openconnect.pc
 
-EXTRA_DIST = version.sh COPYING.LGPL gnutls_pkcs12.c gnutls.c openssl.c
+EXTRA_DIST = version.sh COPYING.LGPL $(lib_srcs_openssl) $(lib_srcs_gnutls)
 
 DISTCLEANFILES = $(pkgconfig_DATA)
 
-gnutls.o: gnutls_pkcs12.c
 main.o: version.c
-version.c: $(library_srcs) $(openconnect_SOURCES) Makefile.am configure.ac \
+version.c: $(library_srcs) $(lib_openssl_srcs) $(lib_gnutls_srcs) \
+	   $(openconnect_SOURCES) Makefile.am configure.ac \
 	   openconnect.h openconnect-internal.h version.sh @GITVERSIONDEPS@
 	@cd $(srcdir) && ./version.sh $(abs_builddir)/version.c
 

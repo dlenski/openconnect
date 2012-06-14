@@ -64,6 +64,7 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 			       void *_vpninfo);
 #endif
 
+#include "gnutls.h"
 #include "openconnect-internal.h"
 
 /* Helper functions for reading/writing lines over SSL.
@@ -285,12 +286,6 @@ static int load_datum(struct openconnect_info *vpninfo,
 	close(fd);
 	return 0;
 }
-
-#ifndef HAVE_GNUTLS_PKCS12_SIMPLE_PARSE
-/* If we're using a version of GnuTLS from before this was 
-   exported, pull in our local copy. */
-#include "gnutls_pkcs12.c"
-#endif
 
 /* A non-zero, non-error return to make load_certificate() continue and
    interpreting the file as other types */
