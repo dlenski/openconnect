@@ -721,6 +721,7 @@ static int sign_dummy_data(struct openconnect_info *vpninfo, gnutls_privkey_t pk
 			0x06, 0x05,      /* OBJECT_ID, length 5 */
 			0x2b, 0x0e, 0x03, 0x02, 0x1a,  /* SHA1: 1.3.14.3.2.26 */
 			0x05, 0x00,      /* NULL (parameters) */
+			0x04, 0x14,      /* OCTET_STRING, length 20 */
 			/* followed by the 20-byte sha1 */
 		};
 		gnutls_datum_t hash;
