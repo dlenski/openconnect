@@ -629,6 +629,8 @@ static int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata,
 		err = Tspi_Policy_SetSecret(vpninfo->tpm_key_policy,
 					    TSS_SECRET_MODE_PLAIN,
 					    strlen(pass), (void *)pass);
+		free (pass);
+
 		if (err) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to set key PIN: %s\n"),
