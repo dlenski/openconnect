@@ -467,12 +467,17 @@ static int gtls_cert_cb(gnutls_session_t sess, const gnutls_datum_t *req_ca_dn,
 	return 0;
 }
 
-static int assign_privkey_gtls2(struct openconnect_info *vpninfo,
-				gnutls_privkey_t pkey,
-				gnutls_x509_crt_t *certs,
-				unsigned int nr_certs,
-				gnutls_x509_crt_t *extra_certs,
-				unsigned int nr_extra_certs)
+/* For GnuTLS 2.12, this has to set the cert_callback to the function
+   above, which will return the pkey and certs on demand. Or in the
+   case of TPM we can't make a suitable pkey, so we have to set a
+   sign_callback too (which is done in openconnect_open_https() since
+   it has to be done on the *session*). */
+static int assign_privkey(struct openconnect_info *vpninfo,
+			  gnutls_privkey_t pkey,
+			  gnutls_x509_crt_t *certs,
+			  unsigned int nr_certs,
+			  gnutls_x509_crt_t *extra_certs,
+			  unsigned int nr_extra_certs)
 {
 	int i;
 
@@ -513,16 +518,18 @@ static int assign_privkey_gtls2(struct openconnect_info *vpninfo,
 	return 0;
 }
 #else /* !SET_KEY */
-static int assign_privkey_gtls3(struct openconnect_info *vpninfo,
-				gnutls_privkey_t pkey,
-				gnutls_x509_crt_t *certs,
-				unsigned int nr_certs)
+
+/* For GnuTLS 3+ this is saner than the GnuTLS 2.12 version. But still we
+   have to convert the array of X509 certificates to gnutls_pcert_st for
+   ourselves. There's no function that takes a gnutls_privkey_t as the key
+   and gnutls_x509_crt_t certificates. */
+static int assign_privkey(struct openconnect_info *vpninfo,
+			  gnutls_privkey_t pkey,
+			  gnutls_x509_crt_t *certs,
+			  unsigned int nr_certs,
+			  gnutls_x509_crt_t *extra_certs,
+			  unsigned int nr_extra_certs)
 {
-	/* Ug. If we got a gnutls_privkey_t from PKCS#11 rather than the
-	   gnutls_x509_privkey_t that we get from PEM or PKCS#12 files, then
-	   we can't use gnutls_certificate_set_x509_key(). Instead we have
-	   to convert our chain of X509 certificates to gnutls_pcert_st and
-	   then use gnutls_certificate_set_key() with that instead. */
 	gnutls_pcert_st *pcerts = calloc(nr_certs, sizeof(*pcerts));
 	int i, err;
 
@@ -1064,20 +1071,13 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 #if defined (HAVE_P11KIT) || defined (HAVE_TROUSERS)
 	if (pkey) {
-#if defined(HAVE_GNUTLS_CERTIFICATE_SET_KEY)
-		err = assign_privkey_gtls3(vpninfo, pkey, supporting_certs?:&cert, nr_supporting_certs);
+		err = assign_privkey(vpninfo, pkey,
+				     supporting_certs?:&cert, nr_supporting_certs,
+				     extra_certs, nr_extra_certs);
 		if (err) {
 			ret = -EIO;
 			goto out;
 		}
-#else /* !HAVE_GNUTLS_CERTIFICATE_SET_KEY so fake it using sign_callback */
-		err = assign_privkey_gtls2(vpninfo, pkey, supporting_certs?:&cert, nr_supporting_certs,
-					   extra_certs, nr_extra_certs);
-		if (err) {
-			ret = -EIO;
-			goto out;
-		}
-#endif
 		pkey = NULL; /* we gave it away, along with pcerts */
 	} else
 #endif /* P11KIT || TROUSERS */
