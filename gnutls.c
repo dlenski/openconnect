@@ -429,8 +429,8 @@ static int get_cert_name(gnutls_x509_crt_t cert, char *name, size_t namelen)
 	return 0;
 }
 
-#if !defined (HAVE_GNUTLS_CERTIFICATE_SET_KEY) && \
-	(defined (HAVE_P11KIT) || defined (HAVE_TROUSERS))
+#if defined (HAVE_P11KIT) || defined (HAVE_TROUSERS)
+#ifndef HAVE_GNUTLS_CERTIFICATE_SET_KEY
 /* For GnuTLS 2.12 even if we *have* a privkey (as we do for PKCS#11), we
    can't register it. So we have to use the cert_callback function. This
    just hands out the certificate chain we prepared in load_certificate().
@@ -466,7 +466,48 @@ static int gtls_cert_cb(gnutls_session_t sess, const gnutls_datum_t *req_ca_dn,
 
 	return 0;
 }
-#endif /* !SET_KEY && (P11KIT || TROUSERS) */
+#else /* !SET_KEY */
+static int assign_privkey_gtls3(struct openconnect_info *vpninfo,
+				gnutls_privkey_t pkey,
+				gnutls_x509_crt_t *certs,
+				unsigned int nr_certs)
+{
+	/* Ug. If we got a gnutls_privkey_t from PKCS#11 rather than the
+	   gnutls_x509_privkey_t that we get from PEM or PKCS#12 files, then
+	   we can't use gnutls_certificate_set_x509_key(). Instead we have
+	   to convert our chain of X509 certificates to gnutls_pcert_st and
+	   then use gnutls_certificate_set_key() with that instead. */
+	gnutls_pcert_st *pcerts = calloc(nr_certs, sizeof(*pcerts));
+	int i, err;
+
+	if (!pcerts)
+		return GNUTLS_E_MEMORY_ERROR;
+
+	for (i=0 ; i < nr_certs; i++) {
+		err = gnutls_pcert_import_x509(pcerts + i, certs[i], 0);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Importing X509 certificate failed: %s\n"),
+				     gnutls_strerror(err));
+			goto free_pcerts;
+		}
+	}
+
+	err = gnutls_certificate_set_key(vpninfo->https_cred, NULL, 0,
+					 pcerts, nr_certs, pkey);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Setting PKCS#11 certificate failed: %s\n"),
+			     gnutls_strerror(err));
+	free_pcerts:
+		for (i=0 ; i < nr_certs; i++)
+			gnutls_pcert_deinit(pcerts + i);
+		free (pcerts);
+	}
+	return err;
+}
+#endif /* !SET_KEY */
+#endif /* (P11KIT || TROUSERS) */
 
 static int load_certificate(struct openconnect_info *vpninfo)
 {
@@ -969,37 +1010,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 #if defined (HAVE_P11KIT) || defined (HAVE_TROUSERS)
 	if (pkey) {
 #if defined(HAVE_GNUTLS_CERTIFICATE_SET_KEY)
-		/* Ug. If we got a gnutls_privkey_t from PKCS#11 rather than the
-		   gnutls_x509_privkey_t that we get from PEM or PKCS#12 files, then
-		   we can't use gnutls_certificate_set_x509_key(). Instead we have
-		   to convert our chain of X509 certificates to gnutls_pcert_st and
-		   then use gnutls_certificate_set_key() with that instead. */
-		gnutls_pcert_st *pcerts = calloc(nr_supporting_certs, sizeof(*pcerts));
-
-		if (!pcerts) {
-			ret = -ENOMEM;
-			goto out;
-		}
-
-		for (i=0 ; i < nr_supporting_certs; i++) {
-			err = gnutls_pcert_import_x509(pcerts + i, supporting_certs?supporting_certs[i]:cert, 0);
-			if (err) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("Importing X509 certificate failed: %s\n"),
-					     gnutls_strerror(err));
-				goto free_pcerts;
-			}
-		}
-
-		err = gnutls_certificate_set_key(vpninfo->https_cred, NULL, 0, pcerts, nr_supporting_certs, pkey);
+		err = assign_privkey_gtls3(vpninfo, pkey, supporting_certs?:&cert, nr_supporting_certs);
 		if (err) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Setting PKCS#11 certificate failed: %s\n"),
-				     gnutls_strerror(err));
-		free_pcerts:
-			for (i=0 ; i < nr_supporting_certs; i++)
-				gnutls_pcert_deinit(pcerts + i);
-			free (pcerts);
 			ret = -EIO;
 			goto out;
 		}
