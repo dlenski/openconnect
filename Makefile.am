@@ -20,6 +20,9 @@ openconnect_LDADD = libopenconnect.la $(SSL_LIBS) $(DTLS_SSL_LIBS) $(LIBXML2_LIB
 library_srcs = ssl.c http.c auth.c library.c compat.c
 lib_srcs_gnutls = gnutls.c gnutls_pkcs12.c gnutls_tpm.c
 lib_srcs_openssl = openssl.c
+
+POTFILES = $(openconnect_SOURCES) $(lib_srcs_openssl) $(lib_srcs_gnutls) $(library_srcs)
+
 if OPENCONNECT_GNUTLS
 library_srcs += $(lib_srcs_gnutls)
 endif
@@ -105,7 +108,15 @@ update-translations:
 		tx pull -af ; git commit -s -m "Update translations from Transifex" -- po/ ; \
 	fi
 
-upload-pot:
-	if [ ${abs_top_builddir} != $(abs_top_srcdir) ]; then \
+upload-pot: po/$(PACKAGE).pot
+	@if [ ${abs_top_builddir} != $(abs_top_srcdir) ]; then \
 		ln -sf ${abs_top_srcdir}/.tx .tx; fi
-	@make -C po openconnect.pot && tx push -s
+	@tx push -s
+
+po/$(PACKAGE).pot: $(POTFILES) Makefile
+	@echo "Regenerating $@" ; rm -f $@ && \
+	xgettext --directory=$(top_srcdir) --from-code=UTF-8 \
+	  --add-comments --keyword=_ --keyword=N_ \
+	  --package-name="@PACKAGE@" --package-version="@VERSION@" \
+	  --msgid-bugs-address=openconnect-devel@lists.infradead.org \
+	  -o $@ $(POTFILES)

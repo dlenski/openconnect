@@ -31,17 +31,11 @@ uninstall-hook:
 	  fi ; \
 	done
 
-# This is a GNUism but I don't care; it's not a default target.
-POTFILESIN = $(shell grep -v '^\#' $(srcdir)/POTFILES.in)
-POTFILES = $(POTFILESIN:%=$(top_srcdir)/%)
-
-$(PACKAGE).pot: $(POTFILES) Makefile
-	rm -f $@ && \
-	xgettext --directory=$(top_srcdir) \
-	  --add-comments --keyword=_ --keyword=N_ \
-	  --files-from=$(srcdir)/POTFILES.in --from-code=UTF-8 \
-	  --package-name="@PACKAGE@" --package-version="@VERSION@" \
-	  --msgid-bugs-address=openconnect-devel@lists.infradead.org -o $@
+# $(PACKAGE).pot is built by a rule in the parent directory Makefile
+# This rule isn't needed but is here for convenience if manually invoked
+.PHONY: $(PACKAGE).pot
+$(PACKAGE).pot:
+	$(MAKE) -C .. po/$@
 
 EXTRA_DIST = $(POFILES) LINGUAS POTFILES.in
 DISTCLEANFILES=$(PACKAGE).pot
