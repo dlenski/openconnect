@@ -647,6 +647,7 @@ static int is_pem_password_error(struct openconnect_info *vpninfo)
 	    ERR_GET_REASON(err) == EVP_R_BAD_DECRYPT) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Loading private key failed (wrong passphrase?)\n"));
+		ERR_clear_error();
 		return 1;
 	}
 
