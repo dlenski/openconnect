@@ -394,4 +394,27 @@ int add_securid_pin(char *token, char *pin);
 /* version.c */
 extern const char *openconnect_version_str;
 
+#ifdef ANDROID_KEYSTORE
+#include <keystore_get.h>
+#elif defined (FAKE_ANDROID_KEYSTORE) /* For testing */
+#define ANDROID_KEYSTORE
+#define KEYSTORE_MESSAGE_SIZE 16384
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+static inline int keystore_get(const char *p, int plen, char *content)
+{
+	int fd = open(p, O_RDONLY);
+	int len;
+	if (fd == -1)
+		return fd;
+	len = read(fd, content, KEYSTORE_MESSAGE_SIZE);
+	close(fd);
+	if (len <= 0)
+		return 0;
+	return len;
+}
+#endif /* FAKE_ANDROID_KEYSTORE */
+
 #endif /* __OPENCONNECT_INTERNAL_H__ */

@@ -247,6 +247,37 @@ static int load_datum(struct openconnect_info *vpninfo,
 {
 	struct stat st;
 	int fd, err;
+#ifdef ANDROID_KEYSTORE
+	if (!strncmp(fname, "keystore:", 9)) {
+		char content[KEYSTORE_MESSAGE_SIZE];
+		int len;
+		const char *p = fname + 9;
+
+		/* Skip first two slashes if the user has given it as
+		   keystore://foo ... */
+		if (*p == '/')
+			p++;
+		if (*p == '/')
+			p++;
+		len = keystore_get(p, strlen(p), content);
+		if (len < 0) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to lead item '%s' from keystore\n"),
+				     p);
+			return -EINVAL;
+		}
+		datum->data = gnutls_malloc(len + 1);
+		if (!datum->data) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to allocate memory for keystore item\n"));
+			return -ENOMEM;
+		}
+		datum->data[len] = 0;
+		memcpy(datum->data, content, len);
+		datum->size = len;
+		return 0;
+	}
+#endif
 
 	fd = open(fname, O_RDONLY|O_CLOEXEC);
 	if (fd == -1) {

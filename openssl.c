@@ -600,6 +600,61 @@ static int reload_pem_cert(struct openconnect_info *vpninfo)
 	return 0;
 }
 
+#ifdef ANDROID_KEYSTORE
+static BIO *BIO_from_keystore(struct openconnect_info *vpninfo, const char *item)
+{
+	char content[KEYSTORE_MESSAGE_SIZE];
+	BIO *b;
+	int len;
+	const char *p = item + 9;
+
+	/* Skip first two slashes if the user has given it as
+	   keystore://foo ... */
+	if (*p == '/')
+		p++;
+	if (*p == '/')
+		p++;
+	len = keystore_get(p, strlen(p), content);
+	if (len < 0) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to lead item '%s' from keystore\n"),
+			     p);
+		return NULL;
+	}
+	if (!(b = BIO_new(BIO_s_mem())) || BIO_write(b, content, len) != len) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to create BIO for keystore item '%s'\n"),
+			       p);
+		BIO_free(b);
+		return NULL;
+	}
+	return b;
+}
+#endif
+
+static int is_pem_password_error(struct openconnect_info *vpninfo)
+{
+	unsigned long err = ERR_peek_error();
+
+	openconnect_report_ssl_errors(vpninfo);
+
+#ifndef EVP_F_EVP_DECRYPTFINAL_EX
+#define EVP_F_EVP_DECRYPTFINAL_EX EVP_F_EVP_DECRYPTFINAL
+#endif
+	/* If the user fat-fingered the passphrase, try again */
+	if (ERR_GET_LIB(err) == ERR_LIB_EVP &&
+	    ERR_GET_FUNC(err) == EVP_F_EVP_DECRYPTFINAL_EX &&
+	    ERR_GET_REASON(err) == EVP_R_BAD_DECRYPT) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Loading private key failed (wrong passphrase?)\n"));
+		return 1;
+	}
+
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Loading private key failed (see above errors)\n"));
+	return 0;
+}
+
 static int load_certificate(struct openconnect_info *vpninfo)
 {
 	if (!strncmp(vpninfo->sslkey, "pkcs11:", 7) ||
@@ -612,8 +667,9 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Using certificate file %s\n"), vpninfo->cert);
 
-	if (vpninfo->cert_type == CERT_TYPE_PKCS12 ||
-	    vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
+	if (strncmp(vpninfo->cert, "keystore:", 9) &&
+	    (vpninfo->cert_type == CERT_TYPE_PKCS12 ||
+	     vpninfo->cert_type == CERT_TYPE_UNKNOWN)) {
 		FILE *f;
 		PKCS12 *p12;
 
@@ -640,16 +696,70 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	}
 
 	/* It's PEM or TPM now, and either way we need to load the plain cert: */
-	if (!SSL_CTX_use_certificate_chain_file(vpninfo->https_ctx,
-						vpninfo->cert)) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Loading certificate failed\n"));
-		openconnect_report_ssl_errors(vpninfo);
-		return -EINVAL;
+#ifdef ANDROID_KEYSTORE
+	if (!strncmp(vpninfo->cert, "keystore:", 9)) {
+		BIO *b = BIO_from_keystore(vpninfo, vpninfo->cert);
+		if (!b)
+			return -EINVAL;
+		vpninfo->cert_x509 = PEM_read_bio_X509_AUX(b, NULL, pem_pw_cb, vpninfo);
+		BIO_free(b);
+		if (!vpninfo->cert_x509) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to load X509 certificate from keystore\n"));
+			openconnect_report_ssl_errors(vpninfo);
+			BIO_free(b);
+			return -EINVAL;
+		}
+		if (!SSL_CTX_use_certificate(vpninfo->https_ctx, vpninfo->cert_x509)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to use X509 certificate from keystore\n"));
+			openconnect_report_ssl_errors(vpninfo);
+			X509_free(vpninfo->cert_x509);
+			vpninfo->cert_x509 = NULL;
+			return -EINVAL;
+		}
+	} else
+#endif /* ANDROID_KEYSTORE */
+	{
+		if (!SSL_CTX_use_certificate_chain_file(vpninfo->https_ctx,
+							vpninfo->cert)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Loading certificate failed\n"));
+			openconnect_report_ssl_errors(vpninfo);
+			return -EINVAL;
+		}
+
+		/* Ew, we can't get it back from the OpenSSL CTX in any sane fashion */
+		reload_pem_cert(vpninfo);
 	}
 
-	/* Ew, we can't get it back from the OpenSSL CTX in any sane fashion */
-	reload_pem_cert(vpninfo);
+#ifdef ANDROID_KEYSTORE
+	if (!strncmp(vpninfo->sslkey, "keystore:", 9)) {
+		EVP_PKEY *key;
+		BIO *b;
+
+	again_android:
+		b = BIO_from_keystore(vpninfo, vpninfo->sslkey);
+		if (!b)
+			return -EINVAL;
+		key = PEM_read_bio_PrivateKey(b, NULL, pem_pw_cb, vpninfo);
+		BIO_free(b);
+		if (!key) {
+			if (is_pem_password_error(vpninfo))
+				goto again_android;
+			return -EINVAL;
+		}
+		if (!SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to use private key from keystore\n"));
+			EVP_PKEY_free(key);
+			X509_free(vpninfo->cert_x509);
+			vpninfo->cert_x509 = NULL;
+			return -EINVAL;
+		}
+		return 0;
+	}
+#endif /* ANDROID */
 
 	if (vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
 		FILE *f = fopen(vpninfo->sslkey, "r");
@@ -692,24 +802,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
  again:
 	if (!SSL_CTX_use_RSAPrivateKey_file(vpninfo->https_ctx, vpninfo->sslkey,
 					    SSL_FILETYPE_PEM)) {
-		unsigned long err = ERR_peek_error();
-		
-		openconnect_report_ssl_errors(vpninfo);
-
-#ifndef EVP_F_EVP_DECRYPTFINAL_EX
-#define EVP_F_EVP_DECRYPTFINAL_EX EVP_F_EVP_DECRYPTFINAL
-#endif
-		/* If the user fat-fingered the passphrase, try again */
-		if (ERR_GET_LIB(err) == ERR_LIB_EVP &&
-		    ERR_GET_FUNC(err) == EVP_F_EVP_DECRYPTFINAL_EX &&
-		    ERR_GET_REASON(err) == EVP_R_BAD_DECRYPT) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Loading private key failed (wrong passphrase?)\n"));
+		if (is_pem_password_error(vpninfo))
 			goto again;
-		}
-		
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Loading private key failed (see above errors)\n"));
 		return -EINVAL;
 	}
 	return 0;
