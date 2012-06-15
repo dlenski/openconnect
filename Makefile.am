@@ -42,7 +42,7 @@ endif
 
 pkgconfig_DATA = openconnect.pc
 
-EXTRA_DIST = version.sh COPYING.LGPL $(lib_srcs_openssl) $(lib_srcs_gnutls)
+EXTRA_DIST = version.sh COPYING.LGPL $(lib_srcs_openssl) $(lib_srcs_gnutls) Android.mk
 
 DISTCLEANFILES = $(pkgconfig_DATA)
 
@@ -120,3 +120,9 @@ po/$(PACKAGE).pot: $(POTFILES) Makefile
 	  --package-name="@PACKAGE@" --package-version="@VERSION@" \
 	  --msgid-bugs-address=openconnect-devel@lists.infradead.org \
 	  -o $@ $(POTFILES)
+
+Android.mk: Makefile.am
+	@for a in openconnect_SOURCES library_srcs lib_srcs_openssl noinst_HEADERS; do \
+		FILES=`grep "^$$a = " $(top_srcdir)/Makefile.am`; \
+		sed "s/^$$a = .*/$$FILES/" -i $(top_srcdir)/Android.mk;  \
+	done

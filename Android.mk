@@ -1,12 +1,15 @@
 LOCAL_PATH := $(call my-dir)
 
 
-# This list comes from the following variables in the normal Makefile.am:
-# $(openconnect_SOURCES) $(libopenconnect_la_SOURCES) $(noinst_HEADERS)
-common_SRC_FILES := \
-	xml.c main.c dtls.c cstp.c mainloop.c tun.c compat.c \
-	ssl.c http.c version.c auth.c library.c openssl.c \
-	openconnect-internal.h openconnect.h
+# These lists come from the same variables in Makefile.am:
+openconnect_SOURCES = xml.c main.c dtls.c cstp.c mainloop.c tun.c
+library_srcs = ssl.c http.c auth.c library.c compat.c
+lib_srcs_openssl = openssl.c
+noinst_HEADERS = openconnect-internal.h openconnect.h
+
+
+common_SRC_FILES := $(openconnect_SOURCES) $(library_srcs) $(lib_srcs_openssl) \
+	$(noinst_HEADERS) version.c
 
 common_CFLAGS += -DANDROID -DANDROID_KEYSTORE -DIF_TUN_HDR="<linux/if_tun.h>" \
 	-DDEFAULT_VPNCSCRIPT=NULL -DHAVE_ASPRINTF -DOPENCONNECT_OPENSSL
