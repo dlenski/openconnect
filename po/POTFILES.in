@@ -11,5 +11,7 @@ mainloop.c
 ssl.c
 openssl.c
 gnutls.c
+gnutls_pkcs12.c
+gnutls_tpm.c
 tun.c
 xml.c
