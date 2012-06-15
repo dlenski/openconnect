@@ -31,7 +31,14 @@
 #if defined (OPENCONNECT_OPENSSL) || defined(DTLS_OPENSSL)
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+/* Ick */
+#if OPENSSL_VERSION_NUMBER >= 0x00909000L
+#define method_const const
+#else
+#define method_const
 #endif
+#endif /* OPENSSL */
+
 #if defined (OPENCONNECT_GNUTLS)
 #include <gnutls/gnutls.h>
 #include <gnutls/abstract.h>
@@ -292,15 +299,6 @@ struct openconnect_info {
 #define AC_PKT_KEEPALIVE	7	/* Keepalive */
 #define AC_PKT_COMPRESSED	8	/* Compressed data */
 #define AC_PKT_TERM_SERVER	9	/* Server kick */
-
-/* Ick */
-#ifdef DTLS_OPENSSL
-#if OPENSSL_VERSION_NUMBER >= 0x00909000L
-#define method_const const
-#else
-#define method_const
-#endif
-#endif
 
 #define vpn_progress(vpninfo, ...) (vpninfo)->progress ((vpninfo)->cbdata, __VA_ARGS__)
 
