@@ -5,7 +5,7 @@ LOCAL_PATH := $(call my-dir)
 openconnect_SOURCES = xml.c main.c dtls.c cstp.c mainloop.c tun.c
 library_srcs = ssl.c http.c auth.c library.c compat.c
 lib_srcs_openssl = openssl.c
-noinst_HEADERS = openconnect-internal.h openconnect.h
+noinst_HEADERS = openconnect-internal.h openconnect.h gnutls.h
 
 
 common_SRC_FILES := $(openconnect_SOURCES) $(library_srcs) $(lib_srcs_openssl) \

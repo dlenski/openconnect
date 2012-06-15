@@ -33,7 +33,7 @@ libopenconnect_la_SOURCES = version.c $(library_srcs)
 libopenconnect_la_CFLAGS = $(SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(P11KIT_CFLAGS) $(TSS_CFLAGS)
 libopenconnect_la_LIBADD = $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LIBINTL) $(P11KIT_LIBS) $(TSS_LIBS)
 libopenconnect_la_LDFLAGS = -version-number @APIMAJOR@:@APIMINOR@
-noinst_HEADERS = openconnect-internal.h openconnect.h
+noinst_HEADERS = openconnect-internal.h openconnect.h gnutls.h
 include_HEADERS = openconnect.h
 if HAVE_SYMBOL_VERSIONING
 libopenconnect_la_LDFLAGS += -Wl,@VERSION_SCRIPT_ARG@,libopenconnect.map
