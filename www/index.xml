@@ -23,7 +23,8 @@ equipment.
 <p>Development of OpenConnect was started after a trial of their "official"
 client under Linux found it to have many deficiencies:</p>
 <ul>
-  <li>Inability to use SSL certificates from a <a href="http://en.wikipedia.org/wiki/Trusted_Platform_Module">TPM</a>, or even use a passphrase.</li>
+  <li>Inability to use SSL certificates from a <a href="http://en.wikipedia.org/wiki/Trusted_Platform_Module">TPM</a> or
+  <a href="http://en.wikipedia.org/wiki/PKCS11">PKCS#11</a> smartcard, or even use a passphrase.</li>
   <li>Lack of support for Linux platforms other than i386.</li>
   <li>Lack of integration with NetworkManager on the Linux desktop.</li>
   <li>Lack of proper (RPM/DEB) packaging for Linux distributions.</li>
