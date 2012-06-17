@@ -24,6 +24,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -363,5 +364,123 @@ int openconnect_print_err_cb(const char *str, size_t len, void *ptr)
 
 	vpn_progress(vpninfo, PRG_ERR, "%s", str);
 	return 0;
+}
+#endif
+
+#ifdef FAKE_ANDROID_KEYSTORE
+char *keystore_strerror(int err)
+{
+	return (char *)strerror(-err);
+}
+
+int keystore_fetch(const char *key, unsigned char **result)
+{
+	unsigned char *data;
+	struct stat st;
+	int fd;
+	int ret;
+
+	fd = open(key, O_RDONLY);
+	if (fd < 0)
+		return -errno;
+
+	if (fstat(fd, &st)) {
+		ret = -errno;
+		goto out_fd;
+	}
+
+	data = malloc(st.st_size);
+	if (!data) {
+		ret = -ENOMEM;
+		goto out_fd;
+	}
+
+	if (read(fd, data, st.st_size) != st.st_size) {
+		ret = -EIO;
+		free(data);
+		goto out_fd;
+	}
+	*result = data;
+	ret = st.st_size;
+ out_fd:
+	close(fd);
+	return ret;
+}
+#elif defined (ANDROID_KEYSTORE)
+#include <cutils/sockets.h>
+#include <keystore.h>
+char *keystore_strerror(int err)
+{
+	switch (-err) {
+	case NO_ERROR:		return _("No error");
+	case LOCKED:		return _("Keystore ocked");
+	case UNINITIALIZED:	return _("Keystore uninitialized");
+	case SYSTEM_ERROR:	return _("System error");
+	case PROTOCOL_ERROR:	return _("Protocol error");
+	case PERMISSION_DENIED:	return _("Permission denied");
+	case KEY_NOT_FOUND:	return _("Key not found");
+	case VALUE_CORRUPTED:	return _("Value corrupted");
+	case UNDEFINED_ACTION:	return _("Undefined action");
+	case WRONG_PASSWORD_0:
+	case WRONG_PASSWORD_1:
+	case WRONG_PASSWORD_2:
+	case WRONG_PASSWORD_3:	return _("Wrong password");
+	default:		return _("Unknown error");
+	}
+}
+
+/* Returns length, or a negative errno in its own namespace (handled by its
+   own strerror function above). The numbers are from Android's keystore.h */
+int keystore_fetch(const char *key, unsigned char **result)
+{
+	unsigned char *data, *p;
+	unsigned char buf[3];
+	int len, fd, ofs;
+	int ret = -SYSTEM_ERROR;
+
+	fd = socket_local_client("keystore",
+				 ANDROID_SOCKET_NAMESPACE_RESERVED,
+				 SOCK_STREAM);
+	if (fd < 0)
+		return -SYSTEM_ERROR;
+
+	len = strlen(key);
+	buf[0] = 'g';
+	buf[1] = len >> 8;
+	buf[2] = len & 0xff;
+
+	if (send(fd, buf, 3, 0) != 3 || send(fd, key, len, 0) != len ||
+	    shutdown(fd, SHUT_WR) || recv(fd, buf, 1, 0) != 1)
+		goto out;
+
+	if (buf[0] != NO_ERROR) {
+		/* Should never be zero */
+		ret = buf[0] ? -buf[0] : -PROTOCOL_ERROR;
+		goto out;
+	}
+	if (recv(fd, buf, 2, 0) != 2)
+		goto out;
+	len = (buf[0] << 8) + buf[1];
+	data = malloc(len);
+	if (!data)
+		goto out;
+	p  = data;
+	ret = len;
+	while (len) {
+		int got = recv(fd, p, len, 0);
+		if (got <= 0) {
+			free(data);
+			ret = -PROTOCOL_ERROR;
+			goto out;
+		}
+		len -= got;
+		p += got;
+	}
+
+	*result = data;
+
+ out:
+	close(fd);
+	return ret;
 }
 #endif

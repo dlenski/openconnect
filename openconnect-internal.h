@@ -346,6 +346,13 @@ int  __attribute__ ((format (printf, 2, 3)))
     openconnect_SSL_printf(struct openconnect_info *vpninfo, const char *fmt, ...);
 int openconnect_print_err_cb(const char *str, size_t len, void *ptr);
 #define openconnect_report_ssl_errors(v) ERR_print_errors_cb(openconnect_print_err_cb, (v))
+#ifdef FAKE_ANDROID_KEYSTORE
+#define ANDROID_KEYSTORE
+#endif
+#ifdef ANDROID_KEYSTORE
+char *keystore_strerror(int err);
+int keystore_fetch(const char *key, unsigned char **result);
+#endif
 
 /* ${SSL_LIBRARY}.c */
 int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len);
@@ -393,28 +400,5 @@ int add_securid_pin(char *token, char *pin);
 
 /* version.c */
 extern const char *openconnect_version_str;
-
-#ifdef ANDROID_KEYSTORE
-#include <keystore_get.h>
-#elif defined (FAKE_ANDROID_KEYSTORE) /* For testing */
-#define ANDROID_KEYSTORE
-#define KEYSTORE_MESSAGE_SIZE 16384
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-static inline int keystore_get(const char *p, int plen, char *content)
-{
-	int fd = open(p, O_RDONLY);
-	int len;
-	if (fd == -1)
-		return fd;
-	len = read(fd, content, KEYSTORE_MESSAGE_SIZE);
-	close(fd);
-	if (len <= 0)
-		return -1;
-	return len;
-}
-#endif /* FAKE_ANDROID_KEYSTORE */
 
 #endif /* __OPENCONNECT_INTERNAL_H__ */

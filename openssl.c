@@ -603,7 +603,7 @@ static int reload_pem_cert(struct openconnect_info *vpninfo)
 #ifdef ANDROID_KEYSTORE
 static BIO *BIO_from_keystore(struct openconnect_info *vpninfo, const char *item)
 {
-	char content[KEYSTORE_MESSAGE_SIZE];
+	unsigned char *content;
 	BIO *b;
 	int len;
 	const char *p = item + 9;
@@ -614,24 +614,23 @@ static BIO *BIO_from_keystore(struct openconnect_info *vpninfo, const char *item
 		p++;
 	if (*p == '/')
 		p++;
-	/* Old versions of keystore_get.h will return the input length
-	   instead of an error, in some circumstances. So check the
-	   content actually changes, too. */
-	content[0] = 0;
-	len = keystore_get(p, strlen(p), content);
-	if (len < 0 || content[0] == 0) {
+
+	len = keystore_fetch(p, &content);
+	if (len < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to lead item '%s' from keystore\n"),
-			     p);
+			     _("Failed to load item '%s' from keystore: %s\n"),
+			     p, keystore_strerror(len));
 		return NULL;
 	}
 	if (!(b = BIO_new(BIO_s_mem())) || BIO_write(b, content, len) != len) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to create BIO for keystore item '%s'\n"),
 			       p);
+		free(content);
 		BIO_free(b);
 		return NULL;
 	}
+	free(content);
 	return b;
 }
 #endif
