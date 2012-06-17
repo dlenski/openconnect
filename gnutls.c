@@ -1355,6 +1355,51 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		gnutls_certificate_set_verify_function (vpninfo->https_cred,
 							verify_peer);
 
+#ifdef ANDROID_KEYSTORE
+		if (vpninfo->cafile && !strncmp(vpninfo->cafile, "keystore:", 9)) {
+			gnutls_datum_t datum;
+			unsigned int nr_certs;
+
+			err = load_datum(vpninfo, &datum, vpninfo->cafile);
+			if (err < 0)
+				return err;
+
+			/* For GnuTLS 3.x We should use gnutls_x509_crt_list_import2() */
+			nr_certs = count_x509_certificates(&datum);
+			if (nr_certs) {
+				gnutls_x509_crt *certs;
+				int i;
+
+				certs = calloc(nr_certs, sizeof(*certs));
+				if (!certs) {
+					vpn_progress(vpninfo, PRG_ERR,
+						     _("Failed to allocate memory for cafile certs\n"));
+					gnutls_free(datum.data);
+					close(ssl_sock);
+					return -ENOMEM;
+				}
+				err = gnutls_x509_crt_list_import(certs, &nr_certs, &datum,
+								  GNUTLS_X509_FMT_PEM, 0);
+				gnutls_free(datum.data);
+				if (err >= 0) {
+					nr_certs = err;
+					err = gnutls_certificate_set_x509_trust(vpninfo->https_cred,
+										certs, nr_certs);
+				}
+				for (i = 0; i < nr_certs; i++)
+					gnutls_x509_crt_deinit(certs[i]);
+				free(certs);
+				if (err < 0) {
+					/* From crt_list_import or set_x509_trust */
+					vpn_progress(vpninfo, PRG_ERR,
+						     _("Failed to read certs from cafile: %s\n"),
+						     gnutls_strerror(err));
+					close(ssl_sock);
+					return -EINVAL;
+				}
+			}
+		} else
+#endif
 		if (vpninfo->cafile) {
 			err = gnutls_certificate_set_x509_trust_file(vpninfo->https_cred,
 								     vpninfo->cafile,
@@ -1373,6 +1418,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			if (err) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Loading certificate failed. Aborting.\n"));
+				close(ssl_sock);
 				return err;
 			}
 		}

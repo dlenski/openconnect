@@ -1317,6 +1317,42 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 #endif
 		SSL_CTX_set_default_verify_paths(vpninfo->https_ctx);
 
+#ifdef ANDROID_KEYSTORE
+		if (vpninfo->cafile && !strncmp(vpninfo->cafile, "keystore:", 9)) {
+			STACK_OF(X509_INFO) *stack;
+			X509_STORE *store;
+			X509_INFO *info;
+			BIO *b = BIO_from_keystore(vpninfo, vpninfo->cafile);
+
+			if (!b) {
+				close(ssl_sock);
+				return -EINVAL;
+			}
+
+			stack = PEM_X509_INFO_read_bio(b, NULL, NULL, NULL);
+			BIO_free(b);
+
+			if (!stack) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to read certs from CA file '%s'\n"),
+					     vpninfo->cafile);
+				openconnect_report_ssl_errors(vpninfo);
+				close(ssl_sock);
+				return -ENOENT;
+			}
+
+			store = SSL_CTX_get_cert_store(vpninfo->https_ctx);
+
+			while ((info = sk_X509_INFO_pop(stack))) {
+				if (info->x509)
+					X509_STORE_add_cert(store, info->x509);
+				if (info->crl)
+					X509_STORE_add_crl(store, info->crl);
+				X509_INFO_free(info);
+			}
+			sk_X509_INFO_free(stack);
+		} else
+#endif
 		if (vpninfo->cafile) {
 			if (!SSL_CTX_load_verify_locations(vpninfo->https_ctx, vpninfo->cafile, NULL)) {
 				vpn_progress(vpninfo, PRG_ERR,
