@@ -614,8 +614,12 @@ static BIO *BIO_from_keystore(struct openconnect_info *vpninfo, const char *item
 		p++;
 	if (*p == '/')
 		p++;
+	/* Old versions of keystore_get.h will return the input length
+	   instead of an error, in some circumstances. So check the
+	   content actually changes, too. */
+	content[0] = 0;
 	len = keystore_get(p, strlen(p), content);
-	if (len < 0) {
+	if (len < 0 || content[0] == 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to lead item '%s' from keystore\n"),
 			     p);
