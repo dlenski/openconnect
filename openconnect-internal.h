@@ -412,7 +412,7 @@ static inline int keystore_get(const char *p, int plen, char *content)
 	len = read(fd, content, KEYSTORE_MESSAGE_SIZE);
 	close(fd);
 	if (len <= 0)
-		return 0;
+		return -1;
 	return len;
 }
 #endif /* FAKE_ANDROID_KEYSTORE */
