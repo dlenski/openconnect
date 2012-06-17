@@ -712,7 +712,6 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to load X509 certificate from keystore\n"));
 			openconnect_report_ssl_errors(vpninfo);
-			BIO_free(b);
 			return -EINVAL;
 		}
 		if (!SSL_CTX_use_certificate(vpninfo->https_ctx, vpninfo->cert_x509)) {
