@@ -26,12 +26,13 @@ common_C_INCLUDES += \
 	external/openssl/include \
 	external/openssl/crypto \
 	external/zlib \
-	frameworks/base/cmds/keystore
+	frameworks/base/cmds/keystore \
+	system/core/include
 
 common_SHARED_LIBRARIES := libcutils \
 	libz \
 	libicuuc \
-	libicui18n
+	libicui18n libgabi++ libc
 
 ifneq ($(TARGET_SIMULATOR),true)
 	common_SHARED_LIBRARIES += libdl
