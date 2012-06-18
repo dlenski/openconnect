@@ -1515,8 +1515,8 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 		gnutls_certificate_free_credentials(vpninfo->https_cred);
 		vpninfo->https_cred = NULL;
 #ifdef HAVE_P11KIT
-		if (!strncmp(vpninfo->cert, "pkcs11:", 7) ||
-		    !strncmp(vpninfo->sslkey, "pkcs11:", 7)) {
+		if ((vpninfo->cert && !strncmp(vpninfo->cert, "pkcs11:", 7)) ||
+		    (vpninfo->sslkey && !strncmp(vpninfo->sslkey, "pkcs11:", 7))) {
 			char pin_source[40];
 
 			sprintf(pin_source, "openconnect:%p", vpninfo);
