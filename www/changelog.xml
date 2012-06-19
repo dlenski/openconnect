@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Add support for OpenSSL's odd encrypted PKCS#1 files, for GnuTLS.</li>
        <li>Fix repeated passphrase retry for OpenSSL.</li>
        <li>Add keystore support for Android.</li>
        <li>Support TPM, and also additional checks on PKCS#11 certs, even with GnuTLS 2.12.</li>

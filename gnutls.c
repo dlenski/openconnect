@@ -581,6 +581,281 @@ static int assign_privkey(struct openconnect_info *vpninfo,
 #endif /* !SET_KEY */
 #endif /* (P11KIT || TROUSERS) */
 
+static int openssl_hash_password(struct openconnect_info *vpninfo, char *pass,
+				 gnutls_datum_t *key, gnutls_datum_t *salt)
+{
+	unsigned char md5[16];
+	gnutls_hash_hd_t hash;
+	int count = 0;
+	int err;
+
+	while (count < key->size) {
+		err = gnutls_hash_init(&hash, GNUTLS_DIG_MD5);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Could not initialise MD5 hash: %s\n"),
+				     gnutls_strerror(err));
+			return -EIO;
+		}
+		if (count) {
+			err = gnutls_hash(hash, md5, sizeof(md5));
+			if (err) {
+			hash_err:
+				gnutls_hash_deinit(hash, NULL);
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("MD5 hash error: %s\n"),
+					     gnutls_strerror(err));
+				return -EIO;
+			}
+		}
+		if (pass) {
+			err = gnutls_hash(hash, pass, strlen(pass));
+			if (err)
+				goto hash_err;
+		}
+		err = gnutls_hash(hash, salt->data, salt->size);
+		if (err)
+			goto hash_err;
+
+		gnutls_hash_deinit(hash, md5);
+
+		if (key->size - count <= sizeof(md5)) {
+			memcpy(&key->data[count], md5, key->size - count);
+			break;
+		}
+
+		memcpy(&key->data[count], md5, sizeof(md5));
+		count += sizeof(md5);
+	}
+
+	return 0;
+}
+
+static int import_openssl_pem(struct openconnect_info *vpninfo,
+			      gnutls_x509_privkey_t key,
+			      char type, char *pem_header, size_t pem_size)
+{
+	gnutls_cipher_hd_t handle;
+	gnutls_cipher_algorithm_t cipher;
+	gnutls_datum_t constructed_pem;
+	gnutls_datum_t b64_data;
+	gnutls_datum_t salt, enc_key;
+	unsigned char *key_data;
+	const char *begin;
+	char *pass;
+	char *pem_start = pem_header;
+	int ret, err, i, iv_size;
+
+	if (type == 'E')
+		begin = "EC PRIVATE KEY";
+	else if (type == 'R')
+		begin = "RSA PRIVATE KEY";
+	else if (type == 'D')
+		 begin = "DSA PRIVATE KEY";
+	else
+		return -EINVAL;
+
+	while (*pem_header == '\r' || *pem_header == '\n')
+		pem_header++;
+
+	if (strncmp(pem_header, "DEK-Info: ", 10)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Missing DEK-Info: header from OpenSSL encrypted key\n"));
+		return -EIO;
+	}
+	pem_header += 10;
+	if (!strncmp(pem_header, "DES-EDE3-CBC,", 13)) {
+		pem_header += 13;
+		cipher = GNUTLS_CIPHER_3DES_CBC;
+		/* Pfft. _gnutls_cipher_get_iv_size() is internal */
+		iv_size = 8;
+	} else {
+		char *p = pem_header;
+
+		while (*p) {
+			if (*p == ',' || *p == '\r' || *p == '\n' || p == pem_header+20) {
+				*p = 0;
+				break;
+			}
+			p++;
+		}
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Unsupported PEM encryption type: %s\n"),
+			     pem_header);
+		return -EINVAL;
+	}
+	salt.size = iv_size;
+	salt.data = malloc(salt.size);
+	if (!salt.data)
+		return -ENOMEM;
+	for (i = 0; i < salt.size * 2; i++) {
+		unsigned char x;
+		char *c = &pem_header[i];
+
+		if (*c >= '0' && *c <= '9')
+			x = (*c) - '0';
+		else if (*c >= 'A' && *c <= 'F')
+			x = (*c) - 'A' + 10;
+		else {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Invalid salt in encrypted PEM file\n"));
+			ret = -EINVAL;
+			goto out_salt;
+		}
+		if (i & 1)
+			salt.data[i/2] |= x;
+		else
+			salt.data[i/2] = x << 4;
+	}
+
+	pem_header += salt.size * 2;
+	if (*pem_header != '\r' && *pem_header != '\n') {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Invalid encrypted PEM file\n"));
+		ret = -EINVAL;
+		goto out_salt;
+	}
+	while (*pem_header == '\n' || *pem_header == '\r')
+		pem_header++;
+
+	/* pem_header should now point to the start of the base64 content.
+	   Put a -----BEGIN banner in place before it, so that we can use
+	   gnutls_pem_base64_decode_alloc(). The banner has to match the
+	   -----END banner, so make sure we get it right... */
+	pem_header -= 6;
+	memcpy(pem_header, "-----\n", 6);
+	pem_header -= strlen(begin);
+	memcpy(pem_header, begin, strlen(begin));
+	pem_header -= 11;
+	memcpy(pem_header, "-----BEGIN ", 11);
+
+	constructed_pem.data = (void *)pem_header;
+	constructed_pem.size = pem_size - (pem_header - pem_start);
+
+	err = gnutls_pem_base64_decode_alloc(begin, &constructed_pem, &b64_data);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Error base64-decoding encrypted PEM file: %s\n"),
+			     gnutls_strerror(err));
+		ret = -EINVAL;
+		goto out_salt;
+	}
+	if (b64_data.size < 16) {
+		/* Just to be sure our parsing is OK */
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Encrypted PEM file too short\n"));
+		ret = -EINVAL;
+		goto out_b64;
+	}
+
+	ret = -ENOMEM;
+	enc_key.size = gnutls_cipher_get_key_size(cipher);
+	enc_key.data = malloc(enc_key.size);
+	if (!enc_key.data)
+		goto out_b64;
+
+	key_data = malloc(b64_data.size);
+	if (!key_data)
+		goto out_enc_key;
+
+	pass = vpninfo->cert_password;
+	vpninfo->cert_password = NULL;
+
+	while (1) {
+		memcpy(key_data, b64_data.data, b64_data.size);
+
+		ret = openssl_hash_password(vpninfo, pass, &enc_key, &salt);
+		if (ret)
+			goto out;
+
+		err = gnutls_cipher_init(&handle, cipher, &enc_key, &salt);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to initialise cipher for decrypting PEM file: %s\n"),
+				     gnutls_strerror(err));
+			gnutls_cipher_deinit(handle);
+			ret = -EIO;
+			goto out;
+		}
+
+		err = gnutls_cipher_decrypt(handle, key_data, b64_data.size);
+		gnutls_cipher_deinit(handle);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to decrypt PEM key: %s\n"),
+				     gnutls_strerror(err));
+			ret = -EIO;
+			goto out;
+		}
+
+		/* We have to strip any padding for GnuTLS to accept it.
+		   So a bit more ASN.1 parsing for us.
+		   FIXME: Consolidate with similar code in gnutls_tpm.c */
+		if (key_data[0] == 0x30) {
+			gnutls_datum_t key_datum;
+			int blocksize = gnutls_cipher_get_block_size(cipher);
+			int keylen = key_data[1];
+			int ofs = 2;
+
+			if (keylen & 0x80) {
+				int lenlen = keylen & 0x7f;
+				keylen = 0;
+
+				if (lenlen > 3)
+					goto fail;
+
+				while (lenlen) {
+					keylen <<= 8;
+					keylen |= key_data[ofs++];
+					lenlen--;
+				}
+			}
+			keylen += ofs;
+
+			/* If there appears to be more padding than required, fail */
+			if (b64_data.size - keylen >= blocksize)
+				goto fail;
+
+			/* If the padding bytes aren't all equal to the amount of padding, fail */
+			ofs = keylen;
+			while (ofs < b64_data.size) {
+				if (key_data[ofs] != b64_data.size - keylen)
+					goto fail;
+				ofs++;
+			}
+
+			key_datum.data = key_data;
+			key_datum.size = keylen;
+			err = gnutls_x509_privkey_import(key, &key_datum, GNUTLS_X509_FMT_DER);
+			if (!err) {
+				ret = 0;
+				goto out;
+			}
+		}
+ fail:
+		if (pass) {
+			vpn_progress(vpninfo, PRG_ERR,  _("Decrypting PEM key failed\n"));
+			free(pass);
+		}
+		err = request_passphrase(vpninfo, "openconnect_pem",
+					 &pass, _("Enter PEM pass phrase:"));
+		if (err) {
+			ret = -EINVAL;
+			goto out;
+		}
+	}
+ out:
+	free(key_data);
+	free(pass);
+ out_enc_key:
+	free(enc_key.data);
+ out_b64:
+	free(b64_data.data);
+ out_salt:
+	free(salt.data);
+	return ret;
+}
+
 static int load_certificate(struct openconnect_info *vpninfo)
 {
 	gnutls_datum_t fdata;
@@ -595,6 +870,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	char *key_url = (char *)vpninfo->sslkey;
 	gnutls_pkcs11_privkey_t p11key = NULL;
 #endif
+	char *pem_header;
 	gnutls_x509_crl_t crl = NULL;
 	gnutls_x509_crt_t last_cert, cert = NULL;
 	gnutls_x509_crt_t *extra_certs = NULL, *supporting_certs = NULL;
@@ -847,27 +1123,47 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 	/* OK, try other PEM files... */
 	gnutls_x509_privkey_init(&key);
-	/* Try PKCS#1 (and PKCS#8 without password) first. GnuTLS doesn't
-	   support OpenSSL's old PKCS#1-based encrypted format. We should
-	   probably check for it and give a more coherent failure mode. */
-	err = gnutls_x509_privkey_import(key, &fdata, GNUTLS_X509_FMT_PEM);
-	if (err) {
-		/* If that fails, try PKCS#8 */
+	if ((pem_header = strstr((char *)fdata.data, "-----BEGIN RSA PRIVATE KEY-----")) ||
+	    (pem_header = strstr((char *)fdata.data, "-----BEGIN DSA PRIVATE KEY-----")) ||
+	    (pem_header = strstr((char *)fdata.data, "-----BEGIN EC PRIVATE KEY-----"))) {
+		/* PKCS#1 files, including OpenSSL's odd encrypted version */
+		char type = pem_header[11];
+		char *p = strchr(pem_header, '\n');
+		if (!p) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to interpret PEM file\n"));
+			ret = -EINVAL;
+			goto out;
+		}
+		while (*p == '\n' || *p == '\r')
+			p++;
+
+		if (!strncmp(p, "Proc-Type: 4,ENCRYPTED", 22)) {
+			p += 22;
+			while (*p == '\n' || *p == '\r')
+				p++;
+			ret = import_openssl_pem(vpninfo, key, type, p,
+						 fdata.size - (p - (char *)fdata.data));
+			if (ret)
+				goto out;
+		} else {
+			err = gnutls_x509_privkey_import(key, &fdata, GNUTLS_X509_FMT_PEM);
+			if (err) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to load PKCS#1 private key: %s\n"),
+					     gnutls_strerror(err));
+				ret = -EINVAL;
+				goto out;
+			}
+		}
+	} else if (strstr((char *)fdata.data, "-----BEGIN ENCRYPTED PRIVATE KEY-----") ||
+		   strstr((char *)fdata.data, "-----BEGIN PRIVATE KEY-----")) {
+		/* PKCS#8 */
 		char *pass = vpninfo->cert_password;
 
-		/* Yay, just for fun this is *different* to PKCS#12. Where we could
-		   try an empty password there, in this case the empty-password case
-		   has already been *tried* by gnutls_x509_privkey_import(). If we
-		   just call gnutls_x509_privkey_import_pkcs8() with a NULL password,
-		   it'll SEGV. You have to set the GNUTLS_PKCS_PLAIN flag if you want
-		   to try without a password. Passing NULL evidently isn't enough of
-		   a hint. And in GnuTLS 3.1 where that crash has been fixed, passing
-		   NULL will cause it to return GNUTLS_E_ENCRYPTED_STRUCTURE (a new
-		   error code) rather than GNUTLS_E_DECRYPTION_FAILED. So just pass ""
-		   instead of NULL, and don't worry about either case. */
 		while ((err = gnutls_x509_privkey_import_pkcs8(key, &fdata,
 							       GNUTLS_X509_FMT_PEM,
-							       pass?pass:"", 0))) {
+							       pass, pass?0:GNUTLS_PKCS_PLAIN))) {
 			if (err != GNUTLS_E_DECRYPTION_FAILED) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to load private key as PKCS#8: %s\n"),
@@ -890,6 +1186,12 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		}
 		free(pass);
 		vpninfo->cert_password = NULL;
+	} else {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to determine type of private key %s\n"),
+			     vpninfo->sslkey);
+		ret = -EINVAL;
+		goto out;
 	}
 
 	/* Now attempt to make sure we use the *correct* certificate, to match
