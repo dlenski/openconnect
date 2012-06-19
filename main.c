@@ -871,7 +871,7 @@ static int write_new_config(void *_vpninfo, char *buf, int buflen)
 
 		return -err;
 	}
-	  
+
 	return 0;
 }
 
@@ -953,7 +953,7 @@ static int validate_peer_cert(void *_vpninfo, OPENCONNECT_X509 *peer_cert,
 		    !strcasecmp(this->fingerprint, fingerprint))
 			return 0;
 	}
-	
+
 	while (1) {
 		char buf[80];
 		char *details;
@@ -992,7 +992,6 @@ static int validate_peer_cert(void *_vpninfo, OPENCONNECT_X509 *peer_cert,
 		free(details);
 		fprintf(stderr, _("SHA1 fingerprint: %s\n"), fingerprint);
 	}
-				
 }
 
 
@@ -1055,7 +1054,7 @@ static int process_auth_form(void *_vpninfo,
 			if (non_inter) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("User input required in non-interactive mode\n"));
-				return -EINVAL;
+				goto err;
 			}
 			fprintf(stderr, "%s [", opt->label);
 			for (i = 0; i < select_opt->nr_choices; i++) {
@@ -1069,7 +1068,7 @@ static int process_auth_form(void *_vpninfo,
 			fflush(stderr);
 
 			if (!fgets(response, sizeof(response), stdin) || !strlen(response))
-				return -EINVAL;
+				goto err;
 
 			p = strchr(response, '\n');
 			if (p)
@@ -1087,7 +1086,7 @@ static int process_auth_form(void *_vpninfo,
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Auth choice \"%s\" not valid\n"),
 					     response);
-				return -EINVAL;
+				goto err;
 			}
 		}
 	}
@@ -1099,21 +1098,21 @@ static int process_auth_form(void *_vpninfo,
 			    !strcmp(opt->name, "username")) {
 				opt->value = strdup(vpninfo->username);
 				if (!opt->value)
-					return -ENOMEM;
+					goto err;
 			} else if (non_inter) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("User input required in non-interactive mode\n"));
-				return -EINVAL;
+				goto err;
 			} else {
 				opt->value=malloc(80);
 				if (!opt->value)
-					return -ENOMEM;
+					goto err;
 
 				fprintf(stderr, "%s", opt->label);
 				fflush(stderr);
 
 				if (!fgets(opt->value, 80, stdin) || !strlen(opt->value))
-					return -EINVAL;
+					goto err;
 
 				p = strchr(opt->value, '\n');
 				if (p)
@@ -1126,16 +1125,16 @@ static int process_auth_form(void *_vpninfo,
 				opt->value = vpninfo->password;
 				vpninfo->password = NULL;
 				if (!opt->value)
-					return -ENOMEM;
+					goto err;
 			} else if (non_inter) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("User input required in non-interactive mode\n"));
-				return -EINVAL;
+				goto err;
 			} else {
 				struct termios t;
 				opt->value=malloc(80);
 				if (!opt->value)
-					return -ENOMEM;
+					goto err;
 
 				fprintf(stderr, "%s", opt->label);
 				fflush(stderr);
@@ -1149,9 +1148,9 @@ static int process_auth_form(void *_vpninfo,
 				t.c_lflag |= ECHO;
 				tcsetattr(0, TCSANOW, &t);
 				fprintf(stderr, "\n");
-				
+
 				if (!p || !strlen(opt->value))
-					return -EINVAL;
+					goto err;
 
 				p = strchr(opt->value, '\n');
 				if (p)
@@ -1167,4 +1166,14 @@ static int process_auth_form(void *_vpninfo,
 	}
 
 	return 0;
+
+ err:
+	for (opt = form->opts; opt; opt = opt->next) {
+		if (opt->value && (opt->type == OC_FORM_OPT_TEXT ||
+				   opt->type == OC_FORM_OPT_PASSWORD)) {
+			free(opt->value);
+			opt->value = NULL;
+		}
+	}
+	return -EINVAL;
 }
