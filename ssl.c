@@ -389,7 +389,7 @@ int keystore_fetch(const char *key, unsigned char **result)
 		goto out_fd;
 	}
 
-	data = malloc(st.st_size);
+	data = malloc(st.st_size + 1);
 	if (!data) {
 		ret = -ENOMEM;
 		goto out_fd;
@@ -400,6 +400,8 @@ int keystore_fetch(const char *key, unsigned char **result)
 		free(data);
 		goto out_fd;
 	}
+
+	data[st.st_size] = 0;
 	*result = data;
 	ret = st.st_size;
  out_fd:
