@@ -101,11 +101,15 @@ tag: uncommitted-check
 	@git tag v$(VERSION)
 	@cd $(srcdir) && ./autogen.sh
 
-update-translations:
+update-translations: po/$(PACKAGE).pot
 	@cd $(top_srcdir); if ! git diff-index --name-only --exit-code HEAD -- po/; then \
 		echo "*** ERROR: Uncommitted changes in above files"; exit 1; \
 	else \
-		tx pull -af ; git commit -s -m "Update translations from Transifex" -- po/ ; \
+		tx pull -af && \
+		for a in po/*.po; do \
+			msgmerge -F $$a $(abs_builddir)/po/$(PACKAGE).pot > $$a.new && mv $$a.new $$a ; \
+		done && \
+		git commit -s -m "Update translations from Transifex" -- po/ ; \
 	fi
 
 upload-pot: po/$(PACKAGE).pot
