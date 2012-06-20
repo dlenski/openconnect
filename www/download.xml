@@ -19,17 +19,15 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.99.tar.gz">OpenConnect v3.99</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-3.99.tar.gz.asc">PGP signature</a>)</i>,
-released on 2012-06-13 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.00.tar.gz">OpenConnect v4.00</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.00.tar.gz.asc">PGP signature</a>)</i>,
+released on 2012-06-20 with the following changelog:</p>
      <ul>
-       <li>Enable native TPM support when built with GnuTLS.</li>
-       <li>Enable PKCS#11 token support when built with GnuTLS.</li>
-       <li>Eliminate all SSL library exposure through <tt>libopenconnect</tt>.</li>
-       <li>Parse split DNS information, provide <tt>$CISCO_SPLIT_DNS</tt> environment variable to <tt>vpnc-script</tt>.</li>
-       <li>Attempt to provide new-style MTU information to server <i>(on Linux only, unless specified on command line)</i>.</li>
-       <li>Allow building against GnuTLS, including DTLS support.</li>
-       <li>Add <tt>--with-pkgconfigdir=</tt> option to <tt>configure</tt> for FreeBSD's benefit <i>(<a href="https://bugs.freedesktop.org/show_bug.cgi?id=48743">fd#48743</a>)</i>.</li>
+       <li>Add support for OpenSSL's odd encrypted PKCS#1 files, for GnuTLS.</li>
+       <li>Fix repeated passphrase retry for OpenSSL.</li>
+       <li>Add keystore support for Android.</li>
+       <li>Support TPM, and also additional checks on PKCS#11 certs, even with GnuTLS 2.12.</li>
+       <li>Fix library references to OpenSSL's <tt>ERR_print_errors_cb()</tt> when built against GnuTLS v2.12.</li>
      </ul>
 <!-- latest-release-end -->
 

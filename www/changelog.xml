@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.00.tar.gz">OpenConnect v4.00</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.00.tar.gz.asc">PGP signature</a>)</i> &#8212; 2012-06-20
+     <ul>
        <li>Add support for OpenSSL's odd encrypted PKCS#1 files, for GnuTLS.</li>
        <li>Fix repeated passphrase retry for OpenSSL.</li>
        <li>Add keystore support for Android.</li>
