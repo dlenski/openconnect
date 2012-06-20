@@ -433,7 +433,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	if (vpninfo->process_auth_form)
 		ret = vpninfo->process_auth_form(vpninfo->cbdata, form);
 	else {
-		vpn_progress(vpninfo, PRG_ERR, _("No form handler; cannot authentiate."));
+		vpn_progress(vpninfo, PRG_ERR, _("No form handler; cannot authenticate."));
 		ret = 1;
 	}
 	if (ret)
