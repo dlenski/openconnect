@@ -1,21 +1,22 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# 
+#
 # Translators:
 # Cheng-Chia Tseng <pswo10680@gmail.com>, 2011.
 msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-06-13 21:42+0100\n"
-"PO-Revision-Date: 2012-06-13 20:42+0000\n"
+"POT-Creation-Date: 2012-06-20 15:42+0100\n"
+"PO-Revision-Date: 2012-06-20 08:43+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
-"Language-Team: Chinese (Taiwan) (http://www.transifex.net/projects/p/meego/language/zh_TW/)\n"
+"Language-Team: Chinese (Taiwan) (http://www.transifex.net/projects/p/meego/"
+"language/zh_TW/)\n"
+"Language: zh_TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: zh_TW\n"
 "Plural-Forms: nplurals=1; plural=0\n"
 
 #: auth.c:121
@@ -68,7 +69,7 @@ msgid "Cannot handle form method='%s', action='%s'\n"
 msgstr ""
 
 #: auth.c:436
-msgid "No form handler; cannot authentiate."
+msgid "No form handler; cannot authenticate."
 msgstr ""
 
 #: cstp.c:120
@@ -250,7 +251,7 @@ msgstr ""
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr ""
 
-#: cstp.c:842 dtls.c:694
+#: cstp.c:842 dtls.c:695
 msgid "Reconnect failed\n"
 msgstr ""
 
@@ -282,23 +283,23 @@ msgstr ""
 msgid "Send BYE packet: %s\n"
 msgstr ""
 
-#: dtls.c:130
+#: dtls.c:131
 msgid "Initialise DTLSv1 CTX failed\n"
 msgstr ""
 
-#: dtls.c:142
+#: dtls.c:143
 msgid "Set DTLS cipher list failed\n"
 msgstr ""
 
-#: dtls.c:155
+#: dtls.c:156
 msgid "Initialise DTLSv1 session failed\n"
 msgstr ""
 
-#: dtls.c:176
+#: dtls.c:177
 msgid "Not precisely one DTLS cipher\n"
 msgstr ""
 
-#: dtls.c:194
+#: dtls.c:195
 #, c-format
 msgid ""
 "SSL_set_session() failed with old protocol version 0x%x\n"
@@ -307,156 +308,659 @@ msgid ""
 "Use the --no-dtls command line option to avoid this message\n"
 msgstr ""
 
-#: dtls.c:220
+#: dtls.c:221
 msgid "Established DTLS connection (using OpenSSL)\n"
 msgstr ""
 
-#: dtls.c:258
-msgid ""
-"Your OpenSSL is older than the one you built against, so DTLS may fail!"
+#: dtls.c:259
+msgid "Your OpenSSL is older than the one you built against, so DTLS may fail!"
 msgstr ""
 
-#: dtls.c:302 dtls.c:432
+#: dtls.c:303 dtls.c:433
 msgid "DTLS handshake timed out\n"
 msgstr ""
 
-#: dtls.c:305
+#: dtls.c:306
 #, c-format
 msgid "DTLS handshake failed: %d\n"
 msgstr ""
 
-#: dtls.c:359
+#: dtls.c:360
 #, c-format
 msgid "Unknown DTLS parameters for requested CipherSuite '%s'\n"
 msgstr ""
 
-#: dtls.c:372
+#: dtls.c:373
 #, c-format
 msgid "Failed to set DTLS priority: %s\n"
 msgstr ""
 
-#: dtls.c:391
+#: dtls.c:392
 #, c-format
 msgid "Failed to set DTLS session parameters: %s\n"
 msgstr ""
 
-#: dtls.c:407
+#: dtls.c:408
 msgid "Established DTLS connection (using GnuTLS)\n"
 msgstr ""
 
-#: dtls.c:435
+#: dtls.c:436
 #, c-format
 msgid "DTLS handshake failed: %s\n"
 msgstr ""
 
-#: dtls.c:469
+#: dtls.c:470
 msgid "No DTLS address\n"
 msgstr ""
 
 #. We probably didn't offer it any ciphers it liked
-#: dtls.c:476
+#: dtls.c:477
 msgid "Server offered no DTLS cipher option\n"
 msgstr ""
 
 #. XXX: Theoretically, SOCKS5 proxies can do UDP too
-#: dtls.c:483
+#: dtls.c:484
 msgid "No DTLS when connected via proxy\n"
 msgstr ""
 
-#: dtls.c:490
+#: dtls.c:491
 msgid "Open UDP socket for DTLS:"
 msgstr ""
 
-#: dtls.c:495
+#: dtls.c:496
 msgid "UDP (DTLS) connect:\n"
 msgstr ""
 
-#: dtls.c:557
+#: dtls.c:558
 #, c-format
 msgid "DTLS option %s : %s\n"
 msgstr ""
 
-#: dtls.c:596
+#: dtls.c:597
 #, c-format
 msgid "Unknown protocol family %d. Cannot do DTLS\n"
 msgstr ""
 
-#: dtls.c:606
+#: dtls.c:607
 #, c-format
 msgid "DTLS connected. DPD %d, Keepalive %d\n"
 msgstr ""
 
-#: dtls.c:637
+#: dtls.c:638
 #, c-format
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
 msgstr ""
 
-#: dtls.c:651
+#: dtls.c:652
 msgid "Got DTLS DPD request\n"
 msgstr ""
 
-#: dtls.c:657
+#: dtls.c:658
 msgid "Failed to send DPD response. Expect disconnect\n"
 msgstr ""
 
-#: dtls.c:661
+#: dtls.c:662
 msgid "Got DTLS DPD response\n"
 msgstr ""
 
-#: dtls.c:665
+#: dtls.c:666
 msgid "Got DTLS Keepalive\n"
 msgstr ""
 
-#: dtls.c:670
+#: dtls.c:671
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
 msgstr ""
 
-#: dtls.c:689
+#: dtls.c:690
 msgid "DTLS rekey due\n"
 msgstr ""
 
-#: dtls.c:700
+#: dtls.c:701
 msgid "DTLS rekey failed\n"
 msgstr ""
 
-#: dtls.c:708
+#: dtls.c:709
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
 msgstr ""
 
-#: dtls.c:714
+#: dtls.c:715
 msgid "Send DTLS DPD\n"
 msgstr ""
 
-#: dtls.c:719
+#: dtls.c:720
 msgid "Failed to send DPD request. Expect disconnect\n"
 msgstr ""
 
-#: dtls.c:732
+#: dtls.c:733
 msgid "Send DTLS Keepalive\n"
 msgstr ""
 
-#: dtls.c:737
+#: dtls.c:738
 msgid "Failed to send keepalive request. Expect disconnect\n"
 msgstr ""
 
-#: dtls.c:766
+#: dtls.c:767
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
 msgstr ""
 
-#: dtls.c:780
+#: dtls.c:781
 #, c-format
 msgid "DTLS got write error: %s. Falling back to SSL\n"
 msgstr ""
 
-#: dtls.c:791
+#: dtls.c:792
 #, c-format
 msgid "Sent DTLS packet of %d bytes; DTLS send returned %d\n"
 msgstr ""
 
-#: dtls.c:803
+#: dtls.c:804
 msgid "Built against SSL library with no Cisco DTLS support\n"
+msgstr ""
+
+#: gnutls.c:82
+#, c-format
+msgid "Failed to write to SSL socket: %s"
+msgstr ""
+
+#: gnutls.c:105 openssl.c:122
+msgid "SSL write cancelled\n"
+msgstr ""
+
+#: gnutls.c:122
+#, c-format
+msgid "Failed to read from SSL socket: %s"
+msgstr ""
+
+#: gnutls.c:142 gnutls.c:200 openssl.c:159 openssl.c:217
+msgid "SSL read cancelled\n"
+msgstr ""
+
+#: gnutls.c:176
+#, c-format
+msgid "Failed to read from SSL socket: %s\n"
+msgstr ""
+
+#: gnutls.c:218
+msgid "Could not extract expiration time of certificate\n"
+msgstr ""
+
+#: gnutls.c:223 openssl.c:1240
+msgid "Client certificate has expired at"
+msgstr ""
+
+#: gnutls.c:225 openssl.c:1245
+msgid "Client certificate expires soon at"
+msgstr ""
+
+#: gnutls.c:264 openssl.c:621
+#, c-format
+msgid "Failed to load item '%s' from keystore: %s\n"
+msgstr ""
+
+#: gnutls.c:277
+#, c-format
+msgid "Failed to open key/certificate file %s: %s\n"
+msgstr ""
+
+#: gnutls.c:284
+#, c-format
+msgid "Failed to stat key/certificate file %s: %s\n"
+msgstr ""
+
+#: gnutls.c:293
+msgid "Failed to allocate certificate buffer\n"
+msgstr ""
+
+#: gnutls.c:301
+#, c-format
+msgid "Failed to read certificate into memory: %s\n"
+msgstr ""
+
+#: gnutls.c:332
+#, c-format
+msgid "Failed to setup PKCS#12 data structure: %s\n"
+msgstr ""
+
+#: gnutls.c:343
+#, c-format
+msgid "Failed to import PKCS#12 file: %s\n"
+msgstr ""
+
+#: gnutls.c:352
+msgid "Failed to decrypt PKCS#12 certificate file\n"
+msgstr ""
+
+#: gnutls.c:356 openssl.c:429
+msgid "Enter PKCS#12 pass phrase:"
+msgstr ""
+
+#: gnutls.c:380
+#, c-format
+msgid "Failed to process PKCS#12 file: %s\n"
+msgstr ""
+
+#: gnutls.c:392
+#, c-format
+msgid "Failed to load PKCS#12 certificate: %s\n"
+msgstr ""
+
+#: gnutls.c:562
+#, c-format
+msgid "Importing X509 certificate failed: %s\n"
+msgstr ""
+
+#: gnutls.c:572
+#, c-format
+msgid "Setting PKCS#11 certificate failed: %s\n"
+msgstr ""
+
+#: gnutls.c:596
+#, c-format
+msgid "Could not initialise MD5 hash: %s\n"
+msgstr ""
+
+#: gnutls.c:606
+#, c-format
+msgid "MD5 hash error: %s\n"
+msgstr ""
+
+#: gnutls.c:663
+msgid "Missing DEK-Info: header from OpenSSL encrypted key\n"
+msgstr ""
+
+#: gnutls.c:683
+#, c-format
+msgid "Unsupported PEM encryption type: %s\n"
+msgstr ""
+
+#: gnutls.c:701
+msgid "Invalid salt in encrypted PEM file\n"
+msgstr ""
+
+#: gnutls.c:714
+msgid "Invalid encrypted PEM file\n"
+msgstr ""
+
+#: gnutls.c:738
+#, c-format
+msgid "Error base64-decoding encrypted PEM file: %s\n"
+msgstr ""
+
+#: gnutls.c:746
+msgid "Encrypted PEM file too short\n"
+msgstr ""
+
+#: gnutls.c:774
+#, c-format
+msgid "Failed to initialise cipher for decrypting PEM file: %s\n"
+msgstr ""
+
+#: gnutls.c:785
+#, c-format
+msgid "Failed to decrypt PEM key: %s\n"
+msgstr ""
+
+#: gnutls.c:837
+msgid "Decrypting PEM key failed\n"
+msgstr ""
+
+#: gnutls.c:841 gnutls.c:1181 openssl.c:394
+msgid "Enter PEM pass phrase:"
+msgstr ""
+
+#: gnutls.c:895 openssl.c:667
+msgid "This binary built without PKCS#11 support\n"
+msgstr ""
+
+#: gnutls.c:945
+#, c-format
+msgid "Using PKCS#11 certificate %s\n"
+msgstr ""
+
+#: gnutls.c:958
+#, c-format
+msgid "Error loading certificate from PKCS#11: %s\n"
+msgstr ""
+
+#: gnutls.c:969 openssl.c:672
+#, c-format
+msgid "Using certificate file %s\n"
+msgstr ""
+
+#: gnutls.c:992
+msgid "PKCS#11 file contained no certificate\n"
+msgstr ""
+
+#: gnutls.c:1018
+msgid "No certificate found in file"
+msgstr ""
+
+#: gnutls.c:1023
+#, c-format
+msgid "Loading certificate failed: %s\n"
+msgstr ""
+
+#: gnutls.c:1038
+#, c-format
+msgid "Using PKCS#11 key %s\n"
+msgstr ""
+
+#: gnutls.c:1043
+#, c-format
+msgid "Error initialising PKCS#11 key structure: %s\n"
+msgstr ""
+
+#: gnutls.c:1052
+#, c-format
+msgid "Error importing PKCS#11 URL %s: %s\n"
+msgstr ""
+
+#: gnutls.c:1062
+#, c-format
+msgid "Error initialising private key structure: %s\n"
+msgstr ""
+
+#: gnutls.c:1072
+#, c-format
+msgid "Error importing PKCS#11 key into private key structure: %s\n"
+msgstr ""
+
+#: gnutls.c:1100
+#, c-format
+msgid "Using private key file %s\n"
+msgstr ""
+
+#: gnutls.c:1113 openssl.c:570
+msgid "This version of OpenConnect was built without TPM support\n"
+msgstr ""
+
+#: gnutls.c:1134
+msgid "Failed to interpret PEM file\n"
+msgstr ""
+
+#: gnutls.c:1153
+#, c-format
+msgid "Failed to load PKCS#1 private key: %s\n"
+msgstr ""
+
+#: gnutls.c:1169
+#, c-format
+msgid "Failed to load private key as PKCS#8: %s\n"
+msgstr ""
+
+#: gnutls.c:1177
+msgid "Failed to decrypt PKCS#8 certificate file\n"
+msgstr ""
+
+#: gnutls.c:1191
+#, c-format
+msgid "Failed to determine type of private key %s\n"
+msgstr ""
+
+#: gnutls.c:1203
+#, c-format
+msgid "Failed to get key ID: %s\n"
+msgstr ""
+
+#: gnutls.c:1248
+#, c-format
+msgid "Error signing test data with private key: %s\n"
+msgstr ""
+
+#: gnutls.c:1263
+#, c-format
+msgid "Error validating signature against certificate: %s\n"
+msgstr ""
+
+#: gnutls.c:1287
+msgid "No SSL certificate found to match private key\n"
+msgstr ""
+
+#: gnutls.c:1298 openssl.c:461 openssl.c:598
+#, c-format
+msgid "Using client certificate '%s'\n"
+msgstr ""
+
+#: gnutls.c:1305
+#, c-format
+msgid "Setting certificate recovation list failed: %s\n"
+msgstr ""
+
+#: gnutls.c:1358
+msgid ""
+"WARNING: GnuTLS returned incorrect issuer certs; authentication may fail!\n"
+msgstr ""
+
+#: gnutls.c:1377
+msgid "Failed to allocate memory for supporting certificates\n"
+msgstr ""
+
+#: gnutls.c:1396
+#, c-format
+msgid "Adding supporting CA '%s'\n"
+msgstr ""
+
+#: gnutls.c:1424
+#, c-format
+msgid "Setting certificate failed: %s\n"
+msgstr ""
+
+#: gnutls.c:1553
+msgid "Server presented no certificate\n"
+msgstr ""
+
+#: gnutls.c:1565
+msgid "Could not calculate SHA1 of server's certificate\n"
+msgstr ""
+
+#: gnutls.c:1573 openssl.c:854
+#, c-format
+msgid "Server SSL certificate didn't match: %s\n"
+msgstr ""
+
+#: gnutls.c:1581
+msgid "Error checking server cert status\n"
+msgstr ""
+
+#: gnutls.c:1586
+msgid "certificate revoked"
+msgstr ""
+
+#: gnutls.c:1588
+msgid "signer not found"
+msgstr ""
+
+#: gnutls.c:1590
+msgid "signer not a CA certificate"
+msgstr ""
+
+#: gnutls.c:1592
+msgid "insecure algorithm"
+msgstr ""
+
+#: gnutls.c:1594
+msgid "certificate not yet activated"
+msgstr ""
+
+#: gnutls.c:1596
+msgid "certificate expired"
+msgstr ""
+
+#. If this is set and no other reason, it apparently means
+#. that signature verification failed. Not entirely sure
+#. why we don't just set a bit for that too.
+#: gnutls.c:1601
+msgid "signature verification failed"
+msgstr ""
+
+#: gnutls.c:1605
+msgid "Error initialising X509 cert structure\n"
+msgstr ""
+
+#: gnutls.c:1611
+msgid "Error importing server's cert\n"
+msgstr ""
+
+#: gnutls.c:1617 openssl.c:1152
+msgid "certificate does not match hostname"
+msgstr ""
+
+#: gnutls.c:1678
+msgid "Failed to allocate memory for cafile certs\n"
+msgstr ""
+
+#: gnutls.c:1697
+#, c-format
+msgid "Failed to read certs from cafile: %s\n"
+msgstr ""
+
+#: gnutls.c:1711
+#, c-format
+msgid "Failed to open CA file '%s': %s\n"
+msgstr ""
+
+#: gnutls.c:1722 openssl.c:1300
+msgid "Loading certificate failed. Aborting.\n"
+msgstr ""
+
+#: gnutls.c:1737
+#, c-format
+msgid "Failed to set TLS priority string: %s\n"
+msgstr ""
+
+#. really?
+#: gnutls.c:1746 openssl.c:1375
+#, c-format
+msgid "SSL negotiation with %s\n"
+msgstr ""
+
+#: gnutls.c:1770 openssl.c:1406
+msgid "SSL connection cancelled\n"
+msgstr ""
+
+#: gnutls.c:1777
+#, c-format
+msgid "SSL connection failure: %s\n"
+msgstr ""
+
+#: gnutls.c:1786
+#, c-format
+msgid "GnuTLS non-fatal return during handshake: %s\n"
+msgstr ""
+
+#: gnutls.c:1793 openssl.c:1426
+#, c-format
+msgid "Connected to HTTPS on %s\n"
+msgstr ""
+
+#: gnutls.c:1969
+#, c-format
+msgid "PIN required for %s"
+msgstr ""
+
+#: gnutls.c:1979
+msgid "Wrong PIN"
+msgstr ""
+
+#: gnutls.c:1982
+msgid "This is the final try before locking!"
+msgstr ""
+
+#: gnutls.c:1984
+msgid "Only a few tries left before locking!"
+msgstr ""
+
+#: gnutls.c:1989
+msgid "Enter PIN:"
+msgstr ""
+
+#: gnutls_tpm.c:89
+#, c-format
+msgid "Failed to SHA1 input data for signing: %s\n"
+msgstr ""
+
+#: gnutls_tpm.c:111
+#, c-format
+msgid "TPM sign function called for %d bytes.\n"
+msgstr ""
+
+#: gnutls_tpm.c:118
+#, c-format
+msgid "Failed to create TPM hash object: %s\n"
+msgstr ""
+
+#: gnutls_tpm.c:125
+#, c-format
+msgid "Failed to set value in TPM hash object: %s\n"
+msgstr ""
+
+#: gnutls_tpm.c:135
+#, c-format
+msgid "TPM hash signature failed: %s\n"
+msgstr ""
+
+#: gnutls_tpm.c:157
+#, c-format
+msgid "Error decoding TSS key blob: %s\n"
+msgstr ""
+
+#: gnutls_tpm.c:164 gnutls_tpm.c:175 gnutls_tpm.c:188
+msgid "Error in TSS key blob\n"
+msgstr ""
+
+#: gnutls_tpm.c:195
+#, c-format
+msgid "Failed to create TPM context: %s\n"
+msgstr ""
+
+#: gnutls_tpm.c:202
+#, c-format
+msgid "Failed to connect TPM context: %s\n"
+msgstr ""
+
+#: gnutls_tpm.c:210
+#, c-format
+msgid "Failed to load TPM SRK key: %s\n"
+msgstr ""
+
+#: gnutls_tpm.c:217
+#, c-format
+msgid "Failed to load TPM SRK policy object: %s\n"
+msgstr ""
+
+#: gnutls_tpm.c:238
+#, c-format
+msgid "Failed to set TPM PIN: %s\n"
+msgstr ""
+
+#: gnutls_tpm.c:254
+#, c-format
+msgid "Failed to load TPM key blob: %s\n"
+msgstr ""
+
+#: gnutls_tpm.c:261
+msgid "Enter TPM SRK PIN:"
+msgstr ""
+
+#: gnutls_tpm.c:286
+#, c-format
+msgid "Failed to create key policy object: %s\n"
+msgstr ""
+
+#: gnutls_tpm.c:294
+#, c-format
+msgid "Failed to assign policy to key: %s\n"
+msgstr ""
+
+#: gnutls_tpm.c:300
+msgid "Enter TPM key PIN:"
+msgstr ""
+
+#: gnutls_tpm.c:311
+#, c-format
+msgid "Failed to set key PIN: %s\n"
 msgstr ""
 
 #: http.c:64
@@ -543,7 +1047,8 @@ msgstr ""
 #: http.c:419
 msgid ""
 "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
-"This facility is disabled by default for security reasons, so you may wish to enable it."
+"This facility is disabled by default for security reasons, so you may wish "
+"to enable it."
 msgstr ""
 
 #: http.c:426
@@ -1164,12 +1669,12 @@ msgstr ""
 msgid "Enter '%s' to accept, '%s' to abort; anything else to view: "
 msgstr ""
 
-#: main.c:969 main.c:976
-msgid "yes"
-msgstr ""
-
 #: main.c:969 main.c:987
 msgid "no"
+msgstr ""
+
+#: main.c:969 main.c:976
+msgid "yes"
 msgstr ""
 
 #: main.c:993
@@ -1177,16 +1682,16 @@ msgstr ""
 msgid "SHA1 fingerprint: %s\n"
 msgstr ""
 
-#: main.c:1044
+#: main.c:1043
 #, c-format
 msgid "Auth choice \"%s\" not available\n"
 msgstr ""
 
-#: main.c:1057 main.c:1105 main.c:1132
+#: main.c:1056 main.c:1104 main.c:1131
 msgid "User input required in non-interactive mode\n"
 msgstr ""
 
-#: main.c:1088
+#: main.c:1087
 #, c-format
 msgid "Auth choice \"%s\" not valid\n"
 msgstr ""
@@ -1200,85 +1705,21 @@ msgstr ""
 msgid "No work to do; sleeping for %d ms...\n"
 msgstr ""
 
-#: ssl.c:81
-msgid "Socket connect cancelled\n"
-msgstr ""
-
-#: ssl.c:114
-#, c-format
-msgid "Failed to reconnect to proxy %s\n"
-msgstr ""
-
-#: ssl.c:118
-#, c-format
-msgid "Failed to reconnect to host %s\n"
-msgstr ""
-
-#: ssl.c:180
-#, c-format
-msgid "Proxy from libproxy: %s://%s:%d/\n"
-msgstr ""
-
-#: ssl.c:211
-#, c-format
-msgid "getaddrinfo failed for host '%s': %s\n"
-msgstr ""
-
-#: ssl.c:222
-#, c-format
-msgid "Attempting to connect to %s%s%s:%s\n"
-msgstr ""
-
-#: ssl.c:238
-msgid "Failed to allocate sockaddr storage\n"
-msgstr ""
-
-#: ssl.c:253
-#, c-format
-msgid "Failed to connect to host %s\n"
-msgstr ""
-
-#: ssl.c:328
-#, c-format
-msgid "statvfs: %s\n"
-msgstr ""
-
-#: ssl.c:345
-#, c-format
-msgid "statfs: %s\n"
-msgstr ""
-
 #: openssl.c:110
 msgid "Failed to write to SSL socket"
-msgstr ""
-
-#: openssl.c:122 gnutls.c:98
-msgid "SSL write cancelled\n"
 msgstr ""
 
 #: openssl.c:147
 msgid "Failed to read from SSL socket"
 msgstr ""
 
-#: openssl.c:159 openssl.c:217 gnutls.c:135 gnutls.c:193
-msgid "SSL read cancelled\n"
-msgstr ""
-
 #: openssl.c:204
 msgid "Failed to read from SSL socket\n"
-msgstr ""
-
-#: openssl.c:394 gnutls.c:971
-msgid "Enter PEM pass phrase:"
 msgstr ""
 
 #: openssl.c:401
 #, c-format
 msgid "PEM password too long (%d >= %d)\n"
-msgstr ""
-
-#: openssl.c:429 gnutls.c:333
-msgid "Enter PKCS#12 pass phrase:"
 msgstr ""
 
 #: openssl.c:442
@@ -1287,11 +1728,6 @@ msgstr ""
 
 #: openssl.c:449
 msgid "Parse PKCS#12 failed (see above errors)\n"
-msgstr ""
-
-#: openssl.c:461 openssl.c:598 gnutls.c:1085
-#, c-format
-msgid "Using client certificate '%s'\n"
 msgstr ""
 
 #: openssl.c:464
@@ -1327,534 +1763,243 @@ msgstr ""
 msgid "Add key from TPM failed\n"
 msgstr ""
 
-#: openssl.c:570 gnutls.c:924
-msgid "This version of OpenConnect was built without TPM support\n"
-msgstr ""
-
 #: openssl.c:587
 msgid "Failed to reload X509 cert for expiry check\n"
 msgstr ""
 
-#: openssl.c:608 gnutls.c:739
-msgid "This binary built without PKCS#11 support\n"
-msgstr ""
-
-#: openssl.c:613 gnutls.c:792
+#: openssl.c:627
 #, c-format
-msgid "Using certificate file %s\n"
+msgid "Failed to create BIO for keystore item '%s'\n"
 msgstr ""
 
-#: openssl.c:623
+#: openssl.c:652
+msgid "Loading private key failed (wrong passphrase?)\n"
+msgstr ""
+
+#: openssl.c:658
+msgid "Loading private key failed (see above errors)\n"
+msgstr ""
+
+#: openssl.c:683
 #, c-format
 msgid "Failed to open certificate file %s: %s\n"
 msgstr ""
 
-#: openssl.c:634
+#: openssl.c:694
 msgid "Read PKCS#12 failed\n"
 msgstr ""
 
-#: openssl.c:646
+#: openssl.c:712
+msgid "Failed to load X509 certificate from keystore\n"
+msgstr ""
+
+#: openssl.c:718
+msgid "Failed to use X509 certificate from keystore\n"
+msgstr ""
+
+#: openssl.c:730
 msgid "Loading certificate failed\n"
 msgstr ""
 
-#: openssl.c:660
+#: openssl.c:757
+msgid "Failed to use private key from keystore\n"
+msgstr ""
+
+#: openssl.c:773
 #, c-format
 msgid "Failed to open private key file %s: %s\n"
 msgstr ""
 
-#: openssl.c:680
+#: openssl.c:793
 #, c-format
 msgid "Failed to identify private key type in '%s'\n"
 msgstr ""
 
-#: openssl.c:707
-msgid "Loading private key failed (wrong passphrase?)\n"
-msgstr ""
-
-#: openssl.c:712
-msgid "Loading private key failed (see above errors)\n"
-msgstr ""
-
-#: openssl.c:757 gnutls.c:1372
-#, c-format
-msgid "Server SSL certificate didn't match: %s\n"
-msgstr ""
-
-#: openssl.c:877
+#: openssl.c:974
 #, c-format
 msgid "Matched DNS altname '%s'\n"
 msgstr ""
 
-#: openssl.c:884
+#: openssl.c:981
 #, c-format
 msgid "No match for altname '%s'\n"
 msgstr ""
 
-#: openssl.c:898
+#: openssl.c:995
 #, c-format
 msgid "Certificate has GEN_IPADD altname with bogus length %d\n"
 msgstr ""
 
-#: openssl.c:909
+#: openssl.c:1006
 #, c-format
 msgid "Matched %s address '%s'\n"
 msgstr ""
 
-#: openssl.c:916
+#: openssl.c:1013
 #, c-format
 msgid "No match for %s address '%s'\n"
 msgstr ""
 
-#: openssl.c:958
+#: openssl.c:1055
 #, c-format
 msgid "URI '%s' has non-empty path; ignoring\n"
 msgstr ""
 
-#: openssl.c:963
+#: openssl.c:1060
 #, c-format
 msgid "Matched URI '%s'\n"
 msgstr ""
 
-#: openssl.c:974
+#: openssl.c:1071
 #, c-format
 msgid "No match for URI '%s'\n"
 msgstr ""
 
-#: openssl.c:989
+#: openssl.c:1086
 #, c-format
 msgid "No altname in peer cert matched '%s'\n"
 msgstr ""
 
-#: openssl.c:997
+#: openssl.c:1094
 msgid "No subject name in peer cert!\n"
 msgstr ""
 
-#: openssl.c:1017
+#: openssl.c:1114
 msgid "Failed to parse subject name in peer cert\n"
 msgstr ""
 
-#: openssl.c:1024
+#: openssl.c:1121
 #, c-format
 msgid "Peer cert subject mismatch ('%s' != '%s')\n"
 msgstr ""
 
-#: openssl.c:1029
+#: openssl.c:1126
 #, c-format
 msgid "Matched peer certificate subject name '%s'\n"
 msgstr ""
 
-#: openssl.c:1055 gnutls.c:1416
-msgid "certificate does not match hostname"
-msgstr ""
-
-#: openssl.c:1059
+#: openssl.c:1156
 #, c-format
 msgid "Server certificate verify failed: %s\n"
 msgstr ""
 
-#: openssl.c:1109
+#: openssl.c:1206
 #, c-format
 msgid "Extra cert from cafile: '%s'\n"
 msgstr ""
 
-#: openssl.c:1140
+#: openssl.c:1237
 msgid "Error in client cert notAfter field\n"
 msgstr ""
 
-#: openssl.c:1143 gnutls.c:216
-msgid "Client certificate has expired at"
-msgstr ""
-
-#: openssl.c:1148 gnutls.c:218
-msgid "Client certificate expires soon at"
-msgstr ""
-
-#: openssl.c:1154
+#: openssl.c:1251
 msgid "<error>"
 msgstr ""
 
-#: openssl.c:1203 gnutls.c:1476
-msgid "Loading certificate failed. Aborting.\n"
+#: openssl.c:1337
+#, c-format
+msgid "Failed to read certs from CA file '%s'\n"
 msgstr ""
 
-#: openssl.c:1226
+#: openssl.c:1359
 #, c-format
 msgid "Failed to open CA file '%s'\n"
 msgstr ""
 
-#. really?
-#: openssl.c:1242 gnutls.c:1495
-#, c-format
-msgid "SSL negotiation with %s\n"
-msgstr ""
-
-#: openssl.c:1258
+#: openssl.c:1391
 msgid "SSL connection failure\n"
 msgstr ""
 
-#: openssl.c:1273 gnutls.c:1519
-msgid "SSL connection cancelled\n"
+#: ssl.c:82
+msgid "Socket connect cancelled\n"
 msgstr ""
 
-#: openssl.c:1293 gnutls.c:1542
+#: ssl.c:115
 #, c-format
-msgid "Connected to HTTPS on %s\n"
+msgid "Failed to reconnect to proxy %s\n"
 msgstr ""
 
-#: gnutls.c:75
+#: ssl.c:119
 #, c-format
-msgid "Failed to write to SSL socket: %s"
+msgid "Failed to reconnect to host %s\n"
 msgstr ""
 
-#: gnutls.c:115
+#: ssl.c:181
 #, c-format
-msgid "Failed to read from SSL socket: %s"
+msgid "Proxy from libproxy: %s://%s:%d/\n"
 msgstr ""
 
-#: gnutls.c:169
+#: ssl.c:212
 #, c-format
-msgid "Failed to read from SSL socket: %s\n"
+msgid "getaddrinfo failed for host '%s': %s\n"
 msgstr ""
 
-#: gnutls.c:211
-msgid "Could not extract expiration time of certificate\n"
-msgstr ""
-
-#: gnutls.c:248
+#: ssl.c:223
 #, c-format
-msgid "Failed to open key/certificate file %s: %s\n"
+msgid "Attempting to connect to %s%s%s:%s\n"
 msgstr ""
 
-#: gnutls.c:255
+#: ssl.c:239
+msgid "Failed to allocate sockaddr storage\n"
+msgstr ""
+
+#: ssl.c:254
 #, c-format
-msgid "Failed to stat key/certificate file %s: %s\n"
+msgid "Failed to connect to host %s\n"
 msgstr ""
 
-#: gnutls.c:264
-msgid "Failed to allocate certificate buffer\n"
-msgstr ""
-
-#: gnutls.c:272
+#: ssl.c:329
 #, c-format
-msgid "Failed to read certificate into memory: %s\n"
+msgid "statvfs: %s\n"
 msgstr ""
 
-#: gnutls.c:309
+#: ssl.c:346
 #, c-format
-msgid "Failed to setup PKCS#12 data structure: %s\n"
+msgid "statfs: %s\n"
 msgstr ""
 
-#: gnutls.c:320
-#, c-format
-msgid "Failed to import PKCS#12 file: %s\n"
+#: ssl.c:417
+msgid "No error"
 msgstr ""
 
-#: gnutls.c:329
-msgid "Failed to decrypt PKCS#12 certificate file\n"
+#: ssl.c:418
+msgid "Keystore ocked"
 msgstr ""
 
-#: gnutls.c:357
-#, c-format
-msgid "Failed to process PKCS#12 file: %s\n"
+#: ssl.c:419
+msgid "Keystore uninitialized"
 msgstr ""
 
-#: gnutls.c:369
-#, c-format
-msgid "Failed to load PKCS#12 certificate: %s\n"
+#: ssl.c:420
+msgid "System error"
 msgstr ""
 
-#: gnutls.c:443
-#, c-format
-msgid "TPM sign function called for %d bytes.\n"
+#: ssl.c:421
+msgid "Protocol error"
 msgstr ""
 
-#: gnutls.c:450
-#, c-format
-msgid "Failed to create TPM hash object: %s\n"
+#: ssl.c:422
+msgid "Permission denied"
 msgstr ""
 
-#: gnutls.c:457
-#, c-format
-msgid "Failed to set value in TPM hash object: %s\n"
+#: ssl.c:423
+msgid "Key not found"
 msgstr ""
 
-#: gnutls.c:467
-#, c-format
-msgid "TPM hash signature failed: %s\n"
+#: ssl.c:424
+msgid "Value corrupted"
 msgstr ""
 
-#: gnutls.c:489
-#, c-format
-msgid "Error decoding TSS key blob: %s\n"
+#: ssl.c:425
+msgid "Undefined action"
 msgstr ""
 
-#: gnutls.c:496 gnutls.c:507 gnutls.c:520
-msgid "Error in TSS key blob\n"
+#: ssl.c:429
+msgid "Wrong password"
 msgstr ""
 
-#: gnutls.c:527
-#, c-format
-msgid "Failed to create TPM context: %s\n"
-msgstr ""
-
-#: gnutls.c:534
-#, c-format
-msgid "Failed to connect TPM context: %s\n"
-msgstr ""
-
-#: gnutls.c:542
-#, c-format
-msgid "Failed to load TPM SRK key: %s\n"
-msgstr ""
-
-#: gnutls.c:549
-#, c-format
-msgid "Failed to load TPM SRK policy object: %s\n"
-msgstr ""
-
-#: gnutls.c:568
-#, c-format
-msgid "Failed to set TPM PIN: %s\n"
-msgstr ""
-
-#: gnutls.c:583
-#, c-format
-msgid "Failed to load TPM key blob: %s\n"
-msgstr ""
-
-#: gnutls.c:590
-msgid "Enter TPM SRK PIN:"
-msgstr ""
-
-#: gnutls.c:611
-#, c-format
-msgid "Failed to create key policy object: %s\n"
-msgstr ""
-
-#: gnutls.c:619
-#, c-format
-msgid "Failed to assign policy to key: %s\n"
-msgstr ""
-
-#: gnutls.c:625
-msgid "Enter TPM key PIN:"
-msgstr ""
-
-#: gnutls.c:634
-#, c-format
-msgid "Failed to set key PIN: %s\n"
-msgstr ""
-
-#: gnutls.c:755
-#, c-format
-msgid "Error loading PKCS#11 certificate: %s\n"
-msgstr ""
-
-#: gnutls.c:769
-#, c-format
-msgid "Using PKCS#11 certificate %s\n"
-msgstr ""
-
-#: gnutls.c:782
-#, c-format
-msgid "Error loading certificate from PKCS#11: %s\n"
-msgstr ""
-
-#: gnutls.c:813
-msgid "PKCS#11 file contained no certificate\n"
-msgstr ""
-
-#: gnutls.c:839
-msgid "No certificate found in file"
-msgstr ""
-
-#: gnutls.c:844
-#, c-format
-msgid "Loading certificate failed: %s\n"
-msgstr ""
-
-#: gnutls.c:860
-#, c-format
-msgid "Using PKCS#11 key %s\n"
-msgstr ""
-
-#: gnutls.c:865
-#, c-format
-msgid "Error initialising PKCS#11 key structure: %s\n"
-msgstr ""
-
-#: gnutls.c:874
-#, c-format
-msgid "Error importing PKCS#11 URL %s: %s\n"
-msgstr ""
-
-#: gnutls.c:884
-#, c-format
-msgid "Error initialising private key structure: %s\n"
-msgstr ""
-
-#: gnutls.c:894
-#, c-format
-msgid "Error importing PKCS#11 key into private key structure: %s\n"
-msgstr ""
-
-#: gnutls.c:912
-#, c-format
-msgid "Using private key file %s\n"
-msgstr ""
-
-#: gnutls.c:959
-#, c-format
-msgid "Failed to load private key as PKCS#8: %s\n"
-msgstr ""
-
-#: gnutls.c:967
-msgid "Failed to decrypt PKCS#8 certificate file\n"
-msgstr ""
-
-#: gnutls.c:985
-#, c-format
-msgid "Failed to get key ID: %s\n"
-msgstr ""
-
-#: gnutls.c:1034
-#, c-format
-msgid "Error signing test data with private key: %s\n"
-msgstr ""
-
-#: gnutls.c:1048
-#, c-format
-msgid "Error validating signature against certificate: %s\n"
-msgstr ""
-
-#: gnutls.c:1076
-msgid "No SSL certificate found to match private key\n"
-msgstr ""
-
-#: gnutls.c:1092
-#, c-format
-msgid "Setting certificate recovation list failed: %s\n"
-msgstr ""
-
-#: gnutls.c:1142
-msgid ""
-"WARNING: GnuTLS returned incorrect issuer certs; authentication may fail!\n"
-msgstr ""
-
-#: gnutls.c:1160
-msgid "Failed to allocate memory for supporting certificates\n"
-msgstr ""
-
-#: gnutls.c:1180
-#, c-format
-msgid "Adding supporting CA '%s'\n"
-msgstr ""
-
-#: gnutls.c:1201
-#, c-format
-msgid "Importing X509 certificate failed: %s\n"
-msgstr ""
-
-#: gnutls.c:1210
-#, c-format
-msgid "Setting PKCS#11 certificate failed: %s\n"
-msgstr ""
-
-#: gnutls.c:1229
-#, c-format
-msgid "Setting certificate failed: %s\n"
-msgstr ""
-
-#: gnutls.c:1352
-msgid "Server presented no certificate\n"
-msgstr ""
-
-#: gnutls.c:1364
-msgid "Could not calculate SHA1 of server's certificate\n"
-msgstr ""
-
-#: gnutls.c:1380
-msgid "Error checking server cert status\n"
-msgstr ""
-
-#: gnutls.c:1385
-msgid "certificate revoked"
-msgstr ""
-
-#: gnutls.c:1387
-msgid "signer not found"
-msgstr ""
-
-#: gnutls.c:1389
-msgid "signer not a CA certificate"
-msgstr ""
-
-#: gnutls.c:1391
-msgid "insecure algorithm"
-msgstr ""
-
-#: gnutls.c:1393
-msgid "certificate not yet activated"
-msgstr ""
-
-#: gnutls.c:1395
-msgid "certificate expired"
-msgstr ""
-
-#. If this is set and no other reason, it apparently means
-#. that signature verification failed. Not entirely sure
-#. why we don't just set a bit for that too.
-#: gnutls.c:1400
-msgid "signature verification failed"
-msgstr ""
-
-#: gnutls.c:1404
-msgid "Error initialising X509 cert structure\n"
-msgstr ""
-
-#: gnutls.c:1410
-msgid "Error importing server's cert\n"
-msgstr ""
-
-#: gnutls.c:1465
-#, c-format
-msgid "Failed to open CA file '%s': %s\n"
-msgstr ""
-
-#: gnutls.c:1486
-#, c-format
-msgid "Failed to set TLS priority string: %s\n"
-msgstr ""
-
-#: gnutls.c:1526
-#, c-format
-msgid "SSL connection failure: %s\n"
-msgstr ""
-
-#: gnutls.c:1535
-#, c-format
-msgid "GnuTLS non-fatal return during handshake: %s\n"
-msgstr ""
-
-#: gnutls.c:1704
-#, c-format
-msgid "PIN required for %s"
-msgstr ""
-
-#: gnutls.c:1714
-msgid "Wrong PIN"
-msgstr ""
-
-#: gnutls.c:1717
-msgid "This is the final try before locking!"
-msgstr ""
-
-#: gnutls.c:1719
-msgid "Only a few tries left before locking!"
-msgstr ""
-
-#: gnutls.c:1724
-msgid "Enter PIN:"
+#: ssl.c:430
+msgid "Unknown error"
 msgstr ""
 
 #: tun.c:88
