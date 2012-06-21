@@ -17,7 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li><i>No changelog entries yet</i></li>
+       <li>Fix <tt>openconnect.pc</tt> pkg-config file not to require <tt>zlib.pc</tt> on systems which lack it (like RHEL5).</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.00.tar.gz">OpenConnect v4.00</a></b>

@@ -359,7 +359,7 @@ AM_CONDITIONAL(HAVE_SYMBOL_VERSIONING, [test "${symvers}" != "no"])
 
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0)
 
-PKG_CHECK_MODULES(ZLIB, zlib, [],
+PKG_CHECK_MODULES(ZLIB, zlib, [AC_SUBST(ZLIB_PC, [zlib])],
 		  [oldLIBS="$LIBS"
 		  LIBS="$LIBS -lz" 
 		  AC_MSG_CHECKING([for zlib without pkg-config])
