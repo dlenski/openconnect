@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-06-20 15:42+0100\n"
+"POT-Creation-Date: 2012-06-22 12:09+0100\n"
 "PO-Revision-Date: 2011-09-22 22:31+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
@@ -20,7 +20,7 @@ msgstr ""
 
 #: auth.c:121
 msgid "Form choice has no name\n"
-msgstr ""
+msgstr "Izbor obrazca je brez imena.\n"
 
 #: auth.c:185
 #, c-format
@@ -47,12 +47,12 @@ msgstr ""
 
 #: auth.c:332
 msgid "Failed to parse server response\n"
-msgstr ""
+msgstr "Razčlenjevanje odgovora strežnika je spodletelo.\n"
 
 #: auth.c:334
 #, c-format
 msgid "Response was:%s\n"
-msgstr ""
+msgstr "Odziv  je: %s\n"
 
 #: auth.c:342
 msgid "XML response has no \"auth\" root node\n"
@@ -861,7 +861,7 @@ msgstr ""
 
 #: gnutls.c:1979
 msgid "Wrong PIN"
-msgstr ""
+msgstr "Napačna koda PIN"
 
 #: gnutls.c:1982
 msgid "This is the final try before locking!"
@@ -964,7 +964,7 @@ msgstr ""
 
 #: http.c:64
 msgid "No memory for allocating cookies\n"
-msgstr ""
+msgstr "Ni pomnilnika za dodeljevanje piškotkov\n"
 
 #: http.c:128
 #, c-format
@@ -1067,7 +1067,7 @@ msgstr ""
 #: http.c:459 main.c:794
 #, c-format
 msgid "Failed to set uid %ld\n"
-msgstr ""
+msgstr "Nastavljanje UID %ld je spodletelo.\n"
 
 #: http.c:464
 #, c-format
@@ -1109,40 +1109,40 @@ msgstr ""
 #: http.c:792
 #, c-format
 msgid "Unexpected %d result from server\n"
-msgstr ""
+msgstr "Nepričakovan odgovor strežnika %d.\n"
 
 #: http.c:812
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
-msgstr ""
+msgstr "Osveževanje %s po steklo po 1 sekundi ...\n"
 
 #: http.c:818
 msgid "Unknown response from server\n"
-msgstr ""
+msgstr "Neznan odgovor s strežnika.\n"
 
 #: http.c:986
 msgid "request granted"
-msgstr ""
+msgstr "zahteva je odobrena"
 
 #: http.c:987
 msgid "general failure"
-msgstr ""
+msgstr "splošna napaka"
 
 #: http.c:988
 msgid "connection not allowed by ruleset"
-msgstr ""
+msgstr "nabor pravil ne dovoljuje povezave"
 
 #: http.c:989
 msgid "network unreachable"
-msgstr ""
+msgstr "omrežje ni dosegljivo"
 
 #: http.c:990
 msgid "host unreachable"
-msgstr ""
+msgstr "gostitelj ni dosegljiv"
 
 #: http.c:991
 msgid "connection refused by destination host"
-msgstr ""
+msgstr "povezava je zavrnjena na ciljnem gostitelju"
 
 #: http.c:992
 msgid "TTL expired"
@@ -1214,25 +1214,25 @@ msgstr ""
 #: http.c:1122
 #, c-format
 msgid "Sending proxy request failed: %s\n"
-msgstr ""
+msgstr "Pošiljanje zahteve posredniškega strežnika je spodletelo: %s\n"
 
 #: http.c:1129
 msgid "Error fetching proxy response\n"
-msgstr ""
+msgstr "Napaka med pridobivanjem odziva strežnika.\n"
 
 #: http.c:1136
 #, c-format
 msgid "Failed to parse proxy response '%s'\n"
-msgstr ""
+msgstr "Razčlenjevanje odgovora posredniškega strežnika '%s' je spodletelo.\n"
 
 #: http.c:1142
 #, c-format
 msgid "Proxy CONNECT request failed: %s\n"
-msgstr ""
+msgstr "Zahteva CONNECT s posredniškega strežnika je spodletela: %s\n"
 
 #: http.c:1149
 msgid "Failed to read proxy response\n"
-msgstr ""
+msgstr "Branje odgovora posredniškega strežnika je spodletelo.\n"
 
 #: http.c:1153
 #, c-format
@@ -1242,7 +1242,7 @@ msgstr ""
 #: http.c:1169
 #, c-format
 msgid "Unknown proxy type '%s'\n"
-msgstr ""
+msgstr "Neznana vrsta posredniškega strežnika '%s'.\n"
 
 #: http.c:1197
 msgid "Only http or socks(5) proxies supported\n"
@@ -1251,7 +1251,7 @@ msgstr ""
 #: library.c:202
 #, c-format
 msgid "Failed to parse server URL '%s'\n"
-msgstr ""
+msgstr "Napaka med razčlenjevanjem naslova URL strežnika '%s'\n"
 
 #: library.c:208
 msgid "Only https:// permitted for server URL\n"
@@ -1276,11 +1276,11 @@ msgstr ""
 
 #: main.c:197
 msgid "OpenSSL ENGINE not present"
-msgstr ""
+msgstr "Programnik OpenSSL ni na voljo"
 
 #: main.c:209
 msgid "using OpenSSL"
-msgstr ""
+msgstr "uporaba OpenSSL"
 
 #: main.c:213
 #, c-format
@@ -1292,7 +1292,7 @@ msgstr ""
 #: main.c:219
 #, c-format
 msgid "Usage:  openconnect [options] <server>\n"
-msgstr ""
+msgstr "Uporaba: openconnect [možnosti] <strežnik>\n"
 
 #: main.c:220
 #, c-format
@@ -1303,23 +1303,23 @@ msgstr ""
 
 #: main.c:222
 msgid "Read options from config file"
-msgstr ""
+msgstr "Preberi možnosti iz nastavitvene datoteke"
 
 #: main.c:223
 msgid "Continue in background after startup"
-msgstr ""
+msgstr "Po zagonu nadaljuj v ozadju"
 
 #: main.c:224
 msgid "Write the daemons pid to this file"
-msgstr ""
+msgstr "Zapiši PID ozadnjega programa v navedeno datoteko"
 
 #: main.c:225
 msgid "Use SSL client certificate CERT"
-msgstr ""
+msgstr "Uporabi potrdilo SSL CERT"
 
 #: main.c:226
 msgid "Warn when certificate lifetime < DAYS"
-msgstr ""
+msgstr "Opozori, ko je življenjska doba potrdila manj kot določeno število dni"
 
 #: main.c:227
 msgid "Use SSL private key file KEY"
@@ -1339,11 +1339,11 @@ msgstr ""
 
 #: main.c:231
 msgid "Enable compression (default)"
-msgstr ""
+msgstr "Omogoči stiskanje podatkov (privzeto)"
 
 #: main.c:232
 msgid "Disable compression"
-msgstr ""
+msgstr "Omnemogoči stiskanje"
 
 #: main.c:233
 msgid "Set minimum Dead Peer Detection interval"
@@ -1355,7 +1355,7 @@ msgstr ""
 
 #: main.c:235
 msgid "Display help text"
-msgstr ""
+msgstr "Pokaži besedilo pomoči"
 
 #: main.c:236
 msgid "Use IFNAME for tunnel interface"
@@ -1395,11 +1395,11 @@ msgstr ""
 
 #: main.c:245
 msgid "Set proxy server"
-msgstr ""
+msgstr "Nastavi posredniški strežnik"
 
 #: main.c:246
 msgid "Disable proxy"
-msgstr ""
+msgstr "Onemogoči posredniški strežnik"
 
 #: main.c:247
 msgid "Use libproxy to automatically configure proxy"
@@ -1411,7 +1411,7 @@ msgstr ""
 
 #: main.c:251
 msgid "Less output"
-msgstr ""
+msgstr "Manj podroben odvod"
 
 #: main.c:252
 msgid "Set packet queue limit to LEN pkts"
@@ -1423,7 +1423,7 @@ msgstr ""
 
 #: main.c:254
 msgid "default"
-msgstr ""
+msgstr "privzeto"
 
 #: main.c:255
 msgid "Pass traffic to 'script' program, not tun"
@@ -1435,7 +1435,7 @@ msgstr ""
 
 #: main.c:257
 msgid "Report version number"
-msgstr ""
+msgstr "Pošli poročilo o različici"
 
 #: main.c:258
 msgid "More output"
@@ -1467,7 +1467,7 @@ msgstr ""
 
 #: main.c:265
 msgid "Do not ask for IPv6 connectivity"
-msgstr ""
+msgstr "Ne zahtevaj povezave IPv6"
 
 #: main.c:266
 msgid "OpenSSL ciphers to support for DTLS"
@@ -1516,7 +1516,7 @@ msgstr ""
 
 #: main.c:290
 msgid "fgets (stdin)"
-msgstr ""
+msgstr "fgets (stdin)"
 
 #: main.c:353
 #, c-format
@@ -1558,12 +1558,12 @@ msgstr ""
 #: main.c:489
 #, c-format
 msgid "Cannot open config file '%s': %s\n"
-msgstr ""
+msgstr "Ni mogoče odpreti nastavitvene datoteke '%s': %s\n"
 
 #: main.c:578 main.c:585
 #, c-format
 msgid "MTU %d too small\n"
-msgstr ""
+msgstr "Vrednost MTU %d je premajhna.\n"
 
 #: main.c:605
 #, c-format
@@ -1575,7 +1575,7 @@ msgstr ""
 #: main.c:627 main.c:641
 #, c-format
 msgid "Invalid user \"%s\"\n"
-msgstr ""
+msgstr "Neveljaven uporabnik \"%s\"\n"
 
 #: main.c:659
 #, c-format
@@ -1585,7 +1585,7 @@ msgstr ""
 #: main.c:670
 #, c-format
 msgid "OpenConnect version %s\n"
-msgstr ""
+msgstr "Različica OpenConnect %s\n"
 
 #: main.c:693
 #, c-format
@@ -1595,7 +1595,7 @@ msgstr ""
 #: main.c:696
 #, c-format
 msgid "No server specified\n"
-msgstr ""
+msgstr "Ni določenega strežnika\n"
 
 #: main.c:709
 #, c-format
@@ -1605,12 +1605,12 @@ msgstr ""
 #: main.c:759
 #, c-format
 msgid "Failed to obtain WebVPN cookie\n"
-msgstr ""
+msgstr "Pridobivanje piškotka WebVPN je spodletelo\n"
 
 #: main.c:783
 #, c-format
 msgid "Creating SSL connection failed\n"
-msgstr ""
+msgstr "Ustvarjanje povezave SSL je spodletelo.\n"
 
 #: main.c:788
 #, c-format
@@ -1670,16 +1670,16 @@ msgstr ""
 
 #: main.c:969 main.c:987
 msgid "no"
-msgstr ""
+msgstr "ne"
 
 #: main.c:969 main.c:976
 msgid "yes"
-msgstr ""
+msgstr "da"
 
 #: main.c:993
 #, c-format
 msgid "SHA1 fingerprint: %s\n"
-msgstr ""
+msgstr "Prstni odtis SHA1: %s\n"
 
 #: main.c:1043
 #, c-format
@@ -1893,7 +1893,7 @@ msgstr ""
 
 #: openssl.c:1251
 msgid "<error>"
-msgstr ""
+msgstr "<napaka>"
 
 #: openssl.c:1337
 #, c-format
@@ -1950,16 +1950,16 @@ msgstr ""
 #: ssl.c:329
 #, c-format
 msgid "statvfs: %s\n"
-msgstr ""
+msgstr "statvfs: %s\n"
 
 #: ssl.c:346
 #, c-format
 msgid "statfs: %s\n"
-msgstr ""
+msgstr "statfs: %s\n"
 
 #: ssl.c:417
 msgid "No error"
-msgstr ""
+msgstr "Brez napake"
 
 #: ssl.c:418
 msgid "Keystore ocked"
@@ -1971,15 +1971,15 @@ msgstr ""
 
 #: ssl.c:420
 msgid "System error"
-msgstr ""
+msgstr "Sistemska napaka"
 
 #: ssl.c:421
 msgid "Protocol error"
-msgstr ""
+msgstr "Napaka v protokolu"
 
 #: ssl.c:422
 msgid "Permission denied"
-msgstr ""
+msgstr "Dovoljenje je zavrnjeno"
 
 #: ssl.c:423
 msgid "Key not found"
@@ -2007,7 +2007,7 @@ msgstr ""
 
 #: tun.c:97
 msgid "SIOCSIFMTU"
-msgstr ""
+msgstr "SIOCSIFMTU"
 
 #: tun.c:137
 #, c-format
@@ -2084,11 +2084,11 @@ msgstr ""
 
 #: tun.c:609
 msgid "TUNSIFHEAD"
-msgstr ""
+msgstr "TUNSIFHEAD"
 
 #: tun.c:629
 msgid "socketpair"
-msgstr ""
+msgstr "socketpair"
 
 #: tun.c:635
 msgid "fork"
@@ -2096,7 +2096,7 @@ msgstr ""
 
 #: tun.c:641
 msgid "execl"
-msgstr ""
+msgstr "execl"
 
 #: tun.c:646
 msgid "(script)"
@@ -2114,7 +2114,7 @@ msgstr ""
 
 #: xml.c:53
 msgid "Open XML config file"
-msgstr ""
+msgstr "Nastavitvena datoteka Open XML"
 
 #: xml.c:54 xml.c:89
 #, c-format
@@ -2123,36 +2123,36 @@ msgstr ""
 
 #: xml.c:60
 msgid "fstat XML config file"
-msgstr ""
+msgstr "Nastavitvena datoteka XML fstat"
 
 #: xml.c:66
 msgid "mmap XML config file"
-msgstr ""
+msgstr "Nastavitvena datoteka XML mmap"
 
 #: xml.c:72
 #, c-format
 msgid "Failed to SHA1 existing file\n"
-msgstr ""
+msgstr "Določevanje razpršila SHA1 obstoječe datoteke je spodletelo\n"
 
 #: xml.c:80
 #, c-format
 msgid "XML config file SHA1: %s\n"
-msgstr ""
+msgstr "Nastavitvena datoteka XML SHA1: %s\n"
 
 #: xml.c:87
 #, c-format
 msgid "Failed to parse XML config file %s\n"
-msgstr ""
+msgstr "Razčlenjevanje nastavitvene datoteke XML %s je spodletelo.\n"
 
 #: xml.c:124
 #, c-format
 msgid "Host \"%s\" has address \"%s\"\n"
-msgstr ""
+msgstr "Gostitelj \"%s\" je na naslovu \"%s\".\n"
 
 #: xml.c:133
 #, c-format
 msgid "Host \"%s\" has UserGroup \"%s\"\n"
-msgstr ""
+msgstr "Gostitelj \"%s\" vključuje uporabniško skupino \"%s\".\n"
 
 #: xml.c:147
 #, c-format

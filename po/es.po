@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-06-20 15:42+0100\n"
+"POT-Creation-Date: 2012-06-22 12:09+0100\n"
 "PO-Revision-Date: 2011-09-22 22:31+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Spanish (Castilian) (http://www.transifex.net/projects/p/"
@@ -777,11 +777,11 @@ msgstr ""
 
 #: gnutls.c:1592
 msgid "insecure algorithm"
-msgstr ""
+msgstr "algoritmo inseguro"
 
 #: gnutls.c:1594
 msgid "certificate not yet activated"
-msgstr ""
+msgstr "certificado no activado todavía"
 
 #: gnutls.c:1596
 msgid "certificate expired"
@@ -837,7 +837,7 @@ msgstr ""
 
 #: gnutls.c:1770 openssl.c:1406
 msgid "SSL connection cancelled\n"
-msgstr ""
+msgstr "Conexión SSL cancelada\n"
 
 #: gnutls.c:1777
 #, c-format
@@ -861,7 +861,7 @@ msgstr ""
 
 #: gnutls.c:1979
 msgid "Wrong PIN"
-msgstr ""
+msgstr "PIN incorrecto"
 
 #: gnutls.c:1982
 msgid "This is the final try before locking!"
@@ -873,7 +873,7 @@ msgstr ""
 
 #: gnutls.c:1989
 msgid "Enter PIN:"
-msgstr ""
+msgstr "Introducir PIN:"
 
 #: gnutls_tpm.c:89
 #, c-format
@@ -1126,7 +1126,7 @@ msgstr ""
 
 #: http.c:987
 msgid "general failure"
-msgstr ""
+msgstr "fallo general"
 
 #: http.c:988
 msgid "connection not allowed by ruleset"
@@ -1280,7 +1280,7 @@ msgstr ""
 
 #: main.c:209
 msgid "using OpenSSL"
-msgstr ""
+msgstr "usando OpenSSL"
 
 #: main.c:213
 #, c-format
@@ -1292,7 +1292,7 @@ msgstr ""
 #: main.c:219
 #, c-format
 msgid "Usage:  openconnect [options] <server>\n"
-msgstr ""
+msgstr "Uso:  openconnect [opciones] <servidor>\n"
 
 #: main.c:220
 #, c-format
@@ -1303,7 +1303,7 @@ msgstr ""
 
 #: main.c:222
 msgid "Read options from config file"
-msgstr ""
+msgstr "Leer opciones del archivo de configuración"
 
 #: main.c:223
 msgid "Continue in background after startup"
@@ -1343,7 +1343,7 @@ msgstr ""
 
 #: main.c:232
 msgid "Disable compression"
-msgstr ""
+msgstr "Desactivar compresión"
 
 #: main.c:233
 msgid "Set minimum Dead Peer Detection interval"
@@ -1355,7 +1355,7 @@ msgstr ""
 
 #: main.c:235
 msgid "Display help text"
-msgstr ""
+msgstr "Mostrar el texto de ayuda"
 
 #: main.c:236
 msgid "Use IFNAME for tunnel interface"
@@ -1395,11 +1395,11 @@ msgstr ""
 
 #: main.c:245
 msgid "Set proxy server"
-msgstr ""
+msgstr "Establecer servidor proxy"
 
 #: main.c:246
 msgid "Disable proxy"
-msgstr ""
+msgstr "Desactivar proxy"
 
 #: main.c:247
 msgid "Use libproxy to automatically configure proxy"
@@ -1411,7 +1411,7 @@ msgstr ""
 
 #: main.c:251
 msgid "Less output"
-msgstr ""
+msgstr "Menos salida"
 
 #: main.c:252
 msgid "Set packet queue limit to LEN pkts"
@@ -1439,11 +1439,11 @@ msgstr ""
 
 #: main.c:258
 msgid "More output"
-msgstr ""
+msgstr "Más salida"
 
 #: main.c:259
 msgid "XML config file"
-msgstr ""
+msgstr "Archivo XML de configuración"
 
 #: main.c:260
 msgid "Choose authentication login selection"
@@ -1475,7 +1475,7 @@ msgstr ""
 
 #: main.c:267
 msgid "Disable DTLS"
-msgstr ""
+msgstr "Desactivar DTLS"
 
 #: main.c:268
 msgid "Disable HTTP connection re-use"
@@ -1558,12 +1558,12 @@ msgstr ""
 #: main.c:489
 #, c-format
 msgid "Cannot open config file '%s': %s\n"
-msgstr ""
+msgstr "No se puede abrir el archivo de configuración «%s»: %s\n"
 
 #: main.c:578 main.c:585
 #, c-format
 msgid "MTU %d too small\n"
-msgstr ""
+msgstr "MTU %d demasiado pequeña\n"
 
 #: main.c:605
 #, c-format
@@ -1575,7 +1575,7 @@ msgstr ""
 #: main.c:627 main.c:641
 #, c-format
 msgid "Invalid user \"%s\"\n"
-msgstr ""
+msgstr "Usuario «%s» no válido\n"
 
 #: main.c:659
 #, c-format
@@ -1585,17 +1585,17 @@ msgstr ""
 #: main.c:670
 #, c-format
 msgid "OpenConnect version %s\n"
-msgstr ""
+msgstr "OpenConnect versión %s\n"
 
 #: main.c:693
 #, c-format
 msgid "Too many arguments on command line\n"
-msgstr ""
+msgstr "Demasiados argumentos en la línea de comandos\n"
 
 #: main.c:696
 #, c-format
 msgid "No server specified\n"
-msgstr ""
+msgstr "No se ha especificado ningún servidor\n"
 
 #: main.c:709
 #, c-format
@@ -1605,12 +1605,12 @@ msgstr ""
 #: main.c:759
 #, c-format
 msgid "Failed to obtain WebVPN cookie\n"
-msgstr ""
+msgstr "Falló al obtener la cookie WebVPN\n"
 
 #: main.c:783
 #, c-format
 msgid "Creating SSL connection failed\n"
-msgstr ""
+msgstr "Falló al crear la conexión SSL\n"
 
 #: main.c:788
 #, c-format
@@ -1625,7 +1625,7 @@ msgstr ""
 #: main.c:804
 #, c-format
 msgid "Connected %s as %s%s%s, using %s\n"
-msgstr ""
+msgstr "Conectado %s como %s%s%s, usando %s\n"
 
 #: main.c:814
 msgid "No --script argument provided; DNS and routing are not configured\n"
@@ -1638,7 +1638,7 @@ msgstr ""
 #: main.c:828
 #, c-format
 msgid "Failed to open '%s' for write: %s\n"
-msgstr ""
+msgstr "Falló al abrir «%s» para escritura: %s\n"
 
 #: main.c:839
 #, c-format
@@ -1670,11 +1670,11 @@ msgstr ""
 
 #: main.c:969 main.c:987
 msgid "no"
-msgstr ""
+msgstr "no"
 
 #: main.c:969 main.c:976
 msgid "yes"
-msgstr ""
+msgstr "sí"
 
 #: main.c:993
 #, c-format
@@ -1950,12 +1950,12 @@ msgstr ""
 #: ssl.c:329
 #, c-format
 msgid "statvfs: %s\n"
-msgstr ""
+msgstr "statvfs: %s\n"
 
 #: ssl.c:346
 #, c-format
 msgid "statfs: %s\n"
-msgstr ""
+msgstr "statfs: %s\n"
 
 #: ssl.c:417
 msgid "No error"
@@ -1971,35 +1971,35 @@ msgstr ""
 
 #: ssl.c:420
 msgid "System error"
-msgstr ""
+msgstr "Error del sistema"
 
 #: ssl.c:421
 msgid "Protocol error"
-msgstr ""
+msgstr "Error de protocolo"
 
 #: ssl.c:422
 msgid "Permission denied"
-msgstr ""
+msgstr "Permiso denegado"
 
 #: ssl.c:423
 msgid "Key not found"
-msgstr ""
+msgstr "Clave no encontrada"
 
 #: ssl.c:424
 msgid "Value corrupted"
-msgstr ""
+msgstr "Valor corrupto"
 
 #: ssl.c:425
 msgid "Undefined action"
-msgstr ""
+msgstr "Acción no definida"
 
 #: ssl.c:429
 msgid "Wrong password"
-msgstr ""
+msgstr "Contraseña errónea"
 
 #: ssl.c:430
 msgid "Unknown error"
-msgstr ""
+msgstr "Error desconocido"
 
 #: tun.c:88
 msgid "open net"
@@ -2058,7 +2058,7 @@ msgstr ""
 
 #: tun.c:515
 msgid "open /dev/tun"
-msgstr ""
+msgstr "abrir /dev/tun"
 
 #: tun.c:521
 msgid "Failed to create new tun"
@@ -2076,7 +2076,7 @@ msgstr ""
 #: tun.c:572
 #, c-format
 msgid "Cannot open '%s': %s\n"
-msgstr ""
+msgstr "No se pudo abrir «%s»: %s\n"
 
 #: tun.c:601
 msgid "open tun"
@@ -2084,7 +2084,7 @@ msgstr ""
 
 #: tun.c:609
 msgid "TUNSIFHEAD"
-msgstr ""
+msgstr "TUNSIFHEAD"
 
 #: tun.c:629
 msgid "socketpair"
@@ -2114,7 +2114,7 @@ msgstr ""
 
 #: xml.c:53
 msgid "Open XML config file"
-msgstr ""
+msgstr "Abrir archivo XML de configuración"
 
 #: xml.c:54 xml.c:89
 #, c-format
@@ -2142,7 +2142,7 @@ msgstr ""
 #: xml.c:87
 #, c-format
 msgid "Failed to parse XML config file %s\n"
-msgstr ""
+msgstr "Falló al analizar la el archivo XML de configuración %s\n"
 
 #: xml.c:124
 #, c-format
