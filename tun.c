@@ -485,7 +485,7 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 	if (tun_fd < 0) {
 		/* If the error on /dev/tun is ENOENT, that's boring.
 		   Use the error we got on /dev/net/tun instead */
-		if (errno != -ENOENT)
+		if (errno != ENOENT)
 			tunerr = errno;
 
 		vpn_progress(vpninfo, PRG_ERR,
