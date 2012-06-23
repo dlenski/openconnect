@@ -105,11 +105,30 @@ update-translations: po/$(PACKAGE).pot
 	@cd $(top_srcdir); if ! git diff-index --name-only --exit-code HEAD -- po/; then \
 		echo "*** ERROR: Uncommitted changes in above files"; exit 1; \
 	else \
+		for a in po/*.po; do \
+			msgmerge -q -F $$a $(abs_builddir)/po/$(PACKAGE).pot | grep -v PO-Revision-Date: > $$a.old ; \
+		done && \
 		tx pull -af && \
 		for a in po/*.po; do \
-			msgmerge -F $$a $(abs_builddir)/po/$(PACKAGE).pot > $$a.new && mv $$a.new $$a ; \
+			msgmerge -q -F $$a $(abs_builddir)/po/$(PACKAGE).pot | grep -v PO-Revision-Date: > $$a.new ; \
+			if ! git ls-tree --name-only HEAD $$a | grep -q $$a; then \
+				echo New file $$a ; \
+				git add $$a ; \
+			elif ! cmp -s $$a.old $$a.new; then \
+				echo New changes for $$a; \
+				mv $$a.new $$a; \
+			else \
+				git checkout -f HEAD $$a ; \
+			fi ; \
+			rm -f $$a.old $$a.new ; \
 		done && \
-		git commit -s -m "Update translations from Transifex" -- po/ ; \
+		ls po/*.po | sed 's%^po/\(.*\)\.po%\1%' > po/LINGUAS ; \
+		if ! git update-index -q --refresh --unmerged || \
+		   ! git diff-index --name-only --exit-code HEAD -- po/ >/dev/null; then \
+			git commit -s -m "Update translations from Transifex" -- po/ ; \
+		else \
+			echo No changes to commit ; \
+		fi ; \
 	fi
 
 upload-pot: po/$(PACKAGE).pot
