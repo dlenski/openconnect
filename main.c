@@ -107,6 +107,7 @@ enum {
 	OPT_SERVERCERT,
 	OPT_USERAGENT,
 	OPT_NON_INTER,
+	OPT_DTLS_LOCAL_PORT,
 };
 
 #ifdef __sun__
@@ -169,6 +170,7 @@ static struct option long_options[] = {
 	OPTION("no-cert-check", 0, OPT_NO_CERT_CHECK),
 	OPTION("force-dpd", 1, OPT_FORCE_DPD),
 	OPTION("non-inter", 0, OPT_NON_INTER),
+	OPTION("dtls-local-port", 1, OPT_DTLS_LOCAL_PORT),
 	OPTION(NULL, 0, 0)
 };
 
@@ -273,6 +275,7 @@ static void usage(void)
 	printf("      --reconnect-timeout         %s\n", _("Connection retry timeout in seconds"));
 	printf("      --servercert=FINGERPRINT    %s\n", _("Server's certificate SHA1 fingerprint"));
 	printf("      --useragent=STRING          %s\n", _("HTTP header User-Agent: field"));
+	printf("      --dtls-local-port=PORT      %s\n", _("Set local port for DTLS datagrams"));
 	printf("\n");
 
 	helpmessage();
@@ -683,6 +686,9 @@ int main(int argc, char **argv)
 			break;
 		case OPT_FORCE_DPD:
 			vpninfo->dtls_times.dpd = vpninfo->ssl_times.dpd = atoi(config_arg);
+			break;
+		case OPT_DTLS_LOCAL_PORT:
+			vpninfo->dtls_local_port = atoi(config_arg);
 			break;
 		default:
 			usage();

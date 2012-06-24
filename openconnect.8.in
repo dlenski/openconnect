@@ -42,6 +42,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-\-cafile file
 .OP \-\-disable\-ipv6
 .OP \-\-dtls\-ciphers list
+.OP \-\-dtls\-local\-port port
 .OP \-\-no\-cert\-check
 .OP \-\-no\-dtls
 .OP \-\-no\-http\-keepalive
@@ -335,6 +336,11 @@ Use
 .I STRING
 as 'User\-Agent:' field value in HTTP header.
 (e.g. \-\-useragent 'Cisco AnyConnect VPN Agent for Windows 2.2.0133')
+.TP
+.B \-\-dtls\-local\-port=PORT
+Use
+.I PORT
+as the local port for DTLS datagrams
 
 .SH LIMITATIONS
 Note that although IPv6 has been tested on all platforms on which

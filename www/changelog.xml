@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Add <tt>--dtls-local-port</tt> option.</li>
        <li>Print correct error when <tt>/dev/net/tun</tt> cannot be opened.</li>
        <li>Fix <tt>openconnect.pc</tt> pkg-config file not to require <tt>zlib.pc</tt> on systems which lack it (like RHEL5).</li>
      </ul><br/>
