@@ -239,7 +239,7 @@ static int check_certificate_expiry(struct openconnect_info *vpninfo, gnutls_x50
 /* For systems that don't support O_CLOEXEC, just don't bother.
    It's not open for long anyway. */
 #ifndef O_CLOEXEC
-#define O_CLOEXEC
+#define O_CLOEXEC 0
 #endif
 
 static int load_datum(struct openconnect_info *vpninfo,
