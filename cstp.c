@@ -529,13 +529,13 @@ int cstp_reconnect(struct openconnect_info *vpninfo)
 
 	openconnect_close_https(vpninfo, 0);
 
-	/* Requeue the original packet that was deflated */
-	if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt) {
-		vpninfo->current_ssl_pkt = NULL;
-		queue_packet(&vpninfo->outgoing_queue, vpninfo->pending_deflated_pkt);
-		vpninfo->pending_deflated_pkt = NULL;
-	}
 	if (vpninfo->deflate) {
+		/* Requeue the original packet that was deflated */
+		if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt) {
+			vpninfo->current_ssl_pkt = NULL;
+			queue_packet(&vpninfo->outgoing_queue, vpninfo->pending_deflated_pkt);
+			vpninfo->pending_deflated_pkt = NULL;
+		}
 		inflateEnd(&vpninfo->inflate_strm);
 		deflateEnd(&vpninfo->deflate_strm);
 	}

@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Fix reconnect crash when compression is disabled.</li>
        <li>Fix build on systems like FreeBSD 8 without <tt>O_CLOEXEC</tt>.</li>
        <li>Add <tt>--dtls-local-port</tt> option.</li>
        <li>Print correct error when <tt>/dev/net/tun</tt> cannot be opened.</li>
