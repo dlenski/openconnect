@@ -36,6 +36,8 @@
 
 #include "openconnect-internal.h"
 
+#include <gnutls/dtls.h>
+
 static unsigned char nybble(unsigned char n)
 {
 	if      (n >= '0' && n <= '9') return n - '0';
@@ -376,6 +378,8 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
+	/* +1 for packet header, +13 for DTLS overhead */
+	gnutls_dtls_set_mtu(dtls_ssl, vpninfo->mtu + 14);
 	gnutls_transport_set_ptr(dtls_ssl,
 				 (gnutls_transport_ptr_t)(long) dtls_fd);
 	gnutls_record_disable_padding(dtls_ssl);
