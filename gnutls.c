@@ -613,7 +613,8 @@ static int openssl_hash_password(struct openconnect_info *vpninfo, char *pass,
 			if (err)
 				goto hash_err;
 		}
-		err = gnutls_hash(hash, salt->data, salt->size);
+		/* We only use the first 8 bytes of the salt for this */
+		err = gnutls_hash(hash, salt->data, 8);
 		if (err)
 			goto hash_err;
 
@@ -631,6 +632,23 @@ static int openssl_hash_password(struct openconnect_info *vpninfo, char *pass,
 	return 0;
 }
 
+static struct pem_cipher {
+	const char *name;
+	gnutls_cipher_algorithm_t cipher;
+	unsigned int iv; /* Pfft. _gnutls_cipher_get_iv_size() is internal */
+} pem_ciphers[] = {
+	{ "DES-CBC", GNUTLS_CIPHER_DES_CBC, 8 },
+	{ "DES-EDE3-CBC", GNUTLS_CIPHER_3DES_CBC, 8 },
+	{ "AES-128-CBC", GNUTLS_CIPHER_AES_128_CBC, 16 },
+	{ "AES-192-CBC", GNUTLS_CIPHER_AES_192_CBC, 16 },
+	{ "AES-256-CBC", GNUTLS_CIPHER_AES_256_CBC, 16 },
+	{ "CAMELLIA-128-CBC", GNUTLS_CIPHER_CAMELLIA_128_CBC, 16 },
+	{ "CAMELLIA-256-CBC", GNUTLS_CIPHER_CAMELLIA_256_CBC, 16 },
+//	{ "CAMELLIA-192-CBC", GNUTLS_CIPHER_CAMELLIA_192_CBC, 16 },
+//	{ "SEED-CBC", GNUTLS_CIPHER_xxx, 16 },
+//	{ "IDEA-CBC", GNUTLS_CIPHER_xxx, 8 },
+};
+
 static int import_openssl_pem(struct openconnect_info *vpninfo,
 			      gnutls_x509_privkey_t key,
 			      char type, char *pem_header, size_t pem_size)
@@ -644,7 +662,7 @@ static int import_openssl_pem(struct openconnect_info *vpninfo,
 	const char *begin;
 	char *pass;
 	char *pem_start = pem_header;
-	int ret, err, i, iv_size;
+	int ret, err, i, iv_size = 0;
 
 	if (type == 'E')
 		begin = "EC PRIVATE KEY";
@@ -664,12 +682,17 @@ static int import_openssl_pem(struct openconnect_info *vpninfo,
 		return -EIO;
 	}
 	pem_header += 10;
-	if (!strncmp(pem_header, "DES-EDE3-CBC,", 13)) {
-		pem_header += 13;
-		cipher = GNUTLS_CIPHER_3DES_CBC;
-		/* Pfft. _gnutls_cipher_get_iv_size() is internal */
-		iv_size = 8;
-	} else {
+	for (i = 0; i < sizeof(pem_ciphers)/sizeof(pem_ciphers[0]); i++) {
+		int l = strlen(pem_ciphers[i].name);
+		if (!strncmp(pem_header, pem_ciphers[i].name, l) &&
+		    pem_header[l] == ',') {
+			pem_header += l + 1;
+			cipher = pem_ciphers[i].cipher;
+			iv_size = pem_ciphers[i].iv;
+			break;
+		}
+	}
+	if (!iv_size) {
 		char *p = pem_header;
 
 		while (*p) {
