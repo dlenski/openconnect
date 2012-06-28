@@ -36,8 +36,6 @@
 
 #include "openconnect-internal.h"
 
-#include <gnutls/dtls.h>
-
 static unsigned char nybble(unsigned char n)
 {
 	if      (n >= '0' && n <= '9') return n - '0';
@@ -334,6 +332,8 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 }
 
 #elif defined (DTLS_GNUTLS)
+#include <gnutls/dtls.h>
+
 struct {
 	const char *name;
 	gnutls_cipher_algorithm_t cipher;

@@ -17,7 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li><i>No changelog entries yet</i></li>
+       <li>Fix build failure due to unconditional inclusion of <tt>&amp;lt;gnutls/dtls.h&amp;gt;</tt>.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.01.tar.gz">OpenConnect v4.01</a></b>
