@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.01.tar.gz">OpenConnect v4.01</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.01.tar.gz.asc">PGP signature</a>)</i> &#8212; 2012-06-28
+     <ul>
        <li>Fix DTLS MTU issue with GnuTLS.</li>
        <li>Fix reconnect crash when compression is disabled.</li>
        <li>Fix build on systems like FreeBSD 8 without <tt>O_CLOEXEC</tt>.</li>
