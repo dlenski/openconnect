@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.02.tar.gz">OpenConnect v4.02</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.02.tar.gz.asc">PGP signature</a>)</i> &#8212; 2012-06-28
+     <ul>
        <li>Fix build failure due to unconditional inclusion of <tt>&amp;lt;gnutls/dtls.h&amp;gt;</tt>.</li>
      </ul><br/>
   </li>

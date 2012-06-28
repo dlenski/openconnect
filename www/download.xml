@@ -19,16 +19,11 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.01.tar.gz">OpenConnect v4.01</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.01.tar.gz.asc">PGP signature</a>)</i>,
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.02.tar.gz">OpenConnect v4.02</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.02.tar.gz.asc">PGP signature</a>)</i>,
 released on 2012-06-28 with the following changelog:</p>
      <ul>
-       <li>Fix DTLS MTU issue with GnuTLS.</li>
-       <li>Fix reconnect crash when compression is disabled.</li>
-       <li>Fix build on systems like FreeBSD 8 without <tt>O_CLOEXEC</tt>.</li>
-       <li>Add <tt>--dtls-local-port</tt> option.</li>
-       <li>Print correct error when <tt>/dev/net/tun</tt> cannot be opened.</li>
-       <li>Fix <tt>openconnect.pc</tt> pkg-config file not to require <tt>zlib.pc</tt> on systems which lack it (like RHEL5).</li>
+       <li>Fix build failure due to unconditional inclusion of <tt>&amp;lt;gnutls/dtls.h&amp;gt;</tt>.</li>
      </ul>
 <!-- latest-release-end -->
 

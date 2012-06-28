@@ -1,6 +1,6 @@
 #!/bin/sh
 
-v="v4.01"
+v="v4.02"
 
 if [ -d .git ] && tag=`git describe --tags`; then
 	v="$tag"
