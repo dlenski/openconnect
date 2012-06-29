@@ -632,23 +632,6 @@ static int openssl_hash_password(struct openconnect_info *vpninfo, char *pass,
 	return 0;
 }
 
-static struct pem_cipher {
-	const char *name;
-	gnutls_cipher_algorithm_t cipher;
-	unsigned int iv; /* Pfft. _gnutls_cipher_get_iv_size() is internal */
-} pem_ciphers[] = {
-	{ "DES-CBC", GNUTLS_CIPHER_DES_CBC, 8 },
-	{ "DES-EDE3-CBC", GNUTLS_CIPHER_3DES_CBC, 8 },
-	{ "AES-128-CBC", GNUTLS_CIPHER_AES_128_CBC, 16 },
-	{ "AES-192-CBC", GNUTLS_CIPHER_AES_192_CBC, 16 },
-	{ "AES-256-CBC", GNUTLS_CIPHER_AES_256_CBC, 16 },
-	{ "CAMELLIA-128-CBC", GNUTLS_CIPHER_CAMELLIA_128_CBC, 16 },
-	{ "CAMELLIA-256-CBC", GNUTLS_CIPHER_CAMELLIA_256_CBC, 16 },
-//	{ "CAMELLIA-192-CBC", GNUTLS_CIPHER_CAMELLIA_192_CBC, 16 },
-//	{ "SEED-CBC", GNUTLS_CIPHER_xxx, 16 },
-//	{ "IDEA-CBC", GNUTLS_CIPHER_xxx, 8 },
-};
-
 static int import_openssl_pem(struct openconnect_info *vpninfo,
 			      gnutls_x509_privkey_t key,
 			      char type, char *pem_header, size_t pem_size)
@@ -660,9 +643,9 @@ static int import_openssl_pem(struct openconnect_info *vpninfo,
 	gnutls_datum_t salt, enc_key;
 	unsigned char *key_data;
 	const char *begin;
-	char *pass;
+	char *pass, *p;
 	char *pem_start = pem_header;
-	int ret, err, i, iv_size = 0;
+	int ret, err, i;
 
 	if (type == 'E')
 		begin = "EC PRIVATE KEY";
@@ -682,32 +665,31 @@ static int import_openssl_pem(struct openconnect_info *vpninfo,
 		return -EIO;
 	}
 	pem_header += 10;
-	for (i = 0; i < sizeof(pem_ciphers)/sizeof(pem_ciphers[0]); i++) {
-		int l = strlen(pem_ciphers[i].name);
-		if (!strncmp(pem_header, pem_ciphers[i].name, l) &&
-		    pem_header[l] == ',') {
-			pem_header += l + 1;
-			cipher = pem_ciphers[i].cipher;
-			iv_size = pem_ciphers[i].iv;
-			break;
-		}
+	p = strchr(pem_header, ',');
+	if (!p) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Cannot determine PEM encryption type\n"));
+		return -EINVAL;
 	}
-	if (!iv_size) {
-		char *p = pem_header;
 
-		while (*p) {
-			if (*p == ',' || *p == '\r' || *p == '\n' || p == pem_header+20) {
-				*p = 0;
-				break;
-			}
-			p++;
-		}
+	*p = 0;
+	cipher = gnutls_cipher_get_id(pem_header);
+	/* GnuTLS calls this '3DES-CBC' but all other names match */
+	if (cipher == GNUTLS_CIPHER_UNKNOWN &&
+	    !strcmp(pem_header, "DES-EDE3-CBC"))
+		cipher = GNUTLS_CIPHER_3DES_CBC;
+
+	if (cipher == GNUTLS_CIPHER_UNKNOWN) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unsupported PEM encryption type: %s\n"),
 			     pem_header);
 		return -EINVAL;
 	}
-	salt.size = iv_size;
+	pem_header = p + 1;
+
+	/* No supported algorithms have an IV larger than this, and dynamically
+	   allocating it would be painful. */
+	salt.size = 64;
 	salt.data = malloc(salt.size);
 	if (!salt.data)
 		return -ENOMEM;
@@ -719,7 +701,10 @@ static int import_openssl_pem(struct openconnect_info *vpninfo,
 			x = (*c) - '0';
 		else if (*c >= 'A' && *c <= 'F')
 			x = (*c) - 'A' + 10;
-		else {
+		else if ((*c == '\r' || *c == '\n') && i >= 16 && !(i % 16)) {
+			salt.size = i / 2;
+			break;
+		} else {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Invalid salt in encrypted PEM file\n"));
 			ret = -EINVAL;
@@ -734,7 +719,7 @@ static int import_openssl_pem(struct openconnect_info *vpninfo,
 	pem_header += salt.size * 2;
 	if (*pem_header != '\r' && *pem_header != '\n') {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Invalid encrypted PEM file\n"));
+			     _("Invalid salt in encrypted PEM file\n"));
 		ret = -EINVAL;
 		goto out_salt;
 	}
