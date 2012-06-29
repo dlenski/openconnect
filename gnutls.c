@@ -1739,7 +1739,14 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	if (vpninfo->my_pkey == OPENCONNECT_TPM_PKEY)
 		gnutls_sign_callback_set(vpninfo->https_sess, gtls2_tpm_sign_cb, vpninfo);
 #endif
-	err = gnutls_priority_set_direct (vpninfo->https_sess, "NONE:+VERS-TLS1.0:+SHA1:+AES-128-CBC:+RSA:+COMP-NULL:%COMPAT:%DISABLE_SAFE_RENEGOTIATION", NULL);
+
+	err = gnutls_priority_set_direct (vpninfo->https_sess,
+					  "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:"
+#if GNUTLS_VERSION_MAJOR >= 3
+					  "-CURVE-ALL:"
+#endif
+					  "%COMPAT:%DISABLE_SAFE_RENEGOTIATION:%LATEST_RECORD_VERSION",
+					  NULL);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to set TLS priority string: %s\n"),
