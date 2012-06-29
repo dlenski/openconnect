@@ -378,8 +378,6 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
-	/* +1 for packet header, +13 for DTLS overhead */
-	gnutls_dtls_set_mtu(dtls_ssl, vpninfo->mtu + 14);
 	gnutls_transport_set_ptr(dtls_ssl,
 				 (gnutls_transport_ptr_t)(long) dtls_fd);
 	gnutls_record_disable_padding(dtls_ssl);
@@ -409,6 +407,29 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	int err = gnutls_handshake(vpninfo->new_dtls_ssl);
 
 	if (!err) {
+#ifdef HAVE_GNUTLS_DTLS_SET_DATA_MTU
+		/* Make sure GnuTLS's idea of the MTU is sufficient to take
+		   a full VPN MTU (with 1-byte header) in a data record. */
+		err = gnutls_dtls_set_data_mtu(vpninfo->new_dtls_ssl, vpninfo->mtu + 1);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to set DTLS MTU: %s\n"),
+				     gnutls_strerror(err));
+			goto error;
+		}
+#else
+		/* If we don't have gnutls_dtls_set_data_mtu() then make sure
+		   we leave enough headroom by adding the worst-case overhead.
+		   We only support AES128-CBC and DES-CBC3-SHA anyway, so
+		   working out the worst case isn't hard. */
+		gnutls_dtls_set_mtu(vpninfo->new_dtls_ssl,
+				    vpninfo->mtu + 1 /* packet + header */
+				    + 13 /* DTLS header */
+				    + 20 /* biggest supported MAC (SHA1) */
+				    + 16 /* biggest supported IV (AES-128) */
+				    + 16 /* max padding */);
+#endif
+
 		vpn_progress(vpninfo, PRG_INFO, _("Established DTLS connection (using GnuTLS)\n"));
 
 		if (vpninfo->dtls_ssl) {
@@ -440,6 +461,8 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	vpn_progress(vpninfo, PRG_ERR, _("DTLS handshake failed: %s\n"),
 		     gnutls_strerror(err));
 
+	goto error;
+ error:
 	/* Kill the new (failed) connection... */
 	gnutls_deinit(vpninfo->new_dtls_ssl);
 	FD_CLR(vpninfo->new_dtls_fd, &vpninfo->select_rfds);
