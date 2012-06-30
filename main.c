@@ -456,7 +456,7 @@ int main(int argc, char **argv)
 	/* Set up some defaults */
 	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = vpninfo->new_dtls_fd = -1;
 	vpninfo->useragent = openconnect_create_useragent("Open AnyConnect VPN Agent");
-	vpninfo->mtu = 0;
+	vpninfo->reqmtu = 0;
 	vpninfo->deflate = 1;
 	vpninfo->dtls_attempt_period = 60;
 	vpninfo->max_qlen = 10;
@@ -576,10 +576,10 @@ int main(int argc, char **argv)
 			use_syslog = 1;
 			break;
 		case 'm':
-			vpninfo->mtu = atol(config_arg);
-			if (vpninfo->mtu < 576) {
-				fprintf(stderr, _("MTU %d too small\n"), vpninfo->mtu);
-				vpninfo->mtu = 576;
+			vpninfo->reqmtu = atol(config_arg);
+			if (vpninfo->reqmtu < 576) {
+				fprintf(stderr, _("MTU %d too small\n"), vpninfo->reqmtu);
+				vpninfo->reqmtu = 576;
 			}
 			break;
 		case OPT_BASEMTU:

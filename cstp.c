@@ -106,7 +106,7 @@ static int  __attribute__ ((format (printf, 3, 4)))
  */
 static void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *mtu)
 {
-	*mtu = vpninfo->mtu;
+	*mtu = vpninfo->reqmtu;
 	*base_mtu = vpninfo->basemtu;
 
 #if defined(__linux__) && defined(TCP_INFO)
@@ -269,6 +269,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
 	/* We may have advertised it, but we only do it if the server agrees */
 	vpninfo->deflate = 0;
+	mtu = 0;
 
 	while ((i = openconnect_SSL_gets(vpninfo, buf, sizeof(buf)))) {
 		struct vpn_option *new_option;
@@ -311,9 +312,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			next_dtls_option = &new_option->next;
 
 			if (!strcmp(buf + 7, "MTU")) {
-				int mtu = atol(colon);
-				if (mtu > vpninfo->mtu)
-					vpninfo->mtu = mtu;
+				int dtlsmtu = atol(colon);
+				if (dtlsmtu > mtu)
+					mtu = dtlsmtu;
 			} else if (!strcmp(buf + 7, "Session-ID")) {
 				if (strlen(colon) != 64) {
 					vpn_progress(vpninfo, PRG_ERR,
@@ -352,9 +353,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 				return -EINVAL;
 			}
 		} else if (!strcmp(buf + 7, "MTU")) {
-			int mtu = atol(colon);
-			if (mtu > vpninfo->mtu)
-				vpninfo->mtu = mtu;
+			int cstpmtu = atol(colon);
+			if (cstpmtu > mtu)
+				mtu = cstpmtu;
 		} else if (!strcmp(buf + 7, "Address")) {
 			if (strchr(new_option->value, ':')) {
 				if (!vpninfo->disable_ipv6)
@@ -412,6 +413,13 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			vpninfo->split_excludes = exc;
 		}
 	}
+
+	if (!mtu) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("No MTU received. Aborting\n"));
+		return -EINVAL;
+	}
+	vpninfo->actual_mtu = mtu;
 
 	if (!vpninfo->vpn_addr && !vpninfo->vpn_addr6) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -563,7 +571,7 @@ int cstp_reconnect(struct openconnect_info *vpninfo)
 static int inflate_and_queue_packet(struct openconnect_info *vpninfo,
 				    unsigned char *buf, int len)
 {
-	struct pkt *new = malloc(sizeof(struct pkt) + vpninfo->mtu);
+	struct pkt *new = malloc(sizeof(struct pkt) + vpninfo->actual_mtu);
 	uint32_t pkt_sum;
 
 	if (!new)
@@ -575,7 +583,7 @@ static int inflate_and_queue_packet(struct openconnect_info *vpninfo,
 	vpninfo->inflate_strm.avail_in = len - 4;
 
 	vpninfo->inflate_strm.next_out = new->data;
-	vpninfo->inflate_strm.avail_out = vpninfo->mtu;
+	vpninfo->inflate_strm.avail_out = vpninfo->actual_mtu;
 	vpninfo->inflate_strm.total_out = 0;
 
 	if (inflate(&vpninfo->inflate_strm, Z_SYNC_FLUSH)) {

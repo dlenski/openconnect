@@ -91,7 +91,7 @@ static int set_tun_mtu(struct openconnect_info *vpninfo)
 
 	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, vpninfo->ifname, sizeof(ifr.ifr_name) - 1);
-	ifr.ifr_mtu = vpninfo->mtu;
+	ifr.ifr_mtu = vpninfo->actual_mtu;
 
 	if (ioctl(net_fd, SIOCSIFMTU, &ifr) < 0)
 		perror(_("SIOCSIFMTU"));
@@ -259,7 +259,7 @@ static void set_script_env(struct openconnect_info *vpninfo)
 	unsetenv("CISCO_SPLIT_INC");
 	unsetenv("CISCO_SPLIT_EXC");
 
-	setenv_int("INTERNAL_IP4_MTU", vpninfo->mtu);
+	setenv_int("INTERNAL_IP4_MTU", vpninfo->actual_mtu);
 
 	if (vpninfo->vpn_addr) {
 		setenv("INTERNAL_IP4_ADDRESS", vpninfo->vpn_addr, 1);
@@ -686,7 +686,7 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 	if (FD_ISSET(vpninfo->tun_fd, &vpninfo->select_rfds)) {
 		while (1) {
-			int len = vpninfo->mtu;
+			int len = vpninfo->actual_mtu;
 
 			if (!out_pkt) {
 				out_pkt = malloc(sizeof(struct pkt) + len);

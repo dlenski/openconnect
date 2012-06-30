@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Fix handling of requested vs. received MTU settings.</li>
        <li>Fix DTLS MTU for GnuTLS 3.0.21 and newer.</li>
        <li>Support more ciphers for OpenSSL encrypted PEM keys, with GnuTLS.</li>
        <li>Fix GnuTLS compatibilty issue with servers that insist on TLSv1.0 <a href="https://bugzilla.redhat.com/show_bug.cgi?id=836558"><i>(RH#836558)</i></a>.</li>

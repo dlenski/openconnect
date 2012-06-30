@@ -37,7 +37,6 @@ struct openconnect_info *openconnect_vpninfo_new (char *useragent,
 {
 	struct openconnect_info *vpninfo = calloc (sizeof(*vpninfo), 1);
 
-	vpninfo->mtu = 1406;
 	vpninfo->ssl_fd = -1;
 	vpninfo->cert_expire_warning = 60 * 86400;
 	vpninfo->useragent = openconnect_create_useragent (useragent);
