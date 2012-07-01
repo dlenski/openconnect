@@ -599,6 +599,7 @@ int main(int argc, char **argv)
 		case OPT_NO_PROXY:
 			autoproxy = 0;
 			proxy = NULL;
+			break;
 		case OPT_LIBPROXY:
 			autoproxy = 1;
 			proxy = NULL;

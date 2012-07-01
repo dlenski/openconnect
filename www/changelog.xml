@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Fix <tt>--no-proxy</tt> option.</li>
        <li>Fix handling of requested vs. received MTU settings.</li>
        <li>Fix DTLS MTU for GnuTLS 3.0.21 and newer.</li>
        <li>Support more ciphers for OpenSSL encrypted PEM keys, with GnuTLS.</li>
