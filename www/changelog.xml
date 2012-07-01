@@ -20,7 +20,7 @@
        <li>Fix handling of requested vs. received MTU settings.</li>
        <li>Fix DTLS MTU for GnuTLS 3.0.21 and newer.</li>
        <li>Support more ciphers for OpenSSL encrypted PEM keys, with GnuTLS.</li>
-       <li>Fix GnuTLS compatibilty issue with servers that insist on TLSv1.0 <a href="https://bugzilla.redhat.com/show_bug.cgi?id=836558"><i>(RH#836558)</i></a>.</li>
+       <li>Fix GnuTLS compatibilty issue with servers that insist on TLSv1.0 or non-AES ciphers <a href="https://bugzilla.redhat.com/show_bug.cgi?id=836558"><i>(RH#836558)</i></a>.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.02.tar.gz">OpenConnect v4.02</a></b>
