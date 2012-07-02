@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.03.tar.gz">OpenConnect v4.03</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.03.tar.gz.asc">PGP signature</a>)</i> &#8212; 2012-07-02
+     <ul>
        <li>Fix <tt>--no-proxy</tt> option.</li>
        <li>Fix handling of requested vs. received MTU settings.</li>
        <li>Fix DTLS MTU for GnuTLS 3.0.21 and newer.</li>
