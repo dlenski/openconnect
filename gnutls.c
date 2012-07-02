@@ -1164,14 +1164,25 @@ static int load_certificate(struct openconnect_info *vpninfo)
 				goto out;
 			}
 		}
-	} else if (strstr((char *)fdata.data, "-----BEGIN ENCRYPTED PRIVATE KEY-----") ||
-		   strstr((char *)fdata.data, "-----BEGIN PRIVATE KEY-----")) {
-		/* PKCS#8 */
+	} else if (strstr((char *)fdata.data, "-----BEGIN PRIVATE KEY-----")) {
+		/* Unencrypted PKCS#8 */
+		err = gnutls_x509_privkey_import_pkcs8(key, &fdata,
+						       GNUTLS_X509_FMT_PEM,
+						       NULL, GNUTLS_PKCS_PLAIN);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to load private key as PKCS#8: %s\n"),
+					     gnutls_strerror(err));
+			ret = -EINVAL;
+			goto out;
+		}
+	} else if (strstr((char *)fdata.data, "-----BEGIN ENCRYPTED PRIVATE KEY-----")) {
+		/* Encrypted PKCS#8 */
 		char *pass = vpninfo->cert_password;
 
 		while ((err = gnutls_x509_privkey_import_pkcs8(key, &fdata,
 							       GNUTLS_X509_FMT_PEM,
-							       pass, pass?0:GNUTLS_PKCS_PLAIN))) {
+							       pass?:"", 0))) {
 			if (err != GNUTLS_E_DECRYPTION_FAILED) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to load private key as PKCS#8: %s\n"),

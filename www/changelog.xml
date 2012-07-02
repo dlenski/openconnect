@@ -17,7 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li><i>No changelog entries yet</i></li>
+       <li>Fix GnuTLS password handling for PKCS#8 files.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.03.tar.gz">OpenConnect v4.03</a></b>
