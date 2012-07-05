@@ -19,15 +19,11 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.03.tar.gz">OpenConnect v4.03</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.03.tar.gz.asc">PGP signature</a>)</i>,
-released on 2012-07-02 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.04.tar.gz">OpenConnect v4.04</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.04.tar.gz.asc">PGP signature</a>)</i>,
+released on 2012-07-05 with the following changelog:</p>
      <ul>
-       <li>Fix <tt>--no-proxy</tt> option.</li>
-       <li>Fix handling of requested vs. received MTU settings.</li>
-       <li>Fix DTLS MTU for GnuTLS 3.0.21 and newer.</li>
-       <li>Support more ciphers for OpenSSL encrypted PEM keys, with GnuTLS.</li>
-       <li>Fix GnuTLS compatibilty issue with servers that insist on TLSv1.0 or non-AES ciphers <a href="https://bugzilla.redhat.com/show_bug.cgi?id=836558"><i>(RH#836558)</i></a>.</li>
+       <li>Fix GnuTLS password handling for PKCS#8 files.</li>
      </ul>
 <!-- latest-release-end -->
 
