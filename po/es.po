@@ -1322,7 +1322,7 @@ msgid "Continue in background after startup"
 msgstr "Continuar en segundo plano tras el arranque"
 
 #: main.c:226
-msgid "Write the daemons pid to this file"
+msgid "Write the daemon's PID to this file"
 msgstr "Escribir los PID de los demonios en este archivo"
 
 #: main.c:227

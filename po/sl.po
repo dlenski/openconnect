@@ -1309,7 +1309,7 @@ msgid "Continue in background after startup"
 msgstr "Po zagonu nadaljuj v ozadju"
 
 #: main.c:224
-msgid "Write the daemons pid to this file"
+msgid "Write the daemon's PID to this file"
 msgstr "Zapiši PID ozadnjega programa v navedeno datoteko"
 
 #: main.c:225

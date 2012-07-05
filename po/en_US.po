@@ -1325,8 +1325,8 @@ msgid "Continue in background after startup"
 msgstr "Continue in background after startup"
 
 #: main.c:224
-msgid "Write the daemons pid to this file"
-msgstr "Write the daemons pid to this file"
+msgid "Write the daemon's PID to this file"
+msgstr "Write the daemon's PID to this file"
 
 #: main.c:225
 msgid "Use SSL client certificate CERT"

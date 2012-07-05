@@ -1312,7 +1312,7 @@ msgid "Continue in background after startup"
 msgstr ""
 
 #: main.c:224
-msgid "Write the daemons pid to this file"
+msgid "Write the daemon's PID to this file"
 msgstr ""
 
 #: main.c:225

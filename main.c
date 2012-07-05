@@ -223,7 +223,7 @@ static void usage(void)
 	print_build_opts();
 	printf("      --config=CONFIGFILE         %s\n", _("Read options from config file"));
 	printf("  -b, --background                %s\n", _("Continue in background after startup"));
-	printf("      --pid-file=PIDFILE          %s\n", _("Write the daemons pid to this file"));
+	printf("      --pid-file=PIDFILE          %s\n", _("Write the daemon's PID to this file"));
 	printf("  -c, --certificate=CERT          %s\n", _("Use SSL client certificate CERT"));
 	printf("  -e, --cert-expire-warning=DAYS  %s\n", _("Warn when certificate lifetime < DAYS"));
 	printf("  -k, --sslkey=KEY                %s\n", _("Use SSL private key file KEY"));
