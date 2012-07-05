@@ -106,11 +106,11 @@ update-translations: po/$(PACKAGE).pot
 		echo "*** ERROR: Uncommitted changes in above files"; exit 1; \
 	else \
 		for a in po/*.po; do \
-			msgmerge -q -N -F $$a $(abs_builddir)/po/$(PACKAGE).pot | egrep -v PO-Revision-Date:\|Language-Team: > $$a.old ; \
+			msgmerge -q -N -F $$a $(abs_builddir)/po/$(PACKAGE).pot | sed '0,/^#:/d' > $$a.old ; \
 		done && \
 		tx pull -af && \
 		for a in po/*.po; do \
-			msgmerge -q -N -F $$a $(abs_builddir)/po/$(PACKAGE).pot | egrep -v PO-Revision-Date:\|Language-Team: > $$a.new ; \
+			msgmerge -q -N -F $$a $(abs_builddir)/po/$(PACKAGE).pot | sed '0,/^#:/d' > $$a.new ; \
 			if ! git ls-tree --name-only HEAD $$a | grep -q $$a; then \
 				echo New file $$a ; \
 				git add $$a ; \
