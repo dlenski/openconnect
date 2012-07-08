@@ -26,6 +26,7 @@
 #include <poll.h>
 #include <limits.h>
 #include <sys/select.h>
+#include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
 #include <string.h>
