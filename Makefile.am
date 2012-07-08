@@ -110,17 +110,18 @@ update-translations: po/$(PACKAGE).pot
 		done && \
 		tx pull -af && \
 		for a in po/*.po; do \
-			msgmerge -q -N -F $$a $(abs_builddir)/po/$(PACKAGE).pot | sed '0,/^#:/d' > $$a.new ; \
+			msgmerge -q -N -F $$a $(abs_builddir)/po/$(PACKAGE).pot > $$a.new ; \
+			sed '0,/^#:/d' $$a.new > $$a.new.cmp ; \
 			if ! git ls-tree --name-only HEAD $$a | grep -q $$a; then \
 				echo New file $$a ; \
 				git add $$a ; \
-			elif ! diff -u $$a.old $$a.new; then \
+			elif ! diff -u $$a.old $$a.new.cmp; then \
 				echo New changes for $$a; \
 				mv $$a.new $$a; \
 			else \
 				git checkout -f HEAD $$a ; \
 			fi ; \
-			rm -f $$a.old $$a.new ; \
+			rm -f $$a.old $$a.new $$a.new.cmp ; \
 		done && \
 		ls po/*.po | sed 's%^po/\(.*\)\.po%\1%' > po/LINGUAS ; \
 		if ! git update-index -q --refresh --unmerged || \
