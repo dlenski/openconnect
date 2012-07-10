@@ -68,7 +68,8 @@ static void free_optlist (struct vpn_option *opt)
 
 void openconnect_vpninfo_free (struct openconnect_info *vpninfo)
 {
-	openconnect_reset_ssl(vpninfo);
+	openconnect_close_https(vpninfo, 1);
+	free(vpninfo->peer_addr);
 	free_optlist(vpninfo->cookies);
 	free_optlist(vpninfo->cstp_options);
 	free_optlist(vpninfo->dtls_options);
@@ -171,7 +172,7 @@ void openconnect_clear_cookie (struct openconnect_info *vpninfo)
 
 void openconnect_reset_ssl (struct openconnect_info *vpninfo)
 {
-	openconnect_close_https(vpninfo, 1);
+	openconnect_close_https(vpninfo, 0);
 	if (vpninfo->peer_addr) {
 		free(vpninfo->peer_addr);
 		vpninfo->peer_addr = NULL;

@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Don't forget key password on GUI reconnect.</li>
        <li>Fix GnuTLS v3 build on OpenBSD.</li>
      </ul><br/>
   </li>
