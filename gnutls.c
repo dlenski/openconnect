@@ -923,25 +923,25 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		/* Add appropriate pin-source and object-type attributes to
 		   both certificate and key URLs, unless they already exist. */
 		if (cert_is_p11 &&
-		    !p11_kit_uri_parse(cert_url, P11_KIT_URI_FOR_OBJECT, uri)) {
+		    !p11_kit_uri_parse(cert_url, P11_KIT_URI_FOR_ANY, uri)) {
 			if (!p11_kit_uri_get_pin_source(uri))
 				p11_kit_uri_set_pin_source(uri, pin_source);
 			if (!p11_kit_uri_get_attribute(uri, CKA_CLASS)) {
 				class = CKO_CERTIFICATE;
 				p11_kit_uri_set_attribute(uri, &attr);
 			}
-			p11_kit_uri_format(uri, P11_KIT_URI_FOR_OBJECT, &cert_url);
+			p11_kit_uri_format(uri, P11_KIT_URI_FOR_ANY, &cert_url);
 		}
 
 		if (key_is_p11 &&
-		    !p11_kit_uri_parse(key_url, P11_KIT_URI_FOR_OBJECT, uri)) {
+		    !p11_kit_uri_parse(key_url, P11_KIT_URI_FOR_ANY, uri)) {
 			if (!p11_kit_uri_get_pin_source(uri))
 				p11_kit_uri_set_pin_source(uri, pin_source);
 			if (!p11_kit_uri_get_attribute(uri, CKA_CLASS)) {
 				class = CKO_PRIVATE_KEY;
 				p11_kit_uri_set_attribute(uri, &attr);
 			}
-			p11_kit_uri_format(uri, P11_KIT_URI_FOR_OBJECT, &key_url);
+			p11_kit_uri_format(uri, P11_KIT_URI_FOR_ANY, &key_url);
 		}
 
 		p11_kit_uri_free(uri);
