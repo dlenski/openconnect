@@ -1963,7 +1963,7 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 
 	if (p11_kit_uri_format(pin_uri, P11_KIT_URI_FOR_TOKEN, &uri))
 		return NULL;
-	
+
 	while (*cache) {
 		if (!strcmp(uri, (*cache)->token)) {
 			free(uri);
@@ -1977,6 +1977,7 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 			}
 			break;
 		}
+		cache = &(*cache)->next;
 	}
 	if (!*cache) {
 		*cache = calloc(1, sizeof(struct pin_cache));
@@ -1994,8 +1995,8 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 	message[sizeof(message)-1] = 0;
 	snprintf(message, sizeof(message) - 1, _("PIN required for %s"), pin_description);
 	f.message = message;
-	
-	/* 
+
+	/*
 	 * In p11-kit <= 0.12, these flags are *odd*.
 	 * RETRY is 0xa, FINAL_TRY is 0x14 and MANY_TRIES is 0x28.
 	 * So don't treat it like a sane bitmask. Fixed in
