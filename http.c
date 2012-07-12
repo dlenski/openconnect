@@ -504,15 +504,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		csd_argv[i++]= (char *)"-url";
 		if (asprintf(&csd_argv[i++], "\"https://%s%s\"", vpninfo->hostname, vpninfo->csd_starturl) == -1)
 			return -ENOMEM;
-		/* WTF would it want to know this for? */
-		csd_argv[i++]= (char *)"-vpnclient";
-		csd_argv[i++]= (char *)"\"/opt/cisco/vpn/bin/vpnui";
-		csd_argv[i++]= (char *)"-connect";
-		if (asprintf(&csd_argv[i++], "https://%s/%s", vpninfo->hostname, vpninfo->csd_preurl) == -1)
-			return -ENOMEM;
-		csd_argv[i++]= (char *)"-connectparam";
-		if (asprintf(&csd_argv[i++], "#csdtoken=%s\"", vpninfo->csd_token) == -1)
-			return -ENOMEM;
+
 		csd_argv[i++]= (char *)"-langselen";
 		csd_argv[i++] = NULL;
 
