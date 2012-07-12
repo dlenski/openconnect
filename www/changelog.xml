@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.05.tar.gz">OpenConnect v4.05</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.05.tar.gz.asc">PGP signature</a>)</i> &#8212; 2012-07-12
+     <ul>
        <li>Use correct CSD script for Mac OS X.</li>
        <li>Fix endless loop in PIN cache handling with multiple PKCS#11 tokens.</li>
        <li>Fix PKCS#11 URI handling to preserve all attributes.</li>
