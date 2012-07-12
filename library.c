@@ -78,7 +78,10 @@ void openconnect_vpninfo_free (struct openconnect_info *vpninfo)
 	free(vpninfo->redirect_url);
 	free(vpninfo->proxy_type);
 	free(vpninfo->proxy);
-	free(vpninfo->csd_scriptname);
+	if (vpninfo->csd_scriptname) {
+		unlink(vpninfo->csd_scriptname);
+		free(vpninfo->csd_scriptname);
+	}
 	free(vpninfo->csd_stuburl);
 	/* These are const in openconnect itself, but for consistency of
 	   the library API we do take ownership of the strings we're given,

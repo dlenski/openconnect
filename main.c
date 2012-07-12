@@ -762,6 +762,10 @@ int main(int argc, char **argv)
 #endif
 
 	if (!vpninfo->cookie && openconnect_obtain_cookie(vpninfo)) {
+		if (vpninfo->csd_scriptname) {
+			unlink(vpninfo->csd_scriptname);
+			vpninfo->csd_scriptname = NULL;
+		}
 		fprintf(stderr, _("Failed to obtain WebVPN cookie\n"));
 		exit(1);
 	}
