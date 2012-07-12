@@ -126,6 +126,7 @@ struct pin_cache {
 struct openconnect_info {
 	char *redirect_url;
 
+	const char *csd_xmltag;
 	char *csd_token;
 	char *csd_ticket;
 	char *csd_stuburl;

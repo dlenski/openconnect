@@ -394,7 +394,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			if (!vpninfo->csd_ticket)
 				vpninfo->csd_ticket = (char *)xmlGetProp(xml_node,
 									 (unsigned char *)"ticket");
-		} else if (!vpninfo->csd_scriptname && !strcmp((char *)xml_node->name, "csdLinux")) {
+		} else if (!vpninfo->csd_scriptname && !strcmp((char *)xml_node->name, vpninfo->csd_xmltag)) {
 			vpninfo->csd_stuburl = (char *)xmlGetProp(xml_node,
 								  (unsigned char *)"stuburl");
 			vpninfo->csd_starturl = (char *)xmlGetProp(xml_node,

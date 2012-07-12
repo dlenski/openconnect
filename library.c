@@ -46,6 +46,11 @@ struct openconnect_info *openconnect_vpninfo_new (char *useragent,
 	vpninfo->progress = progress;
 	vpninfo->cbdata = privdata?:vpninfo;
 	vpninfo->cancel_fd = -1;
+#ifdef __APPLE__
+	vpninfo->csd_xmltag = "csdMac";
+#else
+	vpninfo->csd_xmltag = "csdLinux";
+#endif
 
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);

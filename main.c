@@ -462,6 +462,13 @@ int main(int argc, char **argv)
 	vpninfo->reconnect_interval = RECONNECT_INTERVAL_MIN;
 	vpninfo->reconnect_timeout = 300;
 	vpninfo->uid_csd = 0;
+	/* We could let them override this on the command line some day, perhaps */
+#ifdef __APPLE__
+	vpninfo->csd_xmltag = "csdMac";
+#else
+	vpninfo->csd_xmltag = "csdLinux";
+#endif
+	vpninfo->uid_csd = 0;
 	vpninfo->uid_csd_given = 0;
 	vpninfo->validate_peer_cert = validate_peer_cert;
 	vpninfo->process_auth_form = process_auth_form;
