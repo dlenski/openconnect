@@ -452,7 +452,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		char *csd_argv[32];
 		int i = 0;
 
-		if (vpninfo->uid_csd != getuid()) {
+		if (vpninfo->uid_csd_given && vpninfo->uid_csd != getuid()) {
 			struct passwd *pw;
 
 			if (setuid(vpninfo->uid_csd)) {
@@ -472,12 +472,12 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 				exit(1);
 			}
 		}
-		if (vpninfo->uid_csd == 0 && !vpninfo->csd_wrapper) {
+		if (getuid() == 0 && !vpninfo->csd_wrapper) {
 			fprintf(stderr, _("Warning: you are running insecure "
 					  "CSD code with root privileges\n"
 					  "\t Use command line option \"--csd-user\"\n"));
 		}
-		if (vpninfo->uid_csd_given == 2) {	       
+		if (vpninfo->uid_csd_given == 2) {
 			/* The NM tool really needs not to get spurious output
 			   on stdout, which the CSD trojan spews. */
 			dup2(2, 1);
