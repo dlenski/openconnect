@@ -1055,6 +1055,87 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		}
 
 		err = gnutls_pkcs11_privkey_import_url(p11key, key_url, 0);
+
+		/* Annoyingly, some tokens don't even admit the *existence* of
+		   the key until they're logged in. And thus a search doesn't
+		   work unless it specifies the *token* too. But if the URI for
+		   key and cert are the same, and the cert was found, then we
+		   can work out what token the *cert* was found in and try that
+		   before we give up... */
+		if (err == GNUTLS_E_REQUESTED_DATA_NOT_AVAILABLE &&
+		    vpninfo->cert == vpninfo->sslkey) {
+			gnutls_pkcs11_obj_t crt;
+			P11KitUri *uri;
+			CK_TOKEN_INFO *token;
+			char buf[33];
+			size_t s;
+
+			if (gnutls_pkcs11_obj_init(&crt))
+				goto key_err;
+			if (gnutls_pkcs11_obj_import_url(crt, cert_url, 0))
+				goto key_err_obj;
+			uri = p11_kit_uri_new();
+			if (!uri)
+				goto key_err_obj;
+			if (p11_kit_uri_parse(key_url, P11_KIT_URI_FOR_ANY, uri))
+				goto key_err_uri;
+			token = p11_kit_uri_get_token_info(uri);
+			if (!token)
+				goto key_err_uri;
+
+			if (!token->label[0]) {
+				s = sizeof(token->label) + 1;
+				if (!gnutls_pkcs11_obj_get_info(crt, GNUTLS_PKCS11_OBJ_TOKEN_LABEL,
+								buf, &s)) {
+					s--;
+					memcpy(token->label, buf, s);
+					memset(token->label + s, ' ',
+					       sizeof(token->label) - s);
+				}
+			}
+			if (!token->manufacturerID[0]) {
+				s = sizeof(token->manufacturerID) + 1;
+				if (!gnutls_pkcs11_obj_get_info(crt, GNUTLS_PKCS11_OBJ_TOKEN_MANUFACTURER,
+								buf, &s)) {
+					s--;
+					memcpy(token->manufacturerID, buf, s);
+					memset(token->manufacturerID + s, ' ',
+					       sizeof(token->manufacturerID) - s);
+				}
+			}
+			if (!token->model[0]) {
+				s = sizeof(token->model) + 1;
+				if (!gnutls_pkcs11_obj_get_info(crt, GNUTLS_PKCS11_OBJ_TOKEN_MODEL,
+								buf, &s)) {
+					    s--;
+					    memcpy(token->model, buf, s);
+					    memset(token->model + s, ' ',
+						   sizeof(token->model) - s);
+				}
+			}
+			if (!token->serialNumber[0]) {
+				s = sizeof(token->serialNumber + 1);
+				if (!gnutls_pkcs11_obj_get_info(crt, GNUTLS_PKCS11_OBJ_TOKEN_SERIAL,
+								buf, &s)) {
+					s--;
+					memcpy(token->serialNumber, buf, s);
+					memset(token->serialNumber + s, ' ',
+					       sizeof(token->serialNumber) - s);
+				}
+
+			}
+
+			free(key_url);
+			key_url = NULL;
+			if (!p11_kit_uri_format(uri, P11_KIT_URI_FOR_ANY, &key_url))
+				err = gnutls_pkcs11_privkey_import_url(p11key, key_url, 0);
+		key_err_uri:
+			p11_kit_uri_free(uri);
+		key_err_obj:
+			gnutls_pkcs11_obj_deinit(crt);
+		key_err:
+			;
+		}
 		if (err) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Error importing PKCS#11 URL %s: %s\n"),
