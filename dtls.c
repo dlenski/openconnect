@@ -520,18 +520,21 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	}
 
 	if (vpninfo->dtls_local_port) {
-		struct sockaddr_storage dtls_bind_addr;
+		union {
+			struct sockaddr_in in;
+			struct sockaddr_in6 in6;
+		} dtls_bind_addr;
 		int dtls_bind_addrlen;
 		memset(&dtls_bind_addr, 0, sizeof(dtls_bind_addr));
 
 		if (vpninfo->peer_addr->sa_family == AF_INET) {
-			struct sockaddr_in *addr = (struct sockaddr_in *)&dtls_bind_addr;
+			struct sockaddr_in *addr = &dtls_bind_addr.in;
 			dtls_bind_addrlen = sizeof(*addr);
 			addr->sin_family = AF_INET;
 			addr->sin_addr.s_addr = INADDR_ANY;
 			addr->sin_port = htons(vpninfo->dtls_local_port);
 		} else if (vpninfo->peer_addr->sa_family == AF_INET6) {
-			struct sockaddr_in6 *addr = (struct sockaddr_in6 *)&dtls_bind_addr;
+			struct sockaddr_in6 *addr = &dtls_bind_addr.in6;
 			dtls_bind_addrlen = sizeof(*addr);
 			addr->sin6_family = AF_INET6;
 			addr->sin6_addr = in6addr_any;
