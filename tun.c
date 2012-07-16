@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <sys/wait.h>
 #include <string.h>
 #include <signal.h>
 #include <fcntl.h>
@@ -373,16 +374,32 @@ static void set_script_env(struct openconnect_info *vpninfo)
 
 int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
 {
+	int ret;
+
 	if (!vpninfo->vpnc_script)
 		return 0;
 
 	setenv("reason", reason, 1);
-	if (system(vpninfo->vpnc_script)) {
+	ret = system(vpninfo->vpnc_script);
+	if (ret == -1) {
 		int e = errno;
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to spawn script '%s' for %s: %s\n"),
 			     vpninfo->vpnc_script, reason, strerror(e));
 		return -e;
+	}
+	if (!WIFEXITED(ret)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Script '%s' exited abnormally (%x)\n"),
+			       vpninfo->vpnc_script, ret);
+		return -EIO;
+	}
+	ret = WEXITSTATUS(ret);
+	if (ret) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Script '%s' returned error %d\n"),
+			     vpninfo->vpnc_script, ret);
+		return -EIO;
 	}
 	return 0;
 }
