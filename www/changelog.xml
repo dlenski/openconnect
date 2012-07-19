@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Fix default CA location for non-Fedora systems with old GnuTLS.</li>
        <li>Improve error handing when <tt>vpnc-script</tt> exits with error.</li>
        <li>Handle PKCS#11 tokens which won't list keys without login.</li>
      </ul><br/>

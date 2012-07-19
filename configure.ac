@@ -179,6 +179,10 @@ if test "$USE_NLS" = "yes"; then
 fi
 AM_CONDITIONAL(USE_NLS, [test "$USE_NLS" = "yes"])
 
+AC_ARG_WITH([system-cafile],
+	    AS_HELP_STRING([--with-system-cafile],
+			   [Location of the default system CA certificate file for old (<3.0.20) GnuTLS versions]))
+
 # We will use GnuTLS if it's requested, and if GnuTLS doesn't have DTLS
 # support then we'll *also* use OpenSSL for that, but it appears *only*
 # only in the openconnect executable and not the library (hence shouldn't
@@ -209,6 +213,38 @@ if test "$with_gnutls" = "yes"; then
 		 [AC_DEFINE(HAVE_GNUTLS_DTLS_SET_DATA_MTU, 1)], [])
     AC_CHECK_FUNC(gnutls_certificate_set_x509_system_trust,
 		 [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_X509_SYSTEM_TRUST, 1)], [])
+    if test "$ac_cv_func_gnutls_certificate_set_x509_system_trust" != "yes"; then
+	# We will need to tell GnuTLS the path to the system CA file.
+	if test "$with_system_cafile" = "yes" || test "$with_system_cafile" = ""; then
+	    unset with_system_cafile
+	    AC_MSG_CHECKING([For location of system CA trust file])
+	    for file in /etc/ssl/certs/ca-certificates.crt \
+			/etc/pki/tls/cert.pem \
+			/usr/local/share/certs/ca-root-nss.crt \
+			/etc/ssl/cert.pem; do
+		if grep 'BEGIN CERTIFICATE-----' $file >/dev/null 2>&1; then
+		    with_system_cafile=${file}
+		    break
+		fi
+	    done
+	    AC_MSG_RESULT([${with_system_cafile-NOT FOUND}])
+	elif test "$with_system_cafile" = "no"; then
+	    AC_MSG_ERROR([You cannot disable the system CA certificate file.])
+	fi
+	if test "$with_system_cafile" = ""; then
+	    AC_MSG_ERROR([Unable to find a standard system CA certificate file.]
+    [Your GnuTLS requires a path to a CA certificate store. This is a file]
+    [which contains a list of the Certificate Authorities which are trusted.]
+    [Most distributions ship with this file in a standard location, but none]
+    [the known standard locations exist on your system. You should provide a]
+    [--with-system-cafile= argument to this configure script, giving the full]
+    [path to a default CA certificate file for GnuTLS to use. Also, please]
+    [send full details of your system, including 'uname -a' output and the]
+    [location of the system CA certificate store on your system, to the]
+    [openconnect-devel@lists.infradead.org mailing list.])
+	fi
+	AC_DEFINE_UNQUOTED([DEFAULT_SYSTEM_CAFILE], ["$with_system_cafile"])
+    fi
     AC_CHECK_FUNC(gnutls_pkcs12_simple_parse,
 		 [AC_DEFINE(HAVE_GNUTLS_PKCS12_SIMPLE_PARSE, 1)], [])
     AC_CHECK_FUNC(gnutls_certificate_set_key,

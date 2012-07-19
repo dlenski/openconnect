@@ -1751,7 +1751,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		gnutls_certificate_set_x509_system_trust(vpninfo->https_cred);
 #else
 		gnutls_certificate_set_x509_trust_file(vpninfo->https_cred,
-						       "/etc/pki/tls/certs/ca-bundle.crt",
+						       DEFAULT_SYSTEM_CAFILE,
 						       GNUTLS_X509_FMT_PEM);
 #endif
 		gnutls_certificate_set_verify_function (vpninfo->https_cred,
