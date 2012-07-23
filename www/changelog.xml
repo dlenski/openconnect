@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.06.tar.gz">OpenConnect v4.06</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.06.tar.gz.asc">PGP signature</a>)</i> &#8212; 2012-07-23
+     <ul>
        <li>Fix default CA location for non-Fedora systems with old GnuTLS.</li>
        <li>Improve error handing when <tt>vpnc-script</tt> exits with error.</li>
        <li>Handle PKCS#11 tokens which won't list keys without login.</li>

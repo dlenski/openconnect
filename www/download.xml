@@ -19,15 +19,13 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.05.tar.gz">OpenConnect v4.05</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.05.tar.gz.asc">PGP signature</a>)</i>,
-released on 2012-07-12 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.06.tar.gz">OpenConnect v4.06</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.06.tar.gz.asc">PGP signature</a>)</i>,
+released on 2012-07-23 with the following changelog:</p>
      <ul>
-       <li>Use correct CSD script for Mac OS X.</li>
-       <li>Fix endless loop in PIN cache handling with multiple PKCS#11 tokens.</li>
-       <li>Fix PKCS#11 URI handling to preserve all attributes.</li>
-       <li>Don't forget key password on GUI reconnect.</li>
-       <li>Fix GnuTLS v3 build on OpenBSD.</li>
+       <li>Fix default CA location for non-Fedora systems with old GnuTLS.</li>
+       <li>Improve error handing when <tt>vpnc-script</tt> exits with error.</li>
+       <li>Handle PKCS#11 tokens which won't list keys without login.</li>
      </ul>
 <!-- latest-release-end -->
 
