@@ -803,11 +803,18 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		ret = cstp_write(vpninfo,
 				 vpninfo->current_ssl_pkt->hdr,
 				 vpninfo->current_ssl_pkt->len + 8);
-		
 		if (ret < 0)
 			goto do_reconnect;
-		else if (!ret && ka_stalled_dpd_time(&vpninfo->ssl_times, timeout))
-			goto peer_dead;
+		else if (!ret) {
+			/* -EAGAIN: cstp_write() will have added the SSL fd to
+			   ->select_wfds if appropriate, so we can just return
+			   and wait. Unless it's been stalled for so long that
+			   DPD kicks in and we kill the connection. */
+			if (ka_stalled_dpd_time(&vpninfo->ssl_times, timeout))
+				goto peer_dead;
+
+			return work_done;
+		}
 
 		if (ret != vpninfo->current_ssl_pkt->len + 8) {
 			vpn_progress(vpninfo, PRG_ERR,
