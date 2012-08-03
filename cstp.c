@@ -810,10 +810,17 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			   ->select_wfds if appropriate, so we can just return
 			   and wait. Unless it's been stalled for so long that
 			   DPD kicks in and we kill the connection. */
-			if (ka_stalled_dpd_time(&vpninfo->ssl_times, timeout))
+			switch (ka_stalled_action(&vpninfo->ssl_times, timeout)) {
+			case KA_DPD_DEAD:
 				goto peer_dead;
-
-			return work_done;
+			case KA_REKEY:
+				goto do_rekey;
+			case KA_NONE:
+				return work_done;
+			default:
+				/* This should never happen */
+				;
+			}
 		}
 
 		if (ret != vpninfo->current_ssl_pkt->len + 8) {
@@ -842,6 +849,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 	switch (keepalive_action(&vpninfo->ssl_times, timeout)) {
 	case KA_REKEY:
+	do_rekey:
 		/* Not that this will ever happen; we don't even process
 		   the setting when we're asked for it. */
 		vpn_progress(vpninfo, PRG_INFO, _("CSTP rekey due\n"));

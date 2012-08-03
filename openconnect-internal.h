@@ -377,7 +377,7 @@ int vpn_mainloop(struct openconnect_info *vpninfo);
 int queue_new_packet(struct pkt **q, void *buf, int len);
 void queue_packet(struct pkt **q, struct pkt *new);
 int keepalive_action(struct keepalive_info *ka, int *timeout);
-int ka_stalled_dpd_time(struct keepalive_info *ka, int *timeout);
+int ka_stalled_action(struct keepalive_info *ka, int *timeout);
 
 extern int killed;
 
