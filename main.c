@@ -338,7 +338,7 @@ static int next_option(int argc, char **argv, char **config_arg)
  next:
 	if (!config_file) {
 		opt = getopt_long(argc, argv,
-				  "bC:c:e:Ddg:hi:k:lpP:Q:qSs:U:u:Vvx:",
+				  "bC:c:e:Ddg:hi:k:lp:P:Q:qSs:U:u:Vvx:",
 				  long_options, NULL);
 
 		*config_arg = optarg;
