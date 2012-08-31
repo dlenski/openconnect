@@ -19,13 +19,12 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.06.tar.gz">OpenConnect v4.06</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.06.tar.gz.asc">PGP signature</a>)</i>,
-released on 2012-07-23 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.07.tar.gz">OpenConnect v4.07</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.07.tar.gz.asc">PGP signature</a>)</i>,
+released on 2012-08-31 with the following changelog:</p>
      <ul>
-       <li>Fix default CA location for non-Fedora systems with old GnuTLS.</li>
-       <li>Improve error handing when <tt>vpnc-script</tt> exits with error.</li>
-       <li>Handle PKCS#11 tokens which won't list keys without login.</li>
+       <li>Fix segmentation fault when invoked with <tt>-p</tt> argument.</li>
+       <li>Fix handling of write stalls on CSTP (TCP) socket.</li>
      </ul>
 <!-- latest-release-end -->
 
