@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-08-20 11:30+0100\n"
+"POT-Creation-Date: 2012-09-04 00:11+0100\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Spanish (Castilian) (http://www.transifex.net/projects/p/"
 "meego/language/es/)\n"
@@ -299,7 +299,7 @@ msgstr "Falló al inicializar la sesión DTLSv1\n"
 
 #: dtls.c:177
 msgid "Not precisely one DTLS cipher\n"
-msgstr ""
+msgstr "No precisamente un cifrado DTLS\n"
 
 #: dtls.c:195
 #, c-format
@@ -309,38 +309,45 @@ msgid ""
 "See http://rt.openssl.org/Ticket/Display.html?id=1751\n"
 "Use the --no-dtls command line option to avoid this message\n"
 msgstr ""
+"SSL_set_session() falló con el protocolo antiguo 0x%x\n"
+"¿Está usando una versión de OpenSSL más antigua que la 0.9.8m?\n"
+"Consulte http://rt.openssl.org/Ticket/Display.html?id=1751\n"
+"Use la opción de la línea de comandos --no-dtls para evitar este mensaje\n"
 
 #: dtls.c:221
 msgid "Established DTLS connection (using OpenSSL)\n"
-msgstr ""
+msgstr "Establecida la conexíon DTLS (usando OpenSSL)\n"
 
 #: dtls.c:259
 msgid "Your OpenSSL is older than the one you built against, so DTLS may fail!"
 msgstr ""
+"Su versión de OpenSSL es anterior a la que usó para compilar, por lo que "
+"DTLS podría fallar."
 
 #: dtls.c:303 dtls.c:458
 msgid "DTLS handshake timed out\n"
-msgstr ""
+msgstr "Expiró tiempo de la negociación DTLS\n"
 
 #: dtls.c:306
 #, c-format
 msgid "DTLS handshake failed: %d\n"
-msgstr ""
+msgstr "Falló la negociación DTLS: %d\n"
 
 #: dtls.c:362
 #, c-format
 msgid "Unknown DTLS parameters for requested CipherSuite '%s'\n"
 msgstr ""
+"Parámetros DTLS desconocidos para la petición del conjunto de cifrado «%s»\n"
 
 #: dtls.c:375
 #, c-format
 msgid "Failed to set DTLS priority: %s\n"
-msgstr ""
+msgstr "Falló al establecer la prioridad DTLS: %s\n"
 
 #: dtls.c:394
 #, c-format
 msgid "Failed to set DTLS session parameters: %s\n"
-msgstr ""
+msgstr "Falló al establecer los parámetros de sesión: %s\n"
 
 #: dtls.c:416
 #, c-format
@@ -354,7 +361,7 @@ msgstr "Conexión DTLS establecida (usando GnuTLS)\n"
 #: dtls.c:461
 #, c-format
 msgid "DTLS handshake failed: %s\n"
-msgstr ""
+msgstr "Falló la negociación DTLS: %s\n"
 
 #: dtls.c:497
 msgid "No DTLS address\n"
@@ -363,65 +370,65 @@ msgstr "Sin dirección DTLS\n"
 #. We probably didn't offer it any ciphers it liked
 #: dtls.c:504
 msgid "Server offered no DTLS cipher option\n"
-msgstr ""
+msgstr "El servidor no ofreció opción de cifrado DTLS\n"
 
 #. XXX: Theoretically, SOCKS5 proxies can do UDP too
 #: dtls.c:511
 msgid "No DTLS when connected via proxy\n"
-msgstr ""
+msgstr "Sin DTLS cuando se conecta vía proxy\n"
 
 #: dtls.c:518
 msgid "Open UDP socket for DTLS:"
-msgstr ""
+msgstr "Abrir socket UDP para DTLS:"
 
 #: dtls.c:544 dtls.c:658
 #, c-format
 msgid "Unknown protocol family %d. Cannot do DTLS\n"
-msgstr ""
+msgstr "Fmilia de protocolo %d desconocida. No se puede realizar DTLS\n"
 
 #: dtls.c:551
 msgid "Bind UDP socket for DTLS"
-msgstr ""
+msgstr "Enlace del socket UDP para DTLS"
 
 #: dtls.c:557
 msgid "UDP (DTLS) connect:\n"
-msgstr ""
+msgstr "Conectar UDP(DTLS):\n"
 
 #: dtls.c:619
 #, c-format
 msgid "DTLS option %s : %s\n"
-msgstr ""
+msgstr "Opción DTLS %s: %s\n"
 
 #: dtls.c:668
 #, c-format
 msgid "DTLS connected. DPD %d, Keepalive %d\n"
-msgstr ""
+msgstr "DTLS conectado. DPD %d, Keepalive %d\n"
 
 #: dtls.c:699
 #, c-format
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
-msgstr ""
+msgstr "Recibió el paquete DTLS 0x%02x de %d bytes\n"
 
 #: dtls.c:713
 msgid "Got DTLS DPD request\n"
-msgstr ""
+msgstr "Solicitud DTLS DPD obtenida\n"
 
 #: dtls.c:719
 msgid "Failed to send DPD response. Expect disconnect\n"
-msgstr ""
+msgstr "Falló al enviar respuesta DPD. Espere desconectar\n"
 
 #: dtls.c:723
 msgid "Got DTLS DPD response\n"
-msgstr ""
+msgstr "Respuesta DTLS DPD obtenida\n"
 
 #: dtls.c:727
 msgid "Got DTLS Keepalive\n"
-msgstr ""
+msgstr "Obtenido Keepalive DTLS\n"
 
 #: dtls.c:732
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
-msgstr ""
+msgstr "Paquete DTLS tipo %02x desconocido, longitud %d\n"
 
 #: dtls.c:751
 msgid "DTLS rekey due\n"
