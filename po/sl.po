@@ -135,21 +135,25 @@ msgstr "Ni prejetega nobenega naslova IP. Opravilo je preklicano.\n"
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr ""
+"S ponovno povezavo je pridobljen drugačen opuščen naslov IP (%s != %s)\n"
 
 #: cstp.c:440
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr ""
+"S ponovno povezavo je pridobljena drugačna opuščena maska omrežja IP (%s != "
+"%s)\n"
 
 #: cstp.c:448
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
-msgstr ""
+msgstr "S ponovno povezavo je pridobljen drugačen naslov IPv6 (%s != %s)\n"
 
 #: cstp.c:456
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr ""
+"S ponovno povezavo je pridobljena drugačna maska omrežja IPv6 (%s != %s)\n"
 
 #: cstp.c:476
 #, c-format
@@ -176,7 +180,7 @@ msgstr ""
 #: cstp.c:608
 #, c-format
 msgid "Received compressed data packet of %ld bytes\n"
-msgstr ""
+msgstr "Prejet je stisnjen paket podatkov velikosti %ld bajtov\n"
 
 #: cstp.c:627
 #, c-format
@@ -477,7 +481,7 @@ msgstr ""
 
 #: gnutls.c:105 openssl.c:122
 msgid "SSL write cancelled\n"
-msgstr ""
+msgstr "Zapisovanje SSL je bilo preklicano\n"
 
 #: gnutls.c:122
 #, c-format
@@ -486,7 +490,7 @@ msgstr ""
 
 #: gnutls.c:142 gnutls.c:200 openssl.c:159 openssl.c:217
 msgid "SSL read cancelled\n"
-msgstr ""
+msgstr "Branje SSL je bilo preklicano\n"
 
 #: gnutls.c:176
 #, c-format
@@ -619,7 +623,7 @@ msgstr ""
 
 #: gnutls.c:849 gnutls.c:1281 openssl.c:394
 msgid "Enter PEM pass phrase:"
-msgstr ""
+msgstr "Vnos šifrirnega gesla PEM:"
 
 #: gnutls.c:903 openssl.c:667
 msgid "This binary built without PKCS#11 support\n"
@@ -638,7 +642,7 @@ msgstr ""
 #: gnutls.c:977 openssl.c:672
 #, c-format
 msgid "Using certificate file %s\n"
-msgstr ""
+msgstr "Uporabljena bo datoteka potrdila %s\n"
 
 #: gnutls.c:1000
 msgid "PKCS#11 file contained no certificate\n"
@@ -732,7 +736,7 @@ msgstr ""
 #: gnutls.c:1398 openssl.c:461 openssl.c:598
 #, c-format
 msgid "Using client certificate '%s'\n"
-msgstr ""
+msgstr "Uporabljeno bo potrdilo odjemalca '%s'\n"
 
 #: gnutls.c:1405
 #, c-format
@@ -756,11 +760,11 @@ msgstr ""
 #: gnutls.c:1524
 #, c-format
 msgid "Setting certificate failed: %s\n"
-msgstr ""
+msgstr "Nastavljanje potrdila je spodletelo: %s\n"
 
 #: gnutls.c:1653
 msgid "Server presented no certificate\n"
-msgstr ""
+msgstr "Strežnik ni javil podatkov o potrdilu\n"
 
 #: gnutls.c:1665
 msgid "Could not calculate SHA1 of server's certificate\n"
@@ -777,34 +781,34 @@ msgstr ""
 
 #: gnutls.c:1686
 msgid "certificate revoked"
-msgstr ""
+msgstr "potrdilo je preklicano"
 
 #: gnutls.c:1688
 msgid "signer not found"
-msgstr ""
+msgstr "podpisnika ni mogoče najti"
 
 #: gnutls.c:1690
 msgid "signer not a CA certificate"
-msgstr ""
+msgstr "podpisnik ni overitelj potrdila CA"
 
 #: gnutls.c:1692
 msgid "insecure algorithm"
-msgstr ""
+msgstr "algoritem ni varen"
 
 #: gnutls.c:1694
 msgid "certificate not yet activated"
-msgstr ""
+msgstr "potrdilo  še ni omogočeno"
 
 #: gnutls.c:1696
 msgid "certificate expired"
-msgstr ""
+msgstr "potrdilo je preteklo"
 
 #. If this is set and no other reason, it apparently means
 #. that signature verification failed. Not entirely sure
 #. why we don't just set a bit for that too.
 #: gnutls.c:1701
 msgid "signature verification failed"
-msgstr ""
+msgstr "preverjanje podpisa je spodletelo"
 
 #: gnutls.c:1705
 msgid "Error initialising X509 cert structure\n"
@@ -812,7 +816,7 @@ msgstr ""
 
 #: gnutls.c:1711
 msgid "Error importing server's cert\n"
-msgstr ""
+msgstr "Napaka med uvažanjem potrdila strežnika\n"
 
 #: gnutls.c:1717 openssl.c:1152
 msgid "certificate does not match hostname"
@@ -967,12 +971,12 @@ msgstr ""
 
 #: gnutls_tpm.c:300
 msgid "Enter TPM key PIN:"
-msgstr ""
+msgstr "Vnos ključa PIN TPM:"
 
 #: gnutls_tpm.c:311
 #, c-format
 msgid "Failed to set key PIN: %s\n"
-msgstr ""
+msgstr "Nastavljanje ključa PIN je spodletelo: %s\n"
 
 #: http.c:64
 msgid "No memory for allocating cookies\n"
@@ -1202,11 +1206,12 @@ msgstr ""
 #, c-format
 msgid "Error writing connect request to SOCKS proxy: %s\n"
 msgstr ""
+"Napaka zapisovanja zahtev povezave s posredniškim strežnikom SOCKS: %s\n"
 
 #: http.c:1054 http.c:1087
 #, c-format
 msgid "Error reading connect response from SOCKS proxy: %s\n"
-msgstr ""
+msgstr "Napaka branja odzivov povezave s posredniškega strežnika SOCKS: %s\n"
 
 #: http.c:1060
 #, c-format
@@ -1258,7 +1263,7 @@ msgstr "Neznana vrsta posredniškega strežnika '%s'.\n"
 
 #: http.c:1189
 msgid "Only http or socks(5) proxies supported\n"
-msgstr ""
+msgstr "Podprti so le posredniški strežniki HTTP in SOCKS(5)\n"
 
 #: library.c:210
 #, c-format
@@ -1340,7 +1345,7 @@ msgstr "Opozori, ko je življenjska doba potrdila manj kot določeno število dn
 
 #: main.c:229
 msgid "Use SSL private key file KEY"
-msgstr ""
+msgstr "Uporabi zasebno datoteko KEY ključa SSL"
 
 #: main.c:230
 msgid "Use WebVPN cookie COOKIE"
@@ -1360,7 +1365,7 @@ msgstr "Omnemogoči stiskanje"
 
 #: main.c:234
 msgid "Set minimum Dead Peer Detection interval"
-msgstr ""
+msgstr "Določite najmanjši interval zaznave nedejavnih soležnikov"
 
 #: main.c:235
 msgid "Set login usergroup"
@@ -1460,7 +1465,7 @@ msgstr "Nastavitvena datoteka XML"
 
 #: main.c:261
 msgid "Choose authentication login selection"
-msgstr ""
+msgstr "Izbor načina overitvene prijave"
 
 #: main.c:262
 msgid "Authenticate only and print login info"
@@ -1468,15 +1473,15 @@ msgstr ""
 
 #: main.c:263
 msgid "Fetch webvpn cookie only; don't connect"
-msgstr ""
+msgstr "Pridobi piškotek WEBVPN brez povezave"
 
 #: main.c:264
 msgid "Print webvpn cookie before connecting"
-msgstr ""
+msgstr "Pred povezavo izpiši vsebino piškotka WEBVPN"
 
 #: main.c:265
 msgid "Cert file for server verification"
-msgstr ""
+msgstr "Datoteka potrdila za preverjanje istovetnosti strežnika"
 
 #: main.c:266
 msgid "Do not ask for IPv6 connectivity"
@@ -1512,11 +1517,11 @@ msgstr "Preberi geslo z navadnega vhoda"
 
 #: main.c:274
 msgid "Connection retry timeout in seconds"
-msgstr ""
+msgstr "Časovni zamik ponovnega vzpostavljanja povezave v sekundah"
 
 #: main.c:275
 msgid "Server's certificate SHA1 fingerprint"
-msgstr ""
+msgstr "Prstni odtis potrdila SHA1 strežnika"
 
 #: main.c:276
 msgid "HTTP header User-Agent: field"
@@ -1538,12 +1543,12 @@ msgstr "fgets (stdin)"
 #: main.c:355
 #, c-format
 msgid "Failed to get line from config file: %s\n"
-msgstr ""
+msgstr "Pridobivanje vrstice iz nastavitvene datoteke je spodletelo: %s\n"
 
 #: main.c:395
 #, c-format
 msgid "Unrecognised option at line %d: '%s'\n"
-msgstr ""
+msgstr "Neprepoznana možnost v vrstici %d: '%s'\n"
 
 #: main.c:405
 #, c-format
@@ -1632,7 +1637,7 @@ msgstr "Ustvarjanje povezave SSL je spodletelo.\n"
 #: main.c:805
 #, c-format
 msgid "Set up tun device failed\n"
-msgstr ""
+msgstr "Nastavitev naprave je spodletela\n"
 
 #: main.c:818
 #, c-format
@@ -1642,7 +1647,7 @@ msgstr ""
 #: main.c:821
 #, c-format
 msgid "Connected %s as %s%s%s, using %s\n"
-msgstr ""
+msgstr "Povezava %s je vzpostavljena kot %s%s%s, z uporabo %s\n"
 
 #: main.c:831
 msgid "No --script argument provided; DNS and routing are not configured\n"
@@ -1660,7 +1665,7 @@ msgstr "Datoteke '%s' ni mogoče odpreti za pisanje: %s\n"
 #: main.c:856
 #, c-format
 msgid "Continuing in background; pid %d\n"
-msgstr ""
+msgstr "Izvajanje programa je poslano v ozadje; pid %d\n"
 
 #: main.c:878
 #, c-format
@@ -1670,7 +1675,7 @@ msgstr "Datoteke %s ni mogoče odpreti za pisanje: %s\n"
 #: main.c:886
 #, c-format
 msgid "Failed to write config to %s: %s\n"
-msgstr ""
+msgstr "Zapisovanje nastavitev v %s je spodletelo: %s\n"
 
 #: main.c:979
 #, c-format
@@ -1726,20 +1731,20 @@ msgstr ""
 
 #: openssl.c:110
 msgid "Failed to write to SSL socket"
-msgstr ""
+msgstr "Zapisovanje v vtič SSL je spodletelo"
 
 #: openssl.c:147
 msgid "Failed to read from SSL socket"
-msgstr ""
+msgstr "Branje iz vtiča SSL je spodletelo"
 
 #: openssl.c:204
 msgid "Failed to read from SSL socket\n"
-msgstr ""
+msgstr "Branje iz vtiča SSL je spodletelo\n"
 
 #: openssl.c:401
 #, c-format
 msgid "PEM password too long (%d >= %d)\n"
-msgstr ""
+msgstr "Geslo PEM je predolgo (%d >= %d)\n"
 
 #: openssl.c:442
 msgid "Parse PKCS#12 failed (wrong passphrase?)\n"
@@ -1771,19 +1776,19 @@ msgstr "Programnika TPM ni mogoče naložiti.\n"
 
 #: openssl.c:526
 msgid "Failed to init TPM engine\n"
-msgstr ""
+msgstr "Začenjanje programnika TPM je spodletelo.\n"
 
 #: openssl.c:536
 msgid "Failed to set TPM SRK password\n"
-msgstr ""
+msgstr "Nastavljanje gesla TPM SRK je spodletelo\n"
 
 #: openssl.c:550
 msgid "Failed to load TPM private key\n"
-msgstr ""
+msgstr "Nalaganje zasebnega ključa TPM je spodletelo\n"
 
 #: openssl.c:556
 msgid "Add key from TPM failed\n"
-msgstr ""
+msgstr "Dodajanje ključa iz TPM je spodletelo\n"
 
 #: openssl.c:587
 msgid "Failed to reload X509 cert for expiry check\n"
@@ -1805,7 +1810,7 @@ msgstr ""
 #: openssl.c:683
 #, c-format
 msgid "Failed to open certificate file %s: %s\n"
-msgstr ""
+msgstr "Odpiranje datoteke potrdila %s je spodletelo: %s\n"
 
 #: openssl.c:694
 msgid "Read PKCS#12 failed\n"
@@ -1821,7 +1826,7 @@ msgstr ""
 
 #: openssl.c:730
 msgid "Loading certificate failed\n"
-msgstr ""
+msgstr "Nalaganje potrdila je spodletelo\n"
 
 #: openssl.c:757
 msgid "Failed to use private key from keystore\n"
@@ -1830,7 +1835,7 @@ msgstr ""
 #: openssl.c:773
 #, c-format
 msgid "Failed to open private key file %s: %s\n"
-msgstr ""
+msgstr "Odpiranje zasebne datoteke ključa %s je spodletelo: %s\n"
 
 #: openssl.c:793
 #, c-format
@@ -2031,7 +2036,7 @@ msgstr "Neznana napaka"
 
 #: tun.c:89
 msgid "open net"
-msgstr ""
+msgstr "open net"
 
 #: tun.c:98
 msgid "SIOCSIFMTU"
@@ -2050,17 +2055,17 @@ msgstr ""
 #: tun.c:387
 #, c-format
 msgid "Failed to spawn script '%s' for %s: %s\n"
-msgstr ""
+msgstr "Oživljanje skripta '%s' za %s je spodletelo: %s\n"
 
 #: tun.c:393
 #, c-format
 msgid "Script '%s' exited abnormally (%x)\n"
-msgstr ""
+msgstr "Skript '%s' je zaključen z napako (%x)\n"
 
 #: tun.c:400
 #, c-format
 msgid "Script '%s' returned error %d\n"
-msgstr ""
+msgstr "Skript '%s' je vrnil napako %d\n"
 
 #: tun.c:415
 msgid "Could not /dev/tun for plumbing"
@@ -2077,7 +2082,7 @@ msgstr ""
 #: tun.c:436
 #, c-format
 msgid "Can't open %s: %s"
-msgstr ""
+msgstr "Ni mogoče odpreti %s: %s"
 
 #: tun.c:444
 #, c-format
@@ -2096,7 +2101,7 @@ msgstr ""
 
 #: tun.c:532
 msgid "open /dev/tun"
-msgstr ""
+msgstr "open /dev/tun"
 
 #: tun.c:538
 msgid "Failed to create new tun"
@@ -2114,11 +2119,11 @@ msgstr ""
 #: tun.c:589
 #, c-format
 msgid "Cannot open '%s': %s\n"
-msgstr ""
+msgstr "Ni mogoče odpreti  '%s': %s\n"
 
 #: tun.c:618
 msgid "open tun"
-msgstr ""
+msgstr "open tun"
 
 #: tun.c:626
 msgid "TUNSIFHEAD"
@@ -2130,7 +2135,7 @@ msgstr "socketpair"
 
 #: tun.c:652
 msgid "fork"
-msgstr ""
+msgstr "fork"
 
 #: tun.c:658
 msgid "execl"
@@ -2148,7 +2153,7 @@ msgstr ""
 #: tun.c:777
 #, c-format
 msgid "Failed to write incoming packet: %s\n"
-msgstr ""
+msgstr "Zapisovanje prihajajočega paketa je spodletelo: %s\n"
 
 #: xml.c:53
 msgid "Open XML config file"
