@@ -219,13 +219,14 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 
 			if (!getnameinfo(rp->ai_addr, rp->ai_addrlen, host,
 					 sizeof(host), NULL, 0, NI_NUMERICHOST))
-				vpn_progress(vpninfo, PRG_INFO,
-					     _("Attempting to connect to %s%s%s:%s\n"),
+				vpn_progress(vpninfo, PRG_INFO, vpninfo->proxy_type?
+						     _("Attempting to connect to proxy %s%s%s:%s\n"):
+						     _("Attempting to connect to server %s%s%s:%s\n"),
 					     rp->ai_family == AF_INET6?"[":"",
 					     host,
 					     rp->ai_family == AF_INET6?"]":"",
 					     port);
-			
+
 			ssl_sock = socket(rp->ai_family, rp->ai_socktype,
 					  rp->ai_protocol);
 			if (ssl_sock < 0)
