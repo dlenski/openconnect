@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-08-20 11:13+0100\n"
-"PO-Revision-Date: 2012-08-05 09:33+0000\n"
+"POT-Creation-Date: 2012-09-19 09:29+0100\n"
+"PO-Revision-Date: 2012-09-22 08:24+0000\n"
 "Last-Translator: Abduqadir Abliz <sahran.ug@gmail.com>\n"
 "Language-Team: Uighur (http://www.transifex.com/projects/p/meego/language/"
 "ug/)\n"
@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: auth.c:121
 msgid "Form choice has no name\n"
@@ -1990,69 +1990,74 @@ msgstr "ماشىنا '%s' نىڭ getaddrinfo مەغلۇپ بولدى: %s\n"
 
 #: ssl.c:223
 #, c-format
-msgid "Attempting to connect to %s%s%s:%s\n"
-msgstr "%s%s%s غا باغلىنىشنى سىناۋاتىدۇ: %s\n"
+msgid "Attempting to connect to proxy %s%s%s:%s\n"
+msgstr ""
 
-#: ssl.c:239
+#: ssl.c:224
+#, c-format
+msgid "Attempting to connect to server %s%s%s:%s\n"
+msgstr ""
+
+#: ssl.c:240
 msgid "Failed to allocate sockaddr storage\n"
 msgstr "sockaddr ساقلىغۇچنى تەقسىملىيەلمىدى\n"
 
-#: ssl.c:254
+#: ssl.c:255
 #, c-format
 msgid "Failed to connect to host %s\n"
 msgstr "ماشىنا %s غا باغلىنالمىدى\n"
 
-#: ssl.c:329
+#: ssl.c:330
 #, c-format
 msgid "statvfs: %s\n"
 msgstr "statvfs: %s\n"
 
-#: ssl.c:346
+#: ssl.c:347
 #, c-format
 msgid "statfs: %s\n"
 msgstr "statfs: %s\n"
 
-#: ssl.c:417
+#: ssl.c:418
 msgid "No error"
 msgstr "خاتالىق يوق"
 
-#: ssl.c:418
+#: ssl.c:419
 msgid "Keystore ocked"
 msgstr ""
 
-#: ssl.c:419
+#: ssl.c:420
 msgid "Keystore uninitialized"
 msgstr "ئاچقۇچ ئامبىرى دەسلەپلەشتۈرۈلمىگەن"
 
-#: ssl.c:420
+#: ssl.c:421
 msgid "System error"
 msgstr "سىستېما خاتالىقى"
 
-#: ssl.c:421
+#: ssl.c:422
 msgid "Protocol error"
 msgstr "كېلىشىم خاتالىقى"
 
-#: ssl.c:422
+#: ssl.c:423
 msgid "Permission denied"
 msgstr "ھوقۇقى رەت قىلىندى"
 
-#: ssl.c:423
+#: ssl.c:424
 msgid "Key not found"
 msgstr "ئاچقۇچ تېپىلمىدى"
 
-#: ssl.c:424
+#: ssl.c:425
 msgid "Value corrupted"
 msgstr "قىممەت بۇزۇلغان"
 
-#: ssl.c:425
+#: ssl.c:426
 msgid "Undefined action"
 msgstr "بەلگىلەنمىگەن مەشغۇلات"
 
-#: ssl.c:429
+#: ssl.c:430
 msgid "Wrong password"
 msgstr "ئىم خاتا"
 
-#: ssl.c:430
+#: ssl.c:431
 msgid "Unknown error"
 msgstr "يوچۇن خاتالىق"
 
