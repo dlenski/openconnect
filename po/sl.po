@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-09-19 09:29+0100\n"
+"POT-Creation-Date: 2012-09-24 11:33+0100\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -42,7 +42,7 @@ msgstr "Neznana vnosna vrsta %s v obrazcu\n"
 #: auth.c:247
 #, c-format
 msgid "Fixed options give %s\n"
-msgstr ""
+msgstr "Popravljene možnosti podajo %s\n"
 
 #: auth.c:332
 msgid "Failed to parse server response\n"
@@ -55,7 +55,7 @@ msgstr "Odziv  je: %s\n"
 
 #: auth.c:342
 msgid "XML response has no \"auth\" root node\n"
-msgstr ""
+msgstr "Odziv XML je brez ustreznega korenskega vozlišča \"auth\"\n"
 
 #: auth.c:355
 msgid "Asked for password but '--no-passwd' set\n"
@@ -1022,13 +1022,13 @@ msgstr ""
 #: http.c:227
 #, c-format
 msgid "Unknown Transfer-Encoding: %s\n"
-msgstr ""
+msgstr "Neznano kodiranje prenosa: %s\n"
 
 #. Now the body, if there is one
 #: http.c:241
 #, c-format
 msgid "HTTP body %s (%d)\n"
-msgstr ""
+msgstr "Telo HTTP %s (%d)\n"
 
 #: http.c:255 http.c:283
 msgid "Error reading HTTP response body\n"
@@ -1073,7 +1073,7 @@ msgstr ""
 #: http.c:434
 #, c-format
 msgid "Failed to open temporary CSD script file: %s\n"
-msgstr ""
+msgstr "Odpiranje začasne datoteke skripta CSD je spodletelo: %s\n"
 
 #: http.c:442
 #, c-format
@@ -1175,12 +1175,12 @@ msgstr "vrsta naslova ni ni podprta."
 #: http.c:1000
 #, c-format
 msgid "Error writing auth request to SOCKS proxy: %s\n"
-msgstr ""
+msgstr "Napaka pisanja odziva auth s posredniškega strežnika SOCKS: %s\n"
 
 #: http.c:1007
 #, c-format
 msgid "Error reading auth response from SOCKS proxy: %s\n"
-msgstr ""
+msgstr "Napaka branja odziva auth s posredniškega strežnika SOCKS: %s\n"
 
 #: http.c:1013
 #, c-format
@@ -1190,17 +1190,17 @@ msgstr ""
 #: http.c:1021
 #, c-format
 msgid "SOCKS proxy error %02x: %s\n"
-msgstr ""
+msgstr "Napaka posredniškega strežnika SOCKS %02x: %s\n"
 
 #: http.c:1025
 #, c-format
 msgid "SOCKS proxy error %02x\n"
-msgstr ""
+msgstr "Napaka posredniškega strežnika SOCKS %02x\n"
 
 #: http.c:1031
 #, c-format
 msgid "Requesting SOCKS proxy connection to %s:%d\n"
-msgstr ""
+msgstr "Poslana je zahteva povezave s posredniškim strežnikom SOCKS %s:%d\n"
 
 #: http.c:1046
 #, c-format
@@ -1217,6 +1217,7 @@ msgstr "Napaka branja odzivov povezave s posredniškega strežnika SOCKS: %s\n"
 #, c-format
 msgid "Unexpected connect response from SOCKS proxy: %02x %02x...\n"
 msgstr ""
+"Nepričakovan odziv povezave posredniškega strežnika SOCKS: %02x %02x...\n"
 
 #: http.c:1080
 #, c-format
@@ -1226,7 +1227,7 @@ msgstr ""
 #: http.c:1108
 #, c-format
 msgid "Requesting HTTP proxy connection to %s:%d\n"
-msgstr ""
+msgstr "Poslana je zahteva povezave s posredniškim strežnikom HTTP %s:%d\n"
 
 #: http.c:1114
 #, c-format
