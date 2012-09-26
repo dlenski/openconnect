@@ -502,7 +502,7 @@ done:
             gnutls_x509_crt_deinit(_extra_certs[i]);
           gnutls_free(_extra_certs);
         }
-      if (_chain_len && chain != NULL)
+      if (_chain_len && _chain != NULL)
         {
           unsigned int i;
           for (i = 0; i < _chain_len; i++)
