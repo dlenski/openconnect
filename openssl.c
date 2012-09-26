@@ -1298,6 +1298,9 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			if (err) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Loading certificate failed. Aborting.\n"));
+				SSL_CTX_free(vpninfo->https_ctx);
+				vpninfo->https_ctx = NULL;
+				close(ssl_sock);
 				return err;
 			}
 			check_certificate_expiry(vpninfo);
@@ -1325,6 +1328,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			BIO *b = BIO_from_keystore(vpninfo, vpninfo->cafile);
 
 			if (!b) {
+				SSL_CTX_free(vpninfo->https_ctx);
+				vpninfo->https_ctx = NULL;
 				close(ssl_sock);
 				return -EINVAL;
 			}
@@ -1337,6 +1342,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 					     _("Failed to read certs from CA file '%s'\n"),
 					     vpninfo->cafile);
 				openconnect_report_ssl_errors(vpninfo);
+				SSL_CTX_free(vpninfo->https_ctx);
+				vpninfo->https_ctx = NULL;
 				close(ssl_sock);
 				return -ENOENT;
 			}
@@ -1359,6 +1366,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 					     _("Failed to open CA file '%s'\n"),
 					     vpninfo->cafile);
 				openconnect_report_ssl_errors(vpninfo);
+				SSL_CTX_free(vpninfo->https_ctx);
+				vpninfo->https_ctx = NULL;
 				close(ssl_sock);
 				return -EINVAL;
 			}
@@ -1378,7 +1387,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	while ((err = SSL_connect(https_ssl)) <= 0) {
 		fd_set wr_set, rd_set;
 		int maxfd = ssl_sock;
-		
+
 		FD_ZERO(&wr_set);
 		FD_ZERO(&rd_set);
 
