@@ -885,10 +885,11 @@ static int write_new_config(void *_vpninfo, char *buf, int buflen)
 		err = errno;
 		fprintf(stderr, _("Failed to write config to %s: %s\n"),
 			vpninfo->xmlconfig, strerror(err));
-
+		close(config_fd);
 		return -err;
 	}
 
+	close(config_fd);
 	return 0;
 }
 
