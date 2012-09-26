@@ -440,7 +440,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 	if (ret) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to write temporary CSD script file: %s\n"),
-			     strerror(ret));
+			     strerror(-ret));
 		return ret;
 	}
 	fchmod(fd, 0755);
