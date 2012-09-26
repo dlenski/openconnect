@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Fix some harmless issues reported by Coverity.</li>
        <li>Improve <tt>"Attempting to connect..."</tt> message to be explicit when it's connecting to a proxy.</li>
      </ul><br/>
   </li>
