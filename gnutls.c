@@ -1114,7 +1114,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 				}
 			}
 			if (!token->serialNumber[0]) {
-				s = sizeof(token->serialNumber + 1);
+				s = sizeof(token->serialNumber) + 1;
 				if (!gnutls_pkcs11_obj_get_info(crt, GNUTLS_PKCS11_OBJ_TOKEN_SERIAL,
 								buf, &s)) {
 					s--;
