@@ -302,6 +302,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
 		if (!new_option->option || !new_option->value) {
 			vpn_progress(vpninfo, PRG_ERR, _("No memory for options\n"));
+			free(new_option->option);
+			free(new_option->value);
+			free(new_option);
 			return -ENOMEM;
 		}
 
