@@ -544,11 +544,13 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 				     _("Unknown protocol family %d. Cannot do DTLS\n"),
 				     vpninfo->peer_addr->sa_family);
 			vpninfo->dtls_attempt_period = 0;
+			close(dtls_fd);
 			return -EINVAL;
 		}
 
 		if (bind(dtls_fd, (struct sockaddr *)&dtls_bind_addr, dtls_bind_addrlen)) {
 			perror(_("Bind UDP socket for DTLS"));
+			close(dtls_fd);
 			return -EINVAL;
 		}
 	}
