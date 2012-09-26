@@ -205,15 +205,17 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 		}
 
 		err = getaddrinfo(hostname, port, &hints, &result);
-		if (hints.ai_flags & AI_NUMERICHOST)
-			free(hostname);
 
 		if (err) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("getaddrinfo failed for host '%s': %s\n"),
 				     hostname, gai_strerror(err));
+			if (hints.ai_flags & AI_NUMERICHOST)
+				free(hostname);
 			return -EINVAL;
 		}
+		if (hints.ai_flags & AI_NUMERICHOST)
+			free(hostname);
 
 		for (rp = result; rp ; rp = rp->ai_next) {
 			char host[80];
