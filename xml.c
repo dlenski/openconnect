@@ -58,6 +58,7 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 
 	if (fstat(fd, &st)) {
 		perror(_("fstat XML config file"));
+		close(fd);
 		return -1;
 	}
 
