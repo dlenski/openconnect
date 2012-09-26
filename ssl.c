@@ -111,17 +111,18 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 		if (cancellable_connect(vpninfo, ssl_sock, vpninfo->peer_addr, vpninfo->peer_addrlen)) {
 		reconn_err:
 			if (vpninfo->proxy) {
-				vpn_progress(vpninfo, PRG_ERR, 
+				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to reconnect to proxy %s\n"),
 					     vpninfo->proxy);
 			} else {
-				vpn_progress(vpninfo, PRG_ERR, 
+				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to reconnect to host %s\n"),
 					     vpninfo->hostname);
 			}
+			if (ssl_sock >= 0)
+				close(ssl_sock);
 			return -EINVAL;
 		}
-		
 	} else {
 		struct addrinfo hints, *result, *rp;
 		char *hostname;
