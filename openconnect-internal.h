@@ -398,10 +398,6 @@ int internal_parse_url(char *url, char **res_proto, char **res_host,
 /* ssl_ui.c */
 int set_openssl_ui(void);
 
-/* securid.c */
-int generate_securid_tokencodes(struct openconnect_info *vpninfo);
-int add_securid_pin(char *token, char *pin);
-
 /* version.c */
 extern const char *openconnect_version_str;
 
