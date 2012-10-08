@@ -438,6 +438,12 @@ if (test "$libproxy_pkg" = "no"); then
    LIBS="$oldLIBS"
 fi
 
+PKG_CHECK_MODULES(LIBSTOKEN, stoken,
+		[AC_SUBST(LIBSTOKEN_PC, stoken)
+		 AC_DEFINE([LIBSTOKEN_HDR], ["stoken.h"])
+		 libstoken_pkg=yes],
+		 libstoken_pkg=no)
+
 AC_CHECK_HEADER([if_tun.h],
     [AC_DEFINE([IF_TUN_HDR], ["if_tun.h"])],
     [AC_CHECK_HEADER([linux/if_tun.h],

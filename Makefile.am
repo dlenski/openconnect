@@ -14,8 +14,8 @@ man8_MANS = openconnect.8
 AM_CPPFLAGS = -DLOCALEDIR="\"$(localedir)\""
 openconnect_SOURCES = xml.c main.c dtls.c cstp.c mainloop.c tun.c
 
-openconnect_CFLAGS = $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS)
-openconnect_LDADD = libopenconnect.la $(SSL_LIBS) $(DTLS_SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(LIBINTL)
+openconnect_CFLAGS = $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(LIBSTOKEN_CFLAGS)
+openconnect_LDADD = libopenconnect.la $(SSL_LIBS) $(DTLS_SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(LIBINTL) $(LIBSTOKEN_LIBS)
 
 library_srcs = ssl.c http.c auth.c library.c compat.c
 lib_srcs_gnutls = gnutls.c gnutls_pkcs12.c gnutls_tpm.c
@@ -30,8 +30,8 @@ if OPENCONNECT_OPENSSL
 library_srcs += $(lib_srcs_openssl)
 endif
 libopenconnect_la_SOURCES = version.c $(library_srcs)
-libopenconnect_la_CFLAGS = $(SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(P11KIT_CFLAGS) $(TSS_CFLAGS)
-libopenconnect_la_LIBADD = $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LIBINTL) $(P11KIT_LIBS) $(TSS_LIBS)
+libopenconnect_la_CFLAGS = $(SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(P11KIT_CFLAGS) $(TSS_CFLAGS) $(LIBSTOKEN_CFLAGS)
+libopenconnect_la_LIBADD = $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LIBINTL) $(P11KIT_LIBS) $(TSS_LIBS) $(LIBSTOKEN_LIBS)
 libopenconnect_la_LDFLAGS = -version-number @APIMAJOR@:@APIMINOR@
 noinst_HEADERS = openconnect-internal.h openconnect.h gnutls.h
 include_HEADERS = openconnect.h
