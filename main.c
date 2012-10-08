@@ -321,7 +321,7 @@ static int config_line_num = 0;
  * 3. It may be freed during normal operation, so we have to use strdup()
  *    even when it's an option from argv[]. (e.g. vpninfo->cert_password).
  */
-#define keep_config_arg() (config_file?strdup(config_arg):config_arg)
+#define keep_config_arg() (config_file && config_arg ? strdup(config_arg) : config_arg)
 
 static int next_option(int argc, char **argv, char **config_arg)
 {
@@ -405,10 +405,12 @@ static int next_option(int argc, char **argv, char **config_arg)
 		fprintf(stderr, _("Option '%s' does not take an argument at line %d\n"),
 			this->name, config_line_num);
 		return '?';
-	} else if (this->has_arg && !*line) {
+	} else if (this->has_arg == 1 && !*line) {
 		fprintf(stderr, _("Option '%s' requires an argument at line %d\n"),
 			this->name, config_line_num);
 		return '?';
+	} else if (this->has_arg == 2 && !*line) {
+		line = NULL;
 	}
 
 	config_line_num++;
