@@ -30,7 +30,7 @@
  OpenSuSE 12.1 should finally include <tt>openconnect</tt> and <tt>NetworkManager-openconnect</tt> packages, which are absent from older releases.</li>
 
 <li><h2>Gentoo</h2>
-  Gentoo Portage contains package for both <tt>openconnect</tt> and <tt>networkmanager-openconnect</tt>.
+  Gentoo Portage contains packages for both <tt>openconnect</tt> and <tt>networkmanager-openconnect</tt>.
 </li>
 <li> <h2>NetBSD, DragonFly BSD, etc. <i>(pkgsrc)</i></h2>
   There are somewhat out of date packages for <a href="http://pkgsrc-wip.cvs.sourceforge.net/viewvc/pkgsrc-wip/wip/vpnc-script/">vpnc-script</a> and <a href="http://pkgsrc-wip.cvs.sourceforge.net/viewvc/pkgsrc-wip/wip/openconnect/">openconnect</a> in the pkgsrc-wip repository <i>(<a href="http://pkgsrc-wip.sourceforge.net/">pkgsrc-wip.sf.net</a>)</i>.</li>

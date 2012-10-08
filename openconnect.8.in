@@ -246,7 +246,7 @@ XML config file
 .B \-\-authgroup=GROUP
 Choose authentication login selection
 .TP
-.B \-\-authentiate
+.B \-\-authenticate
 Authenticate only, and output the information needed to make the connection
 a form which can be used to set shell environment variables. When invoked with
 this option, openconnect will not make the connection, but if successful will
