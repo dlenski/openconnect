@@ -526,28 +526,6 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 	return 0;
 }
 
-#ifndef HAVE_STRCASESTR
-static char *openconnect__strcasestr(const char *haystack, const char *needle)
-{
-	int hlen = strlen(haystack);
-	int nlen = strlen(needle);
-	int i, j;
-
-	for (i = 0; i < hlen - nlen + 1; i++) {
-		for (j = 0; j < nlen; j++) {
-			if (tolower(haystack[i + j]) != 
-			    tolower(needle[j]))
-				break;
-		}
-		if (j == nlen)
-			return (char *)haystack + i;
-	}
-	return NULL;
-}
-#define strcasestr openconnect__strcasestr
-#endif
-
-
 int internal_parse_url(char *url, char **res_proto, char **res_host,
 		       int *res_port, char **res_path, int default_port)
 {

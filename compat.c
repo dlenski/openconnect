@@ -140,3 +140,25 @@ ssize_t openconnect__getline(char **lineptr, size_t *n, FILE *stream)
 	return -1;
 }
 #endif
+
+#ifndef HAVE_STRCASESTR
+#include <ctype.h>
+
+char *openconnect__strcasestr(const char *haystack, const char *needle)
+{
+	int hlen = strlen(haystack);
+	int nlen = strlen(needle);
+	int i, j;
+
+	for (i = 0; i < hlen - nlen + 1; i++) {
+		for (j = 0; j < nlen; j++) {
+			if (tolower(haystack[i + j]) !=
+			    tolower(needle[j]))
+				break;
+		}
+		if (j == nlen)
+			return (char *)haystack + i;
+	}
+	return NULL;
+}
+#endif

@@ -320,6 +320,10 @@ int openconnect__asprintf(char **strp, const char *fmt, ...);
 #define getline openconnect__getline
 ssize_t openconnect__getline(char **lineptr, size_t *n, FILE *stream);
 #endif
+#ifndef HAVE_STRCASESTR
+#define strcasestr openconnect__strcasestr
+char *openconnect__strcasestr(const char *haystack, const char *needle);
+#endif
 
 /****************************************************************************/
 
