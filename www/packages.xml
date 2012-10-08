@@ -21,8 +21,8 @@
   Fedora's OpenSSL packages include all required patches for DTLS compatibility.
 </li>
 <li><h2>Debian</h2>
-  The <tt>openconnect</tt> and <tt>network-manager-openconnect</tt> packages are available in unstable and testing.<br/>
-  Debian's OpenSSL packages include all required patches for DTLS compatibility in unstable and testing.
+  The <tt>openconnect</tt> and <tt>network-manager-openconnect</tt> packages are included in Debian.<br/>
+  Debian's OpenSSL packages include all required patches for DTLS compatibility.
 </li>
 <li><h2>Ubuntu</h2>
   Reasonably current versions of the required packages are finally included in Ubuntu 10.04 "Lucid". Older releases still have <a href="https://bugs.launchpad.net/ubuntu/+source/openssl/+bug/516318">out of date OpenSSL</a> and <a href="https://bugs.launchpad.net/ubuntu/+source/openconnect/+bug/516324">out of date OpenConnect which doesn't work around the latest Cisco bugs</a>.</li>
