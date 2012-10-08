@@ -24,7 +24,8 @@ in conjunction with a userspace TCP stack such as <a
 href="http://savannah.nongnu.org/projects/lwip/">lwip</a> to provide
 SOCKS access to the VPN without giving full access to all untrusted
 users and processes on the computer, and without requiring root
-privileges at all.</p>
+privileges at all.  <a href="http://repo.or.cz/w/ocproxy.git">ocproxy</a>
+is one such implementation.</p>
 
 <INCLUDE file="inc/footer.tmpl" />
 </PAGE>
