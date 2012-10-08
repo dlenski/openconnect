@@ -32,6 +32,7 @@ And <em>optionally</em> also:
 <ul>
   <li><b><tt><a href="http://code.google.com/p/libproxy/">libproxy</a></tt></b></li>
   <li><b><tt><a href="http://trousers.sourceforge.net/">trousers</a></tt></b> <i>(for TPM support if using GnuTLS)</i></li>
+  <li><b><tt><a href="http://stoken.sourceforge.net/">libstoken</a></tt></b> <i>(for SecurID software token support)</i></li>
 </ul>
 <p>OpenConnect supports the use of HTTP and SOCKS proxies to connect to the
 AnyConnect service, even without using libproxy. You may wish to use libproxy

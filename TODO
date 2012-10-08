@@ -1,7 +1,6 @@
 
 openconnect:
 	Port to/test on Windows, Symbian, etc.
-	Proper SecurID support
 
 nm-auth-dialog:
 	Store cookie in GNOME keyring and reuse it instead of logging in again
