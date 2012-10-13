@@ -66,6 +66,8 @@ static int validate_peer_cert(void *_vpninfo,
 			      const char *reason);
 static int process_auth_form(void *_vpninfo,
 			     struct oc_auth_form *form);
+static void init_stoken(struct openconnect_info *vpninfo,
+			const char *token_str);
 
 /* A sanity check that the openconnect executable is running against a
    library of the same version */
@@ -108,6 +110,7 @@ enum {
 	OPT_USERAGENT,
 	OPT_NON_INTER,
 	OPT_DTLS_LOCAL_PORT,
+	OPT_STOKEN,
 };
 
 #ifdef __sun__
@@ -171,6 +174,7 @@ static struct option long_options[] = {
 	OPTION("force-dpd", 1, OPT_FORCE_DPD),
 	OPTION("non-inter", 0, OPT_NON_INTER),
 	OPTION("dtls-local-port", 1, OPT_DTLS_LOCAL_PORT),
+	OPTION("stoken", 2, OPT_STOKEN),
 	OPTION(NULL, 0, 0)
 };
 
@@ -202,6 +206,10 @@ static void print_build_opts(void)
 #endif
 	if (openconnect_has_pkcs11_support()) {
 		printf("%sPKCS#11", sep);
+		sep = comma;
+	}
+	if (openconnect_has_stoken_support()) {
+		printf("%sSoftware token", sep);
 		sep = comma;
 	}
 
@@ -271,6 +279,10 @@ static void usage(void)
 	printf("      --no-cert-check             %s\n", _("Do not require server SSL cert to be valid"));
 	printf("      --non-inter                 %s\n", _("Do not expect user input; exit if it is required"));
 	printf("      --passwd-on-stdin           %s\n", _("Read password from standard input"));
+	printf("      --stoken[=TOKENSTRING]      %s\n", _("Use software token to generate password"));
+#ifndef LIBSTOKEN_HDR
+	printf("                                  %s\n", _("(NOTE: libstoken disabled in this build)"));
+#endif
 	printf("      --reconnect-timeout         %s\n", _("Connection retry timeout in seconds"));
 	printf("      --servercert=FINGERPRINT    %s\n", _("Server's certificate SHA1 fingerprint"));
 	printf("      --useragent=STRING          %s\n", _("HTTP header User-Agent: field"));
@@ -433,6 +445,8 @@ int main(int argc, char **argv)
 	char *pidfile = NULL;
 	FILE *fp = NULL;
 	char *config_arg;
+	int use_stoken = 0;
+	char *token_str = NULL;
 
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
@@ -699,6 +713,10 @@ int main(int argc, char **argv)
 		case OPT_DTLS_LOCAL_PORT:
 			vpninfo->dtls_local_port = atoi(config_arg);
 			break;
+		case OPT_STOKEN:
+			use_stoken = 1;
+			token_str = keep_config_arg();
+			break;
 		default:
 			usage();
 		}
@@ -725,6 +743,9 @@ int main(int argc, char **argv)
 		exit(1);
 #endif
 	}
+
+	if (use_stoken)
+		init_stoken(vpninfo, token_str);
 
 	if (proxy && openconnect_set_http_proxy(vpninfo, strdup(proxy)))
 		exit(1);
@@ -1196,4 +1217,27 @@ static int process_auth_form(void *_vpninfo,
 		}
 	}
 	return -EINVAL;
+}
+
+static void init_stoken(struct openconnect_info *vpninfo,
+			const char *token_str)
+{
+	int ret = openconnect_set_stoken_mode(vpninfo, 1, token_str);
+
+	switch (ret) {
+	case 0:
+		return;
+	case -EINVAL:
+		fprintf(stderr, _("Soft token string is invalid\n"));
+		exit(1);
+	case -ENOENT:
+		fprintf(stderr, _("Can't open ~/.stokenrc file\n"));
+		exit(1);
+	case -EOPNOTSUPP:
+		fprintf(stderr, _("OpenConnect was not built with soft token support\n"));
+		exit(1);
+	default:
+		fprintf(stderr, _("General failure in libstoken\n"));
+		exit(1);
+	}
 }
