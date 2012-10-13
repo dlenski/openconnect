@@ -85,6 +85,7 @@
 #define OC_FORM_OPT_PASSWORD	2
 #define OC_FORM_OPT_SELECT	3
 #define OC_FORM_OPT_HIDDEN	4
+#define OC_FORM_OPT_STOKEN	5
 
 /* char * fields are static (owned by XML parser) and don't need to be
    freed by the form handling code -- except for value, which for TEXT
