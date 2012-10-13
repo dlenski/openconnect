@@ -593,8 +593,8 @@ int internal_parse_url(char *url, char **res_proto, char **res_host,
 
 /* Return value:
  *  < 0, on error
- *  = 0, no cookie (user cancel)
- *  = 1, obtained cookie
+ *  > 0, no cookie (user cancel)
+ *  = 0, obtained cookie
  */
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 {
@@ -605,6 +605,12 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	char request_body[2048];
 	const char *request_body_type = NULL;
 	const char *method = "GET";
+
+	if (vpninfo->use_stoken) {
+		result = prepare_stoken(vpninfo);
+		if (result)
+			return result;
+	}
 
  retry:
 	if (form_buf) {

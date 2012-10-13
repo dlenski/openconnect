@@ -405,6 +405,7 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host);
 int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		       char *request_body, int req_len, const char **method,
 		       const char **request_body_type);
+int prepare_stoken(struct openconnect_info *vpninfo);
 
 /* http.c */
 char *openconnect_create_useragent(const char *base);

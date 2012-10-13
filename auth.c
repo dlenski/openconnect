@@ -32,6 +32,10 @@
 #include <ctype.h>
 #include <errno.h>
 
+#ifdef LIBSTOKEN_HDR
+#include LIBSTOKEN_HDR
+#endif
+
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
@@ -215,6 +219,9 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 			return -ENOMEM;
 		}
 
+		opt->name = input_name;
+		opt->label = input_label;
+
 		if (!strcmp(input_type, "hidden")) {
 			opt->type = OC_FORM_OPT_HIDDEN;
 			opt->value = (char *)xmlGetProp(xml_node, (unsigned char *)"value");
@@ -234,8 +241,6 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 		}
 
 		free(input_type);
-		opt->name = input_name;
-		opt->label = input_label;
 
 		p = &form->opts;
 		while (*p)
@@ -479,5 +484,141 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	return ret;
 }
 
+static void nuke_opt_values(struct oc_form_opt *opt)
+{
+	for (; opt; opt = opt->next) {
+		free(opt->value);
+		opt->value = NULL;
+	}
+}
 
+/*
+ * If the user clicks OK without entering any data, we will continue
+ * connecting but bypass soft token generation for the duration of
+ * this "obtain_cookie" session.
+ *
+ * If the user clicks Cancel, we will abort the connection.
+ *
+ * Return value:
+ *  < 0, on error
+ *  = 0, on success (or if the user bypassed soft token init)
+ *  = 1, if the user cancelled the form submission
+ */
+int prepare_stoken(struct openconnect_info *vpninfo)
+{
+#ifdef LIBSTOKEN_HDR
+	struct oc_auth_form form;
+	struct oc_form_opt opts[3], *opt = opts;
+	char **devid = NULL, **pass = NULL, **pin = NULL;
+	int ret = 0;
 
+	memset(&form, 0, sizeof(form));
+	memset(&opts, 0, sizeof(opts));
+
+	form.opts = opts;
+	form.message = _("Enter credentials to unlock software token.");
+
+	vpninfo->stoken_tries = 0;
+	vpninfo->stoken_bypassed = 0;
+
+	if (stoken_devid_required(vpninfo->stoken_ctx)) {
+		opt->type = OC_FORM_OPT_TEXT;
+		opt->name = (char *)"devid";
+		opt->label = _("Device ID:");
+		devid = &opt->value;
+		opt++;
+	}
+	if (stoken_pass_required(vpninfo->stoken_ctx)) {
+		opt->type = OC_FORM_OPT_PASSWORD;
+		opt->name = (char *)"password";
+		opt->label = _("Password:");
+		pass = &opt->value;
+		opt++;
+	}
+	if (stoken_pin_required(vpninfo->stoken_ctx)) {
+		opt->type = OC_FORM_OPT_PASSWORD;
+		opt->name = (char *)"password";
+		opt->label = _("PIN:");
+		pin = &opt->value;
+		opt++;
+	}
+
+	opts[0].next = opts[1].type ? &opts[1] : NULL;
+	opts[1].next = opts[2].type ? &opts[2] : NULL;
+
+	while (1) {
+		nuke_opt_values(opts);
+
+		if (!opts[0].type) {
+			/* don't bug the user if there's nothing to enter */
+			ret = 0;
+		} else if (vpninfo->process_auth_form) {
+			int some_empty = 0, all_empty = 1;
+
+			/* < 0 for error; 1 if cancelled */
+			ret = vpninfo->process_auth_form(vpninfo->cbdata, &form);
+			if (ret)
+				break;
+
+			for (opt = opts; opt; opt = opt->next) {
+				if (!opt->value || !strlen(opt->value))
+					some_empty = 1;
+				else
+					all_empty = 0;
+			}
+			if (all_empty) {
+				vpn_progress(vpninfo, PRG_INFO,
+					     _("User bypassed soft token.\n"));
+				vpninfo->stoken_bypassed = 1;
+				ret = 0;
+				break;
+			}
+			if (some_empty) {
+				vpn_progress(vpninfo, PRG_INFO,
+					     _("All fields are required; try again.\n"));
+				continue;
+			}
+		} else {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("No form handler; cannot authenticate.\n"));
+			ret = -EIO;
+			break;
+		}
+
+		ret = stoken_decrypt_seed(vpninfo->stoken_ctx,
+					  pass ? *pass : NULL,
+					  devid ? *devid : NULL);
+		if (ret == -EIO || (ret && !devid && !pass)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("General failure in libstoken.\n"));
+			break;
+		} else if (ret != 0) {
+			vpn_progress(vpninfo, PRG_INFO,
+				     _("Incorrect device ID or password; try again.\n"));
+			continue;
+		}
+
+		if (pin) {
+			if (stoken_check_pin(vpninfo->stoken_ctx, *pin) != 0) {
+				vpn_progress(vpninfo, PRG_INFO,
+					     _("Invalid PIN format; try again.\n"));
+				continue;
+			}
+			free(vpninfo->stoken_pin);
+			vpninfo->stoken_pin = strdup(*pin);
+			if (!vpninfo->stoken_pin) {
+				ret = -ENOMEM;
+				break;
+			}
+		}
+		vpn_progress(vpninfo, PRG_DEBUG, _("Soft token init was successful.\n"));
+		ret = 0;
+		break;
+	}
+
+	nuke_opt_values(opts);
+	return ret;
+#else
+	return -EOPNOTSUPP;
+#endif
+}
