@@ -69,8 +69,8 @@ msgid "Cannot handle form method='%s', action='%s'\n"
 msgstr "Tak bisa menangani method='%s', action='%s' milik form\n"
 
 #: auth.c:436
-msgid "No form handler; cannot authenticate."
-msgstr "Tak ada penangan formulir; tak bisa mengotentikasi."
+msgid "No form handler; cannot authenticate.\n"
+msgstr "Tak ada penangan formulir; tak bisa mengotentikasi.\n"
 
 #: cstp.c:120
 #, c-format

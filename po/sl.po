@@ -67,8 +67,8 @@ msgid "Cannot handle form method='%s', action='%s'\n"
 msgstr "Ni mogoče obravnavati obrazca method='%s', action='%s'\n"
 
 #: auth.c:436
-msgid "No form handler; cannot authenticate."
-msgstr "Ni ročnika obrazca; vnosov ni mogoče overiti"
+msgid "No form handler; cannot authenticate.\n"
+msgstr "Ni ročnika obrazca; vnosov ni mogoče overiti\n"
 
 #: cstp.c:120
 #, c-format

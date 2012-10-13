@@ -70,7 +70,7 @@ msgid "Cannot handle form method='%s', action='%s'\n"
 msgstr "无法处理表单，方法=“%s”，操作=“%s”\n"
 
 #: auth.c:436
-msgid "No form handler; cannot authenticate."
+msgid "No form handler; cannot authenticate.\n"
 msgstr ""
 
 #: cstp.c:120

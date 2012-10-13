@@ -68,8 +68,8 @@ msgid "Cannot handle form method='%s', action='%s'\n"
 msgstr "كۆنەكنى بىر تەرەپ قىلالمايدۇ ئۇسۇلى='%s'، مەشغۇلات='%s'\n"
 
 #: auth.c:436
-msgid "No form handler; cannot authenticate."
-msgstr "كۆزنەك بىر تەرەپ قىلغۇچ يوق؛ دەلىللىيەلمەيدۇ"
+msgid "No form handler; cannot authenticate.\n"
+msgstr "كۆزنەك بىر تەرەپ قىلغۇچ يوق؛ دەلىللىيەلمەيدۇ\n"
 
 #: cstp.c:120
 #, c-format

@@ -2146,7 +2146,7 @@ msgid "Cannot handle form method='%s', action='%s'\n"
 msgstr ""
 
 #: auth.c:436
-msgid "No form handler; cannot authenticate."
+msgid "No form handler; cannot authenticate.\n"
 msgstr ""
 
 #: library.c:202
