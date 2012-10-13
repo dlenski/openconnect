@@ -26,6 +26,10 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#ifdef LIBSTOKEN_HDR
+#include LIBSTOKEN_HDR
+#endif
+
 #include "openconnect-internal.h"
 
 struct openconnect_info *openconnect_vpninfo_new (char *useragent,
@@ -104,6 +108,12 @@ void openconnect_vpninfo_free (struct openconnect_info *vpninfo)
 		vpninfo->peer_cert = NULL;
 	}
 	free(vpninfo->useragent);
+#ifdef LIBSTOKEN_HDR
+	if (vpninfo->stoken_pin)
+		free(vpninfo->stoken_pin);
+	if (vpninfo->stoken_ctx)
+		stoken_destroy(vpninfo->stoken_ctx);
+#endif
 	/* No need to free deflate streams; they weren't initialised */
 	free(vpninfo);
 }
@@ -264,4 +274,55 @@ int openconnect_has_tss_blob_support(void)
 	return 1;
 #endif
 	return 0;
+}
+
+int openconnect_has_stoken_support(void)
+{
+#ifdef LIBSTOKEN_HDR
+	return 1;
+#else
+	return 0;
+#endif
+}
+
+/*
+ * Enable software token generation if use_stoken == 1.
+ *
+ * If token_str is not NULL, try to parse the string.  Otherwise, try to read
+ * the token data from ~/.stokenrc
+ *
+ * Return value:
+ *  = -EOPNOTSUPP, if libstoken is not available
+ *  = -EINVAL, if the token string is invalid (token_str was provided)
+ *  = -ENOENT, if ~/.stokenrc is missing (token_str was NULL)
+ *  = -EIO, for other libstoken failures
+ *  = 0, on success
+ */
+int openconnect_set_stoken_mode (struct openconnect_info *vpninfo,
+				 int use_stoken, const char *token_str)
+{
+#ifdef LIBSTOKEN_HDR
+	int ret;
+
+	vpninfo->use_stoken = 0;
+	if (!use_stoken)
+		return 0;
+
+	if (!vpninfo->stoken_ctx) {
+		vpninfo->stoken_ctx = stoken_new();
+		if (!vpninfo->stoken_ctx)
+			return -EIO;
+	}
+
+	ret = token_str ?
+	      stoken_import_string(vpninfo->stoken_ctx, token_str) :
+	      stoken_import_rcfile(vpninfo->stoken_ctx, NULL);
+	if (ret)
+		return ret;
+
+	vpninfo->use_stoken = 1;
+	return 0;
+#else
+	return -EOPNOTSUPP;
+#endif
 }

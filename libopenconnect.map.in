@@ -1,5 +1,11 @@
+OPENCONNECT_2.1 {
+ global:
+	openconnect_has_stoken_support;
+	openconnect_set_stoken_mode;
+};
+
 OPENCONNECT_2.0 {
- global: 
+ global:
 	openconnect_clear_cookie;
 	openconnect_get_cert_sha1;
 	openconnect_get_cookie;

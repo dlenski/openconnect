@@ -61,6 +61,10 @@
 #include LIBPROXY_HDR
 #endif
 
+#ifdef LIBSTOKEN_HDR
+#include LIBSTOKEN_HDR
+#endif
+
 #ifdef ENABLE_NLS
 #include <locale.h>
 #include <libintl.h>
@@ -165,6 +169,15 @@ struct openconnect_info {
 	char *csd_wrapper;
 	int uid_csd_given;
 	int no_http_keepalive;
+
+#ifdef LIBSTOKEN_HDR
+	struct stoken_ctx *stoken_ctx;
+#endif
+	int use_stoken;
+	int stoken_bypassed;
+	int stoken_tries;
+	time_t stoken_time;
+	char *stoken_pin;
 
 	OPENCONNECT_X509 *peer_cert;
 

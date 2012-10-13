@@ -31,9 +31,12 @@
 #include <unistd.h>
 
 #define OPENCONNECT_API_VERSION_MAJOR 2
-#define OPENCONNECT_API_VERSION_MINOR 0
+#define OPENCONNECT_API_VERSION_MINOR 1
 
 /*
+ * API version 2.1:
+ *  - Add openconnect_set_stoken_mode(), openconnect_has_stoken_support()
+ *
  * API version 2.0:
  *  - OPENCONNECT_X509 is now an opaque type.
  *  - Add openconnect_has_pkcs11_support(), openconnect_has_tss_blob_support()
@@ -158,6 +161,11 @@ void openconnect_set_hostname (struct openconnect_info *, char *);
 char *openconnect_get_urlpath (struct openconnect_info *);
 void openconnect_set_urlpath (struct openconnect_info *, char *);
 
+/* This function does *not* take ownership of the string; it is parsed
+   and then discarded. */
+int openconnect_set_stoken_mode (struct openconnect_info *,
+				 int use_stoken, const char *token_str);
+
 /* This function does *not* take ownership of the string; it's copied
    into a static buffer in the vpninfo. The size must be 41 bytes,
    since that's the size of a 20-byte SHA1 represented as hex with
@@ -248,5 +256,8 @@ int openconnect_has_pkcs11_support(void);
    -----BEGIN TSS KEY BLOB-----. GnuTLS may learn to support this format too,
    in the near future. */
 int openconnect_has_tss_blob_support(void);
+
+/* Software token capabilities. */
+int openconnect_has_stoken_support(void);
 
 #endif /* __OPENCONNECT_H__ */
