@@ -495,6 +495,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	return ret;
 }
 
+#ifdef LIBSTOKEN_HDR
 static void nuke_opt_values(struct oc_form_opt *opt)
 {
 	for (; opt; opt = opt->next) {
@@ -502,6 +503,7 @@ static void nuke_opt_values(struct oc_form_opt *opt)
 		opt->value = NULL;
 	}
 }
+#endif
 
 /*
  * If the user clicks OK without entering any data, we will continue
