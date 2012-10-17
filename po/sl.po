@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-10-15 15:19-0700\n"
+"POT-Creation-Date: 2012-10-17 07:30-0700\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -72,59 +72,61 @@ msgstr "Ni ročnika obrazca; vnosov ni mogoče overiti\n"
 
 #: auth.c:532
 msgid "Enter credentials to unlock software token."
-msgstr ""
+msgstr "Vnos poveril za odklep uporabniškega prstnega odtisa."
 
 #: auth.c:540
 msgid "Device ID:"
-msgstr ""
+msgstr "ID naprave:"
 
 #: auth.c:547
 msgid "Password:"
-msgstr ""
+msgstr "Geslo:"
 
 #: auth.c:554
 msgid "PIN:"
-msgstr ""
+msgstr "PIN: "
 
 #: auth.c:584
 msgid "User bypassed soft token.\n"
-msgstr ""
+msgstr "Uporabnik je obšel uporabniški prstni odtis.\n"
 
 #: auth.c:591
 msgid "All fields are required; try again.\n"
-msgstr ""
+msgstr "Zahtevana so vsa polja; poskusite znova.\n"
 
 #: auth.c:606 auth.c:695
 msgid "General failure in libstoken.\n"
-msgstr ""
+msgstr "Splošna napaka v knjižnici libstoken.\n"
 
 #: auth.c:610
 msgid "Incorrect device ID or password; try again.\n"
-msgstr ""
+msgstr "Neveljaven ID naprave ali pa ni veljavno geslo; poskusite znova.\n"
 
 #: auth.c:617
 msgid "Invalid PIN format; try again.\n"
-msgstr ""
+msgstr "Napačno geslo PIN, poskusite znova.\n"
 
 #: auth.c:627
 msgid "Soft token init was successful.\n"
-msgstr ""
+msgstr "Začenjanje uporabniškega prstnega odtisa je bilo uspešno.\n"
 
 #: auth.c:650
 msgid "OK to generate INITIAL tokencode\n"
-msgstr ""
+msgstr "Zahtevana je potrditev za ustvarjanje ZAŽETNE kode žetona.\n"
 
 #: auth.c:654
 msgid "OK to generate NEXT tokencode\n"
-msgstr ""
+msgstr "Zahtevana je potrditev za ustvarjanje NASLEDNJE kode žetona.\n"
 
 #: auth.c:659
 msgid "Server is rejecting the soft token; switching to manual entry\n"
 msgstr ""
+"Strežnik zavrača uporabniški prstni odtis; preklopljen bo način za ročni "
+"vnos.\n"
 
 #: auth.c:690
 msgid "Generating tokencode\n"
-msgstr ""
+msgstr "Poteka ustvarjanje kode žetona.\n"
 
 #: cstp.c:120
 #, c-format
@@ -1604,11 +1606,11 @@ msgstr "Preberi geslo z navadnega vhoda"
 
 #: main.c:282
 msgid "Use software token to generate password"
-msgstr ""
+msgstr "Uporabi uporabniški prstni odtis za ustvarjanje gesla"
 
 #: main.c:284
 msgid "(NOTE: libstoken disabled in this build)"
-msgstr ""
+msgstr "(Opomba: knjižnica libstoken je v tej izgradnji onemogočena)"
 
 #: main.c:286
 msgid "Connection retry timeout in seconds"
@@ -1824,22 +1826,23 @@ msgstr "Izbira overitve \"%s\" ni veljavna.\n"
 #: main.c:1231
 #, c-format
 msgid "Soft token string is invalid\n"
-msgstr ""
+msgstr "Uporabniški prstni odtis je neveljaven\n"
 
 #: main.c:1234
 #, c-format
 msgid "Can't open ~/.stokenrc file\n"
-msgstr ""
+msgstr "Ni mogoče odpreti datoteke ~/.stokenrc.\n"
 
 #: main.c:1237
 #, c-format
 msgid "OpenConnect was not built with soft token support\n"
 msgstr ""
+"Program OpenConnect ni izgrajen s podporo za uporabniški prstni odtis\n"
 
 #: main.c:1240
 #, c-format
 msgid "General failure in libstoken\n"
-msgstr ""
+msgstr "Splošna napaka v knjižnici libstoken.\n"
 
 #: mainloop.c:87
 msgid "Attempt new DTLS connection\n"
