@@ -2022,7 +2022,7 @@ msgid "No error"
 msgstr "خاتالىق يوق"
 
 #: ssl.c:419
-msgid "Keystore ocked"
+msgid "Keystore locked"
 msgstr ""
 
 #: ssl.c:420

@@ -419,7 +419,7 @@ char *keystore_strerror(int err)
 {
 	switch (-err) {
 	case NO_ERROR:		return _("No error");
-	case LOCKED:		return _("Keystore ocked");
+	case LOCKED:		return _("Keystore locked");
 	case UNINITIALIZED:	return _("Keystore uninitialized");
 	case SYSTEM_ERROR:	return _("System error");
 	case PROTOCOL_ERROR:	return _("Protocol error");

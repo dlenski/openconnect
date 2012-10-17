@@ -2118,7 +2118,7 @@ msgid "No error"
 msgstr "Brez napake"
 
 #: ssl.c:422
-msgid "Keystore ocked"
+msgid "Keystore locked"
 msgstr "Shramba ključev je zaklenjena"
 
 #: ssl.c:423

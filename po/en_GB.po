@@ -2001,7 +2001,7 @@ msgid "No error"
 msgstr "No error"
 
 #: ssl.c:419
-msgid "Keystore ocked"
+msgid "Keystore locked"
 msgstr "Keystore locked"
 
 #: ssl.c:420

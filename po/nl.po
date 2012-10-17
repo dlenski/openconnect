@@ -2013,7 +2013,7 @@ msgid "No error"
 msgstr "Geen fout"
 
 #: ssl.c:419
-msgid "Keystore ocked"
+msgid "Keystore locked"
 msgstr "Sleutelbestand afgesloten"
 
 #: ssl.c:420

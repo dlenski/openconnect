@@ -1981,7 +1981,7 @@ msgid "No error"
 msgstr ""
 
 #: ssl.c:422
-msgid "Keystore ocked"
+msgid "Keystore locked"
 msgstr ""
 
 #: ssl.c:423
