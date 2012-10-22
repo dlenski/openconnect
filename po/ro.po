@@ -2026,7 +2026,7 @@ msgid "Failed to spawn script '%s' for %s: %s\n"
 msgstr ""
 
 #: tun.c:398
-msgid "Could not /dev/tun for plumbing"
+msgid "Could not open /dev/tun for plumbing"
 msgstr ""
 
 #: tun.c:402

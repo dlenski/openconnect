@@ -2148,9 +2148,8 @@ msgstr ""
 msgid "Script '%s' returned error %d\n"
 msgstr ""
 
-# typo?: Could not /dev/tun -> Could not open /dev/tun
 #: tun.c:415
-msgid "Could not /dev/tun for plumbing"
+msgid "Could not open /dev/tun for plumbing"
 msgstr "Tak bisa membuka /dev/tun untuk plumbing"
 
 #: tun.c:419

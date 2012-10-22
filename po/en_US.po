@@ -2075,8 +2075,8 @@ msgid "Script '%s' returned error %d\n"
 msgstr ""
 
 #: tun.c:415
-msgid "Could not /dev/tun for plumbing"
-msgstr "Could not /dev/tun for plumbing"
+msgid "Could not open /dev/tun for plumbing"
+msgstr "Could not open /dev/tun for plumbing"
 
 #: tun.c:419
 msgid "Can't push IP"

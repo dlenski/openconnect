@@ -412,7 +412,7 @@ static int link_proto(int unit_nr, const char *devname, uint64_t flags)
 
 	tun2_fd = open("/dev/tun", O_RDWR);
 	if (tun2_fd < 0) {
-		perror(_("Could not /dev/tun for plumbing"));
+		perror(_("Could not open /dev/tun for plumbing"));
 		return -EIO;
 	}
 	if (ioctl(tun2_fd, I_PUSH, "ip") < 0) {

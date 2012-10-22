@@ -2086,8 +2086,8 @@ msgid "Script '%s' returned error %d\n"
 msgstr ""
 
 #: tun.c:415
-msgid "Could not /dev/tun for plumbing"
-msgstr "Kon /dev/tun niet gebruiken voor overloop"
+msgid "Could not open /dev/tun for plumbing"
+msgstr ""
 
 #: tun.c:419
 msgid "Can't push IP"

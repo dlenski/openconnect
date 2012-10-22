@@ -2194,8 +2194,8 @@ msgid "Script '%s' returned error %d\n"
 msgstr "Skript '%s' je vrnil napako %d\n"
 
 #: tun.c:415
-msgid "Could not /dev/tun for plumbing"
-msgstr "Ni mogoče izvesti /dev/tun za razpeljavo"
+msgid "Could not open /dev/tun for plumbing"
+msgstr ""
 
 #: tun.c:419
 msgid "Can't push IP"
