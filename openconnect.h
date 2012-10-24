@@ -34,6 +34,9 @@
 #define OPENCONNECT_API_VERSION_MINOR 1
 
 /*
+ * API version 2.2:
+ *  - Add openconnect_set_reported_os()
+ *
  * API version 2.1:
  *  - Add openconnect_set_stoken_mode(), openconnect_has_stoken_support()
  *
@@ -175,6 +178,7 @@ void openconnect_set_xmlsha1 (struct openconnect_info *, const char *, int size)
 
 void openconnect_set_cafile (struct openconnect_info *, char *);
 void openconnect_setup_csd (struct openconnect_info *, uid_t, int silent, char *wrapper);
+int openconnect_set_reported_os (struct openconnect_info *, const char *os);
 void openconnect_set_client_cert (struct openconnect_info *, char *cert, char *sslkey);
 
 /* This is *not* yours and must not be destroyed with X509_free(). It

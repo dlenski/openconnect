@@ -133,6 +133,7 @@ struct openconnect_info {
 	char *redirect_url;
 
 	const char *csd_xmltag;
+	const char *platname;
 	char *csd_token;
 	char *csd_ticket;
 	char *csd_stuburl;
