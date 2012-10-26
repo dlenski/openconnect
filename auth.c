@@ -315,6 +315,39 @@ static char *xmlnode_msg(xmlNode *xml_node)
 	return result;
 }
 
+static int xmlnode_is_named(xmlNode *xml_node, const char *name)
+{
+	return !strcmp((char *)xml_node->name, name);
+}
+
+static int xmlnode_get_prop(xmlNode *xml_node, const char *name, char **var)
+{
+	char *str = (char *)xmlGetProp(xml_node, (unsigned char *)name);
+
+	if (!str)
+		return -ENOENT;
+
+	free(*var);
+	*var = str;
+	return 0;
+}
+
+static int xmlnode_get_text(xmlNode *xml_node, const char *name, char **var)
+{
+	char *str;
+
+	if (name && !xmlnode_is_named(xml_node, name))
+		return -EINVAL;
+
+	str = xmlnode_msg(xml_node);
+	if (!str)
+		return -ENOENT;
+
+	free(*var);
+	*var = str;
+	return 0;
+}
+
 static int parse_auth_node(struct openconnect_info *vpninfo, xmlNode *xml_node,
 			   struct oc_auth_form *form)
 {
@@ -324,19 +357,15 @@ static int parse_auth_node(struct openconnect_info *vpninfo, xmlNode *xml_node,
 		if (xml_node->type != XML_ELEMENT_NODE)
 			continue;
 
-		if (!strcmp((char *)xml_node->name, "banner")) {
-			free(form->banner);
-			form->banner = xmlnode_msg(xml_node);
-		} else if (!strcmp((char *)xml_node->name, "message")) {
-			free(form->message);
-			form->message = xmlnode_msg(xml_node);
-		} else if (!strcmp((char *)xml_node->name, "error")) {
-			free(form->error);
-			form->error = xmlnode_msg(xml_node);
-		} else if (!strcmp((char *)xml_node->name, "form")) {
+		xmlnode_get_text(xml_node, "banner", &form->banner);
+		xmlnode_get_text(xml_node, "message", &form->message);
+		xmlnode_get_text(xml_node, "error", &form->error);
 
-			form->method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
-			form->action = (char *)xmlGetProp(xml_node, (unsigned char *)"action");
+		if (xmlnode_is_named(xml_node, "form")) {
+
+			xmlnode_get_prop(xml_node, "method", &form->method);
+			xmlnode_get_prop(xml_node, "action", &form->action);
+
 			if (!form->method || !form->action ||
 			    strcasecmp(form->method, "POST") || !form->action[0]) {
 				vpn_progress(vpninfo, PRG_ERR,
@@ -350,20 +379,13 @@ static int parse_auth_node(struct openconnect_info *vpninfo, xmlNode *xml_node,
 			ret = parse_form(vpninfo, form, xml_node);
 			if (ret < 0)
 				goto out;
-		} else if (!vpninfo->csd_scriptname && !strcmp((char *)xml_node->name, "csd")) {
-			if (!vpninfo->csd_token)
-				vpninfo->csd_token = (char *)xmlGetProp(xml_node,
-									(unsigned char *)"token");
-			if (!vpninfo->csd_ticket)
-				vpninfo->csd_ticket = (char *)xmlGetProp(xml_node,
-									 (unsigned char *)"ticket");
-		} else if (!vpninfo->csd_scriptname && !strcmp((char *)xml_node->name, vpninfo->csd_xmltag)) {
-			vpninfo->csd_stuburl = (char *)xmlGetProp(xml_node,
-								  (unsigned char *)"stuburl");
-			vpninfo->csd_starturl = (char *)xmlGetProp(xml_node,
-								   (unsigned char *)"starturl");
-			vpninfo->csd_waiturl = (char *)xmlGetProp(xml_node,
-								  (unsigned char *)"waiturl");
+		} else if (!vpninfo->csd_scriptname && xmlnode_is_named(xml_node, "csd")) {
+			xmlnode_get_prop(xml_node, "token", &vpninfo->csd_token);
+			xmlnode_get_prop(xml_node, "ticket", &vpninfo->csd_ticket);
+		} else if (!vpninfo->csd_scriptname && xmlnode_is_named(xml_node, vpninfo->csd_xmltag)) {
+			xmlnode_get_prop(xml_node, "stuburl", &vpninfo->csd_stuburl);
+			xmlnode_get_prop(xml_node, "starturl", &vpninfo->csd_starturl);
+			xmlnode_get_prop(xml_node, "waiturl", &vpninfo->csd_waiturl);
 			vpninfo->csd_preurl = strdup(vpninfo->urlpath);
 		}
 	}
