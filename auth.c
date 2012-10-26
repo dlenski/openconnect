@@ -315,6 +315,63 @@ static char *xmlnode_msg(xmlNode *xml_node)
 	return result;
 }
 
+static int parse_auth_node(struct openconnect_info *vpninfo, xmlNode *xml_node,
+			   struct oc_auth_form *form)
+{
+	int ret = 0;
+
+	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
+		if (xml_node->type != XML_ELEMENT_NODE)
+			continue;
+
+		if (!strcmp((char *)xml_node->name, "banner")) {
+			free(form->banner);
+			form->banner = xmlnode_msg(xml_node);
+		} else if (!strcmp((char *)xml_node->name, "message")) {
+			free(form->message);
+			form->message = xmlnode_msg(xml_node);
+		} else if (!strcmp((char *)xml_node->name, "error")) {
+			free(form->error);
+			form->error = xmlnode_msg(xml_node);
+		} else if (!strcmp((char *)xml_node->name, "form")) {
+
+			form->method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
+			form->action = (char *)xmlGetProp(xml_node, (unsigned char *)"action");
+			if (!form->method || !form->action ||
+			    strcasecmp(form->method, "POST") || !form->action[0]) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Cannot handle form method='%s', action='%s'\n"),
+					     form->method, form->action);
+				ret = -EINVAL;
+				goto out;
+			}
+			vpninfo->redirect_url = strdup(form->action);
+
+			ret = parse_form(vpninfo, form, xml_node);
+			if (ret < 0)
+				goto out;
+		} else if (!vpninfo->csd_scriptname && !strcmp((char *)xml_node->name, "csd")) {
+			if (!vpninfo->csd_token)
+				vpninfo->csd_token = (char *)xmlGetProp(xml_node,
+									(unsigned char *)"token");
+			if (!vpninfo->csd_ticket)
+				vpninfo->csd_ticket = (char *)xmlGetProp(xml_node,
+									 (unsigned char *)"ticket");
+		} else if (!vpninfo->csd_scriptname && !strcmp((char *)xml_node->name, vpninfo->csd_xmltag)) {
+			vpninfo->csd_stuburl = (char *)xmlGetProp(xml_node,
+								  (unsigned char *)"stuburl");
+			vpninfo->csd_starturl = (char *)xmlGetProp(xml_node,
+								   (unsigned char *)"starturl");
+			vpninfo->csd_waiturl = (char *)xmlGetProp(xml_node,
+								  (unsigned char *)"waiturl");
+			vpninfo->csd_preurl = strdup(vpninfo->urlpath);
+		}
+	}
+
+out:
+	return ret;
+}
+
 /* Return value:
  *  < 0, on error
  *  = 0, when form parsed and POST required
@@ -366,53 +423,10 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		goto out;
 	}
 
-	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
-		if (xml_node->type != XML_ELEMENT_NODE)
-			continue;
+	ret = parse_auth_node(vpninfo, xml_node, form);
+	if (ret)
+		goto out;
 
-		if (!strcmp((char *)xml_node->name, "banner")) {
-			free(form->banner);
-			form->banner = xmlnode_msg(xml_node);
-		} else if (!strcmp((char *)xml_node->name, "message")) {
-			free(form->message);
-			form->message = xmlnode_msg(xml_node);
-		} else if (!strcmp((char *)xml_node->name, "error")) {
-			free(form->error);
-			form->error = xmlnode_msg(xml_node);
-		} else if (!strcmp((char *)xml_node->name, "form")) {
-
-			form->method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
-			form->action = (char *)xmlGetProp(xml_node, (unsigned char *)"action");
-			if (!form->method || !form->action || 
-			    strcasecmp(form->method, "POST") || !form->action[0]) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("Cannot handle form method='%s', action='%s'\n"),
-					     form->method, form->action);
-				ret = -EINVAL;
-				goto out;
-			}
-			vpninfo->redirect_url = strdup(form->action);
-
-			ret = parse_form(vpninfo, form, xml_node);
-			if (ret < 0)
-				goto out;
-		} else if (!vpninfo->csd_scriptname && !strcmp((char *)xml_node->name, "csd")) {
-			if (!vpninfo->csd_token)
-				vpninfo->csd_token = (char *)xmlGetProp(xml_node,
-									(unsigned char *)"token");
-			if (!vpninfo->csd_ticket)
-				vpninfo->csd_ticket = (char *)xmlGetProp(xml_node,
-									 (unsigned char *)"ticket");
-		} else if (!vpninfo->csd_scriptname && !strcmp((char *)xml_node->name, vpninfo->csd_xmltag)) {
-			vpninfo->csd_stuburl = (char *)xmlGetProp(xml_node,
-								  (unsigned char *)"stuburl");
-			vpninfo->csd_starturl = (char *)xmlGetProp(xml_node,
-								   (unsigned char *)"starturl");
-			vpninfo->csd_waiturl = (char *)xmlGetProp(xml_node,
-								  (unsigned char *)"waiturl");
-			vpninfo->csd_preurl = strdup(vpninfo->urlpath);
-		}
-	}
 	if (vpninfo->csd_token && vpninfo->csd_ticket && vpninfo->csd_starturl && vpninfo->csd_waiturl) {
 		/* First, redirect to the stuburl -- we'll need to fetch and run that */
 		vpninfo->redirect_url = strdup(vpninfo->csd_stuburl);
