@@ -74,6 +74,8 @@
 #endif
 #define N_(s) s
 
+#include <libxml/tree.h>
+
 #define SHA1_SIZE 20
 #define MD5_SIZE 16
 
@@ -139,6 +141,7 @@ struct openconnect_info {
 	char *csd_preurl;
 
 	char *csd_scriptname;
+	xmlNode *opaque_srvdata;
 
 #ifdef LIBPROXY_HDR
 	pxProxyFactory *proxy_factory;
