@@ -908,7 +908,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	}
 	request_body[0] = 0;
 	result = handle_auth_form(vpninfo, form, request_body, sizeof(request_body),
-				  &method, &request_body_type);
+				  &method, &request_body_type, 0);
 	free_auth_form(form);
 
 	if (!result)

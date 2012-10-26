@@ -30,6 +30,8 @@
 #include LIBSTOKEN_HDR
 #endif
 
+#include <libxml/tree.h>
+
 #include "openconnect-internal.h"
 
 struct openconnect_info *openconnect_vpninfo_new (char *useragent,
@@ -112,6 +114,8 @@ void openconnect_vpninfo_free (struct openconnect_info *vpninfo)
 		free(vpninfo->csd_scriptname);
 	}
 	free(vpninfo->csd_stuburl);
+	if (vpninfo->opaque_srvdata)
+		xmlFreeNode(vpninfo->opaque_srvdata);
 	/* These are const in openconnect itself, but for consistency of
 	   the library API we do take ownership of the strings we're given,
 	   and thus we have to free them too. */

@@ -41,6 +41,8 @@
 
 #include "openconnect-internal.h"
 
+static int xmlpost_append_form_opts(struct openconnect_info *vpninfo,
+				    struct oc_auth_form *form, char *body, int bodylen);
 static int can_gen_tokencode(struct openconnect_info *vpninfo, struct oc_form_opt *opt);
 static int do_gen_tokencode(struct openconnect_info *vpninfo, struct oc_auth_form *form);
 
@@ -560,7 +562,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
  */
 int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
 		     char *request_body, int req_len, const char **method,
-		     const char **request_body_type)
+		     const char **request_body_type, int xmlpost)
 {
 	int ret;
 	struct vpn_option *opt, *next;
@@ -611,7 +613,9 @@ int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form
 	if (ret)
 		return ret;
 
-	ret = append_form_opts(vpninfo, form, request_body, req_len);
+	ret = xmlpost ?
+	      xmlpost_append_form_opts(vpninfo, form, request_body, req_len) :
+	      append_form_opts(vpninfo, form, request_body, req_len);
 	if (!ret) {
 		*method = "POST";
 		*request_body_type = "application/x-www-form-urlencoded";
@@ -655,6 +659,159 @@ void free_auth_form(struct oc_auth_form *form)
 	free(form->action);
 	free(form);
 }
+
+/*
+ * Old submission format is just an HTTP query string:
+ *
+ * password=12345678&username=joe
+ *
+ * New XML format is more complicated:
+ *
+ * <config-auth client="vpn" type="<!-- init or auth-reply -->">
+ *   <version who="vpn"><!-- currently just the OpenConnect version --></version>
+ *   <device-id><!-- linux, linux-64, mac, win --></device-id>
+ *   <opaque is-for="<!-- some name -->">
+ *     <!-- just copy this verbatim from whatever the gateway sent us -->
+ *   </opaque>
+ *
+ * For init only, add:
+ *   <group-access>https://<!-- insert hostname here --></group-access>
+ *
+ * For auth-reply only, add:
+ *   <auth>
+ *     <username><!-- same treatment as the old form options --></username>
+ *     <password><!-- ditto -->
+ *   </auth>
+ *   <host-scan-token><!-- vpninfo->csd_ticket --></host-scan-token>
+ */
+
+#define XCAST(x) ((const xmlChar *)(x))
+
+static xmlDocPtr xmlpost_new_query(struct openconnect_info *vpninfo, const char *type,
+				   xmlNodePtr *rootp)
+{
+	xmlDocPtr doc;
+	xmlNodePtr root, node;
+
+	doc = xmlNewDoc(XCAST("1.0"));
+	if (!doc)
+		return NULL;
+
+	*rootp = root = xmlNewNode(NULL, XCAST("config-auth"));
+	if (!root)
+		goto bad;
+	if (!xmlNewProp(root, XCAST("client"), XCAST("vpn")))
+		goto bad;
+	if (!xmlNewProp(root, XCAST("type"), XCAST(type)))
+		goto bad;
+	xmlDocSetRootElement(doc, root);
+
+	node = xmlNewTextChild(root, NULL, XCAST("version"), XCAST(openconnect_version_str));
+	if (!node)
+		goto bad;
+	if (!xmlNewProp(node, XCAST("who"), XCAST("vpn")))
+		goto bad;
+
+	if (!xmlNewTextChild(root, NULL, XCAST("device-id"), XCAST(vpninfo->platname)))
+		goto bad;
+
+	return doc;
+
+bad:
+	xmlFreeDoc(doc);
+	return NULL;
+}
+
+static int xmlpost_complete(xmlDocPtr doc, char *body, int bodylen)
+{
+	xmlChar *mem = NULL;
+	int len, ret = 0;
+
+	if (!body) {
+		xmlFree(doc);
+		return 0;
+	}
+
+	xmlDocDumpMemoryEnc(doc, &mem, &len, "UTF-8");
+	if (!mem) {
+		xmlFreeDoc(doc);
+		return -ENOMEM;
+	}
+
+	if (len > bodylen)
+		ret = -E2BIG;
+	else {
+		memcpy(body, mem, len);
+		body[len] = 0;
+	}
+
+	xmlFreeDoc(doc);
+	xmlFree(mem);
+
+	return ret;
+}
+
+int xmlpost_initial_req(struct openconnect_info *vpninfo, char *request_body, int req_len)
+{
+	xmlNodePtr root, node;
+	xmlDocPtr doc = xmlpost_new_query(vpninfo, "init", &root);
+	char *url;
+
+	if (!doc)
+		return -ENOMEM;
+
+	if (asprintf(&url, "https://%s", vpninfo->hostname) == -1)
+		goto bad;
+	node = xmlNewTextChild(root, NULL, XCAST("group-access"), XCAST(url));
+	free(url);
+	if (!node)
+		goto bad;
+
+	return xmlpost_complete(doc, request_body, req_len);
+
+bad:
+	xmlpost_complete(doc, NULL, 0);
+	return -ENOMEM;
+}
+
+static int xmlpost_append_form_opts(struct openconnect_info *vpninfo,
+				    struct oc_auth_form *form, char *body, int bodylen)
+{
+	xmlNodePtr root, node;
+	xmlDocPtr doc = xmlpost_new_query(vpninfo, "auth-reply", &root);
+	struct oc_form_opt *opt;
+
+	if (!doc)
+		return -ENOMEM;
+
+	if (vpninfo->opaque_srvdata) {
+		node = xmlCopyNode(vpninfo->opaque_srvdata, 1);
+		if (!node)
+			goto bad;
+		if (!xmlAddChild(root, node))
+			goto bad;
+	}
+
+	node = xmlNewChild(root, NULL, XCAST("auth"), NULL);
+	if (!node)
+		goto bad;
+
+	for (opt = form->opts; opt; opt = opt->next) {
+		if (!xmlNewTextChild(node, NULL, XCAST(opt->name), XCAST(opt->value)))
+			goto bad;
+	}
+
+	if (vpninfo->csd_token &&
+	    !xmlNewTextChild(root, NULL, XCAST("host-scan-token"), XCAST(vpninfo->csd_token)))
+		goto bad;
+
+	return xmlpost_complete(doc, body, bodylen);
+
+bad:
+	xmlpost_complete(doc, NULL, 0);
+	return -ENOMEM;
+}
+
 
 #ifdef LIBSTOKEN_HDR
 static void nuke_opt_values(struct oc_form_opt *opt)
