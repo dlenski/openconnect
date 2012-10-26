@@ -172,7 +172,7 @@ static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_fo
  *  = 1, when form was parsed
  */
 static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
-		      xmlNode *xml_node, char *body, int bodylen)
+		      xmlNode *xml_node)
 {
 	char *input_type, *input_name, *input_label;
 
@@ -254,8 +254,6 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 
 		*p = opt;
 	}
-
-	vpn_progress(vpninfo, PRG_TRACE, _("Fixed options give %s\n"), body);
 
 	return 0;
 }
@@ -395,7 +393,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			}
 			vpninfo->redirect_url = strdup(form->action);
 
-			ret = parse_form(vpninfo, form, xml_node, request_body, req_len);
+			ret = parse_form(vpninfo, form, xml_node);
 			if (ret < 0)
 				goto out;
 		} else if (!vpninfo->csd_scriptname && !strcmp((char *)xml_node->name, "csd")) {
