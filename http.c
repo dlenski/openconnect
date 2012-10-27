@@ -423,10 +423,27 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	return done;
 }
 
+static void add_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+{
+	struct vpn_option *opt;
+
+	buf_append(buf, "Host: %s\r\n", vpninfo->hostname);
+	buf_append(buf, "User-Agent: %s\r\n", vpninfo->useragent);
+	buf_append(buf, "Accept: */*\r\n");
+	buf_append(buf, "Accept-Encoding: identity\r\n");
+
+	if (vpninfo->cookies) {
+		buf_append(buf, "Cookie: ");
+		for (opt = vpninfo->cookies; opt; opt = opt->next)
+			buf_append(buf, "%s=%s%s", opt->option,
+				      opt->value, opt->next ? "; " : "\r\n");
+	}
+	buf_append(buf, "X-Transcend-Version: 1\r\n");
+}
+
 static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 			char *server_sha1)
 {
-	struct vpn_option *opt;
 	struct oc_text_buf *buf;
 	char *config_buf = NULL;
 	int result, buflen;
@@ -443,18 +460,8 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 
 	buf = buf_alloc();
 	buf_append(buf, "GET %s%s HTTP/1.1\r\n", fu, bu);
-	buf_append(buf, "Host: %s\r\n", vpninfo->hostname);
-	buf_append(buf, "User-Agent: %s\r\n", vpninfo->useragent);
-	buf_append(buf, "Accept: */*\r\n");
-	buf_append(buf, "Accept-Encoding: identity\r\n");
-
-	if (vpninfo->cookies) {
-		buf_append(buf, "Cookie: ");
-		for (opt = vpninfo->cookies; opt; opt = opt->next)
-			buf_append(buf, "%s=%s%s", opt->option,
-				      opt->value, opt->next ? "; " : "\r\n");
-	}
-	buf_append(buf, "X-Transcend-Version: 1\r\n\r\n");
+	add_common_headers(vpninfo, buf);
+	buf_append(buf, "\r\n");
 
 	if (buf_error(buf))
 		return buf_free(buf);
@@ -819,22 +826,14 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	 */
 	buf = buf_alloc();
 	buf_append(buf, "%s /%s HTTP/1.1\r\n", method, vpninfo->urlpath ?: "");
-	buf_append(buf, "Host: %s\r\n", vpninfo->hostname);
-	buf_append(buf, "User-Agent: %s\r\n", vpninfo->useragent);
-	buf_append(buf, "Accept: */*\r\n");
-	buf_append(buf, "Accept-Encoding: identity\r\n");
+	add_common_headers(vpninfo, buf);
 
-	if (vpninfo->cookies) {
-		buf_append(buf, "Cookie: ");
-		for (opt = vpninfo->cookies; opt; opt = opt->next)
-			buf_append(buf, "%s=%s%s", opt->option,
-				   opt->value, opt->next ? "; " : "\r\n");
-	}
 	if (request_body_type) {
 		buf_append(buf, "Content-Type: %s\r\n", request_body_type);
 		buf_append(buf, "Content-Length: %zd\r\n", strlen(request_body));
 	}
-	buf_append(buf, "X-Transcend-Version: 1\r\n\r\n");
+	buf_append(buf, "\r\n");
+
 	if (request_body_type)
 		buf_append(buf, "%s", request_body);
 
