@@ -809,7 +809,7 @@ static int handle_redirect(struct openconnect_info *vpninfo)
  */
 static int do_https_request(struct openconnect_info *vpninfo, const char *method,
 			    const char *request_body_type, const char *request_body,
-			    char **form_buf)
+			    char **form_buf, int fetch_redirect)
 {
 	struct oc_text_buf *buf;
 	int result, buflen;
@@ -875,8 +875,11 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 
 	if (result != 200 && vpninfo->redirect_url) {
 		result = handle_redirect(vpninfo);
-		if (result == 0)
+		if (result == 0) {
+			if (!fetch_redirect)
+				return 0;
 			goto retry;
+		}
 		goto out;
 	}
 	if (!*form_buf || result != 200) {
@@ -896,6 +899,24 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 }
 
 /* Return value:
+ *  < 0, if the data is unrecognized
+ *  = 0, if the page contains an XML document
+ *  = 1, if the page is a wait/refresh HTML page
+ */
+static int check_response_type(struct openconnect_info *vpninfo, char *form_buf)
+{
+	if (strncmp(form_buf, "<?xml", 5)) {
+		/* Not XML? Perhaps it's HTML with a refresh... */
+		if (strcasestr(form_buf, "http-equiv=\"refresh\""))
+			return 1;
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Unknown response from server\n"));
+		return -EINVAL;
+	}
+	return 0;
+}
+
+/* Return value:
  *  < 0, on error
  *  > 0, no cookie (user cancel)
  *  = 0, obtained cookie
@@ -904,70 +925,147 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 {
 	struct vpn_option *opt;
 	char *form_buf = NULL;
-	struct oc_auth_form *form;
-	int result, buflen;
+	struct oc_auth_form *form = NULL;
+	int result, buflen, tries;
 	char request_body[2048];
-	const char *request_body_type = NULL;
-	const char *method = "GET";
+	const char *request_body_type = "application/x-www-form-urlencoded";
+	const char *method = "POST";
+	int xmlpost = 0;
 
+	/* Step 1: Unlock software token (if applicable) */
 	if (vpninfo->use_stoken) {
 		result = prepare_stoken(vpninfo);
 		if (result)
 			return result;
 	}
 
- retry:
-	buflen = do_https_request(vpninfo, method, request_body_type, request_body, &form_buf);
-	if (buflen < 0)
-		return buflen;
+	/*
+	 * Step 2: Probe for XML POST compatibility
+	 *
+	 * This can get stuck in a redirect loop, so give up after any of:
+	 *
+	 * a) HTTP error (e.g. 400 Bad Request)
+	 * b) Same-host redirect (e.g. Location: /foo/bar)
+	 * c) Three redirects without seeing a plausible login form
+	 */
+	result = xmlpost_initial_req(vpninfo, request_body, sizeof(request_body));
+	if (result < 0)
+		return result;
 
-	if (vpninfo->csd_stuburl) {
-		/* This is the CSD stub script, which we now need to run */
-		result = run_csd_script(vpninfo, form_buf, buflen);
-		if (result) {
+	for (tries = 0; ; tries++) {
+		if (tries == 3)
+			break;
+		buflen = do_https_request(vpninfo, method, request_body_type, request_body,
+					  &form_buf, 0);
+		if (buflen == -EINVAL)
+			break;
+		if (buflen < 0)
+			return buflen;
+
+		if (vpninfo->redirect_type == REDIR_TYPE_LOCAL)
+			break;
+		else if (vpninfo->redirect_type != REDIR_TYPE_NONE)
+			continue;
+
+		result = parse_xml_response(vpninfo, form_buf, &form);
+		if (result < 0)
+			break;
+
+		xmlpost = 1;
+		vpn_progress(vpninfo, PRG_INFO, _("XML POST enabled\n"));
+		break;
+	}
+
+	/* Step 3: Fetch and parse the login form, if not using XML POST */
+	if (!xmlpost) {
+		buflen = do_https_request(vpninfo, "GET", NULL, NULL, &form_buf, 0);
+		if (buflen < 0)
+			return buflen;
+
+		result = parse_xml_response(vpninfo, form_buf, &form);
+		if (result < 0) {
 			free(form_buf);
 			return result;
 		}
-
-		/* Now we'll be redirected to the waiturl */
-		goto retry;
 	}
-	if (strncmp(form_buf, "<?xml", 5)) {
-		/* Not XML? Perhaps it's HTML with a refresh... */
-		if (strcasestr(form_buf, "http-equiv=\"refresh\"")) {
+
+	/* Step 4: Run the CSD trojan, if applicable */
+	if (vpninfo->csd_starturl) {
+		char *form_path = NULL;
+
+		if (vpninfo->urlpath) {
+			form_path = strdup(vpninfo->urlpath);
+			if (!form_path) {
+				result = -ENOMEM;
+				goto out;
+			}
+		}
+
+		/* fetch the CSD program, if available */
+		if (vpninfo->csd_stuburl) {
+			buflen = do_https_request(vpninfo, "GET", NULL, NULL, &form_buf, 0);
+			if (buflen <= 0) {
+				result = -EINVAL;
+				goto out;
+			}
+		}
+
+		/* This is the CSD stub script, which we now need to run */
+		result = run_csd_script(vpninfo, form_buf, buflen);
+		if (result)
+			goto out;
+
+		/* vpninfo->urlpath now points to the wait page */
+		while (1) {
+			result = do_https_request(vpninfo, "GET", NULL, NULL, &form_buf, 0);
+			if (result <= 0)
+				break;
+
+			result = check_response_type(vpninfo, form_buf);
+			if (result <= 0)
+				break;
+
 			vpn_progress(vpninfo, PRG_INFO,
 				     _("Refreshing %s after 1 second...\n"),
 				     vpninfo->urlpath);
 			sleep(1);
-			goto retry;
 		}
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Unknown response from server\n"));
-		free(form_buf);
-		return -EINVAL;
-	}
-	result = parse_xml_response(vpninfo, form_buf, &form);
-	if (result) {
-		free(form_buf);
-		return -ENOMEM;
-	}
-	request_body[0] = 0;
-	result = handle_auth_form(vpninfo, form, request_body, sizeof(request_body),
-				  &method, &request_body_type, 0);
-	free_auth_form(form);
+		if (result < 0)
+			goto out;
 
-	free(form_buf);
-	form_buf = NULL;
+		/* refresh the form page, to see if we're authorized now */
+		free(vpninfo->urlpath);
+		vpninfo->urlpath = form_path;
 
-	if (!result) {
-		result = handle_redirect(vpninfo);
-		if (result == 0)
-			goto retry;
-		return result;
+		result = do_https_request(vpninfo, xmlpost ? "POST" : "GET",
+					  request_body_type, request_body, &form_buf, 1);
+		if (result < 0)
+			goto out;
+
+		result = parse_xml_response(vpninfo, form_buf, &form);
+		if (result < 0)
+			goto out;
 	}
 
-	if (result != 2)
-		return result;
+	/* Step 5: Ask the user to fill in the auth form; repeat as necessary */
+	while (1) {
+		request_body[0] = 0;
+		result = handle_auth_form(vpninfo, form, request_body, sizeof(request_body),
+					  &method, &request_body_type, xmlpost);
+		if (result < 0 || result == 1)
+			goto out;
+		if (result == 2)
+			break;
+
+		result = do_https_request(vpninfo, method, request_body_type, request_body,
+					  &form_buf, 1);
+		if (result < 0)
+			goto out;
+
+		result = parse_xml_response(vpninfo, form_buf, &form);
+		if (result < 0)
+			goto out;
+	}
 
 	/* A return value of 2 means the XML form indicated
 	   success. We _should_ have a cookie... */
@@ -1005,7 +1103,12 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		free(vpninfo->csd_scriptname);
 		vpninfo->csd_scriptname = NULL;
 	}
-	return 0;
+	result = 0;
+
+out:
+	free(form_buf);
+	free_auth_form(form);
+	return result;
 }
 
 char *openconnect_create_useragent(const char *base)
