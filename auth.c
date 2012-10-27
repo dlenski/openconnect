@@ -396,19 +396,18 @@ out:
 
 /* Return value:
  *  < 0, on error
- *  = 0, when form parsed and POST required
- *  = 1, when response was cancelled by user
- *  = 2, when form indicates that login was already successful
+ *  = 0, on success; *form is populated
  */
-int parse_xml_response(struct openconnect_info *vpninfo, char *response,
-		       char *request_body, int req_len, const char **method,
-		       const char **request_body_type)
+int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct oc_auth_form **formp)
 {
 	struct oc_auth_form *form;
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node;
-	int ret;
-	struct vpn_option *opt, *next;
+
+	if (*formp) {
+		free_auth_form(*formp);
+		*formp = NULL;
+	}
 
 	form = calloc(1, sizeof(*form));
 	if (!form)
@@ -428,26 +427,43 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	if (xml_node->type != XML_ELEMENT_NODE || strcmp((char *)xml_node->name, "auth")) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("XML response has no \"auth\" root node\n"));
-		ret = -EINVAL;
 		goto out;
+	}
+	form->auth_id = (char *)xmlGetProp(xml_node, (unsigned char *)"id");
+
+	if (parse_auth_node(vpninfo, xml_node, form) == 0) {
+		xmlFreeDoc(xml_doc);
+		*formp = form;
+		return 0;
 	}
 
-	form->auth_id = (char *)xmlGetProp(xml_node, (unsigned char *)"id");
-	if (!strcmp(form->auth_id, "success")) {
-		ret = 2;
-		goto out;
-	}
+ out:
+	xmlFreeDoc(xml_doc);
+	free_auth_form(form);
+	return -EINVAL;
+}
+
+/* Return value:
+ *  < 0, on error
+ *  = 0, when form parsed and POST required
+ *  = 1, when response was cancelled by user
+ *  = 2, when form indicates that login was already successful
+ */
+int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
+		     char *request_body, int req_len, const char **method,
+		     const char **request_body_type)
+{
+	int ret;
+	struct vpn_option *opt, *next;
+
+	if (!strcmp(form->auth_id, "success"))
+		return 2;
 
 	if (vpninfo->nopasswd) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Asked for password but '--no-passwd' set\n"));
-		ret = -EPERM;
-		goto out;
+		return -EPERM;
 	}
-
-	ret = parse_auth_node(vpninfo, xml_node, form);
-	if (ret)
-		goto out;
 
 	if (vpninfo->csd_token && vpninfo->csd_ticket && vpninfo->csd_starturl && vpninfo->csd_waiturl) {
 		/* First, redirect to the stuburl -- we'll need to fetch and run that */
@@ -462,17 +478,14 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			free(opt);
 		}
 		vpninfo->cookies = NULL;
-
-		ret = 0;
-		goto out;
+		return 0;
 	}
 	if (!form->opts) {
 		if (form->message)
 			vpn_progress(vpninfo, PRG_INFO, "%s\n", form->message);
 		if (form->error)
 			vpn_progress(vpninfo, PRG_ERR, "%s\n", form->error);
-		ret = -EPERM;
-		goto out;
+		return -EPERM;
 	}
 
 	if (vpninfo->process_auth_form)
@@ -482,20 +495,25 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		ret = 1;
 	}
 	if (ret)
-		goto out;
+		return ret;
 
 	/* tokencode generation is deferred until after username prompts and CSD */
 	ret = do_gen_tokencode(vpninfo, form);
 	if (ret)
-		goto out;
+		return ret;
 
 	ret = append_form_opts(vpninfo, form, request_body, req_len);
 	if (!ret) {
 		*method = "POST";
 		*request_body_type = "application/x-www-form-urlencoded";
 	}
- out:
-	xmlFreeDoc(xml_doc);
+	return ret;
+}
+
+void free_auth_form(struct oc_auth_form *form)
+{
+	if (!form)
+		return;
 	while (form->opts) {
 		struct oc_form_opt *tmp = form->opts->next;
 		if (form->opts->type == OC_FORM_OPT_TEXT ||
@@ -527,7 +545,6 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	free(form->method);
 	free(form->action);
 	free(form);
-	return ret;
 }
 
 #ifdef LIBSTOKEN_HDR

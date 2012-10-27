@@ -792,6 +792,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	struct vpn_option *opt;
 	struct oc_text_buf *buf;
 	char *form_buf = NULL;
+	struct oc_auth_form *form = NULL;
 	int result, buflen;
 	char request_body[2048];
 	const char *request_body_type = NULL;
@@ -900,9 +901,15 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		free(form_buf);
 		return -EINVAL;
 	}
+	result = parse_xml_response(vpninfo, form_buf, &form);
+	if (result) {
+		free(form_buf);
+		return -ENOMEM;
+	}
 	request_body[0] = 0;
-	result = parse_xml_response(vpninfo, form_buf, request_body, sizeof(request_body),
-				    &method, &request_body_type);
+	result = handle_auth_form(vpninfo, form, request_body, sizeof(request_body),
+				  &method, &request_body_type);
+	free_auth_form(form);
 
 	if (!result)
 		goto redirect;
