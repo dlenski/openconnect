@@ -439,6 +439,8 @@ static void add_common_headers(struct openconnect_info *vpninfo, struct oc_text_
 				      opt->value, opt->next ? "; " : "\r\n");
 	}
 	buf_append(buf, "X-Transcend-Version: 1\r\n");
+	buf_append(buf, "X-Aggregate-Auth: 1\r\n");
+	buf_append(buf, "X-AnyConnect-Platform: %s\r\n", vpninfo->platname);
 }
 
 static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
