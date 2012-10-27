@@ -35,6 +35,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #include "openconnect-internal.h"
 
@@ -44,6 +45,85 @@ static int proxy_read(struct openconnect_info *vpninfo, int fd,
 		      unsigned char *buf, size_t len);
 
 #define MAX_BUF_LEN 131072
+#define BUF_CHUNK_SIZE 4096
+
+struct oc_text_buf {
+	char *data;
+	int pos;
+	int buf_len;
+	int error;
+};
+
+static struct oc_text_buf *buf_alloc(void)
+{
+	return calloc(1, sizeof(struct oc_text_buf));
+}
+
+static void buf_append(struct oc_text_buf *buf, const char *fmt, ...)
+{
+	va_list ap;
+
+	if (!buf || buf->error)
+		return;
+
+	if (!buf->data) {
+		buf->data = malloc(BUF_CHUNK_SIZE);
+		if (!buf->data) {
+			buf->error = -ENOMEM;
+			return;
+		}
+		buf->buf_len = BUF_CHUNK_SIZE;
+	}
+
+	while (1) {
+		int max_len = buf->buf_len - buf->pos, ret;
+
+		va_start(ap, fmt);
+		ret = vsnprintf(buf->data + buf->pos, max_len, fmt, ap);
+		va_end(ap);
+		if (ret < 0) {
+			buf->error = -EIO;
+			break;
+		} else if (ret < max_len) {
+			buf->pos += ret;
+			break;
+		} else {
+			int new_buf_len = buf->buf_len + BUF_CHUNK_SIZE;
+
+			if (new_buf_len > MAX_BUF_LEN) {
+				/* probably means somebody is messing with us */
+				buf->error = -E2BIG;
+				break;
+			}
+
+			buf->data = realloc(buf->data, new_buf_len);
+			if (!buf->data) {
+				buf->error = -ENOMEM;
+				break;
+			}
+			buf->buf_len = new_buf_len;
+		}
+	}
+}
+
+static int buf_error(struct oc_text_buf *buf)
+{
+	return buf ? buf->error : -ENOMEM;
+}
+
+static int buf_free(struct oc_text_buf *buf)
+{
+	int error = buf_error(buf);
+
+	if (buf) {
+		if (buf->data)
+			free(buf->data);
+		free(buf);
+	}
+
+	return error;
+}
+
 /*
  * We didn't really want to have to do this for ourselves -- one might have
  * thought that it would be available in a library somewhere. But neither
@@ -347,7 +427,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 			char *server_sha1)
 {
 	struct vpn_option *opt;
-	char buf[MAX_BUF_LEN];
+	struct oc_text_buf *buf;
 	char *config_buf = NULL;
 	int result, buflen;
 	unsigned char local_sha1_bin[SHA1_SIZE];
@@ -361,25 +441,31 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 		return -EINVAL;
 	}
 
-	sprintf(buf, "GET %s%s HTTP/1.1\r\n", fu, bu);
-	sprintf(buf + strlen(buf), "Host: %s\r\n", vpninfo->hostname);
-	sprintf(buf + strlen(buf),  "User-Agent: %s\r\n", vpninfo->useragent);
-	sprintf(buf + strlen(buf),  "Accept: */*\r\n");
-	sprintf(buf + strlen(buf),  "Accept-Encoding: identity\r\n");
+	buf = buf_alloc();
+	buf_append(buf, "GET %s%s HTTP/1.1\r\n", fu, bu);
+	buf_append(buf, "Host: %s\r\n", vpninfo->hostname);
+	buf_append(buf, "User-Agent: %s\r\n", vpninfo->useragent);
+	buf_append(buf, "Accept: */*\r\n");
+	buf_append(buf, "Accept-Encoding: identity\r\n");
 
 	if (vpninfo->cookies) {
-		sprintf(buf + strlen(buf),  "Cookie: ");
+		buf_append(buf, "Cookie: ");
 		for (opt = vpninfo->cookies; opt; opt = opt->next)
-			sprintf(buf + strlen(buf),  "%s=%s%s", opt->option,
+			buf_append(buf, "%s=%s%s", opt->option,
 				      opt->value, opt->next ? "; " : "\r\n");
 	}
-	sprintf(buf + strlen(buf),  "X-Transcend-Version: 1\r\n\r\n");
+	buf_append(buf, "X-Transcend-Version: 1\r\n\r\n");
 
-	if (openconnect_SSL_write(vpninfo, buf, strlen(buf)) != strlen(buf)) {
+	if (buf_error(buf))
+		return buf_free(buf);
+
+	if (openconnect_SSL_write(vpninfo, buf->data, buf->pos) != buf->pos) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to send GET request for new config\n"));
+		buf_free(buf);
 		return -EIO;
 	}
+	buf_free(buf);
 
 	buflen = process_http_response(vpninfo, &result, NULL, &config_buf);
 	if (buflen < 0) {
@@ -621,7 +707,7 @@ int internal_parse_url(char *url, char **res_proto, char **res_host,
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 {
 	struct vpn_option *opt, *next;
-	char buf[MAX_BUF_LEN];
+	struct oc_text_buf *buf;
 	char *form_buf = NULL;
 	int result, buflen;
 	char request_body[2048];
@@ -649,27 +735,26 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	 *
 	 * So we process the HTTP for ourselves...
 	 */
-	sprintf(buf, "%s /%s HTTP/1.1\r\n", method, vpninfo->urlpath ?: "");
-	sprintf(buf + strlen(buf), "Host: %s\r\n", vpninfo->hostname);
-	sprintf(buf + strlen(buf),  "User-Agent: %s\r\n", vpninfo->useragent);
-	sprintf(buf + strlen(buf),  "Accept: */*\r\n");
-	sprintf(buf + strlen(buf),  "Accept-Encoding: identity\r\n");
+	buf = buf_alloc();
+	buf_append(buf, "%s /%s HTTP/1.1\r\n", method, vpninfo->urlpath ?: "");
+	buf_append(buf, "Host: %s\r\n", vpninfo->hostname);
+	buf_append(buf, "User-Agent: %s\r\n", vpninfo->useragent);
+	buf_append(buf, "Accept: */*\r\n");
+	buf_append(buf, "Accept-Encoding: identity\r\n");
 
 	if (vpninfo->cookies) {
-		sprintf(buf + strlen(buf),  "Cookie: ");
+		buf_append(buf, "Cookie: ");
 		for (opt = vpninfo->cookies; opt; opt = opt->next)
-			sprintf(buf + strlen(buf),  "%s=%s%s", opt->option,
-				      opt->value, opt->next ? "; " : "\r\n");
+			buf_append(buf, "%s=%s%s", opt->option,
+				   opt->value, opt->next ? "; " : "\r\n");
 	}
 	if (request_body_type) {
-		sprintf(buf + strlen(buf),  "Content-Type: %s\r\n",
-			      request_body_type);
-		sprintf(buf + strlen(buf),  "Content-Length: %zd\r\n",
-			      strlen(request_body));
+		buf_append(buf, "Content-Type: %s\r\n", request_body_type);
+		buf_append(buf, "Content-Length: %zd\r\n", strlen(request_body));
 	}
-	sprintf(buf + strlen(buf),  "X-Transcend-Version: 1\r\n\r\n");
+	buf_append(buf, "X-Transcend-Version: 1\r\n\r\n");
 	if (request_body_type)
-		sprintf(buf + strlen(buf), "%s", request_body);
+		buf_append(buf, "%s", request_body);
 
 	if (vpninfo->port == 443)
 		vpn_progress(vpninfo, PRG_INFO, "%s https://%s/%s\n",
@@ -680,7 +765,11 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			     method, vpninfo->hostname, vpninfo->port,
 			     vpninfo->urlpath ?: "");
 
-	result = openconnect_SSL_write(vpninfo, buf, strlen(buf));
+	if (buf_error(buf))
+		return buf_free(buf);
+
+	result = openconnect_SSL_write(vpninfo, buf->data, buf->pos);
+	buf_free(buf);
 	if (result < 0)
 		return result;
 
@@ -1094,21 +1183,28 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 static int process_http_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 {
 	char buf[MAX_BUF_LEN];
+	struct oc_text_buf *reqbuf;
 	int buflen, result;
 
-	sprintf(buf, "CONNECT %s:%d HTTP/1.1\r\n", vpninfo->hostname, vpninfo->port);
-	sprintf(buf + strlen(buf), "Host: %s\r\n", vpninfo->hostname);
-	sprintf(buf + strlen(buf), "User-Agent: %s\r\n", vpninfo->useragent);
-	sprintf(buf + strlen(buf), "Proxy-Connection: keep-alive\r\n");
-	sprintf(buf + strlen(buf), "Connection: keep-alive\r\n");
-	sprintf(buf + strlen(buf), "Accept-Encoding: identity\r\n");
-	sprintf(buf + strlen(buf), "\r\n");
+	reqbuf = buf_alloc();
+	buf_append(reqbuf, "CONNECT %s:%d HTTP/1.1\r\n", vpninfo->hostname, vpninfo->port);
+	buf_append(reqbuf, "Host: %s\r\n", vpninfo->hostname);
+	buf_append(reqbuf, "User-Agent: %s\r\n", vpninfo->useragent);
+	buf_append(reqbuf, "Proxy-Connection: keep-alive\r\n");
+	buf_append(reqbuf, "Connection: keep-alive\r\n");
+	buf_append(reqbuf, "Accept-Encoding: identity\r\n");
+	buf_append(reqbuf, "\r\n");
+
+	if (buf_error(reqbuf))
+		return buf_free(reqbuf);
 
 	vpn_progress(vpninfo, PRG_INFO,
 		     _("Requesting HTTP proxy connection to %s:%d\n"),
 		     vpninfo->hostname, vpninfo->port);
 
-	result = proxy_write(vpninfo, ssl_sock, (unsigned char *)buf, strlen(buf));
+	result = proxy_write(vpninfo, ssl_sock, (unsigned char *)reqbuf->data, reqbuf->pos);
+	buf_free(reqbuf);
+
 	if (result) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Sending proxy request failed: %s\n"),
