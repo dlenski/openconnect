@@ -782,32 +782,30 @@ static int handle_redirect(struct openconnect_info *vpninfo)
 	}
 }
 
-/* Return value:
+/* Inputs:
+ *  method:             GET or POST
+ *  vpninfo->hostname:  Host DNS name
+ *  vpninfo->port:      TCP port, typically 443
+ *  vpninfo->urlpath:   Relative path, e.g. /+webvpn+/foo.html
+ *  request_body_type:  Content type for a POST (e.g. text/html).  Can be NULL.
+ *  request_body:       POST content
+ *  form_buf:           Callee-allocated buffer for server content
+ *
+ * Return value:
  *  < 0, on error
- *  > 0, no cookie (user cancel)
- *  = 0, obtained cookie
+ *  >=0, on success, indicating the length of the data in *form_buf
  */
-int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
+static int do_https_request(struct openconnect_info *vpninfo, const char *method,
+			    const char *request_body_type, const char *request_body,
+			    char **form_buf)
 {
-	struct vpn_option *opt;
 	struct oc_text_buf *buf;
-	char *form_buf = NULL;
-	struct oc_auth_form *form = NULL;
 	int result, buflen;
-	char request_body[2048];
-	const char *request_body_type = NULL;
-	const char *method = "GET";
-
-	if (vpninfo->use_stoken) {
-		result = prepare_stoken(vpninfo);
-		if (result)
-			return result;
-	}
 
  retry:
-	if (form_buf) {
-		free(form_buf);
-		form_buf = NULL;
+	if (*form_buf) {
+		free(*form_buf);
+		*form_buf = NULL;
 	}
 	if (openconnect_open_https(vpninfo)) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -855,27 +853,60 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	if (result < 0)
 		return result;
 
-	buflen = process_http_response(vpninfo, &result, NULL, &form_buf);
+	buflen = process_http_response(vpninfo, &result, NULL, form_buf);
 	if (buflen < 0) {
 		/* We'll already have complained about whatever offended us */
 		return buflen;
 	}
 
 	if (result != 200 && vpninfo->redirect_url) {
-	redirect:
 		result = handle_redirect(vpninfo);
 		if (result == 0)
 			goto retry;
-		free(form_buf);
-		return result;
+		goto out;
 	}
-	if (!form_buf || result != 200) {
+	if (!*form_buf || result != 200) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unexpected %d result from server\n"),
 			     result);
-		free(form_buf);
-		return -EINVAL;
+		result = -EINVAL;
+		goto out;
 	}
+
+	return buflen;
+
+ out:
+	free(*form_buf);
+	*form_buf = NULL;
+	return result;
+}
+
+/* Return value:
+ *  < 0, on error
+ *  > 0, no cookie (user cancel)
+ *  = 0, obtained cookie
+ */
+int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
+{
+	struct vpn_option *opt;
+	char *form_buf = NULL;
+	struct oc_auth_form *form;
+	int result, buflen;
+	char request_body[2048];
+	const char *request_body_type = NULL;
+	const char *method = "GET";
+
+	if (vpninfo->use_stoken) {
+		result = prepare_stoken(vpninfo);
+		if (result)
+			return result;
+	}
+
+ retry:
+	buflen = do_https_request(vpninfo, method, request_body_type, request_body, &form_buf);
+	if (buflen < 0)
+		return buflen;
+
 	if (vpninfo->csd_stuburl) {
 		/* This is the CSD stub script, which we now need to run */
 		result = run_csd_script(vpninfo, form_buf, buflen);
@@ -911,10 +942,15 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 				  &method, &request_body_type, 0);
 	free_auth_form(form);
 
-	if (!result)
-		goto redirect;
-
 	free(form_buf);
+	form_buf = NULL;
+
+	if (!result) {
+		result = handle_redirect(vpninfo);
+		if (result == 0)
+			goto retry;
+		return result;
+	}
 
 	if (result != 2)
 		return result;
