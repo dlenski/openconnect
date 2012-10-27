@@ -500,7 +500,8 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		struct oc_form_opt *tmp = form->opts->next;
 		if (form->opts->type == OC_FORM_OPT_TEXT ||
 		    form->opts->type == OC_FORM_OPT_PASSWORD ||
-		    form->opts->type == OC_FORM_OPT_HIDDEN)
+		    form->opts->type == OC_FORM_OPT_HIDDEN ||
+		    form->opts->type == OC_FORM_OPT_STOKEN)
 			free(form->opts->value);
 		else if (form->opts->type == OC_FORM_OPT_SELECT) {
 			struct oc_form_opt_select *sel = (void *)form->opts;
