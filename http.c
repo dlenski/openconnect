@@ -603,6 +603,11 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		csd_argv[i++]= (char *)"-langselen";
 		csd_argv[i++] = NULL;
 
+		if (setenv("CSD_TOKEN", vpninfo->csd_token, 1))
+			goto out;
+		if (setenv("CSD_HOSTNAME", vpninfo->hostname, 1))
+			goto out;
+
 		execv(csd_argv[0], csd_argv);
 
 out:
