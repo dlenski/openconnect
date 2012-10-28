@@ -17,7 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li>Add SecurID token support using <a href="http://sourceforge.net/p/stoken/wiki/Home/">libstoken</a>.</li>
+       <li>Add SecurID token support using <a href="http://stoken.sourceforge.net/">libstoken</a>.</li>
        <li>Fix some harmless issues reported by Coverity.</li>
        <li>Improve <tt>"Attempting to connect..."</tt> message to be explicit when it's connecting to a proxy.</li>
      </ul><br/>
