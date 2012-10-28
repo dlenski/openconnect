@@ -288,6 +288,7 @@ static void usage(void)
 	printf("      --reconnect-timeout         %s\n", _("Connection retry timeout in seconds"));
 	printf("      --servercert=FINGERPRINT    %s\n", _("Server's certificate SHA1 fingerprint"));
 	printf("      --useragent=STRING          %s\n", _("HTTP header User-Agent: field"));
+	printf("      --os=STRING                 %s\n", _("OS type (linux,linux-64,mac,win) to report"));
 	printf("      --dtls-local-port=PORT      %s\n", _("Set local port for DTLS datagrams"));
 	printf("\n");
 
