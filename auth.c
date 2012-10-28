@@ -973,8 +973,6 @@ static int can_gen_tokencode(struct openconnect_info *vpninfo, struct oc_form_op
 			     _("Server is rejecting the soft token; switching to manual entry\n"));
 		return -ENOENT;
 	}
-
-	vpninfo->stoken_tries++;
 	return 0;
 #else
 	return -EOPNOTSUPP;
@@ -1010,6 +1008,7 @@ static int do_gen_tokencode(struct openconnect_info *vpninfo, struct oc_auth_for
 		return -EIO;
 	}
 
+	vpninfo->stoken_tries++;
 	opt->value = strdup(tokencode);
 	return opt->value ? 0 : -ENOMEM;
 #else
