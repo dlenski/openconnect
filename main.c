@@ -111,6 +111,7 @@ enum {
 	OPT_NON_INTER,
 	OPT_DTLS_LOCAL_PORT,
 	OPT_STOKEN,
+	OPT_OS,
 };
 
 #ifdef __sun__
@@ -175,6 +176,7 @@ static struct option long_options[] = {
 	OPTION("non-inter", 0, OPT_NON_INTER),
 	OPTION("dtls-local-port", 1, OPT_DTLS_LOCAL_PORT),
 	OPTION("stoken", 2, OPT_STOKEN),
+	OPTION("os", 1, OPT_OS),
 	OPTION(NULL, 0, 0)
 };
 
@@ -712,6 +714,13 @@ int main(int argc, char **argv)
 		case OPT_STOKEN:
 			use_stoken = 1;
 			token_str = keep_config_arg();
+			break;
+		case OPT_OS:
+			if (openconnect_set_reported_os(vpninfo, config_arg)) {
+				fprintf(stderr, _("Invalid OS identity \"%s\"\n"),
+					config_arg);
+				exit(1);
+			}
 			break;
 		default:
 			usage();
