@@ -129,8 +129,13 @@ struct pin_cache {
 #define CERT_TYPE_PKCS12	2
 #define CERT_TYPE_TPM		3
 
+#define REDIR_TYPE_NONE		0
+#define REDIR_TYPE_NEWHOST	1
+#define REDIR_TYPE_LOCAL	2
+
 struct openconnect_info {
 	char *redirect_url;
+	int redirect_type;
 
 	const char *csd_xmltag;
 	const char *platname;

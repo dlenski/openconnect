@@ -706,6 +706,8 @@ static void clear_cookies(struct openconnect_info *vpninfo)
  */
 static int handle_redirect(struct openconnect_info *vpninfo)
 {
+	vpninfo->redirect_type = REDIR_TYPE_LOCAL;
+
 	if (!strncmp(vpninfo->redirect_url, "https://", 8)) {
 		/* New host. Tear down the existing connection and make a new one */
 		char *host;
@@ -735,6 +737,7 @@ static int handle_redirect(struct openconnect_info *vpninfo)
 			vpninfo->peer_addr = NULL;
 			openconnect_close_https(vpninfo, 0);
 			clear_cookies(vpninfo);
+			vpninfo->redirect_type = REDIR_TYPE_NEWHOST;
 		} else
 			free(host);
 
@@ -805,6 +808,8 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 	int result, buflen;
 
  retry:
+	vpninfo->redirect_type = REDIR_TYPE_NONE;
+
 	if (*form_buf) {
 		free(*form_buf);
 		*form_buf = NULL;
