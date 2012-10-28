@@ -109,13 +109,20 @@ void openconnect_vpninfo_free (struct openconnect_info *vpninfo)
 	free(vpninfo->redirect_url);
 	free(vpninfo->proxy_type);
 	free(vpninfo->proxy);
+
 	if (vpninfo->csd_scriptname) {
 		unlink(vpninfo->csd_scriptname);
 		free(vpninfo->csd_scriptname);
 	}
+	free(vpninfo->csd_token);
+	free(vpninfo->csd_ticket);
 	free(vpninfo->csd_stuburl);
+	free(vpninfo->csd_starturl);
+	free(vpninfo->csd_waiturl);
+	free(vpninfo->csd_preurl);
 	if (vpninfo->opaque_srvdata)
 		xmlFreeNode(vpninfo->opaque_srvdata);
+
 	/* These are const in openconnect itself, but for consistency of
 	   the library API we do take ownership of the strings we're given,
 	   and thus we have to free them too. */

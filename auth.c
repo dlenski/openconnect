@@ -437,7 +437,6 @@ static int parse_auth_node(struct openconnect_info *vpninfo, xmlNode *xml_node,
 				ret = -EINVAL;
 				goto out;
 			}
-			vpninfo->redirect_url = strdup(form->action);
 
 			ret = parse_form(vpninfo, form, xml_node);
 			if (ret < 0)
@@ -577,9 +576,6 @@ int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form
 	}
 
 	if (vpninfo->csd_token && vpninfo->csd_ticket && vpninfo->csd_starturl && vpninfo->csd_waiturl) {
-		/* First, redirect to the stuburl -- we'll need to fetch and run that */
-		vpninfo->redirect_url = strdup(vpninfo->csd_stuburl);
-
 		/* AB: remove all cookies */
 		for (opt = vpninfo->cookies; opt; opt = next) {
 			next = opt->next;

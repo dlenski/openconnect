@@ -618,8 +618,10 @@ out:
 
 	free(vpninfo->csd_stuburl);
 	vpninfo->csd_stuburl = NULL;
+	free(vpninfo->urlpath);
 	vpninfo->urlpath = strdup(vpninfo->csd_waiturl +
 				  (vpninfo->csd_waiturl[0] == '/' ? 1 : 0));
+	free(vpninfo->csd_waiturl);
 	vpninfo->csd_waiturl = NULL;
 	vpninfo->csd_scriptname = strdup(fname);
 
@@ -1098,16 +1100,18 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 				fetch_config(vpninfo, bu, fu, sha);
 		}
 	}
-	if (vpninfo->csd_scriptname) {
-		unlink(vpninfo->csd_scriptname);
-		free(vpninfo->csd_scriptname);
-		vpninfo->csd_scriptname = NULL;
-	}
 	result = 0;
 
 out:
 	free(form_buf);
 	free_auth_form(form);
+
+	if (vpninfo->csd_scriptname) {
+		unlink(vpninfo->csd_scriptname);
+		free(vpninfo->csd_scriptname);
+		vpninfo->csd_scriptname = NULL;
+	}
+
 	return result;
 }
 
