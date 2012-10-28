@@ -582,28 +582,30 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		csd_argv[i++] = fname;
 		csd_argv[i++]= (char *)"-ticket";
 		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->csd_ticket) == -1)
-			return -ENOMEM;
+			goto out;
 		csd_argv[i++]= (char *)"-stub";
 		csd_argv[i++]= (char *)"\"0\"";
 		csd_argv[i++]= (char *)"-group";
 		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->authgroup?:"") == -1)
-			return -ENOMEM;
+			goto out;
 
 		openconnect_local_cert_md5(vpninfo, ccertbuf);
 		scertbuf[0] = 0;
 		get_cert_md5_fingerprint(vpninfo, vpninfo->peer_cert, scertbuf);
 		csd_argv[i++]= (char *)"-certhash";
 		if (asprintf(&csd_argv[i++], "\"%s:%s\"", scertbuf, ccertbuf) == -1)
-			return -ENOMEM;
+			goto out;
 
 		csd_argv[i++]= (char *)"-url";
 		if (asprintf(&csd_argv[i++], "\"https://%s%s\"", vpninfo->hostname, vpninfo->csd_starturl) == -1)
-			return -ENOMEM;
+			goto out;
 
 		csd_argv[i++]= (char *)"-langselen";
 		csd_argv[i++] = NULL;
 
 		execv(csd_argv[0], csd_argv);
+
+out:
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to exec CSD script %s\n"), csd_argv[0]);
 		exit(1);
