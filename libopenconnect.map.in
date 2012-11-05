@@ -1,3 +1,8 @@
+OPENCONNECT_2.2 {
+ global:
+	openconnect_set_reported_os;
+};
+
 OPENCONNECT_2.1 {
  global:
 	openconnect_has_stoken_support;

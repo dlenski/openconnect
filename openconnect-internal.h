@@ -74,6 +74,8 @@
 #endif
 #define N_(s) s
 
+#include <libxml/tree.h>
+
 #define SHA1_SIZE 20
 #define MD5_SIZE 16
 
@@ -127,10 +129,16 @@ struct pin_cache {
 #define CERT_TYPE_PKCS12	2
 #define CERT_TYPE_TPM		3
 
+#define REDIR_TYPE_NONE		0
+#define REDIR_TYPE_NEWHOST	1
+#define REDIR_TYPE_LOCAL	2
+
 struct openconnect_info {
 	char *redirect_url;
+	int redirect_type;
 
 	const char *csd_xmltag;
+	const char *platname;
 	char *csd_token;
 	char *csd_ticket;
 	char *csd_stuburl;
@@ -139,6 +147,7 @@ struct openconnect_info {
 	char *csd_preurl;
 
 	char *csd_scriptname;
+	xmlNode *opaque_srvdata;
 
 #ifdef LIBPROXY_HDR
 	pxProxyFactory *proxy_factory;
@@ -402,9 +411,12 @@ extern int killed;
 int config_lookup_host(struct openconnect_info *vpninfo, const char *host);
 
 /* auth.c */
-int parse_xml_response(struct openconnect_info *vpninfo, char *response,
-		       char *request_body, int req_len, const char **method,
-		       const char **request_body_type);
+int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct oc_auth_form **form);
+int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
+		     char *request_body, int req_len, const char **method,
+		     const char **request_body_type, int xmlpost);
+void free_auth_form(struct oc_auth_form *form);
+int xmlpost_initial_req(struct openconnect_info *vpninfo, char *request_body, int req_len);
 int prepare_stoken(struct openconnect_info *vpninfo);
 
 /* http.c */

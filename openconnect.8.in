@@ -53,6 +53,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-\-reconnect\-timeout
 .OP \-\-servercert sha1
 .OP \-\-useragent string
+.OP \-\-os string
 .B [https://]\fIserver\fB[:\fIport\fB][/\fIgroup\fB]
 .YS
 
@@ -343,6 +344,11 @@ Use
 .I STRING
 as 'User\-Agent:' field value in HTTP header.
 (e.g. \-\-useragent 'Cisco AnyConnect VPN Agent for Windows 2.2.0133')
+.TP
+.B \-\-os=STRING
+OS type to report to gateway.  Recognized values are: linux, linux-64, mac,
+win.  Reporting a different OS type may affect the security policy applied
+to the VPN session.
 .TP
 .B \-\-dtls\-local\-port=PORT
 Use

@@ -30,6 +30,8 @@
 #include LIBSTOKEN_HDR
 #endif
 
+#include <libxml/tree.h>
+
 #include "openconnect-internal.h"
 
 struct openconnect_info *openconnect_vpninfo_new (char *useragent,
@@ -50,17 +52,37 @@ struct openconnect_info *openconnect_vpninfo_new (char *useragent,
 	vpninfo->progress = progress;
 	vpninfo->cbdata = privdata?:vpninfo;
 	vpninfo->cancel_fd = -1;
-#ifdef __APPLE__
-	vpninfo->csd_xmltag = "csdMac";
-#else
-	vpninfo->csd_xmltag = "csdLinux";
-#endif
+	openconnect_set_reported_os(vpninfo, NULL);
 
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
 #endif
 
 	return vpninfo;
+}
+
+int openconnect_set_reported_os (struct openconnect_info *vpninfo, const char *os)
+{
+	if (!os) {
+#if defined(__APPLE__)
+		os = "mac";
+#else
+		os = sizeof(long) > 4 ? "linux-64" : "linux";
+#endif
+	}
+
+	/* FIXME: is there a special platname for 64-bit Windows? */
+	if (!strcmp(os, "mac"))
+		vpninfo->csd_xmltag = "csdMac";
+	else if (!strcmp(os, "linux") || !strcmp(os, "linux-64"))
+		vpninfo->csd_xmltag = "csdLinux";
+	else if (!strcmp(os, "win"))
+		vpninfo->csd_xmltag = "csd";
+	else
+		return -EINVAL;
+
+	vpninfo->platname = os;
+	return 0;
 }
 
 static void free_optlist (struct vpn_option *opt)
@@ -87,11 +109,20 @@ void openconnect_vpninfo_free (struct openconnect_info *vpninfo)
 	free(vpninfo->redirect_url);
 	free(vpninfo->proxy_type);
 	free(vpninfo->proxy);
+
 	if (vpninfo->csd_scriptname) {
 		unlink(vpninfo->csd_scriptname);
 		free(vpninfo->csd_scriptname);
 	}
+	free(vpninfo->csd_token);
+	free(vpninfo->csd_ticket);
 	free(vpninfo->csd_stuburl);
+	free(vpninfo->csd_starturl);
+	free(vpninfo->csd_waiturl);
+	free(vpninfo->csd_preurl);
+	if (vpninfo->opaque_srvdata)
+		xmlFreeNode(vpninfo->opaque_srvdata);
+
 	/* These are const in openconnect itself, but for consistency of
 	   the library API we do take ownership of the strings we're given,
 	   and thus we have to free them too. */

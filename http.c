@@ -35,6 +35,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #include "openconnect-internal.h"
 
@@ -44,6 +45,85 @@ static int proxy_read(struct openconnect_info *vpninfo, int fd,
 		      unsigned char *buf, size_t len);
 
 #define MAX_BUF_LEN 131072
+#define BUF_CHUNK_SIZE 4096
+
+struct oc_text_buf {
+	char *data;
+	int pos;
+	int buf_len;
+	int error;
+};
+
+static struct oc_text_buf *buf_alloc(void)
+{
+	return calloc(1, sizeof(struct oc_text_buf));
+}
+
+static void buf_append(struct oc_text_buf *buf, const char *fmt, ...)
+{
+	va_list ap;
+
+	if (!buf || buf->error)
+		return;
+
+	if (!buf->data) {
+		buf->data = malloc(BUF_CHUNK_SIZE);
+		if (!buf->data) {
+			buf->error = -ENOMEM;
+			return;
+		}
+		buf->buf_len = BUF_CHUNK_SIZE;
+	}
+
+	while (1) {
+		int max_len = buf->buf_len - buf->pos, ret;
+
+		va_start(ap, fmt);
+		ret = vsnprintf(buf->data + buf->pos, max_len, fmt, ap);
+		va_end(ap);
+		if (ret < 0) {
+			buf->error = -EIO;
+			break;
+		} else if (ret < max_len) {
+			buf->pos += ret;
+			break;
+		} else {
+			int new_buf_len = buf->buf_len + BUF_CHUNK_SIZE;
+
+			if (new_buf_len > MAX_BUF_LEN) {
+				/* probably means somebody is messing with us */
+				buf->error = -E2BIG;
+				break;
+			}
+
+			buf->data = realloc(buf->data, new_buf_len);
+			if (!buf->data) {
+				buf->error = -ENOMEM;
+				break;
+			}
+			buf->buf_len = new_buf_len;
+		}
+	}
+}
+
+static int buf_error(struct oc_text_buf *buf)
+{
+	return buf ? buf->error : -ENOMEM;
+}
+
+static int buf_free(struct oc_text_buf *buf)
+{
+	int error = buf_error(buf);
+
+	if (buf) {
+		if (buf->data)
+			free(buf->data);
+		free(buf);
+	}
+
+	return error;
+}
+
 /*
  * We didn't really want to have to do this for ourselves -- one might have
  * thought that it would be available in a library somewhere. But neither
@@ -343,11 +423,30 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	return done;
 }
 
+static void add_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+{
+	struct vpn_option *opt;
+
+	buf_append(buf, "Host: %s\r\n", vpninfo->hostname);
+	buf_append(buf, "User-Agent: %s\r\n", vpninfo->useragent);
+	buf_append(buf, "Accept: */*\r\n");
+	buf_append(buf, "Accept-Encoding: identity\r\n");
+
+	if (vpninfo->cookies) {
+		buf_append(buf, "Cookie: ");
+		for (opt = vpninfo->cookies; opt; opt = opt->next)
+			buf_append(buf, "%s=%s%s", opt->option,
+				      opt->value, opt->next ? "; " : "\r\n");
+	}
+	buf_append(buf, "X-Transcend-Version: 1\r\n");
+	buf_append(buf, "X-Aggregate-Auth: 1\r\n");
+	buf_append(buf, "X-AnyConnect-Platform: %s\r\n", vpninfo->platname);
+}
+
 static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 			char *server_sha1)
 {
-	struct vpn_option *opt;
-	char buf[MAX_BUF_LEN];
+	struct oc_text_buf *buf;
 	char *config_buf = NULL;
 	int result, buflen;
 	unsigned char local_sha1_bin[SHA1_SIZE];
@@ -361,25 +460,21 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 		return -EINVAL;
 	}
 
-	sprintf(buf, "GET %s%s HTTP/1.1\r\n", fu, bu);
-	sprintf(buf + strlen(buf), "Host: %s\r\n", vpninfo->hostname);
-	sprintf(buf + strlen(buf),  "User-Agent: %s\r\n", vpninfo->useragent);
-	sprintf(buf + strlen(buf),  "Accept: */*\r\n");
-	sprintf(buf + strlen(buf),  "Accept-Encoding: identity\r\n");
+	buf = buf_alloc();
+	buf_append(buf, "GET %s%s HTTP/1.1\r\n", fu, bu);
+	add_common_headers(vpninfo, buf);
+	buf_append(buf, "\r\n");
 
-	if (vpninfo->cookies) {
-		sprintf(buf + strlen(buf),  "Cookie: ");
-		for (opt = vpninfo->cookies; opt; opt = opt->next)
-			sprintf(buf + strlen(buf),  "%s=%s%s", opt->option,
-				      opt->value, opt->next ? "; " : "\r\n");
-	}
-	sprintf(buf + strlen(buf),  "X-Transcend-Version: 1\r\n\r\n");
+	if (buf_error(buf))
+		return buf_free(buf);
 
-	if (openconnect_SSL_write(vpninfo, buf, strlen(buf)) != strlen(buf)) {
+	if (openconnect_SSL_write(vpninfo, buf->data, buf->pos) != buf->pos) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to send GET request for new config\n"));
+		buf_free(buf);
 		return -EIO;
 	}
+	buf_free(buf);
 
 	buflen = process_http_response(vpninfo, &result, NULL, &config_buf);
 	if (buflen < 0) {
@@ -487,28 +582,35 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		csd_argv[i++] = fname;
 		csd_argv[i++]= (char *)"-ticket";
 		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->csd_ticket) == -1)
-			return -ENOMEM;
+			goto out;
 		csd_argv[i++]= (char *)"-stub";
 		csd_argv[i++]= (char *)"\"0\"";
 		csd_argv[i++]= (char *)"-group";
 		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->authgroup?:"") == -1)
-			return -ENOMEM;
+			goto out;
 
 		openconnect_local_cert_md5(vpninfo, ccertbuf);
 		scertbuf[0] = 0;
 		get_cert_md5_fingerprint(vpninfo, vpninfo->peer_cert, scertbuf);
 		csd_argv[i++]= (char *)"-certhash";
 		if (asprintf(&csd_argv[i++], "\"%s:%s\"", scertbuf, ccertbuf) == -1)
-			return -ENOMEM;
+			goto out;
 
 		csd_argv[i++]= (char *)"-url";
 		if (asprintf(&csd_argv[i++], "\"https://%s%s\"", vpninfo->hostname, vpninfo->csd_starturl) == -1)
-			return -ENOMEM;
+			goto out;
 
 		csd_argv[i++]= (char *)"-langselen";
 		csd_argv[i++] = NULL;
 
+		if (setenv("CSD_TOKEN", vpninfo->csd_token, 1))
+			goto out;
+		if (setenv("CSD_HOSTNAME", vpninfo->hostname, 1))
+			goto out;
+
 		execv(csd_argv[0], csd_argv);
+
+out:
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to exec CSD script %s\n"), csd_argv[0]);
 		exit(1);
@@ -516,8 +618,10 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 
 	free(vpninfo->csd_stuburl);
 	vpninfo->csd_stuburl = NULL;
+	free(vpninfo->urlpath);
 	vpninfo->urlpath = strdup(vpninfo->csd_waiturl +
 				  (vpninfo->csd_waiturl[0] == '/' ? 1 : 0));
+	free(vpninfo->csd_waiturl);
 	vpninfo->csd_waiturl = NULL;
 	vpninfo->csd_scriptname = strdup(fname);
 
@@ -591,31 +695,133 @@ int internal_parse_url(char *url, char **res_proto, char **res_host,
 	return 0;
 }
 
-/* Return value:
- *  < 0, on error
- *  > 0, no cookie (user cancel)
- *  = 0, obtained cookie
- */
-int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
+static void clear_cookies(struct openconnect_info *vpninfo)
 {
 	struct vpn_option *opt, *next;
-	char buf[MAX_BUF_LEN];
-	char *form_buf = NULL;
-	int result, buflen;
-	char request_body[2048];
-	const char *request_body_type = NULL;
-	const char *method = "GET";
 
-	if (vpninfo->use_stoken) {
-		result = prepare_stoken(vpninfo);
-		if (result)
-			return result;
+	for (opt = vpninfo->cookies; opt; opt = next) {
+		next = opt->next;
+
+		free(opt->option);
+		free(opt->value);
+		free(opt);
 	}
+	vpninfo->cookies = NULL;
+}
+
+/* Return value:
+ *  < 0, on error
+ *  = 0, on success (go ahead and retry with the latest vpninfo->{hostname,urlpath,port,...})
+ */
+static int handle_redirect(struct openconnect_info *vpninfo)
+{
+	vpninfo->redirect_type = REDIR_TYPE_LOCAL;
+
+	if (!strncmp(vpninfo->redirect_url, "https://", 8)) {
+		/* New host. Tear down the existing connection and make a new one */
+		char *host;
+		int port;
+		int ret;
+
+		free(vpninfo->urlpath);
+		vpninfo->urlpath = NULL;
+
+		ret = internal_parse_url(vpninfo->redirect_url, NULL, &host, &port, &vpninfo->urlpath, 0);
+		if (ret) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to parse redirected URL '%s': %s\n"),
+				     vpninfo->redirect_url, strerror(-ret));
+			free(vpninfo->redirect_url);
+			vpninfo->redirect_url = NULL;
+			return ret;
+		}
+
+		if (strcasecmp(vpninfo->hostname, host) || port != vpninfo->port) {
+			free(vpninfo->hostname);
+			vpninfo->hostname = host;
+			vpninfo->port = port;
+
+			/* Kill the existing connection, and a new one will happen */
+			free(vpninfo->peer_addr);
+			vpninfo->peer_addr = NULL;
+			openconnect_close_https(vpninfo, 0);
+			clear_cookies(vpninfo);
+			vpninfo->redirect_type = REDIR_TYPE_NEWHOST;
+		} else
+			free(host);
+
+		free(vpninfo->redirect_url);
+		vpninfo->redirect_url = NULL;
+
+		return 0;
+	} else if (strstr(vpninfo->redirect_url, "://")) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Cannot follow redirection to non-https URL '%s'\n"),
+			     vpninfo->redirect_url);
+		free(vpninfo->redirect_url);
+		vpninfo->redirect_url = NULL;
+		return -EINVAL;
+	} else if (vpninfo->redirect_url[0] == '/') {
+		/* Absolute redirect within same host */
+		free(vpninfo->urlpath);
+		vpninfo->urlpath = strdup(vpninfo->redirect_url + 1);
+		free(vpninfo->redirect_url);
+		vpninfo->redirect_url = NULL;
+		return 0;
+	} else {
+		char *lastslash = NULL;
+		if (vpninfo->urlpath)
+			lastslash = strrchr(vpninfo->urlpath, '/');
+		if (!lastslash) {
+			free(vpninfo->urlpath);
+			vpninfo->urlpath = vpninfo->redirect_url;
+			vpninfo->redirect_url = NULL;
+		} else {
+			char *oldurl = vpninfo->urlpath;
+			*lastslash = 0;
+			vpninfo->urlpath = NULL;
+			if (asprintf(&vpninfo->urlpath, "%s/%s",
+				     oldurl, vpninfo->redirect_url) == -1) {
+				int err = -errno;
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Allocating new path for relative redirect failed: %s\n"),
+					     strerror(-err));
+				return err;
+			}
+			free(oldurl);
+			free(vpninfo->redirect_url);
+			vpninfo->redirect_url = NULL;
+		}
+		return 0;
+	}
+}
+
+/* Inputs:
+ *  method:             GET or POST
+ *  vpninfo->hostname:  Host DNS name
+ *  vpninfo->port:      TCP port, typically 443
+ *  vpninfo->urlpath:   Relative path, e.g. /+webvpn+/foo.html
+ *  request_body_type:  Content type for a POST (e.g. text/html).  Can be NULL.
+ *  request_body:       POST content
+ *  form_buf:           Callee-allocated buffer for server content
+ *
+ * Return value:
+ *  < 0, on error
+ *  >=0, on success, indicating the length of the data in *form_buf
+ */
+static int do_https_request(struct openconnect_info *vpninfo, const char *method,
+			    const char *request_body_type, const char *request_body,
+			    char **form_buf, int fetch_redirect)
+{
+	struct oc_text_buf *buf;
+	int result, buflen;
 
  retry:
-	if (form_buf) {
-		free(form_buf);
-		form_buf = NULL;
+	vpninfo->redirect_type = REDIR_TYPE_NONE;
+
+	if (*form_buf) {
+		free(*form_buf);
+		*form_buf = NULL;
 	}
 	if (openconnect_open_https(vpninfo)) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -633,27 +839,18 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	 *
 	 * So we process the HTTP for ourselves...
 	 */
-	sprintf(buf, "%s /%s HTTP/1.1\r\n", method, vpninfo->urlpath ?: "");
-	sprintf(buf + strlen(buf), "Host: %s\r\n", vpninfo->hostname);
-	sprintf(buf + strlen(buf),  "User-Agent: %s\r\n", vpninfo->useragent);
-	sprintf(buf + strlen(buf),  "Accept: */*\r\n");
-	sprintf(buf + strlen(buf),  "Accept-Encoding: identity\r\n");
+	buf = buf_alloc();
+	buf_append(buf, "%s /%s HTTP/1.1\r\n", method, vpninfo->urlpath ?: "");
+	add_common_headers(vpninfo, buf);
 
-	if (vpninfo->cookies) {
-		sprintf(buf + strlen(buf),  "Cookie: ");
-		for (opt = vpninfo->cookies; opt; opt = opt->next)
-			sprintf(buf + strlen(buf),  "%s=%s%s", opt->option,
-				      opt->value, opt->next ? "; " : "\r\n");
-	}
 	if (request_body_type) {
-		sprintf(buf + strlen(buf),  "Content-Type: %s\r\n",
-			      request_body_type);
-		sprintf(buf + strlen(buf),  "Content-Length: %zd\r\n",
-			      strlen(request_body));
+		buf_append(buf, "Content-Type: %s\r\n", request_body_type);
+		buf_append(buf, "Content-Length: %zd\r\n", strlen(request_body));
 	}
-	sprintf(buf + strlen(buf),  "X-Transcend-Version: 1\r\n\r\n");
+	buf_append(buf, "\r\n");
+
 	if (request_body_type)
-		sprintf(buf + strlen(buf), "%s", request_body);
+		buf_append(buf, "%s", request_body);
 
 	if (vpninfo->port == 443)
 		vpn_progress(vpninfo, PRG_INFO, "%s https://%s/%s\n",
@@ -664,148 +861,213 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			     method, vpninfo->hostname, vpninfo->port,
 			     vpninfo->urlpath ?: "");
 
-	result = openconnect_SSL_write(vpninfo, buf, strlen(buf));
+	if (buf_error(buf))
+		return buf_free(buf);
+
+	result = openconnect_SSL_write(vpninfo, buf->data, buf->pos);
+	buf_free(buf);
 	if (result < 0)
 		return result;
 
-	buflen = process_http_response(vpninfo, &result, NULL, &form_buf);
+	buflen = process_http_response(vpninfo, &result, NULL, form_buf);
 	if (buflen < 0) {
 		/* We'll already have complained about whatever offended us */
 		return buflen;
 	}
 
 	if (result != 200 && vpninfo->redirect_url) {
-	redirect:
-		if (!strncmp(vpninfo->redirect_url, "https://", 8)) {
-			/* New host. Tear down the existing connection and make a new one */
-			char *host;
-			int port;
-			int ret;
-
-			free(vpninfo->urlpath);
-			vpninfo->urlpath = NULL;
-
-			ret = internal_parse_url(vpninfo->redirect_url, NULL, &host, &port, &vpninfo->urlpath, 0);
-			if (ret) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("Failed to parse redirected URL '%s': %s\n"),
-					     vpninfo->redirect_url, strerror(-ret));
-				free(vpninfo->redirect_url);
-				vpninfo->redirect_url = NULL;
-				free(form_buf);
-				return ret;
-			}
-
-			if (strcasecmp(vpninfo->hostname, host) || port != vpninfo->port) {
-				free(vpninfo->hostname);
-				vpninfo->hostname = host;
-				vpninfo->port = port;
-
-				/* Kill the existing connection, and a new one will happen */
-				free(vpninfo->peer_addr);
-				vpninfo->peer_addr = NULL;
-				openconnect_close_https(vpninfo, 0);
-
-				for (opt = vpninfo->cookies; opt; opt = next) {
-					next = opt->next;
-
-					free(opt->option);
-					free(opt->value);
-					free(opt);
-				}
-				vpninfo->cookies = NULL;
-			} else
-				free(host);
-
-			free(vpninfo->redirect_url);
-			vpninfo->redirect_url = NULL;
-
-			goto retry;
-		} else if (strstr(vpninfo->redirect_url, "://")) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Cannot follow redirection to non-https URL '%s'\n"),
-				     vpninfo->redirect_url);
-			free(vpninfo->redirect_url);
-			vpninfo->redirect_url = NULL;
-			free(form_buf);
-			return -EINVAL;
-		} else if (vpninfo->redirect_url[0] == '/') {
-			/* Absolute redirect within same host */
-			free(vpninfo->urlpath);
-			vpninfo->urlpath = strdup(vpninfo->redirect_url + 1);
-			free(vpninfo->redirect_url);
-			vpninfo->redirect_url = NULL;
-			goto retry;
-		} else {
-			char *lastslash = NULL;
-			if (vpninfo->urlpath)
-				lastslash = strrchr(vpninfo->urlpath, '/');
-			if (!lastslash) {
-				free(vpninfo->urlpath);
-				vpninfo->urlpath = vpninfo->redirect_url;
-				vpninfo->redirect_url = NULL;
-			} else {
-				char *oldurl = vpninfo->urlpath;
-				*lastslash = 0;
-				vpninfo->urlpath = NULL;
-				if (asprintf(&vpninfo->urlpath, "%s/%s",
-					     oldurl, vpninfo->redirect_url) == -1) {
-					int err = -errno;
-					vpn_progress(vpninfo, PRG_ERR,
-						     _("Allocating new path for relative redirect failed: %s\n"),
-						     strerror(-err));
-					return err;
-				}
-				free(oldurl);
-				free(vpninfo->redirect_url);
-				vpninfo->redirect_url = NULL;
-			}
+		result = handle_redirect(vpninfo);
+		if (result == 0) {
+			if (!fetch_redirect)
+				return 0;
 			goto retry;
 		}
+		goto out;
 	}
-	if (!form_buf || result != 200) {
+	if (!*form_buf || result != 200) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unexpected %d result from server\n"),
 			     result);
-		free(form_buf);
+		result = -EINVAL;
+		goto out;
+	}
+
+	return buflen;
+
+ out:
+	free(*form_buf);
+	*form_buf = NULL;
+	return result;
+}
+
+/* Return value:
+ *  < 0, if the data is unrecognized
+ *  = 0, if the page contains an XML document
+ *  = 1, if the page is a wait/refresh HTML page
+ */
+static int check_response_type(struct openconnect_info *vpninfo, char *form_buf)
+{
+	if (strncmp(form_buf, "<?xml", 5)) {
+		/* Not XML? Perhaps it's HTML with a refresh... */
+		if (strcasestr(form_buf, "http-equiv=\"refresh\""))
+			return 1;
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Unknown response from server\n"));
 		return -EINVAL;
 	}
-	if (vpninfo->csd_stuburl) {
-		/* This is the CSD stub script, which we now need to run */
-		result = run_csd_script(vpninfo, form_buf, buflen);
-		if (result) {
+	return 0;
+}
+
+/* Return value:
+ *  < 0, on error
+ *  > 0, no cookie (user cancel)
+ *  = 0, obtained cookie
+ */
+int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
+{
+	struct vpn_option *opt;
+	char *form_buf = NULL;
+	struct oc_auth_form *form = NULL;
+	int result, buflen, tries;
+	char request_body[2048];
+	const char *request_body_type = "application/x-www-form-urlencoded";
+	const char *method = "POST";
+	int xmlpost = 0;
+
+	/* Step 1: Unlock software token (if applicable) */
+	if (vpninfo->use_stoken) {
+		result = prepare_stoken(vpninfo);
+		if (result)
+			return result;
+	}
+
+	/*
+	 * Step 2: Probe for XML POST compatibility
+	 *
+	 * This can get stuck in a redirect loop, so give up after any of:
+	 *
+	 * a) HTTP error (e.g. 400 Bad Request)
+	 * b) Same-host redirect (e.g. Location: /foo/bar)
+	 * c) Three redirects without seeing a plausible login form
+	 */
+	result = xmlpost_initial_req(vpninfo, request_body, sizeof(request_body));
+	if (result < 0)
+		return result;
+
+	for (tries = 0; ; tries++) {
+		if (tries == 3)
+			break;
+		buflen = do_https_request(vpninfo, method, request_body_type, request_body,
+					  &form_buf, 0);
+		if (buflen == -EINVAL)
+			break;
+		if (buflen < 0)
+			return buflen;
+
+		if (vpninfo->redirect_type == REDIR_TYPE_LOCAL)
+			break;
+		else if (vpninfo->redirect_type != REDIR_TYPE_NONE)
+			continue;
+
+		result = parse_xml_response(vpninfo, form_buf, &form);
+		if (result < 0)
+			break;
+
+		xmlpost = 1;
+		vpn_progress(vpninfo, PRG_INFO, _("XML POST enabled\n"));
+		break;
+	}
+
+	/* Step 3: Fetch and parse the login form, if not using XML POST */
+	if (!xmlpost) {
+		buflen = do_https_request(vpninfo, "GET", NULL, NULL, &form_buf, 0);
+		if (buflen < 0)
+			return buflen;
+
+		result = parse_xml_response(vpninfo, form_buf, &form);
+		if (result < 0) {
 			free(form_buf);
 			return result;
 		}
-
-		/* Now we'll be redirected to the waiturl */
-		goto retry;
 	}
-	if (strncmp(form_buf, "<?xml", 5)) {
-		/* Not XML? Perhaps it's HTML with a refresh... */
-		if (strcasestr(form_buf, "http-equiv=\"refresh\"")) {
+
+	/* Step 4: Run the CSD trojan, if applicable */
+	if (vpninfo->csd_starturl) {
+		char *form_path = NULL;
+
+		if (vpninfo->urlpath) {
+			form_path = strdup(vpninfo->urlpath);
+			if (!form_path) {
+				result = -ENOMEM;
+				goto out;
+			}
+		}
+
+		/* fetch the CSD program, if available */
+		if (vpninfo->csd_stuburl) {
+			buflen = do_https_request(vpninfo, "GET", NULL, NULL, &form_buf, 0);
+			if (buflen <= 0) {
+				result = -EINVAL;
+				goto out;
+			}
+		}
+
+		/* This is the CSD stub script, which we now need to run */
+		result = run_csd_script(vpninfo, form_buf, buflen);
+		if (result)
+			goto out;
+
+		/* vpninfo->urlpath now points to the wait page */
+		while (1) {
+			result = do_https_request(vpninfo, "GET", NULL, NULL, &form_buf, 0);
+			if (result <= 0)
+				break;
+
+			result = check_response_type(vpninfo, form_buf);
+			if (result <= 0)
+				break;
+
 			vpn_progress(vpninfo, PRG_INFO,
 				     _("Refreshing %s after 1 second...\n"),
 				     vpninfo->urlpath);
 			sleep(1);
-			goto retry;
 		}
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Unknown response from server\n"));
-		free(form_buf);
-		return -EINVAL;
+		if (result < 0)
+			goto out;
+
+		/* refresh the form page, to see if we're authorized now */
+		free(vpninfo->urlpath);
+		vpninfo->urlpath = form_path;
+
+		result = do_https_request(vpninfo, xmlpost ? "POST" : "GET",
+					  request_body_type, request_body, &form_buf, 1);
+		if (result < 0)
+			goto out;
+
+		result = parse_xml_response(vpninfo, form_buf, &form);
+		if (result < 0)
+			goto out;
 	}
-	request_body[0] = 0;
-	result = parse_xml_response(vpninfo, form_buf, request_body, sizeof(request_body),
-				    &method, &request_body_type);
 
-	if (!result)
-		goto redirect;
+	/* Step 5: Ask the user to fill in the auth form; repeat as necessary */
+	while (1) {
+		request_body[0] = 0;
+		result = handle_auth_form(vpninfo, form, request_body, sizeof(request_body),
+					  &method, &request_body_type, xmlpost);
+		if (result < 0 || result == 1)
+			goto out;
+		if (result == 2)
+			break;
 
-	free(form_buf);
+		result = do_https_request(vpninfo, method, request_body_type, request_body,
+					  &form_buf, 1);
+		if (result < 0)
+			goto out;
 
-	if (result != 2)
-		return result;
+		result = parse_xml_response(vpninfo, form_buf, &form);
+		if (result < 0)
+			goto out;
+	}
 
 	/* A return value of 2 means the XML form indicated
 	   success. We _should_ have a cookie... */
@@ -838,12 +1100,19 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 				fetch_config(vpninfo, bu, fu, sha);
 		}
 	}
+	result = 0;
+
+out:
+	free(form_buf);
+	free_auth_form(form);
+
 	if (vpninfo->csd_scriptname) {
 		unlink(vpninfo->csd_scriptname);
 		free(vpninfo->csd_scriptname);
 		vpninfo->csd_scriptname = NULL;
 	}
-	return 0;
+
+	return result;
 }
 
 char *openconnect_create_useragent(const char *base)
@@ -1078,21 +1347,28 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 static int process_http_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 {
 	char buf[MAX_BUF_LEN];
+	struct oc_text_buf *reqbuf;
 	int buflen, result;
 
-	sprintf(buf, "CONNECT %s:%d HTTP/1.1\r\n", vpninfo->hostname, vpninfo->port);
-	sprintf(buf + strlen(buf), "Host: %s\r\n", vpninfo->hostname);
-	sprintf(buf + strlen(buf), "User-Agent: %s\r\n", vpninfo->useragent);
-	sprintf(buf + strlen(buf), "Proxy-Connection: keep-alive\r\n");
-	sprintf(buf + strlen(buf), "Connection: keep-alive\r\n");
-	sprintf(buf + strlen(buf), "Accept-Encoding: identity\r\n");
-	sprintf(buf + strlen(buf), "\r\n");
+	reqbuf = buf_alloc();
+	buf_append(reqbuf, "CONNECT %s:%d HTTP/1.1\r\n", vpninfo->hostname, vpninfo->port);
+	buf_append(reqbuf, "Host: %s\r\n", vpninfo->hostname);
+	buf_append(reqbuf, "User-Agent: %s\r\n", vpninfo->useragent);
+	buf_append(reqbuf, "Proxy-Connection: keep-alive\r\n");
+	buf_append(reqbuf, "Connection: keep-alive\r\n");
+	buf_append(reqbuf, "Accept-Encoding: identity\r\n");
+	buf_append(reqbuf, "\r\n");
+
+	if (buf_error(reqbuf))
+		return buf_free(reqbuf);
 
 	vpn_progress(vpninfo, PRG_INFO,
 		     _("Requesting HTTP proxy connection to %s:%d\n"),
 		     vpninfo->hostname, vpninfo->port);
 
-	result = proxy_write(vpninfo, ssl_sock, (unsigned char *)buf, strlen(buf));
+	result = proxy_write(vpninfo, ssl_sock, (unsigned char *)reqbuf->data, reqbuf->pos);
+	buf_free(reqbuf);
+
 	if (result) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Sending proxy request failed: %s\n"),

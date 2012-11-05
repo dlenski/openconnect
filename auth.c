@@ -41,6 +41,8 @@
 
 #include "openconnect-internal.h"
 
+static int xmlpost_append_form_opts(struct openconnect_info *vpninfo,
+				    struct oc_auth_form *form, char *body, int bodylen);
 static int can_gen_tokencode(struct openconnect_info *vpninfo, struct oc_form_opt *opt);
 static int do_gen_tokencode(struct openconnect_info *vpninfo, struct oc_auth_form *form);
 
@@ -172,7 +174,7 @@ static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_fo
  *  = 1, when form was parsed
  */
 static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
-		      xmlNode *xml_node, char *body, int bodylen)
+		      xmlNode *xml_node)
 {
 	char *input_type, *input_name, *input_label;
 
@@ -255,8 +257,6 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 		*p = opt;
 	}
 
-	vpn_progress(vpninfo, PRG_TRACE, _("Fixed options give %s\n"), body);
-
 	return 0;
 }
 
@@ -317,21 +317,178 @@ static char *xmlnode_msg(xmlNode *xml_node)
 	return result;
 }
 
+static int xmlnode_is_named(xmlNode *xml_node, const char *name)
+{
+	return !strcmp((char *)xml_node->name, name);
+}
+
+static int xmlnode_get_prop(xmlNode *xml_node, const char *name, char **var)
+{
+	char *str = (char *)xmlGetProp(xml_node, (unsigned char *)name);
+
+	if (!str)
+		return -ENOENT;
+
+	free(*var);
+	*var = str;
+	return 0;
+}
+
+static int xmlnode_get_text(xmlNode *xml_node, const char *name, char **var)
+{
+	char *str;
+
+	if (name && !xmlnode_is_named(xml_node, name))
+		return -EINVAL;
+
+	str = xmlnode_msg(xml_node);
+	if (!str)
+		return -ENOENT;
+
+	free(*var);
+	*var = str;
+	return 0;
+}
+
+/*
+ * Legacy server response looks like:
+ *
+ * <auth id="<!-- "main" for initial attempt, "success" means we have a cookie -->">
+ *   <title><!-- title to display to user --></title>
+ *   <csd token="<!-- save to vpninfo->csd_token -->"
+ *        ticket="<!-- save to vpninfo->csd_ticket -->" />
+ *   <csd stuburl="<!-- ignore -->"
+ *        starturl="<!-- ignore -->"
+ *        waiturl="<!-- ignore -->"
+ *   <csdMac
+ *           stuburl="<!-- save to vpninfo->csd_stuburl on Mac only -->"
+ *           starturl="<!-- save to vpninfo->csd_starturl on Mac only -->"
+ *           waiturl="<!-- save to vpninfo->csd_waiturl on Mac only -->" />
+ *   <csdLinux
+ *             stuburl="<!-- same as above, for Linux -->"
+ *             starturl="<!-- same as above, for Linux -->"
+ *             waiturl="<!-- same as above, for Linux -->" />
+ *   <banner><!-- display this to the user --></banner>
+ *   <message>Please enter your username and password.</message>
+ *   <form method="post" action="/+webvpn+/index.html">
+ *     <input type="text" name="username" label="Username:" />
+ *     <input type="password" name="password" label="Password:" />
+ *     <input type="hidden" name="<!-- save these -->" value="<!-- ... -->" />
+ *     <input type="submit" name="Login" value="Login" />
+ *     <input type="reset" name="Clear" value="Clear" />
+ *   </form>
+ * </auth>
+ *
+ * New server response looks like:
+ *
+ * <config-auth>
+ *   <version><!-- whatever --></version>
+ *   <session-token><!-- if present, save to vpninfo->cookie --></session-token>
+ *   <opaque>
+ *     <!-- this could contain anything; copy to vpninfo->opaque_srvdata -->
+ *     <tunnel-group>foobar</tunnel-group>
+ *     <config-hash>1234567</config-hash>
+ *   </opaque>
+ *   <auth id="<!-- see above -->
+ *     <!-- all of our old familiar fields -->
+ *   </auth>
+ *   <host-scan>
+ *     <host-scan-ticket><!-- save to vpninfo->csd_ticket --></host-scan-ticket>
+ *     <host-scan-token><!-- save to vpninfo->csd_token --></host-scan-token>
+ *     <host-scan-base-uri><!-- save to vpninfo->csd_starturl --></host-scan-base-uri>
+ *     <host-scan-wait-uri><!-- save to vpninfo->csd_waiturl --></host-scan-wait-uri>
+ *   </host-scan>
+ * </config-auth>
+ *
+ * Notes:
+ *
+ * 1) The new host-scan-*-uri nodes do not map directly to the old CSD fields.
+ *
+ * 2) The new <form> tag tends to omit the method/action properties.
+ */
+
+static int parse_auth_node(struct openconnect_info *vpninfo, xmlNode *xml_node,
+			   struct oc_auth_form *form)
+{
+	int ret = 0;
+
+	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
+		if (xml_node->type != XML_ELEMENT_NODE)
+			continue;
+
+		xmlnode_get_text(xml_node, "banner", &form->banner);
+		xmlnode_get_text(xml_node, "message", &form->message);
+		xmlnode_get_text(xml_node, "error", &form->error);
+
+		if (xmlnode_is_named(xml_node, "form")) {
+
+			/* defaults for new XML POST */
+			form->method = strdup("POST");
+			form->action = strdup("/");
+
+			xmlnode_get_prop(xml_node, "method", &form->method);
+			xmlnode_get_prop(xml_node, "action", &form->action);
+
+			if (!form->method || !form->action ||
+			    strcasecmp(form->method, "POST") || !form->action[0]) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Cannot handle form method='%s', action='%s'\n"),
+					     form->method, form->action);
+				ret = -EINVAL;
+				goto out;
+			}
+
+			ret = parse_form(vpninfo, form, xml_node);
+			if (ret < 0)
+				goto out;
+		} else if (!vpninfo->csd_scriptname && xmlnode_is_named(xml_node, "csd")) {
+			xmlnode_get_prop(xml_node, "token", &vpninfo->csd_token);
+			xmlnode_get_prop(xml_node, "ticket", &vpninfo->csd_ticket);
+		} else if (!vpninfo->csd_scriptname && xmlnode_is_named(xml_node, vpninfo->csd_xmltag)) {
+			xmlnode_get_prop(xml_node, "stuburl", &vpninfo->csd_stuburl);
+			xmlnode_get_prop(xml_node, "starturl", &vpninfo->csd_starturl);
+			xmlnode_get_prop(xml_node, "waiturl", &vpninfo->csd_waiturl);
+			vpninfo->csd_preurl = strdup(vpninfo->urlpath);
+		}
+	}
+
+out:
+	return ret;
+}
+
+static int parse_host_scan_node(struct openconnect_info *vpninfo, xmlNode *xml_node)
+{
+	/* ignore this whole section if the CSD trojan has already run */
+	if (vpninfo->csd_scriptname)
+		return 0;
+
+	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
+		if (xml_node->type != XML_ELEMENT_NODE)
+			continue;
+
+		xmlnode_get_text(xml_node, "host-scan-ticket", &vpninfo->csd_ticket);
+		xmlnode_get_text(xml_node, "host-scan-token", &vpninfo->csd_token);
+		xmlnode_get_text(xml_node, "host-scan-base-uri", &vpninfo->csd_starturl);
+		xmlnode_get_text(xml_node, "host-scan-wait-uri", &vpninfo->csd_waiturl);
+	}
+	return 0;
+}
+
 /* Return value:
  *  < 0, on error
- *  = 0, when form parsed and POST required
- *  = 1, when response was cancelled by user
- *  = 2, when form indicates that login was already successful
+ *  = 0, on success; *form is populated
  */
-int parse_xml_response(struct openconnect_info *vpninfo, char *response,
-		       char *request_body, int req_len, const char **method,
-		       const char **request_body_type)
+int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct oc_auth_form **formp)
 {
 	struct oc_auth_form *form;
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node;
-	int ret;
-	struct vpn_option *opt, *next;
+	int ret = -EINVAL;
+
+	if (*formp) {
+		free_auth_form(*formp);
+		*formp = NULL;
+	}
 
 	form = calloc(1, sizeof(*form));
 	if (!form)
@@ -348,77 +505,77 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	}
 
 	xml_node = xmlDocGetRootElement(xml_doc);
-	if (xml_node->type != XML_ELEMENT_NODE || strcmp((char *)xml_node->name, "auth")) {
+	while (xml_node) {
+		int ret = 0;
+
+		if (xml_node->type != XML_ELEMENT_NODE) {
+			xml_node = xml_node->next;
+			continue;
+		}
+		if (xmlnode_is_named(xml_node, "config-auth")) {
+			/* if we do have a config-auth node, it is the root element */
+			xml_node = xml_node->children;
+			continue;
+		} else if (xmlnode_is_named(xml_node, "auth")) {
+			xmlnode_get_prop(xml_node, "id", &form->auth_id);
+			ret = parse_auth_node(vpninfo, xml_node, form);
+		} else if (xmlnode_is_named(xml_node, "opaque")) {
+			if (vpninfo->opaque_srvdata)
+				xmlFreeNode(vpninfo->opaque_srvdata);
+			vpninfo->opaque_srvdata = xmlCopyNode(xml_node, 1);
+			if (!vpninfo->opaque_srvdata)
+				ret = -ENOMEM;
+		} else if (xmlnode_is_named(xml_node, "host-scan")) {
+			ret = parse_host_scan_node(vpninfo, xml_node);
+		} else {
+			xmlnode_get_text(xml_node, "session-token", &vpninfo->cookie);
+			xmlnode_get_text(xml_node, "error", &form->error);
+		}
+
+		if (ret)
+			goto out;
+		xml_node = xml_node->next;
+	}
+
+	if (!form->auth_id) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("XML response has no \"auth\" root node\n"));
-		ret = -EINVAL;
+			     _("XML response has no \"auth\" node\n"));
 		goto out;
 	}
 
-	form->auth_id = (char *)xmlGetProp(xml_node, (unsigned char *)"id");
-	if (!strcmp(form->auth_id, "success")) {
-		ret = 2;
-		goto out;
-	}
+	*formp = form;
+	xmlFreeDoc(xml_doc);
+	return 0;
+
+ out:
+	xmlFreeDoc(xml_doc);
+	free_auth_form(form);
+	return ret;
+}
+
+/* Return value:
+ *  < 0, on error
+ *  = 0, when form parsed and POST required
+ *  = 1, when response was cancelled by user
+ *  = 2, when form indicates that login was already successful
+ */
+int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
+		     char *request_body, int req_len, const char **method,
+		     const char **request_body_type, int xmlpost)
+{
+	int ret;
+	struct vpn_option *opt, *next;
+
+	if (!strcmp(form->auth_id, "success"))
+		return 2;
 
 	if (vpninfo->nopasswd) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Asked for password but '--no-passwd' set\n"));
-		ret = -EPERM;
-		goto out;
+		return -EPERM;
 	}
 
-	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
-		if (xml_node->type != XML_ELEMENT_NODE)
-			continue;
-
-		if (!strcmp((char *)xml_node->name, "banner")) {
-			free(form->banner);
-			form->banner = xmlnode_msg(xml_node);
-		} else if (!strcmp((char *)xml_node->name, "message")) {
-			free(form->message);
-			form->message = xmlnode_msg(xml_node);
-		} else if (!strcmp((char *)xml_node->name, "error")) {
-			free(form->error);
-			form->error = xmlnode_msg(xml_node);
-		} else if (!strcmp((char *)xml_node->name, "form")) {
-
-			form->method = (char *)xmlGetProp(xml_node, (unsigned char *)"method");
-			form->action = (char *)xmlGetProp(xml_node, (unsigned char *)"action");
-			if (!form->method || !form->action || 
-			    strcasecmp(form->method, "POST") || !form->action[0]) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("Cannot handle form method='%s', action='%s'\n"),
-					     form->method, form->action);
-				ret = -EINVAL;
-				goto out;
-			}
-			vpninfo->redirect_url = strdup(form->action);
-
-			ret = parse_form(vpninfo, form, xml_node, request_body, req_len);
-			if (ret < 0)
-				goto out;
-		} else if (!vpninfo->csd_scriptname && !strcmp((char *)xml_node->name, "csd")) {
-			if (!vpninfo->csd_token)
-				vpninfo->csd_token = (char *)xmlGetProp(xml_node,
-									(unsigned char *)"token");
-			if (!vpninfo->csd_ticket)
-				vpninfo->csd_ticket = (char *)xmlGetProp(xml_node,
-									 (unsigned char *)"ticket");
-		} else if (!vpninfo->csd_scriptname && !strcmp((char *)xml_node->name, vpninfo->csd_xmltag)) {
-			vpninfo->csd_stuburl = (char *)xmlGetProp(xml_node,
-								  (unsigned char *)"stuburl");
-			vpninfo->csd_starturl = (char *)xmlGetProp(xml_node,
-								   (unsigned char *)"starturl");
-			vpninfo->csd_waiturl = (char *)xmlGetProp(xml_node,
-								  (unsigned char *)"waiturl");
-			vpninfo->csd_preurl = strdup(vpninfo->urlpath);
-		}
-	}
 	if (vpninfo->csd_token && vpninfo->csd_ticket && vpninfo->csd_starturl && vpninfo->csd_waiturl) {
-		/* First, redirect to the stuburl -- we'll need to fetch and run that */
-		vpninfo->redirect_url = strdup(vpninfo->csd_stuburl);
-
 		/* AB: remove all cookies */
 		for (opt = vpninfo->cookies; opt; opt = next) {
 			next = opt->next;
@@ -428,17 +585,14 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 			free(opt);
 		}
 		vpninfo->cookies = NULL;
-
-		ret = 0;
-		goto out;
+		return 0;
 	}
 	if (!form->opts) {
 		if (form->message)
 			vpn_progress(vpninfo, PRG_INFO, "%s\n", form->message);
 		if (form->error)
 			vpn_progress(vpninfo, PRG_ERR, "%s\n", form->error);
-		ret = -EPERM;
-		goto out;
+		return -EPERM;
 	}
 
 	if (vpninfo->process_auth_form)
@@ -448,25 +602,33 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		ret = 1;
 	}
 	if (ret)
-		goto out;
+		return ret;
 
 	/* tokencode generation is deferred until after username prompts and CSD */
 	ret = do_gen_tokencode(vpninfo, form);
 	if (ret)
-		goto out;
+		return ret;
 
-	ret = append_form_opts(vpninfo, form, request_body, req_len);
+	ret = xmlpost ?
+	      xmlpost_append_form_opts(vpninfo, form, request_body, req_len) :
+	      append_form_opts(vpninfo, form, request_body, req_len);
 	if (!ret) {
 		*method = "POST";
 		*request_body_type = "application/x-www-form-urlencoded";
 	}
- out:
-	xmlFreeDoc(xml_doc);
+	return ret;
+}
+
+void free_auth_form(struct oc_auth_form *form)
+{
+	if (!form)
+		return;
 	while (form->opts) {
 		struct oc_form_opt *tmp = form->opts->next;
 		if (form->opts->type == OC_FORM_OPT_TEXT ||
 		    form->opts->type == OC_FORM_OPT_PASSWORD ||
-		    form->opts->type == OC_FORM_OPT_HIDDEN)
+		    form->opts->type == OC_FORM_OPT_HIDDEN ||
+		    form->opts->type == OC_FORM_OPT_STOKEN)
 			free(form->opts->value);
 		else if (form->opts->type == OC_FORM_OPT_SELECT) {
 			struct oc_form_opt_select *sel = (void *)form->opts;
@@ -492,8 +654,160 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 	free(form->method);
 	free(form->action);
 	free(form);
+}
+
+/*
+ * Old submission format is just an HTTP query string:
+ *
+ * password=12345678&username=joe
+ *
+ * New XML format is more complicated:
+ *
+ * <config-auth client="vpn" type="<!-- init or auth-reply -->">
+ *   <version who="vpn"><!-- currently just the OpenConnect version --></version>
+ *   <device-id><!-- linux, linux-64, mac, win --></device-id>
+ *   <opaque is-for="<!-- some name -->">
+ *     <!-- just copy this verbatim from whatever the gateway sent us -->
+ *   </opaque>
+ *
+ * For init only, add:
+ *   <group-access>https://<!-- insert hostname here --></group-access>
+ *
+ * For auth-reply only, add:
+ *   <auth>
+ *     <username><!-- same treatment as the old form options --></username>
+ *     <password><!-- ditto -->
+ *   </auth>
+ *   <host-scan-token><!-- vpninfo->csd_ticket --></host-scan-token>
+ */
+
+#define XCAST(x) ((const xmlChar *)(x))
+
+static xmlDocPtr xmlpost_new_query(struct openconnect_info *vpninfo, const char *type,
+				   xmlNodePtr *rootp)
+{
+	xmlDocPtr doc;
+	xmlNodePtr root, node;
+
+	doc = xmlNewDoc(XCAST("1.0"));
+	if (!doc)
+		return NULL;
+
+	*rootp = root = xmlNewNode(NULL, XCAST("config-auth"));
+	if (!root)
+		goto bad;
+	if (!xmlNewProp(root, XCAST("client"), XCAST("vpn")))
+		goto bad;
+	if (!xmlNewProp(root, XCAST("type"), XCAST(type)))
+		goto bad;
+	xmlDocSetRootElement(doc, root);
+
+	node = xmlNewTextChild(root, NULL, XCAST("version"), XCAST(openconnect_version_str));
+	if (!node)
+		goto bad;
+	if (!xmlNewProp(node, XCAST("who"), XCAST("vpn")))
+		goto bad;
+
+	if (!xmlNewTextChild(root, NULL, XCAST("device-id"), XCAST(vpninfo->platname)))
+		goto bad;
+
+	return doc;
+
+bad:
+	xmlFreeDoc(doc);
+	return NULL;
+}
+
+static int xmlpost_complete(xmlDocPtr doc, char *body, int bodylen)
+{
+	xmlChar *mem = NULL;
+	int len, ret = 0;
+
+	if (!body) {
+		xmlFree(doc);
+		return 0;
+	}
+
+	xmlDocDumpMemoryEnc(doc, &mem, &len, "UTF-8");
+	if (!mem) {
+		xmlFreeDoc(doc);
+		return -ENOMEM;
+	}
+
+	if (len > bodylen)
+		ret = -E2BIG;
+	else {
+		memcpy(body, mem, len);
+		body[len] = 0;
+	}
+
+	xmlFreeDoc(doc);
+	xmlFree(mem);
+
 	return ret;
 }
+
+int xmlpost_initial_req(struct openconnect_info *vpninfo, char *request_body, int req_len)
+{
+	xmlNodePtr root, node;
+	xmlDocPtr doc = xmlpost_new_query(vpninfo, "init", &root);
+	char *url;
+
+	if (!doc)
+		return -ENOMEM;
+
+	if (asprintf(&url, "https://%s", vpninfo->hostname) == -1)
+		goto bad;
+	node = xmlNewTextChild(root, NULL, XCAST("group-access"), XCAST(url));
+	free(url);
+	if (!node)
+		goto bad;
+
+	return xmlpost_complete(doc, request_body, req_len);
+
+bad:
+	xmlpost_complete(doc, NULL, 0);
+	return -ENOMEM;
+}
+
+static int xmlpost_append_form_opts(struct openconnect_info *vpninfo,
+				    struct oc_auth_form *form, char *body, int bodylen)
+{
+	xmlNodePtr root, node;
+	xmlDocPtr doc = xmlpost_new_query(vpninfo, "auth-reply", &root);
+	struct oc_form_opt *opt;
+
+	if (!doc)
+		return -ENOMEM;
+
+	if (vpninfo->opaque_srvdata) {
+		node = xmlCopyNode(vpninfo->opaque_srvdata, 1);
+		if (!node)
+			goto bad;
+		if (!xmlAddChild(root, node))
+			goto bad;
+	}
+
+	node = xmlNewChild(root, NULL, XCAST("auth"), NULL);
+	if (!node)
+		goto bad;
+
+	for (opt = form->opts; opt; opt = opt->next) {
+		if (!xmlNewTextChild(node, NULL, XCAST(opt->name), XCAST(opt->value)))
+			goto bad;
+	}
+
+	if (vpninfo->csd_token &&
+	    !xmlNewTextChild(root, NULL, XCAST("host-scan-token"), XCAST(vpninfo->csd_token)))
+		goto bad;
+
+	return xmlpost_complete(doc, body, bodylen);
+
+bad:
+	xmlpost_complete(doc, NULL, 0);
+	return -ENOMEM;
+}
+
 
 #ifdef LIBSTOKEN_HDR
 static void nuke_opt_values(struct oc_form_opt *opt)
@@ -659,8 +973,6 @@ static int can_gen_tokencode(struct openconnect_info *vpninfo, struct oc_form_op
 			     _("Server is rejecting the soft token; switching to manual entry\n"));
 		return -ENOENT;
 	}
-
-	vpninfo->stoken_tries++;
 	return 0;
 #else
 	return -EOPNOTSUPP;
@@ -696,6 +1008,7 @@ static int do_gen_tokencode(struct openconnect_info *vpninfo, struct oc_auth_for
 		return -EIO;
 	}
 
+	vpninfo->stoken_tries++;
 	opt->value = strdup(tokencode);
 	return opt->value ? 0 : -ENOMEM;
 #else

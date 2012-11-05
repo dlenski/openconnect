@@ -111,6 +111,7 @@ enum {
 	OPT_NON_INTER,
 	OPT_DTLS_LOCAL_PORT,
 	OPT_STOKEN,
+	OPT_OS,
 };
 
 #ifdef __sun__
@@ -175,6 +176,7 @@ static struct option long_options[] = {
 	OPTION("non-inter", 0, OPT_NON_INTER),
 	OPTION("dtls-local-port", 1, OPT_DTLS_LOCAL_PORT),
 	OPTION("stoken", 2, OPT_STOKEN),
+	OPTION("os", 1, OPT_OS),
 	OPTION(NULL, 0, 0)
 };
 
@@ -286,6 +288,7 @@ static void usage(void)
 	printf("      --reconnect-timeout         %s\n", _("Connection retry timeout in seconds"));
 	printf("      --servercert=FINGERPRINT    %s\n", _("Server's certificate SHA1 fingerprint"));
 	printf("      --useragent=STRING          %s\n", _("HTTP header User-Agent: field"));
+	printf("      --os=STRING                 %s\n", _("OS type (linux,linux-64,mac,win) to report"));
 	printf("      --dtls-local-port=PORT      %s\n", _("Set local port for DTLS datagrams"));
 	printf("\n");
 
@@ -479,11 +482,7 @@ int main(int argc, char **argv)
 	vpninfo->reconnect_timeout = 300;
 	vpninfo->uid_csd = 0;
 	/* We could let them override this on the command line some day, perhaps */
-#ifdef __APPLE__
-	vpninfo->csd_xmltag = "csdMac";
-#else
-	vpninfo->csd_xmltag = "csdLinux";
-#endif
+	openconnect_set_reported_os(vpninfo, NULL);
 	vpninfo->uid_csd = 0;
 	vpninfo->uid_csd_given = 0;
 	vpninfo->validate_peer_cert = validate_peer_cert;
@@ -716,6 +715,13 @@ int main(int argc, char **argv)
 		case OPT_STOKEN:
 			use_stoken = 1;
 			token_str = keep_config_arg();
+			break;
+		case OPT_OS:
+			if (openconnect_set_reported_os(vpninfo, config_arg)) {
+				fprintf(stderr, _("Invalid OS identity \"%s\"\n"),
+					config_arg);
+				exit(1);
+			}
 			break;
 		default:
 			usage();
