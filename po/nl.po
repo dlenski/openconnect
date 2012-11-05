@@ -482,8 +482,8 @@ msgstr ""
 
 #: gnutls.c:82
 #, c-format
-msgid "Failed to write to SSL socket: %s"
-msgstr ""
+msgid "Failed to write to SSL socket: %s\n"
+msgstr "Kon niet schrijven naar de SSL socket: %s\n"
 
 #: gnutls.c:105 openssl.c:122
 msgid "SSL write cancelled\n"
@@ -1751,8 +1751,8 @@ msgid "No work to do; sleeping for %d ms...\n"
 msgstr "Niets te doen, slapen %d ms...\n"
 
 #: openssl.c:110
-msgid "Failed to write to SSL socket"
-msgstr "Kon niet schrijven naar de SSL socket"
+msgid "Failed to write to SSL socket\n"
+msgstr "Kon niet schrijven naar de SSL socket\n"
 
 #: openssl.c:147
 msgid "Failed to read from SSL socket"

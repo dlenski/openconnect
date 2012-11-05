@@ -480,8 +480,8 @@ msgstr "ئىچكى SSL ئامبار نەشرىدە Cisco DTLS نى قوللىم�
 
 #: gnutls.c:82
 #, c-format
-msgid "Failed to write to SSL socket: %s"
-msgstr "SSL socket نى يازالمىدى: %s"
+msgid "Failed to write to SSL socket: %s\n"
+msgstr "SSL socket نى يازالمىدى: %s\n"
 
 #: gnutls.c:105 openssl.c:122
 msgid "SSL write cancelled\n"
@@ -1760,8 +1760,8 @@ msgid "No work to do; sleeping for %d ms...\n"
 msgstr "ھېچقانداق ئىش يوق؛ %dms ئۇخلايدۇ…\n"
 
 #: openssl.c:110
-msgid "Failed to write to SSL socket"
-msgstr "SSL socket نى يازالمىدى"
+msgid "Failed to write to SSL socket\n"
+msgstr "SSL socket نى يازالمىدى\n"
 
 #: openssl.c:147
 msgid "Failed to read from SSL socket"
