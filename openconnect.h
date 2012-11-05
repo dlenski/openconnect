@@ -34,10 +34,8 @@
 #define OPENCONNECT_API_VERSION_MINOR 1
 
 /*
- * API version 2.2:
- *  - Add openconnect_set_reported_os()
- *
  * API version 2.1:
+ *  - Add openconnect_set_reported_os()
  *  - Add openconnect_set_stoken_mode(), openconnect_has_stoken_support()
  *
  * API version 2.0:

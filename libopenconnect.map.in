@@ -1,14 +1,3 @@
-OPENCONNECT_2.2 {
- global:
-	openconnect_set_reported_os;
-};
-
-OPENCONNECT_2.1 {
- global:
-	openconnect_has_stoken_support;
-	openconnect_set_stoken_mode;
-};
-
 OPENCONNECT_2.0 {
  global:
 	openconnect_clear_cookie;
@@ -40,6 +29,13 @@ OPENCONNECT_2.0 {
 	openconnect_has_tss_blob_support;
 	openconnect_has_pkcs11_support;
 };
+
+OPENCONNECT_2.1 {
+ global:
+	openconnect_has_stoken_support;
+	openconnect_set_stoken_mode;
+	openconnect_set_reported_os;
+} OPENCONNECT_2.0;
 
 OPENCONNECT_PRIVATE {
  global: @SYMVER_TIME@ @SYMVER_ASPRINTF@ @SYMVER_GETLINE@ @SYMVER_PRINT_ERR@
