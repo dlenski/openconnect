@@ -79,7 +79,7 @@ int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t le
 		if (done > 0)
 			len -= done;
 		else if (done != GNUTLS_E_AGAIN) {
-			vpn_progress(vpninfo, PRG_ERR, _("Failed to write to SSL socket: %s"),
+			vpn_progress(vpninfo, PRG_ERR, _("Failed to write to SSL socket: %s\n"),
 				     gnutls_strerror(done));
 			return -EIO;
 		} else {
