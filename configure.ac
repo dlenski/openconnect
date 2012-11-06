@@ -135,6 +135,9 @@ AS_COMPILER_FLAGS(CFLAGS,
          -Wpointer-arith
          -Wwrite-strings")
 
+AC_CHECK_FUNC(socket, [], AC_CHECK_LIB(socket, socket, [], AC_ERROR(Cannot find socket() function)))
+AC_CHECK_FUNC(inet_aton, [], AC_CHECK_LIB(nsl, inet_aton, [], AC_ERROR(Cannot find inet_aton() function)))
+
 AC_ENABLE_SHARED
 AC_DISABLE_STATIC
 
