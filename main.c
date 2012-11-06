@@ -345,7 +345,7 @@ static int next_option(int argc, char **argv, char **config_arg)
 	static size_t line_size = 0;
 
 	ssize_t llen;
-	int opt, optlen;
+	int opt, optlen = 0;
 	struct option *this;
 	char *line;
 	int ate_equals = 0;
