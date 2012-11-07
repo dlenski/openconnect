@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-11-05 20:45+0000\n"
+"POT-Creation-Date: 2012-11-07 13:21+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -55,7 +55,7 @@ msgstr "Odziv  je: %s\n"
 
 #: auth.c:542
 msgid "XML response has no \"auth\" node\n"
-msgstr ""
+msgstr "Odziv XML je brez vozlišča \"auth\".\n"
 
 #: auth.c:574
 msgid "Asked for password but '--no-passwd' set\n"
@@ -1157,7 +1157,7 @@ msgstr "Odpiranje začasne datoteke skripta CSD je spodletelo: %s\n"
 msgid "Failed to write temporary CSD script file: %s\n"
 msgstr "Zapisovanje začasne datoteke skripta CSD je spodletelo: %s\n"
 
-#: http.c:554 main.c:839
+#: http.c:554 main.c:840
 #, c-format
 msgid "Failed to set uid %ld\n"
 msgstr "Nastavljanje UID %ld je spodletelo.\n"
@@ -1213,7 +1213,7 @@ msgstr "Neznan odgovor s strežnika.\n"
 
 #: http.c:977
 msgid "XML POST enabled\n"
-msgstr ""
+msgstr "Omogočena zmožnost XML POST\n"
 
 #: http.c:1031
 #, c-format
@@ -1624,66 +1624,70 @@ msgid "HTTP header User-Agent: field"
 msgstr "Glava HTTP uporabniškega posrednika: polje"
 
 #: main.c:291
+msgid "OS type (linux,linux-64,mac,win) to report"
+msgstr ""
+
+#: main.c:292
 msgid "Set local port for DTLS datagrams"
 msgstr "Določite krajevna vrata za datagrame DTLS"
 
-#: main.c:302
+#: main.c:303
 #, c-format
 msgid "Allocation failure for string from stdin\n"
 msgstr "Napaka dodeljevanja za niz s standardnega vhoda\n"
 
-#: main.c:306
+#: main.c:307
 msgid "fgets (stdin)"
 msgstr "fgets (stdin)"
 
-#: main.c:369
+#: main.c:370
 #, c-format
 msgid "Failed to get line from config file: %s\n"
 msgstr "Pridobivanje vrstice iz nastavitvene datoteke je spodletelo: %s\n"
 
-#: main.c:409
+#: main.c:410
 #, c-format
 msgid "Unrecognised option at line %d: '%s'\n"
 msgstr "Neprepoznana možnost v vrstici %d: '%s'\n"
 
-#: main.c:419
+#: main.c:420
 #, c-format
 msgid "Option '%s' does not take an argument at line %d\n"
 msgstr "Možnost '%s' ne sprejme argumenta v vrstici %d\n"
 
-#: main.c:423
+#: main.c:424
 #, c-format
 msgid "Option '%s' requires an argument at line %d\n"
 msgstr "Možnost '%s' zahteva argument v vrstici %d\n"
 
-#: main.c:459
+#: main.c:460
 #, c-format
 msgid ""
 "WARNING: This version of openconnect is %s but\n"
 "         the libopenconnect library is %s\n"
 msgstr ""
 
-#: main.c:468
+#: main.c:469
 #, c-format
 msgid "Failed to allocate vpninfo structure\n"
 msgstr "Strukture vpninfo ni mogoče dodeliti.\n"
 
-#: main.c:507
+#: main.c:508
 #, c-format
 msgid "Cannot use 'config' option inside config file\n"
 msgstr "Možnosti 'config' ni mogoče uporabiti znotraj nastavitvene datoteke\n"
 
-#: main.c:512
+#: main.c:513
 #, c-format
 msgid "Cannot open config file '%s': %s\n"
 msgstr "Ni mogoče odpreti nastavitvene datoteke '%s': %s\n"
 
-#: main.c:601 main.c:608
+#: main.c:602 main.c:609
 #, c-format
 msgid "MTU %d too small\n"
 msgstr "Vrednost MTU %d je premajhna.\n"
 
-#: main.c:629
+#: main.c:630
 #, c-format
 msgid ""
 "Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
@@ -1694,97 +1698,97 @@ msgstr ""
 "V kolikor možnost deluje, pošljite poročilo na <openconnect-devel@lists."
 "infradead.org>.\n"
 
-#: main.c:651 main.c:665
+#: main.c:652 main.c:666
 #, c-format
 msgid "Invalid user \"%s\"\n"
 msgstr "Neveljaven uporabnik \"%s\"\n"
 
-#: main.c:683
+#: main.c:684
 #, c-format
 msgid "Queue length zero not permitted; using 1\n"
 msgstr "Ničelna dolžina uvrstitve ni dovoljena; uporabljena bo 1\n"
 
-#: main.c:694
+#: main.c:695
 #, c-format
 msgid "OpenConnect version %s\n"
 msgstr "Različica OpenConnect %s\n"
 
-#: main.c:720
+#: main.c:721
 #, c-format
 msgid "Invalid OS identity \"%s\"\n"
-msgstr ""
+msgstr "Neveljavna istovetnost OS \"%s\"\n"
 
-#: main.c:731
+#: main.c:732
 #, c-format
 msgid "Too many arguments on command line\n"
 msgstr "Navedenih je preveč argumentov v ukazni vrstici.\n"
 
-#: main.c:734
+#: main.c:735
 #, c-format
 msgid "No server specified\n"
 msgstr "Ni določenega strežnika\n"
 
-#: main.c:747
+#: main.c:748
 #, c-format
 msgid "This version of openconnect was built without libproxy support\n"
 msgstr "Ta različica openconnect je zgrajena brez podpore libproxy\n"
 
-#: main.c:804
+#: main.c:805
 #, c-format
 msgid "Failed to obtain WebVPN cookie\n"
 msgstr "Pridobivanje piškotka WebVPN je spodletelo\n"
 
-#: main.c:828
+#: main.c:829
 #, c-format
 msgid "Creating SSL connection failed\n"
 msgstr "Ustvarjanje povezave SSL je spodletelo.\n"
 
-#: main.c:833
+#: main.c:834
 #, c-format
 msgid "Set up tun device failed\n"
 msgstr "Nastavitev naprave je spodletela\n"
 
-#: main.c:846
+#: main.c:847
 #, c-format
 msgid "Set up DTLS failed; using SSL instead\n"
 msgstr "Nastavitev DTLS je spodletela; namesto tega bo uporabljen SSL\n"
 
-#: main.c:849
+#: main.c:850
 #, c-format
 msgid "Connected %s as %s%s%s, using %s\n"
 msgstr "Povezava %s je vzpostavljena kot %s%s%s, z uporabo %s\n"
 
-#: main.c:859
+#: main.c:860
 msgid "No --script argument provided; DNS and routing are not configured\n"
 msgstr ""
 "Ni navedenega argumenta --script; Vrednosti DNS in nastavitve preusmerjanja "
 "niso nastavljene.\n"
 
-#: main.c:861
+#: main.c:862
 msgid "See http://www.infradead.org/openconnect/vpnc-script.html\n"
 msgstr "Oglejte si http://www.infradead.org/openconnect/vpnc-script.html\n"
 
-#: main.c:873
+#: main.c:874
 #, c-format
 msgid "Failed to open '%s' for write: %s\n"
 msgstr "Datoteke '%s' ni mogoče odpreti za pisanje: %s\n"
 
-#: main.c:884
+#: main.c:885
 #, c-format
 msgid "Continuing in background; pid %d\n"
 msgstr "Izvajanje programa je poslano v ozadje; pid %d\n"
 
-#: main.c:906
+#: main.c:907
 #, c-format
 msgid "Failed to open %s for write: %s\n"
 msgstr "Datoteke %s ni mogoče odpreti za pisanje: %s\n"
 
-#: main.c:914
+#: main.c:915
 #, c-format
 msgid "Failed to write config to %s: %s\n"
 msgstr "Zapisovanje nastavitev v %s je spodletelo: %s\n"
 
-#: main.c:1008
+#: main.c:1009
 #, c-format
 msgid ""
 "\n"
@@ -1795,55 +1799,55 @@ msgstr ""
 "Overjanje potrdila strežnika VPN \"%s\" je spodletelo.\n"
 "Vzrok: %s\n"
 
-#: main.c:1014
+#: main.c:1015
 #, c-format
 msgid "Enter '%s' to accept, '%s' to abort; anything else to view: "
 msgstr "Vnesite '%s' za sprejem, '%s' za prekinitev; vse drugo za pogled: "
 
-#: main.c:1015 main.c:1033
+#: main.c:1016 main.c:1034
 msgid "no"
 msgstr "ne"
 
-#: main.c:1015 main.c:1022
+#: main.c:1016 main.c:1023
 msgid "yes"
 msgstr "da"
 
-#: main.c:1039
+#: main.c:1040
 #, c-format
 msgid "SHA1 fingerprint: %s\n"
 msgstr "Prstni odtis SHA1: %s\n"
 
-#: main.c:1089
+#: main.c:1090
 #, c-format
 msgid "Auth choice \"%s\" not available\n"
 msgstr "Izbira overitve \"%s\" ni na voljo.\n"
 
-#: main.c:1102 main.c:1150 main.c:1177
+#: main.c:1103 main.c:1151 main.c:1178
 msgid "User input required in non-interactive mode\n"
 msgstr "Zahtevano je uporabniško posredovanje v načinu brez posredovanja.\n"
 
-#: main.c:1133
+#: main.c:1134
 #, c-format
 msgid "Auth choice \"%s\" not valid\n"
 msgstr "Izbira overitve \"%s\" ni veljavna.\n"
 
-#: main.c:1236
+#: main.c:1237
 #, c-format
 msgid "Soft token string is invalid\n"
 msgstr "Uporabniški prstni odtis je neveljaven\n"
 
-#: main.c:1239
+#: main.c:1240
 #, c-format
 msgid "Can't open ~/.stokenrc file\n"
 msgstr "Ni mogoče odpreti datoteke ~/.stokenrc.\n"
 
-#: main.c:1242
+#: main.c:1243
 #, c-format
 msgid "OpenConnect was not built with soft token support\n"
 msgstr ""
 "Program OpenConnect ni izgrajen s podporo za uporabniški prstni odtis\n"
 
-#: main.c:1245
+#: main.c:1246
 #, c-format
 msgid "General failure in libstoken\n"
 msgstr "Splošna napaka v knjižnici libstoken.\n"
@@ -1861,11 +1865,7 @@ msgstr "V pričakovanju novih nalog; stanje nedejavnosti je %d ms ...\n"
 msgid "Failed to write to SSL socket\n"
 msgstr "Pisanje v vtič SSL je spodletelo\n"
 
-#: openssl.c:147
-msgid "Failed to read from SSL socket"
-msgstr "Branje iz vtiča SSL je spodletelo"
-
-#: openssl.c:204
+#: openssl.c:147 openssl.c:204
 msgid "Failed to read from SSL socket\n"
 msgstr "Branje iz vtiča SSL je spodletelo\n"
 
@@ -2335,11 +2335,14 @@ msgstr ""
 "Gostitelj \"%s\" v datoteki config ni naveden; obravnavan bo kot "
 "neoblikovano ime gostitelja\n"
 
-#~ msgid "Failed to write to SSL socket"
-#~ msgstr "Zapisovanje v vtič SSL je spodletelo"
+#~ msgid "Fixed options give %s\n"
+#~ msgstr "Popravljene možnosti podajo %s\n"
 
 #~ msgid "XML response has no \"auth\" root node\n"
 #~ msgstr "Odziv XML je brez ustreznega korenskega vozlišča \"auth\"\n"
 
-#~ msgid "Fixed options give %s\n"
-#~ msgstr "Popravljene možnosti podajo %s\n"
+#~ msgid "Failed to write to SSL socket"
+#~ msgstr "Zapisovanje v vtič SSL je spodletelo"
+
+#~ msgid "Failed to read from SSL socket"
+#~ msgstr "Branje iz vtiča SSL je spodletelo"
