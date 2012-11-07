@@ -171,9 +171,18 @@ if test "$USE_NLS" = "yes"; then
       (void)dgettext("openconnect", "foo");])],
       [AC_MSG_RESULT(yes (with -lintl))]
        LIBINTL="-lintl",
-      [AC_MSG_RESULT(no)
-       USE_NLS=no])
-     LIBS="$oldLIBS"])
+      [LIBS="$LIBS -liconv"
+       AC_LINK_IFELSE([AC_LANG_PROGRAM([
+        #include <locale.h>
+        #include <libintl.h>],[
+        setlocale(LC_ALL, "");
+        bindtextdomain("openconnect", "/tmp");
+        (void)dgettext("openconnect", "foo");])],
+        [AC_MSG_RESULT(yes (with -lintl -liconv))]
+         LIBINTL="-lintl",
+        [AC_MSG_RESULT(no)
+         USE_NLS=no])
+     LIBS="$oldLIBS"])])
 fi
 
 if test "$USE_NLS" = "yes"; then
