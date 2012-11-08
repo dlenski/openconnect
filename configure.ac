@@ -55,6 +55,7 @@ fi
 AC_DEFINE_UNQUOTED(DEFAULT_VPNCSCRIPT, "${with_vpnc_script}")
 AC_SUBST(DEFAULT_VPNCSCRIPT, "${with_vpnc_script}")
 
+use_openbsd_libtool=
 case $host_os in
  *linux* | *gnu*)
     AC_MSG_NOTICE([Applying feature macros for GNU build])
@@ -68,6 +69,10 @@ case $host_os in
     AC_MSG_NOTICE([Applying feature macros for NetBSD build])
     AC_DEFINE(_POSIX_C_SOURCE, 200112L)
     AC_DEFINE(_NETBSD_SOURCE)
+    ;;
+ *openbsd*)
+    AC_MSG_NOTICE([Applying feature macros for OpenBSD build])
+    use_openbsd_libtool=true
     ;;
  *)
     # On FreeBSD the only way to get vsyslog() visible is to define
@@ -383,7 +388,10 @@ AM_CONDITIONAL(OPENCONNECT_OPENSSL, [ test "$ssl_library" = "openssl" ])
 
 # Needs to happen after we default to static/shared libraries based on OpenSSL
 AC_PROG_LIBTOOL
-
+if test "$use_openbsd_libtool" = "true" && test -x /usr/bin/libtool; then
+	echo using OpenBSD libtool
+	LIBTOOL=/usr/bin/libtool
+fi
 # Ick. This seems like it's likely to be very fragile, but I can't see a better
 # way. I shall console myself with the observation that the failure mode isn't
 # particularly horrible — you just don't get symbol versioning if it fails.
