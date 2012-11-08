@@ -72,7 +72,7 @@ static void init_stoken(struct openconnect_info *vpninfo,
 /* A sanity check that the openconnect executable is running against a
    library of the same version */
 #define openconnect_version_str openconnect_binary_version
-#include "version.c"
+#include <version.c>
 #undef openconnect_version_str
 
 int verbose = PRG_INFO;
