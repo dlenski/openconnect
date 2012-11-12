@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-11-07 13:21+0000\n"
+"POT-Creation-Date: 2012-11-12 23:23+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -1625,7 +1625,7 @@ msgstr "Glava HTTP uporabniškega posrednika: polje"
 
 #: main.c:291
 msgid "OS type (linux,linux-64,mac,win) to report"
-msgstr ""
+msgstr "Vrsta OS (linux,linux-64,mac,win) za poročilo"
 
 #: main.c:292
 msgid "Set local port for DTLS datagrams"
@@ -2335,14 +2335,14 @@ msgstr ""
 "Gostitelj \"%s\" v datoteki config ni naveden; obravnavan bo kot "
 "neoblikovano ime gostitelja\n"
 
-#~ msgid "Fixed options give %s\n"
-#~ msgstr "Popravljene možnosti podajo %s\n"
-
-#~ msgid "XML response has no \"auth\" root node\n"
-#~ msgstr "Odziv XML je brez ustreznega korenskega vozlišča \"auth\"\n"
+#~ msgid "Failed to read from SSL socket"
+#~ msgstr "Branje iz vtiča SSL je spodletelo"
 
 #~ msgid "Failed to write to SSL socket"
 #~ msgstr "Zapisovanje v vtič SSL je spodletelo"
 
-#~ msgid "Failed to read from SSL socket"
-#~ msgstr "Branje iz vtiča SSL je spodletelo"
+#~ msgid "XML response has no \"auth\" root node\n"
+#~ msgstr "Odziv XML je brez ustreznega korenskega vozlišča \"auth\"\n"
+
+#~ msgid "Fixed options give %s\n"
+#~ msgstr "Popravljene možnosti podajo %s\n"
