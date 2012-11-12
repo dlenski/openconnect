@@ -392,6 +392,8 @@ if test "$use_openbsd_libtool" = "true" && test -x /usr/bin/libtool; then
 	echo using OpenBSD libtool
 	LIBTOOL=/usr/bin/libtool
 fi
+AM_CONDITIONAL(OPENBSD_LIBTOOL, [ test "$use_openbsd_libtool" = "true" ])
+
 # Ick. This seems like it's likely to be very fragile, but I can't see a better
 # way. I shall console myself with the observation that the failure mode isn't
 # particularly horrible — you just don't get symbol versioning if it fails.

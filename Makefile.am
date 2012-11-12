@@ -32,7 +32,15 @@ endif
 libopenconnect_la_SOURCES = version.c $(library_srcs)
 libopenconnect_la_CFLAGS = $(SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(P11KIT_CFLAGS) $(TSS_CFLAGS) $(LIBSTOKEN_CFLAGS)
 libopenconnect_la_LIBADD = $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LIBINTL) $(P11KIT_LIBS) $(TSS_LIBS) $(LIBSTOKEN_LIBS)
-libopenconnect_la_LDFLAGS = -version-number @APIMAJOR@:@APIMINOR@
+if OPENBSD_LIBTOOL
+# OpenBSD's libtool doesn't have -version-number, but its -version-info arg
+# does what GNU libtool's -version-number does. Which arguably is what the
+# GNU -version-info arg ought to do too. I hate libtool.
+LT_VER_ARG = -version-info
+else
+LT_VER_ARG = -version-number
+endif
+libopenconnect_la_LDFLAGS = $(LT_VER_ARG) @APIMAJOR@:@APIMINOR@
 noinst_HEADERS = openconnect-internal.h openconnect.h gnutls.h
 include_HEADERS = openconnect.h
 if HAVE_SYMBOL_VERSIONING
