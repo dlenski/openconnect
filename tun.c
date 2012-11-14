@@ -376,7 +376,7 @@ int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
 {
 	int ret;
 
-	if (!vpninfo->vpnc_script)
+	if (!vpninfo->vpnc_script || vpninfo->script_tun)
 		return 0;
 
 	setenv("reason", reason, 1);
