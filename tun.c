@@ -652,6 +652,8 @@ int setup_tun(struct openconnect_info *vpninfo)
 			perror(_("fork"));
 			exit(1);
 		} else if (!child) {
+			if (setpgid(0, getpid()) < 0)
+				perror(_("setpgid"));
 			close(tun_fd);
 			setenv_int("VPNFD", fds[1]);
 			execl("/bin/sh", "/bin/sh", "-c", vpninfo->vpnc_script, NULL);
@@ -786,7 +788,8 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 void shutdown_tun(struct openconnect_info *vpninfo)
 {	
 	if (vpninfo->script_tun) {
-		kill(vpninfo->script_tun, SIGHUP);
+		/* nuke the whole process group */
+		kill(-vpninfo->script_tun, SIGHUP);
 	} else {
 		script_config_tun(vpninfo, "disconnect");
 #ifdef __sun__
