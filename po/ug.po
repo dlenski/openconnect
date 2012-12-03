@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-12-03 11:18+0000\n"
+"POT-Creation-Date: 2012-12-03 11:23+0000\n"
 "PO-Revision-Date: 2012-11-15 08:31+0000\n"
 "Last-Translator: Abduqadir Abliz <sahran.ug@gmail.com>\n"
 "Language-Team: Uighur (http://www.transifex.com/projects/p/meego/language/"
@@ -533,7 +533,7 @@ msgstr "ئىچكى SSL ئامبار نەشرىدە Cisco DTLS نى قوللىم�
 #: gnutls.c:82
 #, c-format
 msgid "Failed to write to SSL socket: %s\n"
-msgstr ""
+msgstr "SSL socket نى يازالمىدى: %s\n"
 
 #: gnutls.c:105 openssl.c:122
 msgid "SSL write cancelled\n"
@@ -1854,7 +1854,7 @@ msgstr "ھېچقانداق ئىش يوق؛ %dms ئۇخلايدۇ…\n"
 
 #: openssl.c:110
 msgid "Failed to write to SSL socket\n"
-msgstr ""
+msgstr "SSL socket نى يازالمىدى\n"
 
 #: openssl.c:147 openssl.c:204
 msgid "Failed to read from SSL socket\n"
