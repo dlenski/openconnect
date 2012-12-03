@@ -7,7 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-11-12 23:23+0000\n"
+"POT-Creation-Date: 2012-12-03 11:18+0000\n"
+"PO-Revision-Date: 2012-11-15 08:31+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -15,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n"
-"%100==4 ? 2 : 3)\n"
+"%100==4 ? 2 : 3);\n"
 
 #: auth.c:130
 msgid "Form choice has no name\n"
@@ -2268,20 +2269,24 @@ msgstr "socketpair"
 msgid "fork"
 msgstr "fork"
 
-#: tun.c:658
+#: tun.c:656
+msgid "setpgid"
+msgstr ""
+
+#: tun.c:660
 msgid "execl"
 msgstr "execl"
 
-#: tun.c:663
+#: tun.c:665
 msgid "(script)"
 msgstr "(skript)"
 
-#: tun.c:757
+#: tun.c:759
 #, c-format
 msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
 msgstr "Prejet je neznan paket (len %d): %02x %02x %02x %02x...\n"
 
-#: tun.c:777
+#: tun.c:779
 #, c-format
 msgid "Failed to write incoming packet: %s\n"
 msgstr "Zapisovanje prihajajočega paketa je spodletelo: %s\n"
@@ -2334,15 +2339,3 @@ msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""
 "Gostitelj \"%s\" v datoteki config ni naveden; obravnavan bo kot "
 "neoblikovano ime gostitelja\n"
-
-#~ msgid "Failed to read from SSL socket"
-#~ msgstr "Branje iz vtiča SSL je spodletelo"
-
-#~ msgid "Failed to write to SSL socket"
-#~ msgstr "Zapisovanje v vtič SSL je spodletelo"
-
-#~ msgid "XML response has no \"auth\" root node\n"
-#~ msgstr "Odziv XML je brez ustreznega korenskega vozlišča \"auth\"\n"
-
-#~ msgid "Fixed options give %s\n"
-#~ msgstr "Popravljene možnosti podajo %s\n"

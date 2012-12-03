@@ -3,12 +3,13 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Translators:
+# Abduqadir Abliz <sahran.ug@gmail.com>, 2012.
 msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-09-19 09:29+0100\n"
-"PO-Revision-Date: 2012-09-22 08:24+0000\n"
+"POT-Creation-Date: 2012-12-03 11:18+0000\n"
+"PO-Revision-Date: 2012-11-15 08:31+0000\n"
 "Last-Translator: Abduqadir Abliz <sahran.ug@gmail.com>\n"
 "Language-Team: Uighur (http://www.transifex.com/projects/p/meego/language/"
 "ug/)\n"
@@ -18,58 +19,109 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: auth.c:121
+#: auth.c:130
 msgid "Form choice has no name\n"
 msgstr "كۆزنەك تاللاشنىڭ ئاتى يوق\n"
 
-#: auth.c:185
+#: auth.c:194
 #, c-format
 msgid "name %s not input\n"
 msgstr "%s ئات كىرگۈزۈلمىگەن\n"
 
-#: auth.c:192
+#: auth.c:201
 msgid "No input type in form\n"
 msgstr "كۆزنەكتە كىرگۈزۈش تىپى يوق\n"
 
-#: auth.c:204
+#: auth.c:213
 msgid "No input name in form\n"
 msgstr "كۆزنەكتە كىرگۈزۈش ئاتى يوق\n"
 
-#: auth.c:227
+#: auth.c:242
 #, c-format
 msgid "Unknown input type %s in form\n"
 msgstr "كۆزنەكتىكى يوچۇن كىرگۈزۈش تىپى %s\n"
 
-#: auth.c:247
-#, c-format
-msgid "Fixed options give %s\n"
-msgstr "بېرىلگەن مۇقىم تاللانما %s\n"
-
-#: auth.c:332
-msgid "Failed to parse server response\n"
-msgstr "مۇلازىمېتىر ئىنكاسىنى تەھلىل قىلالمىدى\n"
-
-#: auth.c:334
-#, c-format
-msgid "Response was:%s\n"
-msgstr "ئىنكاسى: %s\n"
-
-#: auth.c:342
-msgid "XML response has no \"auth\" root node\n"
-msgstr "XML ئىنكاسنىڭ \"auth\" غول نۇقتىسى يوق\n"
-
-#: auth.c:355
-msgid "Asked for password but '--no-passwd' set\n"
-msgstr "ئىم سورالدى ئەمما '--no-passwd' تەڭشەلگەن\n"
-
-#: auth.c:380
+#: auth.c:435
 #, c-format
 msgid "Cannot handle form method='%s', action='%s'\n"
 msgstr "كۆنەكنى بىر تەرەپ قىلالمايدۇ ئۇسۇلى='%s'، مەشغۇلات='%s'\n"
 
-#: auth.c:436
+#: auth.c:500
+msgid "Failed to parse server response\n"
+msgstr "مۇلازىمېتىر ئىنكاسىنى تەھلىل قىلالمىدى\n"
+
+#: auth.c:502
+#, c-format
+msgid "Response was:%s\n"
+msgstr "ئىنكاسى: %s\n"
+
+#: auth.c:542
+msgid "XML response has no \"auth\" node\n"
+msgstr ""
+
+#: auth.c:574
+msgid "Asked for password but '--no-passwd' set\n"
+msgstr "ئىم سورالدى ئەمما '--no-passwd' تەڭشەلگەن\n"
+
+#: auth.c:601 auth.c:910
 msgid "No form handler; cannot authenticate.\n"
 msgstr "كۆزنەك بىر تەرەپ قىلغۇچ يوق؛ دەلىللىيەلمەيدۇ\n"
+
+#: auth.c:846
+msgid "Enter credentials to unlock software token."
+msgstr ""
+
+#: auth.c:854
+msgid "Device ID:"
+msgstr "ئۈسكۈنە كىملىكى:"
+
+#: auth.c:861
+msgid "Password:"
+msgstr "ئىم:"
+
+#: auth.c:868
+msgid "PIN:"
+msgstr "PIN:"
+
+#: auth.c:898
+msgid "User bypassed soft token.\n"
+msgstr ""
+
+#: auth.c:905
+msgid "All fields are required; try again.\n"
+msgstr ""
+
+#: auth.c:920 auth.c:1007
+msgid "General failure in libstoken.\n"
+msgstr ""
+
+#: auth.c:924
+msgid "Incorrect device ID or password; try again.\n"
+msgstr "ئۈسكۈنە كىملىكى ياكى ئىم خاتا؛ قايتا سىناڭ.\n"
+
+#: auth.c:931
+msgid "Invalid PIN format; try again.\n"
+msgstr "ئىناۋەتسىز PIN پىچىمى، قايتا سىناڭ.\n"
+
+#: auth.c:941
+msgid "Soft token init was successful.\n"
+msgstr ""
+
+#: auth.c:964
+msgid "OK to generate INITIAL tokencode\n"
+msgstr ""
+
+#: auth.c:968
+msgid "OK to generate NEXT tokencode\n"
+msgstr ""
+
+#: auth.c:973
+msgid "Server is rejecting the soft token; switching to manual entry\n"
+msgstr ""
+
+#: auth.c:1002
+msgid "Generating tokencode\n"
+msgstr ""
 
 #: cstp.c:120
 #, c-format
@@ -86,11 +138,11 @@ msgstr "TCP_MAXSEG %d\n"
 msgid "Failed to initialise DTLS secret\n"
 msgstr "DTLS بىخەتەرلىكىنى دەسلەپلەشتۈرەلمىدى\n"
 
-#: cstp.c:229 http.c:119
+#: cstp.c:229 http.c:199
 msgid "Error fetching HTTPS response\n"
 msgstr "HTTPS ئىنكاسىغا ئېرىشىشتە خاتالىق كۆرۈلدى\n"
 
-#: cstp.c:236 http.c:359 http.c:638
+#: cstp.c:236 http.c:458 http.c:828
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "%s غىچە HTTPS باغلىنىشىنى ئاچالمىدى\n"
@@ -114,176 +166,176 @@ msgstr "CONNECT ئىنكاسىغا ئېرىشتى: %s\n"
 msgid "No memory for options\n"
 msgstr "تاللانمىلار ئۈچۈن ئەسلەك يوق\n"
 
-#: cstp.c:321
+#: cstp.c:324
 #, c-format
 msgid "X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"
 msgstr "X-DTLS-Session-ID بولسا 64 ھەرپ ئەمەس؛ بۇ: \"%s\"\n"
 
-#: cstp.c:351
+#: cstp.c:354
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
 msgstr "يوچۇن CSTP-Content-Encoding %s\n"
 
-#: cstp.c:419
+#: cstp.c:422
 msgid "No MTU received. Aborting\n"
 msgstr "ھېچقانداق MTU قوبۇللىمىدى. چېكىنىۋاتىدۇ\n"
 
-#: cstp.c:426
+#: cstp.c:429
 msgid "No IP address received. Aborting\n"
 msgstr "ھېچقانداق IP ئادرېس قوبۇللىمىدى. چېكىنىۋاتىدۇ\n"
 
-#: cstp.c:432
+#: cstp.c:435
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr "قايتا باغلىنىش پەرقلىق كونا IP ئادرېس بەردى  (%s != %s)\n"
 
-#: cstp.c:440
+#: cstp.c:443
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr "قايتا باغلىنىش پەرقلىق كونا IP تور ماسكىسى بەردى  (%s != %s)\n"
 
-#: cstp.c:448
+#: cstp.c:451
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
 msgstr "قايتا باغلىنىش پەرقلىق IPv6 ئادرېس بەردى  (%s != %s)\n"
 
-#: cstp.c:456
+#: cstp.c:459
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr "قايتا باغلىنىش پەرقلىق IPv6 تور ماسكىسى بەردى  (%s != %s)\n"
 
-#: cstp.c:476
+#: cstp.c:479
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr "CSTP باغلاندى. DPD %d, Keepalive %d\n"
 
-#: cstp.c:509
+#: cstp.c:512
 msgid "Compression setup failed\n"
 msgstr "پىرىسلاشنى تەڭشىيەلمىدى\n"
 
-#: cstp.c:517
+#: cstp.c:520
 msgid "Allocation of deflate buffer failed\n"
 msgstr "كىچىكلىتىلگەن يىغلەكنى تەقسىملىيەلمىدى\n"
 
-#: cstp.c:557
+#: cstp.c:560
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
 msgstr "ئۇخلاش %ds، قالغان مۆھلىتى %ds\n"
 
-#: cstp.c:590
+#: cstp.c:593
 msgid "inflate failed\n"
 msgstr "كىچىكلىتەلمىدى\n"
 
-#: cstp.c:608
+#: cstp.c:611
 #, c-format
 msgid "Received compressed data packet of %ld bytes\n"
 msgstr "%ld بايتلىق پىرىسلانغان سانلىق مەلۇمات بوغچىسى تاپشۇرۇۋالدى\n"
 
-#: cstp.c:627
+#: cstp.c:630
 #, c-format
 msgid "SSL read error %d (server probably closed connection); reconnecting.\n"
 msgstr ""
 "SSL ئوقۇش خاتالىقى %d (مۇلازىمېتىر باغلىنىشنى تاقىشى مۇمكىن)؛ قايتا "
 "باغلىنىۋاتىدۇ.\n"
 
-#: cstp.c:652
+#: cstp.c:655
 #, c-format
 msgid "SSL_write failed: %d\n"
 msgstr "SSL_write مەغلۇپ بولدى: %d\n"
 
-#: cstp.c:668
+#: cstp.c:671
 #, c-format
 msgid "SSL read error: %s; reconnecting.\n"
 msgstr "SSL ئوقۇش خاتالىقى: %s؛ قايتا باغلىنىۋاتىدۇ.\n"
 
-#: cstp.c:691
+#: cstp.c:694
 #, c-format
 msgid "SSL send failed: %s\n"
 msgstr "SSL يوللىيالمىدى: %s\n"
 
-#: cstp.c:719
+#: cstp.c:722
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
 msgstr "بوغچا ئۇزۇنلۇقى توغرا ئەمەس. SSL_read %d نى قايتۇردى ئەمما بوغچا \n"
 
-#: cstp.c:731
+#: cstp.c:734
 msgid "Got CSTP DPD request\n"
 msgstr "CSTP DPD ئىلتىماسىغا ئېرىشتى\n"
 
-#: cstp.c:737
+#: cstp.c:740
 msgid "Got CSTP DPD response\n"
 msgstr "CSTP DPD ئىنكاسىغا ئېرىشتى\n"
 
-#: cstp.c:742
+#: cstp.c:745
 msgid "Got CSTP Keepalive\n"
 msgstr "CSTP Keepalive غا ئېرىشتى\n"
 
-#: cstp.c:747
+#: cstp.c:750
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr "%d بايتلىق پىرىسلانمىغان سانلىق مەلۇمات بوغچىسى تاپشۇرۇۋالدى\n"
 
-#: cstp.c:762
+#: cstp.c:765
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
 msgstr "مۇلازىمېتىر ئۈزۈلۈشىنى تاپشۇرۇۋالدى: %02x '%s'\n"
 
-#: cstp.c:770
+#: cstp.c:773
 msgid "Compressed packet received in !deflate mode\n"
 msgstr "!deflate ھالەتتە پىرىسلانغان بوغچا تاپشۇرۇۋالدى\n"
 
-#: cstp.c:778
+#: cstp.c:781
 msgid "received server terminate packet\n"
 msgstr "مۇلازىمېتىر ئاخىرلاشتۇرۇش بوغچىسىنى تاپشۇرۇۋالدى\n"
 
-#: cstp.c:785
+#: cstp.c:788
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr "يوچۇن بوغچا %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
-#: cstp.c:828
+#: cstp.c:831
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr "SSL يازغان بايت سانى بەك ئاز! ئىلتىماس قىلغىنى %d، يوللىغىنى %d\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:855
+#: cstp.c:858
 msgid "CSTP rekey due\n"
 msgstr "CSTP ئاچقۇچ يېڭىلاش سەۋەبى\n"
 
-#: cstp.c:862
+#: cstp.c:865
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr ""
 
-#: cstp.c:865 dtls.c:756
+#: cstp.c:868 dtls.c:758
 msgid "Reconnect failed\n"
 msgstr "قايتا باغلىنالمىدى\n"
 
-#: cstp.c:874
+#: cstp.c:877
 msgid "Send CSTP DPD\n"
 msgstr "CSTP DPD يوللا\n"
 
-#: cstp.c:885
+#: cstp.c:888
 msgid "Send CSTP Keepalive\n"
 msgstr "CSTP Keepalive يوللا\n"
 
-#: cstp.c:912
+#: cstp.c:915
 #, c-format
 msgid "deflate failed %d\n"
 msgstr "%d كىچىكلىتەلمىدى\n"
 
-#: cstp.c:932
+#: cstp.c:935
 #, c-format
 msgid "Sending compressed data packet of %d bytes\n"
 msgstr "%d بايتلىق پىرىسلانغان سانلىق مەلۇمات بوغچىسى يوللاۋاتىدۇ\n"
 
-#: cstp.c:944
+#: cstp.c:947
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr "%d بايتلىق پىرىسلانمىغان سانلىق مەلۇمات بوغچىسى يوللاۋاتىدۇ\n"
 
-#: cstp.c:984
+#: cstp.c:987
 #, c-format
 msgid "Send BYE packet: %s\n"
 msgstr "يوللىغان BYE بوغچا: %s\n"
@@ -382,106 +434,106 @@ msgstr "ۋاكالەتچى بىلەن باغلانغاندا DTLS يوق\n"
 msgid "Open UDP socket for DTLS:"
 msgstr "DTLS ئۈچۈن Open UDP socket:"
 
-#: dtls.c:544 dtls.c:658
+#: dtls.c:544 dtls.c:660
 #, c-format
 msgid "Unknown protocol family %d. Cannot do DTLS\n"
 msgstr "يوچۇن كېلىشىم ئائىلىسى %d. DTLS قىلالمايدۇ\n"
 
-#: dtls.c:551
+#: dtls.c:552
 msgid "Bind UDP socket for DTLS"
 msgstr "DTLS ئۈچۈن UDP socket باغ"
 
-#: dtls.c:557
+#: dtls.c:559
 msgid "UDP (DTLS) connect:\n"
 msgstr "UDP (DTLS) باغلىنىش:\n"
 
-#: dtls.c:619
+#: dtls.c:621
 #, c-format
 msgid "DTLS option %s : %s\n"
 msgstr "DTLS تاللانما %s : %s\n"
 
-#: dtls.c:668
+#: dtls.c:670
 #, c-format
 msgid "DTLS connected. DPD %d, Keepalive %d\n"
 msgstr "DTLS باغلاندى. DPD %d, Keepalive %d\n"
 
-#: dtls.c:699
+#: dtls.c:701
 #, c-format
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
 msgstr "DTLS بوغچىسى 0x%02x نى تاپشۇرۇۋالدى %d بايت\n"
 
-#: dtls.c:713
+#: dtls.c:715
 msgid "Got DTLS DPD request\n"
 msgstr "DTLS DPD ئىلتىماسىغا ئېرىشتى\n"
 
-#: dtls.c:719
+#: dtls.c:721
 msgid "Failed to send DPD response. Expect disconnect\n"
 msgstr "DPD ئىنكاسىنى يوللىيالمىدى. ئۈزۈلۈشى مۇمكىن\n"
 
-#: dtls.c:723
+#: dtls.c:725
 msgid "Got DTLS DPD response\n"
 msgstr "DTLS DPD ئىنكاسىغا ئېرىشتى\n"
 
-#: dtls.c:727
+#: dtls.c:729
 msgid "Got DTLS Keepalive\n"
 msgstr "DTLS Keepalive غا ئېرىشتى\n"
 
-#: dtls.c:732
+#: dtls.c:734
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
 msgstr "يوچۇن DTLS بوغچا تىپى %02x، ئۇزۇنلۇقى %d\n"
 
-#: dtls.c:751
+#: dtls.c:753
 msgid "DTLS rekey due\n"
 msgstr "DTLS ئاچقۇچ يېڭىلاش سەۋەبى\n"
 
-#: dtls.c:762
+#: dtls.c:764
 msgid "DTLS rekey failed\n"
 msgstr "DTLS ئاچقۇچ يېڭىلىيالمىدى\n"
 
-#: dtls.c:770
+#: dtls.c:772
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
 msgstr ""
 
-#: dtls.c:776
+#: dtls.c:778
 msgid "Send DTLS DPD\n"
 msgstr "DTLS DPD يوللا\n"
 
-#: dtls.c:781
+#: dtls.c:783
 msgid "Failed to send DPD request. Expect disconnect\n"
 msgstr "DPD ئىلتىماسىنى يوللىيالمىدى. ئۈزۈلۈشى مۇمكىن\n"
 
-#: dtls.c:794
+#: dtls.c:796
 msgid "Send DTLS Keepalive\n"
 msgstr "DTLS Keepalive يوللا\n"
 
-#: dtls.c:799
+#: dtls.c:801
 msgid "Failed to send keepalive request. Expect disconnect\n"
 msgstr "keepalive ئىلتىماسىنى يوللىيالمىدى. ئۈزۈلۈشى مۇمكىن\n"
 
-#: dtls.c:828
+#: dtls.c:830
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
 msgstr "DTLS يېزىش خاتالىقى %d غا ئېرىشتى. SSL گە قايتىدۇ\n"
 
-#: dtls.c:842
+#: dtls.c:844
 #, c-format
 msgid "DTLS got write error: %s. Falling back to SSL\n"
 msgstr "DTLS يېزىش خاتالىقى %s غا ئېرىشتى. SSL گە قايتىدۇ\n"
 
-#: dtls.c:853
+#: dtls.c:855
 #, c-format
 msgid "Sent DTLS packet of %d bytes; DTLS send returned %d\n"
 msgstr "%d بايتلىق DTLS بوغچىسى يوللىدى؛ DTLS يوللاش %d قايتۇردى\n"
 
-#: dtls.c:865
+#: dtls.c:867
 msgid "Built against SSL library with no Cisco DTLS support\n"
 msgstr "ئىچكى SSL ئامبار نەشرىدە Cisco DTLS نى قوللىمايدۇ\n"
 
 #: gnutls.c:82
 #, c-format
 msgid "Failed to write to SSL socket: %s\n"
-msgstr "SSL socket نى يازالمىدى: %s\n"
+msgstr ""
 
 #: gnutls.c:105 openssl.c:122
 msgid "SSL write cancelled\n"
@@ -858,48 +910,48 @@ msgid "Failed to set TLS priority string: %s\n"
 msgstr "TLS ئالدىنلىق تىزىقىنى تەڭشىيەلمىدى: %s\n"
 
 #. really?
-#: gnutls.c:1853 openssl.c:1375
+#: gnutls.c:1856 openssl.c:1384
 #, c-format
 msgid "SSL negotiation with %s\n"
 msgstr "%s بىلەن SSL كېڭىشى\n"
 
-#: gnutls.c:1877 openssl.c:1406
+#: gnutls.c:1880 openssl.c:1415
 msgid "SSL connection cancelled\n"
 msgstr "SSL باغلىنىشتىن ۋاز كەچتى\n"
 
-#: gnutls.c:1884
+#: gnutls.c:1887
 #, c-format
 msgid "SSL connection failure: %s\n"
 msgstr "SSL باغلىنالمىدى: %s\n"
 
-#: gnutls.c:1893
+#: gnutls.c:1896
 #, c-format
 msgid "GnuTLS non-fatal return during handshake: %s\n"
 msgstr "قول ئېلىشىۋاتقاندا GnuTLS ئەجەللىك بولمىغان قايتۇرۇش: %s\n"
 
-#: gnutls.c:1900 openssl.c:1426
+#: gnutls.c:1903 openssl.c:1435
 #, c-format
 msgid "Connected to HTTPS on %s\n"
 msgstr "%s دا HTTPS غا باغلاندى\n"
 
-#: gnutls.c:2077
+#: gnutls.c:2080
 #, c-format
 msgid "PIN required for %s"
 msgstr "%s ئۈچۈن PIN زۆرۈر"
 
-#: gnutls.c:2087
+#: gnutls.c:2090
 msgid "Wrong PIN"
 msgstr "PIN خاتا"
 
-#: gnutls.c:2090
+#: gnutls.c:2093
 msgid "This is the final try before locking!"
 msgstr "بۇ قۇلۇپلاشتىن ئىلگىرىكى ئاخىرقى سىناق!"
 
-#: gnutls.c:2092
+#: gnutls.c:2095
 msgid "Only a few tries left before locking!"
 msgstr "قۇلۇپلاشتىن ئىلگىرى بىر قانچە قېتىملىق سىناقلا قالدى!"
 
-#: gnutls.c:2097
+#: gnutls.c:2100
 msgid "Enter PIN:"
 msgstr "PIN نى كىرگۈزۈڭ"
 
@@ -990,90 +1042,90 @@ msgstr "TPM key PIN كىرگۈزۈڭ:"
 msgid "Failed to set key PIN: %s\n"
 msgstr "ئاچقۇچ PIN نى تەڭشىيەلمىدى: %s\n"
 
-#: http.c:64
+#: http.c:144
 msgid "No memory for allocating cookies\n"
 msgstr "cookies تەقسىملەيدىغان ئەسلەك يوق\n"
 
-#: http.c:128
+#: http.c:208
 #, c-format
 msgid "Failed to parse HTTP response '%s'\n"
 msgstr "HTTP ئىنكاسى '%s' نى تەھلىل قىلالمىدى\n"
 
-#: http.c:133
+#: http.c:213
 #, c-format
 msgid "Got HTTP response: %s\n"
 msgstr "HTTP ئىنكاسىغا ئېرىشتى: %s\n"
 
-#: http.c:141
+#: http.c:221
 msgid "Error processing HTTP response\n"
 msgstr "HTTPS ئىنكاسىنى بىر تەرەپ قىلىۋاتقاندا خاتالىق كۆرۈلدى\n"
 
-#: http.c:147
+#: http.c:227
 #, c-format
 msgid "Ignoring unknown HTTP response line '%s'\n"
 msgstr "يوچۇن HTTP ئىنكاس قۇرى '%s' غا پەرۋا قىلمايۋاتىدۇ\n"
 
-#: http.c:167
+#: http.c:247
 #, c-format
 msgid "Invalid cookie offered: %s\n"
 msgstr "ئىناۋەتسىز cookie تەمىنلىگەن: %s\n"
 
-#: http.c:176
+#: http.c:256
 msgid "<elided>"
 msgstr ""
 
-#: http.c:186
+#: http.c:266
 msgid "SSL certificate authentication failed\n"
 msgstr "SSL گۇۋاھنامە دەلىللىيەلمىدى\n"
 
-#: http.c:217
+#: http.c:297
 #, c-format
 msgid "Response body has negative size (%d)\n"
 msgstr "ئىنكاس گەۋدىسى مەنپىي چوڭلۇقتا (%d)\n"
 
-#: http.c:227
+#: http.c:307
 #, c-format
 msgid "Unknown Transfer-Encoding: %s\n"
 msgstr "يوچۇن يوللاش كودلىنىشى: %s\n"
 
 #. Now the body, if there is one
-#: http.c:241
+#: http.c:321
 #, c-format
 msgid "HTTP body %s (%d)\n"
 msgstr "HTTP گەۋدىسى %s (%d)\n"
 
-#: http.c:255 http.c:283
+#: http.c:335 http.c:363
 msgid "Error reading HTTP response body\n"
 msgstr "HTTP ئىنكاس گەۋدىسىنى ئوقۇش خاتالىقى\n"
 
-#: http.c:268
+#: http.c:348
 msgid "Error fetching chunk header\n"
 msgstr "بۆلەك بېشىغا ئېرىشىش خاتالىقى\n"
 
-#: http.c:294
+#: http.c:374
 msgid "Error fetching HTTP response body\n"
 msgstr ""
 "ۋاكالەتچى ئىنكاسىغا ئېرىشىشتە خاتالىق كۆرۈلدىHTTP ئىنكاس گەۋدىسىگە ئېرىشىش "
 "خاتالىقى\n"
 
-#: http.c:297
+#: http.c:377
 #, c-format
 msgid "Error in chunked decoding. Expected '', got: '%s'"
 msgstr "بۆلەك كۆد يېشىش خاتالىقى. مۆلچەرلىگىنى ''، ئېرىشكىنى: '%s'"
 
-#: http.c:310
+#: http.c:390
 msgid "Cannot receive HTTP 1.0 body without closing connection\n"
 msgstr "باشلىنىش يېپىلمىغان HTTP 1.0 گەۋدىسىنى قوبۇل قىلالمايدۇ\n"
 
-#: http.c:380
+#: http.c:473
 msgid "Failed to send GET request for new config\n"
 msgstr "يېڭى سەپلىمە ئۈچۈن GET ئىلتىماسىنى يوللىيالمىدى\n"
 
-#: http.c:402
+#: http.c:497
 msgid "Downloaded config file did not match intended SHA1\n"
 msgstr "چۈشۈرگەن سەپلىمە ھۆججەت مۆلچەرلىگەن SHA1 بىلەن ماسلاشمىدى\n"
 
-#: http.c:419
+#: http.c:514
 msgid ""
 "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 "This facility is disabled by default for security reasons, so you may wish "
@@ -1084,36 +1136,36 @@ msgstr ""
 "كۆڭۈلدىكى ئەھۋالدا بىخەتەرلىكنى چىقىش قىلىپ بۇ چەكلەندى، شۇڭلاشقا ئۇنى "
 "قوزغىتامسىز."
 
-#: http.c:426
+#: http.c:521
 msgid "Trying to run Linux CSD trojan script."
 msgstr "Linux CSD تىرويان قوليازمىنى ئىجرا قىلىشنى سىناۋاتىدۇ."
 
-#: http.c:434
+#: http.c:529
 #, c-format
 msgid "Failed to open temporary CSD script file: %s\n"
 msgstr "ۋاقىتلىق CSD قوليازما ھۆججەتنى ئاچالمىدى: %s\n"
 
-#: http.c:442
+#: http.c:537
 #, c-format
 msgid "Failed to write temporary CSD script file: %s\n"
 msgstr "ۋاقىتلىق CSD قوليازما ھۆججەتنى يازالمىدى: %s\n"
 
-#: http.c:459 main.c:811
+#: http.c:554 main.c:840
 #, c-format
 msgid "Failed to set uid %ld\n"
 msgstr "uid %ld نى تەڭشىيەلمىدى\n"
 
-#: http.c:464
+#: http.c:559
 #, c-format
 msgid "Invalid user uid=%ld\n"
 msgstr "ئىناۋەتسىز ئىشلەتكۈچى uid=%ld\n"
 
-#: http.c:470
+#: http.c:565
 #, c-format
 msgid "Failed to change to CSD home directory '%s': %s\n"
 msgstr "CSD ماكان مۇندەرىجە '%s' نى ئۆزگەرتەلمىدى: %s\n"
 
-#: http.c:476
+#: http.c:571
 #, c-format
 msgid ""
 "Warning: you are running insecure CSD code with root privileges\n"
@@ -1123,179 +1175,183 @@ msgstr ""
 "قىلىۋاتىسىز\n"
 "\"--csd-user\" بۇيرۇق قۇرى تاللانمىسىنى ئىشلىتىڭ\n"
 
-#: http.c:513
+#: http.c:615
 #, c-format
 msgid "Failed to exec CSD script %s\n"
 msgstr "CSD قوليازما %s نى ئىجرا قىلالمىدى\n"
 
-#: http.c:707
+#: http.c:732
 #, c-format
 msgid "Failed to parse redirected URL '%s': %s\n"
 msgstr "قايتا نىشانلايدىغان URL '%s' نى تەھلىل قىلالمىدى: %s\n"
 
-#: http.c:742
+#: http.c:759
 #, c-format
 msgid "Cannot follow redirection to non-https URL '%s'\n"
 msgstr "قايتا نىشانلايدىغان https ئەمەس URL '%s' غا ئەگىشەلمىدى\n"
 
-#: http.c:771
+#: http.c:787
 #, c-format
 msgid "Allocating new path for relative redirect failed: %s\n"
 msgstr "مۇناسىۋەتلىك قايتا نىشانلاش ئۈچۈن يېڭى يولنى تەقسىملىيەلمىدى: %s\n"
 
-#: http.c:784
+#: http.c:889
 #, c-format
 msgid "Unexpected %d result from server\n"
 msgstr "مۇلازىمېتىرنىڭ ئويلىشىلمىغان %d نەتىجىسى\n"
 
-#: http.c:804
+#: http.c:915
+msgid "Unknown response from server\n"
+msgstr "مۇلازىمېتىرنىڭ يوچۇن ئىنكاسى\n"
+
+#: http.c:977
+msgid "XML POST enabled\n"
+msgstr ""
+
+#: http.c:1031
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
 msgstr "1 سېكۇنتتىن كېيىن %s يېڭىلايدۇ\n"
 
-#: http.c:810
-msgid "Unknown response from server\n"
-msgstr "مۇلازىمېتىرنىڭ يوچۇن ئىنكاسى\n"
-
-#: http.c:978
+#: http.c:1231
 msgid "request granted"
 msgstr "ئىجازەت ئىلتىماسى"
 
-#: http.c:979
+#: http.c:1232
 msgid "general failure"
 msgstr "ئادەتتىكى مەغلۇبىيەت"
 
-#: http.c:980
+#: http.c:1233
 msgid "connection not allowed by ruleset"
 msgstr "قائىدە توپلىمى باغلىنىشقا يول قويمىدى"
 
-#: http.c:981
+#: http.c:1234
 msgid "network unreachable"
 msgstr "تورغا يېتەلمەيدۇ"
 
-#: http.c:982
+#: http.c:1235
 msgid "host unreachable"
 msgstr "ماشىنىغا يېتەلمەيدۇ"
 
-#: http.c:983
+#: http.c:1236
 msgid "connection refused by destination host"
 msgstr "نىشان ماشىنا باغلىنىشنى رەت قىلدى"
 
-#: http.c:984
+#: http.c:1237
 msgid "TTL expired"
 msgstr "TTL ۋاقتى ئۆتتى"
 
-#: http.c:985
+#: http.c:1238
 msgid "command not supported / protocol error"
 msgstr "بۇيرۇقنى قوللىمايدۇ/كېلىشىم خاتالىقى"
 
-#: http.c:986
+#: http.c:1239
 msgid "address type not supported"
 msgstr "ئادرېس تىپىنى قوللىمايدۇ"
 
-#: http.c:1000
+#: http.c:1253
 #, c-format
 msgid "Error writing auth request to SOCKS proxy: %s\n"
 msgstr "دەلىللەش ئىلتىماسىنى SOCKS ۋاكالەتچىگە يېزىش خاتالىقى: %s\n"
 
-#: http.c:1007
+#: http.c:1260
 #, c-format
 msgid "Error reading auth response from SOCKS proxy: %s\n"
 msgstr "دەلىللەش ئىنكاسىنى SOCKS ۋاكالەتچىدىن ئوقۇش خاتالىقى: %s\n"
 
-#: http.c:1013
+#: http.c:1266
 #, c-format
 msgid "Unexpected auth response from SOCKS proxy: %02x %02x\n"
 msgstr "SOCKS ۋاكالەتچىنىڭ ئويلاشمىغان دەلىللەش ئىنكاسى: %02x %02x\n"
 
-#: http.c:1021
+#: http.c:1274
 #, c-format
 msgid "SOCKS proxy error %02x: %s\n"
 msgstr "SOCKS ۋاكالەتچى خاتالىقى %02x: %s\n"
 
-#: http.c:1025
+#: http.c:1278
 #, c-format
 msgid "SOCKS proxy error %02x\n"
 msgstr "SOCKS ۋاكالەتچى خاتالىقى %02x\n"
 
-#: http.c:1031
+#: http.c:1284
 #, c-format
 msgid "Requesting SOCKS proxy connection to %s:%d\n"
 msgstr "%s غا SOCKS ۋاكالەتچى باغلىنىش ئىلتىماسى: %d\n"
 
-#: http.c:1046
+#: http.c:1299
 #, c-format
 msgid "Error writing connect request to SOCKS proxy: %s\n"
 msgstr ""
 "باغلىنىش ئىلتىماسىنى SOCKS ۋاكالەتچىگە يېزىۋاتقاندا خاتالىق كۆرۈلدى: %s\n"
 
-#: http.c:1054 http.c:1087
+#: http.c:1307 http.c:1340
 #, c-format
 msgid "Error reading connect response from SOCKS proxy: %s\n"
 msgstr "باغلىنىش ئىنكاسىنى SOCKS ۋاكالەتچىدىن ئوقۇش خاتالىقى: %s\n"
 
-#: http.c:1060
+#: http.c:1313
 #, c-format
 msgid "Unexpected connect response from SOCKS proxy: %02x %02x...\n"
 msgstr "SOCKS ۋاكالەتچىدىن كەلگەن ئويلاشمىغان باغلىنىش ئىنكاسى: %02x %02x...\n"
 
-#: http.c:1080
+#: http.c:1333
 #, c-format
 msgid "Unexpected address type %02x in SOCKS connect response\n"
 msgstr "SOCKS باغلىنىش ئىنكاسىدىكى ئويلاشمىغان ئادرېس تىپى %02x\n"
 
-#: http.c:1108
+#: http.c:1366
 #, c-format
 msgid "Requesting HTTP proxy connection to %s:%d\n"
 msgstr "%s غا HTTP ۋاكالەتچى باغلىنىش ئىلتىماسى: %d\n"
 
-#: http.c:1114
+#: http.c:1374
 #, c-format
 msgid "Sending proxy request failed: %s\n"
 msgstr "ۋاكالەتچى ئىلتىماسىنى يوللىيالمىدى: %s\n"
 
-#: http.c:1121
+#: http.c:1381
 msgid "Error fetching proxy response\n"
 msgstr "ۋاكالەتچى ئىنكاسىغا ئېرىشىشتە خاتالىق كۆرۈلدى\n"
 
-#: http.c:1128
+#: http.c:1388
 #, c-format
 msgid "Failed to parse proxy response '%s'\n"
 msgstr "ۋاكالەتچى ئىنكاسى '%s' نى تەھلىل قىلالمىدى\n"
 
-#: http.c:1134
+#: http.c:1394
 #, c-format
 msgid "Proxy CONNECT request failed: %s\n"
 msgstr "ۋاكالەتچى CONNECT ئىلتىماسى مەغلۇپ بولدى: %s\n"
 
-#: http.c:1141
+#: http.c:1401
 msgid "Failed to read proxy response\n"
 msgstr "ۋاكالەتچى ئىنكاسىنى ئوقۇيالمىدى\n"
 
-#: http.c:1145
+#: http.c:1405
 #, c-format
 msgid "Unexpected continuation line after CONNECT response: '%s'\n"
 msgstr "CONNECT ئىنكاستىن كېيىنكى ئويلىشىلمىغان داۋاملىشىدىغان قۇر: '%s'\n"
 
-#: http.c:1161
+#: http.c:1421
 #, c-format
 msgid "Unknown proxy type '%s'\n"
 msgstr "يوچۇن ۋاكالەتچى خاتالىقى '%s'\n"
 
-#: http.c:1189
+#: http.c:1449
 msgid "Only http or socks(5) proxies supported\n"
 msgstr "پەقەت http ياكى socks(5) نىلا قوللايدۇ\n"
 
-#: library.c:210
+#: library.c:251
 #, c-format
 msgid "Failed to parse server URL '%s'\n"
 msgstr "مۇلازىمېتىر URL '%s' نى تەھلىل قىلالمىدى\n"
 
-#: library.c:216
+#: library.c:257
 msgid "Only https:// permitted for server URL\n"
 msgstr "مۇلازىمېتىر URL پەقەت https:// غىلا يول قويىدۇ\n"
 
-#: main.c:179
+#: main.c:185
 #, c-format
 msgid ""
 "For assistance with OpenConnect, please see the web page at\n"
@@ -1304,25 +1360,25 @@ msgstr ""
 "OpenConnect ھەققىدىكى ياردەمنى تۆۋەندىكى تورتۇرادىن كۆرۈڭ\n"
 "http://www.infradead.org/openconnect/mail.html\n"
 
-#: main.c:188
+#: main.c:194
 #, c-format
 msgid "Using OpenSSL. Features present:"
 msgstr "OpenSSL. ئىشلىتىش ئىقتىدار تونۇشتۇرۇش:"
 
-#: main.c:190
+#: main.c:196
 #, c-format
 msgid "Using GnuTLS. Features present:"
 msgstr "GnuTLS. ئىشلىتىش ئىقتىدار تونۇشتۇرۇش:"
 
-#: main.c:199
+#: main.c:205
 msgid "OpenSSL ENGINE not present"
 msgstr "OpenSSL موتورى مەۋجۇت ئەمەس"
 
-#: main.c:211
+#: main.c:221
 msgid "using OpenSSL"
 msgstr "OpenSSL ئىشلەت"
 
-#: main.c:215
+#: main.c:225
 #, c-format
 msgid ""
 "\n"
@@ -1332,12 +1388,12 @@ msgstr ""
 "ئاگاھلاندۇرۇش: بۇ ئىككىلىك ھالەتتە DTLS نى قوللىمايدۇ. ئۈنۈمى تەسىرگە "
 "ئۇچرىشى مۇمكىن.\n"
 
-#: main.c:221
+#: main.c:231
 #, c-format
 msgid "Usage:  openconnect [options] <server>\n"
 msgstr "ئىشلىتىلىشى: openconnect [options] <server>\n"
 
-#: main.c:222
+#: main.c:232
 #, c-format
 msgid ""
 "Open client for Cisco AnyConnect VPN, version %s\n"
@@ -1346,244 +1402,256 @@ msgstr ""
 "Cisco AnyConnect VPN ئوچۇق خېرىدارى، نەشرى %s\n"
 "\n"
 
-#: main.c:224
+#: main.c:234
 msgid "Read options from config file"
 msgstr "سەپلىمە ھۆججەتتىن تاللانمىلارنى ئوقۇ"
 
-#: main.c:225
+#: main.c:235
 msgid "Continue in background after startup"
 msgstr "قوزغالغاندىن كېيىن ئارقا سۇپىدا داۋاملاشتۇر"
 
-#: main.c:226
+#: main.c:236
 msgid "Write the daemon's PID to this file"
 msgstr "نازارەتچىنىڭ PID نى بۇ ھۆججەتكە ياز"
 
-#: main.c:227
+#: main.c:237
 msgid "Use SSL client certificate CERT"
 msgstr "SSL خېرىدار گۇۋاھنامىسى CERT نى ئىشلەت"
 
-#: main.c:228
+#: main.c:238
 msgid "Warn when certificate lifetime < DAYS"
 msgstr "گۇۋاھنامىنىڭ ئىناۋەتلىك ۋاقتىنى ئاگاھلاندۇر < DAYS"
 
-#: main.c:229
+#: main.c:239
 msgid "Use SSL private key file KEY"
 msgstr "SSL شەخسىي ئاچقۇچ ھۆججەت ئاچقۇچىنى ئىشلەت"
 
-#: main.c:230
+#: main.c:240
 msgid "Use WebVPN cookie COOKIE"
 msgstr "WebVPN cookie COOKIE ئىشلەت"
 
-#: main.c:231
+#: main.c:241
 msgid "Read cookie from standard input"
 msgstr "ئۆلچەملىك كىرگۈزۈشتىن cookie ئوقۇ"
 
-#: main.c:232
+#: main.c:242
 msgid "Enable compression (default)"
 msgstr "پىرىسلاشنى قوزغات (كۆڭۈلدىكى)"
 
-#: main.c:233
+#: main.c:243
 msgid "Disable compression"
 msgstr "پىرىسلاشنى چەكلە"
 
-#: main.c:234
+#: main.c:244
 msgid "Set minimum Dead Peer Detection interval"
 msgstr ""
 
-#: main.c:235
+#: main.c:245
 msgid "Set login usergroup"
 msgstr "usergroup تىزىمغا كىرىش تەڭشىكى"
 
-#: main.c:236
+#: main.c:246
 msgid "Display help text"
 msgstr "ياردەم مەتىننى كۆرسەت"
 
-#: main.c:237
+#: main.c:247
 msgid "Use IFNAME for tunnel interface"
 msgstr "تونىل ئېغىزى ئۈچۈن IFNAME ئىشلەت"
 
-#: main.c:238
+#: main.c:248
 msgid "Use syslog for progress messages"
 msgstr "سۈرئەت ئۇچۇرى ئۈچۈن syslog ئىشلەت"
 
-#: main.c:239
+#: main.c:249
 msgid "Drop privileges after connecting"
 msgstr "باغلانغاندىن كېيىن ئالدىنلىقنى تاشلا"
 
-#: main.c:240
+#: main.c:250
 msgid "Drop privileges during CSD execution"
 msgstr "CSD نى ئىجرا قىلىش جەريانىدا ئالدىنلىقنى تاشلا"
 
-#: main.c:241
+#: main.c:251
 msgid "Run SCRIPT instead of CSD binary"
 msgstr "CSD ئىككىلىكنىڭ ئورنىغا SCRIPT ئىجرا قىل"
 
-#: main.c:242
+#: main.c:252
 msgid "Request MTU from server"
 msgstr "مۇلازىمېتىردىن MTU ئىلتىماسى"
 
-#: main.c:243
+#: main.c:253
 msgid "Indicate path MTU to/from server"
 msgstr "مۇلازىمېتىرغا/دىن MTU يولىنى كۆرسەت"
 
-#: main.c:244
+#: main.c:254
 msgid "Set key passphrase or TPM SRK PIN"
 msgstr "ئاچقۇچ ئىم جۈملىسى ياكى TPM SRK PIN تەڭشىكى"
 
-#: main.c:245
+#: main.c:255
 msgid "Key passphrase is fsid of file system"
 msgstr "ھۆججەت سىستېمىسىنىڭ ھالقىلىق ئىم جۈملىسى fsid"
 
-#: main.c:246
+#: main.c:256
 msgid "Set proxy server"
 msgstr "ۋاكالەتچى مۇلازىمېتىر تەڭشەك"
 
-#: main.c:247
+#: main.c:257
 msgid "Disable proxy"
 msgstr "ۋاكالەتچىنى چەكلە"
 
-#: main.c:248
+#: main.c:258
 msgid "Use libproxy to automatically configure proxy"
 msgstr "ئۆزلۈكىدىن سەپلىنىدىغان ۋاكالەتچى libproxy نى ئىشلەت"
 
-#: main.c:250
+#: main.c:260
 msgid "(NOTE: libproxy disabled in this build)"
 msgstr "(دىققەت: libproxy بۇ نەشرىدە چەكلەنگەن)"
 
-#: main.c:252
+#: main.c:262
 msgid "Less output"
 msgstr "ئازراق چىقىرىش"
 
-#: main.c:253
+#: main.c:263
 msgid "Set packet queue limit to LEN pkts"
 msgstr "بوغچا قاتار چېكىنى LEN pkts غا تەڭشە"
 
-#: main.c:254
+#: main.c:264
 msgid "Shell command line for using a vpnc-compatible config script"
 msgstr "vpnc ماسلىشىشچان سەپلىمە قوليازمىسىنىڭ Shell بۇيرۇقى قۇرى"
 
-#: main.c:255
+#: main.c:265
 msgid "default"
 msgstr "كۆڭۈلدىكى"
 
-#: main.c:256
+#: main.c:266
 msgid "Pass traffic to 'script' program, not tun"
 msgstr ""
 
-#: main.c:257
+#: main.c:267
 msgid "Set login username"
 msgstr "تىزىمغا كىرىدىغان ئىشلەتكۈچى ئاتى تەڭشىكى"
 
-#: main.c:258
+#: main.c:268
 msgid "Report version number"
 msgstr "دوكلات نەشر نومۇرى"
 
-#: main.c:259
+#: main.c:269
 msgid "More output"
 msgstr "تېخىمۇ كۆپ چىقىرىش"
 
-#: main.c:260
+#: main.c:270
 msgid "XML config file"
 msgstr "XML سەپلىمە ھۆججەت"
 
-#: main.c:261
+#: main.c:271
 msgid "Choose authentication login selection"
 msgstr "دەلىللەپ تىزىمغا كىرىش تاللانمىسىنى تاللاڭ"
 
-#: main.c:262
+#: main.c:272
 msgid "Authenticate only and print login info"
 msgstr "پەقەت دەلىللەش ۋە باسىدىغان تىزىمغا كىرىش ئۇچۇرى بار"
 
-#: main.c:263
+#: main.c:273
 msgid "Fetch webvpn cookie only; don't connect"
 msgstr "webvpn cookie غىلا ئېرىش؛ باغلانما"
 
-#: main.c:264
+#: main.c:274
 msgid "Print webvpn cookie before connecting"
 msgstr "باغلىنىشتىن ئىلگىرى webvpn cookie نى باس"
 
-#: main.c:265
+#: main.c:275
 msgid "Cert file for server verification"
 msgstr "مۇلازىمېتىر دەلىللەش ئۈچۈن گۇۋاھنامە ھۆججەت"
 
-#: main.c:266
+#: main.c:276
 msgid "Do not ask for IPv6 connectivity"
 msgstr "IPv6 باغلىنىشىنى سورىما"
 
-#: main.c:267
+#: main.c:277
 msgid "OpenSSL ciphers to support for DTLS"
 msgstr "DTLS نى قوللايدىغان OpenSSL شىفىر"
 
-#: main.c:268
+#: main.c:278
 msgid "Disable DTLS"
 msgstr "DTLS نى چەكلە"
 
-#: main.c:269
+#: main.c:279
 msgid "Disable HTTP connection re-use"
 msgstr "HTTP باغلىنىشىنى قايتا ئىشلىتىشنى چەكلە"
 
-#: main.c:270
+#: main.c:280
 msgid "Disable password/SecurID authentication"
 msgstr "ئىم/SecurID دەلىللەشنى چەكلە"
 
-#: main.c:271
+#: main.c:281
 msgid "Do not require server SSL cert to be valid"
 msgstr "مۇلازىمېتىر SSL گۇۋاھنامىسى زۆرۈر بولماسلىق ئىناۋەتلىك"
 
-#: main.c:272
+#: main.c:282
 msgid "Do not expect user input; exit if it is required"
 msgstr "ئىشلەتكۈچى كىرگۈزۈشنى ئۈمىد قىلما؛ زۆرۈر بولسا چېكىن"
 
-#: main.c:273
+#: main.c:283
 msgid "Read password from standard input"
 msgstr "ئۆلچەملىك كىرگۈزۈشتىن ئىم ئوقۇ"
 
-#: main.c:274
+#: main.c:284
+msgid "Use software token to generate password"
+msgstr ""
+
+#: main.c:286
+msgid "(NOTE: libstoken disabled in this build)"
+msgstr ""
+
+#: main.c:288
 msgid "Connection retry timeout in seconds"
 msgstr "سېكۇنت بىلەن ئىپادىلەنگەن باغلىنىشنى قايتا سىناش مۆھلىتى"
 
-#: main.c:275
+#: main.c:289
 msgid "Server's certificate SHA1 fingerprint"
 msgstr "مۇلازىمېتىرنىڭ گۇۋاھنامە SHA1 بارماق ئىزى"
 
-#: main.c:276
+#: main.c:290
 msgid "HTTP header User-Agent: field"
 msgstr "HTTP بېشىنىڭ ئىشلەتكۈچى ۋاكالەتچىسى: سۆز بۆلىكى"
 
-#: main.c:277
+#: main.c:291
+msgid "OS type (linux,linux-64,mac,win) to report"
+msgstr ""
+
+#: main.c:292
 msgid "Set local port for DTLS datagrams"
 msgstr "DTLS سانلىق مەلۇمات بوغچىسىنىڭ يەرلىك ئېغىز تەڭشىكى"
 
-#: main.c:288
+#: main.c:303
 #, c-format
 msgid "Allocation failure for string from stdin\n"
 msgstr "stdin دىن ھەرپ تىزىقىنى تەقسىملىيەلمىدى\n"
 
-#: main.c:292
+#: main.c:307
 msgid "fgets (stdin)"
 msgstr "fgets (stdin)"
 
-#: main.c:355
+#: main.c:370
 #, c-format
 msgid "Failed to get line from config file: %s\n"
 msgstr "سەپلىمە ھۆججەتتىن قۇرغا ئېرىشەلمىدى: %s\n"
 
-#: main.c:395
+#: main.c:410
 #, c-format
 msgid "Unrecognised option at line %d: '%s'\n"
 msgstr "%d قۇردىكى تونۇيالمايدىغان تاللانما: '%s'\n"
 
-#: main.c:405
+#: main.c:420
 #, c-format
 msgid "Option '%s' does not take an argument at line %d\n"
 msgstr "'%s' تاللانما %d قۇردىكى ئۆزگەرگۈچىگە ئېرىشەلمىدى\n"
 
-#: main.c:409
+#: main.c:424
 #, c-format
 msgid "Option '%s' requires an argument at line %d\n"
 msgstr "'%s' تاللانما %d قۇردىكى ئۆزگەرگۈچىنى ئىلتىماس قىلدى\n"
 
-#: main.c:441
+#: main.c:460
 #, c-format
 msgid ""
 "WARNING: This version of openconnect is %s but\n"
@@ -1592,27 +1660,27 @@ msgstr ""
 "ئاگاھلاندۇرۇش: بۇ نەشرىدىكى openconnect بولسا %s ئەمما libopenconnect "
 "ئامبىرى %s\n"
 
-#: main.c:450
+#: main.c:469
 #, c-format
 msgid "Failed to allocate vpninfo structure\n"
 msgstr "vpninfo قۇرۇلمىسىنى تەقسىملىيەلمىدى\n"
 
-#: main.c:493
+#: main.c:508
 #, c-format
 msgid "Cannot use 'config' option inside config file\n"
 msgstr "سەپلىمە ھۆججەتتە 'config' تاللانمىسىنى ئىشلىتەلمەىدى\n"
 
-#: main.c:498
+#: main.c:513
 #, c-format
 msgid "Cannot open config file '%s': %s\n"
 msgstr "سەپلىمە ھۆججەت «%s»نى ئاچالمىدى: %s\n"
 
-#: main.c:587 main.c:594
+#: main.c:602 main.c:609
 #, c-format
 msgid "MTU %d too small\n"
 msgstr "MTU %d بەك كىچىك\n"
 
-#: main.c:615
+#: main.c:630
 #, c-format
 msgid ""
 "Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
@@ -1623,91 +1691,96 @@ msgstr ""
 "ئەگەر بۇنىڭ ياردىمى بولسا <openconnect-devel@lists.infradead.org> غا دوكلات "
 "قىلىڭ.\n"
 
-#: main.c:637 main.c:651
+#: main.c:652 main.c:666
 #, c-format
 msgid "Invalid user \"%s\"\n"
 msgstr "ئىناۋەتسىز ئىشلەتكۈچى «%s»\n"
 
-#: main.c:669
+#: main.c:684
 #, c-format
 msgid "Queue length zero not permitted; using 1\n"
 msgstr "قاتار ئۇزۇنلۇقىنىڭ نۆل بولۇشىغا يول قويۇلمايدۇ؛ 1 نى ئىشلىتىڭ\n"
 
-#: main.c:680
+#: main.c:695
 #, c-format
 msgid "OpenConnect version %s\n"
 msgstr "OpenConnect نەشرى %s\n"
 
-#: main.c:706
+#: main.c:721
+#, c-format
+msgid "Invalid OS identity \"%s\"\n"
+msgstr ""
+
+#: main.c:732
 #, c-format
 msgid "Too many arguments on command line\n"
 msgstr "بۇيرۇق قۇرىدا ئۆزگەرگۈچى بەك كۆپ\n"
 
-#: main.c:709
+#: main.c:735
 #, c-format
 msgid "No server specified\n"
 msgstr "مۇلازىمېتىر بەلگىلەنمىگەن\n"
 
-#: main.c:722
+#: main.c:748
 #, c-format
 msgid "This version of openconnect was built without libproxy support\n"
 msgstr "openconnect نىڭ بۇ نەشرى libproxy نى قوللىمايدۇ \n"
 
-#: main.c:776
+#: main.c:805
 #, c-format
 msgid "Failed to obtain WebVPN cookie\n"
 msgstr "WebVPN cookie غا ئېرىشەلمىدى\n"
 
-#: main.c:800
+#: main.c:829
 #, c-format
 msgid "Creating SSL connection failed\n"
 msgstr "SSL باغلىنىشى قۇرالمىدى\n"
 
-#: main.c:805
+#: main.c:834
 #, c-format
 msgid "Set up tun device failed\n"
 msgstr "tun ئۈسكۈنىسىنى تەڭشىيەلمىدى\n"
 
-#: main.c:818
+#: main.c:847
 #, c-format
 msgid "Set up DTLS failed; using SSL instead\n"
 msgstr "DTLS نى تەڭشىيەلمىدى؛ ئورنىغا SSL ئىشلىتىڭ\n"
 
-#: main.c:821
+#: main.c:850
 #, c-format
 msgid "Connected %s as %s%s%s, using %s\n"
 msgstr "%s غا %s%s%s سۈپىتىدە باغلاندى، %s ئىشلىتىڭ\n"
 
-#: main.c:831
+#: main.c:860
 msgid "No --script argument provided; DNS and routing are not configured\n"
 msgstr ""
 "ھېچقانداق --script ئۆزگەرگۈچى تەمىنلەنمىگەن؛ DNS ۋە يېتەكلىگۈچ سەپلەنمىگەن\n"
 
-#: main.c:833
+#: main.c:862
 msgid "See http://www.infradead.org/openconnect/vpnc-script.html\n"
 msgstr "http://www.infradead.org/openconnect/vpnc-script.html نى كۆرۈڭ\n"
 
-#: main.c:845
+#: main.c:874
 #, c-format
 msgid "Failed to open '%s' for write: %s\n"
 msgstr "يېزىش ئۈچۈن «%s»نى ئاچالمىدى: %s\n"
 
-#: main.c:856
+#: main.c:885
 #, c-format
 msgid "Continuing in background; pid %d\n"
 msgstr "ئارقا سۇپىدا داۋاملاشتۇر؛ pid %d\n"
 
-#: main.c:878
+#: main.c:907
 #, c-format
 msgid "Failed to open %s for write: %s\n"
 msgstr "يېزىش ئۈچۈن %s نى ئاچالمىدى: %s\n"
 
-#: main.c:886
+#: main.c:915
 #, c-format
 msgid "Failed to write config to %s: %s\n"
 msgstr "سەپلىمىنى %s غا يازالمىدى: %s\n"
 
-#: main.c:979
+#: main.c:1009
 #, c-format
 msgid ""
 "\n"
@@ -1718,37 +1791,57 @@ msgstr ""
 "VPN مۇلازىمىتىر «%s» دىن گۇۋاھنامە دەلىللىيەلمىدى.\n"
 "سەۋەبى: %s\n"
 
-#: main.c:985
+#: main.c:1015
 #, c-format
 msgid "Enter '%s' to accept, '%s' to abort; anything else to view: "
 msgstr "«%s» كىرگۈزۈلسە قوشۇلىدۇ، «%s» چېكىنىدۇ؛ ئۇنداق بولمىسا كۆرسىتىدۇ: "
 
-#: main.c:986 main.c:1004
+#: main.c:1016 main.c:1034
 msgid "no"
 msgstr "ياق"
 
-#: main.c:986 main.c:993
+#: main.c:1016 main.c:1023
 msgid "yes"
 msgstr "ھەئە"
 
-#: main.c:1010
+#: main.c:1040
 #, c-format
 msgid "SHA1 fingerprint: %s\n"
 msgstr "SHA1 بارماق ئىزى: %s\n"
 
-#: main.c:1060
+#: main.c:1090
 #, c-format
 msgid "Auth choice \"%s\" not available\n"
 msgstr "دەلىللەشكە «%s»نى تاللاپ ئىشلەتكىلى بولمايدۇ\n"
 
-#: main.c:1073 main.c:1121 main.c:1148
+#: main.c:1103 main.c:1151 main.c:1178
 msgid "User input required in non-interactive mode\n"
 msgstr "تەسىرلەشمەيدىغان ھالەتتە ئىشلەتكۈچى كىرگۈزۈشى زۆرۈر\n"
 
-#: main.c:1104
+#: main.c:1134
 #, c-format
 msgid "Auth choice \"%s\" not valid\n"
 msgstr "دەلىللەشكە «%s»نى تاللاش ئىناۋەتسىز\n"
+
+#: main.c:1237
+#, c-format
+msgid "Soft token string is invalid\n"
+msgstr ""
+
+#: main.c:1240
+#, c-format
+msgid "Can't open ~/.stokenrc file\n"
+msgstr ""
+
+#: main.c:1243
+#, c-format
+msgid "OpenConnect was not built with soft token support\n"
+msgstr ""
+
+#: main.c:1246
+#, c-format
+msgid "General failure in libstoken\n"
+msgstr ""
 
 #: mainloop.c:87
 msgid "Attempt new DTLS connection\n"
@@ -1761,13 +1854,9 @@ msgstr "ھېچقانداق ئىش يوق؛ %dms ئۇخلايدۇ…\n"
 
 #: openssl.c:110
 msgid "Failed to write to SSL socket\n"
-msgstr "SSL socket نى يازالمىدى\n"
+msgstr ""
 
-#: openssl.c:147
-msgid "Failed to read from SSL socket"
-msgstr "SSL socket تىن ئوقۇيالمىدى"
-
-#: openssl.c:204
+#: openssl.c:147 openssl.c:204
 msgid "Failed to read from SSL socket\n"
 msgstr "SSL socket تىن ئوقۇيالمىدى\n"
 
@@ -1950,17 +2039,17 @@ msgstr "خېرىدار گۇۋاھنامەدىكى notAfter سۆز بۆلەك خ�
 msgid "<error>"
 msgstr "<خاتالىق>"
 
-#: openssl.c:1337
+#: openssl.c:1342
 #, c-format
 msgid "Failed to read certs from CA file '%s'\n"
 msgstr "CA ھۆججەت '%s' تىن گۇۋاھنامە ئوقۇش خاتالىقى\n"
 
-#: openssl.c:1359
+#: openssl.c:1366
 #, c-format
 msgid "Failed to open CA file '%s'\n"
 msgstr "CA ھۆججەت '%s' تىن ئوقۇيالمىدى\n"
 
-#: openssl.c:1391
+#: openssl.c:1400
 msgid "SSL connection failure\n"
 msgstr "SSL باغلىنالمىدى\n"
 
@@ -1978,86 +2067,86 @@ msgstr "ۋاكالەتچى %s غا قايتا باغلىنالمىدى\n"
 msgid "Failed to reconnect to host %s\n"
 msgstr "ماشىنا %s غا قايتا باغلىنالمىدى\n"
 
-#: ssl.c:181
+#: ssl.c:182
 #, c-format
 msgid "Proxy from libproxy: %s://%s:%d/\n"
 msgstr "libproxy دىن كەلگەن ۋاكالەتچى: %s://%s:%d/\n"
 
-#: ssl.c:212
+#: ssl.c:211
 #, c-format
 msgid "getaddrinfo failed for host '%s': %s\n"
 msgstr "ماشىنا '%s' نىڭ getaddrinfo مەغلۇپ بولدى: %s\n"
 
-#: ssl.c:223
+#: ssl.c:226
 #, c-format
 msgid "Attempting to connect to proxy %s%s%s:%s\n"
 msgstr ""
 
-#: ssl.c:224
+#: ssl.c:227
 #, c-format
 msgid "Attempting to connect to server %s%s%s:%s\n"
 msgstr ""
 
-#: ssl.c:240
+#: ssl.c:243
 msgid "Failed to allocate sockaddr storage\n"
 msgstr "sockaddr ساقلىغۇچنى تەقسىملىيەلمىدى\n"
 
-#: ssl.c:255
+#: ssl.c:258
 #, c-format
 msgid "Failed to connect to host %s\n"
 msgstr "ماشىنا %s غا باغلىنالمىدى\n"
 
-#: ssl.c:330
+#: ssl.c:333
 #, c-format
 msgid "statvfs: %s\n"
 msgstr "statvfs: %s\n"
 
-#: ssl.c:347
+#: ssl.c:350
 #, c-format
 msgid "statfs: %s\n"
 msgstr "statfs: %s\n"
 
-#: ssl.c:418
+#: ssl.c:421
 msgid "No error"
 msgstr "خاتالىق يوق"
 
-#: ssl.c:419
+#: ssl.c:422
 msgid "Keystore locked"
 msgstr ""
 
-#: ssl.c:420
+#: ssl.c:423
 msgid "Keystore uninitialized"
 msgstr "ئاچقۇچ ئامبىرى دەسلەپلەشتۈرۈلمىگەن"
 
-#: ssl.c:421
+#: ssl.c:424
 msgid "System error"
 msgstr "سىستېما خاتالىقى"
 
-#: ssl.c:422
+#: ssl.c:425
 msgid "Protocol error"
 msgstr "كېلىشىم خاتالىقى"
 
-#: ssl.c:423
+#: ssl.c:426
 msgid "Permission denied"
 msgstr "ھوقۇقى رەت قىلىندى"
 
-#: ssl.c:424
+#: ssl.c:427
 msgid "Key not found"
 msgstr "ئاچقۇچ تېپىلمىدى"
 
-#: ssl.c:425
+#: ssl.c:428
 msgid "Value corrupted"
 msgstr "قىممەت بۇزۇلغان"
 
-#: ssl.c:426
+#: ssl.c:429
 msgid "Undefined action"
 msgstr "بەلگىلەنمىگەن مەشغۇلات"
 
-#: ssl.c:430
+#: ssl.c:433
 msgid "Wrong password"
 msgstr "ئىم خاتا"
 
-#: ssl.c:431
+#: ssl.c:434
 msgid "Unknown error"
 msgstr "يوچۇن خاتالىق"
 
@@ -2164,20 +2253,24 @@ msgstr "socketpair"
 msgid "fork"
 msgstr "fork"
 
-#: tun.c:658
+#: tun.c:656
+msgid "setpgid"
+msgstr ""
+
+#: tun.c:660
 msgid "execl"
 msgstr "execl"
 
-#: tun.c:663
+#: tun.c:665
 msgid "(script)"
 msgstr "(قوليازما)"
 
-#: tun.c:757
+#: tun.c:759
 #, c-format
 msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
 msgstr "يوچۇن بوغچا (len %d) تاپشۇرۇۋالدى: %02x %02x %02x %02x...\n"
 
-#: tun.c:777
+#: tun.c:779
 #, c-format
 msgid "Failed to write incoming packet: %s\n"
 msgstr "كەلگەن بوغچىنى يازالمىدى: %s\n"
@@ -2186,7 +2279,7 @@ msgstr "كەلگەن بوغچىنى يازالمىدى: %s\n"
 msgid "Open XML config file"
 msgstr "XML سەپلىمە ھۆججەتنى ئاچ"
 
-#: xml.c:54 xml.c:89
+#: xml.c:54 xml.c:90
 #, c-format
 msgid "Treating host \"%s\" as a raw hostname\n"
 msgstr "«%s» ماشىنىنى  raw ماشىنا سۈپىتىدە بىر تەرەپ قىلىدۇ\n"
@@ -2195,36 +2288,36 @@ msgstr "«%s» ماشىنىنى  raw ماشىنا سۈپىتىدە بىر تەر
 msgid "fstat XML config file"
 msgstr "fstat XML سەپلىمە ھۆججەت"
 
-#: xml.c:66
+#: xml.c:67
 msgid "mmap XML config file"
 msgstr "mmap XML سەپلىمە ھۆججەت"
 
-#: xml.c:72
+#: xml.c:73
 #, c-format
 msgid "Failed to SHA1 existing file\n"
 msgstr ""
 
-#: xml.c:80
+#: xml.c:81
 #, c-format
 msgid "XML config file SHA1: %s\n"
 msgstr "XML سەپلىمە ھۆججەت SHA1: %s\n"
 
-#: xml.c:87
+#: xml.c:88
 #, c-format
 msgid "Failed to parse XML config file %s\n"
 msgstr "XML سەپلىمە ھۆججىتى «%s» نى تەھلىل قىلالمىدى\n"
 
-#: xml.c:124
+#: xml.c:125
 #, c-format
 msgid "Host \"%s\" has address \"%s\"\n"
 msgstr "«%s» ماشىنىنىڭ ئادرېسى «%s»\n"
 
-#: xml.c:133
+#: xml.c:134
 #, c-format
 msgid "Host \"%s\" has UserGroup \"%s\"\n"
 msgstr "«%s» ماشىنىنىڭ UserGroup «%s»\n"
 
-#: xml.c:147
+#: xml.c:148
 #, c-format
 msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""

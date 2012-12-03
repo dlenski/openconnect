@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-11-12 23:23+0000\n"
-"PO-Revision-Date: 2012-09-22 08:24+0000\n"
+"POT-Creation-Date: 2012-12-03 11:18+0000\n"
+"PO-Revision-Date: 2012-11-15 08:31+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: German <meego-de@lists.hendi.name>\n"
 "Language: de\n"
@@ -2240,7 +2240,6 @@ msgstr "Ungültiger Schnittstellenname »%s«; muss »tun%%d« entsprechen\n"
 msgid "Cannot open '%s': %s\n"
 msgstr "»%s« kann nicht geöffnet werden: %s\n"
 
-# oder: geöffnetes tun?
 #: tun.c:618
 msgid "open tun"
 msgstr "tun öffnen"
@@ -2257,20 +2256,24 @@ msgstr "socketpair"
 msgid "fork"
 msgstr "fork"
 
-#: tun.c:658
+#: tun.c:656
+msgid "setpgid"
+msgstr ""
+
+#: tun.c:660
 msgid "execl"
 msgstr "execl"
 
-#: tun.c:663
+#: tun.c:665
 msgid "(script)"
 msgstr "(script)"
 
-#: tun.c:757
+#: tun.c:759
 #, c-format
 msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
 msgstr "Unbekanntes Paket empfangen (Länge %d) : %02x %02x %02x %02x...\n"
 
-#: tun.c:777
+#: tun.c:779
 #, c-format
 msgid "Failed to write incoming packet: %s\n"
 msgstr "Schreiben des eingehenden Pakets schlug fehl: %s\n"
@@ -2321,6 +2324,3 @@ msgstr "Rechner »%s« besitzt UserGroup »%s«\n"
 #, c-format
 msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""
-
-#~ msgid "Failed to read from SSL socket"
-#~ msgstr "Lesen vom SSL-Socket schlug fehl"

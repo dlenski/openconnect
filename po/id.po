@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-11-05 20:45+0000\n"
-"PO-Revision-Date: 2012-10-22 16:04+0000\n"
+"POT-Creation-Date: 2012-12-03 11:18+0000\n"
+"PO-Revision-Date: 2012-11-15 08:31+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Indonesian (http://www.transifex.com/projects/p/meego/"
 "language/id/)\n"
@@ -525,7 +525,7 @@ msgstr "Dibangun terhadap pustaka SSL tanpa dukungan DTLS Cisco\n"
 
 #: gnutls.c:82
 #, c-format
-msgid "Failed to write to SSL socket: %s"
+msgid "Failed to write to SSL socket: %s\n"
 msgstr ""
 
 #: gnutls.c:105 openssl.c:122
@@ -1129,7 +1129,7 @@ msgstr ""
 msgid "Failed to write temporary CSD script file: %s\n"
 msgstr ""
 
-#: http.c:554 main.c:839
+#: http.c:554 main.c:840
 #, c-format
 msgid "Failed to set uid %ld\n"
 msgstr ""
@@ -1585,66 +1585,70 @@ msgid "HTTP header User-Agent: field"
 msgstr "HTTP header ruas User-Agent:"
 
 #: main.c:291
+msgid "OS type (linux,linux-64,mac,win) to report"
+msgstr ""
+
+#: main.c:292
 msgid "Set local port for DTLS datagrams"
 msgstr ""
 
-#: main.c:302
+#: main.c:303
 #, c-format
 msgid "Allocation failure for string from stdin\n"
 msgstr "Kegagalan alokasi bagi string dari stdin\n"
 
-#: main.c:306
+#: main.c:307
 msgid "fgets (stdin)"
 msgstr "fgets (stdin)"
 
-#: main.c:369
+#: main.c:370
 #, c-format
 msgid "Failed to get line from config file: %s\n"
 msgstr ""
 
-#: main.c:409
+#: main.c:410
 #, c-format
 msgid "Unrecognised option at line %d: '%s'\n"
 msgstr "Opsi tak dikenal di baris %d: '%s'\n"
 
-#: main.c:419
+#: main.c:420
 #, c-format
 msgid "Option '%s' does not take an argument at line %d\n"
 msgstr ""
 
-#: main.c:423
+#: main.c:424
 #, c-format
 msgid "Option '%s' requires an argument at line %d\n"
 msgstr ""
 
-#: main.c:459
+#: main.c:460
 #, c-format
 msgid ""
 "WARNING: This version of openconnect is %s but\n"
 "         the libopenconnect library is %s\n"
 msgstr ""
 
-#: main.c:468
+#: main.c:469
 #, c-format
 msgid "Failed to allocate vpninfo structure\n"
 msgstr ""
 
-#: main.c:507
+#: main.c:508
 #, c-format
 msgid "Cannot use 'config' option inside config file\n"
 msgstr "Tak bisa memakai opsi 'config' di dalam berkas konfig\n"
 
-#: main.c:512
+#: main.c:513
 #, c-format
 msgid "Cannot open config file '%s': %s\n"
 msgstr "Tak bisa membuka berkas konfig '%s': %s\n"
 
-#: main.c:601 main.c:608
+#: main.c:602 main.c:609
 #, c-format
 msgid "MTU %d too small\n"
 msgstr ""
 
-#: main.c:629
+#: main.c:630
 #, c-format
 msgid ""
 "Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
@@ -1655,95 +1659,95 @@ msgstr ""
 "Bila ini membantu, harap laporkan ke <openconnect-devel@lists.infradead."
 "org>.\n"
 
-#: main.c:651 main.c:665
+#: main.c:652 main.c:666
 #, c-format
 msgid "Invalid user \"%s\"\n"
 msgstr ""
 
-#: main.c:683
+#: main.c:684
 #, c-format
 msgid "Queue length zero not permitted; using 1\n"
 msgstr ""
 
-#: main.c:694
+#: main.c:695
 #, c-format
 msgid "OpenConnect version %s\n"
 msgstr "OpenConnect versi %s\n"
 
-#: main.c:720
+#: main.c:721
 #, c-format
 msgid "Invalid OS identity \"%s\"\n"
 msgstr ""
 
-#: main.c:731
+#: main.c:732
 #, c-format
 msgid "Too many arguments on command line\n"
 msgstr ""
 
-#: main.c:734
+#: main.c:735
 #, c-format
 msgid "No server specified\n"
 msgstr ""
 
-#: main.c:747
+#: main.c:748
 #, c-format
 msgid "This version of openconnect was built without libproxy support\n"
 msgstr ""
 
-#: main.c:804
+#: main.c:805
 #, c-format
 msgid "Failed to obtain WebVPN cookie\n"
 msgstr ""
 
-#: main.c:828
+#: main.c:829
 #, c-format
 msgid "Creating SSL connection failed\n"
 msgstr "Pembuatan koneksi SSL gagal\n"
 
-#: main.c:833
+#: main.c:834
 #, c-format
 msgid "Set up tun device failed\n"
 msgstr ""
 
-#: main.c:846
+#: main.c:847
 #, c-format
 msgid "Set up DTLS failed; using SSL instead\n"
 msgstr ""
 
-#: main.c:849
+#: main.c:850
 #, c-format
 msgid "Connected %s as %s%s%s, using %s\n"
 msgstr "Tersambung %s sebagai %s%s%s, memakai %s\n"
 
-#: main.c:859
+#: main.c:860
 msgid "No --script argument provided; DNS and routing are not configured\n"
 msgstr ""
 
-#: main.c:861
+#: main.c:862
 msgid "See http://www.infradead.org/openconnect/vpnc-script.html\n"
 msgstr ""
 
-#: main.c:873
+#: main.c:874
 #, c-format
 msgid "Failed to open '%s' for write: %s\n"
 msgstr "Gagal membuka '%s' untuk menulis: %s\n"
 
-#: main.c:884
+#: main.c:885
 #, c-format
 msgid "Continuing in background; pid %d\n"
 msgstr "Menlanjutkan di latar belakang; pid %d\n"
 
-#: main.c:906
+#: main.c:907
 #, c-format
 msgid "Failed to open %s for write: %s\n"
 msgstr "Gagal membuka %s untuk menulis: %s\n"
 
-#: main.c:914
+#: main.c:915
 #, c-format
 msgid "Failed to write config to %s: %s\n"
 msgstr ""
 
-#: main.c:1008
+#: main.c:1009
 #, c-format
 msgid ""
 "\n"
@@ -1754,56 +1758,56 @@ msgstr ""
 "Sertifikat dari server VPN \"%s\" gagal verifikasi.\n"
 "Alasan: %s\n"
 
-#: main.c:1014
+#: main.c:1015
 #, c-format
 msgid "Enter '%s' to accept, '%s' to abort; anything else to view: "
 msgstr ""
 "Masukkan '%s' untuk menerima, '%s' untuk menggugurkan; sebarang yang lain "
 "untuk menilik:"
 
-#: main.c:1015 main.c:1033
+#: main.c:1016 main.c:1034
 msgid "no"
 msgstr "tidak"
 
-#: main.c:1015 main.c:1022
+#: main.c:1016 main.c:1023
 msgid "yes"
 msgstr "ya"
 
-#: main.c:1039
+#: main.c:1040
 #, c-format
 msgid "SHA1 fingerprint: %s\n"
 msgstr "Sidikjari SHA1: %s\n"
 
-#: main.c:1089
+#: main.c:1090
 #, c-format
 msgid "Auth choice \"%s\" not available\n"
 msgstr "Pilihan auth \"%s\" tak tersedia\n"
 
-#: main.c:1102 main.c:1150 main.c:1177
+#: main.c:1103 main.c:1151 main.c:1178
 msgid "User input required in non-interactive mode\n"
 msgstr ""
 
-#: main.c:1133
+#: main.c:1134
 #, c-format
 msgid "Auth choice \"%s\" not valid\n"
 msgstr "Pilihan auth \"%s\" tak valid\n"
 
-#: main.c:1236
+#: main.c:1237
 #, c-format
 msgid "Soft token string is invalid\n"
 msgstr ""
 
-#: main.c:1239
+#: main.c:1240
 #, c-format
 msgid "Can't open ~/.stokenrc file\n"
 msgstr ""
 
-#: main.c:1242
+#: main.c:1243
 #, c-format
 msgid "OpenConnect was not built with soft token support\n"
 msgstr ""
 
-#: main.c:1245
+#: main.c:1246
 #, c-format
 msgid "General failure in libstoken\n"
 msgstr ""
@@ -1821,11 +1825,7 @@ msgstr ""
 msgid "Failed to write to SSL socket\n"
 msgstr ""
 
-#: openssl.c:147
-msgid "Failed to read from SSL socket"
-msgstr "Gagal baca dari soket SSL"
-
-#: openssl.c:204
+#: openssl.c:147 openssl.c:204
 msgid "Failed to read from SSL socket\n"
 msgstr "Gagal baca dari soket SSL\n"
 
@@ -2222,20 +2222,24 @@ msgstr ""
 msgid "fork"
 msgstr "fork"
 
-#: tun.c:658
+#: tun.c:656
+msgid "setpgid"
+msgstr ""
+
+#: tun.c:660
 msgid "execl"
 msgstr "execl"
 
-#: tun.c:663
+#: tun.c:665
 msgid "(script)"
 msgstr "(skrip)"
 
-#: tun.c:757
+#: tun.c:759
 #, c-format
 msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
 msgstr ""
 
-#: tun.c:777
+#: tun.c:779
 #, c-format
 msgid "Failed to write incoming packet: %s\n"
 msgstr ""
@@ -2286,9 +2290,3 @@ msgstr "Host \"%s\" memiliki UserGroup \"%s\"\n"
 #, c-format
 msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""
-
-#~ msgid "XML response has no \"auth\" root node\n"
-#~ msgstr "Respon XML tak memiliki node akar \"auth\"\n"
-
-#~ msgid "Fixed options give %s\n"
-#~ msgstr "Opsi tetap memberi %s\n"
