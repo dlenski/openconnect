@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-12-03 11:23+0000\n"
+"POT-Creation-Date: 2012-12-18 14:50+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Spanish (Castilian) (http://www.transifex.net/projects/p/"
 "meego/language/es/)\n"
@@ -131,211 +131,211 @@ msgstr "TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"
 msgid "TCP_MAXSEG %d\n"
 msgstr "TCP_MAXSEG %d\n"
 
-#: cstp.c:196
+#: cstp.c:198
 #, c-format
 msgid "Failed to initialise DTLS secret\n"
 msgstr "Falló al inicializar el secreto DTLS\n"
 
-#: cstp.c:229 http.c:199
+#: cstp.c:231 http.c:199
 msgid "Error fetching HTTPS response\n"
 msgstr "Error al obtener respuesta HTTPS\n"
 
-#: cstp.c:236 http.c:458 http.c:828
+#: cstp.c:238 http.c:458 http.c:828
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "Falló al abrir una conexión HTTPS con %s\n"
 
-#: cstp.c:256
+#: cstp.c:258
 #, c-format
 msgid "VPN service unavailable; reason: %s\n"
 msgstr "Servicio VPN no disponible; razón: %s\n"
 
-#: cstp.c:261
+#: cstp.c:263
 #, c-format
 msgid "Got inappropriate HTTP CONNECT response: %s\n"
 msgstr "Se obtuvo una respuesta HTTP CONNECT inadecuada: %s\n"
 
-#: cstp.c:268
+#: cstp.c:270
 #, c-format
 msgid "Got CONNECT response: %s\n"
 msgstr "Se obtuvo la respuesta CONNECT: %s\n"
 
-#: cstp.c:296 cstp.c:304
+#: cstp.c:298 cstp.c:306
 msgid "No memory for options\n"
 msgstr "No hay memoria para opciones\n"
 
-#: cstp.c:324
+#: cstp.c:326
 #, c-format
 msgid "X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"
 msgstr "X-DTLS-Session no es de 64 caracteres; es: «%s»\n"
 
-#: cstp.c:354
+#: cstp.c:356
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
 msgstr "CSTP-Content-Encoding %s desconocido\n"
 
-#: cstp.c:422
+#: cstp.c:424
 msgid "No MTU received. Aborting\n"
 msgstr "No se recibió MTU. Abortando\n"
 
-#: cstp.c:429
+#: cstp.c:431
 msgid "No IP address received. Aborting\n"
 msgstr "No se recibió dirección IP. Abortando\n"
 
-#: cstp.c:435
+#: cstp.c:437
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr "La reconexión dio una dirección IP heredada distinta (%s != %s)\n"
 
-#: cstp.c:443
+#: cstp.c:445
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr "La reconexión dio una máscara de red heredada distinta (%s != %s)\n"
 
-#: cstp.c:451
+#: cstp.c:453
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
 msgstr "La reconexión dio una dirección IPv6 heredada distinta (%s != %s)\n"
 
-#: cstp.c:459
+#: cstp.c:461
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr ""
 "La reconexión dio una máscara de red IPv6 heredada distinta (%s != %s)\n"
 
-#: cstp.c:479
+#: cstp.c:481
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr "CSTP conectado. DPD %d, Keepalive %d\n"
 
-#: cstp.c:512
+#: cstp.c:514
 msgid "Compression setup failed\n"
 msgstr "Falló la configuración de compresión\n"
 
-#: cstp.c:520
+#: cstp.c:522
 msgid "Allocation of deflate buffer failed\n"
 msgstr "Falló la localización del buffer vacío\n"
 
-#: cstp.c:560
+#: cstp.c:562
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
 msgstr "dormir %ds, timeout restante %ds\n"
 
-#: cstp.c:593
+#: cstp.c:595
 msgid "inflate failed\n"
 msgstr "falló el llenado\n"
 
-#: cstp.c:611
+#: cstp.c:613
 #, c-format
 msgid "Received compressed data packet of %ld bytes\n"
 msgstr "Se recibió el paquete de datos comprimidos de %ld bytes\n"
 
-#: cstp.c:630
+#: cstp.c:632
 #, c-format
 msgid "SSL read error %d (server probably closed connection); reconnecting.\n"
 msgstr ""
 "Error de lectura SSL %d (probablemente el servidor cerró la conexión); "
 "reconectando.\n"
 
-#: cstp.c:655
+#: cstp.c:657
 #, c-format
 msgid "SSL_write failed: %d\n"
 msgstr "Falló el SSL_write: %d\n"
 
-#: cstp.c:671
+#: cstp.c:673
 #, c-format
 msgid "SSL read error: %s; reconnecting.\n"
 msgstr "Error de lectura SSL: %s; reconectando.\n"
 
-#: cstp.c:694
+#: cstp.c:696
 #, c-format
 msgid "SSL send failed: %s\n"
 msgstr "Falló el envío SSL: %s\n"
 
-#: cstp.c:722
+#: cstp.c:724
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
 msgstr ""
 "Longitud de paquete inesperada. SSL_read devolvió %d pero el paquete es\n"
 
-#: cstp.c:734
+#: cstp.c:736
 msgid "Got CSTP DPD request\n"
 msgstr "Se obtuvo la petición CSTP DPD\n"
 
-#: cstp.c:740
+#: cstp.c:742
 msgid "Got CSTP DPD response\n"
 msgstr "Se obtuvo la respuesta CSTP DPD\n"
 
-#: cstp.c:745
+#: cstp.c:747
 msgid "Got CSTP Keepalive\n"
 msgstr "Se obtuvo Keppalive CSTP\n"
 
-#: cstp.c:750
+#: cstp.c:752
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr "Se recibió el paquete de datos sin comprimir de %d bytes\n"
 
-#: cstp.c:765
+#: cstp.c:767
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
 msgstr "Se recibió el una desconexión del servidor: %02x '%s'\n"
 
-#: cstp.c:773
+#: cstp.c:775
 msgid "Compressed packet received in !deflate mode\n"
 msgstr "Se recibió el paquete comprimido en modo !vacío\n"
 
-#: cstp.c:781
+#: cstp.c:783
 msgid "received server terminate packet\n"
 msgstr "se recibió el paquete de fin del servidor\n"
 
-#: cstp.c:788
+#: cstp.c:790
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr "Paquete desconocido %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
-#: cstp.c:831
+#: cstp.c:833
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr "SSL escribió demasiados pocos bytes. Se pidieron %d, se enviaron %d\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:858
+#: cstp.c:860
 msgid "CSTP rekey due\n"
 msgstr "Renegociación de clave CSTP pendiente\n"
 
-#: cstp.c:865
+#: cstp.c:867
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr "La detección de muerte del par CSTP detectó la muerte del par\n"
 
-#: cstp.c:868 dtls.c:758
+#: cstp.c:870 dtls.c:758
 msgid "Reconnect failed\n"
 msgstr "Falló al reconectar\n"
 
-#: cstp.c:877
+#: cstp.c:879
 msgid "Send CSTP DPD\n"
 msgstr "Enviar CSTP DPD\n"
 
-#: cstp.c:888
+#: cstp.c:890
 msgid "Send CSTP Keepalive\n"
 msgstr "Enviar CSTP Keepalive\n"
 
-#: cstp.c:915
+#: cstp.c:917
 #, c-format
 msgid "deflate failed %d\n"
 msgstr "falló el vaciado %d\n"
 
-#: cstp.c:935
+#: cstp.c:937
 #, c-format
 msgid "Sending compressed data packet of %d bytes\n"
 msgstr "Enviando paquete de datos comprimidos de %d bytes\n"
 
-#: cstp.c:947
+#: cstp.c:949
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr "Enviando paquete de datos sin comprimir de %d bytes\n"
 
-#: cstp.c:987
+#: cstp.c:989
 #, c-format
 msgid "Send BYE packet: %s\n"
 msgstr "Enviar paquete BYE: %s\n"
@@ -539,7 +539,7 @@ msgstr ""
 
 #: gnutls.c:105 openssl.c:122
 msgid "SSL write cancelled\n"
-msgstr ""
+msgstr "Escritura SSL cancelada\n"
 
 #: gnutls.c:122
 #, c-format
@@ -548,7 +548,7 @@ msgstr ""
 
 #: gnutls.c:142 gnutls.c:200 openssl.c:159 openssl.c:217
 msgid "SSL read cancelled\n"
-msgstr ""
+msgstr "Lectura SSL cancelada\n"
 
 #: gnutls.c:176
 #, c-format
@@ -607,7 +607,7 @@ msgstr ""
 
 #: gnutls.c:356 openssl.c:429
 msgid "Enter PKCS#12 pass phrase:"
-msgstr ""
+msgstr "Introduzca contraseña PKCS#12:"
 
 #: gnutls.c:380
 #, c-format
@@ -681,7 +681,7 @@ msgstr ""
 
 #: gnutls.c:849 gnutls.c:1281 openssl.c:394
 msgid "Enter PEM pass phrase:"
-msgstr ""
+msgstr "Introduzca contraseña PEM:"
 
 #: gnutls.c:903 openssl.c:667
 msgid "This binary built without PKCS#11 support\n"
@@ -794,7 +794,7 @@ msgstr ""
 #: gnutls.c:1398 openssl.c:461 openssl.c:598
 #, c-format
 msgid "Using client certificate '%s'\n"
-msgstr ""
+msgstr "Usando el certificado del cliente '%s'\n"
 
 #: gnutls.c:1405
 #, c-format
@@ -1840,32 +1840,32 @@ msgstr "Sin trabajo que hacer; durmiendo durante %d ms…\n"
 
 #: openssl.c:110
 msgid "Failed to write to SSL socket\n"
-msgstr ""
+msgstr "Falló al escribir en el socket SSL\n"
 
 #: openssl.c:147 openssl.c:204
 msgid "Failed to read from SSL socket\n"
-msgstr ""
+msgstr "Falló al leer del socket SSL\n"
 
 #: openssl.c:401
 #, c-format
 msgid "PEM password too long (%d >= %d)\n"
-msgstr ""
+msgstr "Contraseña PEM demasiado larga (%d >= %d)\n"
 
 #: openssl.c:442
 msgid "Parse PKCS#12 failed (wrong passphrase?)\n"
-msgstr ""
+msgstr "Falló el análisis PKCS#12 (¿contraseña incorrecta?)\n"
 
 #: openssl.c:449
 msgid "Parse PKCS#12 failed (see above errors)\n"
-msgstr ""
+msgstr "Falló el análisis PKCS#12 (vea los errores anteriores)\n"
 
 #: openssl.c:464
 msgid "PKCS#12 contained no certificate!"
-msgstr ""
+msgstr "PKCS#12 no contiene certificado"
 
 #: openssl.c:473
 msgid "PKCS#12 contained no private key!"
-msgstr ""
+msgstr "PKCS#12 no contiene clave privada"
 
 #: openssl.c:494
 #, c-format
@@ -1874,23 +1874,23 @@ msgstr ""
 
 #: openssl.c:520
 msgid "Can't load TPM engine.\n"
-msgstr ""
+msgstr "No se puede cargar el motor TPM.\n"
 
 #: openssl.c:526
 msgid "Failed to init TPM engine\n"
-msgstr ""
+msgstr "Falló al iniciar el motor TPM\n"
 
 #: openssl.c:536
 msgid "Failed to set TPM SRK password\n"
-msgstr ""
+msgstr "Falló al establecer la contraseña TPM SRK\n"
 
 #: openssl.c:550
 msgid "Failed to load TPM private key\n"
-msgstr ""
+msgstr "Falló al cargar la clave privada TPM\n"
 
 #: openssl.c:556
 msgid "Add key from TPM failed\n"
-msgstr ""
+msgstr "Falló al añadir clave desde TPM\n"
 
 #: openssl.c:587
 msgid "Failed to reload X509 cert for expiry check\n"
@@ -2179,7 +2179,7 @@ msgstr ""
 
 #: tun.c:429
 msgid "Can't set ifname"
-msgstr ""
+msgstr "No se puede establecer el ifname"
 
 #: tun.c:436
 #, c-format
@@ -2212,11 +2212,13 @@ msgstr "Falló al crear un nuevo dispositivo TUN"
 #: tun.c:544
 msgid "Failed to put tun file descriptor into message-discard mode"
 msgstr ""
+"Falló al poner el archivo descriptor del dispositivo TUN en modo «descartar "
+"mensaje»"
 
 #: tun.c:579
 #, c-format
 msgid "Invalid interface name '%s'; must match 'tun%%d'\n"
-msgstr ""
+msgstr "Nombre de interfaz '%s' no válido; debe coincidir con «tun%%d»\n"
 
 #: tun.c:589
 #, c-format
@@ -2225,7 +2227,7 @@ msgstr "No se pudo abrir «%s»: %s\n"
 
 #: tun.c:618
 msgid "open tun"
-msgstr ""
+msgstr "abrir dispositivo TUN"
 
 #: tun.c:626
 msgid "TUNSIFHEAD"
@@ -2233,11 +2235,11 @@ msgstr "TUNSIFHEAD"
 
 #: tun.c:646
 msgid "socketpair"
-msgstr ""
+msgstr "socketpair"
 
 #: tun.c:652
 msgid "fork"
-msgstr ""
+msgstr "fork"
 
 #: tun.c:656
 msgid "setpgid"
@@ -2245,21 +2247,21 @@ msgstr ""
 
 #: tun.c:660
 msgid "execl"
-msgstr ""
+msgstr "execl"
 
 #: tun.c:665
 msgid "(script)"
-msgstr ""
+msgstr "(script)"
 
 #: tun.c:759
 #, c-format
 msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
-msgstr ""
+msgstr "Se recibió un paquete desconocido (len %d): %02x %02x %02x %02x…\n"
 
 #: tun.c:779
 #, c-format
 msgid "Failed to write incoming packet: %s\n"
-msgstr ""
+msgstr "Falló al escribir el paquete entrante: %s\n"
 
 #: xml.c:53
 msgid "Open XML config file"
