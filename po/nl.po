@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-12-03 11:18+0000\n"
-"PO-Revision-Date: 2012-11-15 08:31+0000\n"
+"POT-Creation-Date: 2012-12-18 14:54+0000\n"
+"PO-Revision-Date: 2012-12-20 19:06+0000\n"
 "Last-Translator: André Koot <meneer@tken.net>\n"
 "Language-Team: Dutch (http://www.transifex.com/projects/p/meego/language/"
 "nl/)\n"
@@ -65,11 +65,11 @@ msgstr "Vroeg naar wachtwoord, maar '- no-passwd' is ingesteld\n"
 
 #: auth.c:601 auth.c:910
 msgid "No form handler; cannot authenticate.\n"
-msgstr ""
+msgstr "Geen formulier afhandelaar; kon niet authenticeren.\n"
 
 #: auth.c:846
 msgid "Enter credentials to unlock software token."
-msgstr ""
+msgstr "Invoeren inloggegevens om software token te ontsluiten."
 
 #: auth.c:854
 msgid "Device ID:"
@@ -85,7 +85,7 @@ msgstr "PIN:"
 
 #: auth.c:898
 msgid "User bypassed soft token.\n"
-msgstr ""
+msgstr "Gebruiker ging voorbij aan soft token.\n"
 
 #: auth.c:905
 msgid "All fields are required; try again.\n"
@@ -105,23 +105,23 @@ msgstr "Ongeldig PIN formaat; probeer het nogmaals.\n"
 
 #: auth.c:941
 msgid "Soft token init was successful.\n"
-msgstr ""
+msgstr "Soft token init was succesvol.\n"
 
 #: auth.c:964
 msgid "OK to generate INITIAL tokencode\n"
-msgstr ""
+msgstr "OK om INITIËLE tokencode te genereren\n"
 
 #: auth.c:968
 msgid "OK to generate NEXT tokencode\n"
-msgstr ""
+msgstr "OK om VOLGENDE tokencode te genereren\n"
 
 #: auth.c:973
 msgid "Server is rejecting the soft token; switching to manual entry\n"
-msgstr ""
+msgstr "Server weigert soft token; omschakelen naar handmatige invoer\n"
 
 #: auth.c:1002
 msgid "Generating tokencode\n"
-msgstr ""
+msgstr "Genereren tokencode\n"
 
 #: cstp.c:120
 #, c-format
@@ -133,209 +133,209 @@ msgstr "TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"
 msgid "TCP_MAXSEG %d\n"
 msgstr "TCP_MAXSEG %d\n"
 
-#: cstp.c:196
+#: cstp.c:198
 #, c-format
 msgid "Failed to initialise DTLS secret\n"
 msgstr "Niet geslaagd DTLS sleutel te initialiseren\n"
 
-#: cstp.c:229 http.c:199
+#: cstp.c:231 http.c:199
 msgid "Error fetching HTTPS response\n"
 msgstr "Fout bij het ophalen HTTPS reactie\n"
 
-#: cstp.c:236 http.c:458 http.c:828
+#: cstp.c:238 http.c:458 http.c:828
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "Kan geen HTTPS-verbinding openen met %s\n"
 
-#: cstp.c:256
+#: cstp.c:258
 #, c-format
 msgid "VPN service unavailable; reason: %s\n"
 msgstr "VPN-service niet beschikbaar, reden:%s\n"
 
-#: cstp.c:261
+#: cstp.c:263
 #, c-format
 msgid "Got inappropriate HTTP CONNECT response: %s\n"
 msgstr "Onjuiste HTTP CONNECT reactie: %s\n"
 
-#: cstp.c:268
+#: cstp.c:270
 #, c-format
 msgid "Got CONNECT response: %s\n"
 msgstr "CONNECT reactie: %s\n"
 
-#: cstp.c:296 cstp.c:304
+#: cstp.c:298 cstp.c:306
 msgid "No memory for options\n"
 msgstr "Geen geheugen voor opties\n"
 
-#: cstp.c:324
+#: cstp.c:326
 #, c-format
 msgid "X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"
 msgstr "X-DTLS-Session-ID niet 64 tekens; is: \"%s\"\n"
 
-#: cstp.c:354
+#: cstp.c:356
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
 msgstr "Onbekende CSTP-Content-Encoding %s\n"
 
-#: cstp.c:422
+#: cstp.c:424
 msgid "No MTU received. Aborting\n"
 msgstr "Geen MTU ontvangen. Afbreken\n"
 
-#: cstp.c:429
+#: cstp.c:431
 msgid "No IP address received. Aborting\n"
 msgstr "Geen IP-adres ontvangen. Afbreken\n"
 
-#: cstp.c:435
+#: cstp.c:437
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr "Herverbinden gaf verschillende Legacy IP-adressen (%s != %s)\n"
 
-#: cstp.c:443
+#: cstp.c:445
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr "Herverbinden gaf verschillende Legacy IP-netmasks (%s != %s)\n"
 
-#: cstp.c:451
+#: cstp.c:453
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
 msgstr "Herverbinden gaf verschillende IP-adressen (%s != %s)\n"
 
-#: cstp.c:459
+#: cstp.c:461
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr "Herverbinden gaf verschillende IPv6-netmasks (%s != %s)\n"
 
-#: cstp.c:479
+#: cstp.c:481
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr "CSTP aangesloten. DPD %d, Keepalive %d\n"
 
-#: cstp.c:512
+#: cstp.c:514
 msgid "Compression setup failed\n"
 msgstr "Compressie setup is mislukt\n"
 
-#: cstp.c:520
+#: cstp.c:522
 msgid "Allocation of deflate buffer failed\n"
 msgstr "Toewijzing van leegloop buffer is mislukt\n"
 
-#: cstp.c:560
+#: cstp.c:562
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
 msgstr "slaap %ds, resterende time-out %ds\n"
 
-#: cstp.c:593
+#: cstp.c:595
 msgid "inflate failed\n"
 msgstr "decomprimeren mislukt\n"
 
-#: cstp.c:611
+#: cstp.c:613
 #, c-format
 msgid "Received compressed data packet of %ld bytes\n"
 msgstr "Ontvangen gecomprimeerde datapakket van %ld bytes\n"
 
-#: cstp.c:630
+#: cstp.c:632
 #, c-format
 msgid "SSL read error %d (server probably closed connection); reconnecting.\n"
 msgstr ""
 "SSL lezen fout %d (serververbinding waarschijnlijk gesloten); opnieuw "
 "aansluiten.\n"
 
-#: cstp.c:655
+#: cstp.c:657
 #, c-format
 msgid "SSL_write failed: %d\n"
 msgstr "SSL_write is mislukt: %d\n"
 
-#: cstp.c:671
+#: cstp.c:673
 #, c-format
 msgid "SSL read error: %s; reconnecting.\n"
 msgstr "SSL leesfout: %s; herverbinden.\n"
 
-#: cstp.c:694
+#: cstp.c:696
 #, c-format
 msgid "SSL send failed: %s\n"
 msgstr "SSL versturen mislukt: %s\n"
 
-#: cstp.c:722
+#: cstp.c:724
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
 msgstr "Onverwachte pakket lengte. SSL_read meldde %d, maar pakket is\n"
 
-#: cstp.c:734
+#: cstp.c:736
 msgid "Got CSTP DPD request\n"
 msgstr "Ontvangen CSTP DPD aanvraag\n"
 
-#: cstp.c:740
+#: cstp.c:742
 msgid "Got CSTP DPD response\n"
 msgstr "Ontvangen CSTP DPD reactie\n"
 
-#: cstp.c:745
+#: cstp.c:747
 msgid "Got CSTP Keepalive\n"
 msgstr "Ontvangen CSTP Keepalive\n"
 
-#: cstp.c:750
+#: cstp.c:752
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr "Ontvangen datapakket ongecomprimeerd %d bytes\n"
 
-#: cstp.c:765
+#: cstp.c:767
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
 msgstr "Ontvangen servermelding ontkoppeling: %02x '%s'\n"
 
-#: cstp.c:773
+#: cstp.c:775
 msgid "Compressed packet received in !deflate mode\n"
 msgstr "Gecomprimeerd pakket ontvangen in !deflate mode\n"
 
-#: cstp.c:781
+#: cstp.c:783
 msgid "received server terminate packet\n"
 msgstr "ontvangen server beëindigingspakket\n"
 
-#: cstp.c:788
+#: cstp.c:790
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr "Onbekend packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
-#: cstp.c:831
+#: cstp.c:833
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr "SSL schreef te weinig bytes! Gevraagd om %d, verstuurde %d\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:858
+#: cstp.c:860
 msgid "CSTP rekey due\n"
 msgstr "CSTP rekey verwacht\n"
 
-#: cstp.c:865
+#: cstp.c:867
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr "CSTP Dead Peer Detection ontdekte dode host!\n"
 
-#: cstp.c:868 dtls.c:758
+#: cstp.c:870 dtls.c:758
 msgid "Reconnect failed\n"
 msgstr "Herverbinden mislukte\n"
 
-#: cstp.c:877
+#: cstp.c:879
 msgid "Send CSTP DPD\n"
 msgstr "Stuur CSTP DPD\n"
 
-#: cstp.c:888
+#: cstp.c:890
 msgid "Send CSTP Keepalive\n"
 msgstr "Stuur CSTP Keepalive\n"
 
-#: cstp.c:915
+#: cstp.c:917
 #, c-format
 msgid "deflate failed %d\n"
 msgstr "compressie mislukt %d\n"
 
-#: cstp.c:935
+#: cstp.c:937
 #, c-format
 msgid "Sending compressed data packet of %d bytes\n"
 msgstr "Verzenden van gecomprimeerd datapakket van %d bytes\n"
 
-#: cstp.c:947
+#: cstp.c:949
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr "Verzenden van gedecomprimeerd datapakket van %d bytes\n"
 
-#: cstp.c:987
+#: cstp.c:989
 #, c-format
 msgid "Send BYE packet: %s\n"
 msgstr "Stuur BYE pakket: %s\n"
@@ -1586,11 +1586,11 @@ msgstr "Lees wachtwoord van standaardinvoer"
 
 #: main.c:284
 msgid "Use software token to generate password"
-msgstr ""
+msgstr "Gebruik software token om wachtwoord te genereren"
 
 #: main.c:286
 msgid "(NOTE: libstoken disabled in this build)"
-msgstr ""
+msgstr "(LET OP: libstoken ongeldig in deze versie)"
 
 #: main.c:288
 msgid "Connection retry timeout in seconds"
@@ -1818,17 +1818,19 @@ msgstr "Auth keuze \"%s\" niet geldig\n"
 #: main.c:1237
 #, c-format
 msgid "Soft token string is invalid\n"
-msgstr ""
+msgstr "Soft token string is ongeldig\n"
 
 #: main.c:1240
 #, c-format
 msgid "Can't open ~/.stokenrc file\n"
 msgstr ""
+"Kan ~/.stokenrc bestand niet openen\n"
+"\n"
 
 #: main.c:1243
 #, c-format
 msgid "OpenConnect was not built with soft token support\n"
-msgstr ""
+msgstr "OpenConnect was niet gecompileerd met soft token ondersteuning\n"
 
 #: main.c:1246
 #, c-format
@@ -1926,11 +1928,11 @@ msgstr "Lezen van PKCS# 12 is mislukt\n"
 
 #: openssl.c:712
 msgid "Failed to load X509 certificate from keystore\n"
-msgstr ""
+msgstr "Laden X509 certificaat uit keystore mislukt\n"
 
 #: openssl.c:718
 msgid "Failed to use X509 certificate from keystore\n"
-msgstr ""
+msgstr "Gebruik van X509 certificaat uit keystore mislukt\n"
 
 #: openssl.c:730
 msgid "Loading certificate failed\n"
@@ -1938,7 +1940,7 @@ msgstr "Laden van certificaat is mislukt\n"
 
 #: openssl.c:757
 msgid "Failed to use private key from keystore\n"
-msgstr ""
+msgstr "Gebruik van privésleutel uit keystore mislukt\n"
 
 #: openssl.c:773
 #, c-format
@@ -2177,7 +2179,7 @@ msgstr "Script '%s' retourneerde fout %d\n"
 
 #: tun.c:415
 msgid "Could not open /dev/tun for plumbing"
-msgstr ""
+msgstr "Kon /dev/tun for plumbing niet openen"
 
 #: tun.c:419
 msgid "Can't push IP"
@@ -2247,7 +2249,7 @@ msgstr "fork"
 
 #: tun.c:656
 msgid "setpgid"
-msgstr ""
+msgstr "setpgid"
 
 #: tun.c:660
 msgid "execl"
