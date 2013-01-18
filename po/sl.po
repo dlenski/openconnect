@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-12-03 11:18+0000\n"
+"POT-Creation-Date: 2012-12-30 12:04+0000\n"
 "PO-Revision-Date: 2012-11-15 08:31+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
@@ -134,215 +134,215 @@ msgstr "TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"
 msgid "TCP_MAXSEG %d\n"
 msgstr "TCP_MAXSEG %d\n"
 
-#: cstp.c:196
+#: cstp.c:198
 #, c-format
 msgid "Failed to initialise DTLS secret\n"
 msgstr "Začenjanje skrivnosti DTLS je spodletelo.\n"
 
-#: cstp.c:229 http.c:199
+#: cstp.c:231 http.c:199
 msgid "Error fetching HTTPS response\n"
 msgstr "Napaka med pridobivanjem odziva HTTP\n"
 
-#: cstp.c:236 http.c:458 http.c:828
+#: cstp.c:238 http.c:458 http.c:828
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "Napaka med odpiranjem povezave HTTPS %s\n"
 
-#: cstp.c:256
+#: cstp.c:258
 #, c-format
 msgid "VPN service unavailable; reason: %s\n"
 msgstr "Storitev VPN ni na voljo; razlog: %s\n"
 
-#: cstp.c:261
+#: cstp.c:263
 #, c-format
 msgid "Got inappropriate HTTP CONNECT response: %s\n"
 msgstr "Prejet neustrezen odziv HTTP CONNECT: %s\n"
 
-#: cstp.c:268
+#: cstp.c:270
 #, c-format
 msgid "Got CONNECT response: %s\n"
 msgstr "Prejet je odziv CONNECT: %s\n"
 
-#: cstp.c:296 cstp.c:304
+#: cstp.c:298 cstp.c:306
 msgid "No memory for options\n"
 msgstr "Ni pomnilnika za možnosti\n"
 
-#: cstp.c:324
+#: cstp.c:326
 #, c-format
 msgid "X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"
 msgstr "ID seje X-DTLS-Session-ID ni dolžine 64 znakov, ampak: \"%s\"\n"
 
-#: cstp.c:354
+#: cstp.c:356
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
 msgstr "Neznano kodiranje vsebine CSTP %s\n"
 
-#: cstp.c:422
+#: cstp.c:424
 msgid "No MTU received. Aborting\n"
 msgstr "MTU ni bil prejet. Opravilo bo prekinjeno.\n"
 
-#: cstp.c:429
+#: cstp.c:431
 msgid "No IP address received. Aborting\n"
 msgstr "Ni prejetega nobenega naslova IP. Opravilo je preklicano.\n"
 
-#: cstp.c:435
+#: cstp.c:437
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr ""
 "S ponovno povezavo je pridobljen drugačen opuščen naslov IP (%s != %s)\n"
 
-#: cstp.c:443
+#: cstp.c:445
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr ""
 "S ponovno povezavo je pridobljena drugačna opuščena maska omrežja IP (%s != "
 "%s)\n"
 
-#: cstp.c:451
+#: cstp.c:453
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
 msgstr "S ponovno povezavo je pridobljen drugačen naslov IPv6 (%s != %s)\n"
 
-#: cstp.c:459
+#: cstp.c:461
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr ""
 "S ponovno povezavo je pridobljena drugačna maska omrežja IPv6 (%s != %s)\n"
 
-#: cstp.c:479
+#: cstp.c:481
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr "Vzpostavljena je povezava CSTP. DPD %d, KEEPALIVE %d\n"
 
-#: cstp.c:512
+#: cstp.c:514
 msgid "Compression setup failed\n"
 msgstr "Nastavitev stiskanja je spodletela\n"
 
-#: cstp.c:520
+#: cstp.c:522
 msgid "Allocation of deflate buffer failed\n"
 msgstr "Dodelitev medpomnilnika za stiskanje je spodletela\n"
 
-#: cstp.c:560
+#: cstp.c:562
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
 msgstr "v mirovanju %ds, preostaja še %ds.\n"
 
-#: cstp.c:593
+#: cstp.c:595
 msgid "inflate failed\n"
 msgstr "razširjanje je spodletelo\n"
 
-#: cstp.c:611
+#: cstp.c:613
 #, c-format
 msgid "Received compressed data packet of %ld bytes\n"
 msgstr "Prejet je stisnjen paket podatkov velikosti %ld bajtov\n"
 
-#: cstp.c:630
+#: cstp.c:632
 #, c-format
 msgid "SSL read error %d (server probably closed connection); reconnecting.\n"
 msgstr ""
 "Napaka branja SSL %d (strežnik je najverjetneje zaprl povezavo); sledi "
 "ponovna povezava.\n"
 
-#: cstp.c:655
+#: cstp.c:657
 #, c-format
 msgid "SSL_write failed: %d\n"
 msgstr "Pisanje SSL je spodletelo: %d\n"
 
-#: cstp.c:671
+#: cstp.c:673
 #, c-format
 msgid "SSL read error: %s; reconnecting.\n"
 msgstr "Napaka branja SSL: %s; sledi ponovna povezava.\n"
 
-#: cstp.c:694
+#: cstp.c:696
 #, c-format
 msgid "SSL send failed: %s\n"
 msgstr "Pošiljanje SSL je spodletelo: %s\n"
 
-#: cstp.c:722
+#: cstp.c:724
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
 msgstr "Nepričakovana dolžina paketa. SSL_read je vrnil %d, paket pa je\n"
 
-#: cstp.c:734
+#: cstp.c:736
 msgid "Got CSTP DPD request\n"
 msgstr "Prejeta zahteva DPD CSTP\n"
 
-#: cstp.c:740
+#: cstp.c:742
 msgid "Got CSTP DPD response\n"
 msgstr "Pridobljen je odziv CSTP DPD\n"
 
-#: cstp.c:745
+#: cstp.c:747
 msgid "Got CSTP Keepalive\n"
 msgstr "Prejet je ukaz KEEPALIVE CSTP\n"
 
-#: cstp.c:750
+#: cstp.c:752
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr "Prejet je ne-stisnjen paket podatkov velikosti %d bajtov\n"
 
-#: cstp.c:765
+#: cstp.c:767
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
 msgstr "Prejeta prekinitev povezave s strežnikom: %02x '%s'\n"
 
-#: cstp.c:773
+#: cstp.c:775
 msgid "Compressed packet received in !deflate mode\n"
 msgstr "Prejet stisnjen paket v načinu !deflate\n"
 
-#: cstp.c:781
+#: cstp.c:783
 msgid "received server terminate packet\n"
 msgstr "Prejet paket prekinitve strežnika\n"
 
-#: cstp.c:788
+#: cstp.c:790
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr "Neznan paket %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
-#: cstp.c:831
+#: cstp.c:833
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr "SSL je zapisal premalo bajtov! Zahtevanih je %d, poslanih pa %d\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:858
+#: cstp.c:860
 msgid "CSTP rekey due\n"
 msgstr "Protokol CSTP zahteva ponovno preverjanje ključa\n"
 
-#: cstp.c:865
+#: cstp.c:867
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr ""
 "Zaznava mrtvih omrežnih soležnikov CSTP je zaznala mrtvega omrežnega "
 "soležnika!\n"
 
-#: cstp.c:868 dtls.c:758
+#: cstp.c:870 dtls.c:758
 msgid "Reconnect failed\n"
 msgstr "Ponovna povezava je spodletela\n"
 
-#: cstp.c:877
+#: cstp.c:879
 msgid "Send CSTP DPD\n"
 msgstr "Pošlji zahtevo CSTP DPD\n"
 
-#: cstp.c:888
+#: cstp.c:890
 msgid "Send CSTP Keepalive\n"
 msgstr "Pošlji zahtevo CSTP Keepalive\n"
 
-#: cstp.c:915
+#: cstp.c:917
 #, c-format
 msgid "deflate failed %d\n"
 msgstr "razširjanje je spodletelo %d\n"
 
-#: cstp.c:935
+#: cstp.c:937
 #, c-format
 msgid "Sending compressed data packet of %d bytes\n"
 msgstr "Pošiljanje stisnjenega paketa podatkov velikosti %d bajtov\n"
 
-#: cstp.c:947
+#: cstp.c:949
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr "Pošiljanje ne-stisnjenega paketa podatkov velikosti %d bajtov\n"
 
-#: cstp.c:987
+#: cstp.c:989
 #, c-format
 msgid "Send BYE packet: %s\n"
 msgstr "Pošlji paket BYE: %s\n"
@@ -2271,7 +2271,7 @@ msgstr "fork"
 
 #: tun.c:656
 msgid "setpgid"
-msgstr ""
+msgstr "setpgid"
 
 #: tun.c:660
 msgid "execl"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-12-18 14:50+0000\n"
+"POT-Creation-Date: 2012-12-30 12:04+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Spanish (Castilian) (http://www.transifex.net/projects/p/"
 "meego/language/es/)\n"
@@ -535,7 +535,7 @@ msgstr "Compilado con la biblioteca SSL sin soporte para Cisco DTLS\n"
 #: gnutls.c:82
 #, c-format
 msgid "Failed to write to SSL socket: %s\n"
-msgstr ""
+msgstr "Falló al escribir en el socket SSL: %s\n"
 
 #: gnutls.c:105 openssl.c:122
 msgid "SSL write cancelled\n"
@@ -544,7 +544,7 @@ msgstr "Escritura SSL cancelada\n"
 #: gnutls.c:122
 #, c-format
 msgid "Failed to read from SSL socket: %s"
-msgstr ""
+msgstr "Falló al leer del socket SSL: %s"
 
 #: gnutls.c:142 gnutls.c:200 openssl.c:159 openssl.c:217
 msgid "SSL read cancelled\n"
@@ -553,57 +553,57 @@ msgstr "Lectura SSL cancelada\n"
 #: gnutls.c:176
 #, c-format
 msgid "Failed to read from SSL socket: %s\n"
-msgstr ""
+msgstr "Falló al leer del socket SSL: %s\n"
 
 #: gnutls.c:218
 msgid "Could not extract expiration time of certificate\n"
-msgstr ""
+msgstr "No se pudo extraer la fecha de caducidad del certificado\n"
 
 #: gnutls.c:223 openssl.c:1240
 msgid "Client certificate has expired at"
-msgstr ""
+msgstr "El certificado del cliente ha caducado el"
 
 #: gnutls.c:225 openssl.c:1245
 msgid "Client certificate expires soon at"
-msgstr ""
+msgstr "El certificado del cliente caduca pronto el"
 
 #: gnutls.c:264 openssl.c:621
 #, c-format
 msgid "Failed to load item '%s' from keystore: %s\n"
-msgstr ""
+msgstr "Falló al cargar el elemento «%s» del almacén de claves: %s\n"
 
 #: gnutls.c:277
 #, c-format
 msgid "Failed to open key/certificate file %s: %s\n"
-msgstr ""
+msgstr "Falló al abrir el archivo de clave/certificado %s: %s\n"
 
 #: gnutls.c:284
 #, c-format
 msgid "Failed to stat key/certificate file %s: %s\n"
-msgstr ""
+msgstr "Falló al obtener el estado del archivo de clave/certificado %s: %s\n"
 
 #: gnutls.c:293
 msgid "Failed to allocate certificate buffer\n"
-msgstr ""
+msgstr "Falló al asignar el búfer del certificado\n"
 
 #: gnutls.c:301
 #, c-format
 msgid "Failed to read certificate into memory: %s\n"
-msgstr ""
+msgstr "Falló al leer el certificado en memoria: %s\n"
 
 #: gnutls.c:332
 #, c-format
 msgid "Failed to setup PKCS#12 data structure: %s\n"
-msgstr ""
+msgstr "Falló al configurar la estructura de datos PKCS#12: %s\n"
 
 #: gnutls.c:343
 #, c-format
 msgid "Failed to import PKCS#12 file: %s\n"
-msgstr ""
+msgstr "Falló al importar el archivo PKCS#12: %s\n"
 
 #: gnutls.c:352
 msgid "Failed to decrypt PKCS#12 certificate file\n"
-msgstr ""
+msgstr "Falló al descifrar el archivo del certificado PKCS#12\n"
 
 #: gnutls.c:356 openssl.c:429
 msgid "Enter PKCS#12 pass phrase:"
@@ -612,17 +612,17 @@ msgstr "Introduzca contraseña PKCS#12:"
 #: gnutls.c:380
 #, c-format
 msgid "Failed to process PKCS#12 file: %s\n"
-msgstr ""
+msgstr "Falló al procesar el archivo PKCS#12: %s\n"
 
 #: gnutls.c:392
 #, c-format
 msgid "Failed to load PKCS#12 certificate: %s\n"
-msgstr ""
+msgstr "Falló al cargar el certificado PKCS#12: %s\n"
 
 #: gnutls.c:562
 #, c-format
 msgid "Importing X509 certificate failed: %s\n"
-msgstr ""
+msgstr "Falló la importación del certificado X509: %s\n"
 
 #: gnutls.c:572
 #, c-format
@@ -685,7 +685,7 @@ msgstr "Introduzca contraseña PEM:"
 
 #: gnutls.c:903 openssl.c:667
 msgid "This binary built without PKCS#11 support\n"
-msgstr ""
+msgstr "Este binario se compiló sin soporte PKCS#11\n"
 
 #: gnutls.c:953
 #, c-format
@@ -700,7 +700,7 @@ msgstr ""
 #: gnutls.c:977 openssl.c:672
 #, c-format
 msgid "Using certificate file %s\n"
-msgstr ""
+msgstr "Usando archivo de certificado %s\n"
 
 #: gnutls.c:1000
 msgid "PKCS#11 file contained no certificate\n"
@@ -747,7 +747,7 @@ msgstr ""
 
 #: gnutls.c:1202 openssl.c:570
 msgid "This version of OpenConnect was built without TPM support\n"
-msgstr ""
+msgstr "Esta versión de OpenConnect se compiló sin soporte TPM\n"
 
 #: gnutls.c:1223
 msgid "Failed to interpret PEM file\n"
@@ -831,7 +831,7 @@ msgstr ""
 #: gnutls.c:1673 openssl.c:854
 #, c-format
 msgid "Server SSL certificate didn't match: %s\n"
-msgstr ""
+msgstr "El certificado del servidor SSL no coincide: %s\n"
 
 #: gnutls.c:1681
 msgid "Error checking server cert status\n"
@@ -878,7 +878,7 @@ msgstr ""
 
 #: gnutls.c:1717 openssl.c:1152
 msgid "certificate does not match hostname"
-msgstr ""
+msgstr "el certificado no coincide con el nombre del servidor"
 
 #: gnutls.c:1778
 msgid "Failed to allocate memory for cafile certs\n"
@@ -896,7 +896,7 @@ msgstr ""
 
 #: gnutls.c:1822 openssl.c:1300
 msgid "Loading certificate failed. Aborting.\n"
-msgstr ""
+msgstr "Carga de certificado fallida. Abortando.\n"
 
 #: gnutls.c:1844
 #, c-format
@@ -907,7 +907,7 @@ msgstr ""
 #: gnutls.c:1856 openssl.c:1384
 #, c-format
 msgid "SSL negotiation with %s\n"
-msgstr ""
+msgstr "Negociación SSL con «%s»\n"
 
 #: gnutls.c:1880 openssl.c:1415
 msgid "SSL connection cancelled\n"
@@ -926,7 +926,7 @@ msgstr ""
 #: gnutls.c:1903 openssl.c:1435
 #, c-format
 msgid "Connected to HTTPS on %s\n"
-msgstr ""
+msgstr "Conectó a HTTPS en %s\n"
 
 #: gnutls.c:2080
 #, c-format
@@ -1870,7 +1870,7 @@ msgstr "PKCS#12 no contiene clave privada"
 #: openssl.c:494
 #, c-format
 msgid "Extra cert from PKCS#12: '%s'\n"
-msgstr ""
+msgstr "Certificado extra desde PKCS#12: «%s»\n"
 
 #: openssl.c:520
 msgid "Can't load TPM engine.\n"
@@ -1895,149 +1895,150 @@ msgstr "Falló al añadir clave desde TPM\n"
 #: openssl.c:587
 msgid "Failed to reload X509 cert for expiry check\n"
 msgstr ""
+"Falló al recargar el certificado X509 por verificación de vencimiento\n"
 
 #: openssl.c:627
 #, c-format
 msgid "Failed to create BIO for keystore item '%s'\n"
-msgstr ""
+msgstr "Falló al crear BIO para el elemento «%s» del almacén de claves\n"
 
 #: openssl.c:652
 msgid "Loading private key failed (wrong passphrase?)\n"
-msgstr ""
+msgstr "Carga de la clave privada fallida (¿contraseña incorrecta?)\n"
 
 #: openssl.c:658
 msgid "Loading private key failed (see above errors)\n"
-msgstr ""
+msgstr "Falló al cargar la clave privada (vea los errores de arriba)\n"
 
 #: openssl.c:683
 #, c-format
 msgid "Failed to open certificate file %s: %s\n"
-msgstr ""
+msgstr "Falló al abrir el archivo de certificado %s: %s\n"
 
 #: openssl.c:694
 msgid "Read PKCS#12 failed\n"
-msgstr ""
+msgstr "Falló la lectura PKCS#12\n"
 
 #: openssl.c:712
 msgid "Failed to load X509 certificate from keystore\n"
-msgstr ""
+msgstr "Falló al cargar el certificado X509 del almacén de claves\n"
 
 #: openssl.c:718
 msgid "Failed to use X509 certificate from keystore\n"
-msgstr ""
+msgstr "Falló al usar el certificado X509 del almacén de claves\n"
 
 #: openssl.c:730
 msgid "Loading certificate failed\n"
-msgstr ""
+msgstr "Falló la carga del certificado\n"
 
 #: openssl.c:757
 msgid "Failed to use private key from keystore\n"
-msgstr ""
+msgstr "Falló al usar la clave privada del almacén de claves\n"
 
 #: openssl.c:773
 #, c-format
 msgid "Failed to open private key file %s: %s\n"
-msgstr ""
+msgstr "Falló al abrir el archivo de clave privada %s: %s\n"
 
 #: openssl.c:793
 #, c-format
 msgid "Failed to identify private key type in '%s'\n"
-msgstr ""
+msgstr "Falló al identificar el tipo de clave privada en «%s»\n"
 
 #: openssl.c:974
 #, c-format
 msgid "Matched DNS altname '%s'\n"
-msgstr ""
+msgstr "Coincidencia en el altname DNS «%s»\n"
 
 #: openssl.c:981
 #, c-format
 msgid "No match for altname '%s'\n"
-msgstr ""
+msgstr "Sin coincidencias para el altname «%s»\n"
 
 #: openssl.c:995
 #, c-format
 msgid "Certificate has GEN_IPADD altname with bogus length %d\n"
-msgstr ""
+msgstr "El certificado tiene el altname GEN_IPADD con longitud errónea %d\n"
 
 #: openssl.c:1006
 #, c-format
 msgid "Matched %s address '%s'\n"
-msgstr ""
+msgstr "Coincidencia %s en la dirección «%s»\n"
 
 #: openssl.c:1013
 #, c-format
 msgid "No match for %s address '%s'\n"
-msgstr ""
+msgstr "Sin coincidencias para %s dirección «%s»\n"
 
 #: openssl.c:1055
 #, c-format
 msgid "URI '%s' has non-empty path; ignoring\n"
-msgstr ""
+msgstr "El URI «%s» no tiene una ruta vacía; se ignora\n"
 
 #: openssl.c:1060
 #, c-format
 msgid "Matched URI '%s'\n"
-msgstr ""
+msgstr "Coincidió el URI «%s»\n"
 
 #: openssl.c:1071
 #, c-format
 msgid "No match for URI '%s'\n"
-msgstr ""
+msgstr "Sin resultado para el URI «%s»\n"
 
 #: openssl.c:1086
 #, c-format
 msgid "No altname in peer cert matched '%s'\n"
-msgstr ""
+msgstr "Ningún altname en el certificado del par coincidió con «%s»\n"
 
 #: openssl.c:1094
 msgid "No subject name in peer cert!\n"
-msgstr ""
+msgstr "¡Sin nombre del sujeto en el certificado del par!\n"
 
 #: openssl.c:1114
 msgid "Failed to parse subject name in peer cert\n"
-msgstr ""
+msgstr "Falló al analizar el nombre del sujeto en el certificado del par\n"
 
 #: openssl.c:1121
 #, c-format
 msgid "Peer cert subject mismatch ('%s' != '%s')\n"
-msgstr ""
+msgstr "El sujeto del certificado del par no coincide («%s» != «%s»)\n"
 
 #: openssl.c:1126
 #, c-format
 msgid "Matched peer certificate subject name '%s'\n"
-msgstr ""
+msgstr "Coincidió el nombre del sujeto del certificado del par «%s»\n"
 
 #: openssl.c:1156
 #, c-format
 msgid "Server certificate verify failed: %s\n"
-msgstr ""
+msgstr "La verificación del certificado del servidor falló: %s\n"
 
 #: openssl.c:1206
 #, c-format
 msgid "Extra cert from cafile: '%s'\n"
-msgstr ""
+msgstr "Certificado extra desde cafile: «%s»\n"
 
 #: openssl.c:1237
 msgid "Error in client cert notAfter field\n"
-msgstr ""
+msgstr "Error en el campo notAfter del certificado del cliente\n"
 
 #: openssl.c:1251
 msgid "<error>"
-msgstr ""
+msgstr "<error>"
 
 #: openssl.c:1342
 #, c-format
 msgid "Failed to read certs from CA file '%s'\n"
-msgstr ""
+msgstr "Falló al leer certificados desde el archivo CA «%s»\n"
 
 #: openssl.c:1366
 #, c-format
 msgid "Failed to open CA file '%s'\n"
-msgstr ""
+msgstr "Falló al abrir el archivo CA «%s»\n"
 
 #: openssl.c:1400
 msgid "SSL connection failure\n"
-msgstr ""
+msgstr "Fallo en conexión SSL\n"
 
 #: ssl.c:82
 msgid "Socket connect cancelled\n"
@@ -2175,7 +2176,7 @@ msgstr "No se pudo abrir /dev/tun para sondear"
 
 #: tun.c:419
 msgid "Can't push IP"
-msgstr ""
+msgstr "No se puede alcanzar la IP"
 
 #: tun.c:429
 msgid "Can't set ifname"
@@ -2243,7 +2244,7 @@ msgstr "fork"
 
 #: tun.c:656
 msgid "setpgid"
-msgstr ""
+msgstr "setpgid"
 
 #: tun.c:660
 msgid "execl"
