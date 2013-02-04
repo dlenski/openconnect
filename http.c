@@ -388,6 +388,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		if (!closeconn) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Cannot receive HTTP 1.0 body without closing connection\n"));
+			openconnect_close_https(vpninfo, 0);
 			return -EINVAL;
 		}
 
@@ -988,6 +989,10 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		if (result < 0) {
 			free(form_buf);
 			return result;
+		}
+		if (form->action) {
+			vpninfo->redirect_url = strdup(form->action);
+			handle_redirect(vpninfo);
 		}
 	}
 
