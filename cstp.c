@@ -144,6 +144,8 @@ static void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *
 		/* Default */
 		*mtu = 1406;
 	}
+	if (*mtu < 1280)
+		*mtu = 1280;
 }
 
 static int start_cstp_connection(struct openconnect_info *vpninfo)
