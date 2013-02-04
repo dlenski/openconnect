@@ -220,6 +220,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 		for (rp = result; rp ; rp = rp->ai_next) {
 			char host[80];
 
+			host[0] = 0;
 			if (!getnameinfo(rp->ai_addr, rp->ai_addrlen, host,
 					 sizeof(host), NULL, 0, NI_NUMERICHOST))
 				vpn_progress(vpninfo, PRG_INFO, vpninfo->proxy_type?
@@ -246,6 +247,23 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 				}
 				vpninfo->peer_addrlen = rp->ai_addrlen;
 				memcpy(vpninfo->peer_addr, rp->ai_addr, rp->ai_addrlen);
+				/* If no proxy, and if more than one address for the hostname,
+				   ensure that we output the same IP address in authentication
+				   results (from libopenconnect or --authenticate). */
+				if (!vpninfo->proxy && (rp != result || rp->ai_next) && host[0]) {
+					char *p = malloc(strlen(host) + 3);
+					if (p) {
+						free(vpninfo->hostname);
+						vpninfo->hostname = p;
+						if (rp->ai_family == AF_INET6)
+							*p++ = '[';
+						memcpy(p, host, strlen(host));
+						p += strlen(host);
+						if (rp->ai_family == AF_INET6)
+							*p++ = ']';
+						*p = 0;
+					}
+				}
 				break;
 			}
 			close(ssl_sock);
