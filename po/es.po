@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-12-30 12:04+0000\n"
+"POT-Creation-Date: 2013-02-04 15:39+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Spanish (Castilian) (http://www.transifex.net/projects/p/"
 "meego/language/es/)\n"
@@ -140,7 +140,7 @@ msgstr "Falló al inicializar el secreto DTLS\n"
 msgid "Error fetching HTTPS response\n"
 msgstr "Error al obtener respuesta HTTPS\n"
 
-#: cstp.c:238 http.c:458 http.c:828
+#: cstp.c:238 http.c:459 http.c:829
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "Falló al abrir una conexión HTTPS con %s\n"
@@ -627,30 +627,30 @@ msgstr "Falló la importación del certificado X509: %s\n"
 #: gnutls.c:572
 #, c-format
 msgid "Setting PKCS#11 certificate failed: %s\n"
-msgstr ""
+msgstr "Falló la configuración del certificado PKCS#11: %s\n"
 
 #: gnutls.c:596
 #, c-format
 msgid "Could not initialise MD5 hash: %s\n"
-msgstr ""
+msgstr "No se pudo inicializar el hash MD5: %s\n"
 
 #: gnutls.c:606
 #, c-format
 msgid "MD5 hash error: %s\n"
-msgstr ""
+msgstr "Error del hash MD5: %s\n"
 
 #: gnutls.c:664
 msgid "Missing DEK-Info: header from OpenSSL encrypted key\n"
-msgstr ""
+msgstr "DEK-Info perdido: cabecera desde clave OpenSSL cifrada\n"
 
 #: gnutls.c:671
 msgid "Cannot determine PEM encryption type\n"
-msgstr ""
+msgstr "No se puede determinar el tipo de cifrado PEM\n"
 
 #: gnutls.c:684
 #, c-format
 msgid "Unsupported PEM encryption type: %s\n"
-msgstr ""
+msgstr "Tipo de cifrado PEM no soportado: %s\n"
 
 #: gnutls.c:709 gnutls.c:722
 msgid "Invalid salt in encrypted PEM file\n"
@@ -663,21 +663,22 @@ msgstr ""
 
 #: gnutls.c:754
 msgid "Encrypted PEM file too short\n"
-msgstr ""
+msgstr "Archivo cifrado PEM demasiado corto\n"
 
 #: gnutls.c:782
 #, c-format
 msgid "Failed to initialise cipher for decrypting PEM file: %s\n"
 msgstr ""
+"Falló al inicializar el cifrado para el archivo PEM de descifrado: %s\n"
 
 #: gnutls.c:793
 #, c-format
 msgid "Failed to decrypt PEM key: %s\n"
-msgstr ""
+msgstr "Falló al descrifrar la clave PEM: %s\n"
 
 #: gnutls.c:845
 msgid "Decrypting PEM key failed\n"
-msgstr ""
+msgstr "Falló al descifrar la clave PEM\n"
 
 #: gnutls.c:849 gnutls.c:1281 openssl.c:394
 msgid "Enter PEM pass phrase:"
@@ -690,12 +691,12 @@ msgstr "Este binario se compiló sin soporte PKCS#11\n"
 #: gnutls.c:953
 #, c-format
 msgid "Using PKCS#11 certificate %s\n"
-msgstr ""
+msgstr "Usando certificado PKCS#11 %s\n"
 
 #: gnutls.c:966
 #, c-format
 msgid "Error loading certificate from PKCS#11: %s\n"
-msgstr ""
+msgstr "Error al cargar el certificado desde PKCS#11: %s\n"
 
 #: gnutls.c:977 openssl.c:672
 #, c-format
@@ -704,46 +705,47 @@ msgstr "Usando archivo de certificado %s\n"
 
 #: gnutls.c:1000
 msgid "PKCS#11 file contained no certificate\n"
-msgstr ""
+msgstr "El archivo PKCS#11 no contiene ningún certificado\n"
 
 #: gnutls.c:1026
 msgid "No certificate found in file"
-msgstr ""
+msgstr "Certificado no encontrado en el archivo"
 
 #: gnutls.c:1031
 #, c-format
 msgid "Loading certificate failed: %s\n"
-msgstr ""
+msgstr "Falló al cargar certificado: %s\n"
 
 #: gnutls.c:1046
 #, c-format
 msgid "Using PKCS#11 key %s\n"
-msgstr ""
+msgstr "Usando clave PKCS#11 %s\n"
 
 #: gnutls.c:1051
 #, c-format
 msgid "Error initialising PKCS#11 key structure: %s\n"
-msgstr ""
+msgstr "Error al inicializar la estructura de clave PKCS#11: %s\n"
 
 #: gnutls.c:1141
 #, c-format
 msgid "Error importing PKCS#11 URL %s: %s\n"
-msgstr ""
+msgstr "Error al importar el URL PKCS#11 %s: %s\n"
 
 #: gnutls.c:1151
 #, c-format
 msgid "Error initialising private key structure: %s\n"
-msgstr ""
+msgstr "Error al inicializar la estructura de clave privada: %s\n"
 
 #: gnutls.c:1161
 #, c-format
 msgid "Error importing PKCS#11 key into private key structure: %s\n"
 msgstr ""
+"Error al importar la clave PKCS#11 a la estructura de clave privada: %s\n"
 
 #: gnutls.c:1189
 #, c-format
 msgid "Using private key file %s\n"
-msgstr ""
+msgstr "Usando archivo de clave privada: %s\n"
 
 #: gnutls.c:1202 openssl.c:570
 msgid "This version of OpenConnect was built without TPM support\n"
@@ -751,45 +753,46 @@ msgstr "Esta versión de OpenConnect se compiló sin soporte TPM\n"
 
 #: gnutls.c:1223
 msgid "Failed to interpret PEM file\n"
-msgstr ""
+msgstr "Falló al traducir el archivo PEM\n"
 
 #: gnutls.c:1242
 #, c-format
 msgid "Failed to load PKCS#1 private key: %s\n"
-msgstr ""
+msgstr "Falló al cargar la clave privada PKCS#1: %s\n"
 
 #: gnutls.c:1255 gnutls.c:1269
 #, c-format
 msgid "Failed to load private key as PKCS#8: %s\n"
-msgstr ""
+msgstr "Falló al cargar la clave privada como PKCS#8: %s\n"
 
 #: gnutls.c:1277
 msgid "Failed to decrypt PKCS#8 certificate file\n"
-msgstr ""
+msgstr "Falló al descifrar el archivo del certificado PKCS#8\n"
 
 #: gnutls.c:1291
 #, c-format
 msgid "Failed to determine type of private key %s\n"
-msgstr ""
+msgstr "Falló al determinar el tipo de clave privada %s\n"
 
 #: gnutls.c:1303
 #, c-format
 msgid "Failed to get key ID: %s\n"
-msgstr ""
+msgstr "Falló al obtener el ID de la clave: %s\n"
 
 #: gnutls.c:1348
 #, c-format
 msgid "Error signing test data with private key: %s\n"
-msgstr ""
+msgstr "Error al firmar el test de datos con la clave privada: %s\n"
 
 #: gnutls.c:1363
 #, c-format
 msgid "Error validating signature against certificate: %s\n"
-msgstr ""
+msgstr "Error al validar la firma con el certificado: %s\n"
 
 #: gnutls.c:1387
 msgid "No SSL certificate found to match private key\n"
 msgstr ""
+"No se encontró ningún certificado SSL que coincida con la clave privada\n"
 
 #: gnutls.c:1398 openssl.c:461 openssl.c:598
 #, c-format
@@ -1109,220 +1112,220 @@ msgstr ""
 msgid "Cannot receive HTTP 1.0 body without closing connection\n"
 msgstr ""
 
-#: http.c:473
+#: http.c:474
 msgid "Failed to send GET request for new config\n"
 msgstr ""
 
-#: http.c:497
+#: http.c:498
 msgid "Downloaded config file did not match intended SHA1\n"
 msgstr ""
 
-#: http.c:514
+#: http.c:515
 msgid ""
 "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 "This facility is disabled by default for security reasons, so you may wish "
 "to enable it."
 msgstr ""
 
-#: http.c:521
+#: http.c:522
 msgid "Trying to run Linux CSD trojan script."
 msgstr ""
 
-#: http.c:529
+#: http.c:530
 #, c-format
 msgid "Failed to open temporary CSD script file: %s\n"
 msgstr ""
 
-#: http.c:537
+#: http.c:538
 #, c-format
 msgid "Failed to write temporary CSD script file: %s\n"
 msgstr ""
 
-#: http.c:554 main.c:840
+#: http.c:555 main.c:840
 #, c-format
 msgid "Failed to set uid %ld\n"
 msgstr "Falló al establecer el UID %ld\n"
 
-#: http.c:559
+#: http.c:560
 #, c-format
 msgid "Invalid user uid=%ld\n"
 msgstr ""
 
-#: http.c:565
+#: http.c:566
 #, c-format
 msgid "Failed to change to CSD home directory '%s': %s\n"
 msgstr ""
 
-#: http.c:571
+#: http.c:572
 #, c-format
 msgid ""
 "Warning: you are running insecure CSD code with root privileges\n"
 "\t Use command line option \"--csd-user\"\n"
 msgstr ""
 
-#: http.c:615
+#: http.c:616
 #, c-format
 msgid "Failed to exec CSD script %s\n"
 msgstr ""
 
-#: http.c:732
+#: http.c:733
 #, c-format
 msgid "Failed to parse redirected URL '%s': %s\n"
 msgstr ""
 
-#: http.c:759
+#: http.c:760
 #, c-format
 msgid "Cannot follow redirection to non-https URL '%s'\n"
 msgstr ""
 
-#: http.c:787
+#: http.c:788
 #, c-format
 msgid "Allocating new path for relative redirect failed: %s\n"
 msgstr ""
 
-#: http.c:889
+#: http.c:890
 #, c-format
 msgid "Unexpected %d result from server\n"
 msgstr ""
 
-#: http.c:915
+#: http.c:916
 msgid "Unknown response from server\n"
 msgstr ""
 
-#: http.c:977
+#: http.c:978
 msgid "XML POST enabled\n"
 msgstr ""
 
-#: http.c:1031
+#: http.c:1036
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
 msgstr ""
 
-#: http.c:1231
+#: http.c:1236
 msgid "request granted"
 msgstr ""
 
-#: http.c:1232
+#: http.c:1237
 msgid "general failure"
 msgstr "fallo general"
 
-#: http.c:1233
+#: http.c:1238
 msgid "connection not allowed by ruleset"
 msgstr ""
 
-#: http.c:1234
+#: http.c:1239
 msgid "network unreachable"
 msgstr ""
 
-#: http.c:1235
+#: http.c:1240
 msgid "host unreachable"
 msgstr ""
 
-#: http.c:1236
+#: http.c:1241
 msgid "connection refused by destination host"
 msgstr ""
 
-#: http.c:1237
+#: http.c:1242
 msgid "TTL expired"
 msgstr ""
 
-#: http.c:1238
+#: http.c:1243
 msgid "command not supported / protocol error"
 msgstr ""
 
-#: http.c:1239
+#: http.c:1244
 msgid "address type not supported"
 msgstr ""
 
-#: http.c:1253
+#: http.c:1258
 #, c-format
 msgid "Error writing auth request to SOCKS proxy: %s\n"
 msgstr ""
 
-#: http.c:1260
+#: http.c:1265
 #, c-format
 msgid "Error reading auth response from SOCKS proxy: %s\n"
 msgstr ""
 
-#: http.c:1266
+#: http.c:1271
 #, c-format
 msgid "Unexpected auth response from SOCKS proxy: %02x %02x\n"
 msgstr ""
 
-#: http.c:1274
+#: http.c:1279
 #, c-format
 msgid "SOCKS proxy error %02x: %s\n"
 msgstr ""
 
-#: http.c:1278
+#: http.c:1283
 #, c-format
 msgid "SOCKS proxy error %02x\n"
 msgstr ""
 
-#: http.c:1284
+#: http.c:1289
 #, c-format
 msgid "Requesting SOCKS proxy connection to %s:%d\n"
 msgstr ""
 
-#: http.c:1299
+#: http.c:1304
 #, c-format
 msgid "Error writing connect request to SOCKS proxy: %s\n"
 msgstr ""
 
-#: http.c:1307 http.c:1340
+#: http.c:1312 http.c:1345
 #, c-format
 msgid "Error reading connect response from SOCKS proxy: %s\n"
 msgstr ""
 
-#: http.c:1313
+#: http.c:1318
 #, c-format
 msgid "Unexpected connect response from SOCKS proxy: %02x %02x...\n"
 msgstr ""
 
-#: http.c:1333
+#: http.c:1338
 #, c-format
 msgid "Unexpected address type %02x in SOCKS connect response\n"
 msgstr ""
 
-#: http.c:1366
+#: http.c:1371
 #, c-format
 msgid "Requesting HTTP proxy connection to %s:%d\n"
 msgstr ""
 
-#: http.c:1374
+#: http.c:1379
 #, c-format
 msgid "Sending proxy request failed: %s\n"
 msgstr ""
 
-#: http.c:1381
+#: http.c:1386
 msgid "Error fetching proxy response\n"
 msgstr ""
 
-#: http.c:1388
+#: http.c:1393
 #, c-format
 msgid "Failed to parse proxy response '%s'\n"
 msgstr ""
 
-#: http.c:1394
+#: http.c:1399
 #, c-format
 msgid "Proxy CONNECT request failed: %s\n"
 msgstr ""
 
-#: http.c:1401
+#: http.c:1406
 msgid "Failed to read proxy response\n"
 msgstr ""
 
-#: http.c:1405
+#: http.c:1410
 #, c-format
 msgid "Unexpected continuation line after CONNECT response: '%s'\n"
 msgstr ""
 
-#: http.c:1421
+#: http.c:1426
 #, c-format
 msgid "Unknown proxy type '%s'\n"
 msgstr ""
 
-#: http.c:1449
+#: http.c:1454
 msgid "Only http or socks(5) proxies supported\n"
 msgstr ""
 
