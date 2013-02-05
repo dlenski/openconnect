@@ -251,7 +251,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 				   ensure that we output the same IP address in authentication
 				   results (from libopenconnect or --authenticate). */
 				if (!vpninfo->proxy && (rp != result || rp->ai_next) && host[0]) {
-					char *p = malloc(strlen(host) + 9);
+					char *p = malloc(strlen(host) + 3);
 					if (p) {
 						free(vpninfo->hostname);
 						vpninfo->hostname = p;
@@ -261,11 +261,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 						p += strlen(host);
 						if (rp->ai_family == AF_INET6)
 							*p++ = ']';
-
-						if (vpninfo->port != 443)
-							snprintf(p, 7, ":%d", vpninfo->port);
-						else
-							*p = 0;
+						*p = 0;
 					}
 				}
 				break;
