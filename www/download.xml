@@ -19,12 +19,16 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.07.tar.gz">OpenConnect v4.07</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.07.tar.gz.asc">PGP signature</a>)</i>,
-released on 2012-08-31 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.99.tar.gz">OpenConnect v4.99</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.99.tar.gz.asc">PGP signature</a>)</i>,
+released on 2013-02-07 with the following changelog:</p>
      <ul>
-       <li>Fix segmentation fault when invoked with <tt>-p</tt> argument.</li>
-       <li>Fix handling of write stalls on CSTP (TCP) socket.</li>
+       <li>Add <tt>--os</tt> switch to report a different OS type to the gateway.</li>
+       <li>Support new XML POST format.</li>
+       <li>Fix buffer overflow on long <tt>Location:</tt> and <tt>Set-Cookie:</tt> headers sent from server.</li>
+       <li>Add SecurID token support using <a href="http://stoken.sourceforge.net/">libstoken</a>.</li>
+       <li>Fix some harmless issues reported by Coverity.</li>
+       <li>Improve <tt>"Attempting to connect..."</tt> message to be explicit when it's connecting to a proxy.</li>
      </ul>
 <!-- latest-release-end -->
 
