@@ -4,14 +4,14 @@
 #
 # Translators:
 # Pavel Fric <pavelfric@seznam.cz>, 2011.
-#   <pavelfric@seznam.cz>, 2011-2012.
+#   <pavelfric@seznam.cz>, 2011-2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-12-03 11:18+0000\n"
-"PO-Revision-Date: 2012-11-15 08:31+0000\n"
-"Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
+"POT-Creation-Date: 2013-02-05 21:37+0000\n"
+"PO-Revision-Date: 2013-01-12 13:15+0000\n"
+"Last-Translator: fri <pavelfric@seznam.cz>\n"
 "Language-Team: Czech (http://www.transifex.com/projects/p/meego/language/"
 "cs/)\n"
 "Language: cs\n"
@@ -134,209 +134,209 @@ msgstr ""
 msgid "TCP_MAXSEG %d\n"
 msgstr ""
 
-#: cstp.c:196
+#: cstp.c:198
 #, c-format
 msgid "Failed to initialise DTLS secret\n"
 msgstr ""
 
-#: cstp.c:229 http.c:199
+#: cstp.c:231 http.c:199
 msgid "Error fetching HTTPS response\n"
 msgstr "Chyba při natahování odpovědi HTTPS\n"
 
-#: cstp.c:236 http.c:458 http.c:828
+#: cstp.c:238 http.c:459 http.c:829
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "Nepodařilo se otevřít spojení HTTPS s %s\n"
 
-#: cstp.c:256
+#: cstp.c:258
 #, c-format
 msgid "VPN service unavailable; reason: %s\n"
 msgstr "Služba VPN nedostupná, důvod: %s\n"
 
-#: cstp.c:261
+#: cstp.c:263
 #, c-format
 msgid "Got inappropriate HTTP CONNECT response: %s\n"
 msgstr "Obdržena nevhodná odpověď SPOJENÍ HTTP: %s\n"
 
-#: cstp.c:268
+#: cstp.c:270
 #, c-format
 msgid "Got CONNECT response: %s\n"
 msgstr "Obdržena odpověď SPOJENÍ : %s\n"
 
-#: cstp.c:296 cstp.c:304
+#: cstp.c:298 cstp.c:306
 msgid "No memory for options\n"
 msgstr "Žádná paměť pro volby\n"
 
-#: cstp.c:324
+#: cstp.c:326
 #, c-format
 msgid "X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"
 msgstr "X-DTLS-Sezení-ID ne 64 znaků; je: \"%s\"\n"
 
-#: cstp.c:354
+#: cstp.c:356
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
 msgstr "Neznámé kódování-obsahu-CSTP %s\n"
 
-#: cstp.c:422
+#: cstp.c:424
 msgid "No MTU received. Aborting\n"
 msgstr ""
 
-#: cstp.c:429
+#: cstp.c:431
 msgid "No IP address received. Aborting\n"
 msgstr "Nepřijata žádná adresa IP. Ruší se\n"
 
-#: cstp.c:435
+#: cstp.c:437
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr "Znovuzapojení dalo jinou adresu Legacy IP (%s != %s)\n"
 
-#: cstp.c:443
+#: cstp.c:445
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr "Znovuzapojení dalo jinou síťovou masku Legacy IP (%s != %s)\n"
 
-#: cstp.c:451
+#: cstp.c:453
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
 msgstr "Znovuzapojení dalo jinou adresu IPv6  (%s != %s)\n"
 
-#: cstp.c:459
+#: cstp.c:461
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr "Znovuzapojení dalo jinou síťovou masku IPv6  (%s != %s)\n"
 
-#: cstp.c:479
+#: cstp.c:481
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr "CSTP spojeno. DPD %d, (udržet naživu) Keepalive %d\n"
 
-#: cstp.c:512
+#: cstp.c:514
 msgid "Compression setup failed\n"
 msgstr "Nastavení zabalení se nezdařilo\n"
 
-#: cstp.c:520
+#: cstp.c:522
 msgid "Allocation of deflate buffer failed\n"
 msgstr "Přidělení deflate vyrovnávací paměti se nezdařilo\n"
 
-#: cstp.c:560
+#: cstp.c:562
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
 msgstr "spánek %ds, zbývající oddechový čas %ds\n"
 
-#: cstp.c:593
+#: cstp.c:595
 msgid "inflate failed\n"
 msgstr "nafouknutí se nepodařilo\n"
 
-#: cstp.c:611
+#: cstp.c:613
 #, c-format
 msgid "Received compressed data packet of %ld bytes\n"
 msgstr "Přijat zabalený paket dat %ld bytů\n"
 
-#: cstp.c:630
+#: cstp.c:632
 #, c-format
 msgid "SSL read error %d (server probably closed connection); reconnecting.\n"
 msgstr ""
 "Chyba při čtení SSL %d (server pravděpodobně zavřel spojení); Obnovuje se "
 "spojení.\n"
 
-#: cstp.c:655
+#: cstp.c:657
 #, c-format
 msgid "SSL_write failed: %d\n"
 msgstr "SSL_zápis se nezdařil: %d\n"
 
-#: cstp.c:671
+#: cstp.c:673
 #, c-format
 msgid "SSL read error: %s; reconnecting.\n"
 msgstr ""
 
-#: cstp.c:694
+#: cstp.c:696
 #, c-format
 msgid "SSL send failed: %s\n"
 msgstr ""
 
-#: cstp.c:722
+#: cstp.c:724
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
 msgstr "Neočekávaná délka paketu. SSL_čtení vrátilo %d ale paket je\n"
 
-#: cstp.c:734
+#: cstp.c:736
 msgid "Got CSTP DPD request\n"
 msgstr "Obdržen požadavek CSTP DPD\n"
 
-#: cstp.c:740
+#: cstp.c:742
 msgid "Got CSTP DPD response\n"
 msgstr "Obdržena odpověď CSTP DPD\n"
 
-#: cstp.c:745
+#: cstp.c:747
 msgid "Got CSTP Keepalive\n"
 msgstr "Obdrženo CSTP Keepalive\n"
 
-#: cstp.c:750
+#: cstp.c:752
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr "Přijat nezabalený paket dat %d bytů\n"
 
-#: cstp.c:765
+#: cstp.c:767
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
 msgstr "Přijato odpojení serveru: %02x '%s'\n"
 
-#: cstp.c:773
+#: cstp.c:775
 msgid "Compressed packet received in !deflate mode\n"
 msgstr "Přijat zabalený paket v režimu !deflate\n"
 
-#: cstp.c:781
+#: cstp.c:783
 msgid "received server terminate packet\n"
 msgstr "Přijat paket pro ukončení serveru\n"
 
-#: cstp.c:788
+#: cstp.c:790
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr "Neznámý paket %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
-#: cstp.c:831
+#: cstp.c:833
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr "SSL napsalo příliš mnoho bytů! Požádáno o %d, posláno %d\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:858
+#: cstp.c:860
 msgid "CSTP rekey due\n"
 msgstr "Naplánování znovuzanesení CSTP\n"
 
-#: cstp.c:865
+#: cstp.c:867
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr "CSTP odhalování mrtvého protějšku zjistilo mrtvý protějšek!\n"
 
-#: cstp.c:868 dtls.c:758
+#: cstp.c:870 dtls.c:758
 msgid "Reconnect failed\n"
 msgstr "Znovupřipojení se nezdařilo\n"
 
-#: cstp.c:877
+#: cstp.c:879
 msgid "Send CSTP DPD\n"
 msgstr "Poslat CSTP DPD\n"
 
-#: cstp.c:888
+#: cstp.c:890
 msgid "Send CSTP Keepalive\n"
 msgstr "Poslat CSTP Keepalive\n"
 
-#: cstp.c:915
+#: cstp.c:917
 #, c-format
 msgid "deflate failed %d\n"
 msgstr "deflate se nezdařilo %d\n"
 
-#: cstp.c:935
+#: cstp.c:937
 #, c-format
 msgid "Sending compressed data packet of %d bytes\n"
 msgstr "Posílá se zabalený paket dat %d bytů\n"
 
-#: cstp.c:947
+#: cstp.c:949
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr "Posílá se nezabalený paket dat %d bytů\n"
 
-#: cstp.c:987
+#: cstp.c:989
 #, c-format
 msgid "Send BYE packet: %s\n"
 msgstr "Poslat BYE paket: %s\n"
@@ -1108,15 +1108,15 @@ msgstr "Chyba rozkouskovaném dekódování. Očekáváno '', obdrženo: '%s'"
 msgid "Cannot receive HTTP 1.0 body without closing connection\n"
 msgstr "Tělo HTTP 1.0 nelze přijmout bez zavření spojení\n"
 
-#: http.c:473
+#: http.c:474
 msgid "Failed to send GET request for new config\n"
 msgstr ""
 
-#: http.c:497
+#: http.c:498
 msgid "Downloaded config file did not match intended SHA1\n"
 msgstr "Stažený soubor s nastavením neodpovídá zamýšlenému SHA1\n"
 
-#: http.c:514
+#: http.c:515
 msgid ""
 "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 "This facility is disabled by default for security reasons, so you may wish "
@@ -1127,36 +1127,36 @@ msgstr ""
 "tato dovednost je zakázána ve výchozím nastavení z důvodů bezpečnosti, takže "
 "ji možná budete chtít povolit."
 
-#: http.c:521
+#: http.c:522
 msgid "Trying to run Linux CSD trojan script."
 msgstr "Pokus o spuštění trojského skriptu CSD pro Linux."
 
-#: http.c:529
+#: http.c:530
 #, c-format
 msgid "Failed to open temporary CSD script file: %s\n"
 msgstr "Nepodařilo se otevřít dočasný soubor se skriptem CSD: %s\n"
 
-#: http.c:537
+#: http.c:538
 #, c-format
 msgid "Failed to write temporary CSD script file: %s\n"
 msgstr "Nepodařilo se zapsat dočasný soubor se skriptem CSD: %s\n"
 
-#: http.c:554 main.c:840
+#: http.c:555 main.c:840
 #, c-format
 msgid "Failed to set uid %ld\n"
 msgstr "Nepodařilo se nastavit uid %ld\n"
 
-#: http.c:559
+#: http.c:560
 #, c-format
 msgid "Invalid user uid=%ld\n"
 msgstr "Neplatné uživatelské uid %ld\n"
 
-#: http.c:565
+#: http.c:566
 #, c-format
 msgid "Failed to change to CSD home directory '%s': %s\n"
 msgstr "Nepodařilo se provést změnu na domovský adresář CSD '%s': %s\n"
 
-#: http.c:571
+#: http.c:572
 #, c-format
 msgid ""
 "Warning: you are running insecure CSD code with root privileges\n"
@@ -1165,169 +1165,169 @@ msgstr ""
 "Varování: spouštíte nezabezpečený kód CSD s oprávněním správce systému\n"
 "\t Použít volbu pro příkazový řádek \"--csd-user\"\n"
 
-#: http.c:615
+#: http.c:616
 #, c-format
 msgid "Failed to exec CSD script %s\n"
 msgstr "Nepodařilo se spustit skript CSD %s\n"
 
-#: http.c:732
+#: http.c:733
 #, c-format
 msgid "Failed to parse redirected URL '%s': %s\n"
 msgstr "Nepodařilo se zpracovat přesměrovanou adresu (URL) '%s': %s\n"
 
-#: http.c:759
+#: http.c:760
 #, c-format
 msgid "Cannot follow redirection to non-https URL '%s'\n"
 msgstr ""
 
-#: http.c:787
+#: http.c:788
 #, c-format
 msgid "Allocating new path for relative redirect failed: %s\n"
 msgstr "Přidělení nové cesty pro relativní přesměrování se nezdařilo: %s\n"
 
-#: http.c:889
+#: http.c:890
 #, c-format
 msgid "Unexpected %d result from server\n"
 msgstr "Neočekávaný výsledek %d od serveru\n"
 
-#: http.c:915
+#: http.c:916
 msgid "Unknown response from server\n"
 msgstr "Neznámá odpověď od serveru\n"
 
-#: http.c:977
+#: http.c:978
 msgid "XML POST enabled\n"
 msgstr ""
 
-#: http.c:1031
+#: http.c:1036
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
 msgstr "Obnova %s po 1 sekundě...\n"
 
-#: http.c:1231
+#: http.c:1236
 msgid "request granted"
 msgstr "Požadavek schválen"
 
-#: http.c:1232
+#: http.c:1237
 msgid "general failure"
 msgstr "Obecné selhání"
 
-#: http.c:1233
+#: http.c:1238
 msgid "connection not allowed by ruleset"
 msgstr "Spojení podle souboru pravidel nepovoleno"
 
-#: http.c:1234
+#: http.c:1239
 msgid "network unreachable"
 msgstr "Síť nedosažitelná"
 
-#: http.c:1235
+#: http.c:1240
 msgid "host unreachable"
 msgstr "Hostitel nedosažitelný"
 
-#: http.c:1236
+#: http.c:1241
 msgid "connection refused by destination host"
 msgstr "Spojení cílovým hostitelem odmítnuto"
 
-#: http.c:1237
+#: http.c:1242
 msgid "TTL expired"
 msgstr "TTL vypršel"
 
-#: http.c:1238
+#: http.c:1243
 msgid "command not supported / protocol error"
 msgstr "Příkaz nepodporován/chyba protokolu"
 
-#: http.c:1239
+#: http.c:1244
 msgid "address type not supported"
 msgstr "Typ adresy nepodporován"
 
-#: http.c:1253
+#: http.c:1258
 #, c-format
 msgid "Error writing auth request to SOCKS proxy: %s\n"
 msgstr "Chyba při zápisu požadavku na ověření do proxy SOCKS: %s\n"
 
-#: http.c:1260
+#: http.c:1265
 #, c-format
 msgid "Error reading auth response from SOCKS proxy: %s\n"
 msgstr "Chyba při čtení odpovědi týkající se ověřen z proxy SOCKS: %s\n"
 
-#: http.c:1266
+#: http.c:1271
 #, c-format
 msgid "Unexpected auth response from SOCKS proxy: %02x %02x\n"
 msgstr "Neočekávaná odpověď týkající se ověřen z proxy SOCKS: %02x %02x\n"
 
-#: http.c:1274
+#: http.c:1279
 #, c-format
 msgid "SOCKS proxy error %02x: %s\n"
 msgstr "Chyba proxy SOCKS %02x: %s\n"
 
-#: http.c:1278
+#: http.c:1283
 #, c-format
 msgid "SOCKS proxy error %02x\n"
 msgstr "Chyba proxy SOCKS %02x\n"
 
-#: http.c:1284
+#: http.c:1289
 #, c-format
 msgid "Requesting SOCKS proxy connection to %s:%d\n"
 msgstr "Požadavek na spojení proxy SOCKS do %s:%d\n"
 
-#: http.c:1299
+#: http.c:1304
 #, c-format
 msgid "Error writing connect request to SOCKS proxy: %s\n"
 msgstr "Chyba při zápisu odpovědi spojení do proxy SOCKS: %s\n"
 
-#: http.c:1307 http.c:1340
+#: http.c:1312 http.c:1345
 #, c-format
 msgid "Error reading connect response from SOCKS proxy: %s\n"
 msgstr "Chyba při čtení odpovědi spojení z proxy SOCKS: %s\n"
 
-#: http.c:1313
+#: http.c:1318
 #, c-format
 msgid "Unexpected connect response from SOCKS proxy: %02x %02x...\n"
 msgstr "Neočekávaná odpověď spojení z proxy SOCKS: %02x %02x...\n"
 
-#: http.c:1333
+#: http.c:1338
 #, c-format
 msgid "Unexpected address type %02x in SOCKS connect response\n"
 msgstr "Neočekávaný typ adresy %02x v odpovědi spojení SOCKS\n"
 
-#: http.c:1366
+#: http.c:1371
 #, c-format
 msgid "Requesting HTTP proxy connection to %s:%d\n"
 msgstr "Požadavek na spojení proxy HTTP do %s:%d\n"
 
-#: http.c:1374
+#: http.c:1379
 #, c-format
 msgid "Sending proxy request failed: %s\n"
 msgstr "Poslání požadavku na proxy se nezdařilo: %s\n"
 
-#: http.c:1381
+#: http.c:1386
 msgid "Error fetching proxy response\n"
 msgstr "Chyba při natahování spojení proxy\n"
 
-#: http.c:1388
+#: http.c:1393
 #, c-format
 msgid "Failed to parse proxy response '%s'\n"
 msgstr "Nepodařilo se zpracovat odpověď proxy '%s'\n"
 
-#: http.c:1394
+#: http.c:1399
 #, c-format
 msgid "Proxy CONNECT request failed: %s\n"
 msgstr "Požadavek na SPOJENÍ proxy se nezdařil: %s\n"
 
-#: http.c:1401
+#: http.c:1406
 msgid "Failed to read proxy response\n"
 msgstr "Nepodařilo se přečíst odpověď proxy\n"
 
-#: http.c:1405
+#: http.c:1410
 #, c-format
 msgid "Unexpected continuation line after CONNECT response: '%s'\n"
 msgstr "Neočekávaný pokračovací řádek po odpovědi SPOJENÍ: '%s'\n"
 
-#: http.c:1421
+#: http.c:1426
 #, c-format
 msgid "Unknown proxy type '%s'\n"
 msgstr "Neznámý typ proxy '%s'\n"
 
-#: http.c:1449
+#: http.c:1454
 msgid "Only http or socks(5) proxies supported\n"
 msgstr "Podporovány pouze proxy HTTP nebo socks(5)\n"
 
@@ -1512,7 +1512,7 @@ msgstr ""
 
 #: main.c:267
 msgid "Set login username"
-msgstr ""
+msgstr "Nastavit přihlašovací uživatelské jméno"
 
 #: main.c:268
 msgid "Report version number"
@@ -1520,11 +1520,11 @@ msgstr ""
 
 #: main.c:269
 msgid "More output"
-msgstr ""
+msgstr "Podrobnější výstup"
 
 #: main.c:270
 msgid "XML config file"
-msgstr ""
+msgstr "Soubor nastavení XML"
 
 #: main.c:271
 msgid "Choose authentication login selection"
@@ -2056,76 +2056,76 @@ msgstr "Proxy z libproxy: %s://%s:%d/\n"
 msgid "getaddrinfo failed for host '%s': %s\n"
 msgstr "getaddrinfo selhalo pro hostitele '%s': %s\n"
 
-#: ssl.c:226
+#: ssl.c:227
 #, c-format
 msgid "Attempting to connect to proxy %s%s%s:%s\n"
 msgstr ""
 
-#: ssl.c:227
+#: ssl.c:228
 #, c-format
 msgid "Attempting to connect to server %s%s%s:%s\n"
 msgstr ""
 
-#: ssl.c:243
+#: ssl.c:244
 msgid "Failed to allocate sockaddr storage\n"
 msgstr "Nepodařilo se přidělit skladiště sockaddr\n"
 
-#: ssl.c:258
+#: ssl.c:276
 #, c-format
 msgid "Failed to connect to host %s\n"
 msgstr "Nepodařilo se spojit se s hostitelem %s\n"
 
-#: ssl.c:333
+#: ssl.c:351
 #, c-format
 msgid "statvfs: %s\n"
 msgstr "statvfs: %s\n"
 
-#: ssl.c:350
+#: ssl.c:368
 #, c-format
 msgid "statfs: %s\n"
 msgstr "statfs: %s\n"
 
-#: ssl.c:421
+#: ssl.c:439
 msgid "No error"
 msgstr ""
 
-#: ssl.c:422
+#: ssl.c:440
 msgid "Keystore locked"
 msgstr ""
 
-#: ssl.c:423
+#: ssl.c:441
 msgid "Keystore uninitialized"
 msgstr ""
 
-#: ssl.c:424
+#: ssl.c:442
 msgid "System error"
 msgstr ""
 
-#: ssl.c:425
+#: ssl.c:443
 msgid "Protocol error"
 msgstr ""
 
-#: ssl.c:426
+#: ssl.c:444
 msgid "Permission denied"
 msgstr ""
 
-#: ssl.c:427
+#: ssl.c:445
 msgid "Key not found"
 msgstr ""
 
-#: ssl.c:428
+#: ssl.c:446
 msgid "Value corrupted"
 msgstr ""
 
-#: ssl.c:429
+#: ssl.c:447
 msgid "Undefined action"
 msgstr ""
 
-#: ssl.c:433
+#: ssl.c:451
 msgid "Wrong password"
 msgstr ""
 
-#: ssl.c:434
+#: ssl.c:452
 msgid "Unknown error"
 msgstr ""
 

@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-12-30 12:04+0000\n"
-"PO-Revision-Date: 2011-09-22 22:31+0000\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: Portuguese (Brazilian) <l10n-pt-br@meego.org.br>\n"
+"POT-Creation-Date: 2013-02-05 21:37+0000\n"
+"PO-Revision-Date: 2013-01-18 22:04+0000\n"
+"Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
+"Language-Team: Portuguese (Brazil) <l10n-pt-br@meego.org.br>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: auth.c:130
 msgid "Form choice has no name\n"
@@ -142,7 +142,7 @@ msgstr "Falha ao inicializar segredo de DTLS\n"
 msgid "Error fetching HTTPS response\n"
 msgstr "Erro ao obter resposta HTTPS\n"
 
-#: cstp.c:238 http.c:458 http.c:828
+#: cstp.c:238 http.c:459 http.c:829
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "Falhou ao abrir conexão HTTPS para %s\n"
@@ -1111,15 +1111,15 @@ msgstr "Erro na decodificação fragmentada. Esperava \"\", obteve: \"%s\""
 msgid "Cannot receive HTTP 1.0 body without closing connection\n"
 msgstr "Não foi possível receber corpo de HTTP 1.0 sem fechar a conexão\n"
 
-#: http.c:473
+#: http.c:474
 msgid "Failed to send GET request for new config\n"
 msgstr "Falhou ao enviar requisição GET para nova configuração\n"
 
-#: http.c:497
+#: http.c:498
 msgid "Downloaded config file did not match intended SHA1\n"
 msgstr "Arquivo de configuração baixado não confere com SHA1 esperado\n"
 
-#: http.c:514
+#: http.c:515
 msgid ""
 "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 "This facility is disabled by default for security reasons, so you may wish "
@@ -1130,36 +1130,36 @@ msgstr ""
 "Esta funcionalidade está desabilitada por padrão por motivos de segurança. "
 "Então, talvez você queira habilitá-la."
 
-#: http.c:521
+#: http.c:522
 msgid "Trying to run Linux CSD trojan script."
 msgstr "Tentando executar o script trojan CSD para Linux."
 
-#: http.c:529
+#: http.c:530
 #, c-format
 msgid "Failed to open temporary CSD script file: %s\n"
 msgstr "Falhou ao abrir arquivo de script CSD temporário: %s\n"
 
-#: http.c:537
+#: http.c:538
 #, c-format
 msgid "Failed to write temporary CSD script file: %s\n"
 msgstr "Falhou ao escrever arquivo de script CSD temporário: %s\n"
 
-#: http.c:554 main.c:840
+#: http.c:555 main.c:840
 #, c-format
 msgid "Failed to set uid %ld\n"
 msgstr "Falha ao definir uid %ld\n"
 
-#: http.c:559
+#: http.c:560
 #, c-format
 msgid "Invalid user uid=%ld\n"
 msgstr "uid=%ld de usuário inválido\n"
 
-#: http.c:565
+#: http.c:566
 #, c-format
 msgid "Failed to change to CSD home directory '%s': %s\n"
 msgstr "Falhou ao mudar para o diretório inicial do CSD \"%s\": %s\n"
 
-#: http.c:571
+#: http.c:572
 #, c-format
 msgid ""
 "Warning: you are running insecure CSD code with root privileges\n"
@@ -1169,169 +1169,169 @@ msgstr ""
 "root\n"
 "\t Use a opção de linha de comando \"--csd-user\"\n"
 
-#: http.c:615
+#: http.c:616
 #, c-format
 msgid "Failed to exec CSD script %s\n"
 msgstr "Falhou ao executar script CSD %s\n"
 
-#: http.c:732
+#: http.c:733
 #, c-format
 msgid "Failed to parse redirected URL '%s': %s\n"
 msgstr "Falhou ao analisar URL redirecionada \"%s\": %s\n"
 
-#: http.c:759
+#: http.c:760
 #, c-format
 msgid "Cannot follow redirection to non-https URL '%s'\n"
 msgstr "Não foi possível seguir o redirecionamento para URL não https \"%s\"\n"
 
-#: http.c:787
+#: http.c:788
 #, c-format
 msgid "Allocating new path for relative redirect failed: %s\n"
 msgstr "A alocação de novo caminho para redirecionamento relativo falhou: %s\n"
 
-#: http.c:889
+#: http.c:890
 #, c-format
 msgid "Unexpected %d result from server\n"
 msgstr "Resultado inesperado %d do servidor\n"
 
-#: http.c:915
+#: http.c:916
 msgid "Unknown response from server\n"
 msgstr "Resposta desconhecida do servidor\n"
 
-#: http.c:977
+#: http.c:978
 msgid "XML POST enabled\n"
 msgstr "XML POST habilitado\n"
 
-#: http.c:1031
+#: http.c:1036
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
 msgstr "Renovando %s após 1 segundo...\n"
 
-#: http.c:1231
+#: http.c:1236
 msgid "request granted"
 msgstr "requisição concedida"
 
-#: http.c:1232
+#: http.c:1237
 msgid "general failure"
 msgstr "falha geral"
 
-#: http.c:1233
+#: http.c:1238
 msgid "connection not allowed by ruleset"
 msgstr "conexão não permitida pelo conjunto de regras"
 
-#: http.c:1234
+#: http.c:1239
 msgid "network unreachable"
 msgstr "a rede está inacessível"
 
-#: http.c:1235
+#: http.c:1240
 msgid "host unreachable"
 msgstr "o host está inacessível"
 
-#: http.c:1236
+#: http.c:1241
 msgid "connection refused by destination host"
 msgstr "Conexão recusada pelo host de destino"
 
-#: http.c:1237
+#: http.c:1242
 msgid "TTL expired"
 msgstr "TTL expirou"
 
-#: http.c:1238
+#: http.c:1243
 msgid "command not supported / protocol error"
 msgstr "comando não suportado / erro de protocolo"
 
-#: http.c:1239
+#: http.c:1244
 msgid "address type not supported"
 msgstr "tipo de endereço não suportado"
 
-#: http.c:1253
+#: http.c:1258
 #, c-format
 msgid "Error writing auth request to SOCKS proxy: %s\n"
 msgstr "Erro na escrita de requisição de autenticação para proxy SOCKS: %s\n"
 
-#: http.c:1260
+#: http.c:1265
 #, c-format
 msgid "Error reading auth response from SOCKS proxy: %s\n"
 msgstr "Erro na leitura de reposta de autenticação de proxy SOCKS: %s\n"
 
-#: http.c:1266
+#: http.c:1271
 #, c-format
 msgid "Unexpected auth response from SOCKS proxy: %02x %02x\n"
 msgstr "Resposta de autenticação inesperada de proxy SOCKS: %02x %02x\n"
 
-#: http.c:1274
+#: http.c:1279
 #, c-format
 msgid "SOCKS proxy error %02x: %s\n"
 msgstr "Erro de proxy SOCKS %02x: %s\n"
 
-#: http.c:1278
+#: http.c:1283
 #, c-format
 msgid "SOCKS proxy error %02x\n"
 msgstr "Erro de proxy SOCKS %02x\n"
 
-#: http.c:1284
+#: http.c:1289
 #, c-format
 msgid "Requesting SOCKS proxy connection to %s:%d\n"
 msgstr "Requisitando conexão ao proxy SOCKS para %s:%d\n"
 
-#: http.c:1299
+#: http.c:1304
 #, c-format
 msgid "Error writing connect request to SOCKS proxy: %s\n"
 msgstr "Erro na escrita de requisição de conexão para proxy SOCKS: %s\n"
 
-#: http.c:1307 http.c:1340
+#: http.c:1312 http.c:1345
 #, c-format
 msgid "Error reading connect response from SOCKS proxy: %s\n"
 msgstr "Erro na leitura de resposta de conexão de proxy SOCKS: %s\n"
 
-#: http.c:1313
+#: http.c:1318
 #, c-format
 msgid "Unexpected connect response from SOCKS proxy: %02x %02x...\n"
 msgstr "Resposta de conexão inesperada de proxy SOCKS: %02x %02x...\n"
 
-#: http.c:1333
+#: http.c:1338
 #, c-format
 msgid "Unexpected address type %02x in SOCKS connect response\n"
 msgstr "Tipo de endereço %02x inesperado na resposta de conexão SOCKS\n"
 
-#: http.c:1366
+#: http.c:1371
 #, c-format
 msgid "Requesting HTTP proxy connection to %s:%d\n"
 msgstr "Requisitando conexão proxy HTTP para %s:%d\n"
 
-#: http.c:1374
+#: http.c:1379
 #, c-format
 msgid "Sending proxy request failed: %s\n"
 msgstr "Envio de requisição proxy falhou: %s\n"
 
-#: http.c:1381
+#: http.c:1386
 msgid "Error fetching proxy response\n"
 msgstr "Erro na obtenção de reposta proxy\n"
 
-#: http.c:1388
+#: http.c:1393
 #, c-format
 msgid "Failed to parse proxy response '%s'\n"
 msgstr "Falhou ao analisar resposta de proxy \"%s\"\n"
 
-#: http.c:1394
+#: http.c:1399
 #, c-format
 msgid "Proxy CONNECT request failed: %s\n"
 msgstr "Requisição de proxy CONNECT falhou: %s\n"
 
-#: http.c:1401
+#: http.c:1406
 msgid "Failed to read proxy response\n"
 msgstr "Falhou ao ler resposta proxy\n"
 
-#: http.c:1405
+#: http.c:1410
 #, c-format
 msgid "Unexpected continuation line after CONNECT response: '%s'\n"
 msgstr "Linha de continuidade inesperada após resposta CONNECT: \"%s\"\n"
 
-#: http.c:1421
+#: http.c:1426
 #, c-format
 msgid "Unknown proxy type '%s'\n"
 msgstr "Tipo de proxy desconhecido \"%s\"\n"
 
-#: http.c:1449
+#: http.c:1454
 msgid "Only http or socks(5) proxies supported\n"
 msgstr "Somente proxy http ou socks(5) são suportados\n"
 
@@ -1826,7 +1826,6 @@ msgstr "String de token de software é inválida\n"
 msgid "Can't open ~/.stokenrc file\n"
 msgstr "Não foi possível abrir o arquivo ~/.stokenrc\n"
 
-# manter soft token ou traduzir
 #: main.c:1243
 #, c-format
 msgid "OpenConnect was not built with soft token support\n"
@@ -1952,13 +1951,11 @@ msgstr "Falhou ao abrir arquivo de chave privada %s: %s\n"
 msgid "Failed to identify private key type in '%s'\n"
 msgstr "Falhou ao identificar o tipo de chave privada em \"%s\"\n"
 
-# %s = host
 #: openssl.c:974
 #, c-format
 msgid "Matched DNS altname '%s'\n"
 msgstr "Correspondeu ao altname DNS de \"%s\"\n"
 
-# %s = host
 #: openssl.c:981
 #, c-format
 msgid "No match for altname '%s'\n"
@@ -1969,13 +1966,11 @@ msgstr "Não corresponder para altname de \"%s\"\n"
 msgid "Certificate has GEN_IPADD altname with bogus length %d\n"
 msgstr "O certificado tem um altname GEN_IPADD com tamanho falho %d\n"
 
-# 1st %s = IPv4/IPv6; 2nd %s = host
 #: openssl.c:1006
 #, c-format
 msgid "Matched %s address '%s'\n"
 msgstr "Correspondeu o endereço %s a \"%s\"\n"
 
-# 1st %s = IPv4/IPv6; 2nd %s = host
 #: openssl.c:1013
 #, c-format
 msgid "No match for %s address '%s'\n"
@@ -2075,76 +2070,76 @@ msgstr "Proxy de libproxy: %s://%s:%d/\n"
 msgid "getaddrinfo failed for host '%s': %s\n"
 msgstr "getaddrinfo falhou para o host \"%s\": %s\n"
 
-#: ssl.c:226
+#: ssl.c:227
 #, c-format
 msgid "Attempting to connect to proxy %s%s%s:%s\n"
 msgstr "Tentando conectar ao proxy %s%s%s:%s\n"
 
-#: ssl.c:227
+#: ssl.c:228
 #, c-format
 msgid "Attempting to connect to server %s%s%s:%s\n"
 msgstr "Tentando conectar ao servidor %s%s%s:%s\n"
 
-#: ssl.c:243
+#: ssl.c:244
 msgid "Failed to allocate sockaddr storage\n"
 msgstr "Falhou ao alocar armazenamento de sockaddr\n"
 
-#: ssl.c:258
+#: ssl.c:276
 #, c-format
 msgid "Failed to connect to host %s\n"
 msgstr "Falhou ao conectar ao host %s\n"
 
-#: ssl.c:333
+#: ssl.c:351
 #, c-format
 msgid "statvfs: %s\n"
 msgstr "statvfs: %s\n"
 
-#: ssl.c:350
+#: ssl.c:368
 #, c-format
 msgid "statfs: %s\n"
 msgstr "statfs: %s\n"
 
-#: ssl.c:421
+#: ssl.c:439
 msgid "No error"
 msgstr "Nenhum erro"
 
-#: ssl.c:422
+#: ssl.c:440
 msgid "Keystore locked"
 msgstr "Keystore travada"
 
-#: ssl.c:423
+#: ssl.c:441
 msgid "Keystore uninitialized"
 msgstr "Keystore não inicializada"
 
-#: ssl.c:424
+#: ssl.c:442
 msgid "System error"
 msgstr "Erro de sistema"
 
-#: ssl.c:425
+#: ssl.c:443
 msgid "Protocol error"
 msgstr "Erro de protocolo"
 
-#: ssl.c:426
+#: ssl.c:444
 msgid "Permission denied"
 msgstr "Permissão negada"
 
-#: ssl.c:427
+#: ssl.c:445
 msgid "Key not found"
 msgstr "Chave não encontrada"
 
-#: ssl.c:428
+#: ssl.c:446
 msgid "Value corrupted"
 msgstr "Valor corrompido"
 
-#: ssl.c:429
+#: ssl.c:447
 msgid "Undefined action"
 msgstr "Ação não definida"
 
-#: ssl.c:433
+#: ssl.c:451
 msgid "Wrong password"
 msgstr "Senha incorreta"
 
-#: ssl.c:434
+#: ssl.c:452
 msgid "Unknown error"
 msgstr "Erro desconhecido"
 
