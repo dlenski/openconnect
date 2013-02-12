@@ -1333,6 +1333,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	   match. So sign some dummy data and then check the signature against each
 	   of the available certificates until we find the right one. */
 	if (pkey) {
+		gnutls_sign_algorithm_t algo = GNUTLS_SIGN_RSA_SHA1; // TPM
+
 		/* The TPM code may have already signed it, to test authorisation. We
 		   only sign here for PKCS#11 keys, in which case fdata might be
 		   empty too so point it at dummy data. */
@@ -1342,7 +1344,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 				fdata.size = 20;
 			}
 
-			err = sign_dummy_data(vpninfo, pkey, &fdata, &pkey_sig);
+			err = sign_dummy_data(vpninfo, pkey, &fdata, &pkey_sig, &algo);
 			if (err) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Error signing test data with private key: %s\n"),
@@ -1366,7 +1368,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 				gnutls_pubkey_deinit(pubkey);
 				continue;
 			}
-			err = gnutls_pubkey_verify_data(pubkey, 0, &fdata, &pkey_sig);
+			err = gnutls_pubkey_verify_data2(pubkey, 0, algo, &fdata, &pkey_sig);
 			gnutls_pubkey_deinit(pubkey);
 
 			if (err >= 0) {
