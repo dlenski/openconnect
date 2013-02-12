@@ -200,30 +200,53 @@ AC_ARG_WITH([system-cafile],
 	    AS_HELP_STRING([--with-system-cafile],
 			   [Location of the default system CA certificate file for old (<3.0.20) GnuTLS versions]))
 
-# We will use GnuTLS if it's requested, and if GnuTLS doesn't have DTLS
-# support then we'll *also* use OpenSSL for that, but it appears *only*
-# only in the openconnect executable and not the library (hence shouldn't
-# be a problem for GPL'd programs using libopenconnect).
+# We will use GnuTLS by default if it's present, and if GnuTLS doesn't
+# have DTLS support then we'll *also* use OpenSSL for that, but it
+# appears *only* only in the openconnect executable and not the
+# library (hence shouldn't be a problem for GPL'd programs using
+# libopenconnect).
 #
-# If built with --with-gnutls --without-openssl then we'll even eschew
-# OpenSSL for DTLS support and will build without any DTLS support at all
-# if GnuTLS cannot manage.
+# If built with --without-openssl then we'll even eschew OpenSSL for
+# DTLS support and will build without any DTLS support at all if
+# GnuTLS cannot manage.
 #
-# The default (for now) is to use OpenSSL for everything.
+# You can build without GnuTLS, even if its pkg-config file is present
+# on the system, by using '--without-gnutls'
 
 AC_ARG_WITH([gnutls],
-	AS_HELP_STRING([--with-gnutls], 
-		       [Use GnuTLS instead of OpenSSL (EXPERIMENTAL)]))
+	AS_HELP_STRING([--without-gnutls],
+		       [Do not attempt to use GnuTLS; use OpenSSL instead]))
 AC_ARG_WITH([openssl],
             AS_HELP_STRING([--with-openssl],
                            [Location of OpenSSL build dir]))
 ssl_library=
 
+if test "$with_gnutls" = "yes" || test "$with_gnutls" = ""; then
+    PKG_CHECK_MODULES(GNUTLS, gnutls, [found_gnutls=yes], [found_gnutls=no])
+    if test "$found_gnutls" = "yes"; then
+        if ! $PKG_CONFIG --atleast-version=2.12.16 gnutls; then
+	    found_gnutls=old
+        fi
+     fi
+     case $with_gnutls$found_gnutls in
+     yesold)
+        AC_MSG_ERROR([Your GnuTLS is too old. At least v2.12.16 is required])
+	;;
+     yesno)
+	AC_MSG_ERROR([GnuTLS requested but no package 'gnutls' found])
+	;;
+     old)
+        AC_MSG_WARN([GnuTLS is too old. At least v2.12.16 is required. Falling back to OpenSSL])
+	;;
+     yes)
+        with_gnutls=yes
+	;;
+     esac
+elif test "$with_gnutls" != "no"; then
+    AC_MSG_ERROR([Values other than 'yes' or 'no' for --with-gnutls are not supported])
+fi
+
 if test "$with_gnutls" = "yes"; then
-    PKG_CHECK_MODULES(GNUTLS, gnutls)
-    if ! $PKG_CONFIG --atleast-version=2.12.16 gnutls; then
-       AC_MSG_ERROR([Your GnuTLS is too old. At least v2.12.16 is required])
-    fi
     oldlibs="$LIBS"
     LIBS="$LIBS $GNUTLS_LIBS"
     AC_CHECK_FUNC(gnutls_dtls_set_data_mtu,
@@ -311,8 +334,6 @@ if test "$with_gnutls" = "yes"; then
 		   AC_DEFINE(HAVE_TROUSERS, 1)],
 		  [AC_MSG_RESULT(no)])
     LIBS="$oldlibs"
-elif test "$with_gnutls" != "" && test "$with_gnutls" != "no"; then
-    AC_MSG_ERROR([Values other than 'yes' or 'no' for --with-gnutls are not supported])
 fi
 if test "$with_openssl" = "yes" || test "$with_openssl" = "" || test "$ssl_library" = "both"; then
     PKG_CHECK_MODULES(OPENSSL, openssl, [],
