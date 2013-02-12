@@ -115,6 +115,18 @@ int RAND_bytes(char *buf, int len)
 extern void dtls1_stop_timer (SSL *);
 #endif
 
+#if (OPENSSL_VERSION_NUMBER >= 0x100000b0L && OPENSSL_VERSION_NUMBER <= 0x100000c0L) || \
+    (OPENSSL_VERSION_NUMBER >= 0x10001040L && OPENSSL_VERSION_NUMBER <= 0x10001060L) || \
+     OPENSSL_VERSION_NUMBER == 0x10002000L
+/*
+ * If you've fixed the bug in your version of OpenSSL by applying the patch from
+ * http://rt.openssl.org/Ticket/Display.html?id=2984&user=guest&pass=guest then
+ * you can happily remove this #error. Note that GnuTLS from 3.0.21 onwards has
+ * DTLS support so perhaps you should be using that instead?
+ */
+#error This version of OpenSSL is known to be broken with Cisco DTLS.
+#endif
+
 static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 {
 	STACK_OF(SSL_CIPHER) *ciphers;
@@ -298,9 +310,19 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 
 	ret = SSL_get_error(vpninfo->new_dtls_ssl, ret);
 	if (ret == SSL_ERROR_WANT_WRITE || ret == SSL_ERROR_WANT_READ) {
+		static int badossl_bitched = 0;
 		if (time(NULL) < vpninfo->new_dtls_started + 5)
 			return 0;
-		vpn_progress(vpninfo, PRG_TRACE, _("DTLS handshake timed out\n"));
+		if (((OPENSSL_VERSION_NUMBER >= 0x100000b0L && OPENSSL_VERSION_NUMBER <= 0x100000c0L) || \
+		     (OPENSSL_VERSION_NUMBER >= 0x10001040L && OPENSSL_VERSION_NUMBER <= 0x10001060L) || \
+		     OPENSSL_VERSION_NUMBER == 0x10002000L) && !badossl_bitched) {
+			badossl_bitched = 1;
+			vpn_progress(vpninfo, PRG_ERR, _("DTLS handshake timed out\n"));
+			vpn_progress(vpninfo, PRG_ERR, _("This is probably because your OpenSSL is broken\n"
+				"See http://rt.openssl.org/Ticket/Display.html?id=2984\n"));
+		} else {
+			vpn_progress(vpninfo, PRG_TRACE, _("DTLS handshake timed out\n"));
+		}
 	}
 
 	vpn_progress(vpninfo, PRG_ERR, _("DTLS handshake failed: %d\n"), ret);
