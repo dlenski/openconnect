@@ -39,9 +39,11 @@ implementation of DTLS.
 <p>Compatibility support for their "speshul" version of the protocol is
 in the 0.9.8m and later releases of OpenSSL (and 1.0.0-beta2 and later).
 </p>
+<p><b>NOTE:</b> OpenSSL 1.0.0k, 1.0.1d and 1.0.1e have introduced bugs which
+break this compatibility. See the <a href="http://lists.infradead.org/pipermail/openconnect-devel/2013-February/000827.html">thread</a> on the mailing list, which has patches for each.</p>
 
-<p>If you are using an older version of OpenSSL, DTLS will
-only work if you apply this patch from OpenSSL CVS:</p>
+<p>If you are using an older version of OpenSSL which predates the
+compatibility, you will need to apply this patch from OpenSSL CVS:</p>
 <ul>
   <li><a href="http://cvs.openssl.org/chngview?cn=18037">http://cvs.openssl.org/chngview?cn=18037</a> (OpenSSL <a href="http://rt.openssl.org/Ticket/Display.html?id=1751&amp;amp;user=guest&amp;amp;pass=guest">RT#1751</a>)</li>
 </ul>
@@ -55,12 +57,7 @@ The username/password for OpenSSL RT is 'guest/guest'
 
 <h3>GnuTLS</h3>
 
-<p>Support for Cisco's version of DTLS was included in GnuTLS in June 2012, in
-<a href="http://git.savannah.gnu.org/gitweb/?p=gnutls.git;a=commitdiff;h=fd5ca1afb">
-commit fd5ca1af</a> which will be part of GnuTLS 3.1.</p>
-
-<p>The same patch will hopefully also be applied to the GnuTLS 3.0.x release branch
-for 3.0.21, or it can be applied manually from <a href="http://git.infradead.org/users/dwmw2/gnutls.git/commitdiff_plain/436135d727cbfb1673f0c308869a6c15b2e17697">here</a>.</p>
+<p>Support for Cisco's version of DTLS was included in GnuTLS from 3.0.21 onwards.</p>
 
 	<INCLUDE file="inc/footer.tmpl" />
 </PAGE>
