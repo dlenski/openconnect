@@ -689,7 +689,7 @@ int setup_dtls(struct openconnect_info *vpninfo)
 		return -EINVAL;
 
 	vpn_progress(vpninfo, PRG_TRACE,
-		     _("DTLS connected. DPD %d, Keepalive %d\n"),
+		     _("DTLS initialised. DPD %d, Keepalive %d\n"),
 		     vpninfo->dtls_times.dpd, vpninfo->dtls_times.keepalive);
 
 	return 0;
