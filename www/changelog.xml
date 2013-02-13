@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.08.tar.gz">OpenConnect v4.08</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.08.tar.gz.asc">PGP signature</a>)</i> &#8212; 2013-02-13
+     <ul>
        <li>Fix overflow on HTTP request buffers (CVE-2012-6128)</li>
        <li>Fix connection to servers with round-robin DNS with two-stage auth/connect.</li>
        <li>Impose minimum MTU of 1280 bytes.</li>

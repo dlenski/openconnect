@@ -19,12 +19,15 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.07.tar.gz">OpenConnect v4.07</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.07.tar.gz.asc">PGP signature</a>)</i>,
-released on 2012-08-31 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.08.tar.gz">OpenConnect v4.08</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.08.tar.gz.asc">PGP signature</a>)</i>,
+released on 2013-02-13 with the following changelog:</p>
      <ul>
-       <li>Fix segmentation fault when invoked with <tt>-p</tt> argument.</li>
-       <li>Fix handling of write stalls on CSTP (TCP) socket.</li>
+       <li>Fix overflow on HTTP request buffers (CVE-2012-6128)</li>
+       <li>Fix connection to servers with round-robin DNS with two-stage auth/connect.</li>
+       <li>Impose minimum MTU of 1280 bytes.</li>
+       <li>Fix some harmless issues reported by Coverity.</li>
+       <li>Improve <tt>"Attempting to connect..."</tt> message to be explicit when it's connecting to a proxy.</li>
      </ul>
 <!-- latest-release-end -->
 
