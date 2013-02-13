@@ -17,6 +17,9 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Fix overflow on HTTP request buffers (CVE-2012-6128)</li>
+       <li>Fix connection to servers with round-robin DNS with two-stage auth/connect.</li>
+       <li>Impose minimum MTU of 1280 bytes.</li>
        <li>Fix some harmless issues reported by Coverity.</li>
        <li>Improve <tt>"Attempting to connect..."</tt> message to be explicit when it's connecting to a proxy.</li>
      </ul><br/>
