@@ -26,8 +26,15 @@
      <ul>
        <li>Add <tt>--os</tt> switch to report a different OS type to the gateway.</li>
        <li>Support new XML POST format.</li>
-       <li>Fix buffer overflow on long <tt>Location:</tt> and <tt>Set-Cookie:</tt> headers sent from server.</li>
        <li>Add SecurID token support using <a href="http://stoken.sourceforge.net/">libstoken</a>.</li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.08.tar.gz">OpenConnect v4.08</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.08.tar.gz.asc">PGP signature</a>)</i> &#8212; 2013-02-13
+     <ul>
+       <li>Fix overflow on HTTP request buffers (CVE-2012-6128)</li>
+       <li>Fix connection to servers with round-robin DNS with two-stage auth/connect.</li>
+       <li>Impose minimum MTU of 1280 bytes.</li>
        <li>Fix some harmless issues reported by Coverity.</li>
        <li>Improve <tt>"Attempting to connect..."</tt> message to be explicit when it's connecting to a proxy.</li>
      </ul><br/>
