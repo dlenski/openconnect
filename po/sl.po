@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-09-26 21:57+0100\n"
+"POT-Creation-Date: 2013-02-13 21:05+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
 "Language: sl\n"
@@ -80,213 +80,215 @@ msgstr "TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"
 msgid "TCP_MAXSEG %d\n"
 msgstr "TCP_MAXSEG %d\n"
 
-#: cstp.c:196
+#: cstp.c:198
 #, c-format
 msgid "Failed to initialise DTLS secret\n"
 msgstr "Začenjanje skrivnosti DTLS je spodletelo.\n"
 
-#: cstp.c:229 http.c:119
+#: cstp.c:231 http.c:199
 msgid "Error fetching HTTPS response\n"
 msgstr "Napaka med pridobivanjem odziva HTTP\n"
 
-#: cstp.c:236 http.c:359 http.c:638
+#: cstp.c:238 http.c:439 http.c:724
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "Napaka med odpiranjem povezave HTTPS %s\n"
 
-#: cstp.c:256
+#: cstp.c:258
 #, c-format
 msgid "VPN service unavailable; reason: %s\n"
 msgstr "Storitev VPN ni na voljo; razlog: %s\n"
 
-#: cstp.c:261
+#: cstp.c:263
 #, c-format
 msgid "Got inappropriate HTTP CONNECT response: %s\n"
 msgstr "Prejet neustrezen odziv HTTP CONNECT: %s\n"
 
-#: cstp.c:268
+#: cstp.c:270
 #, c-format
 msgid "Got CONNECT response: %s\n"
 msgstr "Prejet je odziv CONNECT: %s\n"
 
-#: cstp.c:296 cstp.c:304
+#: cstp.c:298 cstp.c:306
 msgid "No memory for options\n"
 msgstr "Ni pomnilnika za možnosti\n"
 
-#: cstp.c:324
+#: cstp.c:326
 #, c-format
 msgid "X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"
-msgstr ""
+msgstr "ID seje X-DTLS-Session-ID ni dolžine 64 znakov, ampak: \"%s\"\n"
 
-#: cstp.c:354
+#: cstp.c:356
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
 msgstr "Neznano kodiranje vsebine CSTP %s\n"
 
-#: cstp.c:422
+#: cstp.c:424
 msgid "No MTU received. Aborting\n"
 msgstr "MTU ni bil prejet. Opravilo bo prekinjeno.\n"
 
-#: cstp.c:429
+#: cstp.c:431
 msgid "No IP address received. Aborting\n"
 msgstr "Ni prejetega nobenega naslova IP. Opravilo je preklicano.\n"
 
-#: cstp.c:435
+#: cstp.c:437
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr ""
 "S ponovno povezavo je pridobljen drugačen opuščen naslov IP (%s != %s)\n"
 
-#: cstp.c:443
+#: cstp.c:445
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr ""
 "S ponovno povezavo je pridobljena drugačna opuščena maska omrežja IP (%s != "
 "%s)\n"
 
-#: cstp.c:451
+#: cstp.c:453
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
 msgstr "S ponovno povezavo je pridobljen drugačen naslov IPv6 (%s != %s)\n"
 
-#: cstp.c:459
+#: cstp.c:461
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr ""
 "S ponovno povezavo je pridobljena drugačna maska omrežja IPv6 (%s != %s)\n"
 
-#: cstp.c:479
+#: cstp.c:481
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr "Vzpostavljena je povezava CSTP. DPD %d, KEEPALIVE %d\n"
 
-#: cstp.c:512
+#: cstp.c:514
 msgid "Compression setup failed\n"
 msgstr "Nastavitev stiskanja je spodletela\n"
 
-#: cstp.c:520
+#: cstp.c:522
 msgid "Allocation of deflate buffer failed\n"
 msgstr "Dodelitev medpomnilnika za stiskanje je spodletela\n"
 
-#: cstp.c:560
+#: cstp.c:562
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
-msgstr ""
+msgstr "v mirovanju %ds, preostaja še %ds.\n"
 
-#: cstp.c:593
+#: cstp.c:595
 msgid "inflate failed\n"
 msgstr "razširjanje je spodletelo\n"
 
-#: cstp.c:611
+#: cstp.c:613
 #, c-format
 msgid "Received compressed data packet of %ld bytes\n"
 msgstr "Prejet je stisnjen paket podatkov velikosti %ld bajtov\n"
 
-#: cstp.c:630
+#: cstp.c:632
 #, c-format
 msgid "SSL read error %d (server probably closed connection); reconnecting.\n"
 msgstr ""
 "Napaka branja SSL %d (strežnik je najverjetneje zaprl povezavo); sledi "
 "ponovna povezava.\n"
 
-#: cstp.c:655
+#: cstp.c:657
 #, c-format
 msgid "SSL_write failed: %d\n"
 msgstr "Pisanje SSL je spodletelo: %d\n"
 
-#: cstp.c:671
+#: cstp.c:673
 #, c-format
 msgid "SSL read error: %s; reconnecting.\n"
 msgstr "Napaka branja SSL: %s; sledi ponovna povezava.\n"
 
-#: cstp.c:694
+#: cstp.c:696
 #, c-format
 msgid "SSL send failed: %s\n"
 msgstr "Pošiljanje SSL je spodletelo: %s\n"
 
-#: cstp.c:722
+#: cstp.c:724
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
 msgstr "Nepričakovana dolžina paketa. SSL_read je vrnil %d, paket pa je\n"
 
-#: cstp.c:734
+#: cstp.c:736
 msgid "Got CSTP DPD request\n"
 msgstr "Prejeta zahteva DPD CSTP\n"
 
-#: cstp.c:740
+#: cstp.c:742
 msgid "Got CSTP DPD response\n"
 msgstr "Pridobljen je odziv CSTP DPD\n"
 
-#: cstp.c:745
+#: cstp.c:747
 msgid "Got CSTP Keepalive\n"
 msgstr "Prejet je ukaz KEEPALIVE CSTP\n"
 
-#: cstp.c:750
+#: cstp.c:752
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr "Prejet je ne-stisnjen paket podatkov velikosti %d bajtov\n"
 
-#: cstp.c:765
+#: cstp.c:767
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
 msgstr "Prejeta prekinitev povezave s strežnikom: %02x '%s'\n"
 
-#: cstp.c:773
+#: cstp.c:775
 msgid "Compressed packet received in !deflate mode\n"
 msgstr "Prejet stisnjen paket v načinu !deflate\n"
 
-#: cstp.c:781
+#: cstp.c:783
 msgid "received server terminate packet\n"
 msgstr "Prejet paket prekinitve strežnika\n"
 
-#: cstp.c:788
+#: cstp.c:790
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr "Neznan paket %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
-#: cstp.c:831
+#: cstp.c:833
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
-msgstr ""
+msgstr "SSL je zapisal premalo bajtov! Zahtevanih je %d, poslanih pa %d\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:858
+#: cstp.c:860
 msgid "CSTP rekey due\n"
-msgstr ""
+msgstr "Protokol CSTP zahteva ponovno preverjanje ključa\n"
 
-#: cstp.c:865
+#: cstp.c:867
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr ""
+"Zaznava mrtvih omrežnih soležnikov CSTP je zaznala mrtvega omrežnega "
+"soležnika!\n"
 
-#: cstp.c:868 dtls.c:758
+#: cstp.c:870 dtls.c:758
 msgid "Reconnect failed\n"
 msgstr "Ponovna povezava je spodletela\n"
 
-#: cstp.c:877
+#: cstp.c:879
 msgid "Send CSTP DPD\n"
 msgstr "Pošlji zahtevo CSTP DPD\n"
 
-#: cstp.c:888
+#: cstp.c:890
 msgid "Send CSTP Keepalive\n"
 msgstr "Pošlji zahtevo CSTP Keepalive\n"
 
-#: cstp.c:915
+#: cstp.c:917
 #, c-format
 msgid "deflate failed %d\n"
 msgstr "razširjanje je spodletelo %d\n"
 
-#: cstp.c:935
+#: cstp.c:937
 #, c-format
 msgid "Sending compressed data packet of %d bytes\n"
 msgstr "Pošiljanje stisnjenega paketa podatkov velikosti %d bajtov\n"
 
-#: cstp.c:947
+#: cstp.c:949
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr "Pošiljanje ne-stisnjenega paketa podatkov velikosti %d bajtov\n"
 
-#: cstp.c:987
+#: cstp.c:989
 #, c-format
 msgid "Send BYE packet: %s\n"
 msgstr "Pošlji paket BYE: %s\n"
@@ -297,7 +299,7 @@ msgstr "Začenjanje DTLSv1 CTX je spodletelo.\n"
 
 #: dtls.c:143
 msgid "Set DTLS cipher list failed\n"
-msgstr ""
+msgstr "Nastavljanje seznama šifer DTLS je spodletelo.\n"
 
 #: dtls.c:156
 msgid "Initialise DTLSv1 session failed\n"
@@ -305,7 +307,7 @@ msgstr "Začenjanje seje DTLSv1 je spodletela\n"
 
 #: dtls.c:177
 msgid "Not precisely one DTLS cipher\n"
-msgstr ""
+msgstr "Ni natanko ena šifra DTLS.\n"
 
 #: dtls.c:195
 #, c-format
@@ -315,6 +317,12 @@ msgid ""
 "See http://rt.openssl.org/Ticket/Display.html?id=1751\n"
 "Use the --no-dtls command line option to avoid this message\n"
 msgstr ""
+"Predmet SSL_set_session() je spodletel s staro različico protokola 0x%x\n"
+"Ali je v uporabi različica programa OpenSSL, ki je starejša od različice "
+"0.9.8m?\n"
+"Za več podrobnosti si oglejte http://rt.openssl.org/Ticket/Display.html?"
+"id=1751\n"
+"Z uporabo zastavice --no-dtls v argumentu ukaza, se izognete temu sporočilu\n"
 
 #: dtls.c:221
 msgid "Established DTLS connection (using OpenSSL)\n"
@@ -338,7 +346,7 @@ msgstr "Izmenjava signalov DTLS je spodletela: %d\n"
 #: dtls.c:362
 #, c-format
 msgid "Unknown DTLS parameters for requested CipherSuite '%s'\n"
-msgstr ""
+msgstr "Neznani parametri DTLS za zahtevani CipherSuite '%s'\n"
 
 #: dtls.c:375
 #, c-format
@@ -371,7 +379,7 @@ msgstr "Ni naslova DTLS\n"
 #. We probably didn't offer it any ciphers it liked
 #: dtls.c:504
 msgid "Server offered no DTLS cipher option\n"
-msgstr ""
+msgstr "Strežnik ni ponudil možnosti šifer DTLS\n"
 
 #. XXX: Theoretically, SOCKS5 proxies can do UDP too
 #: dtls.c:511
@@ -451,6 +459,7 @@ msgstr "Pošlji DPD DTLS\n"
 #: dtls.c:783
 msgid "Failed to send DPD request. Expect disconnect\n"
 msgstr ""
+"Pošiljanje zahteve DPD je spodletelo. Pričakujte prekinitev povezave.\n"
 
 #: dtls.c:796
 msgid "Send DTLS Keepalive\n"
@@ -459,25 +468,27 @@ msgstr "Pošlji KEEPALIVE DTLS\n"
 #: dtls.c:801
 msgid "Failed to send keepalive request. Expect disconnect\n"
 msgstr ""
+"Pošiljanje zahteve KEEPALIVE je spodletelo. Pričakujte prekinitev povezave.\n"
 
 #: dtls.c:830
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
-msgstr ""
+msgstr "Prejeta napaka pisanja DTLS %d. Opravilo bo povrnjeno na SSL.\n"
 
 #: dtls.c:844
 #, c-format
 msgid "DTLS got write error: %s. Falling back to SSL\n"
-msgstr ""
+msgstr "Prejeta napaka pisanja DTLS: %s. Opravilo bo povrnjeno na SSL.\n"
 
 #: dtls.c:855
 #, c-format
 msgid "Sent DTLS packet of %d bytes; DTLS send returned %d\n"
 msgstr ""
+"Poslan je bil paket DTLS dolžine %d bajtov; vrnjen paket DTLS pa je %d\n"
 
 #: dtls.c:867
 msgid "Built against SSL library with no Cisco DTLS support\n"
-msgstr ""
+msgstr "Izgrajeno na osnovi knjižnice SSL brez podpore za Cisco DTLS.\n"
 
 #: gnutls.c:82
 #, c-format
@@ -504,7 +515,7 @@ msgstr "Branje z vtiča SSL je spodletelo: %s\n"
 
 #: gnutls.c:218
 msgid "Could not extract expiration time of certificate\n"
-msgstr ""
+msgstr "Datuma poteka potrdila ni mogoče izluščiti.\n"
 
 #: gnutls.c:223 openssl.c:1240
 msgid "Client certificate has expired at"
@@ -579,7 +590,7 @@ msgstr "Nastavljanje potrdila PKCS#11 je spodletelo: %s\n"
 #: gnutls.c:596
 #, c-format
 msgid "Could not initialise MD5 hash: %s\n"
-msgstr ""
+msgstr "Razprtšila MD5 ni mogoče začeti: %s\n"
 
 #: gnutls.c:606
 #, c-format
@@ -588,7 +599,7 @@ msgstr "Napaka razpršila MD5: %s\n"
 
 #: gnutls.c:664
 msgid "Missing DEK-Info: header from OpenSSL encrypted key\n"
-msgstr ""
+msgstr "Manjkajoči podatki DEK: glava iz šifriranega ključa OpenSSL\n"
 
 #: gnutls.c:671
 msgid "Cannot determine PEM encryption type\n"
@@ -601,7 +612,7 @@ msgstr "Nepodprta vrsta šifriranja PEM: %s\n"
 
 #: gnutls.c:709 gnutls.c:722
 msgid "Invalid salt in encrypted PEM file\n"
-msgstr ""
+msgstr "Neveljaven salt v šifrirani datoteki PEM\n"
 
 #: gnutls.c:746
 #, c-format
@@ -615,7 +626,7 @@ msgstr "Šifrirana datoteka PEM je prekratka\n"
 #: gnutls.c:782
 #, c-format
 msgid "Failed to initialise cipher for decrypting PEM file: %s\n"
-msgstr ""
+msgstr "Začenjanje šifre za dešifriranje datoteke PEM je spodletelo: %s\n"
 
 #: gnutls.c:793
 #, c-format
@@ -632,7 +643,7 @@ msgstr "Vnos šifrirnega gesla PEM:"
 
 #: gnutls.c:903 openssl.c:667
 msgid "This binary built without PKCS#11 support\n"
-msgstr ""
+msgstr "Ta program je izgrajen brez podpore za PKCS#11\n"
 
 #: gnutls.c:953
 #, c-format
@@ -712,7 +723,7 @@ msgstr "Nalaganje osebnega ključa kot PKCS#8 je spodletelo: %s\n"
 
 #: gnutls.c:1277
 msgid "Failed to decrypt PKCS#8 certificate file\n"
-msgstr ""
+msgstr "Odšifriranje datoteke potrdila PKCS#8 je spodletelo\n"
 
 #: gnutls.c:1291
 #, c-format
@@ -732,11 +743,11 @@ msgstr "Napaka pri podpisovanju preizkusnih podatkov z osebnim ključem: %s\n"
 #: gnutls.c:1363
 #, c-format
 msgid "Error validating signature against certificate: %s\n"
-msgstr ""
+msgstr "Napaka pri overjanju podpisa s potrdilom: %s\n"
 
 #: gnutls.c:1387
 msgid "No SSL certificate found to match private key\n"
-msgstr ""
+msgstr "Z zasebnim ključem se ne ujema nobeno potrdilo SSL\n"
 
 #: gnutls.c:1398 openssl.c:461 openssl.c:598
 #, c-format
@@ -746,7 +757,7 @@ msgstr "Uporabljeno bo potrdilo odjemalca '%s'\n"
 #: gnutls.c:1405
 #, c-format
 msgid "Setting certificate recovation list failed: %s\n"
-msgstr ""
+msgstr "Določanje seznama preklicev potrdil je spodletelo: %s\n"
 
 #: gnutls.c:1458
 msgid ""
@@ -902,11 +913,13 @@ msgstr "Koda PIN:"
 #, c-format
 msgid "Failed to SHA1 input data for signing: %s\n"
 msgstr ""
+"Preverjanje razpršila SHA1 vhodnih podatkov za podpisovanje je spodletelo: "
+"%s\n"
 
 #: gnutls_tpm.c:111
 #, c-format
 msgid "TPM sign function called for %d bytes.\n"
-msgstr ""
+msgstr "Funkcija podpisovanja TPM je pričakovala %d bajtov.\n"
 
 #: gnutls_tpm.c:118
 #, c-format
@@ -916,7 +929,7 @@ msgstr "Ustvarjanje predmeta razpršila TPM je spodletelo: %s\n"
 #: gnutls_tpm.c:125
 #, c-format
 msgid "Failed to set value in TPM hash object: %s\n"
-msgstr ""
+msgstr "Nastavljanje vrednosti predmeta razpršila TPM je spodletelo: %s\n"
 
 #: gnutls_tpm.c:135
 #, c-format
@@ -926,11 +939,11 @@ msgstr "Ustvarjanje predmeta razpršila TPM je spodletelo: %s\n"
 #: gnutls_tpm.c:157
 #, c-format
 msgid "Error decoding TSS key blob: %s\n"
-msgstr ""
+msgstr "Napaka odkodiranja binarnem paketu ključa TSS: %s\n"
 
 #: gnutls_tpm.c:164 gnutls_tpm.c:175 gnutls_tpm.c:188
 msgid "Error in TSS key blob\n"
-msgstr ""
+msgstr "Napaka v binarnem paketu ključa TSS\n"
 
 #: gnutls_tpm.c:195
 #, c-format
@@ -985,124 +998,128 @@ msgstr "Vnos ključa PIN TPM:"
 msgid "Failed to set key PIN: %s\n"
 msgstr "Nastavljanje ključa PIN je spodletelo: %s\n"
 
-#: http.c:64
+#: http.c:144
 msgid "No memory for allocating cookies\n"
 msgstr "Ni pomnilnika za dodeljevanje piškotkov\n"
 
-#: http.c:128
+#: http.c:208
 #, c-format
 msgid "Failed to parse HTTP response '%s'\n"
 msgstr "Razčlenjevanje odgovora HTTP '%s' je spodletelo\n"
 
-#: http.c:133
+#: http.c:213
 #, c-format
 msgid "Got HTTP response: %s\n"
 msgstr "Prejet je odziv HTTP: %s\n"
 
-#: http.c:141
+#: http.c:221
 msgid "Error processing HTTP response\n"
 msgstr "Napaka pri obdelavi odgovora HTTP\n"
 
-#: http.c:147
+#: http.c:227
 #, c-format
 msgid "Ignoring unknown HTTP response line '%s'\n"
 msgstr "Prezrta bo neznana vrstica odziva HTTP '%s'\n"
 
-#: http.c:167
+#: http.c:247
 #, c-format
 msgid "Invalid cookie offered: %s\n"
 msgstr "Ponujen je neveljaven piškotek: %s\n"
 
-#: http.c:176
+#: http.c:256
 msgid "<elided>"
 msgstr "<izpadlo>"
 
-#: http.c:186
+#: http.c:266
 msgid "SSL certificate authentication failed\n"
 msgstr "Overitev potrdila SSL je spodletela.\n"
 
-#: http.c:217
+#: http.c:297
 #, c-format
 msgid "Response body has negative size (%d)\n"
 msgstr "Telo odgovora ima negativno velikost (%d)\n"
 
-#: http.c:227
+#: http.c:307
 #, c-format
 msgid "Unknown Transfer-Encoding: %s\n"
 msgstr "Neznano kodiranje prenosa: %s\n"
 
 #. Now the body, if there is one
-#: http.c:241
+#: http.c:321
 #, c-format
 msgid "HTTP body %s (%d)\n"
 msgstr "Telo HTTP %s (%d)\n"
 
-#: http.c:255 http.c:283
+#: http.c:335 http.c:363
 msgid "Error reading HTTP response body\n"
 msgstr "Napaka branja telesa odziva HTTP\n"
 
-#: http.c:268
+#: http.c:348
 msgid "Error fetching chunk header\n"
 msgstr "Napaka pri pridobivanju glave sporočila\n"
 
-#: http.c:294
+#: http.c:374
 msgid "Error fetching HTTP response body\n"
 msgstr "Napaka branja telesa odziva HTTP\n"
 
-#: http.c:297
+#: http.c:377
 #, c-format
 msgid "Error in chunked decoding. Expected '', got: '%s'"
-msgstr ""
+msgstr "Napaka odkodiranja po kosih. Pričakovan je znak '', prejet pa: '%s'"
 
-#: http.c:310
+#: http.c:390
 msgid "Cannot receive HTTP 1.0 body without closing connection\n"
 msgstr "Telesa HTTP različice 1.0 brez zapiranja povezave ni mogoče prejeti.\n"
 
-#: http.c:380
+#: http.c:464
 msgid "Failed to send GET request for new config\n"
-msgstr ""
+msgstr "Pošiljanje zahteve GET za novo nastavitev je spodletela.\n"
 
-#: http.c:402
+#: http.c:488
 msgid "Downloaded config file did not match intended SHA1\n"
-msgstr ""
+msgstr "Prejeta datoteka nastavitev ni skladna z razpršilom SHA1\n"
 
-#: http.c:419
+#: http.c:505
 msgid ""
 "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 "This facility is disabled by default for security reasons, so you may wish "
 "to enable it."
 msgstr ""
+"Napaka: strežnik zahteva prejem in zagon trojanskega datoteke 'Cisco Secure "
+"Desktop'.\n"
+"Ta možnost je iz varnostnih razlogov privzeto onemogočena. Če želite možnost "
+"uporabljati, jo omogočite."
 
-#: http.c:426
+#: http.c:512
 msgid "Trying to run Linux CSD trojan script."
 msgstr "Poskus poganjanja trojanskega skripta CSD za Linux."
 
-#: http.c:434
+#: http.c:520
 #, c-format
 msgid "Failed to open temporary CSD script file: %s\n"
 msgstr "Odpiranje začasne datoteke skripta CSD je spodletelo: %s\n"
 
-#: http.c:442
+#: http.c:528
 #, c-format
 msgid "Failed to write temporary CSD script file: %s\n"
 msgstr "Zapisovanje začasne datoteke skripta CSD je spodletelo: %s\n"
 
-#: http.c:459 main.c:811
+#: http.c:545 main.c:811
 #, c-format
 msgid "Failed to set uid %ld\n"
 msgstr "Nastavljanje UID %ld je spodletelo.\n"
 
-#: http.c:464
+#: http.c:550
 #, c-format
 msgid "Invalid user uid=%ld\n"
 msgstr "Neveljavne UID uporabnika uid=%ld\n"
 
-#: http.c:470
+#: http.c:556
 #, c-format
 msgid "Failed to change to CSD home directory '%s': %s\n"
 msgstr "Sprememba domače mape CSD '%s' je spodletela: %s\n"
 
-#: http.c:476
+#: http.c:562
 #, c-format
 msgid ""
 "Warning: you are running insecure CSD code with root privileges\n"
@@ -1111,169 +1128,169 @@ msgstr ""
 "Opozorilo: kodo CSD, ki ni varna, zaganjate s skrbniškimi dovoljenji.\n"
 "\t Uporabite možnost ukazne vrstice \"--csd-user\"\n"
 
-#: http.c:513
+#: http.c:599
 #, c-format
 msgid "Failed to exec CSD script %s\n"
 msgstr "Izvajanje skripta CSD %s je spodletelo.\n"
 
-#: http.c:707
+#: http.c:796
 #, c-format
 msgid "Failed to parse redirected URL '%s': %s\n"
 msgstr "Razčlenjevanje preusmeritvenega naslova URL '%s' je spodletelo: %s\n"
 
-#: http.c:742
+#: http.c:831
 #, c-format
 msgid "Cannot follow redirection to non-https URL '%s'\n"
 msgstr ""
 "Preusmeritvi na naslov URL '%s', ki ni vrste HTTPS, ni mogoče slediti\n"
 
-#: http.c:771
+#: http.c:860
 #, c-format
 msgid "Allocating new path for relative redirect failed: %s\n"
-msgstr ""
+msgstr "Dodeljevanje nove poti  za relativno preusmeritev je spodletelo: %s\n"
 
-#: http.c:784
+#: http.c:873
 #, c-format
 msgid "Unexpected %d result from server\n"
 msgstr "Nepričakovan odgovor strežnika %d.\n"
 
-#: http.c:804
+#: http.c:893
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
 msgstr "Osveževanje %s po steklo po 1 sekundi ...\n"
 
-#: http.c:810
+#: http.c:899
 msgid "Unknown response from server\n"
 msgstr "Neznan odgovor s strežnika.\n"
 
-#: http.c:978
+#: http.c:1067
 msgid "request granted"
 msgstr "zahteva je odobrena"
 
-#: http.c:979
+#: http.c:1068
 msgid "general failure"
 msgstr "splošna napaka"
 
-#: http.c:980
+#: http.c:1069
 msgid "connection not allowed by ruleset"
 msgstr "nabor pravil ne dovoljuje povezave"
 
-#: http.c:981
+#: http.c:1070
 msgid "network unreachable"
 msgstr "omrežje ni dosegljivo"
 
-#: http.c:982
+#: http.c:1071
 msgid "host unreachable"
 msgstr "gostitelj ni dosegljiv"
 
-#: http.c:983
+#: http.c:1072
 msgid "connection refused by destination host"
 msgstr "povezava je zavrnjena na ciljnem gostitelju"
 
-#: http.c:984
+#: http.c:1073
 msgid "TTL expired"
 msgstr "Potrdilo TTL je preteklo"
 
-#: http.c:985
+#: http.c:1074
 msgid "command not supported / protocol error"
 msgstr "ukaz ni podprt; napaka protokola"
 
-#: http.c:986
+#: http.c:1075
 msgid "address type not supported"
 msgstr "vrsta naslova ni ni podprta."
 
-#: http.c:1000
+#: http.c:1089
 #, c-format
 msgid "Error writing auth request to SOCKS proxy: %s\n"
 msgstr "Napaka pisanja odziva auth s posredniškega strežnika SOCKS: %s\n"
 
-#: http.c:1007
+#: http.c:1096
 #, c-format
 msgid "Error reading auth response from SOCKS proxy: %s\n"
 msgstr "Napaka branja odziva auth s posredniškega strežnika SOCKS: %s\n"
 
-#: http.c:1013
+#: http.c:1102
 #, c-format
 msgid "Unexpected auth response from SOCKS proxy: %02x %02x\n"
 msgstr ""
 "Nepričakovan odziv povezave posredniškega strežnika SOCKS: %02x %02x...\n"
 
-#: http.c:1021
+#: http.c:1110
 #, c-format
 msgid "SOCKS proxy error %02x: %s\n"
 msgstr "Napaka posredniškega strežnika SOCKS %02x: %s\n"
 
-#: http.c:1025
+#: http.c:1114
 #, c-format
 msgid "SOCKS proxy error %02x\n"
 msgstr "Napaka posredniškega strežnika SOCKS %02x\n"
 
-#: http.c:1031
+#: http.c:1120
 #, c-format
 msgid "Requesting SOCKS proxy connection to %s:%d\n"
 msgstr "Poslana je zahteva povezave s posredniškim strežnikom SOCKS %s:%d\n"
 
-#: http.c:1046
+#: http.c:1135
 #, c-format
 msgid "Error writing connect request to SOCKS proxy: %s\n"
 msgstr ""
 "Napaka zapisovanja zahtev povezave s posredniškim strežnikom SOCKS: %s\n"
 
-#: http.c:1054 http.c:1087
+#: http.c:1143 http.c:1176
 #, c-format
 msgid "Error reading connect response from SOCKS proxy: %s\n"
 msgstr "Napaka branja odzivov povezave s posredniškega strežnika SOCKS: %s\n"
 
-#: http.c:1060
+#: http.c:1149
 #, c-format
 msgid "Unexpected connect response from SOCKS proxy: %02x %02x...\n"
 msgstr ""
 "Nepričakovan odziv povezave posredniškega strežnika SOCKS: %02x %02x...\n"
 
-#: http.c:1080
+#: http.c:1169
 #, c-format
 msgid "Unexpected address type %02x in SOCKS connect response\n"
 msgstr "Nepričakovana vrsta naslova %02x v odzivu povezave SOCKS\n"
 
-#: http.c:1108
+#: http.c:1202
 #, c-format
 msgid "Requesting HTTP proxy connection to %s:%d\n"
 msgstr "Poslana je zahteva povezave s posredniškim strežnikom HTTP %s:%d\n"
 
-#: http.c:1114
+#: http.c:1210
 #, c-format
 msgid "Sending proxy request failed: %s\n"
 msgstr "Pošiljanje zahteve posredniškega strežnika je spodletelo: %s\n"
 
-#: http.c:1121
+#: http.c:1217
 msgid "Error fetching proxy response\n"
 msgstr "Napaka med pridobivanjem odziva strežnika.\n"
 
-#: http.c:1128
+#: http.c:1224
 #, c-format
 msgid "Failed to parse proxy response '%s'\n"
 msgstr "Razčlenjevanje odgovora posredniškega strežnika '%s' je spodletelo.\n"
 
-#: http.c:1134
+#: http.c:1230
 #, c-format
 msgid "Proxy CONNECT request failed: %s\n"
 msgstr "Zahteva CONNECT s posredniškega strežnika je spodletela: %s\n"
 
-#: http.c:1141
+#: http.c:1237
 msgid "Failed to read proxy response\n"
 msgstr "Branje odgovora posredniškega strežnika je spodletelo.\n"
 
-#: http.c:1145
+#: http.c:1241
 #, c-format
 msgid "Unexpected continuation line after CONNECT response: '%s'\n"
 msgstr "Nepričakovana nadaljevalna vrstica po odzivu na ukaz CONNECT: '%s'\n"
 
-#: http.c:1161
+#: http.c:1257
 #, c-format
 msgid "Unknown proxy type '%s'\n"
 msgstr "Neznana vrsta posredniškega strežnika '%s'.\n"
 
-#: http.c:1189
+#: http.c:1285
 msgid "Only http or socks(5) proxies supported\n"
 msgstr "Podprti so le posredniški strežniki HTTP in SOCKS(5)\n"
 
@@ -1421,7 +1438,7 @@ msgstr "Nastavi šifrirno frazo ali kodo PIN za TPM SRK"
 
 #: main.c:245
 msgid "Key passphrase is fsid of file system"
-msgstr ""
+msgstr "Šifrirno geslo ključa je fsid datotečnega sistema"
 
 #: main.c:246
 msgid "Set proxy server"
@@ -1445,11 +1462,13 @@ msgstr "Manj podroben odvod"
 
 #: main.c:253
 msgid "Set packet queue limit to LEN pkts"
-msgstr ""
+msgstr "Nastavi omejitev vrste paketov na LEN paketov"
 
 #: main.c:254
 msgid "Shell command line for using a vpnc-compatible config script"
 msgstr ""
+"Ukazna vrstica v lupini za uporabo prilagoditvenega skripta, združljivega z "
+"vpnc"
 
 #: main.c:255
 msgid "default"
@@ -1457,7 +1476,7 @@ msgstr "privzeto"
 
 #: main.c:256
 msgid "Pass traffic to 'script' program, not tun"
-msgstr ""
+msgstr "Prepusti promet programu 'script', ne pa TUN"
 
 #: main.c:257
 msgid "Set login username"
@@ -1501,7 +1520,7 @@ msgstr "Ne zahtevaj povezave IPv6"
 
 #: main.c:267
 msgid "OpenSSL ciphers to support for DTLS"
-msgstr ""
+msgstr "Šifre OpenSSL za podporo DTLS"
 
 #: main.c:268
 msgid "Disable DTLS"
@@ -1546,7 +1565,7 @@ msgstr "Določite krajevna vrata za datagrame DTLS"
 #: main.c:288
 #, c-format
 msgid "Allocation failure for string from stdin\n"
-msgstr ""
+msgstr "Napaka dodeljevanja za niz s standardnega vhoda\n"
 
 #: main.c:292
 msgid "fgets (stdin)"
@@ -1587,7 +1606,7 @@ msgstr "Strukture vpninfo ni mogoče dodeliti.\n"
 #: main.c:493
 #, c-format
 msgid "Cannot use 'config' option inside config file\n"
-msgstr ""
+msgstr "Možnosti 'config' ni mogoče uporabiti znotraj nastavitvene datoteke\n"
 
 #: main.c:498
 #, c-format
@@ -1605,6 +1624,10 @@ msgid ""
 "Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
 "If this helps, please report to <openconnect-devel@lists.infradead.org>.\n"
 msgstr ""
+"Zaradi uporabe možnosti --no-http-keepalive je onemogočena ponovna uporaba "
+"povezav HTTP.\n"
+"V kolikor možnost deluje, pošljite poročilo na <openconnect-devel@lists."
+"infradead.org>.\n"
 
 #: main.c:637 main.c:651
 #, c-format
@@ -1664,6 +1687,8 @@ msgstr "Povezava %s je vzpostavljena kot %s%s%s, z uporabo %s\n"
 #: main.c:831
 msgid "No --script argument provided; DNS and routing are not configured\n"
 msgstr ""
+"Ni navedenega argumenta --script; Vrednosti DNS in nastavitve preusmerjanja "
+"niso nastavljene.\n"
 
 #: main.c:833
 msgid "See http://www.infradead.org/openconnect/vpnc-script.html\n"
@@ -1725,7 +1750,7 @@ msgstr "Izbira overitve \"%s\" ni na voljo.\n"
 
 #: main.c:1074 main.c:1122 main.c:1149
 msgid "User input required in non-interactive mode\n"
-msgstr ""
+msgstr "Zahtevano je uporabniško posredovanje v načinu brez posredovanja.\n"
 
 #: main.c:1105
 #, c-format
@@ -1739,7 +1764,7 @@ msgstr "Poskus nove povezave DTLS\n"
 #: mainloop.c:120
 #, c-format
 msgid "No work to do; sleeping for %d ms...\n"
-msgstr ""
+msgstr "V pričakovanju novih nalog; stanje nedejavnosti je %d ms ...\n"
 
 #: openssl.c:110
 msgid "Failed to write to SSL socket"
@@ -1780,7 +1805,7 @@ msgstr "PKCS#12 ne vsebuje osebnega ključa!"
 #: openssl.c:494
 #, c-format
 msgid "Extra cert from PKCS#12: '%s'\n"
-msgstr ""
+msgstr "Dodatno potrdilo PKCS#12: '%s'\n"
 
 #: openssl.c:520
 msgid "Can't load TPM engine.\n"
@@ -1805,19 +1830,20 @@ msgstr "Dodajanje ključa iz TPM je spodletelo\n"
 #: openssl.c:587
 msgid "Failed to reload X509 cert for expiry check\n"
 msgstr ""
+"Ponovno nalaganje potrdila X509 za preverjane preteklosti je spodletelo.\n"
 
 #: openssl.c:627
 #, c-format
 msgid "Failed to create BIO for keystore item '%s'\n"
-msgstr ""
+msgstr "Ustvarjanje pravil BIO za predmet shrambe ključa '%s'\n"
 
 #: openssl.c:652
 msgid "Loading private key failed (wrong passphrase?)\n"
-msgstr ""
+msgstr "Nalaganje zasebnega ključa je spodletelo (napačno šifrirno geslo?)\n"
 
 #: openssl.c:658
 msgid "Loading private key failed (see above errors)\n"
-msgstr ""
+msgstr "Nalaganje zasebnega ključa je spodletelo (glejte napake zgoraj)\n"
 
 #: openssl.c:683
 #, c-format
@@ -1852,7 +1878,7 @@ msgstr "Odpiranje zasebne datoteke ključa %s je spodletelo: %s\n"
 #: openssl.c:793
 #, c-format
 msgid "Failed to identify private key type in '%s'\n"
-msgstr ""
+msgstr "Določevanje vrste zasebnega ključa v '%s' je spodletelo\n"
 
 #: openssl.c:974
 #, c-format
@@ -1868,11 +1894,12 @@ msgstr "Ni zadetkov za altname '%s'\n"
 #, c-format
 msgid "Certificate has GEN_IPADD altname with bogus length %d\n"
 msgstr ""
+"Potrdilo ima določena drugotna imena GEN_IPADD z nedovoljeno dolžino %d\n"
 
 #: openssl.c:1006
 #, c-format
 msgid "Matched %s address '%s'\n"
-msgstr ""
+msgstr "Skladnih je %s naslovov '%s'\n"
 
 #: openssl.c:1013
 #, c-format
@@ -1882,7 +1909,7 @@ msgstr "Ni zadetkov za %s z naslovom '%s'\n"
 #: openssl.c:1055
 #, c-format
 msgid "URI '%s' has non-empty path; ignoring\n"
-msgstr ""
+msgstr "Naslov URI '%s' nima prazne poti; naslov bo prezrt.\n"
 
 #: openssl.c:1060
 #, c-format
@@ -1897,11 +1924,11 @@ msgstr "Ni zadetkov za naslov URI '%s'\n"
 #: openssl.c:1086
 #, c-format
 msgid "No altname in peer cert matched '%s'\n"
-msgstr ""
+msgstr "Nobeno izmed navedenih drugotnih imen v potrdilu ni skladno z '%s'\n"
 
 #: openssl.c:1094
 msgid "No subject name in peer cert!\n"
-msgstr ""
+msgstr "Ni imena zadeve v potrdilu soležnika!\n"
 
 #: openssl.c:1114
 msgid "Failed to parse subject name in peer cert\n"
@@ -1915,7 +1942,7 @@ msgstr "Neskladno potrdilo zadeve soležnika ('%s' != '%s')\n"
 #: openssl.c:1126
 #, c-format
 msgid "Matched peer certificate subject name '%s'\n"
-msgstr ""
+msgstr "Skladno je ime zadeve v potrdilu soležnika '%s'\n"
 
 #: openssl.c:1156
 #, c-format
@@ -1925,11 +1952,11 @@ msgstr "Preverjanje potrdila strežnika je spodletelo: %s\n"
 #: openssl.c:1206
 #, c-format
 msgid "Extra cert from cafile: '%s'\n"
-msgstr ""
+msgstr "Dodatno potrdilo iz datoteke potrdil: '%s'\n"
 
 #: openssl.c:1237
 msgid "Error in client cert notAfter field\n"
-msgstr ""
+msgstr "Napaka v polju potrdila odjemalca notAfter\n"
 
 #: openssl.c:1251
 msgid "<error>"
@@ -1938,7 +1965,7 @@ msgstr "<napaka>"
 #: openssl.c:1342
 #, c-format
 msgid "Failed to read certs from CA file '%s'\n"
-msgstr ""
+msgstr "Branje potrdil iz datoteke CA '%s' je spodletelo\n"
 
 #: openssl.c:1366
 #, c-format
@@ -1973,76 +2000,76 @@ msgstr "Posredniški strežnik iz libproxy: %s://%s:%d/\n"
 msgid "getaddrinfo failed for host '%s': %s\n"
 msgstr "Ukaz getaddrinfo za gostitelja '%s' je spodletel: %s\n"
 
-#: ssl.c:226
+#: ssl.c:227
 #, c-format
 msgid "Attempting to connect to proxy %s%s%s:%s\n"
 msgstr "Vzpostavlja se povezava s posredniškim strežnikom %s%s%s:%s\n"
 
-#: ssl.c:227
+#: ssl.c:228
 #, c-format
 msgid "Attempting to connect to server %s%s%s:%s\n"
 msgstr "Vzpostavlja se povezava s strežnikom %s%s%s:%s\n"
 
-#: ssl.c:243
+#: ssl.c:244
 msgid "Failed to allocate sockaddr storage\n"
 msgstr "Dodeljevanje shrambe sockaddr je spodletelo\n"
 
-#: ssl.c:258
+#: ssl.c:276
 #, c-format
 msgid "Failed to connect to host %s\n"
 msgstr "Povezava z gostiteljem %s je spodletela.\n"
 
-#: ssl.c:333
+#: ssl.c:351
 #, c-format
 msgid "statvfs: %s\n"
 msgstr "statvfs: %s\n"
 
-#: ssl.c:350
+#: ssl.c:368
 #, c-format
 msgid "statfs: %s\n"
 msgstr "statfs: %s\n"
 
-#: ssl.c:421
+#: ssl.c:439
 msgid "No error"
 msgstr "Brez napake"
 
-#: ssl.c:422
+#: ssl.c:440
 msgid "Keystore ocked"
 msgstr "Shramba ključev je zaklenjena"
 
-#: ssl.c:423
+#: ssl.c:441
 msgid "Keystore uninitialized"
 msgstr "Shramba ključev ni začeta"
 
-#: ssl.c:424
+#: ssl.c:442
 msgid "System error"
 msgstr "Sistemska napaka"
 
-#: ssl.c:425
+#: ssl.c:443
 msgid "Protocol error"
 msgstr "Napaka v protokolu"
 
-#: ssl.c:426
+#: ssl.c:444
 msgid "Permission denied"
 msgstr "Dovoljenje je zavrnjeno"
 
-#: ssl.c:427
+#: ssl.c:445
 msgid "Key not found"
 msgstr "Ključa ni mogoče najti"
 
-#: ssl.c:428
+#: ssl.c:446
 msgid "Value corrupted"
 msgstr "Vrednost je okvarjena"
 
-#: ssl.c:429
+#: ssl.c:447
 msgid "Undefined action"
 msgstr "Nedoločeno dejanje"
 
-#: ssl.c:433
+#: ssl.c:451
 msgid "Wrong password"
 msgstr "Napačno geslo"
 
-#: ssl.c:434
+#: ssl.c:452
 msgid "Unknown error"
 msgstr "Neznana napaka"
 
@@ -2057,12 +2084,12 @@ msgstr "SIOCSIFMTU"
 #: tun.c:138
 #, c-format
 msgid "Discard bad split include: \"%s\"\n"
-msgstr ""
+msgstr "Opusti slabo deljenja z vključevanjem: \"%s\"\n"
 
 #: tun.c:142
 #, c-format
 msgid "Discard bad split exclude: \"%s\"\n"
-msgstr ""
+msgstr "Opusti slabo deljenje z izključevanjem: \"%s\"\n"
 
 #: tun.c:387
 #, c-format
@@ -2122,6 +2149,7 @@ msgstr "Ni mogoče ustvariti novega naprave tun"
 #: tun.c:544
 msgid "Failed to put tun file descriptor into message-discard mode"
 msgstr ""
+"Podajanje opisnika datoteke TUN v načunu izločanja sporočil je spodletela."
 
 #: tun.c:579
 #, c-format

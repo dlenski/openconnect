@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2012-09-19 09:29+0100\n"
+"POT-Creation-Date: 2013-02-13 21:05+0000\n"
 "PO-Revision-Date: 2012-09-22 08:24+0000\n"
 "Last-Translator: André Koot <meneer@tken.net>\n"
 "Language-Team: Dutch (http://www.transifex.com/projects/p/meego/language/"
@@ -70,7 +70,7 @@ msgstr "Kan niet overweg met formuliermethode = '%s', actie = '%s'\n"
 
 #: auth.c:436
 msgid "No form handler; cannot authenticate.\n"
-msgstr ""
+msgstr "Geen formulier afhandelaar; kon niet authenticeren.\n"
 
 #: cstp.c:120
 #, c-format
@@ -82,209 +82,209 @@ msgstr "TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"
 msgid "TCP_MAXSEG %d\n"
 msgstr "TCP_MAXSEG %d\n"
 
-#: cstp.c:196
+#: cstp.c:198
 #, c-format
 msgid "Failed to initialise DTLS secret\n"
 msgstr "Niet geslaagd DTLS sleutel te initialiseren\n"
 
-#: cstp.c:229 http.c:119
+#: cstp.c:231 http.c:199
 msgid "Error fetching HTTPS response\n"
 msgstr "Fout bij het ophalen HTTPS reactie\n"
 
-#: cstp.c:236 http.c:359 http.c:638
+#: cstp.c:238 http.c:439 http.c:724
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "Kan geen HTTPS-verbinding openen met %s\n"
 
-#: cstp.c:256
+#: cstp.c:258
 #, c-format
 msgid "VPN service unavailable; reason: %s\n"
 msgstr "VPN-service niet beschikbaar, reden:%s\n"
 
-#: cstp.c:261
+#: cstp.c:263
 #, c-format
 msgid "Got inappropriate HTTP CONNECT response: %s\n"
 msgstr "Onjuiste HTTP CONNECT reactie: %s\n"
 
-#: cstp.c:268
+#: cstp.c:270
 #, c-format
 msgid "Got CONNECT response: %s\n"
 msgstr "CONNECT reactie: %s\n"
 
-#: cstp.c:296 cstp.c:304
+#: cstp.c:298 cstp.c:306
 msgid "No memory for options\n"
 msgstr "Geen geheugen voor opties\n"
 
-#: cstp.c:321
+#: cstp.c:326
 #, c-format
 msgid "X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"
 msgstr "X-DTLS-Session-ID niet 64 tekens; is: \"%s\"\n"
 
-#: cstp.c:351
+#: cstp.c:356
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
 msgstr "Onbekende CSTP-Content-Encoding %s\n"
 
-#: cstp.c:419
+#: cstp.c:424
 msgid "No MTU received. Aborting\n"
-msgstr ""
+msgstr "Geen MTU ontvangen. Afbreken\n"
 
-#: cstp.c:426
+#: cstp.c:431
 msgid "No IP address received. Aborting\n"
 msgstr "Geen IP-adres ontvangen. Afbreken\n"
 
-#: cstp.c:432
+#: cstp.c:437
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr "Herverbinden gaf verschillende Legacy IP-adressen (%s != %s)\n"
 
-#: cstp.c:440
+#: cstp.c:445
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr "Herverbinden gaf verschillende Legacy IP-netmasks (%s != %s)\n"
 
-#: cstp.c:448
+#: cstp.c:453
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
 msgstr "Herverbinden gaf verschillende IP-adressen (%s != %s)\n"
 
-#: cstp.c:456
+#: cstp.c:461
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr "Herverbinden gaf verschillende IPv6-netmasks (%s != %s)\n"
 
-#: cstp.c:476
+#: cstp.c:481
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr "CSTP aangesloten. DPD %d, Keepalive %d\n"
 
-#: cstp.c:509
+#: cstp.c:514
 msgid "Compression setup failed\n"
 msgstr "Compressie setup is mislukt\n"
 
-#: cstp.c:517
+#: cstp.c:522
 msgid "Allocation of deflate buffer failed\n"
 msgstr "Toewijzing van leegloop buffer is mislukt\n"
 
-#: cstp.c:557
+#: cstp.c:562
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
 msgstr "slaap %ds, resterende time-out %ds\n"
 
-#: cstp.c:590
+#: cstp.c:595
 msgid "inflate failed\n"
 msgstr "decomprimeren mislukt\n"
 
-#: cstp.c:608
+#: cstp.c:613
 #, c-format
 msgid "Received compressed data packet of %ld bytes\n"
 msgstr "Ontvangen gecomprimeerde datapakket van %ld bytes\n"
 
-#: cstp.c:627
+#: cstp.c:632
 #, c-format
 msgid "SSL read error %d (server probably closed connection); reconnecting.\n"
 msgstr ""
 "SSL lezen fout %d (serververbinding waarschijnlijk gesloten); opnieuw "
 "aansluiten.\n"
 
-#: cstp.c:652
+#: cstp.c:657
 #, c-format
 msgid "SSL_write failed: %d\n"
 msgstr "SSL_write is mislukt: %d\n"
 
-#: cstp.c:668
+#: cstp.c:673
 #, c-format
 msgid "SSL read error: %s; reconnecting.\n"
 msgstr "SSL leesfout: %s; herverbinden.\n"
 
-#: cstp.c:691
+#: cstp.c:696
 #, c-format
 msgid "SSL send failed: %s\n"
 msgstr "SSL versturen mislukt: %s\n"
 
-#: cstp.c:719
+#: cstp.c:724
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
 msgstr "Onverwachte pakket lengte. SSL_read meldde %d, maar pakket is\n"
 
-#: cstp.c:731
+#: cstp.c:736
 msgid "Got CSTP DPD request\n"
 msgstr "Ontvangen CSTP DPD aanvraag\n"
 
-#: cstp.c:737
+#: cstp.c:742
 msgid "Got CSTP DPD response\n"
 msgstr "Ontvangen CSTP DPD reactie\n"
 
-#: cstp.c:742
+#: cstp.c:747
 msgid "Got CSTP Keepalive\n"
 msgstr "Ontvangen CSTP Keepalive\n"
 
-#: cstp.c:747
+#: cstp.c:752
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr "Ontvangen datapakket ongecomprimeerd %d bytes\n"
 
-#: cstp.c:762
+#: cstp.c:767
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
 msgstr "Ontvangen servermelding ontkoppeling: %02x '%s'\n"
 
-#: cstp.c:770
+#: cstp.c:775
 msgid "Compressed packet received in !deflate mode\n"
 msgstr "Gecomprimeerd pakket ontvangen in !deflate mode\n"
 
-#: cstp.c:778
+#: cstp.c:783
 msgid "received server terminate packet\n"
 msgstr "ontvangen server beëindigingspakket\n"
 
-#: cstp.c:785
+#: cstp.c:790
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr "Onbekend packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
-#: cstp.c:828
+#: cstp.c:833
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr "SSL schreef te weinig bytes! Gevraagd om %d, verstuurde %d\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:855
+#: cstp.c:860
 msgid "CSTP rekey due\n"
 msgstr "CSTP rekey verwacht\n"
 
-#: cstp.c:862
+#: cstp.c:867
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr "CSTP Dead Peer Detection ontdekte dode host!\n"
 
-#: cstp.c:865 dtls.c:756
+#: cstp.c:870 dtls.c:758
 msgid "Reconnect failed\n"
 msgstr "Herverbinden mislukte\n"
 
-#: cstp.c:874
+#: cstp.c:879
 msgid "Send CSTP DPD\n"
 msgstr "Stuur CSTP DPD\n"
 
-#: cstp.c:885
+#: cstp.c:890
 msgid "Send CSTP Keepalive\n"
 msgstr "Stuur CSTP Keepalive\n"
 
-#: cstp.c:912
+#: cstp.c:917
 #, c-format
 msgid "deflate failed %d\n"
 msgstr "compressie mislukt %d\n"
 
-#: cstp.c:932
+#: cstp.c:937
 #, c-format
 msgid "Sending compressed data packet of %d bytes\n"
 msgstr "Verzenden van gecomprimeerd datapakket van %d bytes\n"
 
-#: cstp.c:944
+#: cstp.c:949
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr "Verzenden van gedecomprimeerd datapakket van %d bytes\n"
 
-#: cstp.c:984
+#: cstp.c:989
 #, c-format
 msgid "Send BYE packet: %s\n"
 msgstr "Stuur BYE pakket: %s\n"
@@ -355,7 +355,7 @@ msgstr "Niet geslaagd in instellen DTLS sessie parameters: %s\n"
 #: dtls.c:416
 #, c-format
 msgid "Failed to set DTLS MTU: %s\n"
-msgstr ""
+msgstr "Instellen DTLS MTU mislukt: %s\n"
 
 #: dtls.c:433
 msgid "Established DTLS connection (using GnuTLS)\n"
@@ -384,101 +384,101 @@ msgstr "Geen DTLS wanneer deze is aangesloten via een proxy\n"
 msgid "Open UDP socket for DTLS:"
 msgstr "Open UDP-socket voor DTLS:"
 
-#: dtls.c:544 dtls.c:658
+#: dtls.c:544 dtls.c:660
 #, c-format
 msgid "Unknown protocol family %d. Cannot do DTLS\n"
 msgstr "Onbekende protocolfamilie %d. Kan niet met DTLS\n"
 
-#: dtls.c:551
+#: dtls.c:552
 msgid "Bind UDP socket for DTLS"
-msgstr ""
+msgstr "Bind UDP socket voor DTLS"
 
-#: dtls.c:557
+#: dtls.c:559
 msgid "UDP (DTLS) connect:\n"
 msgstr "UDP (DTLS) verbinding:\n"
 
-#: dtls.c:619
+#: dtls.c:621
 #, c-format
 msgid "DTLS option %s : %s\n"
 msgstr "DTLS optie %s:%s\n"
 
-#: dtls.c:668
+#: dtls.c:670
 #, c-format
 msgid "DTLS connected. DPD %d, Keepalive %d\n"
 msgstr "DTLS aangesloten. DPD %d, Keepalive %d\n"
 
-#: dtls.c:699
+#: dtls.c:701
 #, c-format
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
 msgstr "Ontvangen DTLS pakket 0x%02x van %d bytes\n"
 
-#: dtls.c:713
+#: dtls.c:715
 msgid "Got DTLS DPD request\n"
 msgstr "Ontving DTLS DPD aanvraag\n"
 
-#: dtls.c:719
+#: dtls.c:721
 msgid "Failed to send DPD response. Expect disconnect\n"
 msgstr "Mislukt om DPD reactie te versturen. Verwacht ontkoppeling\n"
 
-#: dtls.c:723
+#: dtls.c:725
 msgid "Got DTLS DPD response\n"
 msgstr "Ontving DTLS DPD reactie\n"
 
-#: dtls.c:727
+#: dtls.c:729
 msgid "Got DTLS Keepalive\n"
 msgstr "Ontving DTLS Keepalive\n"
 
-#: dtls.c:732
+#: dtls.c:734
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
 msgstr "Onbekend DTLS pakkettype %02x, len %d\n"
 
-#: dtls.c:751
+#: dtls.c:753
 msgid "DTLS rekey due\n"
 msgstr "DTLS rekey verwacht\n"
 
-#: dtls.c:762
+#: dtls.c:764
 msgid "DTLS rekey failed\n"
 msgstr "DTLS rekey mislukt\n"
 
-#: dtls.c:770
+#: dtls.c:772
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
 msgstr "DTLS Dead Peer Detection ontdekte dode host!\n"
 
-#: dtls.c:776
+#: dtls.c:778
 msgid "Send DTLS DPD\n"
 msgstr "Stuur DTLS DPD\n"
 
-#: dtls.c:781
+#: dtls.c:783
 msgid "Failed to send DPD request. Expect disconnect\n"
 msgstr "Niet geslaagd in verzenden DPD aanvraag. Verbinding wordt verbroken\n"
 
-#: dtls.c:794
+#: dtls.c:796
 msgid "Send DTLS Keepalive\n"
 msgstr "Stuur DTLS Keepalive\n"
 
-#: dtls.c:799
+#: dtls.c:801
 msgid "Failed to send keepalive request. Expect disconnect\n"
 msgstr ""
 
-#: dtls.c:828
+#: dtls.c:830
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
 msgstr "DTLS kreeg schrijffout %d. Terugvallen naar SSL\n"
 
-#: dtls.c:842
+#: dtls.c:844
 #, c-format
 msgid "DTLS got write error: %s. Falling back to SSL\n"
 msgstr "DTLS kleerg schrijffout: %s. Terugvallen naar SSL\n"
 
-#: dtls.c:853
+#: dtls.c:855
 #, c-format
 msgid "Sent DTLS packet of %d bytes; DTLS send returned %d\n"
-msgstr ""
+msgstr "Verstuurd DTLS packet van %d bytes; DTLS verzending retourneerde %d\n"
 
-#: dtls.c:865
+#: dtls.c:867
 msgid "Built against SSL library with no Cisco DTLS support\n"
-msgstr ""
+msgstr "Gecompileerd met een SSL library zonder Cisco DTLS ondersteuning\n"
 
 #: gnutls.c:82
 #, c-format
@@ -492,7 +492,7 @@ msgstr "Schrijven SSL geannuleerd\n"
 #: gnutls.c:122
 #, c-format
 msgid "Failed to read from SSL socket: %s"
-msgstr ""
+msgstr "Lezen van SSL socket mislukt: %s"
 
 #: gnutls.c:142 gnutls.c:200 openssl.c:159 openssl.c:217
 msgid "SSL read cancelled\n"
@@ -501,11 +501,11 @@ msgstr "SSL lezen geannuleerd\n"
 #: gnutls.c:176
 #, c-format
 msgid "Failed to read from SSL socket: %s\n"
-msgstr ""
+msgstr "Lezen van SSL socket mislukt: %s\n"
 
 #: gnutls.c:218
 msgid "Could not extract expiration time of certificate\n"
-msgstr ""
+msgstr "Kon de vervaldatum niet afleiden uit het certificaat\n"
 
 #: gnutls.c:223 openssl.c:1240
 msgid "Client certificate has expired at"
@@ -523,7 +523,7 @@ msgstr ""
 #: gnutls.c:277
 #, c-format
 msgid "Failed to open key/certificate file %s: %s\n"
-msgstr ""
+msgstr "Openen sleutel/certificaat bestand %s: %s mislukt\n"
 
 #: gnutls.c:284
 #, c-format
@@ -532,26 +532,26 @@ msgstr ""
 
 #: gnutls.c:293
 msgid "Failed to allocate certificate buffer\n"
-msgstr ""
+msgstr "Toewijzen certificaat bufferruimte mislukt\n"
 
 #: gnutls.c:301
 #, c-format
 msgid "Failed to read certificate into memory: %s\n"
-msgstr ""
+msgstr "In geheugen inlezen van certificaat info mislukt: %s\n"
 
 #: gnutls.c:332
 #, c-format
 msgid "Failed to setup PKCS#12 data structure: %s\n"
-msgstr ""
+msgstr "Instellen van PKCS#12 gegevensstructuur mislukt: %s\n"
 
 #: gnutls.c:343
 #, c-format
 msgid "Failed to import PKCS#12 file: %s\n"
-msgstr ""
+msgstr "Importeren PKCS#12 bestand mislukt: %s\n"
 
 #: gnutls.c:352
 msgid "Failed to decrypt PKCS#12 certificate file\n"
-msgstr ""
+msgstr "Ontcijferen PKCS#12 certificaatbestand mislukt\n"
 
 #: gnutls.c:356 openssl.c:429
 msgid "Enter PKCS#12 pass phrase:"
@@ -560,12 +560,12 @@ msgstr "Invoeren PKCS#12 wachtwoord:"
 #: gnutls.c:380
 #, c-format
 msgid "Failed to process PKCS#12 file: %s\n"
-msgstr ""
+msgstr "Verwerken PKCS#12 bestand mislukt: %s\n"
 
 #: gnutls.c:392
 #, c-format
 msgid "Failed to load PKCS#12 certificate: %s\n"
-msgstr ""
+msgstr "Laden PKCS#12 certificaat mislukt: %s\n"
 
 #: gnutls.c:562
 #, c-format
@@ -580,7 +580,7 @@ msgstr "Instellen PKCS#11 certificaat mislukte: %s\n"
 #: gnutls.c:596
 #, c-format
 msgid "Could not initialise MD5 hash: %s\n"
-msgstr ""
+msgstr "Kon de MD5 hash niet initialiseren: %s\n"
 
 #: gnutls.c:606
 #, c-format
@@ -593,21 +593,21 @@ msgstr ""
 
 #: gnutls.c:671
 msgid "Cannot determine PEM encryption type\n"
-msgstr ""
+msgstr "Kan PEM versleutelingstype niet achterhalen\n"
 
 #: gnutls.c:684
 #, c-format
 msgid "Unsupported PEM encryption type: %s\n"
-msgstr ""
+msgstr "Niet-ondersteunde PEM versleutelingstype: %s\n"
 
 #: gnutls.c:709 gnutls.c:722
 msgid "Invalid salt in encrypted PEM file\n"
-msgstr ""
+msgstr "Ongeldige salt in versleuteld PEM bestand\n"
 
 #: gnutls.c:746
 #, c-format
 msgid "Error base64-decoding encrypted PEM file: %s\n"
-msgstr ""
+msgstr "Fout base64-decoderen versleutelde PEM bestand: %s\n"
 
 #: gnutls.c:754
 msgid "Encrypted PEM file too short\n"
@@ -633,12 +633,12 @@ msgstr "Invoeren PEM wachtwoord:"
 
 #: gnutls.c:903 openssl.c:667
 msgid "This binary built without PKCS#11 support\n"
-msgstr ""
+msgstr "Deze binary is gecompileerd zonder PKCS#11 ondersteuning\n"
 
 #: gnutls.c:953
 #, c-format
 msgid "Using PKCS#11 certificate %s\n"
-msgstr ""
+msgstr "Gebruikmaken van PKCS#11 certificaat %s\n"
 
 #: gnutls.c:966
 #, c-format
@@ -671,22 +671,22 @@ msgstr "gebruikt PKCS#11 sleutel %s\n"
 #: gnutls.c:1051
 #, c-format
 msgid "Error initialising PKCS#11 key structure: %s\n"
-msgstr ""
+msgstr "Fout bij initialiseren PKCS#11 sleutel structuur: %s\n"
 
 #: gnutls.c:1141
 #, c-format
 msgid "Error importing PKCS#11 URL %s: %s\n"
-msgstr ""
+msgstr "Fout bij importeren PKCS#11 URL %s: %s\n"
 
 #: gnutls.c:1151
 #, c-format
 msgid "Error initialising private key structure: %s\n"
-msgstr ""
+msgstr "Fout bij initialiseren privésleutel structuur: %s\n"
 
 #: gnutls.c:1161
 #, c-format
 msgid "Error importing PKCS#11 key into private key structure: %s\n"
-msgstr ""
+msgstr "Fout bij importeren PKCS#11 sleutel in privésleutel structuur: %s\n"
 
 #: gnutls.c:1189
 #, c-format
@@ -699,21 +699,21 @@ msgstr "Deze versie van OpenConnect werd gebouwd zonder TPM ondersteuning\n"
 
 #: gnutls.c:1223
 msgid "Failed to interpret PEM file\n"
-msgstr ""
+msgstr "Interpreteren PEM bestand mislukt\n"
 
 #: gnutls.c:1242
 #, c-format
 msgid "Failed to load PKCS#1 private key: %s\n"
-msgstr ""
+msgstr "Laden PKCS#1 privésleutel mislukt: %s\n"
 
 #: gnutls.c:1255 gnutls.c:1269
 #, c-format
 msgid "Failed to load private key as PKCS#8: %s\n"
-msgstr ""
+msgstr "Laden van privésleutel als PKCS#8 mislukt: %s\n"
 
 #: gnutls.c:1277
 msgid "Failed to decrypt PKCS#8 certificate file\n"
-msgstr ""
+msgstr "Ontcijferen PKCS#8 certificaatbestand mislukt\n"
 
 #: gnutls.c:1291
 #, c-format
@@ -753,10 +753,12 @@ msgstr "Instellen van de certificate recovation list mislukte: %s\n"
 msgid ""
 "WARNING: GnuTLS returned incorrect issuer certs; authentication may fail!\n"
 msgstr ""
+"WAARSCHUWING: GnuTLS retourneerde onjuiste uitgever certs; authenticatie kan "
+"mislukken!\n"
 
 #: gnutls.c:1477
 msgid "Failed to allocate memory for supporting certificates\n"
-msgstr ""
+msgstr "Toewijzen van geheugen voor ondersteunen certificaatfuncties mislukt\n"
 
 #: gnutls.c:1496
 #, c-format
@@ -774,7 +776,7 @@ msgstr "Server presenteerde geen certificaat\n"
 
 #: gnutls.c:1665
 msgid "Could not calculate SHA1 of server's certificate\n"
-msgstr ""
+msgstr "Kon de SHA1 hash van het servercertificaat niet berekenen\n"
 
 #: gnutls.c:1673 openssl.c:854
 #, c-format
@@ -783,7 +785,7 @@ msgstr "Server SSL certificaat komt niet overeen: %s\n"
 
 #: gnutls.c:1681
 msgid "Error checking server cert status\n"
-msgstr ""
+msgstr "Fout bij controleren cert status\n"
 
 #: gnutls.c:1686
 msgid "certificate revoked"
@@ -818,11 +820,11 @@ msgstr "handtekeningverificatie mislukt"
 
 #: gnutls.c:1705
 msgid "Error initialising X509 cert structure\n"
-msgstr ""
+msgstr "Fout bij initialiseren X509 cert structuur\n"
 
 #: gnutls.c:1711
 msgid "Error importing server's cert\n"
-msgstr ""
+msgstr "Fout bij importeren server cert\n"
 
 #: gnutls.c:1717 openssl.c:1152
 msgid "certificate does not match hostname"
@@ -840,7 +842,7 @@ msgstr "Niet geslaag in lezen certs van cafile: %s\n"
 #: gnutls.c:1811
 #, c-format
 msgid "Failed to open CA file '%s': %s\n"
-msgstr ""
+msgstr "Open CA bestand '%s' mislukt: %s\n"
 
 #: gnutls.c:1822 openssl.c:1300
 msgid "Loading certificate failed. Aborting.\n"
@@ -849,51 +851,51 @@ msgstr "Laden van certificaat is mislukt. Afbreken.\n"
 #: gnutls.c:1844
 #, c-format
 msgid "Failed to set TLS priority string: %s\n"
-msgstr ""
+msgstr "Instellen van de TLS prioriteit string mislukt: %s\n"
 
 #. really?
-#: gnutls.c:1853 openssl.c:1375
+#: gnutls.c:1856 openssl.c:1384
 #, c-format
 msgid "SSL negotiation with %s\n"
 msgstr "SSL afstemmen met %s\n"
 
-#: gnutls.c:1877 openssl.c:1406
+#: gnutls.c:1880 openssl.c:1415
 msgid "SSL connection cancelled\n"
 msgstr "SSL verbinding geannuleerd\n"
 
-#: gnutls.c:1884
+#: gnutls.c:1887
 #, c-format
 msgid "SSL connection failure: %s\n"
 msgstr "SSL verbindingsfout: %s\n"
 
-#: gnutls.c:1893
+#: gnutls.c:1896
 #, c-format
 msgid "GnuTLS non-fatal return during handshake: %s\n"
 msgstr ""
 
-#: gnutls.c:1900 openssl.c:1426
+#: gnutls.c:1903 openssl.c:1435
 #, c-format
 msgid "Connected to HTTPS on %s\n"
 msgstr "Verbonden met HTTPS op %s\n"
 
-#: gnutls.c:2077
+#: gnutls.c:2080
 #, c-format
 msgid "PIN required for %s"
 msgstr "PIN nodig voor %s"
 
-#: gnutls.c:2087
+#: gnutls.c:2090
 msgid "Wrong PIN"
 msgstr "Verkeerde PIN"
 
-#: gnutls.c:2090
+#: gnutls.c:2093
 msgid "This is the final try before locking!"
 msgstr "Dit is de laatste poging voor blokkeren!"
 
-#: gnutls.c:2092
+#: gnutls.c:2095
 msgid "Only a few tries left before locking!"
 msgstr "Nog maar een paar pogingen voor blokkeren!"
 
-#: gnutls.c:2097
+#: gnutls.c:2100
 msgid "Enter PIN:"
 msgstr "Invoeren PIN:"
 
@@ -920,12 +922,12 @@ msgstr ""
 #: gnutls_tpm.c:135
 #, c-format
 msgid "TPM hash signature failed: %s\n"
-msgstr ""
+msgstr "TPM hash handtekening mislukt: %s\n"
 
 #: gnutls_tpm.c:157
 #, c-format
 msgid "Error decoding TSS key blob: %s\n"
-msgstr ""
+msgstr "Fout bij decoderen TSS sleutel blob: %s\n"
 
 #: gnutls_tpm.c:164 gnutls_tpm.c:175 gnutls_tpm.c:188
 msgid "Error in TSS key blob\n"
@@ -934,32 +936,32 @@ msgstr "Faout in TSS sleutel blob\n"
 #: gnutls_tpm.c:195
 #, c-format
 msgid "Failed to create TPM context: %s\n"
-msgstr ""
+msgstr "Creëren TPM context mislukt: %s\n"
 
 #: gnutls_tpm.c:202
 #, c-format
 msgid "Failed to connect TPM context: %s\n"
-msgstr ""
+msgstr "verbinden met TPM context mislukt: %s\n"
 
 #: gnutls_tpm.c:210
 #, c-format
 msgid "Failed to load TPM SRK key: %s\n"
-msgstr ""
+msgstr "Laden TPM SRK sleutel mislukt: %s\n"
 
 #: gnutls_tpm.c:217
 #, c-format
 msgid "Failed to load TPM SRK policy object: %s\n"
-msgstr ""
+msgstr "Laden TPM SRK policy object mislukt: %s\n"
 
 #: gnutls_tpm.c:238
 #, c-format
 msgid "Failed to set TPM PIN: %s\n"
-msgstr ""
+msgstr "Instellen TPM PIN miuslukt: %s\n"
 
 #: gnutls_tpm.c:254
 #, c-format
 msgid "Failed to load TPM key blob: %s\n"
-msgstr ""
+msgstr "Laden TPM sleutel blob mislukt: %s\n"
 
 #: gnutls_tpm.c:261
 msgid "Enter TPM SRK PIN:"
@@ -968,12 +970,12 @@ msgstr "Invoeren TPM SRK PIN:"
 #: gnutls_tpm.c:286
 #, c-format
 msgid "Failed to create key policy object: %s\n"
-msgstr ""
+msgstr "Aanmaken sleutelbeleid object mislukt: %s\n"
 
 #: gnutls_tpm.c:294
 #, c-format
 msgid "Failed to assign policy to key: %s\n"
-msgstr ""
+msgstr "Toewijzen policy aan sleutel mislukt: %s\n"
 
 #: gnutls_tpm.c:300
 msgid "Enter TPM key PIN:"
@@ -982,91 +984,91 @@ msgstr "InvoerenTPM sleutel PIN:"
 #: gnutls_tpm.c:311
 #, c-format
 msgid "Failed to set key PIN: %s\n"
-msgstr ""
+msgstr "Instellen sleutel PIN mislukt: %s\n"
 
-#: http.c:64
+#: http.c:144
 msgid "No memory for allocating cookies\n"
 msgstr "Geen geheugen voor de toewijzing van cookies\n"
 
-#: http.c:128
+#: http.c:208
 #, c-format
 msgid "Failed to parse HTTP response '%s'\n"
 msgstr "Mislukte poging HTTP reactie '%s' te ontleden\n"
 
-#: http.c:133
+#: http.c:213
 #, c-format
 msgid "Got HTTP response: %s\n"
 msgstr "Ontving HTTP reactie: %s\n"
 
-#: http.c:141
+#: http.c:221
 msgid "Error processing HTTP response\n"
 msgstr "Fout bij de verwerking van HTTP-reactie\n"
 
-#: http.c:147
+#: http.c:227
 #, c-format
 msgid "Ignoring unknown HTTP response line '%s'\n"
 msgstr "Onbekende HTTP response lijn '%s' genegeerd\n"
 
-#: http.c:167
+#: http.c:247
 #, c-format
 msgid "Invalid cookie offered: %s\n"
 msgstr "Ongeldige koekje aangeboden: %s\n"
 
-#: http.c:176
+#: http.c:256
 msgid "<elided>"
 msgstr "<elided>"
 
-#: http.c:186
+#: http.c:266
 msgid "SSL certificate authentication failed\n"
 msgstr "SSL certificaat authenticatie mislukt\n"
 
-#: http.c:217
+#: http.c:297
 #, c-format
 msgid "Response body has negative size (%d)\n"
 msgstr "Reactie heeft negatieve grootte (%d)\n"
 
-#: http.c:227
+#: http.c:307
 #, c-format
 msgid "Unknown Transfer-Encoding: %s\n"
 msgstr "Onbekend Transfer-Encoding: %s\n"
 
 #. Now the body, if there is one
-#: http.c:241
+#: http.c:321
 #, c-format
 msgid "HTTP body %s (%d)\n"
 msgstr "HTTP body %s (%d)\n"
 
-#: http.c:255 http.c:283
+#: http.c:335 http.c:363
 msgid "Error reading HTTP response body\n"
 msgstr "Fout bij het lezen van HTTP reactie\n"
 
-#: http.c:268
+#: http.c:348
 msgid "Error fetching chunk header\n"
 msgstr "Fout bij het ophalen brok header\n"
 
-#: http.c:294
+#: http.c:374
 msgid "Error fetching HTTP response body\n"
 msgstr "Fout bij het ophalen HTTP reactietekst\n"
 
-#: http.c:297
+#: http.c:377
 #, c-format
 msgid "Error in chunked decoding. Expected '', got: '%s'"
 msgstr "Fout in chunked decodering. Verwacht '', ontving: '%s'"
 
-#: http.c:310
+#: http.c:390
 msgid "Cannot receive HTTP 1.0 body without closing connection\n"
 msgstr ""
 "Kan HTTP 1.0 content niet ontvangen zonder het sluiten van de verbinding\n"
 
-#: http.c:380
+#: http.c:464
 msgid "Failed to send GET request for new config\n"
-msgstr ""
+msgstr "Versturen GET aanvraag voor nieuwe configuratie mislukt\n"
 
-#: http.c:402
+#: http.c:488
 msgid "Downloaded config file did not match intended SHA1\n"
 msgstr "Gedownloade config-bestand komt niet overeen bedoelde SHA1\n"
 
-#: http.c:419
+#: http.c:505
 msgid ""
 "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 "This facility is disabled by default for security reasons, so you may wish "
@@ -1076,36 +1078,36 @@ msgstr ""
 "uit te voeren. Deze faciliteit is standaard om veiligheidsredenen "
 "uitgeschakeld. U kunt zelf besluiten om dit mogelijk te maken."
 
-#: http.c:426
+#: http.c:512
 msgid "Trying to run Linux CSD trojan script."
 msgstr "Poging Linux CSD trojan script uit te voeren."
 
-#: http.c:434
+#: http.c:520
 #, c-format
 msgid "Failed to open temporary CSD script file: %s\n"
 msgstr "Niet te openen tijdelijk CSD scriptbestand: %s\n"
 
-#: http.c:442
+#: http.c:528
 #, c-format
 msgid "Failed to write temporary CSD script file: %s\n"
 msgstr "Niet mogelijk om tijdelijk CSD script file weg te schrijven: %s\n"
 
-#: http.c:459 main.c:811
+#: http.c:545 main.c:811
 #, c-format
 msgid "Failed to set uid %ld\n"
 msgstr "Mislukt instellen uid %ld\n"
 
-#: http.c:464
+#: http.c:550
 #, c-format
 msgid "Invalid user uid=%ld\n"
 msgstr "Ongeldige gebruikersnaam uid =%ld\n"
 
-#: http.c:470
+#: http.c:556
 #, c-format
 msgid "Failed to change to CSD home directory '%s': %s\n"
 msgstr "Mislukt om te schakelen naar CSD home directory '%s':%s\n"
 
-#: http.c:476
+#: http.c:562
 #, c-format
 msgid ""
 "Warning: you are running insecure CSD code with root privileges\n"
@@ -1114,165 +1116,165 @@ msgstr ""
 "Waarschuwing: je draait onveilige CSD-code met root privileges\n"
 "\t Gebruik commandoregel optie \"--csd-user\"\n"
 
-#: http.c:513
+#: http.c:599
 #, c-format
 msgid "Failed to exec CSD script %s\n"
 msgstr "Niet gelukt om CSD script te draaien %s\n"
 
-#: http.c:707
+#: http.c:796
 #, c-format
 msgid "Failed to parse redirected URL '%s': %s\n"
 msgstr "Niet geslaagd om doorgestuurd URL '%s' te vertalen: %s\n"
 
-#: http.c:742
+#: http.c:831
 #, c-format
 msgid "Cannot follow redirection to non-https URL '%s'\n"
 msgstr "Kan niet doorverwijzen naar non-https URL '%s'\n"
 
-#: http.c:771
+#: http.c:860
 #, c-format
 msgid "Allocating new path for relative redirect failed: %s\n"
 msgstr "Toewijzing van nieuwe pad voor de relatieve redirect is mislukt: %s\n"
 
-#: http.c:784
+#: http.c:873
 #, c-format
 msgid "Unexpected %d result from server\n"
 msgstr "Onverwacht %d resultaat van de server\n"
 
-#: http.c:804
+#: http.c:893
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
 msgstr "Verversing %s na 1 seconde ...\n"
 
-#: http.c:810
+#: http.c:899
 msgid "Unknown response from server\n"
 msgstr "Onbekende reactie van de server\n"
 
-#: http.c:978
+#: http.c:1067
 msgid "request granted"
 msgstr "verzoek ingewilligd"
 
-#: http.c:979
+#: http.c:1068
 msgid "general failure"
 msgstr "algemene storing"
 
-#: http.c:980
+#: http.c:1069
 msgid "connection not allowed by ruleset"
 msgstr "verbinding niet toegestaan ​​door regelset"
 
-#: http.c:981
+#: http.c:1070
 msgid "network unreachable"
 msgstr "netwerk onbereikbaar"
 
-#: http.c:982
+#: http.c:1071
 msgid "host unreachable"
 msgstr "host onbereikbaar"
 
-#: http.c:983
+#: http.c:1072
 msgid "connection refused by destination host"
 msgstr "verbinding geweigerd door doelhost"
 
-#: http.c:984
+#: http.c:1073
 msgid "TTL expired"
 msgstr "TTL verlopen"
 
-#: http.c:985
+#: http.c:1074
 msgid "command not supported / protocol error"
 msgstr "commando niet ondersteund / protocol fout"
 
-#: http.c:986
+#: http.c:1075
 msgid "address type not supported"
 msgstr "adres type niet ondersteund"
 
-#: http.c:1000
+#: http.c:1089
 #, c-format
 msgid "Error writing auth request to SOCKS proxy: %s\n"
 msgstr "Fout bij het schrijven auth verzoek aan SOCKS proxy: %s\n"
 
-#: http.c:1007
+#: http.c:1096
 #, c-format
 msgid "Error reading auth response from SOCKS proxy: %s\n"
 msgstr "Fout bij het lezen van auth reactie van SOCKS proxy: %s\n"
 
-#: http.c:1013
+#: http.c:1102
 #, c-format
 msgid "Unexpected auth response from SOCKS proxy: %02x %02x\n"
 msgstr "Onverwachte auth reactie van SOCKS proxy: %02x %02x\n"
 
-#: http.c:1021
+#: http.c:1110
 #, c-format
 msgid "SOCKS proxy error %02x: %s\n"
 msgstr "SOCKS proxy fout %02x: %s\n"
 
-#: http.c:1025
+#: http.c:1114
 #, c-format
 msgid "SOCKS proxy error %02x\n"
 msgstr "SOCKS proxy fout %02x\n"
 
-#: http.c:1031
+#: http.c:1120
 #, c-format
 msgid "Requesting SOCKS proxy connection to %s:%d\n"
 msgstr "Het aanvragen van SOCKS proxy verbinding met %s:%d\n"
 
-#: http.c:1046
+#: http.c:1135
 #, c-format
 msgid "Error writing connect request to SOCKS proxy: %s\n"
 msgstr "Fout bij het schrijven verbindingsverzoek aan SOCKS proxy: %s\n"
 
-#: http.c:1054 http.c:1087
+#: http.c:1143 http.c:1176
 #, c-format
 msgid "Error reading connect response from SOCKS proxy: %s\n"
 msgstr "Fout bij het lezen van verbindingsreactie van SOCKS proxy: %s\n"
 
-#: http.c:1060
+#: http.c:1149
 #, c-format
 msgid "Unexpected connect response from SOCKS proxy: %02x %02x...\n"
 msgstr "Onverwachte verbindingsreactie van SOCKS proxy: %02x %02x...\n"
 
-#: http.c:1080
+#: http.c:1169
 #, c-format
 msgid "Unexpected address type %02x in SOCKS connect response\n"
 msgstr "Onverwacht adres type %02x in SOCKS aansluitreactie\n"
 
-#: http.c:1108
+#: http.c:1202
 #, c-format
 msgid "Requesting HTTP proxy connection to %s:%d\n"
 msgstr "Aanvragen van HTTP-proxy verbinding met %s:%d\n"
 
-#: http.c:1114
+#: http.c:1210
 #, c-format
 msgid "Sending proxy request failed: %s\n"
 msgstr "Het verzenden van het proxy verzoek is mislukt: %s\n"
 
-#: http.c:1121
+#: http.c:1217
 msgid "Error fetching proxy response\n"
 msgstr "Fout bij het ophalen proxy reactie\n"
 
-#: http.c:1128
+#: http.c:1224
 #, c-format
 msgid "Failed to parse proxy response '%s'\n"
 msgstr "Mislukte ontleding proxy-reactie '%s'\n"
 
-#: http.c:1134
+#: http.c:1230
 #, c-format
 msgid "Proxy CONNECT request failed: %s\n"
 msgstr "Proxy CONNECT verzoek is mislukt: %s\n"
 
-#: http.c:1141
+#: http.c:1237
 msgid "Failed to read proxy response\n"
 msgstr "Mislukt proxy reactie te lezen\n"
 
-#: http.c:1145
+#: http.c:1241
 #, c-format
 msgid "Unexpected continuation line after CONNECT response: '%s'\n"
 msgstr "Onverwachte voortzetting lijn na CONNECT antwoord: '%s'\n"
 
-#: http.c:1161
+#: http.c:1257
 #, c-format
 msgid "Unknown proxy type '%s'\n"
 msgstr "Onbekend proxy-type '%s'\n"
 
-#: http.c:1189
+#: http.c:1285
 msgid "Only http or socks(5) proxies supported\n"
 msgstr "Alleen http of socks(5) proxies ondersteund\n"
 
@@ -1412,7 +1414,7 @@ msgstr "MTU verzoek van de server"
 
 #: main.c:243
 msgid "Indicate path MTU to/from server"
-msgstr ""
+msgstr "Aangeven pad MTU van/naar server"
 
 #: main.c:244
 msgid "Set key passphrase or TPM SRK PIN"
@@ -1481,7 +1483,7 @@ msgstr "Kies authenticatie login selectie"
 
 #: main.c:262
 msgid "Authenticate only and print login info"
-msgstr ""
+msgstr "Alleen authenticeren en tonen inloginformatie"
 
 #: main.c:263
 msgid "Fetch webvpn cookie only; don't connect"
@@ -1541,7 +1543,7 @@ msgstr "HTTP header User-agent: veld"
 
 #: main.c:277
 msgid "Set local port for DTLS datagrams"
-msgstr ""
+msgstr "Instellen lokale poort voor DTLS datagrams"
 
 #: main.c:288
 #, c-format
@@ -1696,7 +1698,7 @@ msgstr "Niet gelukt %s te openen voor schrijven: %s\n"
 msgid "Failed to write config to %s: %s\n"
 msgstr "Niet gelukt config te schrijven naar %s: %s\n"
 
-#: main.c:979
+#: main.c:980
 #, c-format
 msgid ""
 "\n"
@@ -1707,36 +1709,36 @@ msgstr ""
 "Certificaat van VPN-server \"%s\" verificatie mislukt.\n"
 "Reden: %s\n"
 
-#: main.c:985
+#: main.c:986
 #, c-format
 msgid "Enter '%s' to accept, '%s' to abort; anything else to view: "
 msgstr ""
 "Invoeren '%s' om te accepteren, '%s' om af te breken; iets anders om te "
 "bekijken: "
 
-#: main.c:986 main.c:1004
+#: main.c:987 main.c:1005
 msgid "no"
 msgstr "nee"
 
-#: main.c:986 main.c:993
+#: main.c:987 main.c:994
 msgid "yes"
 msgstr "ja"
 
-#: main.c:1010
+#: main.c:1011
 #, c-format
 msgid "SHA1 fingerprint: %s\n"
 msgstr "SHA1 vingerafdruk: %s\n"
 
-#: main.c:1060
+#: main.c:1061
 #, c-format
 msgid "Auth choice \"%s\" not available\n"
 msgstr "Auth keuze \"%s\" niet beschikbaar\n"
 
-#: main.c:1073 main.c:1121 main.c:1148
+#: main.c:1074 main.c:1122 main.c:1149
 msgid "User input required in non-interactive mode\n"
-msgstr ""
+msgstr "Gebruikersinvoer vereist in niet-interactieve modus\n"
 
-#: main.c:1104
+#: main.c:1105
 #, c-format
 msgid "Auth choice \"%s\" not valid\n"
 msgstr "Auth keuze \"%s\" niet geldig\n"
@@ -1836,11 +1838,11 @@ msgstr "Lezen van PKCS# 12 is mislukt\n"
 
 #: openssl.c:712
 msgid "Failed to load X509 certificate from keystore\n"
-msgstr ""
+msgstr "Laden X509 certificaat uit keystore mislukt\n"
 
 #: openssl.c:718
 msgid "Failed to use X509 certificate from keystore\n"
-msgstr ""
+msgstr "Gebruik van X509 certificaat uit keystore mislukt\n"
 
 #: openssl.c:730
 msgid "Loading certificate failed\n"
@@ -1848,7 +1850,7 @@ msgstr "Laden van certificaat is mislukt\n"
 
 #: openssl.c:757
 msgid "Failed to use private key from keystore\n"
-msgstr ""
+msgstr "Gebruik van privésleutel uit keystore mislukt\n"
 
 #: openssl.c:773
 #, c-format
@@ -1941,17 +1943,17 @@ msgstr "Fout in client cert notAfter veld\n"
 msgid "<error>"
 msgstr "<error>"
 
-#: openssl.c:1337
+#: openssl.c:1342
 #, c-format
 msgid "Failed to read certs from CA file '%s'\n"
-msgstr ""
+msgstr "Inlezen van certs van CA bestand mislukt '%s'\n"
 
-#: openssl.c:1359
+#: openssl.c:1366
 #, c-format
 msgid "Failed to open CA file '%s'\n"
 msgstr "Niet gelukt om CA bestand '%s' te openen\n"
 
-#: openssl.c:1391
+#: openssl.c:1400
 msgid "SSL connection failure\n"
 msgstr "SSL-verbinding niet geslaagd\n"
 
@@ -1969,86 +1971,86 @@ msgstr "Niet geslaagd in opnieuw verbinden met proxy %s\n"
 msgid "Failed to reconnect to host %s\n"
 msgstr "Niet gelukt om te verbinden met host %s\n"
 
-#: ssl.c:181
+#: ssl.c:182
 #, c-format
 msgid "Proxy from libproxy: %s://%s:%d/\n"
 msgstr "Proxy van libproxy: %s://%s:%d/\n"
 
-#: ssl.c:212
+#: ssl.c:211
 #, c-format
 msgid "getaddrinfo failed for host '%s': %s\n"
 msgstr "getaddrinfo mislukt voor '%s' host: %s\n"
 
-#: ssl.c:223
+#: ssl.c:227
 #, c-format
 msgid "Attempting to connect to proxy %s%s%s:%s\n"
-msgstr ""
+msgstr "Poging om te verbinden met proxy %s%s%s:%s\n"
 
-#: ssl.c:224
+#: ssl.c:228
 #, c-format
 msgid "Attempting to connect to server %s%s%s:%s\n"
-msgstr ""
+msgstr "Poging te verbinden met server %s%s%s:%s\n"
 
-#: ssl.c:240
+#: ssl.c:244
 msgid "Failed to allocate sockaddr storage\n"
 msgstr "Niet gelukt om sockaddr opslag toe te wijzen\n"
 
-#: ssl.c:255
+#: ssl.c:276
 #, c-format
 msgid "Failed to connect to host %s\n"
 msgstr "Niet geslaagd in maken verbinding met host %s\n"
 
-#: ssl.c:330
+#: ssl.c:351
 #, c-format
 msgid "statvfs: %s\n"
 msgstr "statvfs: %s\n"
 
-#: ssl.c:347
+#: ssl.c:368
 #, c-format
 msgid "statfs: %s\n"
 msgstr "statfs: %s\n"
 
-#: ssl.c:418
+#: ssl.c:439
 msgid "No error"
 msgstr "Geen fout"
 
-#: ssl.c:419
+#: ssl.c:440
 msgid "Keystore ocked"
 msgstr "Sleutelbestand afgesloten"
 
-#: ssl.c:420
+#: ssl.c:441
 msgid "Keystore uninitialized"
 msgstr "Sleutelbestand geïnitialiseerd"
 
-#: ssl.c:421
+#: ssl.c:442
 msgid "System error"
 msgstr "Systeemfout"
 
-#: ssl.c:422
+#: ssl.c:443
 msgid "Protocol error"
 msgstr "Protocolfout"
 
-#: ssl.c:423
+#: ssl.c:444
 msgid "Permission denied"
 msgstr "Toegang verboden"
 
-#: ssl.c:424
+#: ssl.c:445
 msgid "Key not found"
 msgstr "Sleutel niet gevonden"
 
-#: ssl.c:425
+#: ssl.c:446
 msgid "Value corrupted"
 msgstr "Waarde corrupt"
 
-#: ssl.c:426
+#: ssl.c:447
 msgid "Undefined action"
 msgstr "Ongedefinieerde actie"
 
-#: ssl.c:430
+#: ssl.c:451
 msgid "Wrong password"
 msgstr "Onjuist wachtwoord"
 
-#: ssl.c:431
+#: ssl.c:452
 msgid "Unknown error"
 msgstr "Onbekende fout"
 
@@ -2078,12 +2080,12 @@ msgstr "Niet gelukt om script '%s' te starten voor %s: %s\n"
 #: tun.c:393
 #, c-format
 msgid "Script '%s' exited abnormally (%x)\n"
-msgstr ""
+msgstr "Script '%s' eindigde abnormaal (%x)\n"
 
 #: tun.c:400
 #, c-format
 msgid "Script '%s' returned error %d\n"
-msgstr ""
+msgstr "Script '%s' retourneerde fout %d\n"
 
 #: tun.c:415
 msgid "Could not /dev/tun for plumbing"
@@ -2177,7 +2179,7 @@ msgstr "Niet geslaag in wegschrijven inkomend pakket: %s/n\n"
 msgid "Open XML config file"
 msgstr "Open XML-configuratiebestand"
 
-#: xml.c:54 xml.c:89
+#: xml.c:54 xml.c:90
 #, c-format
 msgid "Treating host \"%s\" as a raw hostname\n"
 msgstr "Behandelen host \"%s\" als kale hostnaam\n"
@@ -2186,36 +2188,36 @@ msgstr "Behandelen host \"%s\" als kale hostnaam\n"
 msgid "fstat XML config file"
 msgstr "fstat XML-configuratiebestand"
 
-#: xml.c:66
+#: xml.c:67
 msgid "mmap XML config file"
 msgstr "mmap XML-configuratiebestand"
 
-#: xml.c:72
+#: xml.c:73
 #, c-format
 msgid "Failed to SHA1 existing file\n"
-msgstr ""
+msgstr "Aanmaken SHA1 hash voor huidige bestand mislukt\n"
 
-#: xml.c:80
+#: xml.c:81
 #, c-format
 msgid "XML config file SHA1: %s\n"
 msgstr "XML-configuratiebestand SHA1: %s\n"
 
-#: xml.c:87
+#: xml.c:88
 #, c-format
 msgid "Failed to parse XML config file %s\n"
 msgstr "Niet gelukt XML-configuratiebestand %s te ontleden\n"
 
-#: xml.c:124
+#: xml.c:125
 #, c-format
 msgid "Host \"%s\" has address \"%s\"\n"
 msgstr "Host \"%s\" heeft adres \"%s\"\n"
 
-#: xml.c:133
+#: xml.c:134
 #, c-format
 msgid "Host \"%s\" has UserGroup \"%s\"\n"
 msgstr "Host \"%s\" heeft gebruikersgroep \"%s\"\n"
 
-#: xml.c:147
+#: xml.c:148
 #, c-format
 msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""
