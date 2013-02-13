@@ -1,0 +1,40 @@
+<PAGE>
+	<VAR match="VAR_ORIGIN" replace="" />
+	<VAR match="VAR_CVSID" replace=""/>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_SERVER" replace="selected" />
+	<PARSE file="menu1.xml" />
+
+	<INCLUDE file="inc/content.tmpl" />
+
+<h2>OpenConnect VPN Server</h2>
+
+<p>
+OpenConnect VPN server (ocserv), is a server implementing the AnyConnect
+protocol and is compatible with the OpenConnect VPN client.
+</p>
+
+<h2>Features</h2>
+
+<ul>
+  <li>Supports both TCP and UDP VPN tunnels using TLS and Datagram TLS.</li>
+  <li>Support for the server key being stored in TPM, a hardware security module (HSM), or
+  even smart card.</li>
+  <li>Authentication using PAM (username-password), certificates or both.</li>
+  <li>Privilege separation between the main process and the VPN
+  workers.</li>
+  <li>Registers VPN leases to UTMP and WTMP files.</li>
+  <li>Persistent storage of cookies, to allow a seamless server
+  restart.</li>
+</ul>
+
+<h2>Latest sources</h2>
+
+<p>The latest source code is available from the git repository at:</p>
+<ul><li><tt>git://git.infradead.org/ocserv.git</tt><br/>or browseable in gitweb at:</li>
+<li><a href="http://git.infradead.org/ocserv.git">
+http://git.infradead.org/ocserv.git</a></li></ul>
+
+	<INCLUDE file="inc/footer.tmpl" />
+</PAGE>
