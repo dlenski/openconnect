@@ -1368,7 +1368,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 				gnutls_pubkey_deinit(pubkey);
 				continue;
 			}
-			err = gnutls_pubkey_verify_data2(pubkey, 0, algo, &fdata, &pkey_sig);
+			err = gnutls_pubkey_verify_data2(pubkey, algo, 0, &fdata, &pkey_sig);
 			gnutls_pubkey_deinit(pubkey);
 
 			if (err >= 0) {

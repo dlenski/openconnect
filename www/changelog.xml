@@ -18,6 +18,7 @@
    <li><b>OpenConnect HEAD</b>
      <ul>
        <li>Use GnuTLS by default instead of OpenSSL.</li>
+       <li>Avoid using deprecated <tt>gnutls_pubkey_verify_data()</tt> function..</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.99.tar.gz">OpenConnect v4.99</a></b>
