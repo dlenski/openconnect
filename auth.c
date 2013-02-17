@@ -803,6 +803,21 @@ static int xmlpost_append_form_opts(struct openconnect_info *vpninfo,
 			continue;
 		}
 
+		/* answer,whichpin,new_password: rename to "password" */
+		if (!strcmp(opt->name, "answer") ||
+		    !strcmp(opt->name, "whichpin") ||
+		    !strcmp(opt->name, "new_password")) {
+			if (!xmlNewTextChild(node, NULL, XCAST("password"), XCAST(opt->value)))
+				goto bad;
+			continue;
+		}
+
+		/* verify_pin,verify_password: ignore */
+		if (!strcmp(opt->name, "verify_pin") ||
+		    !strcmp(opt->name, "verify_password")) {
+			continue;
+		}
+
 		/* everything else: create <foo>user_input</foo> under <auth> */
 		if (!xmlNewTextChild(node, NULL, XCAST(opt->name), XCAST(opt->value)))
 			goto bad;
