@@ -43,7 +43,8 @@
 
 static int xmlpost_append_form_opts(struct openconnect_info *vpninfo,
 				    struct oc_auth_form *form, char *body, int bodylen);
-static int can_gen_tokencode(struct openconnect_info *vpninfo, struct oc_form_opt *opt);
+static int can_gen_tokencode(struct openconnect_info *vpninfo,
+			     struct oc_auth_form *form, struct oc_form_opt *opt);
 static int do_gen_tokencode(struct openconnect_info *vpninfo, struct oc_auth_form *form);
 
 static int append_opt(char *body, int bodylen, char *opt, char *name)
@@ -235,7 +236,7 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 		} else if (!strcmp(input_type, "text"))
 			opt->type = OC_FORM_OPT_TEXT;
 		else if (!strcmp(input_type, "password")) {
-			if (vpninfo->use_stoken && !can_gen_tokencode(vpninfo, opt))
+			if (vpninfo->use_stoken && !can_gen_tokencode(vpninfo, form, opt))
 				opt->type = OC_FORM_OPT_STOKEN;
 			else
 				opt->type = OC_FORM_OPT_PASSWORD;
@@ -980,16 +981,19 @@ int prepare_stoken(struct openconnect_info *vpninfo)
  *  < 0, if unable to generate a tokencode
  *  = 0, on success
  */
-static int can_gen_tokencode(struct openconnect_info *vpninfo, struct oc_form_opt *opt)
+static int can_gen_tokencode(struct openconnect_info *vpninfo, struct oc_auth_form *form,
+			     struct oc_form_opt *opt)
 {
 #ifdef LIBSTOKEN_HDR
-	if (strcmp(opt->name, "password") || vpninfo->stoken_bypassed)
+	if ((strcmp(opt->name, "password") && strcmp(opt->name, "answer")) ||
+	    vpninfo->stoken_bypassed)
 		return -EINVAL;
 	if (vpninfo->stoken_tries == 0) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("OK to generate INITIAL tokencode\n"));
 		vpninfo->stoken_time = 0;
-	} else if (vpninfo->stoken_tries == 1 && strcasestr(opt->label, "next")) {
+	} else if (vpninfo->stoken_tries == 1 && form->message &&
+		   strcasestr(form->message, "next tokencode")) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("OK to generate NEXT tokencode\n"));
 		vpninfo->stoken_time += 60;
