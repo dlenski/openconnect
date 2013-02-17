@@ -45,16 +45,6 @@ int gnutls_pkcs12_simple_parse (gnutls_pkcs12_t p12, const char *password,
 
 #endif /* !HAVE_GNUTLS_PKCS12_SIMPLE_PARSE */
 
-#ifndef HAVE_GNUTLS_PUBKEY_VERIFY_DATA2
-static inline int gnutls_pubkey_verify_data2 (gnutls_pubkey_t pubkey,
-					      gnutls_sign_algorithm_t algo,
-					      unsigned int flags,
-					      const gnutls_datum_t *data,
-					      const gnutls_datum_t *sig)
-{
-	return gnutls_pubkey_verify_data(pubkey, flags, data, sig);
-}
-#endif /* !HAVE_GNUTLS_PUBKEY_VERIFY_DATA2 */
 
 #ifndef HAVE_GNUTLS_CERTIFICATE_SET_KEY
 int gtls2_tpm_sign_cb(gnutls_session_t sess, void *_vpninfo,
@@ -74,18 +64,12 @@ int gtls2_tpm_sign_dummy_data(struct openconnect_info *vpninfo,
 static inline int sign_dummy_data(struct openconnect_info *vpninfo,
 				  gnutls_privkey_t pkey,
 				  const gnutls_datum_t *data,
-				  gnutls_datum_t *sig,
-				  gnutls_sign_algorithm_t *algo)
+				  gnutls_datum_t *sig)
 {
 #if defined (HAVE_TROUSERS) && !defined(HAVE_GNUTLS_CERTIFICATE_SET_KEY)
-	if (pkey == OPENCONNECT_TPM_PKEY) {
-		if (algo)
-			*algo = GNUTLS_SIGN_RSA_SHA1;
+	if (pkey == OPENCONNECT_TPM_PKEY)
 		return gtls2_tpm_sign_dummy_data(vpninfo, data, sig);
-	}
 #endif
-	if (algo)
-		*algo = gnutls_pk_to_sign(gnutls_privkey_get_pk_algorithm(pkey, NULL), GNUTLS_DIG_SHA1);
 	return gnutls_privkey_sign_data(pkey, GNUTLS_DIG_SHA1, 0, data, sig);
 }
 

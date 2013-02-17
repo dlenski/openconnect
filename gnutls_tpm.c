@@ -274,7 +274,7 @@ int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata,
 #endif
 
  retry_sign:
-	err = sign_dummy_data(vpninfo, *pkey, fdata, pkey_sig, NULL);
+	err = sign_dummy_data(vpninfo, *pkey, fdata, pkey_sig);
 	if (err == GNUTLS_E_INSUFFICIENT_CREDENTIALS) {
 		if (!vpninfo->tpm_key_policy) {
 			err = Tspi_Context_CreateObject(vpninfo->tpm_context,
