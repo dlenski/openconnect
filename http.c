@@ -1072,6 +1072,10 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		result = parse_xml_response(vpninfo, form_buf, &form);
 		if (result < 0)
 			goto out;
+		if (form->action) {
+			vpninfo->redirect_url = strdup(form->action);
+			handle_redirect(vpninfo);
+		}
 	}
 
 	/* A return value of 2 means the XML form indicated
