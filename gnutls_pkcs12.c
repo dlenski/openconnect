@@ -61,11 +61,13 @@ unsigned int i;
       if (gnutls_x509_crt_check_issuer((*chain)[*chain_len - 1], (*extra_certs)[i]) != 0 &&
           gnutls_x509_crt_check_issuer((*extra_certs)[i], (*extra_certs)[i]) == 0)
         {
+           void *tmp = *chain;
            *chain = gnutls_realloc (*chain, sizeof((*chain)[0]) *
                                                      ++(*chain_len));
            if (*chain == NULL)
              {
                gnutls_assert();
+               gnutls_free(tmp);
                return GNUTLS_E_MEMORY_ERROR;
              }
            (*chain)[*chain_len - 1] = (*extra_certs)[i];
@@ -398,12 +400,14 @@ gnutls_pkcs12_simple_parse (gnutls_pkcs12_t p12,
                 { /* they don't match - skip the certificate */
                   if (extra_certs)
                     {
+                      void *tmp = _extra_certs;
                       _extra_certs = gnutls_realloc (_extra_certs,
                                                      sizeof(_extra_certs[0]) *
                                                      ++_extra_certs_len);
                       if (!_extra_certs)
                         {
                           gnutls_assert ();
+                          gnutls_free(tmp);
                           ret = GNUTLS_E_MEMORY_ERROR;
                           goto done;
                         }

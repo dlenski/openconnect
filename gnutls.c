@@ -1444,6 +1444,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	}
 	while (1) {
 		gnutls_x509_crt_t issuer;
+		void *tmp;
 
 		for (i = 0; i < nr_extra_certs; i++) {
 			if (extra_certs[i] &&
@@ -1486,9 +1487,11 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		}
 
 		/* OK, we found a new cert to add to our chain. */
+		tmp = supporting_certs;
 		supporting_certs = gnutls_realloc(supporting_certs,
 						  sizeof(cert) * ++nr_supporting_certs);
 		if (!supporting_certs) {
+			gnutls_free(tmp);
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to allocate memory for supporting certificates\n"));
 			/* The world is probably about to end, but try without them anyway */
