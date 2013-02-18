@@ -131,7 +131,7 @@ ssize_t openconnect__getline(char **lineptr, size_t *n, FILE *stream)
 			break;
 
 		*n *= 2;
-		*lineptr = realloc(*lineptr, *n);
+		realloc_inplace(*lineptr, *n);
 		if (!*lineptr)
 			return -1;
 	}

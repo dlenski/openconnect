@@ -96,7 +96,7 @@ static void buf_append(struct oc_text_buf *buf, const char *fmt, ...)
 				break;
 			}
 
-			buf->data = realloc(buf->data, new_buf_len);
+			realloc_inplace(buf->data, new_buf_len);
 			if (!buf->data) {
 				buf->error = -ENOMEM;
 				break;
@@ -353,7 +353,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				lastchunk = 1;
 				goto skip;
 			}
-			body = realloc(body, done + chunklen + 1);
+			realloc_inplace(body, done + chunklen + 1);
 			if (!body)
 				return -ENOMEM;
 			while (chunklen) {
@@ -394,7 +394,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 
 		/* HTTP 1.0 response. Just eat all we can in 16KiB chunks */
 		while (1) {
-			body = realloc(body, done + 16384);
+			realloc_inplace(body, done + 16384);
 			if (!body)
 				return -ENOMEM;
 			i = openconnect_SSL_read(vpninfo, body + done, 16384);
@@ -407,7 +407,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				return i;
 			} else {
 				/* Connection closed. Reduce allocation to just what we need */
-				body = realloc(body, done + 1);
+				realloc_inplace(body, done + 1);
 				if (!body)
 					return -ENOMEM;
 				break;

@@ -347,6 +347,14 @@ ssize_t openconnect__getline(char **lineptr, size_t *n, FILE *stream);
 char *openconnect__strcasestr(const char *haystack, const char *needle);
 #endif
 
+/* I always coded as if it worked like this. Now it does. */
+#define realloc_inplace(p, size) do {			\
+	void *__realloc_old = p;			\
+	p = realloc(p, size);				\
+	if (size && !p)					\
+		free(__realloc_old);			\
+    } while (0)
+
 /****************************************************************************/
 
 /* tun.c */

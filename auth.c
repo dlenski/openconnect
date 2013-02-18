@@ -150,8 +150,8 @@ static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_fo
 			continue;
 
 		opt->nr_choices++;
-		opt = realloc(opt, sizeof(*opt) +
-				   opt->nr_choices * sizeof(*choice));
+		realloc_inplace(opt, sizeof(*opt) +
+				opt->nr_choices * sizeof(*choice));
 		if (!opt)
 			return -ENOMEM;
 
