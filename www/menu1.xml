@@ -6,7 +6,7 @@
 	<MENU topic="Mailing List / Help" link="VAR_ORIGINmail.html" mode="VAR_SEL_MAIL" />
 	<MENU topic="Contribute" link="VAR_ORIGINcontribute.html" mode="VAR_SEL_CONTRIBUTE" />
 	<MENU topic="Technical stuff" link="VAR_ORIGINtechnical.html" mode="VAR_SEL_TECHNICAL" />
-	<MENU topic="VPN Server" link="VAR_ORIGINserver.html" mode="VAR_SEL_SERVER" />
+	<MENU topic="VPN Server" link="http://www.infradead.org/ocserv/" mode="VAR_SEL_SERVER" />
 	<MENU topic="OpenConnect VPN client" link="" mode="text" />
 	<ENDMENU />
 </PAGE>
