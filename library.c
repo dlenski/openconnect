@@ -151,12 +151,15 @@ void openconnect_vpninfo_free (struct openconnect_info *vpninfo)
 
 char *openconnect_get_hostname (struct openconnect_info *vpninfo)
 {
-	return vpninfo->hostname;
+	return vpninfo->unique_hostname?:vpninfo->hostname;
 }
 
 void openconnect_set_hostname (struct openconnect_info *vpninfo, char *hostname)
 {
+	free(vpninfo->hostname);
 	vpninfo->hostname = hostname;
+	free(vpninfo->unique_hostname);
+	vpninfo->unique_hostname = NULL;
 }
 
 char *openconnect_get_urlpath (struct openconnect_info *vpninfo)
@@ -240,6 +243,8 @@ int openconnect_parse_url (struct openconnect_info *vpninfo, char *url)
 
 	free(vpninfo->hostname);
 	vpninfo->hostname = NULL;
+	free(vpninfo->unique_hostname);
+	vpninfo->unique_hostname = NULL;
 	free(vpninfo->urlpath);
 	vpninfo->urlpath = NULL;
 

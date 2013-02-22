@@ -253,8 +253,8 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 				if (!vpninfo->proxy && (rp != result || rp->ai_next) && host[0]) {
 					char *p = malloc(strlen(host) + 3);
 					if (p) {
-						free(vpninfo->hostname);
-						vpninfo->hostname = p;
+						free(vpninfo->unique_hostname);
+						vpninfo->unique_hostname = p;
 						if (rp->ai_family == AF_INET6)
 							*p++ = '[';
 						memcpy(p, host, strlen(host));

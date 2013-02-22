@@ -158,6 +158,7 @@ struct openconnect_info {
 
 	const char *localname;
 	char *hostname;
+	char *unique_hostname;
 	int port;
 	char *urlpath;
 	int cert_expire_warning;

@@ -809,7 +809,7 @@ int main(int argc, char **argv)
 	if (cookieonly == 3) {
 		/* --authenticate */
 		printf("COOKIE='%s'\n", vpninfo->cookie);
-		printf("HOST='%s'\n", vpninfo->hostname);
+		printf("HOST='%s'\n", openconnect_get_hostname(vpninfo));
 		if (vpninfo->peer_cert) {
 			char buf[41] = {0, };
 			openconnect_get_cert_sha1(vpninfo, vpninfo->peer_cert, buf);

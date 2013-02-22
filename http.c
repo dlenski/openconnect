@@ -738,6 +738,8 @@ static int handle_redirect(struct openconnect_info *vpninfo)
 		}
 
 		if (strcasecmp(vpninfo->hostname, host) || port != vpninfo->port) {
+			free(vpninfo->unique_hostname);
+			vpninfo->unique_hostname = NULL;
 			free(vpninfo->hostname);
 			vpninfo->hostname = host;
 			vpninfo->port = port;
