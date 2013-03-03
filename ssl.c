@@ -48,6 +48,10 @@
 
 #include "openconnect-internal.h"
 
+#ifdef ANDROID_KEYSTORE
+#include <sys/un.h>
+#endif
+
 /* OSX < 1.6 doesn't have AI_NUMERICSERV */
 #ifndef AI_NUMERICSERV
 #define AI_NUMERICSERV 0
@@ -431,9 +435,19 @@ int keystore_fetch(const char *key, unsigned char **result)
 	return ret;
 }
 #elif defined (ANDROID_KEYSTORE)
-#include <cutils/sockets.h>
-#include <keystore.h>
-char *keystore_strerror(int err)
+/* keystore.h isn't in the NDK so we need to define these */
+#define NO_ERROR		1
+#define LOCKED			2
+#define UNINITIALIZED		3
+#define SYSTEM_ERROR		4
+#define PROTOCOL_ERROR		5
+#define PERMISSION_DENIED	6
+#define KEY_NOT_FOUND		7
+#define VALUE_CORRUPTED		8
+#define UNDEFINED_ACTION	9
+#define WRONG_PASSWORD		10
+
+const char *keystore_strerror(int err)
 {
 	switch (-err) {
 	case NO_ERROR:		return _("No error");
@@ -445,10 +459,10 @@ char *keystore_strerror(int err)
 	case KEY_NOT_FOUND:	return _("Key not found");
 	case VALUE_CORRUPTED:	return _("Value corrupted");
 	case UNDEFINED_ACTION:	return _("Undefined action");
-	case WRONG_PASSWORD_0:
-	case WRONG_PASSWORD_1:
-	case WRONG_PASSWORD_2:
-	case WRONG_PASSWORD_3:	return _("Wrong password");
+	case WRONG_PASSWORD:
+	case WRONG_PASSWORD+1:
+	case WRONG_PASSWORD+2:
+	case WRONG_PASSWORD+3:	return _("Wrong password");
 	default:		return _("Unknown error");
 	}
 }
@@ -457,17 +471,21 @@ char *keystore_strerror(int err)
    own strerror function above). The numbers are from Android's keystore.h */
 int keystore_fetch(const char *key, unsigned char **result)
 {
+	struct sockaddr_un sa = { AF_UNIX, "/dev/socket/keystore" };
+	socklen_t sl = offsetof(struct sockaddr_un, sun_path) + strlen(sa.sun_path) + 1;
 	unsigned char *data, *p;
 	unsigned char buf[3];
 	int len, fd, ofs;
 	int ret = -SYSTEM_ERROR;
 
-	fd = socket_local_client("keystore",
-				 ANDROID_SOCKET_NAMESPACE_RESERVED,
-				 SOCK_STREAM);
+	fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (fd < 0)
 		return -SYSTEM_ERROR;
 
+	if (connect(fd, (void *)&sa, sl)) {
+		close(fd);
+		return -SYSTEM_ERROR;
+	}
 	len = strlen(key);
 	buf[0] = 'g';
 	buf[1] = len >> 8;

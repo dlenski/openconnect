@@ -385,11 +385,11 @@ int  __attribute__ ((format (printf, 2, 3)))
     openconnect_SSL_printf(struct openconnect_info *vpninfo, const char *fmt, ...);
 int openconnect_print_err_cb(const char *str, size_t len, void *ptr);
 #define openconnect_report_ssl_errors(v) ERR_print_errors_cb(openconnect_print_err_cb, (v))
-#ifdef FAKE_ANDROID_KEYSTORE
+#if defined (FAKE_ANDROID_KEYSTORE) || defined (ANDROID)
 #define ANDROID_KEYSTORE
 #endif
 #ifdef ANDROID_KEYSTORE
-char *keystore_strerror(int err);
+const char *keystore_strerror(int err);
 int keystore_fetch(const char *key, unsigned char **result);
 #endif
 
