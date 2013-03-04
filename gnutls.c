@@ -1782,8 +1782,11 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			unsigned int nr_certs;
 
 			err = load_datum(vpninfo, &datum, vpninfo->cafile);
-			if (err < 0)
+			if (err < 0) {
+				gnutls_certificate_free_credentials(vpninfo->https_cred);
+				vpninfo->https_cred = NULL;
 				return err;
+			}
 
 			/* For GnuTLS 3.x We should use gnutls_x509_crt_list_import2() */
 			nr_certs = count_x509_certificates(&datum);
@@ -1796,6 +1799,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 					vpn_progress(vpninfo, PRG_ERR,
 						     _("Failed to allocate memory for cafile certs\n"));
 					gnutls_free(datum.data);
+					gnutls_certificate_free_credentials(vpninfo->https_cred);
+					vpninfo->https_cred = NULL;
 					close(ssl_sock);
 					return -ENOMEM;
 				}
@@ -1815,6 +1820,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 					vpn_progress(vpninfo, PRG_ERR,
 						     _("Failed to read certs from cafile: %s\n"),
 						     gnutls_strerror(err));
+					gnutls_certificate_free_credentials(vpninfo->https_cred);
+					vpninfo->https_cred = NULL;
 					close(ssl_sock);
 					return -EINVAL;
 				}
@@ -1829,6 +1836,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to open CA file '%s': %s\n"),
 					     vpninfo->cafile, gnutls_strerror(err));
+				gnutls_certificate_free_credentials(vpninfo->https_cred);
+				vpninfo->https_cred = NULL;
 				close(ssl_sock);
 				return -EINVAL;
 			}
@@ -1839,6 +1848,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			if (err) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Loading certificate failed. Aborting.\n"));
+				gnutls_certificate_free_credentials(vpninfo->https_cred);
+				vpninfo->https_cred = NULL;
 				close(ssl_sock);
 				return err;
 			}
