@@ -493,6 +493,12 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 		*formp = NULL;
 	}
 
+	if (!response) {
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Empty response from server\n"));
+		return -EINVAL;
+	}
+
 	form = calloc(1, sizeof(*form));
 	if (!form)
 		return -ENOMEM;
