@@ -935,7 +935,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	char request_body[2048];
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
-	int xmlpost = 0;
+	int xmlpost = 1;
 
 	/* Step 1: Unlock software token (if applicable) */
 	if (vpninfo->use_stoken) {
@@ -958,45 +958,45 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		return result;
 
 	for (tries = 0; ; tries++) {
-		if (tries == 3)
-			break;
+		if (tries == 3) {
+		fail:
+			if (xmlpost) {
+				/* Try without XML POST this time... */
+				tries = 0;
+				xmlpost = 0;
+				request_body_type = NULL;
+				request_body[0] = 0;
+				method = "GET";
+			} else {
+				return -EIO;
+			}
+		}
+
 		buflen = do_https_request(vpninfo, method, request_body_type, request_body,
 					  &form_buf, 0);
 		if (buflen == -EINVAL)
-			break;
+			goto fail;
 		if (buflen < 0)
 			return buflen;
 
-		if (vpninfo->redirect_type == REDIR_TYPE_LOCAL)
-			break;
+		/* XML POST does not allow local redirects, but GET does. */
+		if (xmlpost && vpninfo->redirect_type == REDIR_TYPE_LOCAL)
+			goto fail;
 		else if (vpninfo->redirect_type != REDIR_TYPE_NONE)
 			continue;
 
 		result = parse_xml_response(vpninfo, form_buf, &form);
 		if (result < 0)
-			break;
+			goto fail;
 
-		xmlpost = 1;
-		vpn_progress(vpninfo, PRG_INFO, _("XML POST enabled\n"));
-		break;
-	}
-
-	/* Step 3: Fetch and parse the login form, if not using XML POST */
-	if (!xmlpost) {
-		buflen = do_https_request(vpninfo, "GET", NULL, NULL, &form_buf, 0);
-		if (buflen < 0)
-			return buflen;
-
-		result = parse_xml_response(vpninfo, form_buf, &form);
-		if (result < 0) {
-			free(form_buf);
-			return result;
-		}
 		if (form->action) {
 			vpninfo->redirect_url = strdup(form->action);
 			handle_redirect(vpninfo);
 		}
+		break;
 	}
+	if (xmlpost)
+		vpn_progress(vpninfo, PRG_INFO, _("XML POST enabled\n"));
 
 	/* Step 4: Run the CSD trojan, if applicable */
 	if (vpninfo->csd_starturl) {
