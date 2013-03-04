@@ -310,7 +310,11 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			return -ENOMEM;
 		}
 
-		vpn_progress(vpninfo, PRG_TRACE, "%s: %s\n", buf, colon);
+		/* This contains the whole document, including the webvpn cookie. */
+		if (!strcasecmp(buf, "X-CSTP-Post-Auth-XML"))
+			vpn_progress(vpninfo, PRG_TRACE, "%s: %s\n", buf, _("<elided>"));
+		else
+			vpn_progress(vpninfo, PRG_TRACE, "%s: %s\n", buf, colon);
 
 		if (!strncmp(buf, "X-DTLS-", 7)) {
 			*next_dtls_option = new_option;
