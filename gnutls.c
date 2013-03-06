@@ -579,6 +579,22 @@ static int assign_privkey(struct openconnect_info *vpninfo,
 	return err;
 }
 #endif /* !SET_KEY */
+
+static int verify_signed_data(gnutls_pubkey_t pubkey, gnutls_privkey_t privkey,
+			      const gnutls_datum_t *data, const gnutls_datum_t *sig)
+{
+#ifdef HAVE_GNUTLS_PUBKEY_VERIFY_DATA2
+	gnutls_sign_algorithm_t algo = GNUTLS_SIGN_RSA_SHA1; /* TPM keys */
+
+	if (privkey != OPENCONNECT_TPM_PKEY)
+		algo = gnutls_pk_to_sign(gnutls_privkey_get_pk_algorithm(privkey, NULL),
+					 GNUTLS_DIG_SHA1);
+
+	return gnutls_pubkey_verify_data2(pubkey, algo, 0, data, sig);
+#else
+	return gnutls_pubkey_verify_data(pubkey, 0, data, sig);
+#endif
+}
 #endif /* (P11KIT || TROUSERS) */
 
 static int openssl_hash_password(struct openconnect_info *vpninfo, char *pass,
@@ -862,22 +878,6 @@ static int import_openssl_pem(struct openconnect_info *vpninfo,
  out_salt:
 	free(salt.data);
 	return ret;
-}
-
-static int verify_signed_data(gnutls_pubkey_t pubkey, gnutls_privkey_t privkey,
-			      const gnutls_datum_t *data, const gnutls_datum_t *sig)
-{
-#ifdef HAVE_GNUTLS_PUBKEY_VERIFY_DATA2
-	gnutls_sign_algorithm_t algo = GNUTLS_SIGN_RSA_SHA1; /* TPM keys */
-
-	if (privkey != OPENCONNECT_TPM_PKEY)
-		algo = gnutls_pk_to_sign(gnutls_privkey_get_pk_algorithm(privkey, NULL),
-					 GNUTLS_DIG_SHA1);
-
-	return gnutls_pubkey_verify_data2(pubkey, algo, 0, data, sig);
-#else
-	return gnutls_pubkey_verify_data(pubkey, 0, data, sig);
-#endif
 }
 
 static int load_certificate(struct openconnect_info *vpninfo)
