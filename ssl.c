@@ -475,7 +475,7 @@ int keystore_fetch(const char *key, unsigned char **result)
 	socklen_t sl = offsetof(struct sockaddr_un, sun_path) + strlen(sa.sun_path) + 1;
 	unsigned char *data, *p;
 	unsigned char buf[3];
-	int len, fd, ofs;
+	int len, fd;
 	int ret = -SYSTEM_ERROR;
 
 	fd = socket(AF_UNIX, SOCK_STREAM, 0);
