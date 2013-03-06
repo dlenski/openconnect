@@ -1791,7 +1791,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			/* For GnuTLS 3.x We should use gnutls_x509_crt_list_import2() */
 			nr_certs = count_x509_certificates(&datum);
 			if (nr_certs) {
-				gnutls_x509_crt *certs;
+				gnutls_x509_crt_t *certs;
 				int i;
 
 				certs = calloc(nr_certs, sizeof(*certs));
