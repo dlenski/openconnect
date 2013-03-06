@@ -174,18 +174,27 @@ nettle: $(NETTLE_DEPS)
 #
 # Build GnuTLS
 #
-GNUTLS_VER := 3.1.9
-GNUTLS_DIR := gnutls-$(GNUTLS_VER)
+#GNUTLS_VER := 3.1.9
+GNUTLS_DIR := gnutls
 
 gnutls-$(GNUTLS_VER).tar.xz:
 	curl ftp://ftp.gnutls.org/gcrypt/gnutls/v3.1/$@ -o $@.tmp && mv $@.tmp $@
 
-$(GNUTLS_DIR)/configure: gnutls-$(GNUTLS_VER).tar.xz
-	xz -d < $< | tar xf -
-	touch $@
+#$(GNUTLS_DIR)/configure: gnutls-$(GNUTLS_VER).tar.xz
+#       xz -d < $< | tar xf -
+#       touch $@
+
+$(GNUTLS_DIR)/configure.ac:
+	git clone --reference /home/dwmw2/git/gnutls git://gitorious.org/gnutls/gnutls.git
+
+$(GNUTLS_DIR)/configure: $(GNUTLS_DIR)/configure.ac
+	rm tests/suite/mini-eagain2.c
+	touch Changelog
+	cd $(GNUTLS_DIR) && autoreconf -fvi
 
 $(GNUTLS_DIR)/Makefile: $(GNUTLS_DIR)/configure $(NETTLE_DEPS)
-	cd gnutls-$(GNUTLS_VER) && ./configure $(CONFIGURE_ARGS) --disable-cxx
+	cd $(GNUTLS_DIR) && ./configure $(CONFIGURE_ARGS) --disable-threads \
+		--disable-doc --disable-openssl-compatibility --disable-cxx
 
 $(GNUTLS_DIR)/lib/libgnutls.la: $(GNUTLS_DIR)/Makefile
 	$(MAKE) -C $(GNUTLS_DIR)
@@ -203,10 +212,11 @@ gnutls: $(GNUTLS_DEPS)
 # Build OpenConnect for Android
 #
 
-ocbuild/Makefile: $(OPENSSL_DEPS) $(LIBXML_DEPS)
+ocbuild/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) ../configure
 	mkdir -p ocbuild
 	cd ocbuild && ../../configure $(CONFIGURE_ARGS) \
-	CFLAGS="--sysroot=$(NDK_SYSROOT) -DNO_BROKEN_DTLS_CHECK -DANDROID"
+	CFLAGS="--sysroot=$(NDK_SYSROOT) -DNO_BROKEN_DTLS_CHECK -DANDROID" \
+	GNUTLS_LIBS="$(shell PKG_CONFIG_LIBDIR=$(OC_SYSROOT)/lib/pkgconfig pkg-config --static --libs gnutls)"
 
 openconnect: ocbuild/Makefile
 	make -C ocbuild
