@@ -115,14 +115,15 @@ int RAND_bytes(char *buf, int len)
 extern void dtls1_stop_timer (SSL *);
 #endif
 
-#if (OPENSSL_VERSION_NUMBER >= 0x100000b0L && OPENSSL_VERSION_NUMBER <= 0x100000c0L) || \
-    (OPENSSL_VERSION_NUMBER >= 0x10001040L && OPENSSL_VERSION_NUMBER <= 0x10001060L) || \
-     OPENSSL_VERSION_NUMBER == 0x10002000L
+#if !defined(NO_BROKEN_DTLS_CHECK) && (OPENSSL_VERSION_NUMBER == 0x10002000L || \
+    (OPENSSL_VERSION_NUMBER >= 0x100000b0L && OPENSSL_VERSION_NUMBER <= 0x100000c0L) || \
+    (OPENSSL_VERSION_NUMBER >= 0x10001040L && OPENSSL_VERSION_NUMBER <= 0x10001060L))
 /*
  * If you've fixed the bug in your version of OpenSSL by applying the patch from
  * http://rt.openssl.org/Ticket/Display.html?id=2984&user=guest&pass=guest then
- * you can happily remove this #error. Note that GnuTLS from 3.0.21 onwards has
- * DTLS support so perhaps you should be using that instead?
+ * you can happily define NO_BROKEN_DTLS_CHECK to avoid this #error. Note that
+ * GnuTLS from 3.0.21 onwards has DTLS support so perhaps you should be using
+ * that instead?
  */
 #error This version of OpenSSL is known to be broken with Cisco DTLS.
 #endif
