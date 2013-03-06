@@ -502,6 +502,8 @@ AC_CHECK_HEADER([if_tun.h],
 if test "$ssl_library" = "openssl" || test "$ssl_library" = "both"; then
     oldLIBS="$LIBS"
     LIBS="$LIBS $OPENSSL_LIBS"
+    oldCFLAGS="$CFLAGS"
+    CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
 
     if test "$ssl_library" = "openssl"; then
 	AC_MSG_CHECKING([for ENGINE_by_id() in OpenSSL])
@@ -522,6 +524,7 @@ if test "$ssl_library" = "openssl" || test "$ssl_library" = "both"; then
 		    AC_DEFINE(HAVE_DTLS1_STOP_TIMER, [1], [OpenSSL has dtls1_stop_timer() function])],
 		   [AC_MSG_RESULT(no)])
     LIBS="$oldLIBS"
+    CFLAGS="$oldCFLAGS"
 fi
 
 AC_PATH_PROG(PYTHON, [python], [], $PATH:/bin:/usr/bin)
