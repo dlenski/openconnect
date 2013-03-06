@@ -250,6 +250,8 @@ fi
 if test "$with_gnutls" = "yes"; then
     oldlibs="$LIBS"
     LIBS="$LIBS $GNUTLS_LIBS"
+    oldcflags="$CFLAGS"
+    CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
     AC_CHECK_FUNC(gnutls_dtls_set_data_mtu,
 		 [AC_DEFINE(HAVE_GNUTLS_DTLS_SET_DATA_MTU, 1)], [])
     AC_CHECK_FUNC(gnutls_certificate_set_x509_system_trust,
@@ -337,6 +339,7 @@ if test "$with_gnutls" = "yes"; then
 		   AC_DEFINE(HAVE_TROUSERS, 1)],
 		  [AC_MSG_RESULT(no)])
     LIBS="$oldlibs"
+    CFLAGS="$oldcflags"
 fi
 if test "$with_openssl" = "yes" || test "$with_openssl" = "" || test "$ssl_library" = "both"; then
     PKG_CHECK_MODULES(OPENSSL, openssl, [],
