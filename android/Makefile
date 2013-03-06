@@ -30,7 +30,8 @@ MAKEINSTALL=$(MAKE) INSTALL=$(shell pwd)/install_symlink.sh
 
 CONFIGURE_ARGS := --host=$(TRIPLET) --prefix=$(OC_SYSROOT) \
 		  --disable-shared --enable-static \
-		  CFLAGS="--sysroot=$(NDK_SYSROOT)"
+		  CFLAGS="--sysroot=$(NDK_SYSROOT) -I$(OC_SYSROOT)/include" \
+		  LDFLAGS="-L$(OC_SYSROOT)/lib"
 
 all: openconnect
 
@@ -46,6 +47,7 @@ libxml2-$(LIBXML2_VER).tar.gz:
 
 $(LIBXML2_DIR)/configure: libxml2-$(LIBXML2_VER).tar.gz
 	tar xfz $<
+	touch $@
 
 $(LIBXML2_DIR)/Makefile: $(LIBXML2_DIR)/configure
 	cd libxml2-$(LIBXML2_VER) && ./configure $(CONFIGURE_ARGS) \
@@ -60,16 +62,16 @@ $(LIBXML2_DIR)/Makefile: $(LIBXML2_DIR)/configure
 	    --without-coverage --without-python
 
 $(LIBXML2_DIR)/libxml2.la: $(LIBXML2_DIR)/Makefile
-	$(MAKE) -C libxml2-$(LIBXML2_VER) libxml2.la
+	$(MAKE) -C $(LIBXML2_DIR) libxml2.la
 
 $(LIBXML2_DIR)/libxml-2.0.pc: $(LIBXML2_DIR)/Makefile
-	$(MAKE) -C libxml2-$(LIBXML2_VER) libxml-2.0.pc
+	$(MAKE) -C $(LIBXML2_DIR) libxml-2.0.pc
 
 $(OC_SYSROOT)/lib/libxml2.la: $(LIBXML2_DIR)/libxml2.la
-	$(MAKEINSTALL) -C libxml2-$(LIBXML2_VER) install-libLTLIBRARIES
+	$(MAKEINSTALL) -C $(LIBXML2_DIR) install-libLTLIBRARIES
 
 $(OC_SYSROOT)/lib/pkgconfig/libxml-2.0.pc: $(LIBXML2_DIR)/libxml-2.0.pc
-	$(MAKEINSTALL) -C libxml2-$(LIBXML2_VER) install-data
+	$(MAKEINSTALL) -C $(LIBXML2_DIR) install-data
 
 LIBXML_DEPS := $(OC_SYSROOT)/lib/libxml2.la $(OC_SYSROOT)/lib/pkgconfig/libxml-2.0.pc
 
@@ -110,6 +112,91 @@ $(OC_SYSROOT)/lib/libssl.a: $(OPENSSL_DIR)/libssl.a
 OPENSSL_DEPS := $(OC_SYSROOT)/lib/libssl.a
 
 openssl: $(OPENSSL_DEPS)
+
+#####################################################################
+#
+# Build GNU MP
+#
+GMP_VER := 5.1.1
+GMP_DIR := gmp-$(GMP_VER)
+
+gmp-$(GMP_VER).tar.bz2:
+	curl ftp://ftp.gmplib.org/pub/gmp/gmp-$(GMP_VER).tar.bz2 -o $@.tmp && mv $@.tmp $@
+
+$(GMP_DIR)/configure: gmp-$(GMP_VER).tar.bz2
+	tar xfj $<
+	touch $@
+
+$(GMP_DIR)/Makefile: $(GMP_DIR)/configure
+	cd gmp-$(GMP_VER) && ./configure $(CONFIGURE_ARGS) 
+
+
+$(GMP_DIR)/libgmp.la: $(GMP_DIR)/Makefile
+	$(MAKE) -C $(GMP_DIR)
+
+$(OC_SYSROOT)/lib/libgmp.la: $(GMP_DIR)/libgmp.la
+	$(MAKEINSTALL) -C $(GMP_DIR) install
+
+GMP_DEPS := $(OC_SYSROOT)/lib/libgmp.la
+
+gmp: $(GMP_DEPS)
+
+
+#####################################################################
+#
+# Build nettle
+#
+NETTLE_VER := 2.6
+NETTLE_DIR := nettle-$(NETTLE_VER)
+
+nettle-$(NETTLE_VER).tar.gz:
+	curl http://www.lysator.liu.se/~nisse/archive/nettle-$(NETTLE_VER).tar.gz -o $@.tmp && mv $@.tmp $@
+
+$(NETTLE_DIR)/configure: nettle-$(NETTLE_VER).tar.gz
+	tar xfz $<
+	touch $@
+
+$(NETTLE_DIR)/Makefile: $(NETTLE_DIR)/configure $(GMP_DEPS)
+	cd nettle-$(NETTLE_VER) && ./configure $(CONFIGURE_ARGS)
+
+$(NETTLE_DIR)/libnettle.a: $(NETTLE_DIR)/Makefile
+	$(MAKE) -C $(NETTLE_DIR) SUBDIRS=
+
+$(OC_SYSROOT)/lib/libnettle.a: $(NETTLE_DIR)/libnettle.a
+	$(MAKEINSTALL) -C $(NETTLE_DIR) SUBDIRS= install
+
+NETTLE_DEPS := $(OC_SYSROOT)/lib/libnettle.a
+
+nettle: $(NETTLE_DEPS)
+
+
+#####################################################################
+#
+# Build GnuTLS
+#
+GNUTLS_VER := 3.1.9
+GNUTLS_DIR := gnutls-$(GNUTLS_VER)
+
+gnutls-$(GNUTLS_VER).tar.xz:
+	curl ftp://ftp.gnutls.org/gcrypt/gnutls/v3.1/$@ -o $@.tmp && mv $@.tmp $@
+
+$(GNUTLS_DIR)/configure: gnutls-$(GNUTLS_VER).tar.xz
+	xz -d < $< | tar xf -
+	touch $@
+
+$(GNUTLS_DIR)/Makefile: $(GNUTLS_DIR)/configure $(NETTLE_DEPS)
+	cd gnutls-$(GNUTLS_VER) && ./configure $(CONFIGURE_ARGS) --disable-cxx
+
+$(GNUTLS_DIR)/lib/libgnutls.la: $(GNUTLS_DIR)/Makefile
+	$(MAKE) -C $(GNUTLS_DIR)
+
+$(OC_SYSROOT)/lib/libgnutls.la: $(GNUTLS_DIR)/lib/libgnutls.la
+	$(MAKEINSTALL) -C $(GNUTLS_DIR) install
+
+GNUTLS_DEPS := $(OC_SYSROOT)/lib/libgnutls.la
+
+gnutls: $(GNUTLS_DEPS)
+
 
 #####################################################################
 #
