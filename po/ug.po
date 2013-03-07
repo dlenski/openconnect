@@ -1129,16 +1129,16 @@ msgstr "چۈشۈرگەن سەپلىمە ھۆججەت مۆلچەرلىگەن SHA1
 msgid ""
 "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 "This facility is disabled by default for security reasons, so you may wish "
-"to enable it."
+"to enable it.\n"
 msgstr ""
 "خاتالىق: مۇلازىمېتىر بىزدىن 'Cisco Secure Desktop' تىروياننى چۈشۈرۈپ ئىجرا "
 "قىلىشنى سورىدى.\n"
 "كۆڭۈلدىكى ئەھۋالدا بىخەتەرلىكنى چىقىش قىلىپ بۇ چەكلەندى، شۇڭلاشقا ئۇنى "
-"قوزغىتامسىز."
+"قوزغىتامسىز.\n"
 
 #: http.c:521
-msgid "Trying to run Linux CSD trojan script."
-msgstr "Linux CSD تىرويان قوليازمىنى ئىجرا قىلىشنى سىناۋاتىدۇ."
+msgid "Trying to run Linux CSD trojan script.\n"
+msgstr "Linux CSD تىرويان قوليازمىنى ئىجرا قىلىشنى سىناۋاتىدۇ.\n"
 
 #: http.c:529
 #, c-format

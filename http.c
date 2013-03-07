@@ -513,13 +513,13 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 	if (!vpninfo->uid_csd_given && !vpninfo->csd_wrapper) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
-			       "This facility is disabled by default for security reasons, so you may wish to enable it."));
+			       "This facility is disabled by default for security reasons, so you may wish to enable it.\n"));
 		return -EPERM;
 	}
 
 #ifndef __linux__
 	vpn_progress(vpninfo, PRG_INFO,
-		     _("Trying to run Linux CSD trojan script."));
+		     _("Trying to run Linux CSD trojan script.\n"));
 #endif
 
 	sprintf(fname, "/tmp/csdXXXXXX");

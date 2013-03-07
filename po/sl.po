@@ -1137,16 +1137,16 @@ msgstr "Prejeta datoteka nastavitev ni skladna z razpršilom SHA1\n"
 msgid ""
 "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 "This facility is disabled by default for security reasons, so you may wish "
-"to enable it."
+"to enable it.\n"
 msgstr ""
 "Napaka: strežnik zahteva prejem in zagon trojanskega datoteke 'Cisco Secure "
 "Desktop'.\n"
 "Ta možnost je iz varnostnih razlogov privzeto onemogočena. Če želite možnost "
-"uporabljati, jo omogočite."
+"uporabljati, jo omogočite.\n"
 
 #: http.c:521
-msgid "Trying to run Linux CSD trojan script."
-msgstr "Poskus poganjanja trojanskega skripta CSD za Linux."
+msgid "Trying to run Linux CSD trojan script.\n"
+msgstr "Poskus poganjanja trojanskega skripta CSD za Linux.\n"
 
 #: http.c:529
 #, c-format

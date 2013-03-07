@@ -1123,15 +1123,15 @@ msgstr "Gedownloade config-bestand komt niet overeen bedoelde SHA1\n"
 msgid ""
 "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 "This facility is disabled by default for security reasons, so you may wish "
-"to enable it."
+"to enable it.\n"
 msgstr ""
 "Fout: Server vroeg ons om een 'Cisco Secure Desktop' trojan te downloaden en "
 "uit te voeren. Deze faciliteit is standaard om veiligheidsredenen "
-"uitgeschakeld. U kunt zelf besluiten om dit mogelijk te maken."
+"uitgeschakeld. U kunt zelf besluiten om dit mogelijk te maken.\n"
 
 #: http.c:521
-msgid "Trying to run Linux CSD trojan script."
-msgstr "Poging Linux CSD trojan script uit te voeren."
+msgid "Trying to run Linux CSD trojan script.\n"
+msgstr "Poging Linux CSD trojan script uit te voeren.\n"
 
 #: http.c:529
 #, c-format

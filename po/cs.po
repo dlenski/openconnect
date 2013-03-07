@@ -1120,16 +1120,16 @@ msgstr "Stažený soubor s nastavením neodpovídá zamýšlenému SHA1\n"
 msgid ""
 "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 "This facility is disabled by default for security reasons, so you may wish "
-"to enable it."
+"to enable it.\n"
 msgstr ""
 "Chyba: Server nás požádal o stažení a spuštění trojana 'Cisco Secure "
 "Desktop'.\n"
 "tato dovednost je zakázána ve výchozím nastavení z důvodů bezpečnosti, takže "
-"ji možná budete chtít povolit."
+"ji možná budete chtít povolit.\n"
 
 #: http.c:522
-msgid "Trying to run Linux CSD trojan script."
-msgstr "Pokus o spuštění trojského skriptu CSD pro Linux."
+msgid "Trying to run Linux CSD trojan script.\n"
+msgstr "Pokus o spuštění trojského skriptu CSD pro Linux.\n"
 
 #: http.c:530
 #, c-format
