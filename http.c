@@ -999,7 +999,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		vpn_progress(vpninfo, PRG_INFO, _("XML POST enabled\n"));
 
 	/* Step 4: Run the CSD trojan, if applicable */
-	if (vpninfo->csd_starturl) {
+	if (vpninfo->csd_starturl && vpninfo->csd_waiturl && vpninfo->csd_waiturl) {
 		char *form_path = NULL;
 
 		if (vpninfo->urlpath) {
@@ -1010,13 +1010,15 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			}
 		}
 
-		/* fetch the CSD program, if available */
-		if (vpninfo->csd_stuburl) {
-			buflen = do_https_request(vpninfo, "GET", NULL, NULL, &form_buf, 0);
-			if (buflen <= 0) {
-				result = -EINVAL;
-				goto out;
-			}
+		/* fetch the CSD program */
+		vpninfo->redirect_url = vpninfo->csd_stuburl;
+		vpninfo->csd_stuburl = NULL;
+		handle_redirect(vpninfo);
+
+		buflen = do_https_request(vpninfo, "GET", NULL, NULL, &form_buf, 0);
+		if (buflen <= 0) {
+			result = -EINVAL;
+			goto out;
 		}
 
 		/* This is the CSD stub script, which we now need to run */
