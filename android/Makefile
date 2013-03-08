@@ -188,13 +188,14 @@ $(GNUTLS_DIR)/configure.ac:
 	git clone --reference /home/dwmw2/git/gnutls git://gitorious.org/gnutls/gnutls.git
 
 $(GNUTLS_DIR)/configure: $(GNUTLS_DIR)/configure.ac
-	rm tests/suite/mini-eagain2.c
 	touch Changelog
 	cd $(GNUTLS_DIR) && autoreconf -fvi
 
 $(GNUTLS_DIR)/Makefile: $(GNUTLS_DIR)/configure $(NETTLE_DEPS)
 	cd $(GNUTLS_DIR) && ./configure $(CONFIGURE_ARGS) --disable-threads \
-		--disable-doc --disable-openssl-compatibility --disable-cxx
+		--disable-doc --disable-openssl-compatibility --disable-cxx \
+		--disable-tests --without-zlib --disable-nls \
+		--disable-openssl-compatibility --disable-ocsp --disable-openpgp-authentication --disable-anon-authentication --disable-psk-authentication --disable-srp-authentication --disable-dtls-srtp-support 
 
 $(GNUTLS_DIR)/lib/libgnutls.la: $(GNUTLS_DIR)/Makefile
 	$(MAKE) -C $(GNUTLS_DIR)
