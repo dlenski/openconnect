@@ -1055,13 +1055,13 @@ static int process_auth_form(void *_vpninfo,
 	char response[1024];
 	char *p;
 
-	if (form->banner)
+	if (form->banner && verbose > PRG_ERR)
 		fprintf(stderr, "%s\n", form->banner);
 
 	if (form->error)
 		fprintf(stderr, "%s\n", form->error);
 
-	if (form->message)
+	if (form->message && verbose > PRG_ERR)
 		fprintf(stderr, "%s\n", form->message);
 
 	/* scan for select options first so they are displayed first */
