@@ -164,7 +164,7 @@ static int http_add_cookie(struct openconnect_info *vpninfo,
 				new->next = (*this)->next;
 			else
 				new = (*this)->next;
-			
+
 			free((*this)->option);
 			free((*this)->value);
 			free(*this);
@@ -202,14 +202,14 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 
 	if (!strncmp(buf, "HTTP/1.0 ", 9))
 		closeconn = 1;
-	
+
 	if ((!closeconn && strncmp(buf, "HTTP/1.1 ", 9)) || !(*result = atoi(buf+9))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to parse HTTP response '%s'\n"), buf);
 		return -EINVAL;
 	}
 
-	vpn_progress(vpninfo, (*result==200)?PRG_TRACE:PRG_INFO,
+	vpn_progress(vpninfo, (*result == 200) ? PRG_TRACE : PRG_INFO,
 		     _("Got HTTP response: %s\n"), buf);
 
 	/* Eat headers... */
@@ -255,8 +255,8 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			if (!strcmp(colon, "webvpn") && *equals)
 				print_equals = _("<elided>");
 			vpn_progress(vpninfo, PRG_TRACE, "%s: %s=%s%s%s\n",
-				     buf, colon, print_equals, semicolon?";":"",
-				     semicolon?(semicolon+1):"");
+				     buf, colon, print_equals, semicolon ? ";" : "",
+				     semicolon ? (semicolon+1) : "");
 
 			/* The server tends to ask for the username and password as
 			   usual, even if we've already failed because it didn't like
@@ -318,9 +318,9 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		goto cont;
 
 	/* Now the body, if there is one */
-	vpn_progress(vpninfo, PRG_TRACE, _("HTTP body %s (%d)\n"), 
-		     bodylen==BODY_HTTP10?"http 1.0" :
-		     bodylen==BODY_CHUNKED?"chunked" : "length: ",
+	vpn_progress(vpninfo, PRG_TRACE, _("HTTP body %s (%d)\n"),
+		     bodylen == BODY_HTTP10 ? "http 1.0" :
+		     bodylen == BODY_CHUNKED ? "chunked" : "length: ",
 		     bodylen);
 
 	/* If we were given Content-Length, it's nice and easy... */
@@ -333,7 +333,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			if (i < 0) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Error reading HTTP response body\n"));
-                                free(body);
+				free(body);
 				return -EINVAL;
 			}
 			done += i;
@@ -361,7 +361,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				if (i < 0) {
 					vpn_progress(vpninfo, PRG_ERR,
 						     _("Error reading HTTP response body\n"));
-                                        free(body);
+					free(body);
 					return -EINVAL;
 				}
 				chunklen -= i;
@@ -377,7 +377,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 						     _("Error in chunked decoding. Expected '', got: '%s'"),
 						     buf);
 				}
-                                free(body);
+				free(body);
 				return -EINVAL;
 			}
 
@@ -411,7 +411,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				if (!body)
 					return -ENOMEM;
 				break;
-                        }
+			}
 		}
 	}
 
@@ -581,27 +581,27 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		if (vpninfo->csd_wrapper)
 			csd_argv[i++] = vpninfo->csd_wrapper;
 		csd_argv[i++] = fname;
-		csd_argv[i++]= (char *)"-ticket";
+		csd_argv[i++] = (char *)"-ticket";
 		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->csd_ticket) == -1)
 			goto out;
-		csd_argv[i++]= (char *)"-stub";
-		csd_argv[i++]= (char *)"\"0\"";
-		csd_argv[i++]= (char *)"-group";
+		csd_argv[i++] = (char *)"-stub";
+		csd_argv[i++] = (char *)"\"0\"";
+		csd_argv[i++] = (char *)"-group";
 		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->authgroup?:"") == -1)
 			goto out;
 
 		openconnect_local_cert_md5(vpninfo, ccertbuf);
 		scertbuf[0] = 0;
 		get_cert_md5_fingerprint(vpninfo, vpninfo->peer_cert, scertbuf);
-		csd_argv[i++]= (char *)"-certhash";
+		csd_argv[i++] = (char *)"-certhash";
 		if (asprintf(&csd_argv[i++], "\"%s:%s\"", scertbuf, ccertbuf) == -1)
 			goto out;
 
-		csd_argv[i++]= (char *)"-url";
+		csd_argv[i++] = (char *)"-url";
 		if (asprintf(&csd_argv[i++], "\"https://%s%s\"", vpninfo->hostname, vpninfo->csd_starturl) == -1)
 			goto out;
 
-		csd_argv[i++]= (char *)"-langselen";
+		csd_argv[i++] = (char *)"-langselen";
 		csd_argv[i++] = NULL;
 
 		if (setenv("CSD_TOKEN", vpninfo->csd_token, 1))
@@ -1147,7 +1147,7 @@ static int proxy_gets(struct openconnect_info *vpninfo, int fd,
 	if (len < 2)
 		return -EINVAL;
 
-	while ( (ret = proxy_read(vpninfo, fd, (void *)(buf + i), 1)) == 0) {
+	while ((ret = proxy_read(vpninfo, fd, (void *)(buf + i), 1)) == 0) {
 		if (buf[i] == '\n') {
 			buf[i] = 0;
 			if (i && buf[i-1] == '\r') {
@@ -1267,7 +1267,7 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 			     strerror(-i));
 		return i;
 	}
-	
+
 	if ((i = proxy_read(vpninfo, ssl_sock, buf, 2))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error reading auth response from SOCKS proxy: %s\n"),
@@ -1331,7 +1331,7 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 		goto socks_err;
 
 	/* Connect responses contain an address */
-	switch(buf[3]) {
+	switch (buf[3]) {
 	case 1: /* Legacy IP */
 		i = 5;
 		break;
@@ -1426,7 +1426,7 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 {
 	if (!vpninfo->proxy_type || !strcmp(vpninfo->proxy_type, "http"))
 		return process_http_proxy(vpninfo, ssl_sock);
-	
+
 	if (!strcmp(vpninfo->proxy_type, "socks") ||
 	    !strcmp(vpninfo->proxy_type, "socks5"))
 		return process_socks_proxy(vpninfo, ssl_sock);

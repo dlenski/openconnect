@@ -112,7 +112,7 @@ int RAND_bytes(char *buf, int len)
 #ifdef HAVE_DTLS1_STOP_TIMER
 /* OpenSSL doesn't deliberately export this, but we need it to
    workaround a DTLS bug in versions < 1.0.0e */
-extern void dtls1_stop_timer (SSL *);
+extern void dtls1_stop_timer(SSL *);
 #endif
 
 #if !defined(NO_BROKEN_DTLS_CHECK) && (OPENSSL_VERSION_NUMBER == 0x10002000L || \
@@ -265,7 +265,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 #if OPENSSL_VERSION_NUMBER >= 0x1000005fL
 		/* OpenSSL 1.0.0e or above doesn't resend anyway; do nothing.
 		   However, if we were *built* against 1.0.0e or newer, but at
-		   runtime we find that we are being run against an older 
+		   runtime we find that we are being run against an older
 		   version, warn about it. */
 		if (SSLeay() < 0x1000005fL) {
 			vpn_progress(vpninfo, PRG_ERR,
@@ -284,8 +284,8 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 		 * so do it manually. This version also works on all
 		 * sane versions of OpenSSL:
 		 */
-		memset (&(vpninfo->dtls_ssl->d1->next_timeout), 0,
-			sizeof((vpninfo->dtls_ssl->d1->next_timeout)));
+		memset(&(vpninfo->dtls_ssl->d1->next_timeout), 0,
+		       sizeof((vpninfo->dtls_ssl->d1->next_timeout)));
 		vpninfo->dtls_ssl->d1->timeout_duration = 1;
 		BIO_ctrl(SSL_get_rbio(vpninfo->dtls_ssl),
 			 BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT, 0,
@@ -633,10 +633,10 @@ int setup_dtls(struct openconnect_info *vpninfo)
 #if defined(OPENCONNECT_GNUTLS) && defined(DTLS_OPENSSL)
 	/* If we're using GnuTLS for authentication but OpenSSL for DTLS,
 	   we'll need to initialise OpenSSL now... */
-	SSL_library_init ();
-	ERR_clear_error ();
-	SSL_load_error_strings ();
-	OpenSSL_add_all_algorithms ();
+	SSL_library_init();
+	ERR_clear_error();
+	SSL_load_error_strings();
+	OpenSSL_add_all_algorithms();
 #endif
 
 	while (dtls_opt) {
@@ -726,7 +726,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		vpninfo->dtls_times.last_rx = time(NULL);
 
-		switch(buf[0]) {
+		switch (buf[0]) {
 		case AC_PKT_DATA:
 			dtls_pkt->len = len - 1;
 			queue_packet(&vpninfo->incoming_queue, dtls_pkt);
@@ -884,7 +884,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 }
 #else /* !HAVE_DTLS */
 #warning Your SSL library does not seem to support Cisco DTLS compatibility
- int setup_dtls(struct openconnect_info *vpninfo)
+int setup_dtls(struct openconnect_info *vpninfo)
 {
 	vpn_progress(vpninfo, PRG_ERR,
 		     _("Built against SSL library with no Cisco DTLS support\n"));

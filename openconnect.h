@@ -73,7 +73,7 @@
  *   #define OPENCONNECT_CHECK_VER(x,y) 0
  *   #endif
  */
-#define OPENCONNECT_CHECK_VER(maj,min) \
+#define OPENCONNECT_CHECK_VER(maj, min) \
 	(OPENCONNECT_API_VERSION_MAJOR > (maj) || \
 	(OPENCONNECT_API_VERSION_MAJOR == (maj) && \
 	 OPENCONNECT_API_VERSION_MINOR >= (min)))
@@ -157,42 +157,42 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo);
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo);
 void openconnect_init_ssl(void);
 
-char *openconnect_get_vpn_name (struct openconnect_info *);
-char *openconnect_get_hostname (struct openconnect_info *);
-void openconnect_set_hostname (struct openconnect_info *, char *);
-char *openconnect_get_urlpath (struct openconnect_info *);
-void openconnect_set_urlpath (struct openconnect_info *, char *);
+char *openconnect_get_vpn_name(struct openconnect_info *);
+char *openconnect_get_hostname(struct openconnect_info *);
+void openconnect_set_hostname(struct openconnect_info *, char *);
+char *openconnect_get_urlpath(struct openconnect_info *);
+void openconnect_set_urlpath(struct openconnect_info *, char *);
 
 /* This function does *not* take ownership of the string; it is parsed
    and then discarded. */
-int openconnect_set_stoken_mode (struct openconnect_info *,
-				 int use_stoken, const char *token_str);
+int openconnect_set_stoken_mode(struct openconnect_info *,
+				int use_stoken, const char *token_str);
 
 /* This function does *not* take ownership of the string; it's copied
    into a static buffer in the vpninfo. The size must be 41 bytes,
    since that's the size of a 20-byte SHA1 represented as hex with
    a trailing NUL. */
-void openconnect_set_xmlsha1 (struct openconnect_info *, const char *, int size);
+void openconnect_set_xmlsha1(struct openconnect_info *, const char *, int size);
 
-void openconnect_set_cafile (struct openconnect_info *, char *);
-void openconnect_setup_csd (struct openconnect_info *, uid_t, int silent, char *wrapper);
-int openconnect_set_reported_os (struct openconnect_info *, const char *os);
-void openconnect_set_client_cert (struct openconnect_info *, char *cert, char *sslkey);
+void openconnect_set_cafile(struct openconnect_info *, char *);
+void openconnect_setup_csd(struct openconnect_info *, uid_t, int silent, char *wrapper);
+int openconnect_set_reported_os(struct openconnect_info *, const char *os);
+void openconnect_set_client_cert(struct openconnect_info *, char *cert, char *sslkey);
 
 /* This is *not* yours and must not be destroyed with X509_free(). It
  * will be valid when a cookie has been obtained successfully, and will
  * be valid until the connection is destroyed or another attempt it made
  * to use it. */
-OPENCONNECT_X509 *openconnect_get_peer_cert (struct openconnect_info *);
+OPENCONNECT_X509 *openconnect_get_peer_cert(struct openconnect_info *);
 
-int openconnect_get_port (struct openconnect_info *);
-char *openconnect_get_cookie (struct openconnect_info *);
-void openconnect_clear_cookie (struct openconnect_info *);
+int openconnect_get_port(struct openconnect_info *);
+char *openconnect_get_cookie(struct openconnect_info *);
+void openconnect_clear_cookie(struct openconnect_info *);
 
-void openconnect_reset_ssl (struct openconnect_info *vpninfo);
-int openconnect_parse_url (struct openconnect_info *vpninfo, char *url);
-void openconnect_set_cert_expiry_warning (struct openconnect_info *vpninfo,
-					  int seconds);
+void openconnect_reset_ssl(struct openconnect_info *vpninfo);
+int openconnect_parse_url(struct openconnect_info *vpninfo, char *url);
+void openconnect_set_cert_expiry_warning(struct openconnect_info *vpninfo,
+					 int seconds);
 
 /* If this is set, then openconnect_obtain_cookie() will abort and return
    failure if the file descriptor is readable. Typically a user may create
@@ -203,7 +203,7 @@ void openconnect_set_cert_expiry_warning (struct openconnect_info *vpninfo,
    has the ability to cancel that call, reap its thread and free the
    vpninfo structure (or retry). An 'fd' argument of -1 will render the
    cancellation mechanism inactive. */
-void openconnect_set_cancel_fd (struct openconnect_info *vpninfo, int fd);
+void openconnect_set_cancel_fd(struct openconnect_info *vpninfo, int fd);
 
 const char *openconnect_get_version(void);
 
@@ -212,7 +212,7 @@ const char *openconnect_get_version(void);
    or if that argument was NULL then it'll be the vpninfo itself. */
 
 /* When the server's certificate fails validation via the normal means,
-   this function is called with the offending certificate along with 
+   this function is called with the offending certificate along with
    a textual reason for the failure (which may not be translated, if
    it comes directly from OpenSSL, but will be if it is rejected for
    "certificate does not match hostname", because that check is done
@@ -231,7 +231,7 @@ typedef int (*openconnect_validate_peer_cert_vfn) (void *privdata,
    then the new XML is downloaded and this function is invoked. */
 typedef int (*openconnect_write_new_config_vfn) (void *privdata, char *buf,
 						int buflen);
-/* Handle an authentication form, requesting input from the user. 
+/* Handle an authentication form, requesting input from the user.
  * Return value:
  *  < 0, on error
  *  = 0, when form was parsed and POST required
@@ -243,13 +243,13 @@ typedef int (*openconnect_process_auth_form_vfn) (void *privdata,
 typedef void __attribute__ ((format(printf, 3, 4)))
 		(*openconnect_progress_vfn) (void *privdata, int level,
 					    const char *fmt, ...);
-struct openconnect_info *openconnect_vpninfo_new (char *useragent,
-						  openconnect_validate_peer_cert_vfn,
-						  openconnect_write_new_config_vfn,
-						  openconnect_process_auth_form_vfn,
-						  openconnect_progress_vfn,
-						  void *privdata);
-void openconnect_vpninfo_free (struct openconnect_info *vpninfo);
+struct openconnect_info *openconnect_vpninfo_new(char *useragent,
+						 openconnect_validate_peer_cert_vfn,
+						 openconnect_write_new_config_vfn,
+						 openconnect_process_auth_form_vfn,
+						 openconnect_progress_vfn,
+						 void *privdata);
+void openconnect_vpninfo_free(struct openconnect_info *vpninfo);
 
 /* SSL certificate capabilities. openconnect_has_pkcs11_support() means that we
    can accept PKCS#11 URLs in place of filenames, for the certificate and key. */

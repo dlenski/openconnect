@@ -327,7 +327,7 @@ struct openconnect_info {
 #define AC_PKT_COMPRESSED	8	/* Compressed data */
 #define AC_PKT_TERM_SERVER	9	/* Server kick */
 
-#define vpn_progress(vpninfo, ...) (vpninfo)->progress ((vpninfo)->cbdata, __VA_ARGS__)
+#define vpn_progress(vpninfo, ...) (vpninfo)->progress((vpninfo)->cbdata, __VA_ARGS__)
 
 /****************************************************************************/
 /* Oh Solaris how we hate thee! */
@@ -362,7 +362,7 @@ char *openconnect__strcasestr(const char *haystack, const char *needle);
 int setup_tun(struct openconnect_info *vpninfo);
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout);
 void shutdown_tun(struct openconnect_info *vpninfo);
-int script_config_tun (struct openconnect_info *vpninfo, const char *reason);
+int script_config_tun(struct openconnect_info *vpninfo, const char *reason);
 
 /* dtls.c */
 unsigned char unhex(const char *data);

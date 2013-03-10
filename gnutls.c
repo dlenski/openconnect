@@ -88,7 +88,7 @@ int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t le
 
 			FD_ZERO(&wr_set);
 			FD_ZERO(&rd_set);
-			
+
 			if (gnutls_record_get_direction(vpninfo->https_sess))
 				FD_SET(vpninfo->ssl_fd, &wr_set);
 			else
@@ -125,7 +125,7 @@ int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len
 		} else {
 			FD_ZERO(&wr_set);
 			FD_ZERO(&rd_set);
-			
+
 			if (gnutls_record_get_direction(vpninfo->https_sess))
 				FD_SET(vpninfo->ssl_fd, &wr_set);
 			else
@@ -180,10 +180,10 @@ int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len
 		} else {
 			fd_set rd_set, wr_set;
 			int maxfd = vpninfo->ssl_fd;
-			
+
 			FD_ZERO(&rd_set);
 			FD_ZERO(&wr_set);
-			
+
 			if (gnutls_record_get_direction(vpninfo->https_sess))
 				FD_SET(vpninfo->ssl_fd, &wr_set);
 			else
@@ -434,7 +434,7 @@ static int count_x509_certificates(gnutls_datum_t *datum)
 		p += 11;
 		if (!strncmp(p, "CERTIFICATE", 11) ||
 		    !strncmp(p, "X509 CERTIFICATE", 16))
-		    count++;
+			count++;
 	}
 	return count;
 }
@@ -555,7 +555,7 @@ static int assign_privkey(struct openconnect_info *vpninfo,
 	if (!pcerts)
 		return GNUTLS_E_MEMORY_ERROR;
 
-	for (i=0 ; i < nr_certs; i++) {
+	for (i = 0 ; i < nr_certs; i++) {
 		err = gnutls_pcert_import_x509(pcerts + i, certs[i], 0);
 		if (err) {
 			vpn_progress(vpninfo, PRG_ERR,
@@ -572,9 +572,9 @@ static int assign_privkey(struct openconnect_info *vpninfo,
 			     _("Setting PKCS#11 certificate failed: %s\n"),
 			     gnutls_strerror(err));
 	free_pcerts:
-		for (i=0 ; i < nr_certs; i++)
+		for (i = 0 ; i < nr_certs; i++)
 			gnutls_pcert_deinit(pcerts + i);
-		free (pcerts);
+		free(pcerts);
 	}
 	return err;
 }
@@ -668,7 +668,7 @@ static int import_openssl_pem(struct openconnect_info *vpninfo,
 	else if (type == 'R')
 		begin = "RSA PRIVATE KEY";
 	else if (type == 'D')
-		 begin = "DSA PRIVATE KEY";
+		begin = "DSA PRIVATE KEY";
 	else
 		return -EINVAL;
 
@@ -1123,10 +1123,10 @@ static int load_certificate(struct openconnect_info *vpninfo)
 				s = sizeof(token->model) + 1;
 				if (!gnutls_pkcs11_obj_get_info(crt, GNUTLS_PKCS11_OBJ_TOKEN_MODEL,
 								buf, &s)) {
-					    s--;
-					    memcpy(token->model, buf, s);
-					    memset(token->model + s, ' ',
-						   sizeof(token->model) - s);
+					s--;
+					memcpy(token->model, buf, s);
+					memset(token->model + s, ' ',
+					       sizeof(token->model) - s);
 				}
 			}
 			if (!token->serialNumber[0]) {
@@ -1322,11 +1322,11 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		goto out;
 	}
 	/* If extra_certs[] is NULL, we have one candidate in 'cert' to check. */
-	for (i = 0; i < (extra_certs?nr_extra_certs:1); i++) {
+	for (i = 0; i < (extra_certs ? nr_extra_certs : 1); i++) {
 		unsigned char cert_id[20];
 		size_t cert_id_size = sizeof(cert_id);
 
-		err = gnutls_x509_crt_get_key_id(extra_certs?extra_certs[i]:cert, 0, cert_id, &cert_id_size);
+		err = gnutls_x509_crt_get_key_id(extra_certs ? extra_certs[i] : cert, 0, cert_id, &cert_id_size);
 		if (err)
 			continue;
 
@@ -1369,11 +1369,11 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		}
 
 		/* If extra_certs[] is NULL, we have one candidate in 'cert' to check. */
-		for (i=0; i < (extra_certs?nr_extra_certs:1); i++) {
+		for (i = 0; i < (extra_certs ? nr_extra_certs : 1); i++) {
 			gnutls_pubkey_t pubkey;
 
 			gnutls_pubkey_init(&pubkey);
-			err = gnutls_pubkey_import_x509(pubkey, extra_certs?extra_certs[i]:cert, 0);
+			err = gnutls_pubkey_import_x509(pubkey, extra_certs ? extra_certs[i] : cert, 0);
 			if (err) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Error validating signature against certificate: %s\n"),
@@ -1461,7 +1461,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			err = gnutls_certificate_get_issuer(vpninfo->https_cred,
 							    last_cert, &issuer, 0);
 			if (err)
- 				break;
+				break;
 
 			/* The check_issuer_sanity() function works fine as a workaround where
 			   it was used above, but when gnutls_certificate_get_issuer() returns
@@ -1597,7 +1597,7 @@ static int get_cert_fingerprint(struct openconnect_info *vpninfo,
 	if (gnutls_x509_crt_get_fingerprint(cert, algo, md, &md_size))
 		return -EIO;
 
-	for (i=0; i < md_size; i++)
+	for (i = 0; i < md_size; i++)
 		sprintf(&buf[i*2], "%02X", md[i]);
 
 	return 0;
@@ -1623,11 +1623,11 @@ char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
 
 	if (gnutls_x509_crt_print(cert, GNUTLS_CRT_PRINT_FULL, &buf))
 		return NULL;
-	
+
 	/* Just in case gnutls_free() isn't free(), we can't steal it. */
 	ret = strdup((char *)buf.data);
 	gnutls_free(buf.data);
-	
+
 	return ret;
 }
 
@@ -1637,7 +1637,7 @@ int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
 	size_t l = 0;
 	unsigned char *ret = NULL;
 
-	if (gnutls_x509_crt_export(cert, GNUTLS_X509_FMT_DER, ret, &l) != 
+	if (gnutls_x509_crt_export(cert, GNUTLS_X509_FMT_DER, ret, &l) !=
 	    GNUTLS_E_SHORT_MEMORY_BUFFER)
 		return -EIO;
 
@@ -1647,7 +1647,7 @@ int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
 
 	if (gnutls_x509_crt_export(cert, GNUTLS_X509_FMT_DER, ret, &l)) {
 		free(ret);
- 		return -EIO;
+		return -EIO;
 	}
 	*buf = ret;
 	return l;
@@ -1667,7 +1667,7 @@ static int verify_peer(gnutls_session_t session)
 		vpninfo->peer_cert = NULL;
 	}
 
-	cert_list = gnutls_certificate_get_peers (session, &cert_list_size);
+	cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
 	if (!cert_list) {
 		vpn_progress(vpninfo, PRG_ERR, _("Server presented no certificate\n"));
 		return GNUTLS_E_CERTIFICATE_ERROR;
@@ -1677,14 +1677,14 @@ static int verify_peer(gnutls_session_t session)
 		unsigned char sha1bin[SHA1_SIZE];
 		char fingerprint[(SHA1_SIZE * 2) + 1];
 		int i;
-		
+
 		err = openconnect_sha1(sha1bin, cert_list[0].data, cert_list[0].size);
 		if (err) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Could not calculate SHA1 of server's certificate\n"));
 			return GNUTLS_E_CERTIFICATE_ERROR;
 		}
-		for (i=0; i < SHA1_SIZE; i++)
+		for (i = 0; i < SHA1_SIZE; i++)
 			sprintf(&fingerprint[i*2], "%02X", sha1bin[i]);
 
 		if (strcasecmp(vpninfo->servercert, fingerprint)) {
@@ -1695,7 +1695,7 @@ static int verify_peer(gnutls_session_t session)
 		return 0;
 	}
 
-	err = gnutls_certificate_verify_peers2 (session, &status);
+	err = gnutls_certificate_verify_peers2(session, &status);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR, _("Error checking server cert status\n"));
 		return GNUTLS_E_CERTIFICATE_ERROR;
@@ -1773,8 +1773,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 						       DEFAULT_SYSTEM_CAFILE,
 						       GNUTLS_X509_FMT_PEM);
 #endif
-		gnutls_certificate_set_verify_function (vpninfo->https_cred,
-							verify_peer);
+		gnutls_certificate_set_verify_function(vpninfo->https_cred,
+						       verify_peer);
 
 #ifdef ANDROID_KEYSTORE
 		if (vpninfo->cafile && !strncmp(vpninfo->cafile, "keystore:", 9)) {
@@ -1855,20 +1855,20 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			}
 		}
 	}
-	gnutls_init (&vpninfo->https_sess, GNUTLS_CLIENT);
-	gnutls_session_set_ptr (vpninfo->https_sess, (void *) vpninfo);
+	gnutls_init(&vpninfo->https_sess, GNUTLS_CLIENT);
+	gnutls_session_set_ptr(vpninfo->https_sess, (void *) vpninfo);
 #if defined(HAVE_TROUSERS) && !defined(HAVE_GNUTLS_CERTIFICATE_SET_KEY)
 	if (vpninfo->my_pkey == OPENCONNECT_TPM_PKEY)
 		gnutls_sign_callback_set(vpninfo->https_sess, gtls2_tpm_sign_cb, vpninfo);
 #endif
 
-	err = gnutls_priority_set_direct (vpninfo->https_sess,
-					  "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:"
+	err = gnutls_priority_set_direct(vpninfo->https_sess,
+					 "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:"
 #if GNUTLS_VERSION_MAJOR >= 3
-					  "-CURVE-ALL:"
+					 "-CURVE-ALL:"
 #endif
-					  "%COMPAT:%DISABLE_SAFE_RENEGOTIATION:%LATEST_RECORD_VERSION",
-					  NULL);
+					 "%COMPAT:%DISABLE_SAFE_RENEGOTIATION:%LATEST_RECORD_VERSION",
+					 NULL);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to set TLS priority string: %s\n"),
@@ -1879,14 +1879,14 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		return -EIO;
 	}
 
-	gnutls_record_disable_padding (vpninfo->https_sess);
-	gnutls_credentials_set (vpninfo->https_sess, GNUTLS_CRD_CERTIFICATE, vpninfo->https_cred);
+	gnutls_record_disable_padding(vpninfo->https_sess);
+	gnutls_credentials_set(vpninfo->https_sess, GNUTLS_CRD_CERTIFICATE, vpninfo->https_cred);
 	gnutls_transport_set_ptr(vpninfo->https_sess, /* really? */(gnutls_transport_ptr_t)(long) ssl_sock);
 
 	vpn_progress(vpninfo, PRG_INFO, _("SSL negotiation with %s\n"),
 		     vpninfo->hostname);
 
-	while ((err = gnutls_handshake (vpninfo->https_sess))) {
+	while ((err = gnutls_handshake(vpninfo->https_sess))) {
 		if (err == GNUTLS_E_AGAIN) {
 			fd_set rd_set, wr_set;
 			int maxfd = ssl_sock;

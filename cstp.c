@@ -171,7 +171,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	vpninfo->vpn_domain = vpninfo->vpn_proxy_pac = NULL;
 	vpninfo->banner = NULL;
 
-	for (i=0; i<3; i++)
+	for (i = 0; i < 3; i++)
 		vpninfo->vpn_dns[i] = vpninfo->vpn_nbns[i] = NULL;
 
 	for (inc = vpninfo->split_includes; inc; ) {
@@ -215,12 +215,12 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		buf_append(buf, sizeof(buf), "X-CSTP-Base-MTU: %d\r\n", base_mtu);
 	buf_append(buf, sizeof(buf), "X-CSTP-MTU: %d\r\n", mtu);
 	buf_append(buf, sizeof(buf), "X-CSTP-Address-Type: %s\r\n",
-			       vpninfo->disable_ipv6?"IPv4":"IPv6,IPv4");
+			       vpninfo->disable_ipv6 ? "IPv4" : "IPv6,IPv4");
 	buf_append(buf, sizeof(buf), "X-DTLS-Master-Secret: ");
 	for (i = 0; i < sizeof(vpninfo->dtls_secret); i++)
 		buf_append(buf, sizeof(buf), "%02X", vpninfo->dtls_secret[i]);
 	buf_append(buf, sizeof(buf), "\r\nX-DTLS-CipherSuite: %s\r\n\r\n",
-			       vpninfo->dtls_ciphers?:"AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA");
+			       vpninfo->dtls_ciphers ? : "AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA");
 
 	openconnect_SSL_write(vpninfo, buf, strlen(buf));
 
@@ -715,7 +715,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	   we should probably remove POLLIN from the events we're looking for,
 	   and add POLLOUT. As it is, though, it'll just chew CPU time in that
 	   fairly unlikely situation, until the write backlog clears. */
-	while ( (len = cstp_read(vpninfo, buf, sizeof(buf))) > 0) {
+	while ((len = cstp_read(vpninfo, buf, sizeof(buf))) > 0) {
 		int payload_len;
 
 		if (buf[0] != 'S' || buf[1] != 'T' ||
@@ -734,7 +734,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			continue;
 		}
 		vpninfo->ssl_times.last_rx = time(NULL);
-		switch(buf[6]) {
+		switch (buf[6]) {
 		case AC_PKT_DPD_OUT:
 			vpn_progress(vpninfo, PRG_TRACE,
 				     _("Got CSTP DPD request\n"));

@@ -53,7 +53,7 @@
 #include "openconnect-internal.h"
 
 /*
- * If an if_tun.h include file was found anywhere (by the Makefile), it's 
+ * If an if_tun.h include file was found anywhere (by the Makefile), it's
  * included. Else, we end up assuming that we have BSD-style devices such
  * as /dev/tun0 etc.
  */
@@ -126,7 +126,7 @@ static int process_split_xxclude(struct openconnect_info *vpninfo,
 				 int *v6_incs)
 {
 	struct in_addr addr;
-	const char *in_ex = include?"IN":"EX";
+	const char *in_ex = include ? "IN" : "EX";
 	char envname[80];
 	char *slash;
 
@@ -158,7 +158,7 @@ static int process_split_xxclude(struct openconnect_info *vpninfo,
 		(*v6_incs)++;
 		return 0;
 	}
-		
+
 	if (!inet_aton(route, &addr)) {
 		*slash = '/';
 		goto badinc;
@@ -233,20 +233,20 @@ static void set_banner(struct openconnect_info *vpninfo)
 	}
 	p = vpninfo->banner;
 	q = banner;
-	
+
 	while (*p) {
 		if (*p == '%' && isxdigit((int)(unsigned char)p[1]) &&
 		    isxdigit((int)(unsigned char)p[2])) {
 			*(q++) = unhex(p + 1);
 			p += 3;
-		} else 
+		} else
 			*(q++) = *(p++);
 	}
 	*q = 0;
 	setenv("CISCO_BANNER", banner, 1);
 
 	free(banner);
-}	
+}
 
 static void set_script_env(struct openconnect_info *vpninfo)
 {
@@ -786,7 +786,7 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 }
 
 void shutdown_tun(struct openconnect_info *vpninfo)
-{	
+{
 	if (vpninfo->script_tun) {
 		/* nuke the whole process group */
 		kill(-vpninfo->script_tun, SIGHUP);

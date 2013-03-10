@@ -276,7 +276,7 @@ static char *xmlnode_msg(xmlNode *xml_node)
 	}
 
 	len = strlen(fmt) + 1;
-	
+
 	params[0] = (char *)xmlGetProp(xml_node, (unsigned char *)"param1");
 	if (params[0])
 		len += strlen(params[0]);
@@ -291,7 +291,7 @@ static char *xmlnode_msg(xmlNode *xml_node)
 	}
 
 	strcpy(result, fmt);
-	free (fmt);
+	free(fmt);
 
 	for (pct = strchr(result, '%'); pct;
 	     (pct = strchr(pct, '%'))) {
@@ -643,7 +643,7 @@ void free_auth_form(struct oc_auth_form *form)
 			struct oc_form_opt_select *sel = (void *)form->opts;
 			int i;
 
-			for (i=0; i < sel->nr_choices; i++) {
+			for (i = 0; i < sel->nr_choices; i++) {
 				free(sel->choices[i].name);
 				free(sel->choices[i].label);
 				free(sel->choices[i].auth_type);

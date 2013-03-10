@@ -296,7 +296,7 @@ int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata,
 				goto out_key_policy;
 			}
 		}
-	        err = request_passphrase(vpninfo, "openconnect_tpm_key",
+		err = request_passphrase(vpninfo, "openconnect_tpm_key",
 					 &pass, _("Enter TPM key PIN:"));
 		if (err)
 			goto out_key_policy;
@@ -304,7 +304,7 @@ int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata,
 		err = Tspi_Policy_SetSecret(vpninfo->tpm_key_policy,
 					    TSS_SECRET_MODE_PLAIN,
 					    strlen(pass), (void *)pass);
-		free (pass);
+		free(pass);
 
 		if (err) {
 			vpn_progress(vpninfo, PRG_ERR,
@@ -315,7 +315,7 @@ int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata,
 		goto retry_sign;
 	}
 
-	free (asn1.data);
+	free(asn1.data);
 	return 0;
  out_key_policy:
 	Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->tpm_key_policy);
@@ -333,7 +333,7 @@ int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata,
 	Tspi_Context_Close(vpninfo->tpm_context);
 	vpninfo->tpm_context = 0;
  out_blob:
-	free (asn1.data);
+	free(asn1.data);
 	return -EIO;
 }
 

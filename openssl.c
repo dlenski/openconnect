@@ -42,13 +42,13 @@
 
 int openconnect_sha1(unsigned char *result, void *data, int len)
 {
-        EVP_MD_CTX c;
+	EVP_MD_CTX c;
 
-        EVP_MD_CTX_init(&c);
-        EVP_Digest(data, len, result, NULL, EVP_sha1(), NULL);
-        EVP_MD_CTX_cleanup(&c);
+	EVP_MD_CTX_init(&c);
+	EVP_Digest(data, len, result, NULL, EVP_sha1(), NULL);
+	EVP_MD_CTX_cleanup(&c);
 
-        return 0;
+	return 0;
 }
 
 int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
@@ -101,7 +101,7 @@ int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t le
 
 			FD_ZERO(&wr_set);
 			FD_ZERO(&rd_set);
-			
+
 			if (err == SSL_ERROR_WANT_READ)
 				FD_SET(vpninfo->ssl_fd, &rd_set);
 			else if (err == SSL_ERROR_WANT_WRITE)
@@ -138,7 +138,7 @@ int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len
 
 		FD_ZERO(&wr_set);
 		FD_ZERO(&rd_set);
-			
+
 		if (err == SSL_ERROR_WANT_READ)
 			FD_SET(vpninfo->ssl_fd, &rd_set);
 		else if (err == SSL_ERROR_WANT_WRITE)
@@ -191,10 +191,10 @@ int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len
 		} else {
 			fd_set rd_set, wr_set;
 			int maxfd = vpninfo->ssl_fd;
-			
+
 			FD_ZERO(&rd_set);
 			FD_ZERO(&wr_set);
-			
+
 			ret = SSL_get_error(vpninfo->https_ssl, ret);
 			if (ret == SSL_ERROR_WANT_READ)
 				FD_SET(vpninfo->ssl_fd, &rd_set);
@@ -249,7 +249,7 @@ static int ui_open(UI *ui)
 
 	if (!vpninfo || !vpninfo->process_auth_form)
 		return 0;
-	
+
 	ui_data = malloc(sizeof(*ui_data));
 	if (!ui_data)
 		return 0;
@@ -268,7 +268,7 @@ static int ui_write(UI *ui, UI_STRING *uis)
 	struct ui_data *ui_data = UI_get0_user_data(ui);
 	struct ui_form_opt *opt;
 
-	switch(UI_get_string_type(uis)) {
+	switch (UI_get_string_type(uis)) {
 	case UIT_ERROR:
 		ui_data->form.error = (char *)UI_get0_output_string(uis);
 		break;
@@ -356,7 +356,7 @@ static UI_METHOD *create_openssl_ui(struct openconnect_info *vpninfo)
 	   and *both* manage to be within that short window of time
 	   between setting ui_vpninfo and invoking ui_open() to fetch
 	   the PIN, then one connection's ->process_auth_form() could
-	   get a PIN request for the *other* connection. 
+	   get a PIN request for the *other* connection.
 
 	   However, the only thing that ever does run libopenconnect more
 	   than once from the same process is KDE's NetworkManager support,
@@ -667,7 +667,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			     _("This binary built without PKCS#11 support\n"));
 		return -EINVAL;
 	}
-		     
+
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Using certificate file %s\n"), vpninfo->cert);
 
@@ -822,7 +822,7 @@ static int get_cert_fingerprint(struct openconnect_info *vpninfo,
 	if (!X509_digest(cert, type, md, &n))
 		return -ENOMEM;
 
-	for (i=0; i < n; i++)
+	for (i = 0; i < n; i++)
 		sprintf(&buf[i*2], "%02X", md[i]);
 
 	return 0;
@@ -879,7 +879,7 @@ static int match_hostname_elem(const char *hostname, int helem_len,
 	}
 
 	/* From the NetBSD (5.1) man page for ctype(3):
-           Values of type char or signed char must first be cast to unsigned char,
+	   Values of type char or signed char must first be cast to unsigned char,
 	   to ensure that the values are within the correct range.  The result
 	   should then be cast to int to avoid warnings from some compilers.
 	   We do indeed get warning "array subscript has type 'char'" without
@@ -900,7 +900,7 @@ static int match_hostname(const char *hostname, const char *match)
 
 		h_dot = strchr(hostname, '.');
 		m_dot = strchr(match, '.');
-		
+
 		if (h_dot && m_dot) {
 			helem_len = h_dot - hostname + 1;
 			melem_len = m_dot - match + 1;
@@ -996,7 +996,7 @@ static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert
 					     this->d.ip->length);
 				continue;
 			}
-			
+
 			/* We only do this for the debug messages */
 			inet_ntop(family, this->d.ip->data, host, sizeof(host));
 
@@ -1004,14 +1004,14 @@ static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert
 			    !memcmp(addrbuf, this->d.ip->data, addrlen)) {
 				vpn_progress(vpninfo, PRG_TRACE,
 					     _("Matched %s address '%s'\n"),
-					     (family == AF_INET6)?"IPv6":"IPv4",
+					     (family == AF_INET6) ? "IPv6" : "IPv4",
 					     host);
 				GENERAL_NAMES_free(altnames);
 				return 0;
 			} else {
 				vpn_progress(vpninfo, PRG_TRACE,
 					     _("No match for %s address '%s'\n"),
-					     (family == AF_INET6)?"IPv6":"IPv4",
+					     (family == AF_INET6) ? "IPv6" : "IPv4",
 					     host);
 			}
 		} else if (this->type == GEN_URI) {
@@ -1127,7 +1127,7 @@ static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert
 			     subjstr);
 	}
 
-	OPENSSL_free(subjstr);			  
+	OPENSSL_free(subjstr);
 	return ret;
 }
 
@@ -1290,7 +1290,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		/* Some servers (or their firewalls) really don't like seeing
 		   extensions. */
 #ifdef SSL_OP_NO_TICKET
-		SSL_CTX_set_options (vpninfo->https_ctx, SSL_OP_NO_TICKET);
+		SSL_CTX_set_options(vpninfo->https_ctx, SSL_OP_NO_TICKET);
 #endif
 
 		if (vpninfo->cert) {
@@ -1307,8 +1307,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		}
 
 		/* We just want to do:
-		   SSL_CTX_set_purpose(vpninfo->https_ctx, X509_PURPOSE_ANY); 
-		   ... but it doesn't work with OpenSSL < 0.9.8k because of 
+		   SSL_CTX_set_purpose(vpninfo->https_ctx, X509_PURPOSE_ANY);
+		   ... but it doesn't work with OpenSSL < 0.9.8k because of
 		   problems with inheritance (fixed in v1.1.4.6 of
 		   crypto/x509/x509_vpm.c) so we have to play silly buggers
 		   instead. This trick doesn't work _either_ in < 0.9.7 but
@@ -1469,10 +1469,10 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 
 void openconnect_init_ssl(void)
 {
-	SSL_library_init ();
-	ERR_clear_error ();
-	SSL_load_error_strings ();
-	OpenSSL_add_all_algorithms ();
+	SSL_library_init();
+	ERR_clear_error();
+	SSL_load_error_strings();
+	OpenSSL_add_all_algorithms();
 }
 
 char *openconnect_get_cert_details(struct openconnect_info *vpninfo,

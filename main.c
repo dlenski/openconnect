@@ -398,7 +398,7 @@ static int next_option(int argc, char **argv, char **config_arg)
 		if (!strncmp(this->name, line, optlen) &&
 		    (!line[optlen] || line[optlen] == ' ' || line[optlen] == '\t' ||
 		     line[optlen] == '='))
-		    break;
+			break;
 	}
 	if (!this->name) {
 		char *l;
@@ -461,7 +461,7 @@ int main(int argc, char **argv)
 				  "         the libopenconnect library is %s\n"),
 			openconnect_binary_version, openconnect_version_str);
 	}
-			
+
 	openconnect_init_ssl();
 
 	vpninfo = malloc(sizeof(*vpninfo));
@@ -541,7 +541,7 @@ int main(int argc, char **argv)
 		case OPT_COOKIE_ON_STDIN:
 			read_stdin(&vpninfo->cookie);
 			/* If the cookie is empty, ignore it */
-			if (! *vpninfo->cookie) {
+			if (!*vpninfo->cookie) {
 				vpninfo->cookie = NULL;
 			}
 			break;
@@ -613,7 +613,7 @@ int main(int argc, char **argv)
 		case 'p':
 			vpninfo->cert_password = strdup(config_arg);
 			break;
-		case 'P': 
+		case 'P':
 			proxy = keep_config_arg();
 			autoproxy = 0;
 			break;
@@ -849,8 +849,8 @@ int main(int argc, char **argv)
 	vpn_progress(vpninfo, PRG_INFO,
 		     _("Connected %s as %s%s%s, using %s\n"), vpninfo->ifname,
 		     vpninfo->vpn_addr?:"",
-		     (vpninfo->vpn_addr6 && vpninfo->vpn_addr)?" + ":"",
-		     vpninfo->vpn_addr6?:"",
+		     (vpninfo->vpn_addr6 && vpninfo->vpn_addr) ? " + " : "",
+		     vpninfo->vpn_addr6 ? : "",
 		     (vpninfo->dtls_fd == -1) ?
 		     (vpninfo->deflate ? "SSL + deflate" : "SSL")
 		     : "DTLS");
@@ -910,7 +910,7 @@ static int write_new_config(void *_vpninfo, char *buf, int buflen)
 	}
 
 	/* FIXME: We should actually write to a new tempfile, then rename */
-	if(write(config_fd, buf, buflen) != buflen) {
+	if (write(config_fd, buf, buflen) != buflen) {
 		err = errno;
 		fprintf(stderr, _("Failed to write config to %s: %s\n"),
 			vpninfo->xmlconfig, strerror(err));
@@ -941,12 +941,12 @@ void write_progress(void *_vpninfo, int level, const char *fmt, ...)
 #ifdef ANDROID
 void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
 {
-        static int l[4] = {
+	static int l[4] = {
 		ANDROID_LOG_ERROR,	/* PRG_ERR   */
 		ANDROID_LOG_INFO,	/* PRG_INFO  */
 		ANDROID_LOG_DEBUG,	/* PRG_DEBUG */
 		ANDROID_LOG_DEBUG	/* PRG_TRACE */
-        };
+	};
 	va_list args, args2;
 
 	if (verbose >= level) {
@@ -1151,7 +1151,7 @@ static int process_auth_form(void *_vpninfo,
 					     _("User input required in non-interactive mode\n"));
 				goto err;
 			} else {
-				opt->value=malloc(80);
+				opt->value = malloc(80);
 				if (!opt->value)
 					goto err;
 
@@ -1179,7 +1179,7 @@ static int process_auth_form(void *_vpninfo,
 				goto err;
 			} else {
 				struct termios t;
-				opt->value=malloc(80);
+				opt->value = malloc(80);
 				if (!opt->value)
 					goto err;
 

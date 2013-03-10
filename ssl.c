@@ -78,7 +78,7 @@ static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 		if (vpninfo->cancel_fd > sockfd)
 			maxfd = vpninfo->cancel_fd;
 	}
-	
+
 	/* Later we'll render this whole exercise non-pointless by
 	   including a 'cancelfd' here too. */
 	select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
@@ -87,7 +87,7 @@ static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 		errno = EINTR;
 		return -1;
 	}
-		
+
 	/* Check whether connect() succeeded or failed by using
 	   getpeername(). See http://cr.yp.to/docs/connect.html */
 	return getpeername(sockfd, (void *)&peer, &peerlen);
@@ -227,12 +227,12 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 			host[0] = 0;
 			if (!getnameinfo(rp->ai_addr, rp->ai_addrlen, host,
 					 sizeof(host), NULL, 0, NI_NUMERICHOST))
-				vpn_progress(vpninfo, PRG_INFO, vpninfo->proxy_type?
-						     _("Attempting to connect to proxy %s%s%s:%s\n"):
+				vpn_progress(vpninfo, PRG_INFO, vpninfo->proxy_type ?
+						     _("Attempting to connect to proxy %s%s%s:%s\n") :
 						     _("Attempting to connect to server %s%s%s:%s\n"),
-					     rp->ai_family == AF_INET6?"[":"",
+					     rp->ai_family == AF_INET6 ? "[" : "",
 					     host,
-					     rp->ai_family == AF_INET6?"]":"",
+					     rp->ai_family == AF_INET6 ? "]" : "",
 					     port);
 
 			ssl_sock = socket(rp->ai_family, rp->ai_socktype,
@@ -274,7 +274,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 			ssl_sock = -1;
 		}
 		freeaddrinfo(result);
-		
+
 		if (ssl_sock < 0) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to connect to host %s\n"),

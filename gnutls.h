@@ -32,16 +32,16 @@
 #include "openconnect-internal.h"
 
 #ifndef HAVE_GNUTLS_PKCS12_SIMPLE_PARSE
-/* If we're using a version of GnuTLS from before this was 
+/* If we're using a version of GnuTLS from before this was
    exported, pull in our local copy. */
-int gnutls_pkcs12_simple_parse (gnutls_pkcs12_t p12, const char *password,
-				gnutls_x509_privkey_t * key,
-				gnutls_x509_crt_t ** chain,
-				unsigned int * chain_len,
-				gnutls_x509_crt_t ** extra_certs,
-				unsigned int * extra_certs_len,
-				gnutls_x509_crl_t * crl,
-				unsigned int flags);
+int gnutls_pkcs12_simple_parse(gnutls_pkcs12_t p12, const char *password,
+			       gnutls_x509_privkey_t *key,
+			       gnutls_x509_crt_t **chain,
+			       unsigned int *chain_len,
+			       gnutls_x509_crt_t **extra_certs,
+			       unsigned int *extra_certs_len,
+			       gnutls_x509_crl_t *crl,
+			       unsigned int flags);
 
 #endif /* !HAVE_GNUTLS_PKCS12_SIMPLE_PARSE */
 
