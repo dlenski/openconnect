@@ -541,9 +541,8 @@ int main(int argc, char **argv)
 		case OPT_COOKIE_ON_STDIN:
 			read_stdin(&vpninfo->cookie);
 			/* If the cookie is empty, ignore it */
-			if (!*vpninfo->cookie) {
+			if (!*vpninfo->cookie)
 				vpninfo->cookie = NULL;
-			}
 			break;
 		case OPT_PASSWORD_ON_STDIN:
 			read_stdin(&vpninfo->password);

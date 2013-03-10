@@ -610,9 +610,8 @@ static int inflate_and_queue_packet(struct openconnect_info *vpninfo,
 	pkt_sum = buf[len - 1] | (buf[len - 2] << 8) |
 		(buf[len - 3] << 16) | (buf[len - 4] << 24);
 
-	if (vpninfo->inflate_adler32 != pkt_sum) {
+	if (vpninfo->inflate_adler32 != pkt_sum)
 		vpninfo->quit_reason = "Compression (inflate) adler32 failure";
-	}
 
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Received compressed data packet of %ld bytes\n"),

@@ -1241,9 +1241,8 @@ static int check_certificate_expiry(struct openconnect_info *vpninfo)
 	} else {
 		t += vpninfo->cert_expire_warning;
 		i = X509_cmp_time(notAfter, &t);
-		if (i < 0) {
+		if (i < 0)
 			reason = _("Client certificate expires soon at");
-		}
 	}
 	if (reason) {
 		BIO *bp = BIO_new(BIO_s_mem());
