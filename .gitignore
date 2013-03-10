@@ -4,6 +4,9 @@ version.c
 .*.o.dep
 .*.h.dep
 *.o
+/libopenconnect.la
+/*.lo
+/.libs/
 
 /aclocal.m4
 /autom4te.cache/
