@@ -7,6 +7,7 @@ version.c
 /libopenconnect.la
 /*.lo
 /.libs/
+/cscope.*
 
 /aclocal.m4
 /autom4te.cache/
