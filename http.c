@@ -1012,6 +1012,10 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 
 		/* fetch the CSD program, if available */
 		if (vpninfo->csd_stuburl) {
+			vpninfo->redirect_url = vpninfo->csd_stuburl;
+			vpninfo->csd_stuburl = NULL;
+			handle_redirect(vpninfo);
+
 			buflen = do_https_request(vpninfo, "GET", NULL, NULL, &form_buf, 0);
 			if (buflen <= 0) {
 				result = -EINVAL;
