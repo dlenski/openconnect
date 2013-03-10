@@ -40,9 +40,9 @@
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__) || defined(__APPLE__)
 #include <sys/param.h>
 #include <sys/mount.h>
-#elif defined (__sun__) || defined(__NetBSD__) || defined(__DragonFly__)
+#elif defined(__sun__) || defined(__NetBSD__) || defined(__DragonFly__)
 #include <sys/statvfs.h>
-#elif defined (__GNU__)
+#elif defined(__GNU__)
 #include <sys/statfs.h>
 #endif
 
@@ -381,7 +381,7 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 }
 #endif
 
-#if defined(OPENCONNECT_OPENSSL) || defined (DTLS_OPENSSL)
+#if defined(OPENCONNECT_OPENSSL) || defined(DTLS_OPENSSL)
 /* We put this here rather than in openssl.c because it might be needed
    for OpenSSL DTLS support even when GnuTLS is being used for HTTPS */
 int openconnect_print_err_cb(const char *str, size_t len, void *ptr)
@@ -434,7 +434,7 @@ int keystore_fetch(const char *key, unsigned char **result)
 	close(fd);
 	return ret;
 }
-#elif defined (ANDROID_KEYSTORE)
+#elif defined(ANDROID_KEYSTORE)
 /* keystore.h isn't in the NDK so we need to define these */
 #define NO_ERROR		1
 #define LOCKED			2

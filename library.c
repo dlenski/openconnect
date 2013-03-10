@@ -131,9 +131,9 @@ void openconnect_vpninfo_free (struct openconnect_info *vpninfo)
 		free((void *)vpninfo->sslkey);
 	free((void *)vpninfo->cert);
 	if (vpninfo->peer_cert) {
-#if defined (OPENCONNECT_OPENSSL)
+#if defined(OPENCONNECT_OPENSSL)
 		X509_free(vpninfo->peer_cert);
-#elif defined (OPENCONNECT_GNUTLS)
+#elif defined(OPENCONNECT_GNUTLS)
 		gnutls_x509_crt_deinit(vpninfo->peer_cert);
 #endif
 		vpninfo->peer_cert = NULL;
@@ -284,19 +284,19 @@ const char *openconnect_get_version (void)
 
 int openconnect_has_pkcs11_support(void)
 {
-#if defined (OPENCONNECT_GNUTLS) && defined (HAVE_P11KIT)
+#if defined(OPENCONNECT_GNUTLS) && defined(HAVE_P11KIT)
 	return 1;
 #else
 	return 0;
 #endif
 }
 
-#if defined (OPENCONNECT_OPENSSL) && defined (HAVE_ENGINE)
+#if defined(OPENCONNECT_OPENSSL) && defined(HAVE_ENGINE)
 #include <openssl/engine.h>
 #endif
 int openconnect_has_tss_blob_support(void)
 {
-#if defined (OPENCONNECT_OPENSSL) && defined (HAVE_ENGINE)
+#if defined(OPENCONNECT_OPENSSL) && defined(HAVE_ENGINE)
 	ENGINE *e;
 
 	ENGINE_load_builtin_engines();
@@ -306,7 +306,7 @@ int openconnect_has_tss_blob_support(void)
 		ENGINE_free(e);
 		return 1;
 	}
-#elif defined (OPENCONNECT_GNUTLS) && defined (HAVE_TROUSERS)
+#elif defined(OPENCONNECT_GNUTLS) && defined(HAVE_TROUSERS)
 	return 1;
 #endif
 	return 0;

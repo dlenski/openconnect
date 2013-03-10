@@ -523,7 +523,7 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 	}
 	if (!vpninfo->ifname)
 		vpninfo->ifname = strdup(ifr.ifr_name);
-#elif defined (__sun__)
+#elif defined(__sun__)
 	static char tun_name[80];
 	int unit_nr;
 

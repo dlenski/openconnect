@@ -190,9 +190,9 @@ static void print_build_opts(void)
 {
 	const char *comma = ", ", *sep = comma + 1;
 
-#if defined (OPENCONNECT_OPENSSL)
+#if defined(OPENCONNECT_OPENSSL)
 	printf(_("Using OpenSSL. Features present:"));
-#elif defined (OPENCONNECT_GNUTLS)
+#elif defined(OPENCONNECT_GNUTLS)
 	printf(_("Using GnuTLS. Features present:"));
 #endif
 
@@ -200,7 +200,7 @@ static void print_build_opts(void)
 		printf("%sTPM", sep);
 		sep = comma;
 	}
-#if defined (OPENCONNECT_OPENSSL) && defined (HAVE_ENGINE)
+#if defined(OPENCONNECT_OPENSSL) && defined(HAVE_ENGINE)
 	else {
 		printf("%sTPM (%s)", sep, _("OpenSSL ENGINE not present"));
 		sep = comma;
@@ -217,7 +217,7 @@ static void print_build_opts(void)
 
 #ifdef HAVE_DTLS
 	printf("%sDTLS", sep);
-#if defined (OPENCONNECT_GNUTLS) && defined (DTLS_OPENSSL)
+#if defined(OPENCONNECT_GNUTLS) && defined(DTLS_OPENSSL)
 	printf(" (%s)", _("using OpenSSL"));
 #endif
 	printf("\n");

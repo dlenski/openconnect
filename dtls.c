@@ -105,7 +105,7 @@ int RAND_bytes(char *buf, int len)
  * their clients use anyway.
  */
 
-#if defined (DTLS_OPENSSL)
+#if defined(DTLS_OPENSSL)
 #define DTLS_SEND SSL_write
 #define DTLS_RECV SSL_read
 
@@ -271,14 +271,14 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Your OpenSSL is older than the one you built against, so DTLS may fail!"));
 		}
-#elif defined (HAVE_DTLS1_STOP_TIMER)
+#elif defined(HAVE_DTLS1_STOP_TIMER)
 		/*
 		 * This works for any normal OpenSSL that supports
 		 * Cisco DTLS compatibility (0.9.8m to 1.0.0d inclusive,
 		 * and even later versions although it isn't needed there.
 		 */
 		dtls1_stop_timer(vpninfo->dtls_ssl);
-#elif defined (BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT)
+#elif defined(BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT)
 		/*
 		 * Debian restricts visibility of dtls1_stop_timer()
 		 * so do it manually. This version also works on all
@@ -290,7 +290,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 		BIO_ctrl(SSL_get_rbio(vpninfo->dtls_ssl),
 			 BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT, 0,
 			 &(vpninfo->dtls_ssl->d1->next_timeout));
-#elif defined (BIO_CTRL_DGRAM_SET_TIMEOUT)
+#elif defined(BIO_CTRL_DGRAM_SET_TIMEOUT)
 		/*
 		 * OK, here it gets more fun... this shoul handle the case
 		 * of older OpenSSL which has the Cisco DTLS compatibility
@@ -354,7 +354,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	return -EINVAL;
 }
 
-#elif defined (DTLS_GNUTLS)
+#elif defined(DTLS_GNUTLS)
 #include <gnutls/dtls.h>
 
 struct {
@@ -608,9 +608,9 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 static int dtls_restart(struct openconnect_info *vpninfo)
 {
 	if (vpninfo->dtls_ssl) {
-#if defined (DTLS_OPENSSL)
+#if defined(DTLS_OPENSSL)
 		SSL_free(vpninfo->dtls_ssl);
-#elif defined (DTLS_GNUTLS)
+#elif defined(DTLS_GNUTLS)
 		gnutls_deinit(vpninfo->dtls_ssl);
 #endif
 		close(vpninfo->dtls_fd);
@@ -630,7 +630,7 @@ int setup_dtls(struct openconnect_info *vpninfo)
 	struct vpn_option *dtls_opt = vpninfo->dtls_options;
 	int dtls_port = 0;
 
-#if defined (OPENCONNECT_GNUTLS) && defined (DTLS_OPENSSL)
+#if defined(OPENCONNECT_GNUTLS) && defined(DTLS_OPENSSL)
 	/* If we're using GnuTLS for authentication but OpenSSL for DTLS,
 	   we'll need to initialise OpenSSL now... */
 	SSL_library_init ();
@@ -859,7 +859,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			}
 			return 1;
 		}
-#elif defined (DTLS_GNUTLS)
+#elif defined(DTLS_GNUTLS)
 		ret = gnutls_record_send(vpninfo->dtls_ssl, &this->hdr[7], this->len + 1);
 		if (ret <= 0) {
 			if (ret != GNUTLS_E_AGAIN) {

@@ -621,7 +621,7 @@ static int inflate_and_queue_packet(struct openconnect_info *vpninfo,
 	return 0;
 }
 
-#if defined (OPENCONNECT_OPENSSL)
+#if defined(OPENCONNECT_OPENSSL)
 static int cstp_read(struct openconnect_info *vpninfo, void *buf, int maxlen)
 {
 	int len, ret;
@@ -663,7 +663,7 @@ static int cstp_write(struct openconnect_info *vpninfo, void *buf, int buflen)
 		return -1;
 	}
 }
-#elif defined (OPENCONNECT_GNUTLS)
+#elif defined(OPENCONNECT_GNUTLS)
 static int cstp_read(struct openconnect_info *vpninfo, void *buf, int maxlen)
 {
 	int ret;
@@ -968,10 +968,10 @@ int cstp_bye(struct openconnect_info *vpninfo, const char *reason)
 	int reason_len;
 
 	/* already lost connection? */
-#if defined (OPENCONNECT_OPENSSL)
+#if defined(OPENCONNECT_OPENSSL)
 	if (!vpninfo->https_ssl)
 		return 0;
-#elif defined (OPENCONNECT_GNUTLS)
+#elif defined(OPENCONNECT_GNUTLS)
 	if (!vpninfo->https_sess)
 		return 0;
 #endif

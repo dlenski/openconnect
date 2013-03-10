@@ -66,7 +66,7 @@ static inline int sign_dummy_data(struct openconnect_info *vpninfo,
 				  const gnutls_datum_t *data,
 				  gnutls_datum_t *sig)
 {
-#if defined (HAVE_TROUSERS) && !defined(HAVE_GNUTLS_CERTIFICATE_SET_KEY)
+#if defined(HAVE_TROUSERS) && !defined(HAVE_GNUTLS_CERTIFICATE_SET_KEY)
 	if (pkey == OPENCONNECT_TPM_PKEY)
 		return gtls2_tpm_sign_dummy_data(vpninfo, data, sig);
 #endif

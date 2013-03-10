@@ -58,7 +58,7 @@ static int oc_vasprintf(char **strp, const char *fmt, va_list ap)
 	   strings in openconnect. */
 #ifdef HAVE_VA_COPY
 	va_copy(ap2, ap);
-#elif defined (HAVE___VA_COPY)
+#elif defined(HAVE___VA_COPY)
 	__va_copy(ap2, ap);
 #else
 #error No va_copy()!
