@@ -15,11 +15,19 @@ version.c
 /ltmain.sh
 /missing
 
+/.deps/
+/config.log
+/config.status
+/libopenconnect.map
+/libtool
+/openconnect.8
+/openconnect.pc
+
 openconnect
 nm-openconnect-auth-dialog
 Make.config
 Makefile.in
-/po/Makefile
+Makefile
 /po/Makefile.in.in
 /po/*.gmo
 /po/*.mo
