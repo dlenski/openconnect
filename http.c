@@ -999,7 +999,8 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		vpn_progress(vpninfo, PRG_INFO, _("XML POST enabled\n"));
 
 	/* Step 4: Run the CSD trojan, if applicable */
-	if (vpninfo->csd_starturl && vpninfo->csd_waiturl && vpninfo->csd_waiturl) {
+	if (vpninfo->csd_starturl && vpninfo->csd_waiturl &&
+	    vpninfo->csd_stuburl) {
 		char *form_path = NULL;
 
 		if (vpninfo->urlpath) {
