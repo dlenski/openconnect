@@ -59,7 +59,8 @@ unsigned char unhex(const char *data)
 time_t time(time_t *t)
 {
 	time_t x = 0x3ab2d948;
-	if (t) *t = x;
+	if (t)
+		*t = x;
 	return x;
 }
 
@@ -891,4 +892,3 @@ int setup_dtls(struct openconnect_info *vpninfo)
 	return -EINVAL;
 }
 #endif
-

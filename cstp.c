@@ -119,7 +119,8 @@ static void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *
 			vpn_progress(vpninfo, PRG_TRACE,
 				     _("TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"),
 				     ti.tcpi_rcv_mss, ti.tcpi_snd_mss, ti.tcpi_advmss, ti.tcpi_pmtu);
-			if (!*base_mtu) *base_mtu = ti.tcpi_pmtu;
+			if (!*base_mtu)
+				*base_mtu = ti.tcpi_pmtu;
 			if (!*mtu) {
 				if (ti.tcpi_rcv_mss < ti.tcpi_snd_mss)
 					*mtu = ti.tcpi_rcv_mss - 13;

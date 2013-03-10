@@ -306,7 +306,8 @@ static void set_script_env(struct openconnect_info *vpninfo)
 
 	if (vpninfo->vpn_domain)
 		setenv("CISCO_DEF_DOMAIN", vpninfo->vpn_domain, 1);
-	else unsetenv ("CISCO_DEF_DOMAIN");
+	else
+		unsetenv("CISCO_DEF_DOMAIN");
 
 	if (vpninfo->vpn_proxy_pac)
 		setenv("CISCO_PROXY_PAC", vpninfo->vpn_proxy_pac, 1);
