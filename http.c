@@ -510,6 +510,13 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 	char fname[16];
 	int fd, ret;
 
+	if (!vpninfo->csd_wrapper && !buflen) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Error: Server asked us to run CSD hostscan.\n"
+			       "You need to provide a suitable --csd-wrapper argument.\n"));
+		return -EINVAL;
+	}
+
 	if (!vpninfo->uid_csd_given && !vpninfo->csd_wrapper) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
@@ -522,25 +529,28 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		     _("Trying to run Linux CSD trojan script.\n"));
 #endif
 
-	sprintf(fname, "/tmp/csdXXXXXX");
-	fd = mkstemp(fname);
-	if (fd < 0) {
-		int err = -errno;
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to open temporary CSD script file: %s\n"),
-			     strerror(errno));
-		return err;
-	}
+	fname[0] = 0;
+	if (buflen) {
+		sprintf(fname, "/tmp/csdXXXXXX");
+		fd = mkstemp(fname);
+		if (fd < 0) {
+			int err = -errno;
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to open temporary CSD script file: %s\n"),
+				     strerror(errno));
+			return err;
+		}
 
-	ret = proxy_write(vpninfo, fd, (void *)buf, buflen);
-	if (ret) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to write temporary CSD script file: %s\n"),
-			     strerror(-ret));
-		return ret;
+		ret = proxy_write(vpninfo, fd, (void *)buf, buflen);
+		if (ret) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to write temporary CSD script file: %s\n"),
+				     strerror(-ret));
+			return ret;
+		}
+		fchmod(fd, 0755);
+		close(fd);
 	}
-	fchmod(fd, 0755);
-	close(fd);
 
 	if (!fork()) {
 		char scertbuf[MD5_SIZE * 2 + 1];
@@ -1001,6 +1011,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	/* Step 4: Run the CSD trojan, if applicable */
 	if (vpninfo->csd_starturl && vpninfo->csd_waiturl) {
 		char *form_path = NULL;
+		buflen = 0;
 
 		if (vpninfo->urlpath) {
 			form_path = strdup(vpninfo->urlpath);
