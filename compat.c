@@ -62,9 +62,9 @@ static int oc_vasprintf(char **strp, const char *fmt, va_list ap)
 	__va_copy(ap2, ap);
 #else
 #error No va_copy()!
-	// You could try this.
+	/* You could try this. */
 	ap2 = ap;
-	// Or this
+	/* Or this */
 	*ap2 = *ap;
 #endif
 	len = vsnprintf(res, 160, fmt, ap2);
