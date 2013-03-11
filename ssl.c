@@ -35,7 +35,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#if defined(__linux__) || defined(ANDROID)
+#if defined(__linux__) || defined(__ANDROID__)
 #include <sys/vfs.h>
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__) || defined(__APPLE__)
 #include <sys/param.h>

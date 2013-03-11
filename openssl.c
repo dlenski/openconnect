@@ -762,7 +762,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		}
 		return 0;
 	}
-#endif /* ANDROID */
+#endif /* ANDROID_KEYSTORE */
 
 	if (vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
 		FILE *f = fopen(vpninfo->sslkey, "r");

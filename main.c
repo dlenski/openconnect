@@ -29,7 +29,7 @@
 #endif
 
 #include <stdio.h>
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include <android/log.h>
 #else
 #include <syslog.h>
@@ -756,7 +756,7 @@ int main(int argc, char **argv)
 		exit(1);
 
 	if (use_syslog) {
-#ifndef ANDROID
+#ifndef __ANDROID__
 		openlog("openconnect", LOG_PID, LOG_DAEMON);
 #endif
 		vpninfo->progress = syslog_progress;
@@ -937,7 +937,7 @@ void write_progress(void *_vpninfo, int level, const char *fmt, ...)
 	}
 }
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
 {
 	static int l[4] = {
@@ -959,7 +959,7 @@ void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
 		va_end(args2);
 	}
 }
-#else /* !ANDROID */
+#else /* !__ANDROID__ */
 void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
 {
 	int priority = level ? LOG_INFO : LOG_NOTICE;
