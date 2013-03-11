@@ -13,15 +13,29 @@
 NDK     := /opt/android-sdk-linux_x86/android-ndk-r8d/
 ARCH    := arm
 APIVER  := 14
+GCCVER  := 4.7
+
+# You should be able to just 'make ARCH=x86' and it should DTRT.
+ifeq ($(ARCH),arm)
 TRIPLET := arm-linux-androideabi
-GCCVER  := 4.6
+TOOLCHAIN := $(TRIPLET)-$(GCCVER)
+OPENSSL_TARGET := android-armv7
+endif
+ifeq ($(ARCH),x86)
+TRIPLET := i686-linux-android
+TOOLCHAIN := x86-$(GCCVER)
+OPENSSL_TARGET := android-x86
+endif
+ifeq ($(ARCH),mips)
+TRIPLET := mipsel-linux-android
+TOOLCHAIN := $(TRIPLET)-$(GCCVER)
+OPENSSL_TARGET := android
+endif
 
 NDK_SYSROOT := $(NDK)/platforms/android-$(APIVER)/arch-$(ARCH)
-OC_SYSROOT  := $(shell pwd)/sysroot
+OC_SYSROOT  := $(shell pwd)/sysroot-$(TRIPLET)
 
-OPENSSL_VER := 1.0.1e
-
-PATH := $(NDK)/toolchains/$(TRIPLET)-$(GCCVER)/prebuilt/linux-x86/bin:$(PATH)
+PATH := $(NDK)/toolchains/$(TOOLCHAIN)/prebuilt/linux-x86/bin:$(PATH)
 PKG_CONFIG_LIBDIR=$(OC_SYSROOT)/lib/pkgconfig
 export PATH PKG_CONFIG_LIBDIR
 
@@ -40,17 +54,20 @@ all: openconnect
 # Build libxml2 with minimal configuration for OpenConnect
 #
 LIBXML2_VER := 2.9.0
-LIBXML2_DIR := libxml2-$(LIBXML2_VER)
+LIBXML2_SRC := sources/libxml2-$(LIBXML2_VER)
+LIBXML2_BUILD := $(TRIPLET)/libxml2
 
 libxml2-$(LIBXML2_VER).tar.gz:
 	curl ftp://xmlsoft.org/libxml2/libxml2-$(LIBXML2_VER).tar.gz -o $@.tmp && mv $@.tmp $@
 
-$(LIBXML2_DIR)/configure: libxml2-$(LIBXML2_VER).tar.gz
-	tar xfz $<
+$(LIBXML2_SRC)/configure: libxml2-$(LIBXML2_VER).tar.gz
+	mkdir -p sources
+	tar xfz $<  -C sources
 	touch $@
 
-$(LIBXML2_DIR)/Makefile: $(LIBXML2_DIR)/configure
-	cd libxml2-$(LIBXML2_VER) && ./configure $(CONFIGURE_ARGS) \
+$(LIBXML2_BUILD)/Makefile: $(LIBXML2_SRC)/configure
+	mkdir -p $(LIBXML2_BUILD)
+	cd $(LIBXML2_BUILD) && ../../$(LIBXML2_SRC)/configure $(CONFIGURE_ARGS) \
 	    --without-c14n -without-catalog --without-debug --without-docbook \
 	    --without-fexceptions --without-ftp --without-history \
 	    --without-html --without-http --without-iconv --without-iconv \
@@ -61,17 +78,17 @@ $(LIBXML2_DIR)/Makefile: $(LIBXML2_DIR)/configure
 	    --without-xpath --without-xptr --without-zlib --without-lzma \
 	    --without-coverage --without-python
 
-$(LIBXML2_DIR)/libxml2.la: $(LIBXML2_DIR)/Makefile
-	$(MAKE) -C $(LIBXML2_DIR) libxml2.la
+$(LIBXML2_BUILD)/libxml2.la: $(LIBXML2_BUILD)/Makefile
+	$(MAKE) -C $(LIBXML2_BUILD) libxml2.la
 
-$(LIBXML2_DIR)/libxml-2.0.pc: $(LIBXML2_DIR)/Makefile
-	$(MAKE) -C $(LIBXML2_DIR) libxml-2.0.pc
+$(LIBXML2_BUILD)/libxml-2.0.pc: $(LIBXML2_BUILD)/Makefile
+	$(MAKE) -C $(LIBXML2_BUILD) libxml-2.0.pc
 
-$(OC_SYSROOT)/lib/libxml2.la: $(LIBXML2_DIR)/libxml2.la
-	$(MAKEINSTALL) -C $(LIBXML2_DIR) install-libLTLIBRARIES
+$(OC_SYSROOT)/lib/libxml2.la: $(LIBXML2_BUILD)/libxml2.la
+	$(MAKEINSTALL) -C $(LIBXML2_BUILD) install-libLTLIBRARIES
 
-$(OC_SYSROOT)/lib/pkgconfig/libxml-2.0.pc: $(LIBXML2_DIR)/libxml-2.0.pc
-	$(MAKEINSTALL) -C $(LIBXML2_DIR) install-data
+$(OC_SYSROOT)/lib/pkgconfig/libxml-2.0.pc: $(LIBXML2_BUILD)/libxml-2.0.pc
+	$(MAKEINSTALL) -C $(LIBXML2_BUILD) install-data
 
 LIBXML_DEPS := $(OC_SYSROOT)/lib/libxml2.la $(OC_SYSROOT)/lib/pkgconfig/libxml-2.0.pc
 
@@ -83,20 +100,21 @@ libxml: $(LIBXML_DEPS)
 # Build OpenSSL for Android
 #
 OPENSSL_VER := 1.0.1e
-OPENSSL_DIR := openssl-$(OPENSSL_VER)
+OPENSSL_DIR := $(TRIPLET)/openssl-$(OPENSSL_VER)
 
 openssl-$(OPENSSL_VER).tar.gz:
 	curl http://www.openssl.org/source/openssl-$(OPENSSL_VER).tar.gz -o $@.tmp && mv $@.tmp $@
 
 $(OPENSSL_DIR)/Configure: openssl-$(OPENSSL_VER).tar.gz
-	tar xfz $<
-	cd openssl-$(OPENSSL_VER) && patch -p1 < ../0001-Check-DTLS_BAD_VER-for-version-number.patch
+	mkdir -p $(TRIPLET)
+	tar xfz $< -C $(TRIPLET)
+	cd $(OPENSSL_DIR) && patch -p1 < ../../0001-Check-DTLS_BAD_VER-for-version-number.patch
 	touch $(OPENSSL_DIR)/Configure # Make sure it's newer than Makefile and tarball
 
 $(OPENSSL_DIR)/Makefile: $(OPENSSL_DIR)/Configure
 	cd $(OPENSSL_DIR) && perl Configure --prefix=$(OC_SYSROOT) \
 		--cross-compile-prefix=$(TRIPLET)- no-shared \
-		android-armv7:"gcc --sysroot=$(NDK_SYSROOT)"
+		$(OPENSSL_TARGET):"gcc --sysroot=$(NDK_SYSROOT)"
 
 $(OPENSSL_DIR)/libssl.a: $(OPENSSL_DIR)/Makefile
 	$(MAKE) -C $(OPENSSL_DIR)
@@ -118,24 +136,27 @@ openssl: $(OPENSSL_DEPS)
 # Build GNU MP
 #
 GMP_VER := 5.1.1
-GMP_DIR := gmp-$(GMP_VER)
+GMP_SRC := sources/gmp-$(GMP_VER)
+GMP_BUILD := $(TRIPLET)/gmp
 
 gmp-$(GMP_VER).tar.bz2:
 	curl ftp://ftp.gmplib.org/pub/gmp/gmp-$(GMP_VER).tar.bz2 -o $@.tmp && mv $@.tmp $@
 
-$(GMP_DIR)/configure: gmp-$(GMP_VER).tar.bz2
-	tar xfj $<
+$(GMP_BUILD)/configure: gmp-$(GMP_VER).tar.bz2
+	mkdir -p sources
+	tar xfj $< -C sources
 	touch $@
 
-$(GMP_DIR)/Makefile: $(GMP_DIR)/configure
-	cd gmp-$(GMP_VER) && ./configure $(CONFIGURE_ARGS) 
+$(GMP_BUILD)/Makefile: $(GMP_SRC)/configure
+	mkdir -p $(GMP_BUILD)
+	cd $(GMP_BUILD) && ../../$(GMP_SRC)/configure $(CONFIGURE_ARGS) 
 
 
-$(GMP_DIR)/libgmp.la: $(GMP_DIR)/Makefile
-	$(MAKE) -C $(GMP_DIR)
+$(GMP_BUILD)/libgmp.la: $(GMP_BUILD)/Makefile
+	$(MAKE) -C $(GMP_BUILD)
 
-$(OC_SYSROOT)/lib/libgmp.la: $(GMP_DIR)/libgmp.la
-	$(MAKEINSTALL) -C $(GMP_DIR) install
+$(OC_SYSROOT)/lib/libgmp.la: $(GMP_BUILD)/libgmp.la
+	$(MAKEINSTALL) -C $(GMP_BUILD) install
 
 GMP_DEPS := $(OC_SYSROOT)/lib/libgmp.la
 
@@ -147,23 +168,25 @@ gmp: $(GMP_DEPS)
 # Build nettle
 #
 NETTLE_VER := 2.6
-NETTLE_DIR := nettle-$(NETTLE_VER)
-
+NETTLE_SRC := sources/nettle-$(NETTLE_VER)
+NETTLE_BUILD := $(TRIPLET)/nettle
 nettle-$(NETTLE_VER).tar.gz:
 	curl http://www.lysator.liu.se/~nisse/archive/nettle-$(NETTLE_VER).tar.gz -o $@.tmp && mv $@.tmp $@
 
-$(NETTLE_DIR)/configure: nettle-$(NETTLE_VER).tar.gz
-	tar xfz $<
+$(NETTLE_SRC)/configure: nettle-$(NETTLE_VER).tar.gz
+	mkdir -p sources
+	tar xfz $< -C sources
 	touch $@
 
-$(NETTLE_DIR)/Makefile: $(NETTLE_DIR)/configure $(GMP_DEPS)
-	cd nettle-$(NETTLE_VER) && ./configure $(CONFIGURE_ARGS)
+$(NETTLE_BUILD)/Makefile: $(NETTLE_SRC)/configure $(GMP_DEPS)
+	mkdir -p $(NETTLE_BUILD)
+	cd $(NETTLE_BUILD) && ../../$(NETTLE_SRC)/configure $(CONFIGURE_ARGS)
 
-$(NETTLE_DIR)/libnettle.a: $(NETTLE_DIR)/Makefile
-	$(MAKE) -C $(NETTLE_DIR) SUBDIRS=
+$(NETTLE_BUILD)/libnettle.a: $(NETTLE_BUILD)/Makefile
+	$(MAKE) -C $(NETTLE_BUILD) SUBDIRS=
 
-$(OC_SYSROOT)/lib/libnettle.a: $(NETTLE_DIR)/libnettle.a
-	$(MAKEINSTALL) -C $(NETTLE_DIR) SUBDIRS= install
+$(OC_SYSROOT)/lib/libnettle.a: $(NETTLE_BUILD)/libnettle.a
+	$(MAKEINSTALL) -C $(NETTLE_BUILD) SUBDIRS= install
 
 NETTLE_DEPS := $(OC_SYSROOT)/lib/libnettle.a
 
@@ -175,33 +198,40 @@ nettle: $(NETTLE_DEPS)
 # Build GnuTLS
 #
 #GNUTLS_VER := 3.1.9
-GNUTLS_DIR := gnutls
+GNUTLS_SRC := sources/gnutls
+GNUTLS_BUILD := $(TRIPLET)/gnutls
 
 gnutls-$(GNUTLS_VER).tar.xz:
 	curl ftp://ftp.gnutls.org/gcrypt/gnutls/v3.1/$@ -o $@.tmp && mv $@.tmp $@
 
-#$(GNUTLS_DIR)/configure: gnutls-$(GNUTLS_VER).tar.xz
-#       xz -d < $< | tar xf -
+#$(GNUTLS_SRC)/configure: gnutls-$(GNUTLS_VER).tar.xz
+#	mkdir -p sources
+#       xz -d < $< | tar xf - -C sources
 #       touch $@
 
-$(GNUTLS_DIR)/configure.ac:
-	git clone --reference /home/dwmw2/git/gnutls git://gitorious.org/gnutls/gnutls.git
+$(GNUTLS_SRC)/configure.ac:
+	mkdir -p sources
+	cd sources && git clone --reference ../../../gnutls git://gitorious.org/gnutls/gnutls.git
 
-$(GNUTLS_DIR)/configure: $(GNUTLS_DIR)/configure.ac
-	touch Changelog
-	cd $(GNUTLS_DIR) && autoreconf -fvi
+$(GNUTLS_SRC)/configure: $(GNUTLS_SRC)/configure.ac
+	touch $(GNUTLS_SRC)/ChangeLog
+	cd $(GNUTLS_SRC) && autoreconf -fvi
 
-$(GNUTLS_DIR)/Makefile: $(GNUTLS_DIR)/configure $(NETTLE_DEPS)
-	cd $(GNUTLS_DIR) && ./configure $(CONFIGURE_ARGS) --disable-threads \
+$(GNUTLS_BUILD)/Makefile: $(GNUTLS_SRC)/configure $(NETTLE_DEPS)
+	mkdir -p $(GNUTLS_BUILD)
+	cd $(GNUTLS_BUILD) && ../../$(GNUTLS_SRC)/configure $(CONFIGURE_ARGS) \
+		--disable-threads --disable-tests --without-zlib --disable-nls \
 		--disable-doc --disable-openssl-compatibility --disable-cxx \
-		--disable-tests --without-zlib --disable-nls \
-		--disable-openssl-compatibility --disable-ocsp --disable-openpgp-authentication --disable-anon-authentication --disable-psk-authentication --disable-srp-authentication --disable-dtls-srtp-support 
+		--disable-openssl-compatibility --disable-ocsp \
+		--disable-openpgp-authentication --disable-anon-authentication \
+		--disable-psk-authentication --disable-srp-authentication \
+		--disable-dtls-srtp-support 
 
-$(GNUTLS_DIR)/lib/libgnutls.la: $(GNUTLS_DIR)/Makefile
-	$(MAKE) -C $(GNUTLS_DIR)
+$(GNUTLS_BUILD)/lib/libgnutls.la: $(GNUTLS_BUILD)/Makefile
+	$(MAKE) -C $(GNUTLS_BUILD)
 
-$(OC_SYSROOT)/lib/libgnutls.la: $(GNUTLS_DIR)/lib/libgnutls.la
-	$(MAKEINSTALL) -C $(GNUTLS_DIR) install
+$(OC_SYSROOT)/lib/libgnutls.la: $(GNUTLS_BUILD)/lib/libgnutls.la
+	$(MAKEINSTALL) -C $(GNUTLS_BUILD) install
 
 GNUTLS_DEPS := $(OC_SYSROOT)/lib/libgnutls.la
 
@@ -212,12 +242,13 @@ gnutls: $(GNUTLS_DEPS)
 #
 # Build OpenConnect for Android
 #
+OPENCONNECT_BUILD := $(TRIPLET)/openconnect
 
-ocbuild/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) ../configure
-	mkdir -p ocbuild
-	cd ocbuild && ../../configure $(CONFIGURE_ARGS) \
+$(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) ../configure
+	mkdir -p $(OPENCONNECT_BUILD)
+	cd $(OPENCONNECT_BUILD) && ../../../configure $(CONFIGURE_ARGS) \
 	CFLAGS="--sysroot=$(NDK_SYSROOT) -DNO_BROKEN_DTLS_CHECK -DANDROID" \
 	GNUTLS_LIBS="$(shell PKG_CONFIG_LIBDIR=$(OC_SYSROOT)/lib/pkgconfig pkg-config --static --libs gnutls)"
 
-openconnect: ocbuild/Makefile
-	make -C ocbuild
+openconnect: $(OPENCONNECT_BUILD)/Makefile
+	make -C $(OPENCONNECT_BUILD)
