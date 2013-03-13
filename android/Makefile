@@ -225,7 +225,8 @@ $(GNUTLS_BUILD)/Makefile: $(GNUTLS_SRC)/configure $(NETTLE_DEPS)
 		--disable-openssl-compatibility --disable-ocsp \
 		--disable-openpgp-authentication --disable-anon-authentication \
 		--disable-psk-authentication --disable-srp-authentication \
-		--disable-dtls-srtp-support
+		--disable-dtls-srtp-support  --disable-dhe --disable-ecdhe \
+		--disable-rsa-export
 
 $(GNUTLS_BUILD)/lib/libgnutls.la: $(GNUTLS_BUILD)/Makefile
 	$(MAKE) -C $(GNUTLS_BUILD)
