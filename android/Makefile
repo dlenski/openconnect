@@ -142,7 +142,7 @@ GMP_BUILD := $(TRIPLET)/gmp
 gmp-$(GMP_VER).tar.bz2:
 	curl ftp://ftp.gmplib.org/pub/gmp/gmp-$(GMP_VER).tar.bz2 -o $@.tmp && mv $@.tmp $@
 
-$(GMP_BUILD)/configure: gmp-$(GMP_VER).tar.bz2
+$(GMP_SRC)/configure: gmp-$(GMP_VER).tar.bz2
 	mkdir -p sources
 	tar xfj $< -C sources
 	touch $@
@@ -225,7 +225,7 @@ $(GNUTLS_BUILD)/Makefile: $(GNUTLS_SRC)/configure $(NETTLE_DEPS)
 		--disable-openssl-compatibility --disable-ocsp \
 		--disable-openpgp-authentication --disable-anon-authentication \
 		--disable-psk-authentication --disable-srp-authentication \
-		--disable-dtls-srtp-support 
+		--disable-dtls-srtp-support
 
 $(GNUTLS_BUILD)/lib/libgnutls.la: $(GNUTLS_BUILD)/Makefile
 	$(MAKE) -C $(GNUTLS_BUILD)
