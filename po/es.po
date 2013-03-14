@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2013-03-12 23:59+0000\n"
+"POT-Creation-Date: 2013-03-14 22:04+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Spanish (Castilian) (http://www.transifex.net/projects/p/"
 "meego/language/es/)\n"
@@ -75,7 +75,7 @@ msgstr ""
 
 #: auth.c:887
 msgid "Device ID:"
-msgstr ""
+msgstr "ID del dispositivo:"
 
 #: auth.c:894
 msgid "Password:"
@@ -83,15 +83,15 @@ msgstr "Contraseña:"
 
 #: auth.c:901
 msgid "PIN:"
-msgstr ""
+msgstr "PIN:"
 
 #: auth.c:931
 msgid "User bypassed soft token.\n"
-msgstr ""
+msgstr "El usuario saltó el token blando.\n"
 
 #: auth.c:938
 msgid "All fields are required; try again.\n"
-msgstr ""
+msgstr "Todos los campos son obligatorios; inténtelo de nuevo.\n"
 
 #: auth.c:953 auth.c:1043
 msgid "General failure in libstoken.\n"
@@ -99,31 +99,32 @@ msgstr "Fallo general en libstoken.\n"
 
 #: auth.c:957
 msgid "Incorrect device ID or password; try again.\n"
-msgstr ""
+msgstr "ID del dispositivo o contraseña incorrectos; inténtelo de nuevo.\n"
 
 #: auth.c:964
 msgid "Invalid PIN format; try again.\n"
-msgstr ""
+msgstr "Formato de pin no válido; inténtelo de nuevo.\n"
 
 #: auth.c:974
 msgid "Soft token init was successful.\n"
-msgstr ""
+msgstr "La inicialización del token blando tuvo éxito.\n"
 
 #: auth.c:999
 msgid "OK to generate INITIAL tokencode\n"
-msgstr ""
+msgstr "OK al generar el código de token INITIAL\n"
 
 #: auth.c:1004
 msgid "OK to generate NEXT tokencode\n"
-msgstr ""
+msgstr "OK al generar el código de token NEXT\n"
 
 #: auth.c:1009
 msgid "Server is rejecting the soft token; switching to manual entry\n"
 msgstr ""
+"El servidor está rechazando el token blando; cambiando a acceso manual\n"
 
 #: auth.c:1038
 msgid "Generating tokencode\n"
-msgstr ""
+msgstr "Generando código de token\n"
 
 #: cstp.c:120
 #, c-format
@@ -1165,7 +1166,7 @@ msgstr "Falló al abrir el archivo temporal del script CSD: %s\n"
 #: http.c:547
 #, c-format
 msgid "Failed to write temporary CSD script file: %s\n"
-msgstr ""
+msgstr "Falló al escribir el archivo temporal del script CSD: %s\n"
 
 #: http.c:565 main.c:839
 #, c-format
@@ -1175,12 +1176,12 @@ msgstr "Falló al establecer el UID %ld\n"
 #: http.c:570
 #, c-format
 msgid "Invalid user uid=%ld\n"
-msgstr ""
+msgstr "uid=%ld del usuario no válido\n"
 
 #: http.c:576
 #, c-format
 msgid "Failed to change to CSD home directory '%s': %s\n"
-msgstr ""
+msgstr "Falló al cambiar a la carpeta local «%s» de CSD: %s\n"
 
 #: http.c:582
 #, c-format
@@ -1188,48 +1189,52 @@ msgid ""
 "Warning: you are running insecure CSD code with root privileges\n"
 "\t Use command line option \"--csd-user\"\n"
 msgstr ""
+"Advertencia: está ejecutando código CSD inseguro con privilegios de "
+"administrador\n"
+"\tUse la opción de línea de comandos «--csd-user»\n"
 
 #: http.c:626
 #, c-format
 msgid "Failed to exec CSD script %s\n"
-msgstr ""
+msgstr "Falló al ejecutar el script CSD %s\n"
 
 #: http.c:743
 #, c-format
 msgid "Failed to parse redirected URL '%s': %s\n"
-msgstr ""
+msgstr "Falló al analizar el URL redirigido '%s': %s\n"
 
 #: http.c:772
 #, c-format
 msgid "Cannot follow redirection to non-https URL '%s'\n"
-msgstr ""
+msgstr "No se pudo seguir el redireccionamiento al URL no https '%s'\n"
 
 #: http.c:800
 #, c-format
 msgid "Allocating new path for relative redirect failed: %s\n"
 msgstr ""
+"Asignando una nueva ruta para el redireccionamiento relativo fallido: %s\n"
 
 #: http.c:902
 #, c-format
 msgid "Unexpected %d result from server\n"
-msgstr ""
+msgstr "Resultado %d del servidor inesperado\n"
 
 #: http.c:928
 msgid "Unknown response from server\n"
-msgstr ""
+msgstr "Respuesta desconocida del servidor\n"
 
 #: http.c:1009
 msgid "XML POST enabled\n"
-msgstr ""
+msgstr "POST XML activado\n"
 
 #: http.c:1053
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
-msgstr ""
+msgstr "Actualizando %s tras 1 segundo…\n"
 
 #: http.c:1257
 msgid "request granted"
-msgstr ""
+msgstr "petición concedida"
 
 #: http.c:1258
 msgid "general failure"
@@ -1237,31 +1242,31 @@ msgstr "fallo general"
 
 #: http.c:1259
 msgid "connection not allowed by ruleset"
-msgstr ""
+msgstr "conexión no permitida por el conjunto de reglas"
 
 #: http.c:1260
 msgid "network unreachable"
-msgstr ""
+msgstr "red inaccesible"
 
 #: http.c:1261
 msgid "host unreachable"
-msgstr ""
+msgstr "servidor inaccesible"
 
 #: http.c:1262
 msgid "connection refused by destination host"
-msgstr ""
+msgstr "conexión rechazada por el servidor de destino"
 
 #: http.c:1263
 msgid "TTL expired"
-msgstr ""
+msgstr "TTL caducado"
 
 #: http.c:1264
 msgid "command not supported / protocol error"
-msgstr ""
+msgstr "comando no soportado / error de protocolo"
 
 #: http.c:1265
 msgid "address type not supported"
-msgstr ""
+msgstr "tipo de dirección no soportada"
 
 #: http.c:1279
 #, c-format
@@ -1358,11 +1363,11 @@ msgstr ""
 #: library.c:256
 #, c-format
 msgid "Failed to parse server URL '%s'\n"
-msgstr ""
+msgstr "Falló al analizar el URL del servidor '%s'\n"
 
 #: library.c:262
 msgid "Only https:// permitted for server URL\n"
-msgstr ""
+msgstr "Sólo se permite https:// para el URL del servidor\n"
 
 #: main.c:185
 #, c-format
