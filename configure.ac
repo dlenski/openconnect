@@ -462,11 +462,17 @@ PKG_CHECK_MODULES(ZLIB, zlib, [AC_SUBST(ZLIB_PC, [zlib])],
 		   AC_ERROR([Could not build against zlib])])
 		  LIBS="$oldLIBS"])
 
-PKG_CHECK_MODULES(LIBPROXY, libproxy-1.0,
-		[AC_SUBST(LIBPROXY_PC, libproxy-1.0)
-		 AC_DEFINE([LIBPROXY_HDR], ["proxy.h"])
-		 libproxy_pkg=yes],
-		 libproxy_pkg=no)
+AC_ARG_WITH([libproxy],
+	AS_HELP_STRING([--without-libproxy],
+	[Build without libproxy library [default=auto]]))
+AS_IF([test "x$with_libproxy" != "xno"], [
+	PKG_CHECK_MODULES(LIBPROXY, libproxy-1.0,
+			[AC_SUBST(LIBPROXY_PC, libproxy-1.0)
+			 AC_DEFINE([LIBPROXY_HDR], ["proxy.h"])
+			 libproxy_pkg=yes],
+			 libproxy_pkg=no)
+], [libproxy_pkg=disabled])
+
 dnl Libproxy *can* exist without a .pc file, and its header may be called
 dnl libproxy.h in that case.
 if (test "$libproxy_pkg" = "no"); then
@@ -487,11 +493,16 @@ if (test "$libproxy_pkg" = "no"); then
    LIBS="$oldLIBS"
 fi
 
-PKG_CHECK_MODULES(LIBSTOKEN, stoken,
-		[AC_SUBST(LIBSTOKEN_PC, stoken)
-		 AC_DEFINE([LIBSTOKEN_HDR], ["stoken.h"])
-		 libstoken_pkg=yes],
-		 libstoken_pkg=no)
+AC_ARG_WITH([stoken],
+	AS_HELP_STRING([--without-stoken],
+	[Build without libstoken library [default=auto]]))
+AS_IF([test "x$with_stoken" != "xno"], [
+	PKG_CHECK_MODULES(LIBSTOKEN, stoken,
+			[AC_SUBST(LIBSTOKEN_PC, stoken)
+			 AC_DEFINE([LIBSTOKEN_HDR], ["stoken.h"])
+			 libstoken_pkg=yes],
+			 libstoken_pkg=no)
+], [libstoken_pkg=disabled])
 
 AC_CHECK_HEADER([if_tun.h],
     [AC_DEFINE([IF_TUN_HDR], ["if_tun.h"])],
