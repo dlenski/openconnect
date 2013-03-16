@@ -1150,6 +1150,8 @@ msgid ""
 "Error: Server asked us to run CSD hostscan.\n"
 "You need to provide a suitable --csd-wrapper argument.\n"
 msgstr ""
+"Napaka: strežnik zahteva zagon pregleda gostitelja CSD\n"
+"Podati je treba ustrezni parameter --csd-wrapper.\n"
 
 #: http.c:522
 msgid ""
