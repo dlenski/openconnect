@@ -37,6 +37,12 @@ OPENCONNECT_2.1 {
 	openconnect_set_reported_os;
 } OPENCONNECT_2.0;
 
+OPENCONNECT_2.2 {
+ global:
+	openconnect_has_oath_support;
+	openconnect_set_token_mode;
+} OPENCONNECT_2.1;
+
 OPENCONNECT_PRIVATE {
  global: @SYMVER_TIME@ @SYMVER_ASPRINTF@ @SYMVER_GETLINE@ @SYMVER_PRINT_ERR@
 	openconnect_SSL_gets;

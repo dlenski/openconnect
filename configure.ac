@@ -504,6 +504,17 @@ AS_IF([test "x$with_stoken" != "xno"], [
 			 libstoken_pkg=no)
 ], [libstoken_pkg=disabled])
 
+AC_ARG_WITH([liboath],
+	AS_HELP_STRING([--without-liboath],
+		[Build without liboath library (default: test)]))
+AS_IF([test "x$with_liboath" != "xno"], [
+	PKG_CHECK_MODULES(LIBOATH, liboath,
+		[AC_SUBST(LIBOATH_PC, liboath)
+		 AC_DEFINE([LIBOATH_HDR], ["liboath/oath.h"])
+		 liboath_pkg=yes],
+		 liboath_pkg=no)
+])
+
 AC_CHECK_HEADER([if_tun.h],
     [AC_DEFINE([IF_TUN_HDR], ["if_tun.h"])],
     [AC_CHECK_HEADER([linux/if_tun.h],

@@ -3,6 +3,7 @@
  *
  * Copyright © 2008-2012 Intel Corporation.
  * Copyright © 2008 Nick Andrew <nick@nick-andrew.net>
+ * Copyright © 2013 John Morrissey <jwm@horde.net>
  *
  * Author: David Woodhouse <dwmw2@infradead.org>
  *
@@ -66,8 +67,8 @@ static int validate_peer_cert(void *_vpninfo,
 			      const char *reason);
 static int process_auth_form(void *_vpninfo,
 			     struct oc_auth_form *form);
-static void init_stoken(struct openconnect_info *vpninfo,
-			const char *token_str);
+static void init_token(struct openconnect_info *vpninfo,
+		       oc_token_mode_t token_mode, const char *token_str);
 
 /* A sanity check that the openconnect executable is running against a
    library of the same version */
@@ -110,7 +111,8 @@ enum {
 	OPT_USERAGENT,
 	OPT_NON_INTER,
 	OPT_DTLS_LOCAL_PORT,
-	OPT_STOKEN,
+	OPT_TOKEN_MODE,
+	OPT_TOKEN_SECRET,
 	OPT_OS,
 };
 
@@ -175,7 +177,10 @@ static struct option long_options[] = {
 	OPTION("force-dpd", 1, OPT_FORCE_DPD),
 	OPTION("non-inter", 0, OPT_NON_INTER),
 	OPTION("dtls-local-port", 1, OPT_DTLS_LOCAL_PORT),
-	OPTION("stoken", 2, OPT_STOKEN),
+	OPTION("token-mode", 1, OPT_TOKEN_MODE),
+	/* Alias --stoken to --token-secret for backwards compatibility. */
+	OPTION("stoken", 2, OPT_TOKEN_SECRET),
+	OPTION("token-secret", 2, OPT_TOKEN_SECRET),
 	OPTION("os", 1, OPT_OS),
 	OPTION(NULL, 0, 0)
 };
@@ -211,7 +216,11 @@ static void print_build_opts(void)
 		sep = comma;
 	}
 	if (openconnect_has_stoken_support()) {
-		printf("%sSoftware token", sep);
+		printf("%sRSA software token", sep);
+		sep = comma;
+	}
+	if (openconnect_has_oath_support()) {
+		printf("%sTOTP software token", sep);
 		sep = comma;
 	}
 
@@ -281,9 +290,14 @@ static void usage(void)
 	printf("      --no-cert-check             %s\n", _("Do not require server SSL cert to be valid"));
 	printf("      --non-inter                 %s\n", _("Do not expect user input; exit if it is required"));
 	printf("      --passwd-on-stdin           %s\n", _("Read password from standard input"));
-	printf("      --stoken[=TOKENSTRING]      %s\n", _("Use software token to generate password"));
+	printf("      --token-mode=MODE           %s\n", _("Software token type: stoken (default) or totp"));
+	printf("      --token-secret[=STRING]     %s\n", _("Software token secret (can be empty for stoken mode"));
+	printf("                                  %s\n", _("    to read from ~/.stokenrc)"));
 #ifndef LIBSTOKEN_HDR
-	printf("                                  %s\n", _("(NOTE: libstoken disabled in this build)"));
+	printf("                                  %s\n", _("(NOTE: libstoken (RSA SecurID) disabled in this build)"));
+#endif
+#ifndef LIBOATH_HDR
+	printf("                                  %s\n", _("(NOTE: liboath (TOTP) disabled in this build)"));
 #endif
 	printf("      --reconnect-timeout         %s\n", _("Connection retry timeout in seconds"));
 	printf("      --servercert=FINGERPRINT    %s\n", _("Server's certificate SHA1 fingerprint"));
@@ -448,8 +462,8 @@ int main(int argc, char **argv)
 	char *pidfile = NULL;
 	FILE *fp = NULL;
 	char *config_arg;
-	int use_stoken = 0;
 	char *token_str = NULL;
+	oc_token_mode_t token_mode = OC_TOKEN_MODE_NONE;
 
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
@@ -711,8 +725,18 @@ int main(int argc, char **argv)
 		case OPT_DTLS_LOCAL_PORT:
 			vpninfo->dtls_local_port = atoi(config_arg);
 			break;
-		case OPT_STOKEN:
-			use_stoken = 1;
+		case OPT_TOKEN_MODE:
+			if (strcasecmp(config_arg, "stoken") == 0) {
+				token_mode = OC_TOKEN_MODE_STOKEN;
+			} else if (strcasecmp(config_arg, "totp") == 0) {
+				token_mode = OC_TOKEN_MODE_TOTP;
+			} else {
+				fprintf(stderr, _("Invalid software token mode \"%s\"\n"),
+					config_arg);
+				exit(1);
+			}
+			break;
+		case OPT_TOKEN_SECRET:
 			token_str = keep_config_arg();
 			break;
 		case OPT_OS:
@@ -749,8 +773,8 @@ int main(int argc, char **argv)
 #endif
 	}
 
-	if (use_stoken)
-		init_stoken(vpninfo, token_str);
+	if (token_mode != OC_TOKEN_MODE_NONE)
+		init_token(vpninfo, token_mode, token_str);
 
 	if (proxy && openconnect_set_http_proxy(vpninfo, strdup(proxy)))
 		exit(1);
@@ -1224,25 +1248,55 @@ static int process_auth_form(void *_vpninfo,
 	return -EINVAL;
 }
 
-static void init_stoken(struct openconnect_info *vpninfo,
-			const char *token_str)
+static void init_token(struct openconnect_info *vpninfo,
+		       oc_token_mode_t token_mode, const char *token_str)
 {
-	int ret = openconnect_set_stoken_mode(vpninfo, 1, token_str);
+	int ret;
 
-	switch (ret) {
-	case 0:
-		return;
-	case -EINVAL:
-		fprintf(stderr, _("Soft token string is invalid\n"));
-		exit(1);
-	case -ENOENT:
-		fprintf(stderr, _("Can't open ~/.stokenrc file\n"));
-		exit(1);
-	case -EOPNOTSUPP:
-		fprintf(stderr, _("OpenConnect was not built with soft token support\n"));
-		exit(1);
-	default:
-		fprintf(stderr, _("General failure in libstoken\n"));
-		exit(1);
+	ret = openconnect_set_token_mode(vpninfo, token_mode, token_str);
+
+	switch (token_mode) {
+	case OC_TOKEN_MODE_STOKEN:
+		switch (ret) {
+		case 0:
+			return;
+		case -EINVAL:
+			fprintf(stderr, _("Soft token string is invalid\n"));
+			exit(1);
+		case -ENOENT:
+			fprintf(stderr, _("Can't open ~/.stokenrc file\n"));
+			exit(1);
+		case -EOPNOTSUPP:
+			fprintf(stderr, _("OpenConnect was not built with libstoken support\n"));
+			exit(1);
+		default:
+			fprintf(stderr, _("General failure in libstoken\n"));
+			exit(1);
+		}
+
+		break;
+
+	case OC_TOKEN_MODE_TOTP:
+		switch (ret) {
+		case 0:
+			return;
+		case -EINVAL:
+			fprintf(stderr, _("Soft token string is invalid\n"));
+			exit(1);
+		case -EOPNOTSUPP:
+			fprintf(stderr, _("OpenConnect was not built with liboath support\n"));
+			exit(1);
+		default:
+			fprintf(stderr, _("General failure in liboath\n"));
+			exit(1);
+		}
+
+		break;
+
+	case OC_TOKEN_MODE_NONE:
+		/* No-op */
+		break;
+
+	/* Option parsing already checked for invalid modes. */
 	}
 }

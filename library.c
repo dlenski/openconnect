@@ -2,6 +2,7 @@
  * OpenConnect (SSL + DTLS) VPN client
  *
  * Copyright © 2008-2012 Intel Corporation.
+ * Copyright © 2013 John Morrissey <jwm@horde.net>
  *
  * Authors: David Woodhouse <dwmw2@infradead.org>
  *
@@ -28,6 +29,10 @@
 
 #ifdef LIBSTOKEN_HDR
 #include LIBSTOKEN_HDR
+#endif
+
+#ifdef LIBOATH_HDR
+#include LIBOATH_HDR
 #endif
 
 #include <libxml/tree.h>
@@ -144,6 +149,10 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		free(vpninfo->stoken_pin);
 	if (vpninfo->stoken_ctx)
 		stoken_destroy(vpninfo->stoken_ctx);
+#endif
+#ifdef LIBOATH_HDR
+	if (vpninfo->oath_secret)
+		oath_done();
 #endif
 	/* No need to free deflate streams; they weren't initialised */
 	free(vpninfo);
@@ -321,28 +330,20 @@ int openconnect_has_stoken_support(void)
 #endif
 }
 
-/*
- * Enable software token generation if use_stoken == 1.
- *
- * If token_str is not NULL, try to parse the string.  Otherwise, try to read
- * the token data from ~/.stokenrc
- *
- * Return value:
- *  = -EOPNOTSUPP, if libstoken is not available
- *  = -EINVAL, if the token string is invalid (token_str was provided)
- *  = -ENOENT, if ~/.stokenrc is missing (token_str was NULL)
- *  = -EIO, for other libstoken failures
- *  = 0, on success
- */
-int openconnect_set_stoken_mode(struct openconnect_info *vpninfo,
-				int use_stoken, const char *token_str)
+int openconnect_has_oath_support(void)
+{
+#ifdef LIBOATH_HDR
+	return 1;
+#else
+	return 0;
+#endif
+}
+
+static int set_libstoken_mode(struct openconnect_info *vpninfo,
+			      const char *token_str)
 {
 #ifdef LIBSTOKEN_HDR
 	int ret;
-
-	vpninfo->use_stoken = 0;
-	if (!use_stoken)
-		return 0;
 
 	if (!vpninfo->stoken_ctx) {
 		vpninfo->stoken_ctx = stoken_new();
@@ -356,9 +357,100 @@ int openconnect_set_stoken_mode(struct openconnect_info *vpninfo,
 	if (ret)
 		return ret;
 
-	vpninfo->use_stoken = 1;
+	vpninfo->token_mode = OC_TOKEN_MODE_STOKEN;
 	return 0;
 #else
 	return -EOPNOTSUPP;
 #endif
+}
+
+static int set_oath_mode(struct openconnect_info *vpninfo,
+			 const char *token_str)
+{
+#ifdef LIBOATH_HDR
+	int ret;
+
+	ret = oath_init();
+	if (ret != OATH_OK)
+		return -EIO;
+
+	if (strncasecmp(token_str, "base32:", strlen("base32:")) == 0) {
+		ret = oath_base32_decode(token_str + strlen("base32:"),
+					 strlen(token_str) - strlen("base32:"),
+					 &vpninfo->oath_secret,
+					 &vpninfo->oath_secret_len);
+		if (ret != OATH_OK)
+			return -EINVAL;
+	} else {
+		vpninfo->oath_secret = strdup(token_str);
+		vpninfo->oath_secret_len = strlen(token_str);
+	}
+
+	vpninfo->token_mode = OC_TOKEN_MODE_TOTP;
+	return 0;
+#else
+	return -EOPNOTSUPP;
+#endif
+}
+
+/*
+ * Enable software token generation.
+ *
+ * If token_mode is OC_TOKEN_MODE_STOKEN and token_str is NULL,
+ * read the token data from ~/.stokenrc.
+ *
+ * Return value:
+ *  = -EOPNOTSUPP, if the underlying library (libstoken, liboath) is not
+ *                 available or an invalid token_mode was provided
+ *  = -EINVAL, if the token string is invalid (token_str was provided)
+ *  = -ENOENT, if token_mode is OC_TOKEN_MODE_STOKEN and ~/.stokenrc is
+ *             missing (token_str was NULL)
+ *  = -EIO, for other failures in the underlying library (libstoken, liboath)
+ *  = 0, on success
+ */
+int openconnect_set_token_mode(struct openconnect_info *vpninfo,
+			       oc_token_mode_t token_mode,
+			       const char *token_str)
+{
+	vpninfo->token_mode = OC_TOKEN_MODE_NONE;
+
+	switch (token_mode) {
+	case OC_TOKEN_MODE_NONE:
+		return 0;
+
+	case OC_TOKEN_MODE_STOKEN:
+		return set_libstoken_mode(vpninfo, token_str);
+
+	case OC_TOKEN_MODE_TOTP:
+		return set_oath_mode(vpninfo, token_str);
+
+	default:
+		return -EOPNOTSUPP;
+	}
+}
+
+/*
+ * Enable libstoken token generation if use_stoken == 1.
+ *
+ * If token_str is not NULL, try to parse the string.  Otherwise, try to read
+ * the token data from ~/.stokenrc
+ *
+ * DEPRECATED: use openconnect_set_stoken_mode() instead.
+ *
+ * Return value:
+ *  = -EOPNOTSUPP, if libstoken is not available
+ *  = -EINVAL, if the token string is invalid (token_str was provided)
+ *  = -ENOENT, if ~/.stokenrc is missing (token_str was NULL)
+ *  = -EIO, for other libstoken failures
+ *  = 0, on success
+ */
+int openconnect_set_stoken_mode(struct openconnect_info *vpninfo,
+				int use_stoken, const char *token_str)
+{
+	oc_token_mode_t token_mode = OC_TOKEN_MODE_NONE;
+
+	if (use_stoken)
+		token_mode = OC_TOKEN_MODE_STOKEN;
+
+	return openconnect_set_token_mode(vpninfo, token_mode, token_str);
 }

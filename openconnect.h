@@ -3,6 +3,7 @@
  *
  * Copyright © 2008-2012 Intel Corporation.
  * Copyright © 2008 Nick Andrew <nick@nick-andrew.net>
+ * Copyright © 2013 John Morrissey <jwm@horde.net>
  *
  * Author: David Woodhouse <dwmw2@infradead.org>
  *
@@ -31,7 +32,7 @@
 #include <unistd.h>
 
 #define OPENCONNECT_API_VERSION_MAJOR 2
-#define OPENCONNECT_API_VERSION_MINOR 1
+#define OPENCONNECT_API_VERSION_MINOR 2
 
 /*
  * API version 2.1:
@@ -86,7 +87,7 @@
 #define OC_FORM_OPT_PASSWORD	2
 #define OC_FORM_OPT_SELECT	3
 #define OC_FORM_OPT_HIDDEN	4
-#define OC_FORM_OPT_STOKEN	5
+#define OC_FORM_OPT_TOKEN	5
 
 /* char * fields are static (owned by XML parser) and don't need to be
    freed by the form handling code -- except for value, which for TEXT
@@ -137,6 +138,12 @@ struct openconnect_info;
 
 #define OPENCONNECT_X509 void
 
+typedef enum {
+	OC_TOKEN_MODE_NONE,
+	OC_TOKEN_MODE_STOKEN,
+	OC_TOKEN_MODE_TOTP,
+} oc_token_mode_t;
+
 /* Unless otherwise specified, all functions which set strings will take
    ownership of those strings and the library will free them later in
    openconnect_vpninfo_free() */
@@ -163,10 +170,12 @@ void openconnect_set_hostname(struct openconnect_info *, char *);
 char *openconnect_get_urlpath(struct openconnect_info *);
 void openconnect_set_urlpath(struct openconnect_info *, char *);
 
-/* This function does *not* take ownership of the string; it is parsed
+/* These functions do *not* take ownership of the string; it is parsed
    and then discarded. */
-int openconnect_set_stoken_mode(struct openconnect_info *,
-				int use_stoken, const char *token_str);
+int openconnect_set_token_mode(struct openconnect_info *,
+			       oc_token_mode_t, const char *token_str);
+/* Legacy stoken-only function; do not use */
+int openconnect_set_stoken_mode(struct openconnect_info *, int, const char *);
 
 /* This function does *not* take ownership of the string; it's copied
    into a static buffer in the vpninfo. The size must be 41 bytes,
@@ -262,5 +271,6 @@ int openconnect_has_tss_blob_support(void);
 
 /* Software token capabilities. */
 int openconnect_has_stoken_support(void);
+int openconnect_has_oath_support(void);
 
 #endif /* __OPENCONNECT_H__ */

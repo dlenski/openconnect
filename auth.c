@@ -3,6 +3,7 @@
  *
  * Copyright © 2008-2011 Intel Corporation.
  * Copyright © 2008 Nick Andrew <nick@nick-andrew.net>
+ * Copyright © 2013 John Morrissey <jwm@horde.net>
  *
  * Author: David Woodhouse <dwmw2@infradead.org>
  *
@@ -34,6 +35,10 @@
 
 #ifdef LIBSTOKEN_HDR
 #include LIBSTOKEN_HDR
+#endif
+
+#ifdef LIBOATH_HDR
+#include LIBOATH_HDR
 #endif
 
 #include <libxml/parser.h>
@@ -233,13 +238,15 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 		if (!strcmp(input_type, "hidden")) {
 			opt->type = OC_FORM_OPT_HIDDEN;
 			opt->value = (char *)xmlGetProp(xml_node, (unsigned char *)"value");
-		} else if (!strcmp(input_type, "text"))
+		} else if (!strcmp(input_type, "text")) {
 			opt->type = OC_FORM_OPT_TEXT;
-		else if (!strcmp(input_type, "password")) {
-			if (vpninfo->use_stoken && !can_gen_tokencode(vpninfo, form, opt))
-				opt->type = OC_FORM_OPT_STOKEN;
-			else
+		} else if (!strcmp(input_type, "password")) {
+			if (vpninfo->token_mode != OC_TOKEN_MODE_NONE &&
+			    (can_gen_tokencode(vpninfo, form, opt) == 0)) {
+				opt->type = OC_FORM_OPT_TOKEN;
+			} else {
 				opt->type = OC_FORM_OPT_PASSWORD;
+			}
 		} else {
 			vpn_progress(vpninfo, PRG_INFO,
 				     _("Unknown input type %s in form\n"),
@@ -637,7 +644,7 @@ void free_auth_form(struct oc_auth_form *form)
 		if (form->opts->type == OC_FORM_OPT_TEXT ||
 		    form->opts->type == OC_FORM_OPT_PASSWORD ||
 		    form->opts->type == OC_FORM_OPT_HIDDEN ||
-		    form->opts->type == OC_FORM_OPT_STOKEN)
+		    form->opts->type == OC_FORM_OPT_TOKEN)
 			free(form->opts->value);
 		else if (form->opts->type == OC_FORM_OPT_SELECT) {
 			struct oc_form_opt_select *sel = (void *)form->opts;
@@ -878,8 +885,8 @@ int prepare_stoken(struct openconnect_info *vpninfo)
 	form.opts = opts;
 	form.message = _("Enter credentials to unlock software token.");
 
-	vpninfo->stoken_tries = 0;
-	vpninfo->stoken_bypassed = 0;
+	vpninfo->token_tries = 0;
+	vpninfo->token_bypassed = 0;
 
 	if (stoken_devid_required(vpninfo->stoken_ctx)) {
 		opt->type = OC_FORM_OPT_TEXT;
@@ -929,7 +936,7 @@ int prepare_stoken(struct openconnect_info *vpninfo)
 			if (all_empty) {
 				vpn_progress(vpninfo, PRG_INFO,
 					     _("User bypassed soft token.\n"));
-				vpninfo->stoken_bypassed = 1;
+				vpninfo->token_bypassed = 1;
 				ret = 0;
 				break;
 			}
@@ -987,22 +994,23 @@ int prepare_stoken(struct openconnect_info *vpninfo)
  *  < 0, if unable to generate a tokencode
  *  = 0, on success
  */
-static int can_gen_tokencode(struct openconnect_info *vpninfo, struct oc_auth_form *form,
-			     struct oc_form_opt *opt)
+static int can_gen_stoken_code(struct openconnect_info *vpninfo,
+			       struct oc_auth_form *form,
+			       struct oc_form_opt *opt)
 {
 #ifdef LIBSTOKEN_HDR
 	if ((strcmp(opt->name, "password") && strcmp(opt->name, "answer")) ||
-	    vpninfo->stoken_bypassed)
+	    vpninfo->token_bypassed)
 		return -EINVAL;
-	if (vpninfo->stoken_tries == 0) {
+	if (vpninfo->token_tries == 0) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("OK to generate INITIAL tokencode\n"));
-		vpninfo->stoken_time = 0;
-	} else if (vpninfo->stoken_tries == 1 && form->message &&
+		vpninfo->token_time = 0;
+	} else if (vpninfo->token_tries == 1 && form->message &&
 		   strcasestr(form->message, "next tokencode")) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("OK to generate NEXT tokencode\n"));
-		vpninfo->stoken_time += 60;
+		vpninfo->token_time += 60;
 	} else {
 		/* limit the number of retries, to avoid account lockouts */
 		vpn_progress(vpninfo, PRG_INFO,
@@ -1019,35 +1027,139 @@ static int can_gen_tokencode(struct openconnect_info *vpninfo, struct oc_auth_fo
  *  < 0, if unable to generate a tokencode
  *  = 0, on success
  */
-static int do_gen_tokencode(struct openconnect_info *vpninfo, struct oc_auth_form *form)
+static int can_gen_totp_code(struct openconnect_info *vpninfo,
+			     struct oc_auth_form *form,
+			     struct oc_form_opt *opt)
+{
+#if defined(LIBOATH_HDR)
+	if ((strcmp(opt->name, "secondary_password") != 0) ||
+	    vpninfo->token_bypassed)
+		return -EINVAL;
+	if (vpninfo->token_tries == 0) {
+		vpn_progress(vpninfo, PRG_DEBUG,
+			     _("OK to generate INITIAL tokencode\n"));
+		vpninfo->token_time = 0;
+	} else if (vpninfo->token_tries == 1) {
+		vpn_progress(vpninfo, PRG_DEBUG,
+			     _("OK to generate NEXT tokencode\n"));
+		vpninfo->token_time += OATH_TOTP_DEFAULT_TIME_STEP_SIZE;
+	} else {
+		/* limit the number of retries, to avoid account lockouts */
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("Server is rejecting the soft token; switching to manual entry\n"));
+		return -ENOENT;
+	}
+	return 0;
+#else
+	return -EOPNOTSUPP;
+#endif
+}
+
+/* Return value:
+ *  < 0, if unable to generate a tokencode
+ *  = 0, on success
+ */
+static int can_gen_tokencode(struct openconnect_info *vpninfo,
+			     struct oc_auth_form *form,
+			     struct oc_form_opt *opt)
+{
+	switch (vpninfo->token_mode) {
+	case OC_TOKEN_MODE_STOKEN:
+		return can_gen_stoken_code(vpninfo, form, opt);
+
+	case OC_TOKEN_MODE_TOTP:
+		return can_gen_totp_code(vpninfo, form, opt);
+
+	default:
+		return -EINVAL;
+	}
+}
+
+static int do_gen_stoken_code(struct openconnect_info *vpninfo,
+			      struct oc_auth_form *form,
+			      struct oc_form_opt *opt)
 {
 #ifdef LIBSTOKEN_HDR
 	char tokencode[STOKEN_MAX_TOKENCODE + 1];
+
+	if (!vpninfo->token_time)
+		vpninfo->token_time = time(NULL);
+	vpn_progress(vpninfo, PRG_INFO, _("Generating RSA token code\n"));
+
+	/* This doesn't normally fail */
+	if (stoken_compute_tokencode(vpninfo->stoken_ctx, vpninfo->token_time,
+				     vpninfo->stoken_pin, tokencode) < 0) {
+		vpn_progress(vpninfo, PRG_ERR, _("General failure in libstoken.\n"));
+		return -EIO;
+	}
+
+	vpninfo->token_tries++;
+	opt->value = strdup(tokencode);
+	return opt->value ? 0 : -ENOMEM;
+#else
+	return 0;
+#endif
+}
+
+static int do_gen_totp_code(struct openconnect_info *vpninfo,
+			    struct oc_auth_form *form,
+			    struct oc_form_opt *opt)
+{
+#if defined(LIBOATH_HDR)
+	int oath_err;
+	char tokencode[7];
+
+	if (!vpninfo->token_time)
+		vpninfo->token_time = time(NULL);
+
+	vpn_progress(vpninfo, PRG_INFO, _("Generating OATH TOTP token code\n"));
+
+	oath_err = oath_totp_generate(vpninfo->oath_secret,
+				      vpninfo->oath_secret_len,
+				      vpninfo->token_time,
+				      OATH_TOTP_DEFAULT_TIME_STEP_SIZE,
+				      OATH_TOTP_DEFAULT_START_TIME,
+				      6, tokencode);
+	if (oath_err != OATH_OK) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Unable to generate OATH TOTP token code: %s\n"),
+			     oath_strerror(oath_err));
+		return -EIO;
+	}
+
+	vpninfo->token_tries++;
+	opt->value = strdup(tokencode);
+	return opt->value ? 0 : -ENOMEM;
+#else
+	return 0;
+#endif
+}
+
+/* Return value:
+ *  < 0, if unable to generate a tokencode
+ *  = 0, on success
+ */
+static int do_gen_tokencode(struct openconnect_info *vpninfo,
+			    struct oc_auth_form *form)
+{
 	struct oc_form_opt *opt;
 
 	for (opt = form->opts; ; opt = opt->next) {
 		/* this form might not have anything for us to do */
 		if (!opt)
 			return 0;
-		if (opt->type == OC_FORM_OPT_STOKEN)
+		if (opt->type == OC_FORM_OPT_TOKEN)
 			break;
 	}
 
-	if (!vpninfo->stoken_time)
-		vpninfo->stoken_time = time(NULL);
-	vpn_progress(vpninfo, PRG_INFO, _("Generating tokencode\n"));
+	switch (vpninfo->token_mode) {
+	case OC_TOKEN_MODE_STOKEN:
+		return do_gen_stoken_code(vpninfo, form, opt);
 
-	/* This doesn't normally fail */
-	if (stoken_compute_tokencode(vpninfo->stoken_ctx, vpninfo->stoken_time,
-				     vpninfo->stoken_pin, tokencode) < 0) {
-		vpn_progress(vpninfo, PRG_ERR, _("General failure in libstoken.\n"));
-		return -EIO;
+	case OC_TOKEN_MODE_TOTP:
+		return do_gen_totp_code(vpninfo, form, opt);
+
+	default:
+		return -EINVAL;
 	}
-
-	vpninfo->stoken_tries++;
-	opt->value = strdup(tokencode);
-	return opt->value ? 0 : -ENOMEM;
-#else
-	return 0;
-#endif
 }

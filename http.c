@@ -948,7 +948,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	int xmlpost = 1;
 
 	/* Step 1: Unlock software token (if applicable) */
-	if (vpninfo->use_stoken) {
+	if (vpninfo->token_mode == OC_TOKEN_MODE_STOKEN) {
 		result = prepare_stoken(vpninfo);
 		if (result)
 			return result;

@@ -22,6 +22,7 @@
        <li>Fix compatibility issues with XML POST authentication.</li>
        <li>Fix memory leaks on <tt>realloc()</tt> failure.</li>
        <li>Fix certificate validation problem caused by hostname canonicalisation.</li>
+       <li>Add RFC6238 TOTP token support using <a href="http://www.nongnu.org/oath-toolkit/">liboath</a>.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.99.tar.gz">OpenConnect v4.99</a></b>

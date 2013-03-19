@@ -3,6 +3,7 @@
  *
  * Copyright © 2008-2012 Intel Corporation.
  * Copyright © 2008 Nick Andrew <nick@nick-andrew.net>
+ * Copyright © 2013 John Morrissey <jwm@horde.net>
  *
  * Author: David Woodhouse <dwmw2@infradead.org>
  *
@@ -180,14 +181,18 @@ struct openconnect_info {
 	int uid_csd_given;
 	int no_http_keepalive;
 
+	int token_mode;
+	int token_bypassed;
+	int token_tries;
+	time_t token_time;
 #ifdef LIBSTOKEN_HDR
 	struct stoken_ctx *stoken_ctx;
-#endif
-	int use_stoken;
-	int stoken_bypassed;
-	int stoken_tries;
-	time_t stoken_time;
 	char *stoken_pin;
+#endif
+#ifdef LIBOATH_HDR
+	char *oath_secret;
+	size_t oath_secret_len;
+#endif
 
 	OPENCONNECT_X509 *peer_cert;
 
