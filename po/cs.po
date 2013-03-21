@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2013-03-09 22:44+0000\n"
+"POT-Creation-Date: 2013-03-21 12:30+0000\n"
 "PO-Revision-Date: 2013-01-12 13:15+0000\n"
 "Last-Translator: fri <pavelfric@seznam.cz>\n"
 "Language-Team: Czech (http://www.transifex.com/projects/p/meego/language/"
@@ -49,7 +49,7 @@ msgstr "Nepodařilo se zvládnout formulář metoda='%s', činnost='%s'\n"
 
 #: auth.c:498
 msgid "Empty response from server\n"
-msgstr ""
+msgstr "Prázdná odpověď od serveru\n"
 
 #: auth.c:509
 msgid "Failed to parse server response\n"
@@ -74,7 +74,7 @@ msgstr ""
 
 #: auth.c:879
 msgid "Enter credentials to unlock software token."
-msgstr ""
+msgstr "Zadejte přihlašovací údaje pro odemčení softwarového tokenu."
 
 #: auth.c:887
 msgid "Device ID:"
@@ -90,7 +90,7 @@ msgstr "PIN:"
 
 #: auth.c:931
 msgid "User bypassed soft token.\n"
-msgstr ""
+msgstr "Uživatel obešel softwarový token.\n"
 
 #: auth.c:938
 msgid "All fields are required; try again.\n"
@@ -110,7 +110,7 @@ msgstr "Neplatný formát PIN kódu, zkuste to znovu.\n"
 
 #: auth.c:974
 msgid "Soft token init was successful.\n"
-msgstr ""
+msgstr "Inicializace softwarového tokenu byla úspěšná.\n"
 
 #: auth.c:999
 msgid "OK to generate INITIAL tokencode\n"
@@ -122,116 +122,116 @@ msgstr ""
 
 #: auth.c:1009
 msgid "Server is rejecting the soft token; switching to manual entry\n"
-msgstr ""
+msgstr "Server odmítá softwarový token; přepíná se na ruční vstup\n"
 
 #: auth.c:1038
 msgid "Generating tokencode\n"
-msgstr ""
+msgstr "Generuje se kód tokenu\n"
 
 #: cstp.c:120
 #, c-format
 msgid "TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"
-msgstr ""
+msgstr "TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"
 
-#: cstp.c:138
+#: cstp.c:139
 #, c-format
 msgid "TCP_MAXSEG %d\n"
 msgstr "TCP_MAXSEG %d\n"
 
-#: cstp.c:198
+#: cstp.c:199
 #, c-format
 msgid "Failed to initialise DTLS secret\n"
-msgstr ""
+msgstr "Nepodařilo se inicializovat tajemství DTLS\n"
 
-#: cstp.c:231 http.c:199
+#: cstp.c:232 http.c:199
 msgid "Error fetching HTTPS response\n"
 msgstr "Chyba při natahování odpovědi HTTPS\n"
 
-#: cstp.c:238 http.c:459 http.c:831
+#: cstp.c:239 http.c:459 http.c:841
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "Nepodařilo se otevřít spojení HTTPS s %s\n"
 
-#: cstp.c:258
+#: cstp.c:259
 #, c-format
 msgid "VPN service unavailable; reason: %s\n"
 msgstr "Služba VPN nedostupná, důvod: %s\n"
 
-#: cstp.c:263
+#: cstp.c:264
 #, c-format
 msgid "Got inappropriate HTTP CONNECT response: %s\n"
 msgstr "Obdržena nevhodná odpověď SPOJENÍ HTTP: %s\n"
 
-#: cstp.c:270
+#: cstp.c:271
 #, c-format
 msgid "Got CONNECT response: %s\n"
 msgstr "Obdržena odpověď SPOJENÍ : %s\n"
 
-#: cstp.c:298 cstp.c:306
+#: cstp.c:299 cstp.c:307
 msgid "No memory for options\n"
 msgstr "Žádná paměť pro volby\n"
 
-#: cstp.c:315 http.c:256
+#: cstp.c:316 http.c:256
 msgid "<elided>"
 msgstr "<opomenuto>"
 
-#: cstp.c:330
+#: cstp.c:331
 #, c-format
 msgid "X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"
 msgstr "X-DTLS-Sezení-ID ne 64 znaků; je: \"%s\"\n"
 
-#: cstp.c:360
+#: cstp.c:361
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
 msgstr "Neznámé kódování-obsahu-CSTP %s\n"
 
-#: cstp.c:428
+#: cstp.c:429
 msgid "No MTU received. Aborting\n"
-msgstr ""
+msgstr "Nepřijato žádné MTU. Ruší se\n"
 
-#: cstp.c:435
+#: cstp.c:436
 msgid "No IP address received. Aborting\n"
 msgstr "Nepřijata žádná adresa IP. Ruší se\n"
 
-#: cstp.c:441
+#: cstp.c:442
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr "Znovuzapojení dalo jinou adresu Legacy IP (%s != %s)\n"
 
-#: cstp.c:449
+#: cstp.c:450
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr "Znovuzapojení dalo jinou síťovou masku Legacy IP (%s != %s)\n"
 
-#: cstp.c:457
+#: cstp.c:458
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
 msgstr "Znovuzapojení dalo jinou adresu IPv6  (%s != %s)\n"
 
-#: cstp.c:465
+#: cstp.c:466
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr "Znovuzapojení dalo jinou síťovou masku IPv6  (%s != %s)\n"
 
-#: cstp.c:485
+#: cstp.c:486
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr "CSTP spojeno. DPD %d, (udržet naživu) Keepalive %d\n"
 
-#: cstp.c:518
+#: cstp.c:519
 msgid "Compression setup failed\n"
 msgstr "Nastavení zabalení se nezdařilo\n"
 
-#: cstp.c:526
+#: cstp.c:527
 msgid "Allocation of deflate buffer failed\n"
 msgstr "Přidělení deflate vyrovnávací paměti se nezdařilo\n"
 
-#: cstp.c:566
+#: cstp.c:567
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
 msgstr "spánek %ds, zbývající oddechový čas %ds\n"
 
-#: cstp.c:599
+#: cstp.c:600
 msgid "inflate failed\n"
 msgstr "nafouknutí se nepodařilo\n"
 
@@ -317,7 +317,7 @@ msgstr "Naplánování znovuzanesení CSTP\n"
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr "CSTP odhalování mrtvého protějšku zjistilo mrtvý protějšek!\n"
 
-#: cstp.c:874 dtls.c:781
+#: cstp.c:874 dtls.c:782
 msgid "Reconnect failed\n"
 msgstr "Znovupřipojení se nezdařilo\n"
 
@@ -349,23 +349,23 @@ msgstr "Posílá se nezabalený paket dat %d bytů\n"
 msgid "Send BYE packet: %s\n"
 msgstr "Poslat BYE paket: %s\n"
 
-#: dtls.c:144
+#: dtls.c:145
 msgid "Initialise DTLSv1 CTX failed\n"
 msgstr "Inicializace DTLSv1 CTX se nepodařila\n"
 
-#: dtls.c:156
+#: dtls.c:157
 msgid "Set DTLS cipher list failed\n"
 msgstr "Nastavení seznamu šifrování DTLS se nezdařilo\n"
 
-#: dtls.c:169
+#: dtls.c:170
 msgid "Initialise DTLSv1 session failed\n"
 msgstr "Inicializace DTLSv1 sezení se nepodařila\n"
 
-#: dtls.c:190
+#: dtls.c:191
 msgid "Not precisely one DTLS cipher\n"
 msgstr "Ne přesně jedno šifrování DTLS\n"
 
-#: dtls.c:208
+#: dtls.c:209
 #, c-format
 msgid ""
 "SSL_set_session() failed with old protocol version 0x%x\n"
@@ -378,195 +378,196 @@ msgstr ""
 "Podívejte se na http://rt.openssl.org/Ticket/Display.html?id=1751\n"
 "Použijte volbu pro příkazový řádek --no-dtls pro vyhnutí se této zprávě\n"
 
-#: dtls.c:234
+#: dtls.c:235
 msgid "Established DTLS connection (using OpenSSL)\n"
-msgstr ""
+msgstr "DTLS spojení sestaveno (použito OpenSSL)\n"
 
-#: dtls.c:272
+#: dtls.c:273
 msgid "Your OpenSSL is older than the one you built against, so DTLS may fail!"
 msgstr ""
 "Vaše OpenSSL je starší než to, které jste sestavil, takže DTLS může selhat!"
 
-#: dtls.c:321 dtls.c:325 dtls.c:481
+#: dtls.c:322 dtls.c:326 dtls.c:482
 msgid "DTLS handshake timed out\n"
 msgstr "Podání ruky DTLS překročilo čas\n"
 
-#: dtls.c:322
+#: dtls.c:323
 msgid ""
 "This is probably because your OpenSSL is broken\n"
 "See http://rt.openssl.org/Ticket/Display.html?id=2984\n"
 msgstr ""
 
-#: dtls.c:329
+#: dtls.c:330
 #, c-format
 msgid "DTLS handshake failed: %d\n"
 msgstr "Podání ruky DTLS se nezdařilo: %d\n"
 
-#: dtls.c:385
+#: dtls.c:386
 #, c-format
 msgid "Unknown DTLS parameters for requested CipherSuite '%s'\n"
 msgstr ""
 
-#: dtls.c:398
+#: dtls.c:399
 #, c-format
 msgid "Failed to set DTLS priority: %s\n"
-msgstr ""
+msgstr "Nezdařilo se nastavit DTLS prioritu: %s\n"
 
-#: dtls.c:417
+#: dtls.c:418
 #, c-format
 msgid "Failed to set DTLS session parameters: %s\n"
-msgstr ""
+msgstr "Nezdařilo se nastavení parametrů DTLS relace: %s\n"
 
-#: dtls.c:439
+#: dtls.c:440
 #, c-format
 msgid "Failed to set DTLS MTU: %s\n"
-msgstr ""
+msgstr "Nezdařilo se nastavit DTLS MTU: %s\n"
 
-#: dtls.c:456
+#: dtls.c:457
 msgid "Established DTLS connection (using GnuTLS)\n"
-msgstr ""
+msgstr "DTLS spojení sestaveno (použito GnuTLS)\n"
 
-#: dtls.c:484
+#: dtls.c:485
 #, c-format
 msgid "DTLS handshake failed: %s\n"
-msgstr ""
+msgstr "Navázání DTLS se nezdařilo: %s\n"
 
-#: dtls.c:520
+#: dtls.c:521
 msgid "No DTLS address\n"
 msgstr "Žádná adresa DTLS\n"
 
 #. We probably didn't offer it any ciphers it liked
-#: dtls.c:527
+#: dtls.c:528
 msgid "Server offered no DTLS cipher option\n"
 msgstr "Server nenabídl žádnou volbu pro zašifrování DTLS\n"
 
 #. XXX: Theoretically, SOCKS5 proxies can do UDP too
-#: dtls.c:534
+#: dtls.c:535
 msgid "No DTLS when connected via proxy\n"
 msgstr "Žádné DTLS, když spojeno přes proxy\n"
 
-#: dtls.c:541
+#: dtls.c:542
 msgid "Open UDP socket for DTLS:"
 msgstr "Otevřít zásuvku UDP pro DTLS:"
 
-#: dtls.c:567 dtls.c:683
+#: dtls.c:568 dtls.c:684
 #, c-format
 msgid "Unknown protocol family %d. Cannot do DTLS\n"
 msgstr "Neznámá rodina protokolu %d. Nelze dělat DTLS\n"
 
-#: dtls.c:575
+#: dtls.c:576
 msgid "Bind UDP socket for DTLS"
-msgstr ""
+msgstr "Otevřít zásuvku UDP pro DTLS"
 
-#: dtls.c:582
+#: dtls.c:583
 msgid "UDP (DTLS) connect:\n"
 msgstr "Spojení UDP (DTLS):\n"
 
-#: dtls.c:644
+#: dtls.c:645
 #, c-format
 msgid "DTLS option %s : %s\n"
 msgstr "Volba DTLS %s : %s\n"
 
-#: dtls.c:693
+#: dtls.c:694
 #, c-format
 msgid "DTLS initialised. DPD %d, Keepalive %d\n"
-msgstr ""
+msgstr "DTLS inicializováno. DPD %d, Keepalive %d\n"
 
-#: dtls.c:724
+#: dtls.c:725
 #, c-format
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
 msgstr "Přijat DTLS paket 0x%02x %dd bytů\n"
 
-#: dtls.c:738
+#: dtls.c:739
 msgid "Got DTLS DPD request\n"
 msgstr "Obdržen požadavek DTLS DPD\n"
 
-#: dtls.c:744
+#: dtls.c:745
 msgid "Failed to send DPD response. Expect disconnect\n"
 msgstr "Nepodařilo se poslat odpověď DPD. Očekává se odpojení\n"
 
-#: dtls.c:748
+#: dtls.c:749
 msgid "Got DTLS DPD response\n"
 msgstr "Obdržena odpověď DTLS DPD\n"
 
-#: dtls.c:752
+#: dtls.c:753
 msgid "Got DTLS Keepalive\n"
 msgstr "Obdrženo DTLS Keepalive\n"
 
-#: dtls.c:757
+#: dtls.c:758
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
 msgstr "Neznámý typ paketu DTLS %02x, len %d\n"
 
-#: dtls.c:776
+#: dtls.c:777
 msgid "DTLS rekey due\n"
 msgstr "Naplánování znovuzanesení CSTP\n"
 
-#: dtls.c:787
+#: dtls.c:788
 msgid "DTLS rekey failed\n"
 msgstr "Znovuzanesení DTLS se nezdařilo\n"
 
-#: dtls.c:795
+#: dtls.c:796
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
 msgstr "DTLS odhalování mrtvého protějšku zjistilo mrtvý protějšek!\n"
 
-#: dtls.c:801
+#: dtls.c:802
 msgid "Send DTLS DPD\n"
 msgstr "Poslat DTLS DPD\n"
 
-#: dtls.c:806
+#: dtls.c:807
 msgid "Failed to send DPD request. Expect disconnect\n"
-msgstr ""
+msgstr "Nepodařilo se poslat požadavek DPD. Očekává se odpojení\n"
 
-#: dtls.c:819
+#: dtls.c:820
 msgid "Send DTLS Keepalive\n"
 msgstr "Poslat DTLS Keepalive\n"
 
-#: dtls.c:824
+#: dtls.c:825
 msgid "Failed to send keepalive request. Expect disconnect\n"
 msgstr ""
+"Nepodařilo se poslat požadavek na zachování spojení. Očekává se odpojení\n"
 
-#: dtls.c:853
+#: dtls.c:854
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
 msgstr "DTLS dostalo chybu v zápisu %d. Ustupuje se k SSL\n"
 
-#: dtls.c:867
+#: dtls.c:868
 #, c-format
 msgid "DTLS got write error: %s. Falling back to SSL\n"
-msgstr ""
+msgstr "DTLS obdrželo chybu v zápisu: %s. Vrací se k SSL\n"
 
-#: dtls.c:878
+#: dtls.c:879
 #, c-format
 msgid "Sent DTLS packet of %d bytes; DTLS send returned %d\n"
-msgstr ""
+msgstr "Odesláno %d bytů v paketu DTLS ; odeslání DTLS vrátilo %d\n"
 
-#: dtls.c:890
+#: dtls.c:891
 msgid "Built against SSL library with no Cisco DTLS support\n"
-msgstr ""
+msgstr "Přeloženo s knihovnou SSL bez podpory Cisco DTLS\n"
 
 #: gnutls.c:82
 #, c-format
 msgid "Failed to write to SSL socket: %s\n"
-msgstr ""
+msgstr "Nepodařilo se zapsat do soketu SSL: %s\n"
 
 #: gnutls.c:105 openssl.c:122
 msgid "SSL write cancelled\n"
-msgstr ""
+msgstr "Zápis SSL zrušen\n"
 
 #: gnutls.c:122
 #, c-format
 msgid "Failed to read from SSL socket: %s"
-msgstr ""
+msgstr "Nepodařilo se číst ze soketu SSL: %s"
 
 #: gnutls.c:142 gnutls.c:200 openssl.c:159 openssl.c:217
 msgid "SSL read cancelled\n"
-msgstr ""
+msgstr "Čtení SSL zrušeno\n"
 
 #: gnutls.c:176
 #, c-format
 msgid "Failed to read from SSL socket: %s\n"
-msgstr ""
+msgstr "Nepodařilo se číst ze soketu SSL: %s\n"
 
 #: gnutls.c:218
 msgid "Could not extract expiration time of certificate\n"
@@ -583,12 +584,12 @@ msgstr "Osvědčení klienta brzy vyprší v"
 #: gnutls.c:264 openssl.c:621
 #, c-format
 msgid "Failed to load item '%s' from keystore: %s\n"
-msgstr ""
+msgstr "Selhalo načtení položky „%s“ z úložiště klíčů: %s\n"
 
 #: gnutls.c:277
 #, c-format
 msgid "Failed to open key/certificate file %s: %s\n"
-msgstr ""
+msgstr "Nepodařilo se otevřít soubor klíče/certifikátu %s: %s\n"
 
 #: gnutls.c:284
 #, c-format
@@ -597,7 +598,7 @@ msgstr ""
 
 #: gnutls.c:293
 msgid "Failed to allocate certificate buffer\n"
-msgstr ""
+msgstr "Nepodařilo se alokovat paměť pro certifikát\n"
 
 #: gnutls.c:301
 #, c-format
@@ -645,12 +646,12 @@ msgstr "Nastavení PKCS#11 certifikátu selhalo: %s\n"
 #: gnutls.c:612
 #, c-format
 msgid "Could not initialise MD5 hash: %s\n"
-msgstr ""
+msgstr "Nelze inicializovat haš MD5: %s\n"
 
 #: gnutls.c:622
 #, c-format
 msgid "MD5 hash error: %s\n"
-msgstr ""
+msgstr "Chyba haše MD5: %s\n"
 
 #: gnutls.c:680
 msgid "Missing DEK-Info: header from OpenSSL encrypted key\n"
@@ -667,7 +668,7 @@ msgstr "Nepovolený způsob šifrování PEM: %s\n"
 
 #: gnutls.c:725 gnutls.c:738
 msgid "Invalid salt in encrypted PEM file\n"
-msgstr ""
+msgstr "Neplatná sůl v šifrovaném souboru PEM\n"
 
 #: gnutls.c:762
 #, c-format
@@ -783,7 +784,7 @@ msgstr "Selhalo dešifrování PKCS#8 souboru certifikátu\n"
 #: gnutls.c:1307
 #, c-format
 msgid "Failed to determine type of private key %s\n"
-msgstr ""
+msgstr "Selhalo zjištění typu soukromého klíče %s\n"
 
 #: gnutls.c:1319
 #, c-format
@@ -807,26 +808,28 @@ msgstr "Nebyl nalezen žádný SSL certifikát odpovídající soukromému klí�
 #: gnutls.c:1414 openssl.c:461 openssl.c:598
 #, c-format
 msgid "Using client certificate '%s'\n"
-msgstr ""
+msgstr "Používá se certifikát klienta „%s“\n"
 
 #: gnutls.c:1421
 #, c-format
 msgid "Setting certificate recovation list failed: %s\n"
-msgstr ""
+msgstr "Nastavení seznamu odvolaných certifikátů selhalo: %s\n"
 
 #: gnutls.c:1475
 msgid ""
 "WARNING: GnuTLS returned incorrect issuer certs; authentication may fail!\n"
 msgstr ""
+"POZOR: GnuTLS vrátilo nekorektní ceritifkáty vydavatele; autentizace může "
+"selhat!\n"
 
 #: gnutls.c:1496
 msgid "Failed to allocate memory for supporting certificates\n"
-msgstr ""
+msgstr "Selhala alokace paměti pro podpůrné certifikáty\n"
 
 #: gnutls.c:1515
 #, c-format
 msgid "Adding supporting CA '%s'\n"
-msgstr ""
+msgstr "Přidává se podpůrná CA „%s“\n"
 
 #: gnutls.c:1543
 #, c-format
@@ -856,11 +859,11 @@ msgstr "odvolaný certifikát"
 
 #: gnutls.c:1707
 msgid "signer not found"
-msgstr ""
+msgstr "podepisující nenalezen"
 
 #: gnutls.c:1709
 msgid "signer not a CA certificate"
-msgstr ""
+msgstr "podepisující není certifikát CA"
 
 #: gnutls.c:1711
 msgid "insecure algorithm"
@@ -907,7 +910,7 @@ msgstr "Selhalo čtení certifikátů ze souboru ca: %s\n"
 msgid "Failed to open CA file '%s': %s\n"
 msgstr "Nepodařilo se otevřít soubor CA '%s': %s\n"
 
-#: gnutls.c:1850 openssl.c:1300
+#: gnutls.c:1850 openssl.c:1299
 msgid "Loading certificate failed. Aborting.\n"
 msgstr "Nahrání osvědčení se nezdařilo. Ruší se.\n"
 
@@ -917,14 +920,14 @@ msgid "Failed to set TLS priority string: %s\n"
 msgstr "Selhalo nastavení řetězce TLS priority: %s\n"
 
 #. really?
-#: gnutls.c:1886 openssl.c:1384
+#: gnutls.c:1886 openssl.c:1383
 #, c-format
 msgid "SSL negotiation with %s\n"
 msgstr "Jednání SSL s %s\n"
 
-#: gnutls.c:1910 openssl.c:1415
+#: gnutls.c:1910 openssl.c:1414
 msgid "SSL connection cancelled\n"
-msgstr ""
+msgstr "Spojení SSL bylo zrušeno\n"
 
 #: gnutls.c:1917
 #, c-format
@@ -936,7 +939,7 @@ msgstr "Selhání spojení SSL: %s\n"
 msgid "GnuTLS non-fatal return during handshake: %s\n"
 msgstr ""
 
-#: gnutls.c:1933 openssl.c:1435
+#: gnutls.c:1933 openssl.c:1434
 #, c-format
 msgid "Connected to HTTPS on %s\n"
 msgstr "Spojeno s HTTPS na %s\n"
@@ -975,12 +978,12 @@ msgstr ""
 #: gnutls_tpm.c:118
 #, c-format
 msgid "Failed to create TPM hash object: %s\n"
-msgstr ""
+msgstr "Selhalo vytvoření objektu haše TMP: %s\n"
 
 #: gnutls_tpm.c:125
 #, c-format
 msgid "Failed to set value in TPM hash object: %s\n"
-msgstr ""
+msgstr "Selhalo nastavení hodnoty v objektu haše TMP: %s\n"
 
 #: gnutls_tpm.c:135
 #, c-format
@@ -1038,7 +1041,7 @@ msgstr ""
 #: gnutls_tpm.c:294
 #, c-format
 msgid "Failed to assign policy to key: %s\n"
-msgstr ""
+msgstr "Selhalo přiřazení politiky klíči: %s\n"
 
 #: gnutls_tpm.c:300
 msgid "Enter TPM key PIN:"
@@ -1128,6 +1131,14 @@ msgstr "Stažený soubor s nastavením neodpovídá zamýšlenému SHA1\n"
 
 #: http.c:515
 msgid ""
+"Error: Server asked us to run CSD hostscan.\n"
+"You need to provide a suitable --csd-wrapper argument.\n"
+msgstr ""
+"Chyba: Server žádá o spuštění CSD hostscan.\n"
+"Musíte poskytnout odpovídající argument --csd-wrapper.\n"
+
+#: http.c:522
+msgid ""
 "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 "This facility is disabled by default for security reasons, so you may wish "
 "to enable it.\n"
@@ -1137,36 +1148,36 @@ msgstr ""
 "tato dovednost je zakázána ve výchozím nastavení z důvodů bezpečnosti, takže "
 "ji možná budete chtít povolit.\n"
 
-#: http.c:522
+#: http.c:529
 msgid "Trying to run Linux CSD trojan script.\n"
 msgstr "Pokus o spuštění trojského skriptu CSD pro Linux.\n"
 
-#: http.c:530
+#: http.c:539
 #, c-format
 msgid "Failed to open temporary CSD script file: %s\n"
 msgstr "Nepodařilo se otevřít dočasný soubor se skriptem CSD: %s\n"
 
-#: http.c:538
+#: http.c:547
 #, c-format
 msgid "Failed to write temporary CSD script file: %s\n"
 msgstr "Nepodařilo se zapsat dočasný soubor se skriptem CSD: %s\n"
 
-#: http.c:555 main.c:840
+#: http.c:565 main.c:839
 #, c-format
 msgid "Failed to set uid %ld\n"
 msgstr "Nepodařilo se nastavit uid %ld\n"
 
-#: http.c:560
+#: http.c:570
 #, c-format
 msgid "Invalid user uid=%ld\n"
 msgstr "Neplatné uživatelské uid %ld\n"
 
-#: http.c:566
+#: http.c:576
 #, c-format
 msgid "Failed to change to CSD home directory '%s': %s\n"
 msgstr "Nepodařilo se provést změnu na domovský adresář CSD '%s': %s\n"
 
-#: http.c:572
+#: http.c:582
 #, c-format
 msgid ""
 "Warning: you are running insecure CSD code with root privileges\n"
@@ -1175,169 +1186,169 @@ msgstr ""
 "Varování: spouštíte nezabezpečený kód CSD s oprávněním správce systému\n"
 "\t Použít volbu pro příkazový řádek \"--csd-user\"\n"
 
-#: http.c:616
+#: http.c:626
 #, c-format
 msgid "Failed to exec CSD script %s\n"
 msgstr "Nepodařilo se spustit skript CSD %s\n"
 
-#: http.c:733
+#: http.c:743
 #, c-format
 msgid "Failed to parse redirected URL '%s': %s\n"
 msgstr "Nepodařilo se zpracovat přesměrovanou adresu (URL) '%s': %s\n"
 
-#: http.c:762
+#: http.c:772
 #, c-format
 msgid "Cannot follow redirection to non-https URL '%s'\n"
 msgstr "Nelze následovat přesměrování na non-https URL  '%s'\n"
 
-#: http.c:790
+#: http.c:800
 #, c-format
 msgid "Allocating new path for relative redirect failed: %s\n"
 msgstr "Přidělení nové cesty pro relativní přesměrování se nezdařilo: %s\n"
 
-#: http.c:892
+#: http.c:902
 #, c-format
 msgid "Unexpected %d result from server\n"
 msgstr "Neočekávaný výsledek %d od serveru\n"
 
-#: http.c:918
+#: http.c:928
 msgid "Unknown response from server\n"
 msgstr "Neznámá odpověď od serveru\n"
 
-#: http.c:999
+#: http.c:1009
 msgid "XML POST enabled\n"
 msgstr "XML POST povolen\n"
 
-#: http.c:1040
+#: http.c:1053
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
 msgstr "Obnova %s po 1 sekundě...\n"
 
-#: http.c:1244
+#: http.c:1257
 msgid "request granted"
 msgstr "Požadavek schválen"
 
-#: http.c:1245
+#: http.c:1258
 msgid "general failure"
 msgstr "Obecné selhání"
 
-#: http.c:1246
+#: http.c:1259
 msgid "connection not allowed by ruleset"
 msgstr "Spojení podle souboru pravidel nepovoleno"
 
-#: http.c:1247
+#: http.c:1260
 msgid "network unreachable"
 msgstr "Síť nedosažitelná"
 
-#: http.c:1248
+#: http.c:1261
 msgid "host unreachable"
 msgstr "Hostitel nedosažitelný"
 
-#: http.c:1249
+#: http.c:1262
 msgid "connection refused by destination host"
 msgstr "Spojení cílovým hostitelem odmítnuto"
 
-#: http.c:1250
+#: http.c:1263
 msgid "TTL expired"
 msgstr "TTL vypršel"
 
-#: http.c:1251
+#: http.c:1264
 msgid "command not supported / protocol error"
 msgstr "Příkaz nepodporován/chyba protokolu"
 
-#: http.c:1252
+#: http.c:1265
 msgid "address type not supported"
 msgstr "Typ adresy nepodporován"
 
-#: http.c:1266
+#: http.c:1279
 #, c-format
 msgid "Error writing auth request to SOCKS proxy: %s\n"
 msgstr "Chyba při zápisu požadavku na ověření do proxy SOCKS: %s\n"
 
-#: http.c:1273
+#: http.c:1286
 #, c-format
 msgid "Error reading auth response from SOCKS proxy: %s\n"
 msgstr "Chyba při čtení odpovědi týkající se ověřen z proxy SOCKS: %s\n"
 
-#: http.c:1279
+#: http.c:1292
 #, c-format
 msgid "Unexpected auth response from SOCKS proxy: %02x %02x\n"
 msgstr "Neočekávaná odpověď týkající se ověřen z proxy SOCKS: %02x %02x\n"
 
-#: http.c:1287
+#: http.c:1300
 #, c-format
 msgid "SOCKS proxy error %02x: %s\n"
 msgstr "Chyba proxy SOCKS %02x: %s\n"
 
-#: http.c:1291
+#: http.c:1304
 #, c-format
 msgid "SOCKS proxy error %02x\n"
 msgstr "Chyba proxy SOCKS %02x\n"
 
-#: http.c:1297
+#: http.c:1310
 #, c-format
 msgid "Requesting SOCKS proxy connection to %s:%d\n"
 msgstr "Požadavek na spojení proxy SOCKS do %s:%d\n"
 
-#: http.c:1312
+#: http.c:1325
 #, c-format
 msgid "Error writing connect request to SOCKS proxy: %s\n"
 msgstr "Chyba při zápisu odpovědi spojení do proxy SOCKS: %s\n"
 
-#: http.c:1320 http.c:1353
+#: http.c:1333 http.c:1366
 #, c-format
 msgid "Error reading connect response from SOCKS proxy: %s\n"
 msgstr "Chyba při čtení odpovědi spojení z proxy SOCKS: %s\n"
 
-#: http.c:1326
+#: http.c:1339
 #, c-format
 msgid "Unexpected connect response from SOCKS proxy: %02x %02x...\n"
 msgstr "Neočekávaná odpověď spojení z proxy SOCKS: %02x %02x...\n"
 
-#: http.c:1346
+#: http.c:1359
 #, c-format
 msgid "Unexpected address type %02x in SOCKS connect response\n"
 msgstr "Neočekávaný typ adresy %02x v odpovědi spojení SOCKS\n"
 
-#: http.c:1379
+#: http.c:1392
 #, c-format
 msgid "Requesting HTTP proxy connection to %s:%d\n"
 msgstr "Požadavek na spojení proxy HTTP do %s:%d\n"
 
-#: http.c:1387
+#: http.c:1400
 #, c-format
 msgid "Sending proxy request failed: %s\n"
 msgstr "Poslání požadavku na proxy se nezdařilo: %s\n"
 
-#: http.c:1394
+#: http.c:1407
 msgid "Error fetching proxy response\n"
 msgstr "Chyba při natahování spojení proxy\n"
 
-#: http.c:1401
+#: http.c:1414
 #, c-format
 msgid "Failed to parse proxy response '%s'\n"
 msgstr "Nepodařilo se zpracovat odpověď proxy '%s'\n"
 
-#: http.c:1407
+#: http.c:1420
 #, c-format
 msgid "Proxy CONNECT request failed: %s\n"
 msgstr "Požadavek na SPOJENÍ proxy se nezdařil: %s\n"
 
-#: http.c:1414
+#: http.c:1427
 msgid "Failed to read proxy response\n"
 msgstr "Nepodařilo se přečíst odpověď proxy\n"
 
-#: http.c:1418
+#: http.c:1431
 #, c-format
 msgid "Unexpected continuation line after CONNECT response: '%s'\n"
 msgstr "Neočekávaný pokračovací řádek po odpovědi SPOJENÍ: '%s'\n"
 
-#: http.c:1434
+#: http.c:1447
 #, c-format
 msgid "Unknown proxy type '%s'\n"
 msgstr "Neznámý typ proxy '%s'\n"
 
-#: http.c:1462
+#: http.c:1475
 msgid "Only http or socks(5) proxies supported\n"
 msgstr "Podporovány pouze proxy HTTP nebo socks(5)\n"
 
@@ -1381,6 +1392,8 @@ msgid ""
 "\n"
 "WARNING: No DTLS support in this binary. Performance will be impaired.\n"
 msgstr ""
+"\n"
+"POZOR: program neobsauje podporu DTLS. Výkon bude snížen.\n"
 
 #: main.c:231
 #, c-format
@@ -1418,7 +1431,7 @@ msgstr "Varovat, když je život certifikátu < DNY"
 
 #: main.c:239
 msgid "Use SSL private key file KEY"
-msgstr ""
+msgstr "Použít soubor KEY se soukromým klíčem SSL"
 
 #: main.c:240
 msgid "Use WebVPN cookie COOKIE"
@@ -1450,23 +1463,23 @@ msgstr "Zobrazit text s nápovědou"
 
 #: main.c:247
 msgid "Use IFNAME for tunnel interface"
-msgstr ""
+msgstr "Použít IFNAME jako rozhraní tunelu"
 
 #: main.c:248
 msgid "Use syslog for progress messages"
-msgstr ""
+msgstr "Použít syslog pro záznam zpráv o průběhu"
 
 #: main.c:249
 msgid "Drop privileges after connecting"
-msgstr ""
+msgstr "Po připojení zahodit oprávnění"
 
 #: main.c:250
 msgid "Drop privileges during CSD execution"
-msgstr ""
+msgstr "Zahodit oprávnění při spuštění CSD"
 
 #: main.c:251
 msgid "Run SCRIPT instead of CSD binary"
-msgstr ""
+msgstr "Spusit SCRIPT místo programu CSD"
 
 #: main.c:252
 msgid "Request MTU from server"
@@ -1474,7 +1487,7 @@ msgstr "Vyžádat MTU od serveru"
 
 #: main.c:253
 msgid "Indicate path MTU to/from server"
-msgstr ""
+msgstr "Zjistit MTU cesty na/z serveru"
 
 #: main.c:254
 msgid "Set key passphrase or TPM SRK PIN"
@@ -1511,6 +1524,7 @@ msgstr "Nastavit limit fronty paketů na LEN paketů"
 #: main.c:264
 msgid "Shell command line for using a vpnc-compatible config script"
 msgstr ""
+"Příkazová řádka pro použití konfiguračního skriptu kompatibilního s vpnc"
 
 #: main.c:265
 msgid "default"
@@ -1578,7 +1592,7 @@ msgstr "Zakázat ověření heslem/SecurID"
 
 #: main.c:281
 msgid "Do not require server SSL cert to be valid"
-msgstr ""
+msgstr "Nepožadovat, aby byl certifikát SSL serveru platný"
 
 #: main.c:282
 msgid "Do not expect user input; exit if it is required"
@@ -1590,7 +1604,7 @@ msgstr "Číst heslo ze standardního vstupu"
 
 #: main.c:284
 msgid "Use software token to generate password"
-msgstr ""
+msgstr "Použít pro generování hesla softwarový token"
 
 #: main.c:286
 msgid "(NOTE: libstoken disabled in this build)"
@@ -1614,12 +1628,12 @@ msgstr "Nahlášený typ OS (linux,linux-64,mac,win)"
 
 #: main.c:292
 msgid "Set local port for DTLS datagrams"
-msgstr ""
+msgstr "Nastavit místní port pro datagramy DTLS"
 
 #: main.c:303
 #, c-format
 msgid "Allocation failure for string from stdin\n"
-msgstr ""
+msgstr "Nezdařila se alokace řetězce ze standardního vstupu\n"
 
 #: main.c:307
 msgid "fgets (stdin)"
@@ -1633,7 +1647,7 @@ msgstr "Selhalo čtení řádky z konfiguračního souboru:  %s\n"
 #: main.c:410
 #, c-format
 msgid "Unrecognised option at line %d: '%s'\n"
-msgstr ""
+msgstr "Nerozpoznaná volba na řádku %d: „%s“\n"
 
 #: main.c:420
 #, c-format
@@ -1655,7 +1669,7 @@ msgstr ""
 #: main.c:469
 #, c-format
 msgid "Failed to allocate vpninfo structure\n"
-msgstr ""
+msgstr "Nepodařilo se alokovat strukturu vpninfo\n"
 
 #: main.c:508
 #, c-format
@@ -1667,12 +1681,12 @@ msgstr "V konfiguračním souboru nelze použít volbu 'config'\n"
 msgid "Cannot open config file '%s': %s\n"
 msgstr "Nelze otevřít konfigurační soubor '%s': %s\n"
 
-#: main.c:602 main.c:609
+#: main.c:601 main.c:608
 #, c-format
 msgid "MTU %d too small\n"
 msgstr "MTU %d je příliš malé\n"
 
-#: main.c:630
+#: main.c:629
 #, c-format
 msgid ""
 "Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
@@ -1683,95 +1697,95 @@ msgstr ""
 "Pokud to pomůže, pošlete hlášení na adresu <openconnect-devel@lists."
 "infradead.org>.\n"
 
-#: main.c:652 main.c:666
+#: main.c:651 main.c:665
 #, c-format
 msgid "Invalid user \"%s\"\n"
 msgstr "Neplatný uživatel \"%s\"\n"
 
-#: main.c:684
+#: main.c:683
 #, c-format
 msgid "Queue length zero not permitted; using 1\n"
 msgstr "Nulová délka fronty není povolena; použije se 1\n"
 
-#: main.c:695
+#: main.c:694
 #, c-format
 msgid "OpenConnect version %s\n"
 msgstr "OpenConnect  verze%s\n"
 
-#: main.c:721
+#: main.c:720
 #, c-format
 msgid "Invalid OS identity \"%s\"\n"
 msgstr "Neplatná identita OS \"%s\"\n"
 
-#: main.c:732
+#: main.c:731
 #, c-format
 msgid "Too many arguments on command line\n"
 msgstr "Příliš mnoho argumentů v příkazové řádce\n"
 
-#: main.c:735
+#: main.c:734
 #, c-format
 msgid "No server specified\n"
 msgstr "Nebyl zadán žádný server\n"
 
-#: main.c:748
+#: main.c:747
 #, c-format
 msgid "This version of openconnect was built without libproxy support\n"
 msgstr "Tato verze openconnect byla sestavena bez podpory pro libproxy\n"
 
-#: main.c:805
+#: main.c:804
 #, c-format
 msgid "Failed to obtain WebVPN cookie\n"
-msgstr ""
+msgstr "Nezdařilo se získat cookie WebVPN\n"
 
-#: main.c:829
+#: main.c:828
 #, c-format
 msgid "Creating SSL connection failed\n"
-msgstr ""
+msgstr "Nepodařilo se vytvořit spojení SSL\n"
 
-#: main.c:834
+#: main.c:833
 #, c-format
 msgid "Set up tun device failed\n"
 msgstr "Selhalo nastavení zařízení tun\n"
 
-#: main.c:847
+#: main.c:846
 #, c-format
 msgid "Set up DTLS failed; using SSL instead\n"
-msgstr ""
+msgstr "Nastavení DTLS selhalo; bude použito SSL\n"
 
-#: main.c:850
+#: main.c:849
 #, c-format
 msgid "Connected %s as %s%s%s, using %s\n"
 msgstr "Spojeno %s jako %s%s%s, pomocí %s\n"
 
-#: main.c:860
+#: main.c:859
 msgid "No --script argument provided; DNS and routing are not configured\n"
 msgstr "Neposkytnut žádný argument  --script; DNS a nasměrování nenastaveno\n"
 
-#: main.c:862
+#: main.c:861
 msgid "See http://www.infradead.org/openconnect/vpnc-script.html\n"
 msgstr "Více na http://www.infradead.org/openconnect/vpnc-script.html\n"
 
-#: main.c:874
+#: main.c:873
 #, c-format
 msgid "Failed to open '%s' for write: %s\n"
 msgstr "Nepodařilo se otevřít '%s' pro zápis: %s\n"
 
-#: main.c:885
+#: main.c:884
 #, c-format
 msgid "Continuing in background; pid %d\n"
 msgstr "Pokračuje se na pozadí; PID %d\n"
 
-#: main.c:907
+#: main.c:906
 #, c-format
 msgid "Failed to open %s for write: %s\n"
 msgstr "Nepodařilo se otevřít %s pro zápis: %s\n"
 
-#: main.c:915
+#: main.c:914
 #, c-format
 msgid "Failed to write config to %s: %s\n"
 msgstr "Nepodařilo se zapsat nastavení do %s: %s\n"
 
-#: main.c:1009
+#: main.c:1008
 #, c-format
 msgid ""
 "\n"
@@ -1782,54 +1796,55 @@ msgstr ""
 "Pro osvědčení od serveru VPN \"%s\" se nepodařilo provést ověření.\n"
 "Důvod: %s\n"
 
-#: main.c:1015
+#: main.c:1014
 #, c-format
 msgid "Enter '%s' to accept, '%s' to abort; anything else to view: "
 msgstr ""
+"Zadejte „%s“ pro přijetí, „%s“ pro zrušení; cokoliv jiného k zobrazení:"
 
-#: main.c:1016 main.c:1034
+#: main.c:1015 main.c:1033
 msgid "no"
 msgstr "Ne"
 
-#: main.c:1016 main.c:1023
+#: main.c:1015 main.c:1022
 msgid "yes"
 msgstr "Ano"
 
-#: main.c:1040
+#: main.c:1039
 #, c-format
 msgid "SHA1 fingerprint: %s\n"
 msgstr "Otisk prstu SHA1: %s\n"
 
-#: main.c:1090
+#: main.c:1089
 #, c-format
 msgid "Auth choice \"%s\" not available\n"
 msgstr "Výběr ověření \"%s\" nedostupný\n"
 
-#: main.c:1103 main.c:1151 main.c:1178
+#: main.c:1102 main.c:1150 main.c:1177
 msgid "User input required in non-interactive mode\n"
 msgstr "Vyžadován uživatelský vstup v neinteraktivním režimu\n"
 
-#: main.c:1134
+#: main.c:1133
 #, c-format
 msgid "Auth choice \"%s\" not valid\n"
 msgstr "Výběr ověření \"%s\" neplatný\n"
 
-#: main.c:1237
+#: main.c:1236
 #, c-format
 msgid "Soft token string is invalid\n"
-msgstr ""
+msgstr "Řetězec softwarového tokenu není platný\n"
 
-#: main.c:1240
+#: main.c:1239
 #, c-format
 msgid "Can't open ~/.stokenrc file\n"
 msgstr "Nelze otevřít soubor ~/.stokenrc\n"
 
-#: main.c:1243
+#: main.c:1242
 #, c-format
 msgid "OpenConnect was not built with soft token support\n"
 msgstr "OpenConnect nebyl sestaven s podporou pro soft token\n"
 
-#: main.c:1246
+#: main.c:1245
 #, c-format
 msgid "General failure in libstoken\n"
 msgstr "Obecné selhání v knihovně libstoken\n"
@@ -1845,16 +1860,16 @@ msgstr "Žádná práce k udělání; spánek po %d ms...\n"
 
 #: openssl.c:110
 msgid "Failed to write to SSL socket\n"
-msgstr ""
+msgstr "Selhal zápis do soketu SSL\n"
 
 #: openssl.c:147 openssl.c:204
 msgid "Failed to read from SSL socket\n"
-msgstr ""
+msgstr "Selhalo čtení ze soketu SSL\n"
 
 #: openssl.c:401
 #, c-format
 msgid "PEM password too long (%d >= %d)\n"
-msgstr ""
+msgstr "Heslo PEM je příliš dlouhé (%d >= %d)\n"
 
 #: openssl.c:442
 msgid "Parse PKCS#12 failed (wrong passphrase?)\n"
@@ -2028,27 +2043,27 @@ msgstr "Zvláštní osvědčení od cafile: '%s'\n"
 msgid "Error in client cert notAfter field\n"
 msgstr "Chyba v poli notAfter osvědčení klienta\n"
 
-#: openssl.c:1251
+#: openssl.c:1250
 msgid "<error>"
 msgstr "<chyba>"
 
-#: openssl.c:1342
+#: openssl.c:1341
 #, c-format
 msgid "Failed to read certs from CA file '%s'\n"
-msgstr ""
+msgstr "Selhalo čtení certifikátů z CA souboru „%s“\n"
 
-#: openssl.c:1366
+#: openssl.c:1365
 #, c-format
 msgid "Failed to open CA file '%s'\n"
 msgstr "Nepodařilo se otevřít soubor CA '%s'\n"
 
-#: openssl.c:1400
+#: openssl.c:1399
 msgid "SSL connection failure\n"
 msgstr "Selhání spojení SSL\n"
 
 #: ssl.c:86
 msgid "Socket connect cancelled\n"
-msgstr ""
+msgstr "Připojení zásuvky bylo zrušeno\n"
 
 #: ssl.c:119
 #, c-format
@@ -2105,11 +2120,11 @@ msgstr "Žádná chyba"
 
 #: ssl.c:454
 msgid "Keystore locked"
-msgstr ""
+msgstr "Úložiště klíčů uzamčeno"
 
 #: ssl.c:455
 msgid "Keystore uninitialized"
-msgstr ""
+msgstr "Neinicializované úložiště klíčů"
 
 #: ssl.c:456
 msgid "System error"
@@ -2161,114 +2176,114 @@ msgstr "Zahodit špatné zahrnutí rozdělení: \"%s\"\n"
 msgid "Discard bad split exclude: \"%s\"\n"
 msgstr "Zahodit špatné vyloučení rozdělení: \"%s\"\n"
 
-#: tun.c:387
+#: tun.c:388
 #, c-format
 msgid "Failed to spawn script '%s' for %s: %s\n"
-msgstr ""
+msgstr "Selhalo vytvoření skriptu „%s“ pro %s: %s\n"
 
-#: tun.c:393
+#: tun.c:394
 #, c-format
 msgid "Script '%s' exited abnormally (%x)\n"
-msgstr ""
+msgstr "Skript „%s“ skončil neúspěšně  (%x)\n"
 
-#: tun.c:400
+#: tun.c:401
 #, c-format
 msgid "Script '%s' returned error %d\n"
-msgstr ""
+msgstr "Skript „%s“ vrátil chybu %d\n"
 
-#: tun.c:415
+#: tun.c:416
 msgid "Could not open /dev/tun for plumbing"
 msgstr "Nelze otevřít /dev/tun pro tunelování"
 
-#: tun.c:419
+#: tun.c:420
 msgid "Can't push IP"
 msgstr "Nelze protlačit IP"
 
-#: tun.c:429
+#: tun.c:430
 msgid "Can't set ifname"
-msgstr ""
+msgstr "Nelze nastavit název rozhraní"
 
-#: tun.c:436
+#: tun.c:437
 #, c-format
 msgid "Can't open %s: %s"
 msgstr "Nelze otevřít %s: %s"
 
-#: tun.c:444
+#: tun.c:445
 #, c-format
 msgid "Can't plumb %s for IPv%d: %s\n"
 msgstr ""
 
-#: tun.c:509
+#: tun.c:510
 #, c-format
 msgid "Failed to open tun device: %s\n"
 msgstr "Nepodařilo se otevřít zařízení tun: %s\n"
 
-#: tun.c:520
+#: tun.c:521
 #, c-format
 msgid "TUNSETIFF failed: %s\n"
 msgstr ""
 "TUNSETIFF se nepodařilo\n"
 ": %s\n"
 
-#: tun.c:532
+#: tun.c:533
 msgid "open /dev/tun"
 msgstr "Otevřít /dev/tun"
 
-#: tun.c:538
+#: tun.c:539
 msgid "Failed to create new tun"
 msgstr "Nepodařilo se vytvořit nové tun"
 
-#: tun.c:544
+#: tun.c:545
 msgid "Failed to put tun file descriptor into message-discard mode"
 msgstr ""
 
-#: tun.c:579
+#: tun.c:580
 #, c-format
 msgid "Invalid interface name '%s'; must match 'tun%%d'\n"
 msgstr "Nepatný název rozhraní '%s'; musí odpovídat tun%%d'\n"
 
-#: tun.c:589
+#: tun.c:590
 #, c-format
 msgid "Cannot open '%s': %s\n"
 msgstr "Nemohu otevřít %s: %s\n"
 
-#: tun.c:618
+#: tun.c:619
 msgid "open tun"
 msgstr "Otevřít tun"
 
-#: tun.c:626
+#: tun.c:627
 msgid "TUNSIFHEAD"
 msgstr "TUNSIFHEAD"
 
-#: tun.c:646
+#: tun.c:647
 msgid "socketpair"
 msgstr "Dvojice zásuvek"
 
-#: tun.c:652
+#: tun.c:653
 msgid "fork"
 msgstr "Rozdvojení"
 
-#: tun.c:656
+#: tun.c:657
 msgid "setpgid"
 msgstr "setpgid"
 
-#: tun.c:660
+#: tun.c:661
 msgid "execl"
 msgstr "execl"
 
-#: tun.c:665
+#: tun.c:666
 msgid "(script)"
 msgstr "(skript)"
 
-#: tun.c:759
+#: tun.c:760
 #, c-format
 msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
 msgstr "Přijat neznámý paket (len %d): %02x %02x %02x %02x...\n"
 
-#: tun.c:779
+#: tun.c:780
 #, c-format
 msgid "Failed to write incoming packet: %s\n"
-msgstr ""
+msgstr "Selhal zápis příchozího paketu: %s\n"
 
 #: xml.c:53
 msgid "Open XML config file"
@@ -2300,7 +2315,7 @@ msgstr "Soubor s nastavením XML SHA1: %s\n"
 #: xml.c:88
 #, c-format
 msgid "Failed to parse XML config file %s\n"
-msgstr ""
+msgstr "Selhalo zpracování konfiguračního souboru %s ve formátu XML\n"
 
 #: xml.c:125
 #, c-format
