@@ -506,7 +506,7 @@ AS_IF([test "x$with_stoken" != "xno"], [
 
 AC_ARG_WITH([liboath],
 	AS_HELP_STRING([--without-liboath],
-		[Build without liboath library (default: test)]))
+	[Build without liboath library [default=auto]]))
 AS_IF([test "x$with_liboath" != "xno"], [
 	PKG_CHECK_MODULES(LIBOATH, liboath,
 		[AC_SUBST(LIBOATH_PC, liboath)
