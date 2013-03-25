@@ -293,10 +293,10 @@ static void usage(void)
 	printf("      --token-mode=MODE           %s\n", _("Software token type: stoken (default) or totp"));
 	printf("      --token-secret[=STRING]     %s\n", _("Software token secret (can be empty for stoken mode"));
 	printf("                                  %s\n", _("    to read from ~/.stokenrc)"));
-#ifndef LIBSTOKEN_HDR
+#ifndef HAVE_LIBSTOKEN
 	printf("                                  %s\n", _("(NOTE: libstoken (RSA SecurID) disabled in this build)"));
 #endif
-#ifndef LIBOATH_HDR
+#ifndef HAVE_LIBOATH
 	printf("                                  %s\n", _("(NOTE: liboath (TOTP) disabled in this build)"));
 #endif
 	printf("      --reconnect-timeout         %s\n", _("Connection retry timeout in seconds"));

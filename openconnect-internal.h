@@ -62,8 +62,8 @@
 #include LIBPROXY_HDR
 #endif
 
-#ifdef LIBSTOKEN_HDR
-#include LIBSTOKEN_HDR
+#ifdef HAVE_LIBSTOKEN
+#include <stoken.h>
 #endif
 
 #ifdef ENABLE_NLS
@@ -185,11 +185,11 @@ struct openconnect_info {
 	int token_bypassed;
 	int token_tries;
 	time_t token_time;
-#ifdef LIBSTOKEN_HDR
+#ifdef HAVE_LIBSTOKEN
 	struct stoken_ctx *stoken_ctx;
 	char *stoken_pin;
 #endif
-#ifdef LIBOATH_HDR
+#ifdef HAVE_LIBOATH
 	char *oath_secret;
 	size_t oath_secret_len;
 #endif

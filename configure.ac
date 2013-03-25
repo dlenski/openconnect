@@ -499,7 +499,7 @@ AC_ARG_WITH([stoken],
 AS_IF([test "x$with_stoken" != "xno"], [
 	PKG_CHECK_MODULES(LIBSTOKEN, stoken,
 			[AC_SUBST(LIBSTOKEN_PC, stoken)
-			 AC_DEFINE([LIBSTOKEN_HDR], ["stoken.h"])
+			 AC_DEFINE([HAVE_LIBSTOKEN], 1)
 			 libstoken_pkg=yes],
 			 libstoken_pkg=no)
 ], [libstoken_pkg=disabled])
@@ -510,7 +510,7 @@ AC_ARG_WITH([liboath],
 AS_IF([test "x$with_liboath" != "xno"], [
 	PKG_CHECK_MODULES(LIBOATH, liboath,
 		[AC_SUBST(LIBOATH_PC, liboath)
-		 AC_DEFINE([LIBOATH_HDR], ["liboath/oath.h"])
+		 AC_DEFINE([HAVE_LIBOATH], 1)
 		 liboath_pkg=yes],
 		 liboath_pkg=no)
 ])

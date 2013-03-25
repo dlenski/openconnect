@@ -27,12 +27,12 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#ifdef LIBSTOKEN_HDR
-#include LIBSTOKEN_HDR
+#ifdef HAVE_LIBSTOKEN
+#include <stoken.h>
 #endif
 
-#ifdef LIBOATH_HDR
-#include LIBOATH_HDR
+#ifdef HAVE_LIBOATH
+#include <liboath/oath.h>
 #endif
 
 #include <libxml/tree.h>
@@ -144,13 +144,13 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		vpninfo->peer_cert = NULL;
 	}
 	free(vpninfo->useragent);
-#ifdef LIBSTOKEN_HDR
+#ifdef HAVE_LIBSTOKEN
 	if (vpninfo->stoken_pin)
 		free(vpninfo->stoken_pin);
 	if (vpninfo->stoken_ctx)
 		stoken_destroy(vpninfo->stoken_ctx);
 #endif
-#ifdef LIBOATH_HDR
+#ifdef HAVE_LIBOATH
 	if (vpninfo->oath_secret)
 		oath_done();
 #endif
@@ -323,7 +323,7 @@ int openconnect_has_tss_blob_support(void)
 
 int openconnect_has_stoken_support(void)
 {
-#ifdef LIBSTOKEN_HDR
+#ifdef HAVE_LIBSTOKEN
 	return 1;
 #else
 	return 0;
@@ -332,7 +332,7 @@ int openconnect_has_stoken_support(void)
 
 int openconnect_has_oath_support(void)
 {
-#ifdef LIBOATH_HDR
+#ifdef HAVE_LIBOATH
 	return 1;
 #else
 	return 0;
@@ -342,7 +342,7 @@ int openconnect_has_oath_support(void)
 static int set_libstoken_mode(struct openconnect_info *vpninfo,
 			      const char *token_str)
 {
-#ifdef LIBSTOKEN_HDR
+#ifdef HAVE_LIBSTOKEN
 	int ret;
 
 	if (!vpninfo->stoken_ctx) {
@@ -367,7 +367,7 @@ static int set_libstoken_mode(struct openconnect_info *vpninfo,
 static int set_oath_mode(struct openconnect_info *vpninfo,
 			 const char *token_str)
 {
-#ifdef LIBOATH_HDR
+#ifdef HAVE_LIBOATH
 	int ret;
 
 	ret = oath_init();

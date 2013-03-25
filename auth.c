@@ -33,12 +33,12 @@
 #include <ctype.h>
 #include <errno.h>
 
-#ifdef LIBSTOKEN_HDR
-#include LIBSTOKEN_HDR
+#ifdef HAVE_LIBSTOKEN
+#include <stoken.h>
 #endif
 
-#ifdef LIBOATH_HDR
-#include LIBOATH_HDR
+#ifdef HAVE_LIBOATH
+#include <liboath/oath.h>
 #endif
 
 #include <libxml/parser.h>
@@ -849,7 +849,7 @@ bad:
 }
 
 
-#ifdef LIBSTOKEN_HDR
+#ifdef HAVE_LIBSTOKEN
 static void nuke_opt_values(struct oc_form_opt *opt)
 {
 	for (; opt; opt = opt->next) {
@@ -873,7 +873,7 @@ static void nuke_opt_values(struct oc_form_opt *opt)
  */
 int prepare_stoken(struct openconnect_info *vpninfo)
 {
-#ifdef LIBSTOKEN_HDR
+#ifdef HAVE_LIBSTOKEN
 	struct oc_auth_form form;
 	struct oc_form_opt opts[3], *opt = opts;
 	char **devid = NULL, **pass = NULL, **pin = NULL;
@@ -998,7 +998,7 @@ static int can_gen_stoken_code(struct openconnect_info *vpninfo,
 			       struct oc_auth_form *form,
 			       struct oc_form_opt *opt)
 {
-#ifdef LIBSTOKEN_HDR
+#ifdef HAVE_LIBSTOKEN
 	if ((strcmp(opt->name, "password") && strcmp(opt->name, "answer")) ||
 	    vpninfo->token_bypassed)
 		return -EINVAL;
@@ -1031,7 +1031,7 @@ static int can_gen_totp_code(struct openconnect_info *vpninfo,
 			     struct oc_auth_form *form,
 			     struct oc_form_opt *opt)
 {
-#if defined(LIBOATH_HDR)
+#ifdef HAVE_LIBOATH
 	if ((strcmp(opt->name, "secondary_password") != 0) ||
 	    vpninfo->token_bypassed)
 		return -EINVAL;
@@ -1079,7 +1079,7 @@ static int do_gen_stoken_code(struct openconnect_info *vpninfo,
 			      struct oc_auth_form *form,
 			      struct oc_form_opt *opt)
 {
-#ifdef LIBSTOKEN_HDR
+#ifdef HAVE_LIBSTOKEN
 	char tokencode[STOKEN_MAX_TOKENCODE + 1];
 
 	if (!vpninfo->token_time)
@@ -1105,7 +1105,7 @@ static int do_gen_totp_code(struct openconnect_info *vpninfo,
 			    struct oc_auth_form *form,
 			    struct oc_form_opt *opt)
 {
-#if defined(LIBOATH_HDR)
+#ifdef HAVE_LIBOATH
 	int oath_err;
 	char tokencode[7];
 
