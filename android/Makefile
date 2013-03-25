@@ -244,9 +244,13 @@ gnutls: $(GNUTLS_DEPS)
 #
 # Build OpenConnect for Android
 #
+OPENCONNECT_SRC := ..
 OPENCONNECT_BUILD := $(TRIPLET)/openconnect
 
-$(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) ../configure
+$(OPENCONNECT_SRC)/configure:
+	cd $(OPENCONNECT_SRC) && ./autogen.sh
+
+$(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) $(OPENCONNECT_SRC)/configure
 	mkdir -p $(OPENCONNECT_BUILD)
 	cd $(OPENCONNECT_BUILD) && ../../../configure $(CONFIGURE_ARGS) \
 	CFLAGS="--sysroot=$(NDK_SYSROOT) -DNO_BROKEN_DTLS_CHECK" \
