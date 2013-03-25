@@ -49,8 +49,8 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-\-no\-passwd
 .OP \-\-non\-inter
 .OP \-\-passwd\-on\-stdin
-.OP \-\-token-mode=\fIstoken|totp\fP
-.OP \-\-token-secret=\fIsecret\fP
+.OP \-\-token-mode mode
+.OP \-\-token-secret secret
 .OP \-\-reconnect\-timeout
 .OP \-\-servercert sha1
 .OP \-\-useragent string
@@ -325,17 +325,22 @@ Do not expect user input; exit if it is required.
 .B \-\-passwd\-on\-stdin
 Read password from standard input
 .TP
-.B \-\-token\-mode=\fIstoken|totp\fP
-Select the algorithm to use to generate one-time passwords/verification
-codes. \fIstoken\fP for RSA SecurID requires libstoken, and \fItotp\fP
-for RFC 6238 requires liboath.
+.B \-\-token\-mode=MODE
+Enable one-time password generation using the
+.I MODE
+algorithm.
+.B \-\-token\-mode=rsa
+will call libstoken to generate an RSA SecurID tokencode, and
+.B \-\-token\-mode=totp
+will call liboath to generate an RFC 6238 password.
 .TP
-.B \-\-token\-secret[=\fIsecret\fP]
+.B \-\-token\-secret=SECRET
 The secret to use when generating one-time passwords/verification codes.
-If \fIsecret\fP is omitted and \-\-token-mode is \fIstoken\fP, libstoken
-will try to use the software token seed stored in \fI~/.stokenrc\fP, if this
-file exists. Base 32-encoded TOTP secrets can be specified by specifying
-"base32:" at the beginning of the secret.
+Base 32-encoded TOTP secrets can be used by specifying "base32:" at the
+beginning of the secret.  If this option is omitted, and \-\-token\-mode is
+"rsa", libstoken will try to use the software token seed saved in
+.B ~/.stokenrc
+by the "stoken import" command.
 .TP
 .B \-\-reconnect\-timeout
 Keep reconnect attempts until so much seconds are elapsed. The default
