@@ -211,7 +211,7 @@ gnutls-$(GNUTLS_VER).tar.xz:
 
 $(GNUTLS_SRC)/configure.ac:
 	mkdir -p sources
-	cd sources && git clone --reference ../../../gnutls git://gitorious.org/gnutls/gnutls.git
+	cd sources && git clone git://gitorious.org/gnutls/gnutls.git
 
 $(GNUTLS_SRC)/configure: $(GNUTLS_SRC)/configure.ac
 	touch $(GNUTLS_SRC)/ChangeLog
