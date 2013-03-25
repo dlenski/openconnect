@@ -178,9 +178,7 @@ static struct option long_options[] = {
 	OPTION("non-inter", 0, OPT_NON_INTER),
 	OPTION("dtls-local-port", 1, OPT_DTLS_LOCAL_PORT),
 	OPTION("token-mode", 1, OPT_TOKEN_MODE),
-	/* Alias --stoken to --token-secret for backwards compatibility. */
-	OPTION("stoken", 2, OPT_TOKEN_SECRET),
-	OPTION("token-secret", 2, OPT_TOKEN_SECRET),
+	OPTION("token-secret", 1, OPT_TOKEN_SECRET),
 	OPTION("os", 1, OPT_OS),
 	OPTION(NULL, 0, 0)
 };
@@ -290,9 +288,8 @@ static void usage(void)
 	printf("      --no-cert-check             %s\n", _("Do not require server SSL cert to be valid"));
 	printf("      --non-inter                 %s\n", _("Do not expect user input; exit if it is required"));
 	printf("      --passwd-on-stdin           %s\n", _("Read password from standard input"));
-	printf("      --token-mode=MODE           %s\n", _("Software token type: stoken (default) or totp"));
-	printf("      --token-secret[=STRING]     %s\n", _("Software token secret (can be empty for stoken mode"));
-	printf("                                  %s\n", _("    to read from ~/.stokenrc)"));
+	printf("      --token-mode=MODE           %s\n", _("Software token type: rsa or totp"));
+	printf("      --token-secret=STRING       %s\n", _("Software token secret"));
 #ifndef HAVE_LIBSTOKEN
 	printf("                                  %s\n", _("(NOTE: libstoken (RSA SecurID) disabled in this build)"));
 #endif
@@ -726,7 +723,7 @@ int main(int argc, char **argv)
 			vpninfo->dtls_local_port = atoi(config_arg);
 			break;
 		case OPT_TOKEN_MODE:
-			if (strcasecmp(config_arg, "stoken") == 0) {
+			if (strcasecmp(config_arg, "rsa") == 0) {
 				token_mode = OC_TOKEN_MODE_STOKEN;
 			} else if (strcasecmp(config_arg, "totp") == 0) {
 				token_mode = OC_TOKEN_MODE_TOTP;
