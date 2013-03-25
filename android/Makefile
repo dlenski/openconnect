@@ -35,7 +35,8 @@ endif
 NDK_SYSROOT := $(NDK)/platforms/android-$(APIVER)/arch-$(ARCH)
 OC_SYSROOT  := $(shell pwd)/sysroot-$(TRIPLET)
 
-PATH := $(NDK)/toolchains/$(TOOLCHAIN)/prebuilt/linux-x86/bin:$(PATH)
+BINDIR := $(firstword $(wildcard $(NDK)/toolchains/$(TOOLCHAIN)/prebuilt/*/bin))
+PATH := $(BINDIR):$(PATH)
 PKG_CONFIG_LIBDIR=$(OC_SYSROOT)/lib/pkgconfig
 export PATH PKG_CONFIG_LIBDIR
 
