@@ -249,7 +249,8 @@ $(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) ../configure
 	mkdir -p $(OPENCONNECT_BUILD)
 	cd $(OPENCONNECT_BUILD) && ../../../configure $(CONFIGURE_ARGS) \
 	CFLAGS="--sysroot=$(NDK_SYSROOT) -DNO_BROKEN_DTLS_CHECK" \
-	GNUTLS_LIBS="$(shell PKG_CONFIG_LIBDIR=$(OC_SYSROOT)/lib/pkgconfig pkg-config --static --libs gnutls)" --enable-shared
+	GNUTLS_LIBS="$(shell PKG_CONFIG_LIBDIR=$(OC_SYSROOT)/lib/pkgconfig pkg-config --static --libs gnutls)" \
+	--enable-shared --with-vpnc-script=/etc/vpnc/vpnc-script
 
 openconnect: $(OPENCONNECT_BUILD)/Makefile
 	make -C $(OPENCONNECT_BUILD)
