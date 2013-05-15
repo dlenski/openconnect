@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2013-03-25 20:43+0000\n"
+"POT-Creation-Date: 2013-05-15 21:11+0100\n"
 "PO-Revision-Date: 2013-01-12 13:15+0000\n"
 "Last-Translator: fri <pavelfric@seznam.cz>\n"
 "Language-Team: Czech (http://www.transifex.com/projects/p/meego/language/"
@@ -126,16 +126,16 @@ msgstr "Server odmítá softwarový token; přepíná se na ruční vstup\n"
 
 #: auth.c:1087
 msgid "Generating RSA token code\n"
-msgstr ""
+msgstr "Generuje se kód tokenu RSA\n"
 
 #: auth.c:1115
 msgid "Generating OATH TOTP token code\n"
-msgstr ""
+msgstr "Generuje se kód tokenu OATH TOTP\n"
 
 #: auth.c:1125
 #, c-format
 msgid "Unable to generate OATH TOTP token code: %s\n"
-msgstr ""
+msgstr "Nelze vygenerovat kód tokenu OATH TOTP: %s\n"
 
 #: cstp.c:120
 #, c-format
@@ -1616,19 +1616,20 @@ msgstr "Číst heslo ze standardního vstupu"
 
 #: main.c:291
 msgid "Software token type: rsa or totp"
-msgstr ""
+msgstr "Typ softwarového tokenu: rsa nebo totp"
 
 #: main.c:292
 msgid "Software token secret"
-msgstr ""
+msgstr "Heslo softwarového tokenu"
 
 #: main.c:294
 msgid "(NOTE: libstoken (RSA SecurID) disabled in this build)"
 msgstr ""
+"(POZNÁMKA: knihovna libstoken (RSA SecurID) je v tomto sestavení vypnuta)"
 
 #: main.c:297
 msgid "(NOTE: liboath (TOTP) disabled in this build)"
-msgstr ""
+msgstr "(POZNÁMKA: knihovna liboath (TOTP) je v tomto sestavení vypnuta)"
 
 #: main.c:299
 msgid "Connection retry timeout in seconds"
@@ -1735,7 +1736,7 @@ msgstr "OpenConnect  verze%s\n"
 #: main.c:731
 #, c-format
 msgid "Invalid software token mode \"%s\"\n"
-msgstr ""
+msgstr "Neplatný režim softwarového tokenu „%s“\n"
 
 #: main.c:741
 #, c-format
@@ -1867,7 +1868,7 @@ msgstr "Nelze otevřít soubor ~/.stokenrc\n"
 #: main.c:1267
 #, c-format
 msgid "OpenConnect was not built with libstoken support\n"
-msgstr ""
+msgstr "OpenConnect nebyl sestaven s podporou libstoken\n"
 
 #: main.c:1270
 #, c-format
@@ -1877,12 +1878,12 @@ msgstr "Obecné selhání v knihovně libstoken\n"
 #: main.c:1284
 #, c-format
 msgid "OpenConnect was not built with liboath support\n"
-msgstr ""
+msgstr "OpenConnect nebyl sestaven s podporou liboath\n"
 
 #: main.c:1287
 #, c-format
 msgid "General failure in liboath\n"
-msgstr ""
+msgstr "Obecné selhání v knihovně liboath\n"
 
 #: mainloop.c:87
 msgid "Attempt new DTLS connection\n"
@@ -2367,17 +2368,17 @@ msgstr "Počítač \"%s\" má UserGroup \"%s\"\n"
 msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr "Host \"%s\" není uveden v konfiguraci, brát jako surové jméno hosta\n"
 
-#~ msgid "DTLS connected. DPD %d, Keepalive %d\n"
-#~ msgstr "DTLS spojeno. DPD %d, Keepalive %d\n"
-
-#~ msgid "OpenConnect was not built with soft token support\n"
-#~ msgstr "OpenConnect nebyl sestaven s podporou pro soft token\n"
-
-#~ msgid "(NOTE: libstoken disabled in this build)"
-#~ msgstr "(POZNÁMKA: libstoken je v tomto sestavení vypnuta)"
+#~ msgid "Generating tokencode\n"
+#~ msgstr "Generuje se kód tokenu\n"
 
 #~ msgid "Use software token to generate password"
 #~ msgstr "Použít pro generování hesla softwarový token"
 
-#~ msgid "Generating tokencode\n"
-#~ msgstr "Generuje se kód tokenu\n"
+#~ msgid "(NOTE: libstoken disabled in this build)"
+#~ msgstr "(POZNÁMKA: libstoken je v tomto sestavení vypnuta)"
+
+#~ msgid "OpenConnect was not built with soft token support\n"
+#~ msgstr "OpenConnect nebyl sestaven s podporou pro soft token\n"
+
+#~ msgid "DTLS connected. DPD %d, Keepalive %d\n"
+#~ msgstr "DTLS spojeno. DPD %d, Keepalive %d\n"
