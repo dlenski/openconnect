@@ -19,16 +19,17 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.99.tar.gz">OpenConnect v4.99</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-4.99.tar.gz.asc">PGP signature</a>)</i>,
-released on 2013-02-07 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.00.tar.gz">OpenConnect v5.00</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.00.tar.gz.asc">PGP signature</a>)</i>,
+released on 2013-05-15 with the following changelog:</p>
      <ul>
-       <li>Add <tt>--os</tt> switch to report a different OS type to the gateway.</li>
-       <li>Support new XML POST format.</li>
-       <li>Fix buffer overflow on long <tt>Location:</tt> and <tt>Set-Cookie:</tt> headers sent from server.</li>
-       <li>Add SecurID token support using <a href="http://stoken.sourceforge.net/">libstoken</a>.</li>
-       <li>Fix some harmless issues reported by Coverity.</li>
-       <li>Improve <tt>"Attempting to connect..."</tt> message to be explicit when it's connecting to a proxy.</li>
+       <li>Use GnuTLS by default instead of OpenSSL.</li>
+       <li>Avoid using deprecated <tt>gnutls_pubkey_verify_data()</tt> function.</li>
+       <li>Fix compatibility issues with XML POST authentication.</li>
+       <li>Fix memory leaks on <tt>realloc()</tt> failure.</li>
+       <li>Fix certificate validation problem caused by hostname canonicalisation.</li>
+       <li>Add RFC6238 TOTP token support using <a href="http://www.nongnu.org/oath-toolkit/">liboath</a>.</li>
+       <li>Replace <tt>--stoken</tt> option with more generic <tt>--token-mode</tt> and <tt>--token-secret</tt> options.</li>
      </ul>
 <!-- latest-release-end -->
 

@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.00.tar.gz">OpenConnect v5.00</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.00.tar.gz.asc">PGP signature</a>)</i> &#8212; 2013-05-15
+     <ul>
        <li>Use GnuTLS by default instead of OpenSSL.</li>
        <li>Avoid using deprecated <tt>gnutls_pubkey_verify_data()</tt> function.</li>
        <li>Fix compatibility issues with XML POST authentication.</li>
