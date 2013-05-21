@@ -197,6 +197,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	if (openconnect_SSL_gets(vpninfo, buf, sizeof(buf)) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error fetching HTTPS response\n"));
+		openconnect_close_https(vpninfo, 0);
 		return -EINVAL;
 	}
 
@@ -206,6 +207,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	if ((!closeconn && strncmp(buf, "HTTP/1.1 ", 9)) || !(*result = atoi(buf+9))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to parse HTTP response '%s'\n"), buf);
+		openconnect_close_https(vpninfo, 0);
 		return -EINVAL;
 	}
 
@@ -219,6 +221,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		if (i < 0) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Error processing HTTP response\n"));
+			openconnect_close_https(vpninfo, 0);
 			return -EINVAL;
 		}
 		colon = strchr(buf, ':');
@@ -296,6 +299,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Response body has negative size (%d)\n"),
 					     bodylen);
+				openconnect_close_https(vpninfo, 0);
 				return -EINVAL;
 			}
 		}
@@ -306,6 +310,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Unknown Transfer-Encoding: %s\n"),
 					     colon);
+				openconnect_close_https(vpninfo, 0);
 				return -EINVAL;
 			}
 		}
@@ -333,6 +338,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			if (i < 0) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Error reading HTTP response body\n"));
+				openconnect_close_https(vpninfo, 0);
 				free(body);
 				return -EINVAL;
 			}
@@ -404,6 +410,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			} else if (i < 0) {
 				/* Error */
 				free(body);
+				openconnect_close_https(vpninfo, 0);
 				return i;
 			} else {
 				/* Connection closed. Reduce allocation to just what we need */
