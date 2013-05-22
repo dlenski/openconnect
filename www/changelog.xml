@@ -17,7 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li><i>No changelog entries yet</i></li>
+       <li>Improve error handling when server closes connection (<a href="http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=708928">Debian bug #708928</a>)</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.00.tar.gz">OpenConnect v5.00</a></b>
