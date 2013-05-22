@@ -835,19 +835,14 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 {
 	struct oc_text_buf *buf;
 	int result, buflen;
+	int rq_retry;
 
- retry:
+ redirected:
 	vpninfo->redirect_type = REDIR_TYPE_NONE;
 
 	if (*form_buf) {
 		free(*form_buf);
 		*form_buf = NULL;
-	}
-	if (openconnect_open_https(vpninfo)) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to open HTTPS connection to %s\n"),
-			     vpninfo->hostname);
-		return -EINVAL;
 	}
 
 	/*
@@ -884,7 +879,27 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 	if (buf_error(buf))
 		return buf_free(buf);
 
+ retry:
+	if (openconnect_https_connected(vpninfo)) {
+		/* The session is already connected. If we get a failure on
+		* *sending* the request, try it again immediately with a new
+		* connection. */
+		rq_retry = 1;
+	} else {
+		rq_retry = 0;
+		if (openconnect_open_https(vpninfo)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to open HTTPS connection to %s\n"),
+				     vpninfo->hostname);
+			return -EINVAL;
+		}
+	}
+
 	result = openconnect_SSL_write(vpninfo, buf->data, buf->pos);
+	if (rq_retry && result < 0) {
+		openconnect_close_https(vpninfo, 0);
+		goto retry;
+	}
 	buf_free(buf);
 	if (result < 0)
 		return result;
@@ -900,7 +915,7 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 		if (result == 0) {
 			if (!fetch_redirect)
 				return 0;
-			goto retry;
+			goto redirected;
 		}
 		goto out;
 	}

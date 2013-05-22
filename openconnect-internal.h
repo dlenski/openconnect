@@ -410,6 +410,11 @@ int openconnect_sha1(unsigned char *result, void *data, int len);
 int openconnect_random(void *bytes, int len);
 int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 			       char *buf);
+#if defined(OPENCONNECT_OPENSSL)
+#define openconnect_https_connected(_v) ((_v)->https_ssl)
+#elif defined (OPENCONNECT_GNUTLS)
+#define openconnect_https_connected(_v) ((_v)->https_sess)
+#endif
 
 /* mainloop.c */
 int vpn_add_pollfd(struct openconnect_info *vpninfo, int fd, short events);
