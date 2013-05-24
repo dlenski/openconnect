@@ -999,6 +999,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 				request_body_type = NULL;
 				request_body[0] = 0;
 				method = "GET";
+				openconnect_close_https(vpninfo, 0);
 			} else {
 				return -EIO;
 			}
