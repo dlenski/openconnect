@@ -119,7 +119,7 @@ int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len
 		int maxfd = vpninfo->ssl_fd;
 
 		if (done != GNUTLS_E_AGAIN) {
-			vpn_progress(vpninfo, PRG_ERR, _("Failed to read from SSL socket: %s"),
+			vpn_progress(vpninfo, PRG_ERR, _("Failed to read from SSL socket: %s\n"),
 				     gnutls_strerror(done));
 			return -EIO;
 		} else {
