@@ -47,6 +47,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-\-no\-dtls
 .OP \-\-no\-http\-keepalive
 .OP \-\-no\-passwd
+.OP \-\-no\-xmlpost
 .OP \-\-non\-inter
 .OP \-\-passwd\-on\-stdin
 .OP \-\-token-mode mode
@@ -318,6 +319,19 @@ mailing list.
 .TP
 .B \-\-no\-passwd
 Never attempt password (or SecurID) authentication.
+.TP
+.B \-\-no\-xmlpost
+Do not attempt to post an XML authentication/configuration request to the
+server; use the old style GET method which was used by older clients and
+servers instead.
+
+This option is a temporary safety net, to work around potential
+compatibility issues with the code which falls back to the old method
+automatically. It causes OpenConnect to behave more like older
+versions (4.08 and below) did. If you find that you need to use this
+option, then you have found a bug in OpenConnect. Please see
+http://www.infradead.org/openconnect/mail.html and report this to the
+developers.
 .TP
 .B \-\-non\-inter
 Do not expect user input; exit if it is required.

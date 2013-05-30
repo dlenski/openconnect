@@ -103,6 +103,7 @@ enum {
 	OPT_NO_HTTP_KEEPALIVE,
 	OPT_NO_PASSWD,
 	OPT_NO_PROXY,
+	OPT_NO_XMLPOST,
 	OPT_PIDFILE,
 	OPT_PASSWORD_ON_STDIN,
 	OPT_PRINTCOOKIE,
@@ -180,6 +181,7 @@ static struct option long_options[] = {
 	OPTION("token-mode", 1, OPT_TOKEN_MODE),
 	OPTION("token-secret", 1, OPT_TOKEN_SECRET),
 	OPTION("os", 1, OPT_OS),
+	OPTION("no-xmlpost", 0, OPT_NO_XMLPOST),
 	OPTION(NULL, 0, 0)
 };
 
@@ -286,6 +288,7 @@ static void usage(void)
 	printf("      --no-http-keepalive         %s\n", _("Disable HTTP connection re-use"));
 	printf("      --no-passwd                 %s\n", _("Disable password/SecurID authentication"));
 	printf("      --no-cert-check             %s\n", _("Do not require server SSL cert to be valid"));
+	printf("      --no-xmlpost                %s\n", _("Do not attempt XML POST authentication"));
 	printf("      --non-inter                 %s\n", _("Do not expect user input; exit if it is required"));
 	printf("      --passwd-on-stdin           %s\n", _("Read password from standard input"));
 	printf("      --token-mode=MODE           %s\n", _("Software token type: rsa or totp"));
@@ -560,6 +563,9 @@ int main(int argc, char **argv)
 			break;
 		case OPT_NO_PASSWD:
 			vpninfo->nopasswd = 1;
+			break;
+		case OPT_NO_XMLPOST:
+			vpninfo->noxmlpost = 1;
 			break;
 		case OPT_NON_INTER:
 			non_inter = 1;

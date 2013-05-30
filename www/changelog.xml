@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Add <tt>--no-xmlpost</tt> option to revert to older, compatible behaviour.</li>
        <li>Close connection before falling back to non-xmlpost mode <a href="https://bugzilla.redhat.com/show_bug.cgi?id=964650"><i>(RH#964650)</i></a>.</li>
        <li>Improve error handling when server closes connection <a href="http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=708928"><i>(Debian #708928)</i></a>.</li>
      </ul><br/>

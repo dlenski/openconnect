@@ -976,6 +976,9 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			return result;
 	}
 
+	if (vpninfo->noxmlpost)
+		goto fail;
+
 	/*
 	 * Step 2: Probe for XML POST compatibility
 	 *
