@@ -509,8 +509,8 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 	form = calloc(1, sizeof(*form));
 	if (!form)
 		return -ENOMEM;
-
-	xml_doc = xmlReadMemory(response, strlen(response), "noname.xml", NULL, 0);
+	xml_doc = xmlReadMemory(response, strlen(response), "noname.xml", NULL,
+				XML_PARSE_NOERROR|XML_PARSE_RECOVER);
 	if (!xml_doc) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to parse server response\n"));
