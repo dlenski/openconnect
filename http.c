@@ -967,6 +967,8 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	char request_body[2048];
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
+	char *orig_host = NULL, *orig_path = NULL;
+	int orig_port = 0;
 	int xmlpost = 1;
 
 	/* Step 1: Unlock software token (if applicable) */
@@ -992,6 +994,10 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	if (result < 0)
 		return result;
 
+	orig_host = strdup(vpninfo->hostname);
+	orig_path = vpninfo->urlpath ? strdup(vpninfo->urlpath) : NULL;
+	orig_port = vpninfo->port;
+
 	for (tries = 0; ; tries++) {
 		if (tries == 3) {
 		fail:
@@ -1002,6 +1008,14 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 				request_body_type = NULL;
 				request_body[0] = 0;
 				method = "GET";
+				if (orig_host) {
+					openconnect_set_hostname(vpninfo, orig_host);
+					orig_host = NULL;
+					free(vpninfo->urlpath);
+					vpninfo->urlpath = orig_path;
+					orig_path = NULL;
+					vpninfo->port = orig_port;
+				}
 				openconnect_close_https(vpninfo, 0);
 			} else {
 				return -EIO;
@@ -1033,6 +1047,9 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	}
 	if (xmlpost)
 		vpn_progress(vpninfo, PRG_INFO, _("XML POST enabled\n"));
+
+	free (orig_host);
+	free (orig_path);
 
 	/* Step 4: Run the CSD trojan, if applicable */
 	if (vpninfo->csd_starturl && vpninfo->csd_waiturl) {
