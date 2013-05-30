@@ -57,6 +57,7 @@ struct openconnect_info *openconnect_vpninfo_new(char *useragent,
 	vpninfo->progress = progress;
 	vpninfo->cbdata = privdata ? : vpninfo;
 	vpninfo->cancel_fd = -1;
+	vpninfo->xmlpost = 1;
 	openconnect_set_reported_os(vpninfo, NULL);
 
 #ifdef ENABLE_NLS

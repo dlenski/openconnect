@@ -447,8 +447,11 @@ static void add_common_headers(struct openconnect_info *vpninfo, struct oc_text_
 				      opt->value, opt->next ? "; " : "\r\n");
 	}
 	buf_append(buf, "X-Transcend-Version: 1\r\n");
-	buf_append(buf, "X-Aggregate-Auth: 1\r\n");
-	buf_append(buf, "X-AnyConnect-Platform: %s\r\n", vpninfo->platname);
+	if (vpninfo->xmlpost) {
+		buf_append(buf, "X-Aggregate-Auth: 1\r\n");
+		buf_append(buf, "X-AnyConnect-Platform: %s\r\n",
+			   vpninfo->platname);
+	}
 }
 
 static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
@@ -1000,7 +1003,6 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	const char *method = "POST";
 	char *orig_host = NULL, *orig_path = NULL;
 	int orig_port = 0;
-	int xmlpost = 1;
 
 	/* Step 1: Unlock software token (if applicable) */
 	if (vpninfo->token_mode == OC_TOKEN_MODE_STOKEN) {
@@ -1009,7 +1011,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			return result;
 	}
 
-	if (vpninfo->noxmlpost)
+	if (!vpninfo->xmlpost)
 		goto fail;
 
 	/*
@@ -1032,10 +1034,10 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	for (tries = 0; ; tries++) {
 		if (tries == 3) {
 		fail:
-			if (xmlpost) {
+			if (vpninfo->xmlpost) {
 				/* Try without XML POST this time... */
 				tries = 0;
-				xmlpost = 0;
+				vpninfo->xmlpost = 0;
 				request_body_type = NULL;
 				request_body[0] = 0;
 				method = "GET";
@@ -1061,7 +1063,8 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 			return buflen;
 
 		/* XML POST does not allow local redirects, but GET does. */
-		if (xmlpost && vpninfo->redirect_type == REDIR_TYPE_LOCAL)
+		if (vpninfo->xmlpost &&
+		    vpninfo->redirect_type == REDIR_TYPE_LOCAL)
 			goto fail;
 		else if (vpninfo->redirect_type != REDIR_TYPE_NONE)
 			continue;
@@ -1076,7 +1079,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		}
 		break;
 	}
-	if (xmlpost)
+	if (vpninfo->xmlpost)
 		vpn_progress(vpninfo, PRG_INFO, _("XML POST enabled\n"));
 
 	free (orig_host);
@@ -1135,7 +1138,8 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		free(vpninfo->urlpath);
 		vpninfo->urlpath = form_path;
 
-		result = do_https_request(vpninfo, xmlpost ? "POST" : "GET",
+		result = do_https_request(vpninfo,
+					  vpninfo->xmlpost ? "POST" : "GET",
 					  request_body_type, request_body, &form_buf, 1);
 		if (result < 0)
 			goto out;
@@ -1149,7 +1153,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	while (1) {
 		request_body[0] = 0;
 		result = handle_auth_form(vpninfo, form, request_body, sizeof(request_body),
-					  &method, &request_body_type, xmlpost);
+					  &method, &request_body_type, vpninfo->xmlpost);
 		if (result < 0 || result == 1)
 			goto out;
 		if (result == 2)

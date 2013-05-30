@@ -175,7 +175,7 @@ struct openconnect_info {
 	char *password;
 	char *authgroup;
 	int nopasswd;
-	int noxmlpost;
+	int xmlpost;
 	char *dtls_ciphers;
 	uid_t uid_csd;
 	char *csd_wrapper;
