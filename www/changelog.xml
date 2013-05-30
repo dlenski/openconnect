@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Add <tt>--dump-http-traffic</tt> option for debugging.</li>
        <li>Be more permissive in parsing XML forms.</li>
        <li>Use original URL when falling back to non-XML POST mode.</li>
        <li>Add <tt>--no-xmlpost</tt> option to revert to older, compatible behaviour.</li>

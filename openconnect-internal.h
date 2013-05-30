@@ -181,6 +181,7 @@ struct openconnect_info {
 	char *csd_wrapper;
 	int uid_csd_given;
 	int no_http_keepalive;
+	int dump_http_traffic;
 
 	int token_mode;
 	int token_bypassed;

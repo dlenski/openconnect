@@ -816,6 +816,32 @@ static int handle_redirect(struct openconnect_info *vpninfo)
 	}
 }
 
+static void dump_buf(struct openconnect_info *vpninfo, char prefix, char *buf)
+{
+	while (*buf) {
+		char *eol = buf;
+		char eol_char = 0;
+
+		while (*eol) {
+			if (*eol == '\r' || *eol == '\n') {
+				eol_char = *eol;
+				*eol = 0;
+				break;
+			}
+			eol++;
+		}
+
+		vpn_progress(vpninfo, PRG_TRACE, "%c %s\n", prefix, buf);
+		if (!eol_char)
+			break;
+
+		*eol = eol_char;
+		buf = eol + 1;
+		if (eol_char == '\r' && *buf == '\n')
+			buf++;
+	}
+}
+
 /* Inputs:
  *  method:             GET or POST
  *  vpninfo->hostname:  Host DNS name
@@ -895,6 +921,9 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 		}
 	}
 
+	if (vpninfo->dump_http_traffic)
+		dump_buf(vpninfo, '>', buf->data);
+
 	result = openconnect_SSL_write(vpninfo, buf->data, buf->pos);
 	if (rq_retry && result < 0) {
 		openconnect_close_https(vpninfo, 0);
@@ -909,6 +938,8 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 		/* We'll already have complained about whatever offended us */
 		return buflen;
 	}
+	if (vpninfo->dump_http_traffic && *form_buf)
+		dump_buf(vpninfo, '<', *form_buf);
 
 	if (result != 200 && vpninfo->redirect_url) {
 		result = handle_redirect(vpninfo);

@@ -43,6 +43,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-\-disable\-ipv6
 .OP \-\-dtls\-ciphers list
 .OP \-\-dtls\-local\-port port
+.OP \-\-dump\-http\-traffic
 .OP \-\-no\-cert\-check
 .OP \-\-no\-dtls
 .OP \-\-no\-http\-keepalive
@@ -285,6 +286,15 @@ Do not advertise IPv6 capability to server
 .B \-\-dtls\-ciphers=LIST
 Set OpenSSL ciphers to support for DTLS
 .TP
+.B \-\-dtls\-local\-port=PORT
+Use
+.I PORT
+as the local port for DTLS datagrams
+.TP
+.B \-\-dump\-http\-traffic
+Enable verbose output of all HTTP requests and the bodies of all responses
+received from the server.
+.TP
 .B \-\-no\-cert\-check
 Do not require server SSL certificate to be valid. Checks will still happen
 and failures will cause a warning message, but the connection will continue
@@ -375,12 +385,6 @@ as 'User\-Agent:' field value in HTTP header.
 OS type to report to gateway.  Recognized values are: linux, linux-64, mac,
 win.  Reporting a different OS type may affect the security policy applied
 to the VPN session.
-.TP
-.B \-\-dtls\-local\-port=PORT
-Use
-.I PORT
-as the local port for DTLS datagrams
-
 .SH LIMITATIONS
 Note that although IPv6 has been tested on all platforms on which
 .B openconnect

@@ -95,6 +95,7 @@ enum {
 	OPT_CSD_WRAPPER,
 	OPT_DISABLE_IPV6,
 	OPT_DTLS_CIPHERS,
+	OPT_DUMP_HTTP,
 	OPT_FORCE_DPD,
 	OPT_KEY_PASSWORD_FROM_FSID,
 	OPT_LIBPROXY,
@@ -182,6 +183,7 @@ static struct option long_options[] = {
 	OPTION("token-secret", 1, OPT_TOKEN_SECRET),
 	OPTION("os", 1, OPT_OS),
 	OPTION("no-xmlpost", 0, OPT_NO_XMLPOST),
+	OPTION("dump-http-traffic", 0, OPT_DUMP_HTTP),
 	OPTION(NULL, 0, 0)
 };
 
@@ -276,6 +278,7 @@ static void usage(void)
 	printf("  -u, --user=NAME                 %s\n", _("Set login username"));
 	printf("  -V, --version                   %s\n", _("Report version number"));
 	printf("  -v, --verbose                   %s\n", _("More output"));
+	printf("      --dump-http-traffic         %s\n", _("Dump HTTP authentication traffic (implies --verbose"));
 	printf("  -x, --xmlconfig=CONFIG          %s\n", _("XML config file"));
 	printf("      --authgroup=GROUP           %s\n", _("Choose authentication login selection"));
 	printf("      --authenticate              %s\n", _("Authenticate only and print login info"));
@@ -704,6 +707,8 @@ int main(int argc, char **argv)
 		case 'q':
 			verbose = PRG_ERR;
 			break;
+		case OPT_DUMP_HTTP:
+			vpninfo->dump_http_traffic = 1;
 		case 'v':
 			verbose = PRG_TRACE;
 			break;
