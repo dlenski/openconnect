@@ -1013,7 +1013,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	}
 
 	if (!vpninfo->xmlpost)
-		goto fail;
+		goto no_xmlpost;
 
 	/*
 	 * Step 2: Probe for XML POST compatibility
@@ -1036,6 +1036,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		if (tries == 3) {
 		fail:
 			if (vpninfo->xmlpost) {
+			no_xmlpost:
 				/* Try without XML POST this time... */
 				tries = 0;
 				vpninfo->xmlpost = 0;
