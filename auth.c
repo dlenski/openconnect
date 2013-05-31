@@ -488,7 +488,7 @@ static int parse_host_scan_node(struct openconnect_info *vpninfo, xmlNode *xml_n
  *  < 0, on error
  *  = 0, on success; *form is populated
  */
-int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct oc_auth_form **formp)
+int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct oc_auth_form **formp, int *cert_rq)
 {
 	struct oc_auth_form *form;
 	xmlDocPtr xml_doc;
@@ -499,6 +499,8 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 		free_auth_form(*formp);
 		*formp = NULL;
 	}
+	if (cert_rq)
+		*cert_rq = 0;
 
 	if (!response) {
 		vpn_progress(vpninfo, PRG_TRACE,
@@ -532,6 +534,14 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 			/* if we do have a config-auth node, it is the root element */
 			xml_node = xml_node->children;
 			continue;
+		} else if (xmlnode_is_named(xml_node, "client-cert-request")) {
+			if (cert_rq)
+				*cert_rq = 1;
+			else {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Received client-cert-request> when not expected.\n"));
+				ret = -EINVAL;
+			}
 		} else if (xmlnode_is_named(xml_node, "auth")) {
 			xmlnode_get_prop(xml_node, "id", &form->auth_id);
 			ret = parse_auth_node(vpninfo, xml_node, form);
@@ -553,7 +563,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 		xml_node = xml_node->next;
 	}
 
-	if (!form->auth_id) {
+	if (!form->auth_id && (!cert_rq || !*cert_rq)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("XML response has no \"auth\" node\n"));
 		goto out;
@@ -764,7 +774,7 @@ static int xmlpost_complete(xmlDocPtr doc, char *body, int bodylen)
 	return ret;
 }
 
-int xmlpost_initial_req(struct openconnect_info *vpninfo, char *request_body, int req_len)
+int xmlpost_initial_req(struct openconnect_info *vpninfo, char *request_body, int req_len, int cert_fail)
 {
 	xmlNodePtr root, node;
 	xmlDocPtr doc = xmlpost_new_query(vpninfo, "init", &root);
@@ -779,7 +789,11 @@ int xmlpost_initial_req(struct openconnect_info *vpninfo, char *request_body, in
 	free(url);
 	if (!node)
 		goto bad;
-
+	if (cert_fail) {
+		node = xmlNewTextChild(root, NULL, XCAST("client-cert-fail"), NULL);
+		if (!node)
+			goto bad;
+	}
 	return xmlpost_complete(doc, request_body, req_len);
 
 bad:

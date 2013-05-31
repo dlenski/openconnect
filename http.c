@@ -1003,6 +1003,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	const char *method = "POST";
 	char *orig_host = NULL, *orig_path = NULL;
 	int orig_port = 0;
+	int cert_rq;
 
 	/* Step 1: Unlock software token (if applicable) */
 	if (vpninfo->token_mode == OC_TOKEN_MODE_STOKEN) {
@@ -1023,7 +1024,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	 * b) Same-host redirect (e.g. Location: /foo/bar)
 	 * c) Three redirects without seeing a plausible login form
 	 */
-	result = xmlpost_initial_req(vpninfo, request_body, sizeof(request_body));
+	result = xmlpost_initial_req(vpninfo, request_body, sizeof(request_body), 0);
 	if (result < 0)
 		return result;
 
@@ -1069,11 +1070,33 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		else if (vpninfo->redirect_type != REDIR_TYPE_NONE)
 			continue;
 
-		result = parse_xml_response(vpninfo, form_buf, &form);
+		result = parse_xml_response(vpninfo, form_buf, &form, &cert_rq);
 		if (result < 0)
 			goto fail;
 
-		if (form->action) {
+		if (cert_rq) {
+			if (vpninfo->cert) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Server requested SSL client certificate after one was provided\n"));
+				/* Continue anyway. Authentication will probably fail but there might
+				 * be special login options which are username/password only. If there
+				 * is some special tag we're supposed to include in our 'init' XML
+				 * to make the server actually look for the client cert, and merely
+				 * having it present in the SSL negotiation isn't sufficient, then
+				 * perhaps this is a bug. And users might need too use --no-xmlpost
+				 * to make things work. */
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Try the --no-xmlpost option. If that works, please report as an OpenConnect bug\n"));
+			} else {
+				vpn_progress(vpninfo, PRG_INFO, _("Server requested SSL client certificate; none was configured\n"));
+			}
+			/* Try again with <client-cert-fail/> in the request */
+			result = xmlpost_initial_req(vpninfo, request_body, sizeof(request_body), 1);
+			if (result < 0)
+				goto fail;
+			continue;
+		}
+		if (form && form->action) {
 			vpninfo->redirect_url = strdup(form->action);
 			handle_redirect(vpninfo);
 		}
@@ -1144,7 +1167,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		if (result < 0)
 			goto out;
 
-		result = parse_xml_response(vpninfo, form_buf, &form);
+		result = parse_xml_response(vpninfo, form_buf, &form, NULL);
 		if (result < 0)
 			goto out;
 	}
@@ -1164,7 +1187,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		if (result < 0)
 			goto out;
 
-		result = parse_xml_response(vpninfo, form_buf, &form);
+		result = parse_xml_response(vpninfo, form_buf, &form, NULL);
 		if (result < 0)
 			goto out;
 		if (form->action) {
