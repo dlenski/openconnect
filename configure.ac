@@ -264,7 +264,9 @@ if test "$with_gnutls" = "yes"; then
 	    for file in /etc/ssl/certs/ca-certificates.crt \
 			/etc/pki/tls/cert.pem \
 			/usr/local/share/certs/ca-root-nss.crt \
-			/etc/ssl/cert.pem; do
+			/etc/ssl/cert.pem \
+			/etc/ssl/ca-bundle.pem \
+		; do
 		if grep 'BEGIN CERTIFICATE-----' $file >/dev/null 2>&1; then
 		    with_system_cafile=${file}
 		    break
