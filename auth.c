@@ -539,7 +539,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 				*cert_rq = 1;
 			else {
 				vpn_progress(vpninfo, PRG_ERR,
-					     _("Received client-cert-request> when not expected.\n"));
+					     _("Received <client-cert-request> when not expected.\n"));
 				ret = -EINVAL;
 			}
 		} else if (xmlnode_is_named(xml_node, "auth")) {
