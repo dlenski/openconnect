@@ -436,7 +436,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		       struct oc_auth_form **form, int *cert_rq);
 int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
 		     char *request_body, int req_len, const char **method,
-		     const char **request_body_type, int xmlpost);
+		     const char **request_body_type);
 void free_auth_form(struct oc_auth_form *form);
 int xmlpost_initial_req(struct openconnect_info *vpninfo, char *request_body, int req_len, int cert_fail);
 int prepare_stoken(struct openconnect_info *vpninfo);

@@ -587,7 +587,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
  */
 int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
 		     char *request_body, int req_len, const char **method,
-		     const char **request_body_type, int xmlpost)
+		     const char **request_body_type)
 {
 	int ret;
 	struct vpn_option *opt, *next;
@@ -635,7 +635,7 @@ int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form
 	if (ret)
 		return ret;
 
-	ret = xmlpost ?
+	ret = vpninfo->xmlpost ?
 	      xmlpost_append_form_opts(vpninfo, form, request_body, req_len) :
 	      append_form_opts(vpninfo, form, request_body, req_len);
 	if (!ret) {

@@ -1176,7 +1176,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	while (1) {
 		request_body[0] = 0;
 		result = handle_auth_form(vpninfo, form, request_body, sizeof(request_body),
-					  &method, &request_body_type, vpninfo->xmlpost);
+					  &method, &request_body_type);
 		if (result < 0 || result == 1)
 			goto out;
 		if (result == 2)
