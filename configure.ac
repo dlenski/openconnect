@@ -388,6 +388,7 @@ case "$ssl_library" in
 	AC_SUBST(SSL_LIBRARY, [gnutls])
 	AC_SUBST(SSL_LIBS, ['$(GNUTLS_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
+	check_openssl_dtls=no
 	;;
     openssl)
 	AC_DEFINE(OPENCONNECT_OPENSSL, 1)
@@ -396,6 +397,7 @@ case "$ssl_library" in
 	AC_SUBST(SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
 	AC_SUBST(SYMVER_PRINT_ERR, ["openconnect_print_err_cb;"])
+	check_openssl_dtls=yes
 	;;
     both)
 	# GnuTLS for TCP, OpenSSL for DTLS
@@ -407,6 +409,7 @@ case "$ssl_library" in
 	AC_SUBST(DTLS_SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(DTLS_SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
 	AC_SUBST(SYMVER_PRINT_ERR, ["openconnect_print_err_cb;"])
+	check_openssl_dtls=yes
 	;;
     *)
 	AC_MSG_ERROR([Neither OpenSSL nor GnuTLS selected for SSL.])
@@ -414,6 +417,30 @@ case "$ssl_library" in
 esac
 AM_CONDITIONAL(OPENCONNECT_GNUTLS,  [ test "$ssl_library" != "openssl" ])
 AM_CONDITIONAL(OPENCONNECT_OPENSSL, [ test "$ssl_library" = "openssl" ])
+
+AC_ARG_WITH([openssl-version-check],
+	AS_HELP_STRING([--without-openssl-version-check],
+	[Do not check for known-broken OpenSSL versions]))
+if test "$with_openssl_version_check" = "no"; then
+   check_openssl_dtls=no
+fi
+
+if test "$check_openssl_dtls" = "yes"; then
+	AC_MSG_CHECKING([for known-broken versions of OpenSSL])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],[#if \
+				    (OPENSSL_VERSION_NUMBER == 0x10002000L || \
+				    (OPENSSL_VERSION_NUMBER >= 0x100000b0L && OPENSSL_VERSION_NUMBER <= 0x100000c0L) || \
+				    (OPENSSL_VERSION_NUMBER >= 0x10001040L && OPENSSL_VERSION_NUMBER <= 0x10001060L))
+				#error Bad OpenSSL
+				#endif
+				])],
+			  [AC_MSG_RESULT(no)],
+			  [AC_MSG_RESULT(yes)
+			   AC_ERROR([This version of OpenSSL is known to be broken with Cisco DTLS.
+See http://rt.openssl.org/Ticket/Display.html?id=2984&user=guest&pass=guest
+Add --without-openssl-version-check to configure args to avoid this check, or
+perhaps consider building with GnuTLS instead.])])
+fi
 
 # Needs to happen after we default to static/shared libraries based on OpenSSL
 AC_PROG_LIBTOOL
