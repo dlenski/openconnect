@@ -493,7 +493,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 	struct oc_auth_form *form;
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node;
-	int ret = -EINVAL;
+	int ret;
 
 	if (*formp) {
 		free_auth_form(*formp);
@@ -524,7 +524,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 
 	xml_node = xmlDocGetRootElement(xml_doc);
 	while (xml_node) {
-		int ret = 0;
+		ret = 0;
 
 		if (xml_node->type != XML_ELEMENT_NODE) {
 			xml_node = xml_node->next;
@@ -566,6 +566,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 	if (!form->auth_id && (!cert_rq || !*cert_rq)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("XML response has no \"auth\" node\n"));
+		ret = -EINVAL;
 		goto out;
 	}
 
