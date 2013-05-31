@@ -583,7 +583,7 @@ static int assign_privkey(struct openconnect_info *vpninfo,
 static int verify_signed_data(gnutls_pubkey_t pubkey, gnutls_privkey_t privkey,
 			      const gnutls_datum_t *data, const gnutls_datum_t *sig)
 {
-#ifdef HAVE_GNUTLS_PUBKEY_VERIFY_DATA2
+#ifdef HAVE_GNUTLS_PK_TO_SIGN
 	gnutls_sign_algorithm_t algo = GNUTLS_SIGN_RSA_SHA1; /* TPM keys */
 
 	if (privkey != OPENCONNECT_TPM_PKEY)
