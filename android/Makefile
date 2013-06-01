@@ -198,25 +198,25 @@ nettle: $(NETTLE_DEPS)
 #
 # Build GnuTLS
 #
-#GNUTLS_VER := 3.1.9
-GNUTLS_SRC := sources/gnutls
+GNUTLS_VER := 3.1.12
+GNUTLS_SRC := sources/gnutls-$(GNUTLS_VER)
 GNUTLS_BUILD := $(TRIPLET)/gnutls
 
 gnutls-$(GNUTLS_VER).tar.xz:
 	curl ftp://ftp.gnutls.org/gcrypt/gnutls/v3.1/$@ -o $@.tmp && mv $@.tmp $@
 
-#$(GNUTLS_SRC)/configure: gnutls-$(GNUTLS_VER).tar.xz
-#	mkdir -p sources
-#       xz -d < $< | tar xf - -C sources
-#       touch $@
-
-$(GNUTLS_SRC)/configure.ac:
+$(GNUTLS_SRC)/configure: gnutls-$(GNUTLS_VER).tar.xz
 	mkdir -p sources
-	cd sources && git clone git://gitorious.org/gnutls/gnutls.git
+	xz -d < $< | tar xf - -C sources
+	touch $@
 
-$(GNUTLS_SRC)/configure: $(GNUTLS_SRC)/configure.ac
-	touch $(GNUTLS_SRC)/ChangeLog
-	cd $(GNUTLS_SRC) && autoreconf -fvi
+#$(GNUTLS_SRC)/configure.ac:
+#	mkdir -p sources
+#	cd sources && git clone git://gitorious.org/gnutls/gnutls.git
+
+#$(GNUTLS_SRC)/configure: $(GNUTLS_SRC)/configure.ac
+#	touch $(GNUTLS_SRC)/ChangeLog
+#	cd $(GNUTLS_SRC) && autoreconf -fvi
 
 $(GNUTLS_BUILD)/Makefile: $(GNUTLS_SRC)/configure $(NETTLE_DEPS)
 	mkdir -p $(GNUTLS_BUILD)
