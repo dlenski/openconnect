@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.01.tar.gz">OpenConnect v5.01</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.01.tar.gz.asc">PGP signature</a>)</i> &#8212; 2013-06-01
+     <ul>
        <li>Attempt to handle &lt;client-cert-request&gt; in aggregate auth mode.</li>
        <li>Don't include <tt>X-Aggregate-Auth:</tt> header in fallback mode.</li>
        <li>Enable AES256 mode for DTLS with GnuTLS <a href="https://bugzilla.redhat.com/show_bug.cgi?id=955710"><i>(RH#955710)</i></a>.</li>

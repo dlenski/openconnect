@@ -19,17 +19,19 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.00.tar.gz">OpenConnect v5.00</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.00.tar.gz.asc">PGP signature</a>)</i>,
-released on 2013-05-15 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.01.tar.gz">OpenConnect v5.01</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.01.tar.gz.asc">PGP signature</a>)</i>,
+released on 2013-06-01 with the following changelog:</p>
      <ul>
-       <li>Use GnuTLS by default instead of OpenSSL.</li>
-       <li>Avoid using deprecated <tt>gnutls_pubkey_verify_data()</tt> function.</li>
-       <li>Fix compatibility issues with XML POST authentication.</li>
-       <li>Fix memory leaks on <tt>realloc()</tt> failure.</li>
-       <li>Fix certificate validation problem caused by hostname canonicalisation.</li>
-       <li>Add RFC6238 TOTP token support using <a href="http://www.nongnu.org/oath-toolkit/">liboath</a>.</li>
-       <li>Replace <tt>--stoken</tt> option with more generic <tt>--token-mode</tt> and <tt>--token-secret</tt> options.</li>
+       <li>Attempt to handle &lt;client-cert-request&gt; in aggregate auth mode.</li>
+       <li>Don't include <tt>X-Aggregate-Auth:</tt> header in fallback mode.</li>
+       <li>Enable AES256 mode for DTLS with GnuTLS <a href="https://bugzilla.redhat.com/show_bug.cgi?id=955710"><i>(RH#955710)</i></a>.</li>
+       <li>Add <tt>--dump-http-traffic</tt> option for debugging.</li>
+       <li>Be more permissive in parsing XML forms.</li>
+       <li>Use original URL when falling back to non-XML POST mode.</li>
+       <li>Add <tt>--no-xmlpost</tt> option to revert to older, compatible behaviour.</li>
+       <li>Close connection before falling back to non-xmlpost mode <a href="https://bugzilla.redhat.com/show_bug.cgi?id=964650"><i>(RH#964650)</i></a>.</li>
+       <li>Improve error handling when server closes connection <a href="http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=708928"><i>(Debian #708928)</i></a>.</li>
      </ul>
 <!-- latest-release-end -->
 
