@@ -220,7 +220,8 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	int ret = SSL_do_handshake(vpninfo->new_dtls_ssl);
 
 	if (ret == 1) {
-		vpn_progress(vpninfo, PRG_INFO, _("Established DTLS connection (using OpenSSL)\n"));
+		vpn_progress(vpninfo, PRG_INFO, _("Established DTLS connection (using OpenSSL). Ciphersuite %s.\n"),
+		        vpninfo->dtls_cipher);
 
 		dtls_close(vpninfo, 0);
 		vpninfo->dtls_ssl = vpninfo->new_dtls_ssl;
@@ -422,7 +423,8 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 				    + 16 /* max padding */);
 #endif
 
-		vpn_progress(vpninfo, PRG_INFO, _("Established DTLS connection (using GnuTLS)\n"));
+		vpn_progress(vpninfo, PRG_INFO, _("Established DTLS connection (using GnuTLS). Ciphersuite %s.\n"),
+		        vpninfo->dtls_cipher);
 
 		dtls_close(vpninfo, 0);
 		vpninfo->dtls_ssl = vpninfo->new_dtls_ssl;
