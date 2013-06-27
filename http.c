@@ -871,6 +871,7 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 	struct oc_text_buf *buf;
 	int result, buflen;
 	int rq_retry;
+	int rlen, pad;
 
  redirected:
 	vpninfo->redirect_type = REDIR_TYPE_NONE;
@@ -894,8 +895,15 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 	add_common_headers(vpninfo, buf);
 
 	if (request_body_type) {
+		rlen = strlen(request_body);
+
+		/* force body length to be a multiple of 64, to avoid leaking
+		 * password length. */
+		pad = 64*(1+rlen/64) - rlen;
+		buf_append(buf, "X-Pad: %0*d\r\n", pad, 0);
+
 		buf_append(buf, "Content-Type: %s\r\n", request_body_type);
-		buf_append(buf, "Content-Length: %zd\r\n", strlen(request_body));
+		buf_append(buf, "Content-Length: %d\r\n", (int)rlen);
 	}
 	buf_append(buf, "\r\n");
 
