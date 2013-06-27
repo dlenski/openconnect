@@ -1784,11 +1784,14 @@ static int verify_peer(gnutls_session_t session)
 	return err;
 }
 
+#define DEFAULT_PRIO "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:" \
+			 "%COMPAT:%DISABLE_SAFE_RENEGOTIATION:%LATEST_RECORD_VERSION"
 
 int openconnect_open_https(struct openconnect_info *vpninfo)
 {
 	int ssl_sock = -1;
 	int err;
+	const char * prio;
 
 	if (vpninfo->https_sess)
 		return 0;
@@ -1895,13 +1898,18 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		gnutls_sign_callback_set(vpninfo->https_sess, gtls2_tpm_sign_cb, vpninfo);
 #endif
 
-	err = gnutls_priority_set_direct(vpninfo->https_sess,
-					 "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:"
+	if (vpninfo->pfs) {
+		prio = DEFAULT_PRIO":-RSA";
+	} else {
+		prio = DEFAULT_PRIO
 #if GNUTLS_VERSION_MAJOR >= 3
-					 "-CURVE-ALL:"
+			":-CURVE-ALL"
 #endif
-					 "%COMPAT:%DISABLE_SAFE_RENEGOTIATION:%LATEST_RECORD_VERSION",
-					 NULL);
+		;
+	}
+
+	err = gnutls_priority_set_direct(vpninfo->https_sess,
+					prio, NULL);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to set TLS priority string: %s\n"),

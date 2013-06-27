@@ -125,6 +125,7 @@ enum {
 	OPT_TOKEN_SECRET,
 	OPT_OS,
 	OPT_TIMESTAMP,
+	OPT_PFS,
 };
 
 #ifdef __sun__
@@ -139,6 +140,7 @@ enum {
 
 static struct option long_options[] = {
 	OPTION("background", 0, 'b'),
+	OPTION("pfs", 0, OPT_PFS),
 	OPTION("pid-file", 1, OPT_PIDFILE),
 	OPTION("certificate", 1, 'c'),
 	OPTION("sslkey", 1, 'k'),
@@ -281,6 +283,7 @@ static void usage(void)
 #ifndef LIBPROXY_HDR
 	printf("                                  %s\n", _("(NOTE: libproxy disabled in this build)"));
 #endif
+	printf("      --pfs                       %s\n", _("Require perfect forward secrecy"));
 	printf("  -q, --quiet                     %s\n", _("Less output"));
 	printf("  -Q, --queue-len=LEN             %s\n", _("Set packet queue limit to LEN pkts"));
 	printf("  -s, --script=SCRIPT             %s\n", _("Shell command line for using a vpnc-compatible config script"));
@@ -579,6 +582,9 @@ int main(int argc, char **argv)
 			break;
 		case OPT_PIDFILE:
 			pidfile = keep_config_arg();
+			break;
+		case OPT_PFS:
+			vpninfo->pfs = 1;
 			break;
 		case OPT_SERVERCERT:
 			openconnect_set_server_cert_sha1(vpninfo, xstrdup(config_arg));

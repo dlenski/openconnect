@@ -1304,6 +1304,9 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 						 ssl_app_verify_callback, NULL);
 #endif
 		SSL_CTX_set_default_verify_paths(vpninfo->https_ctx);
+		
+		if (vpninfo->pfs)
+			SSL_CTX_set_cipher_list(vpninfo->https_ctx, "HIGH:!aNULL:!eNULL:-RSA");
 
 #ifdef ANDROID_KEYSTORE
 		if (vpninfo->cafile && !strncmp(vpninfo->cafile, "keystore:", 9)) {

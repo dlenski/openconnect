@@ -196,6 +196,7 @@ struct openconnect_info {
 	struct oc_vpn_option *cstp_options;
 	struct oc_vpn_option *dtls_options;
 
+	unsigned pfs;
 #if defined(OPENCONNECT_OPENSSL)
 	X509 *cert_x509;
 	SSL_CTX *https_ctx;
