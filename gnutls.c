@@ -1784,8 +1784,23 @@ static int verify_peer(gnutls_session_t session)
 	return err;
 }
 
-#define DEFAULT_PRIO "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:" \
-			 "%COMPAT:%DISABLE_SAFE_RENEGOTIATION:%LATEST_RECORD_VERSION"
+/* The F5 firewall is confused when the TLS client hello is between
+ * 256 and 512 bytes. By disabling several TLS options we force the
+ * client hello to be < 256 bytes. We don't do that in gnutls versions
+ * >= 3.2.9 as there the %COMPAT keyword ensures that the client hello
+ * will be outside that range.
+ */
+#if GNUTLS_VERSION_NUMBER >= 0x030209
+# define DEFAULT_PRIO "NORMAL:-VERS-SSL3.0:%COMPAT"
+#else
+# define _DEFAULT_PRIO "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:" \
+	"%COMPAT:%DISABLE_SAFE_RENEGOTIATION:%LATEST_RECORD_VERSION"
+# if GNUTLS_VERSION_MAJOR >= 3
+#  define DEFAULT_PRIO _DEFAULT_PRIO":-CURVE-ALL"
+#else
+#  define DEFAULT_PRIO _DEFAULT_PRIO
+# endif
+#endif
 
 int openconnect_open_https(struct openconnect_info *vpninfo)
 {
@@ -1901,11 +1916,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	if (vpninfo->pfs) {
 		prio = DEFAULT_PRIO":-RSA";
 	} else {
-		prio = DEFAULT_PRIO
-#if GNUTLS_VERSION_MAJOR >= 3
-			":-CURVE-ALL"
-#endif
-		;
+		prio = DEFAULT_PRIO;
 	}
 
 	err = gnutls_priority_set_direct(vpninfo->https_sess,
