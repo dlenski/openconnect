@@ -168,7 +168,6 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo);
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo);
 void openconnect_init_ssl(void);
 
-char *openconnect_get_vpn_name(struct openconnect_info *);
 char *openconnect_get_hostname(struct openconnect_info *);
 void openconnect_set_hostname(struct openconnect_info *, char *);
 char *openconnect_get_urlpath(struct openconnect_info *);
