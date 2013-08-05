@@ -49,6 +49,18 @@ libopenconnect_la_LDFLAGS += -Wl,@VERSION_SCRIPT_ARG@,libopenconnect.map
 libopenconnect_la_DEPENDENCIES = libopenconnect.map
 endif
 
+if OPENCONNECT_JNI
+if JNI_STANDALONE
+libopenconnect_la_SOURCES += jni.c
+libopenconnect_la_CFLAGS += $(JNI_CFLAGS) -Wno-missing-declarations
+else
+lib_LTLIBRARIES += libopenconnect-wrapper.la
+libopenconnect_wrapper_la_SOURCES = jni.c
+libopenconnect_wrapper_la_CFLAGS = $(AM_CFLAGS) $(JNI_CFLAGS) -Wno-missing-declarations
+libopenconnect_wrapper_la_LIBADD = libopenconnect.la
+endif
+endif
+
 pkgconfig_DATA = openconnect.pc
 
 EXTRA_DIST = version.sh COPYING.LGPL $(lib_srcs_openssl) $(lib_srcs_gnutls)

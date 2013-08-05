@@ -547,6 +547,45 @@ AS_IF([test "x$with_liboath" != "xno"], [
 		 liboath_pkg=no)
 ])
 
+AC_ARG_WITH([java],
+	AS_HELP_STRING([--with-java(=DIR)],
+		       [Build JNI bindings using jni.h from DIR [default=no]]),
+	[], [with_java=no])
+
+if test "$with_java" = "yes"; then
+	AX_JNI_INCLUDE_DIR
+	for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS; do
+		  JNI_CFLAGS="$JNI_CFLAGS -I$JNI_INCLUDE_DIR"
+	done
+elif test "$with_java" = "no"; then
+	JNI_CFLAGS=""
+else
+	JNI_CFLAGS="-I$with_java"
+fi
+
+if test "x$JNI_CFLAGS" != "x"; then
+	oldCFLAGS="$CFLAGS"
+	CFLAGS="$CFLAGS $JNI_CFLAGS"
+	AC_MSG_CHECKING([jni.h usability])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <jni.h>],
+		[jint foo = 0; (void)foo;])],
+		AC_MSG_RESULT([yes]),
+		[AC_MSG_RESULT([no])
+		 AC_MSG_ERROR([unable to compile JNI test program])])
+	CFLAGS="$oldCFLAGS"
+
+	AC_SUBST(JNI_CFLAGS, [$JNI_CFLAGS])
+fi
+
+AM_CONDITIONAL(OPENCONNECT_JNI, [test "$JNI_CFLAGS" != ""])
+
+AC_ARG_ENABLE([jni-standalone],
+	AS_HELP_STRING([--enable-jni-standalone],
+		       [build JNI stubs directly into libopenconnect.so [default=no]]),
+	[jni_standalone=$enableval],
+	[jni_standalone=no])
+AM_CONDITIONAL(JNI_STANDALONE, [test $jni_standalone = yes])
+
 AC_CHECK_HEADER([if_tun.h],
     [AC_DEFINE([IF_TUN_HDR], ["if_tun.h"])],
     [AC_CHECK_HEADER([linux/if_tun.h],
