@@ -94,14 +94,9 @@ int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t le
 			else
 				FD_SET(vpninfo->ssl_fd, &rd_set);
 
-			if (vpninfo->cancel_fd != -1) {
-				FD_SET(vpninfo->cancel_fd, &rd_set);
-				if (vpninfo->cancel_fd > vpninfo->ssl_fd)
-					maxfd = vpninfo->cancel_fd;
-			}
+			cmd_fd_set(vpninfo, &rd_set, &maxfd);
 			select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
-			if (vpninfo->cancel_fd != -1 &&
-			    FD_ISSET(vpninfo->cancel_fd, &rd_set)) {
+			if (is_cancel_pending(vpninfo, &rd_set)) {
 				vpn_progress(vpninfo, PRG_ERR, _("SSL write cancelled\n"));
 				return -EINTR;
 			}
@@ -131,14 +126,9 @@ int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len
 			else
 				FD_SET(vpninfo->ssl_fd, &rd_set);
 
-			if (vpninfo->cancel_fd != -1) {
-				FD_SET(vpninfo->cancel_fd, &rd_set);
-				if (vpninfo->cancel_fd > vpninfo->ssl_fd)
-					maxfd = vpninfo->cancel_fd;
-			}
+			cmd_fd_set(vpninfo, &rd_set, &maxfd);
 			select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
-			if (vpninfo->cancel_fd != -1 &&
-			    FD_ISSET(vpninfo->cancel_fd, &rd_set)) {
+			if (is_cancel_pending(vpninfo, &rd_set)) {
 				vpn_progress(vpninfo, PRG_ERR, _("SSL read cancelled\n"));
 				return -EINTR;
 			}
@@ -189,14 +179,9 @@ int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len
 			else
 				FD_SET(vpninfo->ssl_fd, &rd_set);
 
-			if (vpninfo->cancel_fd != -1) {
-				FD_SET(vpninfo->cancel_fd, &rd_set);
-				if (vpninfo->cancel_fd > vpninfo->ssl_fd)
-					maxfd = vpninfo->cancel_fd;
-			}
+			cmd_fd_set(vpninfo, &rd_set, &maxfd);
 			select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
-			if (vpninfo->cancel_fd != -1 &&
-			    FD_ISSET(vpninfo->cancel_fd, &rd_set)) {
+			if (is_cancel_pending(vpninfo, &rd_set)) {
 				vpn_progress(vpninfo, PRG_ERR, _("SSL read cancelled\n"));
 				ret = -EINTR;
 				break;
@@ -1947,14 +1932,9 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			else
 				FD_SET(ssl_sock, &rd_set);
 
-			if (vpninfo->cancel_fd != -1) {
-				FD_SET(vpninfo->cancel_fd, &rd_set);
-				if (vpninfo->cancel_fd > ssl_sock)
-					maxfd = vpninfo->cancel_fd;
-			}
+			cmd_fd_set(vpninfo, &rd_set, &maxfd);
 			select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
-			if (vpninfo->cancel_fd != -1 &&
-			    FD_ISSET(vpninfo->cancel_fd, &rd_set)) {
+			if (is_cancel_pending(vpninfo, &rd_set)) {
 				vpn_progress(vpninfo, PRG_ERR, _("SSL connection cancelled\n"));
 				gnutls_deinit(vpninfo->https_sess);
 				vpninfo->https_sess = NULL;

@@ -400,6 +400,8 @@ int openconnect_print_err_cb(const char *str, size_t len, void *ptr);
 const char *keystore_strerror(int err);
 int keystore_fetch(const char *key, unsigned char **result);
 #endif
+void cmd_fd_set(struct openconnect_info *vpninfo, fd_set *fds, int *maxfd);
+int is_cancel_pending(struct openconnect_info *vpninfo, fd_set *fds);
 
 /* ${SSL_LIBRARY}.c */
 int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len);

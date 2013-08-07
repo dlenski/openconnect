@@ -73,16 +73,12 @@ static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 	FD_ZERO(&wr_set);
 	FD_ZERO(&rd_set);
 	FD_SET(sockfd, &wr_set);
-	if (vpninfo->cancel_fd != -1) {
-		FD_SET(vpninfo->cancel_fd, &rd_set);
-		if (vpninfo->cancel_fd > sockfd)
-			maxfd = vpninfo->cancel_fd;
-	}
+	cmd_fd_set(vpninfo, &rd_set, &maxfd);
 
 	/* Later we'll render this whole exercise non-pointless by
 	   including a 'cancelfd' here too. */
 	select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
-	if (vpninfo->cancel_fd != -1 && FD_ISSET(vpninfo->cancel_fd, &rd_set)) {
+	if (is_cancel_pending(vpninfo, &rd_set)) {
 		vpn_progress(vpninfo, PRG_ERR, _("Socket connect cancelled\n"));
 		errno = EINTR;
 		return -1;
@@ -524,3 +520,17 @@ int keystore_fetch(const char *key, unsigned char **result)
 	return ret;
 }
 #endif
+
+void cmd_fd_set(struct openconnect_info *vpninfo, fd_set *fds, int *maxfd)
+{
+	if (vpninfo->cancel_fd != -1) {
+		FD_SET(vpninfo->cancel_fd, fds);
+		if (vpninfo->cancel_fd > *maxfd)
+			*maxfd = vpninfo->cancel_fd;
+	}
+}
+
+int is_cancel_pending(struct openconnect_info *vpninfo, fd_set *fds)
+{
+	return vpninfo->cancel_fd != -1 && FD_ISSET(vpninfo->cancel_fd, fds);
+}

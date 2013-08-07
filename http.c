@@ -1298,15 +1298,10 @@ static int proxy_write(struct openconnect_info *vpninfo, int fd,
 		FD_ZERO(&wr_set);
 		FD_ZERO(&rd_set);
 		FD_SET(fd, &wr_set);
-		if (vpninfo->cancel_fd != -1) {
-			FD_SET(vpninfo->cancel_fd, &rd_set);
-			if (vpninfo->cancel_fd > fd)
-				maxfd = vpninfo->cancel_fd;
-		}
+		cmd_fd_set(vpninfo, &rd_set, &maxfd);
 
 		select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
-		if (vpninfo->cancel_fd != -1 &&
-		    FD_ISSET(vpninfo->cancel_fd, &rd_set))
+		if (is_cancel_pending(vpninfo, &rd_set))
 			return -EINTR;
 
 		/* Not that this should ever be able to happen... */
@@ -1334,15 +1329,10 @@ static int proxy_read(struct openconnect_info *vpninfo, int fd,
 
 		FD_ZERO(&rd_set);
 		FD_SET(fd, &rd_set);
-		if (vpninfo->cancel_fd != -1) {
-			FD_SET(vpninfo->cancel_fd, &rd_set);
-			if (vpninfo->cancel_fd > fd)
-				maxfd = vpninfo->cancel_fd;
-		}
+		cmd_fd_set(vpninfo, &rd_set, &maxfd);
 
 		select(maxfd + 1, &rd_set, NULL, NULL, NULL);
-		if (vpninfo->cancel_fd != -1 &&
-		    FD_ISSET(vpninfo->cancel_fd, &rd_set))
+		if (is_cancel_pending(vpninfo, &rd_set))
 			return -EINTR;
 
 		/* Not that this should ever be able to happen... */
