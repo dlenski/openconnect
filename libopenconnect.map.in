@@ -35,6 +35,11 @@ OPENCONNECT_3.0 {
 	openconnect_set_token_mode;
 };
 
+OPENCONNECT_3.1 {
+ global:
+	openconnect_setup_cmd_pipe;
+} OPENCONNECT_3.0;
+
 OPENCONNECT_PRIVATE {
  global: @SYMVER_TIME@ @SYMVER_ASPRINTF@ @SYMVER_GETLINE@ @SYMVER_PRINT_ERR@
 	openconnect_SSL_gets;

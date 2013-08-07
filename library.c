@@ -26,6 +26,8 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #ifdef HAVE_LIBSTOKEN
 #include <stoken.h>
@@ -57,6 +59,7 @@ struct openconnect_info *openconnect_vpninfo_new(char *useragent,
 	vpninfo->progress = progress;
 	vpninfo->cbdata = privdata ? : vpninfo;
 	vpninfo->cmd_fd = -1;
+	vpninfo->cmd_fd_write = -1;
 	vpninfo->xmlpost = 1;
 	openconnect_set_reported_os(vpninfo, NULL);
 
@@ -106,6 +109,10 @@ static void free_optlist(struct vpn_option *opt)
 void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 {
 	openconnect_close_https(vpninfo, 1);
+	if (vpninfo->cmd_fd_write != -1) {
+		close(vpninfo->cmd_fd);
+		close(vpninfo->cmd_fd_write);
+	}
 	free(vpninfo->peer_addr);
 	free_optlist(vpninfo->cookies);
 	free_optlist(vpninfo->cstp_options);
@@ -280,6 +287,23 @@ void openconnect_set_cert_expiry_warning(struct openconnect_info *vpninfo,
 void openconnect_set_cancel_fd(struct openconnect_info *vpninfo, int fd)
 {
 	vpninfo->cmd_fd = fd;
+}
+
+int openconnect_setup_cmd_pipe(struct openconnect_info *vpninfo)
+{
+	int pipefd[2];
+
+	if (pipe(pipefd) < 0)
+		return -EIO;
+	if (fcntl(pipefd[0], F_SETFL, O_NONBLOCK) ||
+	    fcntl(pipefd[1], F_SETFL, O_NONBLOCK)) {
+		close(pipefd[0]);
+		close(pipefd[1]);
+		return -EIO;
+	}
+	vpninfo->cmd_fd = pipefd[0];
+	vpninfo->cmd_fd_write = pipefd[1];
+	return vpninfo->cmd_fd_write;
 }
 
 const char *openconnect_get_version(void)
