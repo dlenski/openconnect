@@ -261,6 +261,16 @@ int openconnect_setup_cmd_pipe(struct openconnect_info *vpninfo);
 
 const char *openconnect_get_version(void);
 
+/* Create a tun device through the OS kernel (typical use case). Both
+   strings are optional and can be NULL if desired. */
+int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_script, char *ifname);
+
+/* Pass traffic to a script program (no tun device). */
+int openconnect_setup_tun_script(struct openconnect_info *vpninfo, char *tun_script);
+
+/* Caller will provide a file descriptor for the tunnel traffic. */
+int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd);
+
 /* Start the main loop; exits if OC_CMD_CANCEL is received on cmd_fd or
    the remote site aborts. */
 int openconnect_mainloop(struct openconnect_info *vpninfo,

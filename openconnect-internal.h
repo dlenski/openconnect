@@ -263,7 +263,7 @@ struct openconnect_info {
 	unsigned char dtls_secret[48];
 
 	char *dtls_cipher;
-	const char *vpnc_script;
+	char *vpnc_script;
 	int script_tun;
 	char *ifname;
 
@@ -371,7 +371,6 @@ char *openconnect__strcasestr(const char *haystack, const char *needle);
 /****************************************************************************/
 
 /* tun.c */
-int setup_tun(struct openconnect_info *vpninfo);
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout);
 void shutdown_tun(struct openconnect_info *vpninfo);
 int script_config_tun(struct openconnect_info *vpninfo, const char *reason);

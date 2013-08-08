@@ -39,6 +39,9 @@ OPENCONNECT_3.1 {
  global:
 	openconnect_setup_cmd_pipe;
 	openconnect_mainloop;
+	openconnect_setup_tun_device;
+	openconnect_setup_tun_script;
+	openconnect_setup_tun_fd;
 } OPENCONNECT_3.0;
 
 OPENCONNECT_PRIVATE {

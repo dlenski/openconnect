@@ -631,54 +631,12 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 	return tun_fd;
 }
 
-/* Set up a tuntap device. */
-int setup_tun(struct openconnect_info *vpninfo)
+int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
 {
-	int tun_fd;
-
-	set_script_env(vpninfo);
-
-	if (vpninfo->script_tun) {
-		pid_t child;
-		int fds[2];
-
-		if (socketpair(AF_UNIX, SOCK_DGRAM, 0, fds)) {
-			perror(_("socketpair"));
-			exit(1);
-		}
-		tun_fd = fds[0];
-		child = fork();
-		if (child < 0) {
-			perror(_("fork"));
-			exit(1);
-		} else if (!child) {
-			if (setpgid(0, getpid()) < 0)
-				perror(_("setpgid"));
-			close(tun_fd);
-			setenv_int("VPNFD", fds[1]);
-			execl("/bin/sh", "/bin/sh", "-c", vpninfo->vpnc_script, NULL);
-			perror(_("execl"));
-			exit(1);
-		}
-		close(fds[1]);
-		vpninfo->script_tun = child;
-		vpninfo->ifname = strdup(_("(script)"));
-	} else {
-		script_config_tun(vpninfo, "pre-init");
-
-		tun_fd = os_setup_tun(vpninfo);
-		if (tun_fd < 0)
-			return tun_fd;
-
-		setenv("TUNDEV", vpninfo->ifname, 1);
-		script_config_tun(vpninfo, "connect");
-
-		/* Ancient vpnc-scripts might not get this right */
-		set_tun_mtu(vpninfo);
-	}
-
 	fcntl(tun_fd, F_SETFD, FD_CLOEXEC);
 
+	if (vpninfo->tun_fd != -1)
+		FD_CLR(vpninfo->tun_fd, &vpninfo->select_rfds);
 	vpninfo->tun_fd = tun_fd;
 
 	if (vpninfo->select_nfds <= tun_fd)
@@ -689,6 +647,62 @@ int setup_tun(struct openconnect_info *vpninfo)
 	fcntl(vpninfo->tun_fd, F_SETFL, fcntl(vpninfo->tun_fd, F_GETFL) | O_NONBLOCK);
 
 	return 0;
+}
+
+int openconnect_setup_tun_script(struct openconnect_info *vpninfo, char *tun_script)
+{
+	pid_t child;
+	int fds[2];
+
+	vpninfo->vpnc_script = tun_script;
+	vpninfo->script_tun = 1;
+
+	set_script_env(vpninfo);
+	if (socketpair(AF_UNIX, SOCK_DGRAM, 0, fds)) {
+		perror(_("socketpair"));
+		exit(1);
+	}
+	child = fork();
+	if (child < 0) {
+		perror(_("fork"));
+		exit(1);
+	} else if (!child) {
+		if (setpgid(0, getpid()) < 0)
+			perror(_("setpgid"));
+		close(fds[0]);
+		setenv_int("VPNFD", fds[1]);
+		execl("/bin/sh", "/bin/sh", "-c", vpninfo->vpnc_script, NULL);
+		perror(_("execl"));
+		exit(1);
+	}
+	close(fds[1]);
+	vpninfo->script_tun = child;
+	vpninfo->ifname = strdup(_("(script)"));
+
+	return openconnect_setup_tun_fd(vpninfo, fds[0]);
+}
+
+int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_script, char *ifname)
+{
+	int tun_fd;
+
+	vpninfo->vpnc_script = vpnc_script;
+	vpninfo->ifname = ifname;
+
+	set_script_env(vpninfo);
+	script_config_tun(vpninfo, "pre-init");
+
+	tun_fd = os_setup_tun(vpninfo);
+	if (tun_fd < 0)
+		return tun_fd;
+
+	setenv("TUNDEV", vpninfo->ifname, 1);
+	script_config_tun(vpninfo, "connect");
+
+	/* Ancient vpnc-scripts might not get this right */
+	set_tun_mtu(vpninfo);
+
+	return openconnect_setup_tun_fd(vpninfo, tun_fd);
 }
 
 static struct pkt *out_pkt;
@@ -802,6 +816,7 @@ void shutdown_tun(struct openconnect_info *vpninfo)
 #endif
 	}
 
-	close(vpninfo->tun_fd);
+	if (vpninfo->vpnc_script)
+		close(vpninfo->tun_fd);
 	vpninfo->tun_fd = -1;
 }

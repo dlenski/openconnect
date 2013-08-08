@@ -508,6 +508,8 @@ int main(int argc, char **argv)
 	int use_syslog = 0;
 	char *urlpath = NULL;
 	char *proxy = getenv("https_proxy");
+	int script_tun = 0;
+	char *vpnc_script = NULL, *ifname = NULL;
 	int autoproxy = 0;
 	uid_t uid = getuid();
 	int opt;
@@ -554,7 +556,6 @@ int main(int argc, char **argv)
 	vpninfo->process_auth_form = process_auth_form_cb;
 	vpninfo->cbdata = vpninfo;
 	vpninfo->cert_expire_warning = 60 * 86400;
-	vpninfo->vpnc_script = DEFAULT_VPNCSCRIPT;
 	vpninfo->cmd_fd = -1;
 	vpninfo->xmlpost = 1;
 
@@ -659,7 +660,7 @@ int main(int argc, char **argv)
 		case 'h':
 			usage();
 		case 'i':
-			vpninfo->ifname = keep_config_arg();
+			ifname = xstrdup(config_arg);
 			break;
 		case 'l':
 			use_syslog = 1;
@@ -703,10 +704,10 @@ int main(int argc, char **argv)
 			nocertcheck = 1;
 			break;
 		case 's':
-			vpninfo->vpnc_script = keep_config_arg();
+			vpnc_script = xstrdup(config_arg);
 			break;
 		case 'S':
-			vpninfo->script_tun = 1;
+			script_tun = 1;
 			break;
 		case 'u':
 			free(username);
@@ -922,7 +923,14 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	if (setup_tun(vpninfo)) {
+	if (!vpnc_script)
+		vpnc_script = xstrdup(DEFAULT_VPNCSCRIPT);
+	if (script_tun) {
+		if (openconnect_setup_tun_script(vpninfo, vpnc_script)) {
+			fprintf(stderr, _("Set up tun script failed\n"));
+			exit(1);
+		}
+	} else if (openconnect_setup_tun_device(vpninfo, vpnc_script, ifname)) {
 		fprintf(stderr, _("Set up tun device failed\n"));
 		exit(1);
 	}
