@@ -44,6 +44,9 @@ OPENCONNECT_3.1 {
 	openconnect_setup_tun_fd;
 	openconnect_setup_dtls;
 	openconnect_make_cstp_connection;
+	openconnect_set_server_cert_sha1;
+	openconnect_get_ifname;
+	openconnect_set_reqmtu;
 } OPENCONNECT_3.0;
 
 OPENCONNECT_PRIVATE {

@@ -569,13 +569,13 @@ int main(int argc, char **argv)
 			/* The next option will come from the file... */
 			break;
 		case OPT_CAFILE:
-			vpninfo->cafile = keep_config_arg();
+			openconnect_set_cafile(vpninfo, xstrdup(config_arg));
 			break;
 		case OPT_PIDFILE:
 			pidfile = keep_config_arg();
 			break;
 		case OPT_SERVERCERT:
-			vpninfo->servercert = keep_config_arg();
+			openconnect_set_server_cert_sha1(vpninfo, xstrdup(config_arg));
 			break;
 		case OPT_NO_DTLS:
 			use_dtls = 0;
@@ -649,13 +649,15 @@ int main(int argc, char **argv)
 		case 'l':
 			use_syslog = 1;
 			break;
-		case 'm':
-			vpninfo->reqmtu = atol(config_arg);
-			if (vpninfo->reqmtu < 576) {
-				fprintf(stderr, _("MTU %d too small\n"), vpninfo->reqmtu);
-				vpninfo->reqmtu = 576;
+		case 'm': {
+			int mtu = atol(config_arg);
+			if (mtu < 576) {
+				fprintf(stderr, _("MTU %d too small\n"), mtu);
+				mtu = 576;
 			}
+			openconnect_set_reqmtu(vpninfo, mtu);
 			break;
+		}
 		case OPT_BASEMTU:
 			vpninfo->basemtu = atol(config_arg);
 			if (vpninfo->basemtu < 576) {
@@ -931,7 +933,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, _("Set up DTLS failed; using SSL instead\n"));
 
 	vpn_progress(vpninfo, PRG_INFO,
-		     _("Connected %s as %s%s%s, using %s\n"), vpninfo->ifname,
+		     _("Connected %s as %s%s%s, using %s\n"), openconnect_get_ifname(vpninfo),
 		     vpninfo->vpn_addr?:"",
 		     (vpninfo->vpn_addr6 && vpninfo->vpn_addr) ? " + " : "",
 		     vpninfo->vpn_addr6 ? : "",

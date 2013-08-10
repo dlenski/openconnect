@@ -226,6 +226,9 @@ void openconnect_set_cafile(struct openconnect_info *, char *);
 void openconnect_setup_csd(struct openconnect_info *, uid_t, int silent, char *wrapper);
 int openconnect_set_reported_os(struct openconnect_info *, const char *os);
 void openconnect_set_client_cert(struct openconnect_info *, char *cert, char *sslkey);
+void openconnect_set_server_cert_sha1(struct openconnect_info *, char *);
+const char *openconnect_get_ifname(struct openconnect_info *);
+void openconnect_set_reqmtu(struct openconnect_info *, int reqmtu);
 
 /* This is *not* yours and must not be destroyed with X509_free(). It
  * will be valid when a cookie has been obtained successfully, and will

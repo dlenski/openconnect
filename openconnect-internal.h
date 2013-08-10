@@ -169,8 +169,8 @@ struct openconnect_info {
 	const char *sslkey;
 	int cert_type;
 	char *cert_password;
-	const char *cafile;
-	const char *servercert;
+	char *cafile;
+	char *servercert;
 	const char *xmlconfig;
 	char xmlsha1[(SHA1_SIZE * 2) + 1];
 	char *authgroup;

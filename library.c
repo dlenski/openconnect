@@ -138,6 +138,8 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free(vpninfo->proxy_type);
 	free(vpninfo->proxy);
 	free(vpninfo->vpnc_script);
+	free(vpninfo->cafile);
+	free(vpninfo->servercert);
 	free(vpninfo->ifname);
 
 	if (vpninfo->csd_scriptname) {
@@ -156,7 +158,6 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	/* These are const in openconnect itself, but for consistency of
 	   the library API we do take ownership of the strings we're given,
 	   and thus we have to free them too. */
-	free((void *)vpninfo->cafile);
 	if (vpninfo->cert != vpninfo->sslkey)
 		free((void *)vpninfo->sslkey);
 	free((void *)vpninfo->cert);
@@ -226,6 +227,21 @@ void openconnect_set_xmlsha1(struct openconnect_info *vpninfo, const char *xmlsh
 void openconnect_set_cafile(struct openconnect_info *vpninfo, char *cafile)
 {
 	vpninfo->cafile = cafile;
+}
+
+void openconnect_set_server_cert_sha1(struct openconnect_info *vpninfo, char *servercert)
+{
+	vpninfo->servercert = servercert;
+}
+
+const char *openconnect_get_ifname(struct openconnect_info *vpninfo)
+{
+	return vpninfo->ifname;
+}
+
+void openconnect_set_reqmtu(struct openconnect_info *vpninfo, int reqmtu)
+{
+	vpninfo->reqmtu = reqmtu;
 }
 
 void openconnect_setup_csd(struct openconnect_info *vpninfo, uid_t uid, int silent, char *wrapper)
