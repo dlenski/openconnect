@@ -122,7 +122,7 @@ AC_SUBST(SYMVER_TIME, $symver_time)
 AC_SUBST(SYMVER_GETLINE, $symver_getline)
 AC_SUBST(SYMVER_ASPRINTF, $symver_asprintf)
 
-AS_COMPILER_FLAGS(CFLAGS,
+AS_COMPILER_FLAGS(WFLAGS,
         "-Wall
          -Wextra
          -Wno-missing-field-initializers
@@ -139,6 +139,7 @@ AS_COMPILER_FLAGS(CFLAGS,
          -Wnested-externs
          -Wpointer-arith
          -Wwrite-strings")
+AC_SUBST(WFLAGS, [$WFLAGS])
 
 AC_CHECK_FUNC(socket, [], AC_CHECK_LIB(socket, socket, [], AC_ERROR(Cannot find socket() function)))
 AC_CHECK_FUNC(inet_aton, [], AC_CHECK_LIB(nsl, inet_aton, [], AC_ERROR(Cannot find inet_aton() function)))
