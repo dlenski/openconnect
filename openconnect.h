@@ -271,6 +271,9 @@ int openconnect_setup_tun_script(struct openconnect_info *vpninfo, char *tun_scr
 /* Caller will provide a file descriptor for the tunnel traffic. */
 int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd);
 
+/* Optional call to enable DTLS on the connection. */
+int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_period);
+
 /* Start the main loop; exits if OC_CMD_CANCEL is received on cmd_fd or
    the remote site aborts. */
 int openconnect_mainloop(struct openconnect_info *vpninfo,

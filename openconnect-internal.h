@@ -377,7 +377,6 @@ int script_config_tun(struct openconnect_info *vpninfo, const char *reason);
 
 /* dtls.c */
 unsigned char unhex(const char *data);
-int setup_dtls(struct openconnect_info *vpninfo);
 int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int dtls_try_handshake(struct openconnect_info *vpninfo);
 int connect_dtls_socket(struct openconnect_info *vpninfo);

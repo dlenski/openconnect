@@ -42,6 +42,7 @@ OPENCONNECT_3.1 {
 	openconnect_setup_tun_device;
 	openconnect_setup_tun_script;
 	openconnect_setup_tun_fd;
+	openconnect_setup_dtls;
 } OPENCONNECT_3.0;
 
 OPENCONNECT_PRIVATE {

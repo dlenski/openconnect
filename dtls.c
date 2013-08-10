@@ -581,10 +581,14 @@ static int dtls_restart(struct openconnect_info *vpninfo)
 }
 
 
-int setup_dtls(struct openconnect_info *vpninfo)
+int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_period)
 {
 	struct vpn_option *dtls_opt = vpninfo->dtls_options;
 	int dtls_port = 0;
+
+	vpninfo->dtls_attempt_period = dtls_attempt_period;
+	if (!dtls_attempt_period)
+		return 0;
 
 #if defined(OPENCONNECT_GNUTLS) && defined(DTLS_OPENSSL)
 	/* If we're using GnuTLS for authentication but OpenSSL for DTLS,
@@ -855,7 +859,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 }
 #else /* !HAVE_DTLS */
 #warning Your SSL library does not seem to support Cisco DTLS compatibility
-int setup_dtls(struct openconnect_info *vpninfo)
+int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_period)
 {
 	vpn_progress(vpninfo, PRG_ERR,
 		     _("Built against SSL library with no Cisco DTLS support\n"));
