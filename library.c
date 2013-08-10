@@ -50,16 +50,19 @@ struct openconnect_info *openconnect_vpninfo_new(char *useragent,
 {
 	struct openconnect_info *vpninfo = calloc(sizeof(*vpninfo), 1);
 
-	vpninfo->ssl_fd = -1;
+	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = vpninfo->new_dtls_fd = -1;
+	vpninfo->cmd_fd = vpninfo->cmd_fd_write = -1;
 	vpninfo->cert_expire_warning = 60 * 86400;
+	vpninfo->deflate = 1;
+	vpninfo->dtls_attempt_period = 60;
+	vpninfo->max_qlen = 10;
+	vpninfo->localname = strdup("localhost");
 	vpninfo->useragent = openconnect_create_useragent(useragent);
 	vpninfo->validate_peer_cert = validate_peer_cert;
 	vpninfo->write_new_config = write_new_config;
 	vpninfo->process_auth_form = process_auth_form;
 	vpninfo->progress = progress;
 	vpninfo->cbdata = privdata ? : vpninfo;
-	vpninfo->cmd_fd = -1;
-	vpninfo->cmd_fd_write = -1;
 	vpninfo->xmlpost = 1;
 	openconnect_set_reported_os(vpninfo, NULL);
 
@@ -154,6 +157,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 #endif
 		vpninfo->peer_cert = NULL;
 	}
+	free(vpninfo->localname);
 	free(vpninfo->useragent);
 	free(vpninfo->authgroup);
 #ifdef HAVE_LIBSTOKEN

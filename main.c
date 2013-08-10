@@ -533,36 +533,18 @@ int main(int argc, char **argv)
 
 	openconnect_init_ssl();
 
-	vpninfo = malloc(sizeof(*vpninfo));
+	vpninfo = openconnect_vpninfo_new((char *)"Open AnyConnect VPN Agent",
+		validate_peer_cert, NULL, process_auth_form_cb, write_progress, NULL);
 	if (!vpninfo) {
 		fprintf(stderr, _("Failed to allocate vpninfo structure\n"));
 		exit(1);
 	}
-	memset(vpninfo, 0, sizeof(*vpninfo));
 
-	/* Set up some defaults */
-	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = vpninfo->new_dtls_fd = -1;
-	vpninfo->useragent = openconnect_create_useragent("Open AnyConnect VPN Agent");
-	vpninfo->reqmtu = 0;
-	vpninfo->deflate = 1;
-	vpninfo->dtls_attempt_period = 60;
-	vpninfo->max_qlen = 10;
-	vpninfo->uid_csd = 0;
-	/* We could let them override this on the command line some day, perhaps */
-	openconnect_set_reported_os(vpninfo, NULL);
-	vpninfo->uid_csd = 0;
-	vpninfo->uid_csd_given = 0;
-	vpninfo->validate_peer_cert = validate_peer_cert;
-	vpninfo->process_auth_form = process_auth_form_cb;
 	vpninfo->cbdata = vpninfo;
-	vpninfo->cert_expire_warning = 60 * 86400;
-	vpninfo->cmd_fd = -1;
-	vpninfo->xmlpost = 1;
-
-	if (!uname(&utsbuf))
-		vpninfo->localname = utsbuf.nodename;
-	else
-		vpninfo->localname = "localhost";
+	if (!uname(&utsbuf)) {
+		free(vpninfo->localname);
+		vpninfo->localname = xstrdup(utsbuf.nodename);
+	}
 
 	while ((opt = next_option(argc, argv, &config_arg))) {
 
