@@ -389,8 +389,20 @@ static int config_line_num = 0;
  *    For this we use the keep_config_arg() macro below.
  * 3. It may be freed during normal operation, so we have to use strdup()
  *    even when it's an option from argv[]. (e.g. vpninfo->cert_password).
+ *    For this we use the xstrdup() function below.
  */
 #define keep_config_arg() (config_file && config_arg ? strdup(config_arg) : config_arg)
+
+static char *xstrdup(const char *arg)
+{
+	char *ret = strdup(arg);
+
+	if (!ret) {
+		fprintf(stderr, _("Failed to allocate string\n"));
+		exit(1);
+	}
+	return ret;
+}
 
 static int next_option(int argc, char **argv, char **config_arg)
 {
