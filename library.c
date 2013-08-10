@@ -244,6 +244,20 @@ void openconnect_set_reqmtu(struct openconnect_info *vpninfo, int reqmtu)
 	vpninfo->reqmtu = reqmtu;
 }
 
+int openconnect_get_ip_info(struct openconnect_info *vpninfo,
+			    const struct oc_ip_info **info,
+			    const struct oc_vpn_option **cstp_options,
+			    const struct oc_vpn_option **dtls_options)
+{
+	if (info)
+		*info = &vpninfo->ip_info;
+	if (cstp_options)
+		*cstp_options = vpninfo->cstp_options;
+	if (dtls_options)
+		*dtls_options = vpninfo->dtls_options;
+	return 0;
+}
+
 void openconnect_setup_csd(struct openconnect_info *vpninfo, uid_t uid, int silent, char *wrapper)
 {
 	vpninfo->uid_csd = uid;
