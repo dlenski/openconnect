@@ -383,7 +383,6 @@ int connect_dtls_socket(struct openconnect_info *vpninfo);
 void dtls_close(struct openconnect_info *vpninfo, int kill_handshake_too);
 
 /* cstp.c */
-int make_cstp_connection(struct openconnect_info *vpninfo);
 int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int cstp_bye(struct openconnect_info *vpninfo, const char *reason);
 int cstp_reconnect(struct openconnect_info *vpninfo);

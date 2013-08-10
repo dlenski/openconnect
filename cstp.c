@@ -501,7 +501,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 }
 
 
-int make_cstp_connection(struct openconnect_info *vpninfo)
+int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 {
 	int ret;
 
@@ -560,7 +560,7 @@ int cstp_reconnect(struct openconnect_info *vpninfo)
 	timeout = vpninfo->reconnect_timeout;
 	interval = vpninfo->reconnect_interval;
 
-	while ((ret = make_cstp_connection(vpninfo))) {
+	while ((ret = openconnect_make_cstp_connection(vpninfo))) {
 		if (timeout <= 0)
 			return ret;
 		vpn_progress(vpninfo, PRG_INFO,

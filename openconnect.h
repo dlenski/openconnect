@@ -261,6 +261,9 @@ int openconnect_setup_cmd_pipe(struct openconnect_info *vpninfo);
 
 const char *openconnect_get_version(void);
 
+/* Open CSTP connection; on success, IP information will be available. */
+int openconnect_make_cstp_connection(struct openconnect_info *vpninfo);
+
 /* Create a tun device through the OS kernel (typical use case). Both
    strings are optional and can be NULL if desired. */
 int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_script, char *ifname);

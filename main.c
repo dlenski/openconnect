@@ -901,7 +901,7 @@ int main(int argc, char **argv)
 			exit(0);
 		}
 	}
-	if (make_cstp_connection(vpninfo)) {
+	if (openconnect_make_cstp_connection(vpninfo)) {
 		fprintf(stderr, _("Creating SSL connection failed\n"));
 		exit(1);
 	}
