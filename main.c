@@ -934,9 +934,9 @@ int main(int argc, char **argv)
 
 	vpn_progress(vpninfo, PRG_INFO,
 		     _("Connected %s as %s%s%s, using %s\n"), openconnect_get_ifname(vpninfo),
-		     vpninfo->vpn_addr?:"",
-		     (vpninfo->vpn_addr6 && vpninfo->vpn_addr) ? " + " : "",
-		     vpninfo->vpn_addr6 ? : "",
+		     vpninfo->ip_info.addr?:"",
+		     (vpninfo->ip_info.addr6 && vpninfo->ip_info.addr) ? " + " : "",
+		     vpninfo->ip_info.addr6 ? : "",
 		     (vpninfo->dtls_fd == -1) ?
 		     (vpninfo->deflate ? "SSL + deflate" : "SSL")
 		     : "DTLS");

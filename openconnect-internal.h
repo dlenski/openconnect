@@ -113,11 +113,6 @@ struct keepalive_info {
 	time_t last_dpd;
 };
 
-struct split_include {
-	char *route;
-	struct split_include *next;
-};
-
 struct pin_cache {
 	struct pin_cache *next;
 	char *token;
@@ -267,20 +262,10 @@ struct openconnect_info {
 	int script_tun;
 	char *ifname;
 
-	int actual_mtu;
 	int reqmtu, basemtu;
 	const char *banner;
-	const char *vpn_addr;
-	const char *vpn_netmask;
-	const char *vpn_addr6;
-	const char *vpn_netmask6;
-	const char *vpn_dns[3];
-	const char *vpn_nbns[3];
-	const char *vpn_domain;
-	const char *vpn_proxy_pac;
-	struct split_include *split_dns;
-	struct split_include *split_includes;
-	struct split_include *split_excludes;
+
+	struct oc_ip_info ip_info;
 
 	int select_nfds;
 	fd_set select_rfds;

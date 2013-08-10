@@ -91,7 +91,7 @@ static int set_tun_mtu(struct openconnect_info *vpninfo)
 
 	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, vpninfo->ifname, sizeof(ifr.ifr_name) - 1);
-	ifr.ifr_mtu = vpninfo->actual_mtu;
+	ifr.ifr_mtu = vpninfo->ip_info.mtu;
 
 	if (ioctl(net_fd, SIOCSIFMTU, &ifr) < 0)
 		perror(_("SIOCSIFMTU"));
@@ -259,62 +259,62 @@ static void set_script_env(struct openconnect_info *vpninfo)
 	unsetenv("CISCO_SPLIT_INC");
 	unsetenv("CISCO_SPLIT_EXC");
 
-	setenv_int("INTERNAL_IP4_MTU", vpninfo->actual_mtu);
+	setenv_int("INTERNAL_IP4_MTU", vpninfo->ip_info.mtu);
 
-	if (vpninfo->vpn_addr) {
-		setenv("INTERNAL_IP4_ADDRESS", vpninfo->vpn_addr, 1);
-		if (vpninfo->vpn_netmask) {
+	if (vpninfo->ip_info.addr) {
+		setenv("INTERNAL_IP4_ADDRESS", vpninfo->ip_info.addr, 1);
+		if (vpninfo->ip_info.netmask) {
 			struct in_addr addr;
 			struct in_addr mask;
 
-			if (inet_aton(vpninfo->vpn_addr, &addr) &&
-			    inet_aton(vpninfo->vpn_netmask, &mask)) {
+			if (inet_aton(vpninfo->ip_info.addr, &addr) &&
+			    inet_aton(vpninfo->ip_info.netmask, &mask)) {
 				char *netaddr;
 
 				addr.s_addr &= mask.s_addr;
 				netaddr = inet_ntoa(addr);
 
 				setenv("INTERNAL_IP4_NETADDR", netaddr, 1);
-				setenv("INTERNAL_IP4_NETMASK", vpninfo->vpn_netmask, 1);
+				setenv("INTERNAL_IP4_NETMASK", vpninfo->ip_info.netmask, 1);
 				setenv_int("INTERNAL_IP4_NETMASKLEN", netmasklen(mask));
 			}
 		}
 	}
-	if (vpninfo->vpn_addr6) {
-		setenv("INTERNAL_IP6_ADDRESS", vpninfo->vpn_addr6, 1);
-		setenv("INTERNAL_IP6_NETMASK", vpninfo->vpn_netmask6, 1);
+	if (vpninfo->ip_info.addr6) {
+		setenv("INTERNAL_IP6_ADDRESS", vpninfo->ip_info.addr6, 1);
+		setenv("INTERNAL_IP6_NETMASK", vpninfo->ip_info.netmask6, 1);
 	}
 
-	if (vpninfo->vpn_dns[0])
-		setenv("INTERNAL_IP4_DNS", vpninfo->vpn_dns[0], 1);
+	if (vpninfo->ip_info.dns[0])
+		setenv("INTERNAL_IP4_DNS", vpninfo->ip_info.dns[0], 1);
 	else
 		unsetenv("INTERNAL_IP4_DNS");
-	if (vpninfo->vpn_dns[1])
-		appendenv("INTERNAL_IP4_DNS", vpninfo->vpn_dns[1]);
-	if (vpninfo->vpn_dns[2])
-		appendenv("INTERNAL_IP4_DNS", vpninfo->vpn_dns[2]);
+	if (vpninfo->ip_info.dns[1])
+		appendenv("INTERNAL_IP4_DNS", vpninfo->ip_info.dns[1]);
+	if (vpninfo->ip_info.dns[2])
+		appendenv("INTERNAL_IP4_DNS", vpninfo->ip_info.dns[2]);
 
-	if (vpninfo->vpn_nbns[0])
-		setenv("INTERNAL_IP4_NBNS", vpninfo->vpn_nbns[0], 1);
+	if (vpninfo->ip_info.nbns[0])
+		setenv("INTERNAL_IP4_NBNS", vpninfo->ip_info.nbns[0], 1);
 	else
 		unsetenv("INTERNAL_IP4_NBNS");
-	if (vpninfo->vpn_nbns[1])
-		appendenv("INTERNAL_IP4_NBNS", vpninfo->vpn_nbns[1]);
-	if (vpninfo->vpn_nbns[2])
-		appendenv("INTERNAL_IP4_NBNS", vpninfo->vpn_nbns[2]);
+	if (vpninfo->ip_info.nbns[1])
+		appendenv("INTERNAL_IP4_NBNS", vpninfo->ip_info.nbns[1]);
+	if (vpninfo->ip_info.nbns[2])
+		appendenv("INTERNAL_IP4_NBNS", vpninfo->ip_info.nbns[2]);
 
-	if (vpninfo->vpn_domain)
-		setenv("CISCO_DEF_DOMAIN", vpninfo->vpn_domain, 1);
+	if (vpninfo->ip_info.domain)
+		setenv("CISCO_DEF_DOMAIN", vpninfo->ip_info.domain, 1);
 	else
 		unsetenv("CISCO_DEF_DOMAIN");
 
-	if (vpninfo->vpn_proxy_pac)
-		setenv("CISCO_PROXY_PAC", vpninfo->vpn_proxy_pac, 1);
+	if (vpninfo->ip_info.proxy_pac)
+		setenv("CISCO_PROXY_PAC", vpninfo->ip_info.proxy_pac, 1);
 
-	if (vpninfo->split_dns) {
+	if (vpninfo->ip_info.split_dns) {
 		char *list;
 		int len = 0;
-		struct split_include *dns = vpninfo->split_dns;
+		struct oc_split_include *dns = vpninfo->ip_info.split_dns;
 
 		while (dns) {
 			len += strlen(dns->route) + 1;
@@ -324,7 +324,7 @@ static void set_script_env(struct openconnect_info *vpninfo)
 		if (list) {
 			char *p = list;
 
-			dns = vpninfo->split_dns;
+			dns = vpninfo->ip_info.split_dns;
 			while (1) {
 				strcpy(p, dns->route);
 				p += strlen(p);
@@ -337,8 +337,8 @@ static void set_script_env(struct openconnect_info *vpninfo)
 			free(list);
 		}
 	}
-	if (vpninfo->split_includes) {
-		struct split_include *this = vpninfo->split_includes;
+	if (vpninfo->ip_info.split_includes) {
+		struct oc_split_include *this = vpninfo->ip_info.split_includes;
 		int nr_split_includes = 0;
 		int nr_v6_split_includes = 0;
 
@@ -353,8 +353,8 @@ static void set_script_env(struct openconnect_info *vpninfo)
 		if (nr_v6_split_includes)
 			setenv_int("CISCO_IPV6_SPLIT_INC", nr_v6_split_includes);
 	}
-	if (vpninfo->split_excludes) {
-		struct split_include *this = vpninfo->split_excludes;
+	if (vpninfo->ip_info.split_excludes) {
+		struct oc_split_include *this = vpninfo->ip_info.split_excludes;
 		int nr_split_excludes = 0;
 		int nr_v6_split_excludes = 0;
 
@@ -555,7 +555,7 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 		return -EIO;
 	}
 
-	if (vpninfo->vpn_addr6) {
+	if (vpninfo->ip_info.addr6) {
 		vpninfo->ip6_fd = link_proto(unit_nr, "/dev/udp6", IFF_IPV6);
 		if (vpninfo->ip6_fd < 0) {
 			close(tun_fd);
@@ -721,7 +721,7 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 	if (FD_ISSET(vpninfo->tun_fd, &vpninfo->select_rfds)) {
 		while (1) {
-			int len = vpninfo->actual_mtu;
+			int len = vpninfo->ip_info.mtu;
 
 			if (!out_pkt) {
 				out_pkt = malloc(sizeof(struct pkt) + len);
