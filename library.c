@@ -50,6 +50,9 @@ struct openconnect_info *openconnect_vpninfo_new(char *useragent,
 {
 	struct openconnect_info *vpninfo = calloc(sizeof(*vpninfo), 1);
 
+	if (!vpninfo)
+		return NULL;
+
 	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = vpninfo->new_dtls_fd = -1;
 	vpninfo->cmd_fd = vpninfo->cmd_fd_write = -1;
 	vpninfo->cert_expire_warning = 60 * 86400;
@@ -65,6 +68,13 @@ struct openconnect_info *openconnect_vpninfo_new(char *useragent,
 	vpninfo->cbdata = privdata ? : vpninfo;
 	vpninfo->xmlpost = 1;
 	openconnect_set_reported_os(vpninfo, NULL);
+
+	if (!vpninfo->localname || !vpninfo->useragent) {
+		free(vpninfo->localname);
+		free(vpninfo->useragent);
+		free(vpninfo);
+		return NULL;
+	}
 
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
