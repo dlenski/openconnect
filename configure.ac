@@ -387,7 +387,7 @@ case "$ssl_library" in
     gnutls)
 	AC_DEFINE(OPENCONNECT_GNUTLS, 1)
 	AC_DEFINE(DTLS_GNUTLS, 1)
-	AC_SUBST(SSL_LIBRARY, [gnutls])
+	AC_SUBST(SSL_DTLS_PC, [gnutls])
 	AC_SUBST(SSL_LIBS, ['$(GNUTLS_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
 	check_openssl_dtls=no
@@ -395,7 +395,7 @@ case "$ssl_library" in
     openssl)
 	AC_DEFINE(OPENCONNECT_OPENSSL, 1)
 	AC_DEFINE(DTLS_OPENSSL, 1)
-	AC_SUBST(SSL_LIBRARY, [openssl])
+	AC_SUBST(SSL_DTLS_PC, [openssl])
 	AC_SUBST(SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
 	AC_SUBST(SYMVER_PRINT_ERR, ["openconnect_print_err_cb;"])
@@ -405,7 +405,7 @@ case "$ssl_library" in
 	# GnuTLS for TCP, OpenSSL for DTLS
 	AC_DEFINE(OPENCONNECT_GNUTLS, 1)
 	AC_DEFINE(DTLS_OPENSSL, 1)
-	AC_SUBST(SSL_LIBRARY, [gnutls])
+	AC_SUBST(SSL_DTLS_PC, [gnutls openssl])
 	AC_SUBST(SSL_LIBS, ['$(GNUTLS_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
 	AC_SUBST(DTLS_SSL_LIBS, ['$(OPENSSL_LIBS)'])

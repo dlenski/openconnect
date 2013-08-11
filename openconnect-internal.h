@@ -407,7 +407,7 @@ void check_cmd_fd(struct openconnect_info *vpninfo, fd_set *fds);
 int is_cancel_pending(struct openconnect_info *vpninfo, fd_set *fds);
 void poll_cmd_fd(struct openconnect_info *vpninfo, int timeout);
 
-/* ${SSL_LIBRARY}.c */
+/* {gnutls,openssl}.c */
 int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len);
 int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t len);
 int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len);
