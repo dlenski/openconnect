@@ -243,6 +243,73 @@ gnutls: $(GNUTLS_DEPS)
 
 #####################################################################
 #
+# Build libtomcrypt
+#
+TOMCRYPT_VER := 1.17
+TOMCRYPT_DIR := $(TRIPLET)/libtomcrypt-$(TOMCRYPT_VER)
+
+crypt-$(TOMCRYPT_VER).tar.bz2:
+	curl http://libtom.org/files/crypt-$(TOMCRYPT_VER).tar.bz2 -o $@.tmp && mv $@.tmp $@
+
+$(TOMCRYPT_DIR)/makefile: crypt-$(TOMCRYPT_VER).tar.bz2
+	mkdir -p $(TRIPLET)
+	tar xfj $< -C $(TRIPLET)
+	touch $@
+
+$(TOMCRYPT_DIR)/libtomcrypt.a: $(TOMCRYPT_DIR)/makefile
+	$(MAKE) -C $(TOMCRYPT_DIR) \
+		CC="$(TRIPLET)-gcc --sysroot=$(NDK_SYSROOT)" \
+		AR="$(TRIPLET)-ar" \
+		RANLIB="$(TRIPLET)-ranlib"
+
+$(OC_SYSROOT)/lib/libtomcrypt.a: $(TOMCRYPT_DIR)/libtomcrypt.a
+	$(MAKE) -C $(TOMCRYPT_DIR) \
+		DESTDIR=$(OC_SYSROOT) \
+		LIBPATH=/lib INCPATH=/include \
+		INSTALL_USER=$(shell id -u) \
+		INSTALL_GROUP=$(shell id -g) \
+		NODOCS=1 install
+
+TOMCRYPT_DEPS := $(OC_SYSROOT)/lib/libtomcrypt.a
+
+tomcrypt: $(TOMCRYPT_DEPS)
+
+
+#####################################################################
+#
+# Build libstoken
+#
+STOKEN_VER := 0.2
+STOKEN_SRC := sources/stoken-$(STOKEN_VER)
+STOKEN_BUILD := $(TRIPLET)/stoken
+
+stoken-$(STOKEN_VER).tar.gz:
+	curl -L http://sourceforge.net/projects/stoken/files/stoken-$(STOKEN_VER).tar.gz/download -o $@.tmp && mv $@.tmp $@
+
+$(STOKEN_SRC)/configure: stoken-$(STOKEN_VER).tar.gz
+	mkdir -p sources
+	tar xfz $< -C sources
+	cd $(STOKEN_SRC) && patch -p1 < ../../0001-Remove-call-to-mlockall.patch
+	touch $@
+
+$(STOKEN_BUILD)/Makefile: $(STOKEN_SRC)/configure $(TOMCRYPT_DEPS)
+	mkdir -p $(STOKEN_BUILD)
+	cd $(STOKEN_BUILD) && ../../$(STOKEN_SRC)/configure $(CONFIGURE_ARGS) \
+		--without-gtk
+
+$(STOKEN_BUILD)/libstoken.la: $(STOKEN_BUILD)/Makefile
+	$(MAKE) -C $(STOKEN_BUILD)
+
+$(OC_SYSROOT)/lib/libstoken.la: $(STOKEN_BUILD)/libstoken.la
+	$(MAKEINSTALL) -C $(STOKEN_BUILD) install
+
+STOKEN_DEPS := $(OC_SYSROOT)/lib/libstoken.la
+
+stoken: $(STOKEN_DEPS)
+
+
+#####################################################################
+#
 # Build OpenConnect for Android
 #
 OPENCONNECT_SRC := ..
@@ -251,7 +318,7 @@ OPENCONNECT_BUILD := $(TRIPLET)/openconnect
 $(OPENCONNECT_SRC)/configure:
 	cd $(OPENCONNECT_SRC) && ./autogen.sh
 
-$(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) $(OPENCONNECT_SRC)/configure
+$(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) $(STOKEN_DEPS) $(OPENCONNECT_SRC)/configure
 	mkdir -p $(OPENCONNECT_BUILD)
 	cd $(OPENCONNECT_BUILD) && ../../../configure $(CONFIGURE_ARGS) \
 	CFLAGS="--sysroot=$(NDK_SYSROOT) -DNO_BROKEN_DTLS_CHECK" \
