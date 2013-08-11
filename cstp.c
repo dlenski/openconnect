@@ -149,31 +149,9 @@ static void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *
 		*mtu = 1280;
 }
 
-static int start_cstp_connection(struct openconnect_info *vpninfo)
+void cstp_free_splits(struct openconnect_info *vpninfo)
 {
-	char buf[65536];
-	int i;
-	int retried = 0, sessid_found = 0;
-	struct vpn_option **next_dtls_option = &vpninfo->dtls_options;
-	struct vpn_option **next_cstp_option = &vpninfo->cstp_options;
-	struct vpn_option *old_cstp_opts = vpninfo->cstp_options;
-	struct vpn_option *old_dtls_opts = vpninfo->dtls_options;
-	const char *old_addr = vpninfo->vpn_addr;
-	const char *old_netmask = vpninfo->vpn_netmask;
-	const char *old_addr6 = vpninfo->vpn_addr6;
-	const char *old_netmask6 = vpninfo->vpn_netmask6;
 	struct split_include *inc;
-	int base_mtu, mtu;
-
-	/* Clear old options which will be overwritten */
-	vpninfo->vpn_addr = vpninfo->vpn_netmask = NULL;
-	vpninfo->vpn_addr6 = vpninfo->vpn_netmask6 = NULL;
-	vpninfo->cstp_options = vpninfo->dtls_options = NULL;
-	vpninfo->vpn_domain = vpninfo->vpn_proxy_pac = NULL;
-	vpninfo->banner = NULL;
-
-	for (i = 0; i < 3; i++)
-		vpninfo->vpn_dns[i] = vpninfo->vpn_nbns[i] = NULL;
 
 	for (inc = vpninfo->split_includes; inc; ) {
 		struct split_include *next = inc->next;
@@ -191,6 +169,33 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		inc = next;
 	}
 	vpninfo->split_dns = vpninfo->split_includes = vpninfo->split_excludes = NULL;
+}
+
+static int start_cstp_connection(struct openconnect_info *vpninfo)
+{
+	char buf[65536];
+	int i;
+	int retried = 0, sessid_found = 0;
+	struct vpn_option **next_dtls_option = &vpninfo->dtls_options;
+	struct vpn_option **next_cstp_option = &vpninfo->cstp_options;
+	struct vpn_option *old_cstp_opts = vpninfo->cstp_options;
+	struct vpn_option *old_dtls_opts = vpninfo->dtls_options;
+	const char *old_addr = vpninfo->vpn_addr;
+	const char *old_netmask = vpninfo->vpn_netmask;
+	const char *old_addr6 = vpninfo->vpn_addr6;
+	const char *old_netmask6 = vpninfo->vpn_netmask6;
+	int base_mtu, mtu;
+
+	/* Clear old options which will be overwritten */
+	vpninfo->vpn_addr = vpninfo->vpn_netmask = NULL;
+	vpninfo->vpn_addr6 = vpninfo->vpn_netmask6 = NULL;
+	vpninfo->cstp_options = vpninfo->dtls_options = NULL;
+	vpninfo->vpn_domain = vpninfo->vpn_proxy_pac = NULL;
+	vpninfo->banner = NULL;
+
+	for (i = 0; i < 3; i++)
+		vpninfo->vpn_dns[i] = vpninfo->vpn_nbns[i] = NULL;
+	cstp_free_splits(vpninfo);
 
 	/* Create (new) random master key for DTLS connection, if needed */
 	if (vpninfo->dtls_times.last_rekey + vpninfo->dtls_times.rekey <
