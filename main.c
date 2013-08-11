@@ -520,6 +520,7 @@ int main(int argc, char **argv)
 	char *token_str = NULL;
 	oc_token_mode_t token_mode = OC_TOKEN_MODE_NONE;
 	int reconnect_timeout = 300;
+	int ret;
 
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
@@ -972,14 +973,19 @@ int main(int argc, char **argv)
 		if (fp)
 			fclose(fp);
 	}
-	openconnect_mainloop(vpninfo, reconnect_timeout, RECONNECT_INTERVAL_MIN);
-
-	if (sig_caught)
-		vpn_progress(vpninfo, PRG_INFO, _("Caught signal: %s\n"), strsignal(sig_caught));
-
+	ret = openconnect_mainloop(vpninfo, reconnect_timeout, RECONNECT_INTERVAL_MIN);
 	if (fp)
 		unlink(pidfile);
-	exit(1);
+
+	if (sig_caught) {
+		vpn_progress(vpninfo, PRG_INFO, _("Caught signal: %s\n"), strsignal(sig_caught));
+		ret = 0;
+	} else if (ret == -EPERM)
+		ret = 2;
+	else
+		ret = 1;
+
+	exit(ret);
 }
 
 static int write_new_config(void *_vpninfo, char *buf, int buflen)

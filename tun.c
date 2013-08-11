@@ -508,7 +508,7 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to open tun device: %s\n"),
 			     strerror(tunerr));
-		exit(1);
+		return -EIO;
 	}
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
@@ -519,7 +519,7 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("TUNSETIFF failed: %s\n"),
 			     strerror(errno));
-		exit(1);
+		return -EIO;
 	}
 	if (!vpninfo->ifname)
 		vpninfo->ifname = strdup(ifr.ifr_name);
@@ -615,8 +615,10 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 				break;
 		}
 		if (tun_fd < 0) {
-			perror(_("open tun"));
-			exit(1);
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to open tun device: %s\n"),
+				     strerror(errno));
+			return -EIO;
 		}
 		vpninfo->ifname = strdup(tun_name + 5);
 	}
@@ -624,7 +626,7 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 	i = 1;
 	if (ioctl(tun_fd, TUNSIFHEAD, &i) < 0) {
 		perror(_("TUNSIFHEAD"));
-		exit(1);
+		return -EIO;
 	}
 #endif
 #endif
@@ -659,13 +661,13 @@ int openconnect_setup_tun_script(struct openconnect_info *vpninfo, char *tun_scr
 
 	set_script_env(vpninfo);
 	if (socketpair(AF_UNIX, SOCK_DGRAM, 0, fds)) {
-		perror(_("socketpair"));
-		exit(1);
+		vpn_progress(vpninfo, PRG_ERR, _("socketpair failed: %s\n"), strerror(errno));
+		return -EIO;
 	}
 	child = fork();
 	if (child < 0) {
-		perror(_("fork"));
-		exit(1);
+		vpn_progress(vpninfo, PRG_ERR, _("fork failed: %s\n"), strerror(errno));
+		return -EIO;
 	} else if (!child) {
 		if (setpgid(0, getpid()) < 0)
 			perror(_("setpgid"));
