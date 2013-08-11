@@ -38,6 +38,7 @@
 #endif
 
 #include <libxml/tree.h>
+#include <zlib.h>
 
 #include "openconnect-internal.h"
 
@@ -179,7 +180,12 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	if (vpninfo->oath_secret)
 		oath_done();
 #endif
-	/* No need to free deflate streams; they weren't initialised */
+
+	/* These check strm->state so they are safe to call multiple times */
+	inflateEnd(&vpninfo->inflate_strm);
+	deflateEnd(&vpninfo->deflate_strm);
+
+	free(vpninfo->deflate_pkt);
 	free(vpninfo);
 }
 
