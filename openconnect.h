@@ -32,9 +32,19 @@
 #include <unistd.h>
 
 #define OPENCONNECT_API_VERSION_MAJOR 3
-#define OPENCONNECT_API_VERSION_MINOR 0
+#define OPENCONNECT_API_VERSION_MINOR 1
 
 /*
+ * API version 3.1:
+ *  - Add openconnect_setup_cmd_pipe(), openconnect_mainloop(),
+ *    openconnect_setup_tun_device(), openconnect_setup_tun_script(),
+ *    openconnect_setup_tun_fd(), openconnect_setup_dtls(),
+ *    openconnect_make_cstp_connection(), openconnect_set_server_cert_sha1(),
+ *    openconnect_get_ifname(), openconnect_set_reqmtu(),
+ *    openconnect_get_ip_info(), openconnect_set_protect_socket_handler(),
+ *    openconnect_set_mobile_info(), openconnect_set_xmlpost(),
+ *    openconnect_set_stats_handler()
+ *
  * API version 3.0:
  *  - Change oc_form_opt_select->choices to an array of pointers
  *  - Add oc_form_opt->flags
