@@ -27,7 +27,6 @@
 #include <limits.h>
 #include <sys/select.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <unistd.h>
 #include <string.h>
 
@@ -55,22 +54,13 @@ int queue_new_packet(struct pkt **q, void *buf, int len)
 	return 0;
 }
 
-int killed;
-
-static void handle_sigint(int sig)
-{
-	killed = sig;
-}
-
 int vpn_mainloop(struct openconnect_info *vpninfo)
 {
-	struct sigaction sa;
-	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = handle_sigint;
-
-	sigaction(SIGTERM, &sa, NULL);
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGHUP, &sa, NULL);
+	if (vpninfo->cmd_fd != -1) {
+		FD_SET(vpninfo->cmd_fd, &vpninfo->select_rfds);
+		if (vpninfo->cmd_fd >= vpninfo->select_nfds)
+			vpninfo->select_nfds = vpninfo->cmd_fd + 1;
+	}
 
 	while (!vpninfo->quit_reason) {
 		int did_work = 0;
@@ -103,13 +93,9 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 		if (vpninfo->quit_reason)
 			break;
 
-		if (killed) {
-			if (killed == SIGHUP)
-				vpninfo->quit_reason = "Client received SIGHUP";
-			else if (killed == SIGINT)
-				vpninfo->quit_reason = "Client received SIGINT";
-			else
-				vpninfo->quit_reason = "Client killed";
+		poll_cmd_fd(vpninfo, 0);
+		if (vpninfo->got_cancel_cmd) {
+			vpninfo->quit_reason = "Aborted by caller";
 			break;
 		}
 

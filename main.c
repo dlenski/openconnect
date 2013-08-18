@@ -354,6 +354,20 @@ static void read_stdin(char **string, int hidden)
 	if (c)
 		*c = 0;
 }
+
+static int sig_cmd_fd;
+static int sig_caught;
+
+static void handle_sigint(int sig)
+{
+	char x = OC_CMD_CANCEL;
+
+	sig_caught = sig;
+	if (write(sig_cmd_fd, &x, 1) < 0) {
+		/* suppress warn_unused_result */
+	}
+}
+
 static void handle_sigusr(int sig)
 {
 	if (sig == SIGUSR1)
@@ -819,11 +833,22 @@ int main(int argc, char **argv)
 		vpninfo->progress = syslog_progress;
 	}
 
-	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = handle_sigusr;
+	sig_cmd_fd = openconnect_setup_cmd_pipe(vpninfo);
+	if (sig_cmd_fd < 0) {
+		fprintf(stderr, _("Error opening cmd pipe\n"));
+		exit(1);
+	}
 
+	memset(&sa, 0, sizeof(sa));
+
+	sa.sa_handler = handle_sigusr;
 	sigaction(SIGUSR1, &sa, NULL);
 	sigaction(SIGUSR2, &sa, NULL);
+
+	sa.sa_handler = handle_sigint;
+	sigaction(SIGTERM, &sa, NULL);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGHUP, &sa, NULL);
 
 	if (vpninfo->sslkey && do_passphrase_from_fsid)
 		openconnect_passphrase_from_fsid(vpninfo);
@@ -946,6 +971,10 @@ int main(int argc, char **argv)
 			fclose(fp);
 	}
 	vpn_mainloop(vpninfo);
+
+	if (sig_caught)
+		vpn_progress(vpninfo, PRG_INFO, _("Caught signal: %s\n"), strsignal(sig_caught));
+
 	if (fp)
 		unlink(pidfile);
 	exit(1);

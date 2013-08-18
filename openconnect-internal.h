@@ -434,8 +434,6 @@ void queue_packet(struct pkt **q, struct pkt *new);
 int keepalive_action(struct keepalive_info *ka, int *timeout);
 int ka_stalled_action(struct keepalive_info *ka, int *timeout);
 
-extern int killed;
-
 /* xml.c */
 int config_lookup_host(struct openconnect_info *vpninfo, const char *host);
 

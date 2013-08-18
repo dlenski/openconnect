@@ -28,7 +28,6 @@
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 #include <string.h>
-#include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <netdb.h>
