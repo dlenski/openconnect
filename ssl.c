@@ -66,6 +66,8 @@ static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 	int maxfd = sockfd;
 
 	fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK);
+	if (vpninfo->protect_socket)
+		vpninfo->protect_socket(vpninfo->cbdata, sockfd);
 
 	if (connect(sockfd, addr, addrlen) < 0 && errno != EINPROGRESS)
 		return -1;

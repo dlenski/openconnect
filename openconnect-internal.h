@@ -301,6 +301,7 @@ struct openconnect_info {
 	openconnect_write_new_config_vfn write_new_config;
 	openconnect_process_auth_form_vfn process_auth_form;
 	openconnect_progress_vfn progress;
+	openconnect_protect_socket_vfn protect_socket;
 };
 
 #if (defined(DTLS_OPENSSL) && defined(SSL_OP_CISCO_ANYCONNECT)) || \

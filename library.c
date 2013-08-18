@@ -527,3 +527,9 @@ int openconnect_set_stoken_mode(struct openconnect_info *vpninfo,
 
 	return openconnect_set_token_mode(vpninfo, token_mode, token_str);
 }
+
+void openconnect_set_protect_socket_handler(struct openconnect_info *vpninfo,
+					    openconnect_protect_socket_vfn protect_socket)
+{
+	vpninfo->protect_socket = protect_socket;
+}

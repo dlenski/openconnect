@@ -366,6 +366,13 @@ struct openconnect_info *openconnect_vpninfo_new(char *useragent,
 						 void *privdata);
 void openconnect_vpninfo_free(struct openconnect_info *vpninfo);
 
+/* Callback to allow binding a newly created socket's file descriptor to
+   a specific interface, e.g. with SO_BINDTODEVICE. This tells the kernel
+   not to route the traffic in question over the VPN tunnel. */
+typedef void (*openconnect_protect_socket_vfn) (void *privdata, int fd);
+void openconnect_set_protect_socket_handler(struct openconnect_info *vpninfo,
+					    openconnect_protect_socket_vfn protect_socket);
+
 /* SSL certificate capabilities. openconnect_has_pkcs11_support() means that we
    can accept PKCS#11 URLs in place of filenames, for the certificate and key. */
 int openconnect_has_pkcs11_support(void);

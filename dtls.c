@@ -486,6 +486,8 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		perror(_("Open UDP socket for DTLS:"));
 		return -EINVAL;
 	}
+	if (vpninfo->protect_socket)
+		vpninfo->protect_socket(vpninfo->cbdata, dtls_fd);
 
 	sndbuf = vpninfo->ip_info.mtu * 2;
 	setsockopt(dtls_fd, SOL_SOCKET, SO_SNDBUF, &sndbuf, sizeof(sndbuf));

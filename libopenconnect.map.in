@@ -48,6 +48,7 @@ OPENCONNECT_3.1 {
 	openconnect_get_ifname;
 	openconnect_set_reqmtu;
 	openconnect_get_ip_info;
+	openconnect_set_protect_socket_handler;
 } OPENCONNECT_3.0;
 
 OPENCONNECT_PRIVATE {
