@@ -504,6 +504,7 @@ int main(int argc, char **argv)
 	char *config_arg;
 	char *token_str = NULL;
 	oc_token_mode_t token_mode = OC_TOKEN_MODE_NONE;
+	int reconnect_timeout = 300;
 
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
@@ -532,8 +533,6 @@ int main(int argc, char **argv)
 	vpninfo->deflate = 1;
 	vpninfo->dtls_attempt_period = 60;
 	vpninfo->max_qlen = 10;
-	vpninfo->reconnect_interval = RECONNECT_INTERVAL_MIN;
-	vpninfo->reconnect_timeout = 300;
 	vpninfo->uid_csd = 0;
 	/* We could let them override this on the command line some day, perhaps */
 	openconnect_set_reported_os(vpninfo, NULL);
@@ -612,7 +611,7 @@ int main(int argc, char **argv)
 			non_inter = 1;
 			break;
 		case OPT_RECONNECT_TIMEOUT:
-			vpninfo->reconnect_timeout = atoi(config_arg);
+			reconnect_timeout = atoi(config_arg);
 			break;
 		case OPT_DTLS_CIPHERS:
 			vpninfo->dtls_ciphers = keep_config_arg();
@@ -970,7 +969,7 @@ int main(int argc, char **argv)
 		if (fp)
 			fclose(fp);
 	}
-	vpn_mainloop(vpninfo);
+	openconnect_mainloop(vpninfo, reconnect_timeout, RECONNECT_INTERVAL_MIN);
 
 	if (sig_caught)
 		vpn_progress(vpninfo, PRG_INFO, _("Caught signal: %s\n"), strsignal(sig_caught));

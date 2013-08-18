@@ -170,6 +170,9 @@ struct oc_auth_form {
 /* byte commands to write into the cmd_fd */
 #define OC_CMD_CANCEL	'x'
 
+#define RECONNECT_INTERVAL_MIN	10
+#define RECONNECT_INTERVAL_MAX	100
+
 struct openconnect_info;
 
 #define OPENCONNECT_X509 void
@@ -256,6 +259,12 @@ void openconnect_set_cancel_fd(struct openconnect_info *vpninfo, int fd);
 int openconnect_setup_cmd_pipe(struct openconnect_info *vpninfo);
 
 const char *openconnect_get_version(void);
+
+/* Start the main loop; exits if OC_CMD_CANCEL is received on cmd_fd or
+   the remote site aborts. */
+int openconnect_mainloop(struct openconnect_info *vpninfo,
+			 int reconnect_timeout,
+			 int reconnect_interval);
 
 /* The first (privdata) argument to each of these functions is either
    the privdata argument provided to openconnect_vpninfo_new_with_cbdata(),

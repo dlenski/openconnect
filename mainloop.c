@@ -60,9 +60,14 @@ int queue_new_packet(struct pkt **q, void *buf, int len)
  *  = -EPERM, if the gateway sent 401 Unauthorized (cookie expired)
  *  < 0, for any other error
  */
-int vpn_mainloop(struct openconnect_info *vpninfo)
+int openconnect_mainloop(struct openconnect_info *vpninfo,
+			 int reconnect_timeout,
+			 int reconnect_interval)
 {
 	int ret = 0;
+
+	vpninfo->reconnect_timeout = reconnect_timeout;
+	vpninfo->reconnect_interval = reconnect_interval;
 
 	if (vpninfo->cmd_fd != -1) {
 		FD_SET(vpninfo->cmd_fd, &vpninfo->select_rfds);

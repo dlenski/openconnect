@@ -38,6 +38,7 @@ OPENCONNECT_3.0 {
 OPENCONNECT_3.1 {
  global:
 	openconnect_setup_cmd_pipe;
+	openconnect_mainloop;
 } OPENCONNECT_3.0;
 
 OPENCONNECT_PRIVATE {

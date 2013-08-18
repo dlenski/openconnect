@@ -428,7 +428,6 @@ int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 
 /* mainloop.c */
 int vpn_add_pollfd(struct openconnect_info *vpninfo, int fd, short events);
-int vpn_mainloop(struct openconnect_info *vpninfo);
 int queue_new_packet(struct pkt **q, void *buf, int len);
 void queue_packet(struct pkt **q, struct pkt *new);
 int keepalive_action(struct keepalive_info *ka, int *timeout);
