@@ -310,6 +310,39 @@ stoken: $(STOKEN_DEPS)
 
 #####################################################################
 #
+# Build liboath
+#
+OATH_VER := 2.4.0
+OATH_SRC := sources/oath-toolkit-$(OATH_VER)
+OATH_BUILD := $(TRIPLET)/oath
+
+oath-toolkit-$(OATH_VER).tar.gz:
+	curl -L http://download.savannah.gnu.org/releases/oath-toolkit/oath-toolkit-$(OATH_VER).tar.gz -o $@.tmp && mv $@.tmp $@
+
+$(OATH_SRC)/configure: oath-toolkit-$(OATH_VER).tar.gz
+	mkdir -p sources
+	tar xfz $< -C sources
+	cd $(OATH_SRC) && patch -p1 < ../../0001-fflush-freadahead-fseeko-Fix-for-Android.patch
+	touch $@
+
+$(OATH_BUILD)/Makefile: $(OATH_SRC)/configure
+	mkdir -p $(OATH_BUILD)
+	cd $(OATH_BUILD) && ../../$(OATH_SRC)/configure $(CONFIGURE_ARGS) \
+		--disable-pskc --disable-pam
+
+$(OATH_BUILD)/liboath.la: $(OATH_BUILD)/Makefile
+	$(MAKE) -C $(OATH_BUILD)
+
+$(OC_SYSROOT)/lib/liboath.la: $(OATH_BUILD)/liboath.la
+	$(MAKEINSTALL) -C $(OATH_BUILD) install
+
+OATH_DEPS := $(OC_SYSROOT)/lib/liboath.la
+
+oath: $(OATH_DEPS)
+
+
+#####################################################################
+#
 # Build OpenConnect for Android
 #
 OPENCONNECT_SRC := ..
@@ -318,7 +351,7 @@ OPENCONNECT_BUILD := $(TRIPLET)/openconnect
 $(OPENCONNECT_SRC)/configure:
 	cd $(OPENCONNECT_SRC) && ./autogen.sh
 
-$(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) $(STOKEN_DEPS) $(OPENCONNECT_SRC)/configure
+$(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) $(STOKEN_DEPS) $(OATH_DEPS) $(OPENCONNECT_SRC)/configure
 	mkdir -p $(OPENCONNECT_BUILD)
 	cd $(OPENCONNECT_BUILD) && ../../../configure $(CONFIGURE_ARGS) \
 	CFLAGS="--sysroot=$(NDK_SYSROOT) -DNO_BROKEN_DTLS_CHECK" \
