@@ -780,11 +780,17 @@ int xmlpost_initial_req(struct openconnect_info *vpninfo, char *request_body, in
 	xmlNodePtr root, node;
 	xmlDocPtr doc = xmlpost_new_query(vpninfo, "init", &root);
 	char *url;
+	int result;
 
 	if (!doc)
 		return -ENOMEM;
 
-	if (asprintf(&url, "https://%s", vpninfo->hostname) == -1)
+	if (vpninfo->urlpath)
+		result = asprintf(&url, "https://%s/%s", vpninfo->hostname, vpninfo->urlpath);
+	else
+		result = asprintf(&url, "https://%s", vpninfo->hostname);
+
+	if (result == -1)
 		goto bad;
 	node = xmlNewTextChild(root, NULL, XCAST("group-access"), XCAST(url));
 	free(url);
