@@ -136,7 +136,7 @@ openssl: $(OPENSSL_DEPS)
 #
 # Build GNU MP
 #
-GMP_VER := 5.1.1
+GMP_VER := 5.1.2
 GMP_SRC := sources/gmp-$(GMP_VER)
 GMP_BUILD := $(TRIPLET)/gmp
 
