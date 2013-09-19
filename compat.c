@@ -22,6 +22,11 @@
  *   Boston, MA 02110-1301 USA
  */
 
+#include <string.h>
+#include <stdarg.h>
+#include <errno.h>
+#include <ctype.h>
+
 #include "openconnect-internal.h"
 
 #ifdef __sun__
@@ -38,8 +43,6 @@ time_t openconnect__time(time_t *t)
 #endif
 
 #ifndef HAVE_ASPRINTF
-#include <stdarg.h>
-#include <errno.h>
 
 static int oc_vasprintf(char **strp, const char *fmt, va_list ap)
 {
@@ -142,7 +145,6 @@ ssize_t openconnect__getline(char **lineptr, size_t *n, FILE *stream)
 #endif
 
 #ifndef HAVE_STRCASESTR
-#include <ctype.h>
 
 char *openconnect__strcasestr(const char *haystack, const char *needle)
 {
