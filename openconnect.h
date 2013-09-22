@@ -252,6 +252,10 @@ void openconnect_set_xmlsha1(struct openconnect_info *, const char *, int size);
 void openconnect_set_cafile(struct openconnect_info *, char *);
 void openconnect_setup_csd(struct openconnect_info *, uid_t, int silent, char *wrapper);
 int openconnect_set_reported_os(struct openconnect_info *, const char *os);
+void openconnect_set_mobile_info(struct openconnect_info *vpninfo,
+				 char *mobile_platform_version,
+				 char *mobile_device_type,
+				 char *mobile_device_uniqueid);
 void openconnect_set_client_cert(struct openconnect_info *, char *cert, char *sslkey);
 void openconnect_set_server_cert_sha1(struct openconnect_info *, char *);
 const char *openconnect_get_ifname(struct openconnect_info *);

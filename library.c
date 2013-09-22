@@ -88,6 +88,8 @@ int openconnect_set_reported_os(struct openconnect_info *vpninfo, const char *os
 	if (!os) {
 #if defined(__APPLE__)
 		os = "mac";
+#elif defined(__ANDROID__)
+		os = "android";
 #else
 		os = sizeof(long) > 4 ? "linux-64" : "linux";
 #endif
@@ -98,13 +100,26 @@ int openconnect_set_reported_os(struct openconnect_info *vpninfo, const char *os
 		vpninfo->csd_xmltag = "csdMac";
 	else if (!strcmp(os, "linux") || !strcmp(os, "linux-64"))
 		vpninfo->csd_xmltag = "csdLinux";
-	else if (!strcmp(os, "win"))
+	else if (!strcmp(os, "android") || !strcmp(os, "apple-ios")) {
+		vpninfo->csd_xmltag = "csdLinux";
+		vpninfo->csd_nostub = 1;
+	} else if (!strcmp(os, "win"))
 		vpninfo->csd_xmltag = "csd";
 	else
 		return -EINVAL;
 
 	vpninfo->platname = os;
 	return 0;
+}
+
+void openconnect_set_mobile_info(struct openconnect_info *vpninfo,
+				 char *mobile_platform_version,
+				 char *mobile_device_type,
+				 char *mobile_device_uniqueid)
+{
+	vpninfo->mobile_platform_version = mobile_platform_version;
+	vpninfo->mobile_device_type = mobile_device_type;
+	vpninfo->mobile_device_uniqueid = mobile_device_uniqueid;
 }
 
 static void free_optlist(struct oc_vpn_option *opt)
@@ -146,6 +161,9 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		unlink(vpninfo->csd_scriptname);
 		free(vpninfo->csd_scriptname);
 	}
+	free(vpninfo->mobile_platform_version);
+	free(vpninfo->mobile_device_type);
+	free(vpninfo->mobile_device_uniqueid);
 	free(vpninfo->csd_token);
 	free(vpninfo->csd_ticket);
 	free(vpninfo->csd_stuburl);

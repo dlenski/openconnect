@@ -791,6 +791,13 @@ int main(int argc, char **argv)
 					config_arg);
 				exit(1);
 			}
+			if (!strcmp(config_arg, "android") || !strcmp(config_arg, "apple-ios")) {
+				/* generic defaults */
+				openconnect_set_mobile_info(vpninfo,
+					xstrdup("1.0"),
+					xstrdup(config_arg),
+					xstrdup("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
+			}
 			break;
 		default:
 			usage();

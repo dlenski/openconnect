@@ -452,6 +452,18 @@ static void add_common_headers(struct openconnect_info *vpninfo, struct oc_text_
 		buf_append(buf, "X-AnyConnect-Platform: %s\r\n",
 			   vpninfo->platname);
 	}
+	if (vpninfo->mobile_platform_version) {
+		buf_append(buf, "X-AnyConnect-Identifier-ClientVersion: %s\r\n",
+			   openconnect_version_str);
+		buf_append(buf, "X-AnyConnect-Identifier-Platform: %s\r\n",
+			   vpninfo->platname);
+		buf_append(buf, "X-AnyConnect-Identifier-PlatformVersion: %s\r\n",
+			   vpninfo->mobile_platform_version);
+		buf_append(buf, "X-AnyConnect-Identifier-DeviceType: %s\r\n",
+			   vpninfo->mobile_device_type);
+		buf_append(buf, "X-AnyConnect-Identifier-Device-UniqueID: %s\r\n",
+			   vpninfo->mobile_device_uniqueid);
+	}
 }
 
 static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,

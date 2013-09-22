@@ -49,6 +49,7 @@ OPENCONNECT_3.1 {
 	openconnect_set_reqmtu;
 	openconnect_get_ip_info;
 	openconnect_set_protect_socket_handler;
+	openconnect_set_mobile_info;
 } OPENCONNECT_3.0;
 
 OPENCONNECT_PRIVATE {

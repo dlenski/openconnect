@@ -506,7 +506,9 @@ static int parse_auth_node(struct openconnect_info *vpninfo, xmlNode *xml_node,
 			xmlnode_get_prop(xml_node, "token", &vpninfo->csd_token);
 			xmlnode_get_prop(xml_node, "ticket", &vpninfo->csd_ticket);
 		} else if (!vpninfo->csd_scriptname && xmlnode_is_named(xml_node, vpninfo->csd_xmltag)) {
-			xmlnode_get_prop(xml_node, "stuburl", &vpninfo->csd_stuburl);
+			/* ignore the CSD trojan binary on mobile platforms */
+			if (!vpninfo->csd_nostub)
+				xmlnode_get_prop(xml_node, "stuburl", &vpninfo->csd_stuburl);
 			xmlnode_get_prop(xml_node, "starturl", &vpninfo->csd_starturl);
 			xmlnode_get_prop(xml_node, "waiturl", &vpninfo->csd_waiturl);
 			vpninfo->csd_preurl = strdup(vpninfo->urlpath);
@@ -838,8 +840,15 @@ static xmlDocPtr xmlpost_new_query(struct openconnect_info *vpninfo, const char 
 	if (!xmlNewProp(node, XCAST("who"), XCAST("vpn")))
 		goto bad;
 
-	if (!xmlNewTextChild(root, NULL, XCAST("device-id"), XCAST(vpninfo->platname)))
+	node = xmlNewTextChild(root, NULL, XCAST("device-id"), XCAST(vpninfo->platname));
+	if (!node)
 		goto bad;
+	if (vpninfo->mobile_platform_version) {
+		if (!xmlNewProp(node, XCAST("platform-version"), XCAST(vpninfo->mobile_platform_version)) ||
+		    !xmlNewProp(node, XCAST("device-type"), XCAST(vpninfo->mobile_device_type)) ||
+		    !xmlNewProp(node, XCAST("unique-id"), XCAST(vpninfo->mobile_device_uniqueid)))
+			goto bad;
+	}
 
 	return doc;
 
