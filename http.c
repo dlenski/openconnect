@@ -517,7 +517,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 
 static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int buflen)
 {
-	char fname[16];
+	char fname[64];
 	int fd, ret;
 
 	if (!vpninfo->csd_wrapper && !buflen) {
@@ -541,7 +541,8 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 
 	fname[0] = 0;
 	if (buflen) {
-		sprintf(fname, "/tmp/csdXXXXXX");
+		char *tmpdir = getenv("TMPDIR");
+		snprintf(fname, 64, "%s/csdXXXXXX", tmpdir ? tmpdir : "/tmp");
 		fd = mkstemp(fname);
 		if (fd < 0) {
 			int err = -errno;
