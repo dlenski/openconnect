@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Reduce limit of queued packets on DTLS socket, to fix VoIP latency.</li>
        <li>Fix Solaris build breakage due to missing <tt>&amp;lt;string.h&amp;gt;</tt> includes.</li>
        <li>Include path in <tt>&amp;lt;group-access&amp;gt;</tt> node.</li>
      </ul><br/>

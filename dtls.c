@@ -504,7 +504,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 
 int connect_dtls_socket(struct openconnect_info *vpninfo)
 {
-	int dtls_fd, ret;
+	int dtls_fd, ret, sndbuf;
 
 	if (!vpninfo->dtls_addr) {
 		vpn_progress(vpninfo, PRG_ERR, _("No DTLS address\n"));
@@ -531,6 +531,9 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		perror(_("Open UDP socket for DTLS:"));
 		return -EINVAL;
 	}
+
+	sndbuf = vpninfo->actual_mtu * 2;
+	setsockopt(dtls_fd, SOL_SOCKET, SO_SNDBUF, &sndbuf, sizeof(sndbuf));
 
 	if (vpninfo->dtls_local_port) {
 		union {
@@ -821,6 +824,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	}
 
 	/* Service outgoing packet queue */
+	FD_CLR(vpninfo->dtls_fd, &vpninfo->select_wfds);
 	while (vpninfo->outgoing_queue) {
 		struct pkt *this = vpninfo->outgoing_queue;
 		int ret;
@@ -836,9 +840,14 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		if (ret <= 0) {
 			ret = SSL_get_error(vpninfo->dtls_ssl, ret);
 
-			/* If it's a real error, kill the DTLS connection and
-			   requeue the packet to be sent over SSL */
-			if (ret != SSL_ERROR_WANT_READ && ret != SSL_ERROR_WANT_WRITE) {
+			if (ret == SSL_ERROR_WANT_WRITE) {
+				FD_SET(vpninfo->dtls_fd, &vpninfo->select_wfds);
+				vpninfo->outgoing_queue = this;
+				vpninfo->outgoing_qlen++;
+
+			} else if (ret != SSL_ERROR_WANT_READ) {
+				/* If it's a real error, kill the DTLS connection and
+				   requeue the packet to be sent over SSL */
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("DTLS got write error %d. Falling back to SSL\n"),
 					     ret);
@@ -846,8 +855,9 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				dtls_restart(vpninfo);
 				vpninfo->outgoing_queue = this;
 				vpninfo->outgoing_qlen++;
+				work_done = 1;
 			}
-			return 1;
+			return work_done;
 		}
 #elif defined(DTLS_GNUTLS)
 		ret = gnutls_record_send(vpninfo->dtls_ssl, &this->hdr[7], this->len + 1);
@@ -859,8 +869,14 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				dtls_restart(vpninfo);
 				vpninfo->outgoing_queue = this;
 				vpninfo->outgoing_qlen++;
+				work_done = 1;
+			} else if (gnutls_record_get_direction(vpninfo->dtls_ssl)) {
+				FD_SET(vpninfo->dtls_fd, &vpninfo->select_wfds);
+				vpninfo->outgoing_queue = this;
+				vpninfo->outgoing_qlen++;
 			}
-			return 1;
+
+			return work_done;
 		}
 #endif
 		time(&vpninfo->dtls_times.last_tx);
