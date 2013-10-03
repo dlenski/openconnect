@@ -176,11 +176,6 @@ static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_fo
 	return 0;
 }
 
-/* Return value:
- *  < 0, on error
- *  = 0, when form was cancelled
- *  = 1, when form was parsed
- */
 static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
 		      xmlNode *xml_node)
 {
