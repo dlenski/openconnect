@@ -251,6 +251,7 @@ void openconnect_set_xmlsha1(struct openconnect_info *, const char *, int size);
 
 void openconnect_set_cafile(struct openconnect_info *, char *);
 void openconnect_setup_csd(struct openconnect_info *, uid_t, int silent, char *wrapper);
+void openconnect_set_xmlpost(struct openconnect_info *, int enable);
 int openconnect_set_reported_os(struct openconnect_info *, const char *os);
 void openconnect_set_mobile_info(struct openconnect_info *vpninfo,
 				 char *mobile_platform_version,

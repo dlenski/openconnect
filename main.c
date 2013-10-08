@@ -603,7 +603,7 @@ int main(int argc, char **argv)
 			vpninfo->nopasswd = 1;
 			break;
 		case OPT_NO_XMLPOST:
-			vpninfo->xmlpost = 0;
+			openconnect_set_xmlpost(vpninfo, 0);
 			break;
 		case OPT_NON_INTER:
 			non_inter = 1;

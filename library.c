@@ -283,6 +283,11 @@ void openconnect_setup_csd(struct openconnect_info *vpninfo, uid_t uid, int sile
 	vpninfo->csd_wrapper = wrapper;
 }
 
+void openconnect_set_xmlpost(struct openconnect_info *vpninfo, int enable)
+{
+	vpninfo->xmlpost = enable;
+}
+
 void openconnect_set_client_cert(struct openconnect_info *vpninfo, char *cert, char *sslkey)
 {
 	vpninfo->cert = cert;
