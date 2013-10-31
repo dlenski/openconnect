@@ -362,3 +362,9 @@ $(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) $(STOKEN_DEPS) $(OA
 
 openconnect: $(OPENCONNECT_BUILD)/Makefile
 	make -C $(OPENCONNECT_BUILD)
+
+# download + extract, but do not build
+sources: $(LIBXML2_SRC)/configure $(GMP_SRC)/configure \
+	$(NETTLE_SRC)/configure $(GNUTLS_SRC)/configure \
+	$(TOMCRYPT_DIR)/makefile $(STOKEN_SRC)/configure \
+	$(OATH_SRC)/configure
