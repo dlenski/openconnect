@@ -30,6 +30,7 @@ ifeq ($(ARCH),mips)
 TRIPLET := mipsel-linux-android
 TOOLCHAIN := $(TRIPLET)-$(GCCVER)
 OPENSSL_TARGET := android
+EXTRA_LDFLAGS := -lz
 endif
 
 NDK_SYSROOT := $(NDK)/platforms/android-$(APIVER)/arch-$(ARCH)
@@ -254,6 +255,7 @@ $(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) $(OPENCONNECT_SRC)/
 	mkdir -p $(OPENCONNECT_BUILD)
 	cd $(OPENCONNECT_BUILD) && ../../../configure $(CONFIGURE_ARGS) \
 	CFLAGS="--sysroot=$(NDK_SYSROOT) -DNO_BROKEN_DTLS_CHECK" \
+	LDFLAGS="$(EXTRA_LDFLAGS)" \
 	GNUTLS_LIBS="$(shell PKG_CONFIG_LIBDIR=$(OC_SYSROOT)/lib/pkgconfig pkg-config --static --libs gnutls)" \
 	--enable-shared --with-vpnc-script=/etc/vpnc/vpnc-script
 
