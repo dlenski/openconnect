@@ -10,10 +10,10 @@
 #
 # It should also be fairly simple to extend this to cross-compile for any target
 
-NDK     := /opt/android-sdk-linux_x86/android-ndk-r8d/
+NDK     := /opt/android-sdk-linux_x86/android-ndk-r9b/
 ARCH    := arm
 APIVER  := 14
-GCCVER  := 4.7
+GCCVER  := 4.8
 
 # You should be able to just 'make ARCH=x86' and it should DTRT.
 ifeq ($(ARCH),arm)
