@@ -1430,18 +1430,25 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	   choose the _right_ one. (RT#1942)
 	   Pick the right ones for ourselves and add them manually. */
 
-	if (nr_supporting_certs) {
-		/* We already got a bunch of certs from PKCS#12 file. Remember
-		   how many need to be freed when we're done, since we'll
-		   expand the supporting_certs array with more from the cafile
-		   and extra_certs[] array if we can, and those extra certs
-		   must not be freed (twice). */
-		last_cert = supporting_certs[nr_supporting_certs-1];
-		certs_to_free = nr_supporting_certs;
-	} else {
-		last_cert = cert;
-		certs_to_free = nr_supporting_certs = 1;
+	/* We may have already got a bunch of certs from PKCS#12
+	   file. Remember how many need to be freed when we're done,
+	   since we'll expand the supporting_certs array with more
+	   from the cafile and extra_certs[] array if we can, and
+	   those extra certs must not be freed (twice). */
+	if (!nr_supporting_certs) {
+		supporting_certs = gnutls_malloc(sizeof(*supporting_certs));
+		if (!supporting_certs) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to allocate memory for certificate\n"));
+			ret = -ENOMEM;
+			goto out;
+		}
+		supporting_certs[0] = cert;
+		nr_supporting_certs = 1;
 	}
+	last_cert = supporting_certs[nr_supporting_certs-1];
+	certs_to_free = nr_supporting_certs;
+
 	while (1) {
 		gnutls_x509_crt_t issuer;
 		void *tmp;
@@ -1500,10 +1507,6 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			goto out;
 		}
 
-		/* First time we actually allocated an array? Copy the first cert into it */
-		if (nr_supporting_certs == 2)
-			supporting_certs[0] = cert;
-
 		/* Append the new one */
 		supporting_certs[nr_supporting_certs-1] = issuer;
 		last_cert = issuer;
@@ -1525,7 +1528,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 #if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS)
 	if (pkey) {
 		err = assign_privkey(vpninfo, pkey,
-				     supporting_certs ? supporting_certs : &cert,
+				     supporting_certs,
 				     nr_supporting_certs,
 				     extra_certs, nr_extra_certs);
 		if (!err) {
@@ -1535,7 +1538,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	} else
 #endif /* P11KIT || TROUSERS */
 		err = gnutls_certificate_set_x509_key(vpninfo->https_cred,
-						      supporting_certs ? supporting_certs : &cert,
+						      supporting_certs,
 						      nr_supporting_certs, key);
 
 	if (err) {
