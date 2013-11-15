@@ -899,7 +899,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	gnutls_x509_crt_t last_cert, cert = NULL;
 	gnutls_x509_crt_t *extra_certs = NULL, *supporting_certs = NULL;
 	unsigned int nr_supporting_certs = 0, nr_extra_certs = 0;
-	unsigned int certs_to_free = 0; /* How many of supporting_certs */
+	uint8_t *free_supporting_certs = NULL;
 	int err; /* GnuTLS error */
 	int ret;
 	int i;
@@ -1010,6 +1010,12 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		else if (!ret) {
 			if (nr_supporting_certs) {
 				cert = supporting_certs[0];
+				free_supporting_certs = gnutls_malloc(nr_supporting_certs);
+				if (!free_supporting_certs) {
+					ret = -ENOMEM;
+					goto out;
+				}
+				memset(free_supporting_certs, 1, nr_supporting_certs);
 				goto got_key;
 			}
 			vpn_progress(vpninfo, PRG_ERR,
@@ -1445,11 +1451,20 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		}
 		supporting_certs[0] = cert;
 		nr_supporting_certs = 1;
+
+		free_supporting_certs = gnutls_malloc(1);
+		if (!free_supporting_certs) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to allocate memory for certificate\n"));
+			ret = -ENOMEM;
+			goto out;
+		}
+		free_supporting_certs[0] = 1;
 	}
 	last_cert = supporting_certs[nr_supporting_certs-1];
-	certs_to_free = nr_supporting_certs;
 
 	while (1) {
+		uint8_t free_issuer;
 		gnutls_x509_crt_t issuer;
 		void *tmp;
 
@@ -1463,6 +1478,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		if (i < nr_extra_certs) {
 			/* We found the next cert in the chain in extra_certs[] */
 			issuer = extra_certs[i];
+			free_issuer = 0;
 		} else {
 			/* Look for it in the system trust cafile too. */
 			err = gnutls_certificate_get_issuer(vpninfo->https_cred,
@@ -1482,6 +1498,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 					     _("WARNING: GnuTLS returned incorrect issuer certs; authentication may fail!\n"));
 				break;
 			}
+			free_issuer = 0;
 		}
 
 		if (issuer == last_cert) {
@@ -1496,19 +1513,28 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		/* OK, we found a new cert to add to our chain. */
 		tmp = supporting_certs;
 		supporting_certs = gnutls_realloc(supporting_certs,
-						  sizeof(cert) * ++nr_supporting_certs);
+						  sizeof(cert) * (nr_supporting_certs+1));
 		if (!supporting_certs) {
-			gnutls_free(tmp);
+			supporting_certs = tmp;
+		realloc_failed:
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to allocate memory for supporting certificates\n"));
-			/* The world is probably about to end, but try without them anyway */
-			certs_to_free = 0;
-			ret = -ENOMEM;
-			goto out;
+			if (free_issuer)
+				gnutls_x509_crt_deinit(issuer);
+			break;
+		}
+
+		tmp = free_supporting_certs;
+		free_supporting_certs = gnutls_realloc(free_supporting_certs, nr_supporting_certs+1);
+		if (!free_supporting_certs) {
+			free_supporting_certs = tmp;
+			goto realloc_failed;
 		}
 
 		/* Append the new one */
-		supporting_certs[nr_supporting_certs-1] = issuer;
+		supporting_certs[nr_supporting_certs] = issuer;
+		free_supporting_certs[nr_supporting_certs] = free_issuer;
+		nr_supporting_certs++;
 		last_cert = issuer;
 	}
 	for (i = 1; i < nr_supporting_certs; i++) {
@@ -1554,11 +1580,14 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	if (key)
 		gnutls_x509_privkey_deinit(key);
 	if (supporting_certs) {
-		for (i = 0; i < certs_to_free; i++) {
-			if (supporting_certs[i])
+		for (i = 0; i < nr_supporting_certs; i++) {
+			/* We get here in an error case with !free_supporting_certs
+			   and should free them all in that case */
+			if (!free_supporting_certs || free_supporting_certs[i])
 				gnutls_x509_crt_deinit(supporting_certs[i]);
 		}
 		gnutls_free(supporting_certs);
+		gnutls_free(free_supporting_certs);
 	} else if (cert) {
 		/* Not if supporting_certs. It's supporting_certs[0] then and
 		   was already freed. */
