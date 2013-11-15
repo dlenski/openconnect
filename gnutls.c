@@ -498,8 +498,7 @@ static int assign_privkey(struct openconnect_info *vpninfo,
 			  gnutls_privkey_t pkey,
 			  gnutls_x509_crt_t *certs,
 			  unsigned int nr_certs,
-			  gnutls_x509_crt_t *extra_certs,
-			  unsigned int nr_extra_certs)
+			  uint8_t *free_certs)
 {
 	int i;
 
@@ -507,28 +506,21 @@ static int assign_privkey(struct openconnect_info *vpninfo,
 	if (!vpninfo->my_certs)
 		return GNUTLS_E_MEMORY_ERROR;
 
+	vpninfo->free_my_certs = gnutls_malloc(nr_certs);
+	if (vpninfo->free_my_certs) {
+		gnutls_free(vpninfo->my_certs);
+		vpninfo->my_certs = NULL;
+		return GNUTLS_E_MEMORY_ERROR;
+	}
+
+	memcpy(vpninfo->free_my_certs, free_certs, nr_certs);
 	memcpy(vpninfo->my_certs, certs, nr_certs * sizeof(*certs));
 	vpninfo->nr_my_certs = nr_certs;
 
 	/* We are *keeping* the certs, unlike in GnuTLS 3 where our caller
 	   can free them after gnutls_certificate_set_key() has been called.
-	   So first wipe the 'certs' array (which is either '&cert' or
-	   'supporting_certs' in load_certificate())... */
-	memset(certs, 0, nr_certs * sizeof(*certs));
-
-	/* ... and then also zero out the entries in extra_certs[] that
-	   correspond to the certs that we're stealing.
-	   We know certs[0] was already stolen by the load_certificate()
-	   function so we might as well start at certs[1]. */
-	for (i = 1; i < nr_certs; i++) {
-		int j;
-		for (j = 0; j < nr_extra_certs; j++) {
-			if (vpninfo->my_certs[i] == extra_certs[j]) {
-				extra_certs[j] = NULL;
-				break;
-			}
-		}
-	}
+	   So wipe the 'free_certs' array. */
+	memset(free_certs, 0, nr_certs);
 
 	gnutls_certificate_set_retrieve_function(vpninfo->https_cred,
 						 gtls_cert_cb);
@@ -546,8 +538,7 @@ static int assign_privkey(struct openconnect_info *vpninfo,
 			  gnutls_privkey_t pkey,
 			  gnutls_x509_crt_t *certs,
 			  unsigned int nr_certs,
-			  gnutls_x509_crt_t *extra_certs,
-			  unsigned int nr_extra_certs)
+			  uint8_t *free_certs)
 {
 	gnutls_pcert_st *pcerts = calloc(nr_certs, sizeof(*pcerts));
 	int i, err;
@@ -1478,7 +1469,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		if (i < nr_extra_certs) {
 			/* We found the next cert in the chain in extra_certs[] */
 			issuer = extra_certs[i];
-			free_issuer = 0;
+			extra_certs[i] = NULL;
+			free_issuer = 1;
 		} else {
 			/* Look for it in the system trust cafile too. */
 			err = gnutls_certificate_get_issuer(vpninfo->https_cred,
@@ -1505,8 +1497,12 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			/* Don't actually include the root CA. If they don't already trust it,
 			   then handing it to them isn't going to help. But don't omit the
 			   original certificate if it's self-signed. */
-			if (nr_supporting_certs > 1)
+			if (nr_supporting_certs > 1) {
 				nr_supporting_certs--;
+				if (free_issuer)
+					gnutls_x509_crt_deinit(issuer);
+			}
+
 			break;
 		}
 
@@ -1556,7 +1552,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		err = assign_privkey(vpninfo, pkey,
 				     supporting_certs,
 				     nr_supporting_certs,
-				     extra_certs, nr_extra_certs);
+				     free_supporting_certs);
 		if (!err) {
 			pkey = NULL; /* we gave it away, and potentially also some
 					of extra_certs[] may have been zeroed. */
@@ -2038,9 +2034,12 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 		if (vpninfo->my_certs) {
 			int i;
 			for (i = 0; i < vpninfo->nr_my_certs; i++)
-				gnutls_x509_crt_deinit(vpninfo->my_certs[i]);
-			free(vpninfo->my_certs);
+				if (vpninfo->free_my_certs[i])
+					gnutls_x509_crt_deinit(vpninfo->my_certs[i]);
+			gnutls_free(vpninfo->my_certs);
+			gnutls_free(vpninfo->free_my_certs);
 			vpninfo->my_certs = NULL;
+			vpninfo->free_my_certs = NULL;
 		}
 #endif
 	}

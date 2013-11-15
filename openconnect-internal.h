@@ -224,6 +224,7 @@ struct openconnect_info {
 #endif
 	gnutls_privkey_t my_pkey;
 	gnutls_x509_crt_t *my_certs;
+	uint8_t *free_my_certs;
 	unsigned int nr_my_certs;
 #endif
 #endif /* OPENCONNECT_GNUTLS */
