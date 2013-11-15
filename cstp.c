@@ -172,6 +172,13 @@ void cstp_free_splits(struct openconnect_info *vpninfo)
 		vpninfo->ip_info.split_excludes = NULL;
 }
 
+/* if DTLS 1.2 is supported */
+#if defined(DTLS_GNUTLS) && GNUTLS_VERSION_NUMBER >= 0x030200
+# define DEFAULT_CIPHER_LIST "OC-DTLS1_2-AES256-GCM:OC-DTLS1_2-AES128-GCM:AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA"
+#else
+# define DEFAULT_CIPHER_LIST "AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA"
+#endif
+
 static int start_cstp_connection(struct openconnect_info *vpninfo)
 {
 	char buf[65536];
@@ -228,7 +235,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	for (i = 0; i < sizeof(vpninfo->dtls_secret); i++)
 		buf_append(buf, sizeof(buf), "%02X", vpninfo->dtls_secret[i]);
 	buf_append(buf, sizeof(buf), "\r\nX-DTLS-CipherSuite: %s\r\n\r\n",
-			       vpninfo->dtls_ciphers ? : "AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA");
+			       vpninfo->dtls_ciphers ? : DEFAULT_CIPHER_LIST);
 
 	openconnect_SSL_write(vpninfo, buf, strlen(buf));
 

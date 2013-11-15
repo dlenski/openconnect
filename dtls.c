@@ -326,16 +326,23 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 
 struct {
 	const char *name;
+	gnutls_protocol_t version;
 	gnutls_cipher_algorithm_t cipher;
 	gnutls_mac_algorithm_t mac;
 	const char *prio;
 } gnutls_dtls_ciphers[] = {
-	{ "AES128-SHA", GNUTLS_CIPHER_AES_128_CBC, GNUTLS_MAC_SHA1,
+	{ "AES128-SHA", GNUTLS_DTLS0_9, GNUTLS_CIPHER_AES_128_CBC, GNUTLS_MAC_SHA1,
 	  "NONE:+VERS-DTLS0.9:+COMP-NULL:+AES-128-CBC:+SHA1:+RSA:%COMPAT:%DISABLE_SAFE_RENEGOTIATION" },
-	{ "AES256-SHA", GNUTLS_CIPHER_AES_256_CBC, GNUTLS_MAC_SHA1,
+	{ "AES256-SHA", GNUTLS_DTLS0_9, GNUTLS_CIPHER_AES_256_CBC, GNUTLS_MAC_SHA1,
 	  "NONE:+VERS-DTLS0.9:+COMP-NULL:+AES-256-CBC:+SHA1:+RSA:%COMPAT:%DISABLE_SAFE_RENEGOTIATION" },
-	{ "DES-CBC3-SHA", GNUTLS_CIPHER_3DES_CBC, GNUTLS_MAC_SHA1,
+	{ "DES-CBC3-SHA", GNUTLS_DTLS0_9, GNUTLS_CIPHER_3DES_CBC, GNUTLS_MAC_SHA1,
 	  "NONE:+VERS-DTLS0.9:+COMP-NULL:+3DES-CBC:+SHA1:+RSA:%COMPAT:%DISABLE_SAFE_RENEGOTIATION" },
+#if GNUTLS_VERSION_NUMBER >= 0x030207 /* if DTLS 1.2 is supported (and a bug in gnutls is solved) */
+	{ "OC-DTLS1_2-AES128-GCM", GNUTLS_DTLS1_2, GNUTLS_CIPHER_AES_128_GCM, GNUTLS_MAC_AEAD,
+	  "NONE:+VERS-DTLS1.2:+COMP-NULL:+AES-128-GCM:+AEAD:+RSA:%COMPAT:%DISABLE_SAFE_RENEGOTIATION:+SIGN-ALL" },
+	{ "OC-DTLS1_2-AES256-GCM", GNUTLS_DTLS1_2, GNUTLS_CIPHER_AES_256_GCM, GNUTLS_MAC_AEAD,
+	  "NONE:+VERS-DTLS1.2:+COMP-NULL:+AES-256-GCM:+AEAD:+RSA:%COMPAT:%DISABLE_SAFE_RENEGOTIATION:+SIGN-ALL" },
+#endif
 };
 
 #define DTLS_SEND gnutls_record_send
@@ -371,6 +378,7 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
+
 	gnutls_transport_set_ptr(dtls_ssl,
 				 (gnutls_transport_ptr_t)(long) dtls_fd);
 	gnutls_record_disable_padding(dtls_ssl);
@@ -378,7 +386,7 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 	master_secret.size = sizeof(vpninfo->dtls_secret);
 	session_id.data = vpninfo->dtls_session_id;
 	session_id.size = sizeof(vpninfo->dtls_session_id);
-	err = gnutls_session_set_premaster(dtls_ssl, GNUTLS_CLIENT, GNUTLS_DTLS0_9,
+	err = gnutls_session_set_premaster(dtls_ssl, GNUTLS_CLIENT, gnutls_dtls_ciphers[cipher].version,
 					   GNUTLS_KX_RSA, gnutls_dtls_ciphers[cipher].cipher,
 					   gnutls_dtls_ciphers[cipher].mac, GNUTLS_COMP_NULL,
 					   &master_secret, &session_id);
@@ -583,7 +591,6 @@ static int dtls_restart(struct openconnect_info *vpninfo)
 	dtls_close(vpninfo, 0);
 	return connect_dtls_socket(vpninfo);
 }
-
 
 int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_period)
 {
