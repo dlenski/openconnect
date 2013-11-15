@@ -397,7 +397,8 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 }
 
 /* Older versions of GnuTLS didn't actually bother to check this, so we'll
-   do it for them. */
+   do it for them. Is there a bug reference for this? Or just the git commit
+   reference (c1ef7efb in master, 5196786c in gnutls_3_0_x-2)? */
 static int check_issuer_sanity(gnutls_x509_crt_t cert, gnutls_x509_crt_t issuer)
 {
 #if GNUTLS_VERSION_NUMBER > 0x300014
@@ -1475,34 +1476,55 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			/* Look for it in the system trust cafile too. */
 			err = gnutls_certificate_get_issuer(vpninfo->https_cred,
 							    last_cert, &issuer, 0);
-			if (err)
-				break;
-
 			/* The check_issuer_sanity() function works fine as a workaround where
 			   it was used above, but when gnutls_certificate_get_issuer() returns
 			   a bogus cert, there's nothing we can do to fix it up. We don't get
 			   to iterate over all the available certs like we can over our own
 			   list. */
-			if (check_issuer_sanity(last_cert, issuer)) {
-				/* Hm, is there a bug reference for this? Or just the git commit
-				   reference (c1ef7efb in master, 5196786c in gnutls_3_0_x-2)? */
+			if (!err && check_issuer_sanity(last_cert, issuer)) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("WARNING: GnuTLS returned incorrect issuer certs; authentication may fail!\n"));
 				break;
 			}
 			free_issuer = 0;
+
+#if defined(HAVE_P11KIT) && defined(HAVE_GNUTLS_PKCS11_GET_RAW_ISSUER)
+			if (err && cert_is_p11) {
+				gnutls_datum_t t;
+
+				err = gnutls_pkcs11_get_raw_issuer(cert_url, last_cert, &t, GNUTLS_X509_FMT_DER, 0);
+				if (!err) {
+					err = gnutls_x509_crt_init(&issuer);
+					if (!err) {
+						err = gnutls_x509_crt_import(issuer, &t, GNUTLS_X509_FMT_DER);
+						if (err)
+							gnutls_x509_crt_deinit(issuer);
+					}
+				}
+				if (err) {
+					vpn_progress(vpninfo, PRG_ERR,
+						     "Got no issuer from PKCS#11\n");
+				} else {
+					get_cert_name(issuer, name, sizeof(name));
+
+					vpn_progress(vpninfo, PRG_ERR,
+						     _("Got next CA '%s' from PKCS11\n"), name);
+				}
+				free_issuer = 1;
+				gnutls_free(t.data);
+			}
+#endif
+			if (err)
+				break;
+
 		}
 
-		if (issuer == last_cert) {
+		if (gnutls_x509_crt_check_issuer(issuer, issuer)) {
 			/* Don't actually include the root CA. If they don't already trust it,
 			   then handing it to them isn't going to help. But don't omit the
 			   original certificate if it's self-signed. */
-			if (nr_supporting_certs > 1) {
-				nr_supporting_certs--;
-				if (free_issuer)
-					gnutls_x509_crt_deinit(issuer);
-			}
-
+			if (free_issuer)
+				gnutls_x509_crt_deinit(issuer);
 			break;
 		}
 

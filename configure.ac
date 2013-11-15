@@ -254,6 +254,8 @@ if test "$with_gnutls" = "yes"; then
     CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
     AC_CHECK_FUNC(gnutls_dtls_set_data_mtu,
 		 [AC_DEFINE(HAVE_GNUTLS_DTLS_SET_DATA_MTU, 1)], [])
+    AC_CHECK_FUNC(gnutls_pkcs11_get_raw_issuer,
+		 [AC_DEFINE(HAVE_GNUTLS_PKCS11_GET_RAW_ISSUER, 1)], [])
     AC_CHECK_FUNC(gnutls_certificate_set_x509_system_trust,
 		 [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_X509_SYSTEM_TRUST, 1)], [])
     if test "$ac_cv_func_gnutls_certificate_set_x509_system_trust" != "yes"; then
