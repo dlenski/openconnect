@@ -1247,7 +1247,7 @@ static int process_auth_form(void *_vpninfo,
 		password = NULL;
 	}
 
-	return 0;
+	return OC_FORM_RESULT_OK;
 
  err:
 	for (opt = form->opts; opt; opt = opt->next) {
@@ -1257,7 +1257,7 @@ static int process_auth_form(void *_vpninfo,
 			opt->value = NULL;
 		}
 	}
-	return -EINVAL;
+	return OC_FORM_RESULT_ERR;
 }
 
 static void init_token(struct openconnect_info *vpninfo,

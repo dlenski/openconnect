@@ -93,6 +93,13 @@
 #define OC_FORM_OPT_HIDDEN	4
 #define OC_FORM_OPT_TOKEN	5
 
+#define OC_FORM_RESULT_ERR		-1
+#define OC_FORM_RESULT_OK		0
+#define OC_FORM_RESULT_CANCELLED	1
+#ifdef __OPENCONNECT_PRIVATE__
+#define OC_FORM_RESULT_LOGGEDIN		255
+#endif
+
 /* char * fields are static (owned by XML parser) and don't need to be
    freed by the form handling code -- except for value, which for TEXT
    and PASSWORD options is allocated by process_form() when

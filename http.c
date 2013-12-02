@@ -1175,9 +1175,9 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		request_body[0] = 0;
 		result = handle_auth_form(vpninfo, form, request_body, sizeof(request_body),
 					  &method, &request_body_type);
-		if (result < 0 || result == 1)
+		if (result < 0 || result == OC_FORM_RESULT_CANCELLED)
 			goto out;
-		if (result == 2)
+		if (result == OC_FORM_RESULT_LOGGEDIN)
 			break;
 
 		result = do_https_request(vpninfo, method, request_body_type, request_body,

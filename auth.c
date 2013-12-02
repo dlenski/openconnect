@@ -589,9 +589,9 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 
 /* Return value:
  *  < 0, on error
- *  = 0, when form parsed and POST required
- *  = 1, when response was cancelled by user
- *  = 2, when form indicates that login was already successful
+ *  = OC_FORM_RESULT_OK (0), when form parsed and POST required
+ *  = OC_FORM_RESULT_CANCELLED, when response was cancelled by user
+ *  = OC_FORM_RESULT_LOGGEDIN, when form indicates that login was already successful
  */
 int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
 		     char *request_body, int req_len, const char **method,
@@ -601,7 +601,7 @@ int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form
 	struct vpn_option *opt, *next;
 
 	if (!strcmp(form->auth_id, "success"))
-		return 2;
+		return OC_FORM_RESULT_LOGGEDIN;
 
 	if (vpninfo->nopasswd) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -619,7 +619,7 @@ int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form
 			free(opt);
 		}
 		vpninfo->cookies = NULL;
-		return 0;
+		return OC_FORM_RESULT_OK;
 	}
 	if (!form->opts) {
 		if (form->message)
@@ -633,7 +633,7 @@ int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form
 		ret = vpninfo->process_auth_form(vpninfo->cbdata, form);
 	else {
 		vpn_progress(vpninfo, PRG_ERR, _("No form handler; cannot authenticate.\n"));
-		ret = 1;
+		ret = OC_FORM_RESULT_CANCELLED;
 	}
 	if (ret)
 		return ret;
