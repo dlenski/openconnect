@@ -796,6 +796,11 @@ int xmlpost_initial_req(struct openconnect_info *vpninfo, char *request_body, in
 		if (!node)
 			goto bad;
 	}
+	if (vpninfo->authgroup) {
+		node = xmlNewTextChild(root, NULL, XCAST("group-select"), XCAST(vpninfo->authgroup));
+		if (!node)
+			goto bad;
+	}
 	return xmlpost_complete(doc, request_body, req_len);
 
 bad:
