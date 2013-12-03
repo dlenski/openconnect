@@ -171,8 +171,6 @@ struct openconnect_info {
 	const char *servercert;
 	const char *xmlconfig;
 	char xmlsha1[(SHA1_SIZE * 2) + 1];
-	char *username;
-	char *password;
 	char *authgroup;
 	int nopasswd;
 	int xmlpost;
