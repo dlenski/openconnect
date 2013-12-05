@@ -55,6 +55,7 @@ int queue_new_packet(struct pkt **q, void *buf, int len)
 }
 
 /* Return value:
+ *  = 0, when successfully paused (may call again)
  *  = -EINTR, if aborted locally via cmd_fd
  *  = -EPIPE, if the remote end explicitly terminated the session
  *  = -EPERM, if the gateway sent 401 Unauthorized (cookie expired)
@@ -86,7 +87,8 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 			dtls_try_handshake(vpninfo);
 
 		if (vpninfo->dtls_attempt_period && !vpninfo->dtls_ssl && !vpninfo->new_dtls_ssl &&
-		    vpninfo->new_dtls_started + vpninfo->dtls_attempt_period < time(NULL)) {
+		    vpninfo->new_dtls_started + vpninfo->dtls_attempt_period < time(NULL) &&
+		    vpninfo->ssl_fd != -1) {
 			vpn_progress(vpninfo, PRG_TRACE, _("Attempt new DTLS connection\n"));
 			connect_dtls_socket(vpninfo);
 		}
@@ -114,6 +116,17 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 			vpninfo->quit_reason = "Aborted by caller";
 			ret = -EINTR;
 			break;
+		}
+		if (vpninfo->got_pause_cmd) {
+			/* close all connections and wait for the user to call
+			   openconnect_mainloop() again */
+			openconnect_close_https(vpninfo, 0);
+			dtls_close(vpninfo, 1);
+			vpninfo->new_dtls_started = 0;
+
+			vpninfo->got_pause_cmd = 0;
+			vpn_progress(vpninfo, PRG_INFO, _("Caller paused the connection\n"));
+			return 0;
 		}
 
 		if (did_work)

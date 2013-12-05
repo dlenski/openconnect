@@ -549,6 +549,9 @@ void check_cmd_fd(struct openconnect_info *vpninfo, fd_set *fds)
 	case OC_CMD_CANCEL:
 		vpninfo->got_cancel_cmd = 1;
 		break;
+	case OC_CMD_PAUSE:
+		vpninfo->got_pause_cmd = 1;
+		break;
 	}
 }
 

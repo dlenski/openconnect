@@ -569,6 +569,8 @@ int cstp_reconnect(struct openconnect_info *vpninfo)
 		poll_cmd_fd(vpninfo, interval);
 		if (vpninfo->got_cancel_cmd)
 			return -EINTR;
+		if (vpninfo->got_pause_cmd)
+			return 0;
 		timeout -= interval;
 		interval += vpninfo->reconnect_interval;
 		if (interval > RECONNECT_INTERVAL_MAX)
@@ -708,6 +710,9 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	unsigned char buf[16384];
 	int len, ret;
 	int work_done = 0;
+
+	if (vpninfo->ssl_fd == -1)
+		goto do_reconnect;
 
 	/* FIXME: The poll() handling here is fairly simplistic. Actually,
 	   if the SSL connection stalls it could return a WANT_WRITE error
