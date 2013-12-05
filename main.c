@@ -530,7 +530,7 @@ int main(int argc, char **argv)
 	vpninfo->cbdata = vpninfo;
 	vpninfo->cert_expire_warning = 60 * 86400;
 	vpninfo->vpnc_script = DEFAULT_VPNCSCRIPT;
-	vpninfo->cancel_fd = -1;
+	vpninfo->cmd_fd = -1;
 	vpninfo->xmlpost = 1;
 
 	if (!uname(&utsbuf))

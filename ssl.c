@@ -523,14 +523,14 @@ int keystore_fetch(const char *key, unsigned char **result)
 
 void cmd_fd_set(struct openconnect_info *vpninfo, fd_set *fds, int *maxfd)
 {
-	if (vpninfo->cancel_fd != -1) {
-		FD_SET(vpninfo->cancel_fd, fds);
-		if (vpninfo->cancel_fd > *maxfd)
-			*maxfd = vpninfo->cancel_fd;
+	if (vpninfo->cmd_fd != -1) {
+		FD_SET(vpninfo->cmd_fd, fds);
+		if (vpninfo->cmd_fd > *maxfd)
+			*maxfd = vpninfo->cmd_fd;
 	}
 }
 
 int is_cancel_pending(struct openconnect_info *vpninfo, fd_set *fds)
 {
-	return vpninfo->cancel_fd != -1 && FD_ISSET(vpninfo->cancel_fd, fds);
+	return vpninfo->cmd_fd != -1 && FD_ISSET(vpninfo->cmd_fd, fds);
 }

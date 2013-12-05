@@ -56,7 +56,7 @@ struct openconnect_info *openconnect_vpninfo_new(char *useragent,
 	vpninfo->process_auth_form = process_auth_form;
 	vpninfo->progress = progress;
 	vpninfo->cbdata = privdata ? : vpninfo;
-	vpninfo->cancel_fd = -1;
+	vpninfo->cmd_fd = -1;
 	vpninfo->xmlpost = 1;
 	openconnect_set_reported_os(vpninfo, NULL);
 
@@ -279,7 +279,7 @@ void openconnect_set_cert_expiry_warning(struct openconnect_info *vpninfo,
 
 void openconnect_set_cancel_fd(struct openconnect_info *vpninfo, int fd)
 {
-	vpninfo->cancel_fd = fd;
+	vpninfo->cmd_fd = fd;
 }
 
 const char *openconnect_get_version(void)
