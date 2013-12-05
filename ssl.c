@@ -530,7 +530,42 @@ void cmd_fd_set(struct openconnect_info *vpninfo, fd_set *fds, int *maxfd)
 	}
 }
 
+void check_cmd_fd(struct openconnect_info *vpninfo, fd_set *fds)
+{
+	char cmd;
+
+	if (vpninfo->cmd_fd == -1 || !FD_ISSET(vpninfo->cmd_fd, fds))
+		return;
+	if (vpninfo->cmd_fd_write == -1) {
+		/* legacy openconnect_set_cancel_fd() users */
+		vpninfo->got_cancel_cmd = 1;
+		return;
+	}
+
+	if (read(vpninfo->cmd_fd, &cmd, 1) != 1)
+		return;
+
+	switch (cmd) {
+	case OC_CMD_CANCEL:
+		vpninfo->got_cancel_cmd = 1;
+		break;
+	}
+}
+
 int is_cancel_pending(struct openconnect_info *vpninfo, fd_set *fds)
 {
-	return vpninfo->cmd_fd != -1 && FD_ISSET(vpninfo->cmd_fd, fds);
+	check_cmd_fd(vpninfo, fds);
+	return vpninfo->got_cancel_cmd;
+}
+
+void poll_cmd_fd(struct openconnect_info *vpninfo, int timeout)
+{
+	fd_set rd_set;
+	int maxfd = 0;
+	struct timeval tv = { timeout, 0 };
+
+	FD_ZERO(&rd_set);
+	cmd_fd_set(vpninfo, &rd_set, &maxfd);
+	select(maxfd + 1, &rd_set, NULL, NULL, &tv);
+	check_cmd_fd(vpninfo, &rd_set);
 }

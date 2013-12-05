@@ -167,6 +167,9 @@ struct oc_auth_form {
 #define PRG_DEBUG	2
 #define PRG_TRACE	3
 
+/* byte commands to write into the cmd_fd */
+#define OC_CMD_CANCEL	'x'
+
 struct openconnect_info;
 
 #define OPENCONNECT_X509 void
