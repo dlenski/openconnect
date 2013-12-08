@@ -408,19 +408,21 @@ static int xmlnode_get_text(xmlNode *xml_node, const char *name, char **var)
  *
  * <auth id="<!-- "main" for initial attempt, "success" means we have a cookie -->">
  *   <title><!-- title to display to user --></title>
- *   <csd token="<!-- save to vpninfo->csd_token -->"
+ *   <csd
+ *        token="<!-- save to vpninfo->csd_token -->"
  *        ticket="<!-- save to vpninfo->csd_ticket -->" />
- *   <csd stuburl="<!-- ignore -->"
- *        starturl="<!-- ignore -->"
- *        waiturl="<!-- ignore -->"
+ *   <csd
+ *        stuburl="<!-- save to vpninfo->csd_stuburl if --os=win -->"
+ *        starturl="<!-- save to vpninfo->csd_starturl if --os=win -->"
+ *        waiturl="<!-- save to vpninfo->csd_starturl if --os=win -->"
  *   <csdMac
- *           stuburl="<!-- save to vpninfo->csd_stuburl on Mac only -->"
- *           starturl="<!-- save to vpninfo->csd_starturl on Mac only -->"
- *           waiturl="<!-- save to vpninfo->csd_waiturl on Mac only -->" />
+ *        stuburl="<!-- save to vpninfo->csd_stuburl if --os=mac-intel -->"
+ *        starturl="<!-- save to vpninfo->csd_starturl if --os=mac-intel -->"
+ *        waiturl="<!-- save to vpninfo->csd_waiturl if --os=mac-intel -->" />
  *   <csdLinux
- *             stuburl="<!-- same as above, for Linux -->"
- *             starturl="<!-- same as above, for Linux -->"
- *             waiturl="<!-- same as above, for Linux -->" />
+ *        stuburl="<!-- same as above, for Linux -->"
+ *        starturl="<!-- same as above, for Linux -->"
+ *        waiturl="<!-- same as above, for Linux -->" />
  *   <banner><!-- display this to the user --></banner>
  *   <message>Please enter your username and password.</message>
  *   <form method="post" action="/+webvpn+/index.html">
@@ -497,7 +499,12 @@ static int parse_auth_node(struct openconnect_info *vpninfo, xmlNode *xml_node,
 		} else if (!vpninfo->csd_scriptname && xmlnode_is_named(xml_node, "csd")) {
 			xmlnode_get_prop(xml_node, "token", &vpninfo->csd_token);
 			xmlnode_get_prop(xml_node, "ticket", &vpninfo->csd_ticket);
-		} else if (!vpninfo->csd_scriptname && xmlnode_is_named(xml_node, vpninfo->csd_xmltag)) {
+		}
+		/* For Windows, vpninfo->csd_xmltag will be "csd" and there are *two* <csd>
+		   nodes; one with token/ticket and one with the URLs. Process them both
+		   the same and rely on the fact that xmlnode_get_prop() will not *clear*
+		   the variable if no such property is found. */
+		if (!vpninfo->csd_scriptname && xmlnode_is_named(xml_node, vpninfo->csd_xmltag)) {
 			/* ignore the CSD trojan binary on mobile platforms */
 			if (!vpninfo->csd_nostub)
 				xmlnode_get_prop(xml_node, "stuburl", &vpninfo->csd_stuburl);
