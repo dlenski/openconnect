@@ -109,6 +109,7 @@ static void free_optlist(struct vpn_option *opt)
 void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 {
 	openconnect_close_https(vpninfo, 1);
+	dtls_close(vpninfo, 1);
 	if (vpninfo->cmd_fd_write != -1) {
 		close(vpninfo->cmd_fd);
 		close(vpninfo->cmd_fd_write);
