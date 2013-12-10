@@ -239,6 +239,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 					  rp->ai_protocol);
 			if (ssl_sock < 0)
 				continue;
+			fcntl(ssl_sock, F_SETFD, fcntl(ssl_sock, F_GETFD) | FD_CLOEXEC);
 			if (cancellable_connect(vpninfo, ssl_sock, rp->ai_addr, rp->ai_addrlen) >= 0) {
 				/* Store the peer address we actually used, so that DTLS can
 				   use it again later */
