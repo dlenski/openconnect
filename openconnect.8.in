@@ -18,6 +18,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-h,\-\-help
 .OP \-i,\-\-interface ifname
 .OP \-l,\-\-syslog
+.OP \-\-timestamp
 .OP \-U,\-\-setuid user
 .OP \-\-csd\-user user
 .OP \-m,\-\-mtu mtu
@@ -153,6 +154,9 @@ for tunnel interface
 .TP
 .B \-l,\-\-syslog
 Use syslog for progress messages
+.TP
+.B \-\-timestamp
+Prepend a timestamp to each progress message
 .TP
 .B \-U,\-\-setuid=USER
 Drop privileges after connecting, to become user
