@@ -594,11 +594,9 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 					  "CSD code with root privileges\n"
 					  "\t Use command line option \"--csd-user\"\n"));
 		}
-		if (vpninfo->uid_csd_given == 2) {
-			/* The NM tool really needs not to get spurious output
-			   on stdout, which the CSD trojan spews. */
-			dup2(2, 1);
-		}
+		/* Spurious stdout output from the CSD trojan will break both
+		   the NM tool and the various cookieonly modes. */
+		dup2(2, 1);
 		if (vpninfo->csd_wrapper)
 			csd_argv[i++] = vpninfo->csd_wrapper;
 		csd_argv[i++] = fname;
