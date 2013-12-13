@@ -776,13 +776,9 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			return 1;
 		}
 
-		if (dtls_restart(vpninfo)) {
+		if (dtls_restart(vpninfo))
 			vpn_progress(vpninfo, PRG_ERR, _("DTLS rekey failed\n"));
-			return 1;
-		}
-		work_done = 1;
-		break;
-
+		return 1;
 
 	case KA_DPD_DEAD:
 		vpn_progress(vpninfo, PRG_ERR, _("DTLS Dead Peer Detection detected dead peer!\n"));
