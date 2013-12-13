@@ -1,4 +1,4 @@
-OPENCONNECT_2.0 {
+OPENCONNECT_3.0 {
  global:
 	openconnect_clear_cookie;
 	openconnect_get_cert_sha1;
@@ -28,20 +28,12 @@ OPENCONNECT_2.0 {
 	openconnect_init_ssl;
 	openconnect_has_tss_blob_support;
 	openconnect_has_pkcs11_support;
-};
-
-OPENCONNECT_2.1 {
- global:
 	openconnect_has_stoken_support;
 	openconnect_set_stoken_mode;
 	openconnect_set_reported_os;
-} OPENCONNECT_2.0;
-
-OPENCONNECT_2.2 {
- global:
 	openconnect_has_oath_support;
 	openconnect_set_token_mode;
-} OPENCONNECT_2.1;
+};
 
 OPENCONNECT_PRIVATE {
  global: @SYMVER_TIME@ @SYMVER_ASPRINTF@ @SYMVER_GETLINE@ @SYMVER_PRINT_ERR@

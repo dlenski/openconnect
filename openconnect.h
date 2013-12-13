@@ -31,10 +31,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define OPENCONNECT_API_VERSION_MAJOR 2
-#define OPENCONNECT_API_VERSION_MINOR 2
+#define OPENCONNECT_API_VERSION_MAJOR 3
+#define OPENCONNECT_API_VERSION_MINOR 0
 
 /*
+ * API version 3.0:
+ *  - Change oc_form_opt_select->choices to an array of pointers
+ *  - Add oc_form_opt->flags
+ *  - Add OC_FORM_RESULT_* and oc_auth_form->authgroup_*
+ *
  * API version 2.2:
  *  - Add openconnect_set_token_mode(), openconnect_has_oath_support()
  *  - Deprecate openconnect_set_stoken_mode()
