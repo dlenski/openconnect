@@ -319,12 +319,12 @@ static void usage(void)
 
 static void read_stdin(char **string)
 {
-	char *c = malloc(100);
+	char *c = malloc(1025);
 	if (!c) {
 		fprintf(stderr, _("Allocation failure for string from stdin\n"));
 		exit(1);
 	}
-	if (!fgets(c, 100, stdin)) {
+	if (!fgets(c, 1025, stdin)) {
 		perror(_("fgets (stdin)"));
 		exit(1);
 	}
