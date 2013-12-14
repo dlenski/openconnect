@@ -65,8 +65,8 @@ static void syslog_progress(void *_vpninfo,
 static int validate_peer_cert(void *_vpninfo,
 			      OPENCONNECT_X509 *peer_cert,
 			      const char *reason);
-static int process_auth_form(void *_vpninfo,
-			     struct oc_auth_form *form);
+static int process_auth_form_cb(void *_vpninfo,
+				struct oc_auth_form *form);
 static void init_token(struct openconnect_info *vpninfo,
 		       oc_token_mode_t token_mode, const char *token_str);
 
@@ -507,7 +507,7 @@ int main(int argc, char **argv)
 	vpninfo->uid_csd = 0;
 	vpninfo->uid_csd_given = 0;
 	vpninfo->validate_peer_cert = validate_peer_cert;
-	vpninfo->process_auth_form = process_auth_form;
+	vpninfo->process_auth_form = process_auth_form_cb;
 	vpninfo->cbdata = vpninfo;
 	vpninfo->cert_expire_warning = 60 * 86400;
 	vpninfo->vpnc_script = DEFAULT_VPNCSCRIPT;
@@ -1083,8 +1083,8 @@ static int validate_peer_cert(void *_vpninfo, OPENCONNECT_X509 *peer_cert,
  *  = 0, when form was parsed and POST required
  *  = 1, when response was cancelled by user
  */
-static int process_auth_form(void *_vpninfo,
-			     struct oc_auth_form *form)
+static int process_auth_form_cb(void *_vpninfo,
+				struct oc_auth_form *form)
 {
 	struct openconnect_info *vpninfo = _vpninfo;
 	struct oc_form_opt *opt;
