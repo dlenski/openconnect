@@ -501,8 +501,6 @@ static int assign_privkey(struct openconnect_info *vpninfo,
 			  unsigned int nr_certs,
 			  uint8_t *free_certs)
 {
-	int i;
-
 	vpninfo->my_certs = gnutls_calloc(nr_certs, sizeof(*certs));
 	if (!vpninfo->my_certs)
 		return GNUTLS_E_MEMORY_ERROR;
