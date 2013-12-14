@@ -17,7 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li><i>No changelog entries yet</i></li>
+       <li>Change library API to support updating the auth form when the authgroup is changed <a href="https://bugs.launchpad.net/bugs/1229195"><i>(Ubuntu #1229195)</i></a>.</li>
+       <li>Change <tt>--os mac</tt> to <tt>--os mac-intel</tt>, to match the identifier used by Cisco clients.</li>
+       <li>Add new API functions to support invoking the VPN mainloop directly from an application.</li>
+       <li>Add JNI interface and sample Java application.</li>
+       <li>Fix junk in <tt>--cookieonly</tt> output when CSD is enabled.</li>
+       <li>Enable TOTP, stoken, and JNI support in the Android builds.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.02.tar.gz">OpenConnect v5.02</a></b>
