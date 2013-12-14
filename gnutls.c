@@ -2183,7 +2183,7 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 	o.label = (char *)_("Enter PIN:");
 	o.value = NULL;
 
-	ret = vpninfo->process_auth_form(vpninfo->cbdata, &f);
+	ret = process_auth_form(vpninfo, &f);
 	if (ret || !o.value)
 		return NULL;
 

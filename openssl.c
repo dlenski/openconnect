@@ -306,7 +306,7 @@ static int ui_flush(UI *ui)
 	struct ui_form_opt *opt;
 	int ret;
 
-	ret = vpninfo->process_auth_form(vpninfo->cbdata, &ui_data->form);
+	ret = process_auth_form(vpninfo, &ui_data->form);
 	if (ret)
 		return 0;
 

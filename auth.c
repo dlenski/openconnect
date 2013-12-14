@@ -587,6 +587,15 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 	return ret;
 }
 
+int process_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form)
+{
+	if (!vpninfo->process_auth_form) {
+		vpn_progress(vpninfo, PRG_ERR, _("No form handler; cannot authenticate.\n"));
+		return OC_FORM_RESULT_ERR;
+	}
+	return vpninfo->process_auth_form(vpninfo->cbdata, form);
+}
+
 /* Return value:
  *  < 0, on error
  *  = OC_FORM_RESULT_OK (0), when form parsed and POST required
@@ -629,12 +638,7 @@ int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form
 		return -EPERM;
 	}
 
-	if (vpninfo->process_auth_form)
-		ret = vpninfo->process_auth_form(vpninfo->cbdata, form);
-	else {
-		vpn_progress(vpninfo, PRG_ERR, _("No form handler; cannot authenticate.\n"));
-		ret = OC_FORM_RESULT_CANCELLED;
-	}
+	ret = process_auth_form(vpninfo, form);
 	if (ret)
 		return ret;
 
@@ -952,11 +956,11 @@ int prepare_stoken(struct openconnect_info *vpninfo)
 		if (!opts[0].type) {
 			/* don't bug the user if there's nothing to enter */
 			ret = 0;
-		} else if (vpninfo->process_auth_form) {
+		} else {
 			int some_empty = 0, all_empty = 1;
 
 			/* < 0 for error; 1 if cancelled */
-			ret = vpninfo->process_auth_form(vpninfo->cbdata, &form);
+			ret = process_auth_form(vpninfo, &form);
 			if (ret)
 				break;
 
@@ -978,11 +982,6 @@ int prepare_stoken(struct openconnect_info *vpninfo)
 					     _("All fields are required; try again.\n"));
 				continue;
 			}
-		} else {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("No form handler; cannot authenticate.\n"));
-			ret = -EIO;
-			break;
 		}
 
 		ret = stoken_decrypt_seed(vpninfo->stoken_ctx,

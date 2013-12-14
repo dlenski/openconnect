@@ -318,9 +318,6 @@ int request_passphrase(struct openconnect_info *vpninfo, const char *label,
 	va_list args;
 	int ret;
 
-	if (!vpninfo->process_auth_form)
-		return -EINVAL;
-
 	buf[1023] = 0;
 	memset(&f, 0, sizeof(f));
 	va_start(args, fmt);
@@ -336,7 +333,7 @@ int request_passphrase(struct openconnect_info *vpninfo, const char *label,
 	o.label = buf;
 	o.value = NULL;
 
-	ret = vpninfo->process_auth_form(vpninfo->cbdata, &f);
+	ret = process_auth_form(vpninfo, &f);
 	if (!ret) {
 		*response = o.value;
 		return 0;
