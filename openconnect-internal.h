@@ -288,6 +288,8 @@ struct openconnect_info {
 	struct pkt *outgoing_queue;
 	int outgoing_qlen;
 	int max_qlen;
+	struct oc_stats stats;
+	openconnect_stats_vfn stats_handler;
 
 	socklen_t peer_addrlen;
 	struct sockaddr *peer_addr;

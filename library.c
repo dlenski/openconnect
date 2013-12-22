@@ -556,3 +556,9 @@ void openconnect_set_protect_socket_handler(struct openconnect_info *vpninfo,
 {
 	vpninfo->protect_socket = protect_socket;
 }
+
+void openconnect_set_stats_handler(struct openconnect_info *vpninfo,
+				   openconnect_stats_vfn stats_handler)
+{
+	vpninfo->stats_handler = stats_handler;
+}

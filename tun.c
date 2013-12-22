@@ -736,6 +736,9 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				break;
 			out_pkt->len = len - prefix_size;
 
+			vpninfo->stats.tx_pkts++;
+			vpninfo->stats.tx_bytes += out_pkt->len;
+
 			queue_packet(&vpninfo->outgoing_queue, out_pkt);
 			out_pkt = NULL;
 
@@ -757,6 +760,9 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		struct pkt *this = vpninfo->incoming_queue;
 		unsigned char *data = this->data;
 		int len = this->len;
+
+		vpninfo->stats.rx_pkts++;
+		vpninfo->stats.rx_bytes += len;
 
 #ifdef TUN_HAS_AF_PREFIX
 		if (!vpninfo->script_tun) {

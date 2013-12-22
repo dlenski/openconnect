@@ -187,6 +187,13 @@ struct oc_vpn_option {
 	struct oc_vpn_option *next;
 };
 
+struct oc_stats {
+	uint64_t tx_pkts;
+	uint64_t tx_bytes;
+	uint64_t rx_pkts;
+	uint64_t rx_bytes;
+};
+
 /****************************************************************************/
 
 #define PRG_ERR		0
@@ -197,6 +204,7 @@ struct oc_vpn_option {
 /* byte commands to write into the cmd_fd */
 #define OC_CMD_CANCEL		'x'
 #define OC_CMD_PAUSE		'p'
+#define OC_CMD_STATS		's'
 
 #define RECONNECT_INTERVAL_MIN	10
 #define RECONNECT_INTERVAL_MAX	100
@@ -377,6 +385,12 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo);
 typedef void (*openconnect_protect_socket_vfn) (void *privdata, int fd);
 void openconnect_set_protect_socket_handler(struct openconnect_info *vpninfo,
 					    openconnect_protect_socket_vfn protect_socket);
+
+/* Callback for obtaining traffic stats via OC_CMD_STATS.
+ */
+typedef void (*openconnect_stats_vfn) (void *privdata, const struct oc_stats *stats);
+void openconnect_set_stats_handler(struct openconnect_info *vpninfo,
+				   openconnect_stats_vfn stats_handler);
 
 /* SSL certificate capabilities. openconnect_has_pkcs11_support() means that we
    can accept PKCS#11 URLs in place of filenames, for the certificate and key. */

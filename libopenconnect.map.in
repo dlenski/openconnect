@@ -51,6 +51,7 @@ OPENCONNECT_3.1 {
 	openconnect_set_protect_socket_handler;
 	openconnect_set_mobile_info;
 	openconnect_set_xmlpost;
+	openconnect_set_stats_handler;
 } OPENCONNECT_3.0;
 
 OPENCONNECT_PRIVATE {
