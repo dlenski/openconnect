@@ -135,7 +135,7 @@ static int buf_free(struct oc_text_buf *buf)
 static int http_add_cookie(struct openconnect_info *vpninfo,
 			   const char *option, const char *value)
 {
-	struct vpn_option *new, **this;
+	struct oc_vpn_option *new, **this;
 
 	if (*value) {
 		new = malloc(sizeof(*new));
@@ -433,7 +433,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 
 static void add_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
 {
-	struct vpn_option *opt;
+	struct oc_vpn_option *opt;
 
 	buf_append(buf, "Host: %s\r\n", vpninfo->hostname);
 	buf_append(buf, "User-Agent: %s\r\n", vpninfo->useragent);
@@ -717,7 +717,7 @@ int internal_parse_url(char *url, char **res_proto, char **res_host,
 
 static void clear_cookies(struct openconnect_info *vpninfo)
 {
-	struct vpn_option *opt, *next;
+	struct oc_vpn_option *opt, *next;
 
 	for (opt = vpninfo->cookies; opt; opt = next) {
 		next = opt->next;
@@ -989,7 +989,7 @@ static int check_response_type(struct openconnect_info *vpninfo, char *form_buf)
  */
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 {
-	struct vpn_option *opt;
+	struct oc_vpn_option *opt;
 	char *form_buf = NULL;
 	struct oc_auth_form *form = NULL;
 	int result, buflen, tries;

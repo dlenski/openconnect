@@ -107,9 +107,9 @@ int openconnect_set_reported_os(struct openconnect_info *vpninfo, const char *os
 	return 0;
 }
 
-static void free_optlist(struct vpn_option *opt)
+static void free_optlist(struct oc_vpn_option *opt)
 {
-	struct vpn_option *next;
+	struct oc_vpn_option *next;
 
 	for (; opt; opt = next) {
 		next = opt->next;

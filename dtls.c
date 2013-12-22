@@ -583,7 +583,7 @@ static int dtls_restart(struct openconnect_info *vpninfo)
 
 int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_period)
 {
-	struct vpn_option *dtls_opt = vpninfo->dtls_options;
+	struct oc_vpn_option *dtls_opt = vpninfo->dtls_options;
 	int dtls_port = 0;
 
 	vpninfo->dtls_attempt_period = dtls_attempt_period;

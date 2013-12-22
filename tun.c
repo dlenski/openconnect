@@ -202,7 +202,7 @@ static void setenv_cstp_opts(struct openconnect_info *vpninfo)
 	char *env_buf;
 	int buflen = 0;
 	int bufofs = 0;
-	struct vpn_option *opt;
+	struct oc_vpn_option *opt;
 
 	for (opt = vpninfo->cstp_options; opt; opt = opt->next)
 		buflen += 2 + strlen(opt->option) + strlen(opt->value);

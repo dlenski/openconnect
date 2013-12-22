@@ -717,7 +717,7 @@ int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form
 		     const char **request_body_type)
 {
 	int ret;
-	struct vpn_option *opt, *next;
+	struct oc_vpn_option *opt, *next;
 
 	if (!strcmp(form->auth_id, "success"))
 		return OC_FORM_RESULT_LOGGEDIN;

@@ -177,10 +177,10 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	char buf[65536];
 	int i;
 	int retried = 0, sessid_found = 0;
-	struct vpn_option **next_dtls_option = &vpninfo->dtls_options;
-	struct vpn_option **next_cstp_option = &vpninfo->cstp_options;
-	struct vpn_option *old_cstp_opts = vpninfo->cstp_options;
-	struct vpn_option *old_dtls_opts = vpninfo->dtls_options;
+	struct oc_vpn_option **next_dtls_option = &vpninfo->dtls_options;
+	struct oc_vpn_option **next_cstp_option = &vpninfo->cstp_options;
+	struct oc_vpn_option *old_cstp_opts = vpninfo->cstp_options;
+	struct oc_vpn_option *old_dtls_opts = vpninfo->dtls_options;
 	const char *old_addr = vpninfo->ip_info.addr;
 	const char *old_netmask = vpninfo->ip_info.netmask;
 	const char *old_addr6 = vpninfo->ip_info.addr6;
@@ -282,7 +282,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	mtu = 0;
 
 	while ((i = openconnect_SSL_gets(vpninfo, buf, sizeof(buf)))) {
-		struct vpn_option *new_option;
+		struct oc_vpn_option *new_option;
 		char *colon;
 
 		if (i < 0)
@@ -477,14 +477,14 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	}
 
 	while (old_dtls_opts) {
-		struct vpn_option *tmp = old_dtls_opts;
+		struct oc_vpn_option *tmp = old_dtls_opts;
 		old_dtls_opts = old_dtls_opts->next;
 		free(tmp->value);
 		free(tmp->option);
 		free(tmp);
 	}
 	while (old_cstp_opts) {
-		struct vpn_option *tmp = old_cstp_opts;
+		struct oc_vpn_option *tmp = old_cstp_opts;
 		old_cstp_opts = old_cstp_opts->next;
 		free(tmp->value);
 		free(tmp->option);

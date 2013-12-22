@@ -91,12 +91,6 @@ struct pkt {
 	unsigned char data[];
 };
 
-struct vpn_option {
-	char *option;
-	char *value;
-	struct vpn_option *next;
-};
-
 #define KA_NONE		0
 #define KA_DPD		1
 #define KA_DPD_DEAD	2
@@ -194,9 +188,9 @@ struct openconnect_info {
 	OPENCONNECT_X509 *peer_cert;
 
 	char *cookie; /* Pointer to within cookies list */
-	struct vpn_option *cookies;
-	struct vpn_option *cstp_options;
-	struct vpn_option *dtls_options;
+	struct oc_vpn_option *cookies;
+	struct oc_vpn_option *cstp_options;
+	struct oc_vpn_option *dtls_options;
 
 #if defined(OPENCONNECT_OPENSSL)
 	X509 *cert_x509;
