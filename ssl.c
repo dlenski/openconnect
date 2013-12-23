@@ -35,6 +35,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <time.h>
 #if defined(__linux__) || defined(__ANDROID__)
 #include <sys/vfs.h>
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__) || defined(__APPLE__)
@@ -72,19 +73,19 @@ static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 	if (connect(sockfd, addr, addrlen) < 0 && errno != EINPROGRESS)
 		return -1;
 
-	FD_ZERO(&wr_set);
-	FD_ZERO(&rd_set);
-	FD_SET(sockfd, &wr_set);
-	cmd_fd_set(vpninfo, &rd_set, &maxfd);
+	do {
+		FD_ZERO(&wr_set);
+		FD_ZERO(&rd_set);
+		FD_SET(sockfd, &wr_set);
+		cmd_fd_set(vpninfo, &rd_set, &maxfd);
 
-	/* Later we'll render this whole exercise non-pointless by
-	   including a 'cancelfd' here too. */
-	select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
-	if (is_cancel_pending(vpninfo, &rd_set)) {
-		vpn_progress(vpninfo, PRG_ERR, _("Socket connect cancelled\n"));
-		errno = EINTR;
-		return -1;
-	}
+		select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
+		if (is_cancel_pending(vpninfo, &rd_set)) {
+			vpn_progress(vpninfo, PRG_ERR, _("Socket connect cancelled\n"));
+			errno = EINTR;
+			return -1;
+		}
+	} while (!FD_ISSET(sockfd, &wr_set) && !vpninfo->got_pause_cmd);
 
 	/* Check whether connect() succeeded or failed by using
 	   getpeername(). See http://cr.yp.to/docs/connect.html */
@@ -570,10 +571,17 @@ void poll_cmd_fd(struct openconnect_info *vpninfo, int timeout)
 {
 	fd_set rd_set;
 	int maxfd = 0;
-	struct timeval tv = { timeout, 0 };
+	time_t expiration = time(NULL) + timeout, now;
 
-	FD_ZERO(&rd_set);
-	cmd_fd_set(vpninfo, &rd_set, &maxfd);
-	select(maxfd + 1, &rd_set, NULL, NULL, &tv);
-	check_cmd_fd(vpninfo, &rd_set);
+	do {
+		struct timeval tv = { 0 };
+
+		now = time(NULL);
+		tv.tv_sec = now >= expiration ? 0 : expiration - now;
+
+		FD_ZERO(&rd_set);
+		cmd_fd_set(vpninfo, &rd_set, &maxfd);
+		select(maxfd + 1, &rd_set, NULL, NULL, &tv);
+		check_cmd_fd(vpninfo, &rd_set);
+	} while (now < expiration && !vpninfo->got_cancel_cmd && !vpninfo->got_pause_cmd);
 }
