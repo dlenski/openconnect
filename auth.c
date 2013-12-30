@@ -206,6 +206,13 @@ static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_fo
 		choice->override_name = (char *)xmlGetProp(xml_node, (unsigned char *)"override-name");
 		choice->override_label = (char *)xmlGetProp(xml_node, (unsigned char *)"override-label");
 
+		choice->second_auth = prop_equals(xml_node, "second-auth", "1");
+		choice->secondary_username = (char *)xmlGetProp(xml_node,
+			(unsigned char *)"secondary_username");
+		choice->secondary_username_editable = prop_equals(xml_node,
+			"secondary_username_editable", "true");
+		choice->noaaa = prop_equals(xml_node, "noaaa", "1");
+
 		if (prop_equals(xml_node, "selected", "true"))
 			selection = opt->nr_choices;
 
@@ -277,6 +284,7 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 
 		opt->name = input_name;
 		opt->label = input_label;
+		opt->flags = prop_equals(xml_node, "second-auth", "1") ? OC_FORM_OPT_SECOND_AUTH : 0;
 
 		if (!strcmp(input_type, "hidden")) {
 			opt->type = OC_FORM_OPT_HIDDEN;

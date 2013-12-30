@@ -97,8 +97,11 @@
 #define OC_FORM_RESULT_OK		0
 #define OC_FORM_RESULT_CANCELLED	1
 #define OC_FORM_RESULT_NEWGROUP		2
+
 #ifdef __OPENCONNECT_PRIVATE__
 #define OC_FORM_RESULT_LOGGEDIN		255
+
+#define OC_FORM_OPT_SECOND_AUTH		0x8000
 #endif
 
 /* char * fields are static (owned by XML parser) and don't need to be
@@ -111,6 +114,8 @@ struct oc_form_opt {
 	char *name;
 	char *label;
 	char *value;
+	unsigned int flags;
+	void *reserved;
 };
 
 /* All fields are static, owned by the XML parser */
@@ -120,6 +125,12 @@ struct oc_choice {
 	char *auth_type;
 	char *override_name;
 	char *override_label;
+#ifdef __OPENCONNECT_PRIVATE__
+	int second_auth;
+	char *secondary_username;
+	int secondary_username_editable;
+	int noaaa;
+#endif
 };
 
 struct oc_form_opt_select {
