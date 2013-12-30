@@ -633,11 +633,27 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 
 int process_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form)
 {
+	int ret;
+
 	if (!vpninfo->process_auth_form) {
 		vpn_progress(vpninfo, PRG_ERR, _("No form handler; cannot authenticate.\n"));
 		return OC_FORM_RESULT_ERR;
 	}
-	return vpninfo->process_auth_form(vpninfo->cbdata, form);
+
+retry:
+	ret = vpninfo->process_auth_form(vpninfo->cbdata, form);
+
+	if (ret == OC_FORM_RESULT_NEWGROUP &&
+	    form->authgroup_opt &&
+	    form->authgroup_opt->form.value) {
+		free(vpninfo->authgroup);
+		vpninfo->authgroup = strdup(form->authgroup_opt->form.value);
+
+		if (!vpninfo->xmlpost)
+			goto retry;
+	}
+
+	return ret;
 }
 
 /* Return value:

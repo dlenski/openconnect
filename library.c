@@ -145,6 +145,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		vpninfo->peer_cert = NULL;
 	}
 	free(vpninfo->useragent);
+	free(vpninfo->authgroup);
 #ifdef HAVE_LIBSTOKEN
 	if (vpninfo->stoken_pin)
 		free(vpninfo->stoken_pin);
