@@ -71,7 +71,7 @@
 #include <libintl.h>
 #define _(s) dgettext("openconnect", s)
 #else
-#define _(s) s
+#define _(s) ((char *)(s))
 #endif
 #define N_(s) s
 
