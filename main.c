@@ -1113,7 +1113,7 @@ static int process_auth_form_cb(void *_vpninfo,
 			if (authgroup &&
 			    !strcmp(opt->name, "group_list")) {
 				for (i = 0; i < select_opt->nr_choices; i++) {
-					choice = &select_opt->choices[i];
+					choice = select_opt->choices[i];
 
 					if (!strcmp(authgroup, choice->label)) {
 						opt->value = choice->name;
@@ -1126,7 +1126,7 @@ static int process_auth_form_cb(void *_vpninfo,
 						     authgroup);
 			}
 			if (!opt->value && select_opt->nr_choices == 1) {
-				choice = &select_opt->choices[0];
+				choice = select_opt->choices[0];
 				opt->value = choice->name;
 			}
 			if (opt->value) {
@@ -1140,7 +1140,7 @@ static int process_auth_form_cb(void *_vpninfo,
 			}
 			fprintf(stderr, "%s [", opt->label);
 			for (i = 0; i < select_opt->nr_choices; i++) {
-				choice = &select_opt->choices[i];
+				choice = select_opt->choices[i];
 				if (i)
 					fprintf(stderr, "|");
 
@@ -1157,7 +1157,7 @@ static int process_auth_form_cb(void *_vpninfo,
 				*p = 0;
 
 			for (i = 0; i < select_opt->nr_choices; i++) {
-				choice = &select_opt->choices[i];
+				choice = select_opt->choices[i];
 
 				if (!strcmp(response, choice->label)) {
 					select_opt->form.value = choice->name;

@@ -117,6 +117,20 @@ static void free_opt(struct oc_form_opt *opt)
 	/* for SELECT options, opt->value is a pointer to oc_choice->name */
 	if (opt->type != OC_FORM_OPT_SELECT)
 		free(opt->value);
+	else {
+		struct oc_form_opt_select *sel = (void *)opt;
+		int i;
+
+		for (i = 0; i < sel->nr_choices; i++) {
+			free(sel->choices[i]->name);
+			free(sel->choices[i]->label);
+			free(sel->choices[i]->auth_type);
+			free(sel->choices[i]->override_name);
+			free(sel->choices[i]->override_label);
+			free(sel->choices[i]);
+		}
+		free(sel->choices);
+	}
 
 	free(opt->name);
 	free(opt->label);
@@ -127,6 +141,8 @@ static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_fo
 			     xmlNode *xml_node)
 {
 	struct oc_form_opt_select *opt;
+	xmlNode *opt_node;
+	int max_choices = 0;
 
 	opt = calloc(1, sizeof(*opt));
 	if (!opt)
@@ -140,6 +156,15 @@ static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_fo
 		vpn_progress(vpninfo, PRG_ERR, _("Form choice has no name\n"));
 		free_opt((struct oc_form_opt *)opt);
 		return -EINVAL;
+	}
+
+	for (opt_node = xml_node->children; opt_node; opt_node = opt_node->next)
+		max_choices++;
+
+	opt->choices = calloc(1, max_choices * sizeof(struct oc_choice *));
+	if (!opt->choices) {
+		free_opt((struct oc_form_opt *)opt);
+		return -ENOMEM;
 	}
 
 	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
@@ -158,19 +183,19 @@ static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_fo
 		if (!form_id)
 			continue;
 
-		opt->nr_choices++;
-		realloc_inplace(opt, sizeof(*opt) +
-				opt->nr_choices * sizeof(*choice));
-		if (!opt)
+		choice = calloc(1, sizeof(*choice));
+		if (!choice) {
+			free_opt((struct oc_form_opt *)opt);
 			return -ENOMEM;
-
-		choice = &opt->choices[opt->nr_choices-1];
+		}
 
 		choice->name = form_id;
 		choice->label = (char *)xmlNodeGetContent(xml_node);
 		choice->auth_type = (char *)xmlGetProp(xml_node, (unsigned char *)"auth-type");
 		choice->override_name = (char *)xmlGetProp(xml_node, (unsigned char *)"override-name");
 		choice->override_label = (char *)xmlGetProp(xml_node, (unsigned char *)"override-label");
+
+		opt->choices[opt->nr_choices++] = choice;
 	}
 
 	if (!strcmp(opt->form.name, "group_list")) {
@@ -667,18 +692,6 @@ void free_auth_form(struct oc_auth_form *form)
 		return;
 	while (form->opts) {
 		struct oc_form_opt *tmp = form->opts->next;
-		if (form->opts->type == OC_FORM_OPT_SELECT) {
-			struct oc_form_opt_select *sel = (void *)form->opts;
-			int i;
-
-			for (i = 0; i < sel->nr_choices; i++) {
-				free(sel->choices[i].name);
-				free(sel->choices[i].label);
-				free(sel->choices[i].auth_type);
-				free(sel->choices[i].override_name);
-				free(sel->choices[i].override_label);
-			}
-		}
 		free_opt(form->opts);
 		form->opts = tmp;
 	}

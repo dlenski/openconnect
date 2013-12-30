@@ -124,7 +124,7 @@ struct oc_choice {
 struct oc_form_opt_select {
 	struct oc_form_opt form;
 	int nr_choices;
-	struct oc_choice choices[0];
+	struct oc_choice **choices;
 };
 
 /* All char * fields are static, owned by the XML parser */
