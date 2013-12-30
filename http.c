@@ -758,15 +758,10 @@ static int handle_redirect(struct openconnect_info *vpninfo)
 		}
 
 		if (strcasecmp(vpninfo->hostname, host) || port != vpninfo->port) {
-			free(vpninfo->unique_hostname);
-			vpninfo->unique_hostname = NULL;
-			free(vpninfo->hostname);
-			vpninfo->hostname = host;
+			openconnect_set_hostname(vpninfo, NULL);
 			vpninfo->port = port;
 
 			/* Kill the existing connection, and a new one will happen */
-			free(vpninfo->peer_addr);
-			vpninfo->peer_addr = NULL;
 			openconnect_close_https(vpninfo, 0);
 			clear_cookies(vpninfo);
 			vpninfo->redirect_type = REDIR_TYPE_NEWHOST;
