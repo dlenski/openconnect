@@ -112,6 +112,17 @@ static int append_form_opts(struct openconnect_info *vpninfo,
 	return 0;
 }
 
+static void free_opt(struct oc_form_opt *opt)
+{
+	/* for SELECT options, opt->value is a pointer to oc_choice->name */
+	if (opt->type != OC_FORM_OPT_SELECT)
+		free(opt->value);
+
+	free(opt->name);
+	free(opt->label);
+	free(opt);
+}
+
 static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_form *form,
 			     xmlNode *xml_node)
 {
@@ -127,7 +138,7 @@ static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_fo
 
 	if (!opt->form.name) {
 		vpn_progress(vpninfo, PRG_ERR, _("Form choice has no name\n"));
-		free(opt);
+		free_opt((struct oc_form_opt *)opt);
 		return -EINVAL;
 	}
 
@@ -656,12 +667,7 @@ void free_auth_form(struct oc_auth_form *form)
 		return;
 	while (form->opts) {
 		struct oc_form_opt *tmp = form->opts->next;
-		if (form->opts->type == OC_FORM_OPT_TEXT ||
-		    form->opts->type == OC_FORM_OPT_PASSWORD ||
-		    form->opts->type == OC_FORM_OPT_HIDDEN ||
-		    form->opts->type == OC_FORM_OPT_TOKEN)
-			free(form->opts->value);
-		else if (form->opts->type == OC_FORM_OPT_SELECT) {
+		if (form->opts->type == OC_FORM_OPT_SELECT) {
 			struct oc_form_opt_select *sel = (void *)form->opts;
 			int i;
 
@@ -673,9 +679,7 @@ void free_auth_form(struct oc_auth_form *form)
 				free(sel->choices[i].override_label);
 			}
 		}
-		free(form->opts->label);
-		free(form->opts->name);
-		free(form->opts);
+		free_opt(form->opts);
 		form->opts = tmp;
 	}
 	free(form->error);
