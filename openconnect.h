@@ -104,6 +104,8 @@
 #define OC_FORM_OPT_SECOND_AUTH		0x8000
 #endif
 
+#define OC_FORM_OPT_IGNORE		0x0001
+
 /* char * fields are static (owned by XML parser) and don't need to be
    freed by the form handling code -- except for value, which for TEXT
    and PASSWORD options is allocated by process_form() when
