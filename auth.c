@@ -137,12 +137,23 @@ static void free_opt(struct oc_form_opt *opt)
 	free(opt);
 }
 
+static int prop_equals(xmlNode *xml_node, const char *name, const char *value)
+{
+	char *tmp = (char *)xmlGetProp(xml_node, (unsigned char *)name);
+	int ret = 0;
+
+	if (tmp && !strcasecmp(tmp, value))
+		ret = 1;
+	free(tmp);
+	return ret;
+}
+
 static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_form *form,
 			     xmlNode *xml_node)
 {
 	struct oc_form_opt_select *opt;
 	xmlNode *opt_node;
-	int max_choices = 0;
+	int max_choices = 0, selection = 0;
 
 	opt = calloc(1, sizeof(*opt));
 	if (!opt)
@@ -195,11 +206,15 @@ static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_fo
 		choice->override_name = (char *)xmlGetProp(xml_node, (unsigned char *)"override-name");
 		choice->override_label = (char *)xmlGetProp(xml_node, (unsigned char *)"override-label");
 
+		if (prop_equals(xml_node, "selected", "true"))
+			selection = opt->nr_choices;
+
 		opt->choices[opt->nr_choices++] = choice;
 	}
 
 	if (!strcmp(opt->form.name, "group_list")) {
 		form->authgroup_opt = opt;
+		form->authgroup_selection = selection;
 	}
 
 	/* We link the choice _first_ so it's at the top of what we present
