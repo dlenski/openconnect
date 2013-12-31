@@ -690,6 +690,7 @@ int setup_dtls(struct openconnect_info *vpninfo)
 }
 
 static struct pkt *dtls_pkt;
+static int dtls_pkt_max;
 
 int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
@@ -700,12 +701,13 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		int len = vpninfo->actual_mtu;
 		unsigned char *buf;
 
-		if (!dtls_pkt) {
-			dtls_pkt = malloc(sizeof(struct pkt) + len);
+		if (!dtls_pkt || len > dtls_pkt_max) {
+			realloc_inplace(dtls_pkt, sizeof(struct pkt) + len);
 			if (!dtls_pkt) {
 				vpn_progress(vpninfo, PRG_ERR, "Allocation failed\n");
 				break;
 			}
+			dtls_pkt_max = len;
 		}
 
 		buf = dtls_pkt->data - 1;
