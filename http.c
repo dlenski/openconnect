@@ -916,6 +916,7 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to open HTTPS connection to %s\n"),
 				     vpninfo->hostname);
+			buf_free(buf);
 			return -EINVAL;
 		}
 	}
