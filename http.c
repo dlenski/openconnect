@@ -759,7 +759,7 @@ static int handle_redirect(struct openconnect_info *vpninfo)
 		}
 
 		if (strcasecmp(vpninfo->hostname, host) || port != vpninfo->port) {
-			openconnect_set_hostname(vpninfo, NULL);
+			openconnect_set_hostname(vpninfo, host);
 			vpninfo->port = port;
 
 			/* Kill the existing connection, and a new one will happen */
