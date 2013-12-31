@@ -169,6 +169,10 @@ static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_fo
 		choice->override_label = (char *)xmlGetProp(xml_node, (unsigned char *)"override-label");
 	}
 
+	if (!strcmp(opt->form.name, "group_list")) {
+		form->authgroup_opt = opt;
+	}
+
 	/* We link the choice _first_ so it's at the top of what we present
 	   to the user */
 	opt->form.next = form->opts;

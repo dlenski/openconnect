@@ -27,6 +27,8 @@
 #ifndef __OPENCONNECT_INTERNAL_H__
 #define __OPENCONNECT_INTERNAL_H__
 
+#define __OPENCONNECT_PRIVATE__
+
 #include "openconnect.h"
 
 #if defined(OPENCONNECT_OPENSSL) || defined(DTLS_OPENSSL)
