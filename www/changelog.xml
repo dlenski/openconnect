@@ -17,6 +17,9 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Fix XML POST issues with authgroups by falling back to old style login.</li>
+       <li>Fix <tt>--cookie-on-stdin</tt> with cookies from ocserv.</li>
+       <li>Fix reconnection to wrong host after redirect.</li>
        <li>Reduce limit of queued packets on DTLS socket, to fix VoIP latency.</li>
        <li>Fix Solaris build breakage due to missing <tt>&amp;lt;string.h&amp;gt;</tt> includes.</li>
        <li>Include path in <tt>&amp;lt;group-access&amp;gt;</tt> node.</li>
