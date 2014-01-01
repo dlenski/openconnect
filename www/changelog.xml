@@ -17,6 +17,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.02.tar.gz">OpenConnect v5.02</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.02.tar.gz.asc">PGP signature</a>)</i> &#8212; 2014-01-01
+     <ul>
        <li>Fix XML POST issues with authgroups by falling back to old style login.</li>
        <li>Fix <tt>--cookie-on-stdin</tt> with cookies from ocserv.</li>
        <li>Fix reconnection to wrong host after redirect.</li>

@@ -19,19 +19,18 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.01.tar.gz">OpenConnect v5.01</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.01.tar.gz.asc">PGP signature</a>)</i>,
-released on 2013-06-01 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.02.tar.gz">OpenConnect v5.02</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.02.tar.gz.asc">PGP signature</a>)</i>,
+released on 2014-01-01 with the following changelog:</p>
      <ul>
-       <li>Attempt to handle &lt;client-cert-request&gt; in aggregate auth mode.</li>
-       <li>Don't include <tt>X-Aggregate-Auth:</tt> header in fallback mode.</li>
-       <li>Enable AES256 mode for DTLS with GnuTLS <a href="https://bugzilla.redhat.com/show_bug.cgi?id=955710"><i>(RH#955710)</i></a>.</li>
-       <li>Add <tt>--dump-http-traffic</tt> option for debugging.</li>
-       <li>Be more permissive in parsing XML forms.</li>
-       <li>Use original URL when falling back to non-XML POST mode.</li>
-       <li>Add <tt>--no-xmlpost</tt> option to revert to older, compatible behaviour.</li>
-       <li>Close connection before falling back to non-xmlpost mode <a href="https://bugzilla.redhat.com/show_bug.cgi?id=964650"><i>(RH#964650)</i></a>.</li>
-       <li>Improve error handling when server closes connection <a href="http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=708928"><i>(Debian #708928)</i></a>.</li>
+       <li>Fix XML POST issues with authgroups by falling back to old style login.</li>
+       <li>Fix <tt>--cookie-on-stdin</tt> with cookies from ocserv.</li>
+       <li>Fix reconnection to wrong host after redirect.</li>
+       <li>Reduce limit of queued packets on DTLS socket, to fix VoIP latency.</li>
+       <li>Fix Solaris build breakage due to missing <tt>&amp;lt;string.h&amp;gt;</tt> includes.</li>
+       <li>Include path in <tt>&amp;lt;group-access&amp;gt;</tt> node.</li>
+       <li>Include supporting CA certificates from PKCS#11 tokens <i>(with GnuTLS 3.2.7+)</i>.</li>
+       <li>Fix possible heap overflow if MTU is increased on reconnection (CVE-2013-7098).</li>
      </ul>
 <!-- latest-release-end -->
 
