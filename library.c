@@ -87,7 +87,7 @@ int openconnect_set_reported_os(struct openconnect_info *vpninfo, const char *os
 {
 	if (!os) {
 #if defined(__APPLE__)
-		os = "mac";
+		os = "mac-intel";
 #elif defined(__ANDROID__)
 		os = "android";
 #else
@@ -95,8 +95,7 @@ int openconnect_set_reported_os(struct openconnect_info *vpninfo, const char *os
 #endif
 	}
 
-	/* FIXME: is there a special platname for 64-bit Windows? */
-	if (!strcmp(os, "mac"))
+	if (!strcmp(os, "mac-intel"))
 		vpninfo->csd_xmltag = "csdMac";
 	else if (!strcmp(os, "linux") || !strcmp(os, "linux-64"))
 		vpninfo->csd_xmltag = "csdLinux";
