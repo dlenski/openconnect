@@ -796,7 +796,7 @@ void free_auth_form(struct oc_auth_form *form)
  *
  * <config-auth client="vpn" type="<!-- init or auth-reply -->">
  *   <version who="vpn"><!-- currently just the OpenConnect version --></version>
- *   <device-id><!-- linux, linux-64, mac, win --></device-id>
+ *   <device-id><!-- linux, linux-64, win, ... --></device-id>
  *   <opaque is-for="<!-- some name -->">
  *     <!-- just copy this verbatim from whatever the gateway sent us -->
  *   </opaque>
