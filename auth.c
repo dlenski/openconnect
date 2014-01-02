@@ -621,14 +621,6 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 		goto out;
 	}
 
-	if (form->authgroup_opt && form->authgroup_opt->nr_choices > 1 && vpninfo->xmlpost) {
-		/* XML POST + authgroups require NEWGROUP support, so disable for now */
-		vpn_progress(vpninfo, PRG_INFO,
-			     _("Disabling XML POST due to authgroup option\n"));
-		ret = -EINVAL;
-		goto out;
-	}
-
 	*formp = form;
 	xmlFreeDoc(xml_doc);
 	return 0;
