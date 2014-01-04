@@ -54,8 +54,16 @@ int queue_new_packet(struct pkt **q, void *buf, int len)
 	return 0;
 }
 
+/* Return value:
+ *  = -EINTR, if aborted locally via cmd_fd
+ *  = -EPIPE, if the remote end explicitly terminated the session
+ *  = -EPERM, if the gateway sent 401 Unauthorized (cookie expired)
+ *  < 0, for any other error
+ */
 int vpn_mainloop(struct openconnect_info *vpninfo)
 {
+	int ret = 0;
+
 	if (vpninfo->cmd_fd != -1) {
 		FD_SET(vpninfo->cmd_fd, &vpninfo->select_rfds);
 		if (vpninfo->cmd_fd >= vpninfo->select_nfds)
@@ -77,15 +85,18 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 			vpn_progress(vpninfo, PRG_TRACE, _("Attempt new DTLS connection\n"));
 			connect_dtls_socket(vpninfo);
 		}
-		if (vpninfo->dtls_ssl)
-			did_work += dtls_mainloop(vpninfo, &timeout);
+		if (vpninfo->dtls_ssl) {
+			ret = dtls_mainloop(vpninfo, &timeout);
+			did_work += ret;
+		}
 #endif
 		if (vpninfo->quit_reason)
 			break;
 
-		did_work += cstp_mainloop(vpninfo, &timeout);
+		ret = cstp_mainloop(vpninfo, &timeout);
 		if (vpninfo->quit_reason)
 			break;
+		did_work += ret;
 
 		/* Tun must be last because it will set/clear its bit
 		   in the select_rfds according to the queue length */
@@ -96,6 +107,7 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 		poll_cmd_fd(vpninfo, 0);
 		if (vpninfo->got_cancel_cmd) {
 			vpninfo->quit_reason = "Aborted by caller";
+			ret = -EINTR;
 			break;
 		}
 
@@ -117,7 +129,7 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 	cstp_bye(vpninfo, vpninfo->quit_reason);
 
 	shutdown_tun(vpninfo);
-	return 0;
+	return ret < 0 ? ret : -EIO;
 }
 
 /* Called when the socket is unwritable, to get the deadline for DPD.

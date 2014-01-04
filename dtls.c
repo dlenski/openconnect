@@ -767,20 +767,24 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	}
 
 	switch (keepalive_action(&vpninfo->dtls_times, timeout)) {
-	case KA_REKEY:
+	case KA_REKEY: {
+		int ret;
+
 		vpn_progress(vpninfo, PRG_INFO, _("DTLS rekey due\n"));
 
 		/* There ought to be a method of rekeying DTLS without tearing down
 		   the CSTP session and restarting, but we don't (yet) know it */
-		if (cstp_reconnect(vpninfo)) {
+		ret = cstp_reconnect(vpninfo);
+		if (ret) {
 			vpn_progress(vpninfo, PRG_ERR, _("Reconnect failed\n"));
 			vpninfo->quit_reason = "CSTP reconnect failed";
-			return 1;
+			return ret;
 		}
 
 		if (dtls_restart(vpninfo))
 			vpn_progress(vpninfo, PRG_ERR, _("DTLS rekey failed\n"));
 		return 1;
+	}
 
 	case KA_DPD_DEAD:
 		vpn_progress(vpninfo, PRG_ERR, _("DTLS Dead Peer Detection detected dead peer!\n"));

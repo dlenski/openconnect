@@ -771,7 +771,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				     _("Received server disconnect: %02x '%s'\n"),
 				     buf[8], buf + 9);
 			vpninfo->quit_reason = "Server request";
-			return 1;
+			return -EPIPE;
 		}
 		case AC_PKT_COMPRESSED:
 			if (!vpninfo->deflate) {
@@ -786,7 +786,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		case AC_PKT_TERM_SERVER:
 			vpn_progress(vpninfo, PRG_ERR, _("received server terminate packet\n"));
 			vpninfo->quit_reason = "Server request";
-			return 1;
+			return -EPIPE;
 		}
 
 	unknown_pkt:
@@ -870,10 +870,11 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("CSTP Dead Peer Detection detected dead peer!\n"));
 	do_reconnect:
-		if (cstp_reconnect(vpninfo)) {
+		ret = cstp_reconnect(vpninfo);
+		if (ret) {
 			vpn_progress(vpninfo, PRG_ERR, _("Reconnect failed\n"));
 			vpninfo->quit_reason = "CSTP reconnect failed";
-			return 1;
+			return ret;
 		}
 		/* I think we can leave DTLS to its own devices; when we reconnect
 		   with the same master secret, we do seem to get the same sessid */
