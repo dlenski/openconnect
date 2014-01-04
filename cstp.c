@@ -536,7 +536,10 @@ int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 		}
 	}
 
-	return start_cstp_connection(vpninfo);
+	ret = start_cstp_connection(vpninfo);
+	if (ret < 0)
+		openconnect_close_https(vpninfo, 0);
+	return ret;
 }
 
 int cstp_reconnect(struct openconnect_info *vpninfo)
