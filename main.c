@@ -1094,6 +1094,83 @@ static int validate_peer_cert(void *_vpninfo, OPENCONNECT_X509 *peer_cert,
 	}
 }
 
+static int match_choice_label(struct openconnect_info *vpninfo,
+			      struct oc_form_opt_select *select_opt,
+			      char *label)
+{
+	int i;
+
+	for (i = 0; i < select_opt->nr_choices; i++) {
+		struct oc_choice *choice = select_opt->choices[i];
+
+		if (!strcmp(label, choice->label)) {
+			select_opt->form.value = choice->name;
+			return 0;
+		}
+	}
+
+	vpn_progress(vpninfo, PRG_ERR, _("Auth choice \"%s\" not available\n"), label);
+	return -EINVAL;
+}
+
+static char *prompt_for_input(const char *prompt,
+			      struct openconnect_info *vpninfo,
+			      int hidden)
+{
+	char *response;
+
+	fprintf(stderr, "%s", prompt);
+	fflush(stderr);
+
+	if (non_inter) {
+		fprintf(stderr, "***\n");
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("User input required in non-interactive mode\n"));
+		return NULL;
+	}
+
+	read_stdin(&response, hidden);
+	return response;
+}
+
+static int prompt_opt_select(struct openconnect_info *vpninfo,
+			     struct oc_form_opt_select *select_opt,
+			     char **saved_response)
+{
+	int i, ret;
+	char *response;
+
+	if (!select_opt->nr_choices)
+		return -EINVAL;
+
+	fprintf(stderr, "%s [", select_opt->form.label);
+	for (i = 0; i < select_opt->nr_choices; i++) {
+		struct oc_choice *choice = select_opt->choices[i];
+		if (i)
+			fprintf(stderr, "|");
+
+		fprintf(stderr, "%s", choice->label);
+	}
+	fprintf(stderr, "]:");
+
+	if (select_opt->nr_choices == 1) {
+		response = strdup(select_opt->choices[0]->label);
+		fprintf(stderr, "%s\n", response);
+	} else
+		response = prompt_for_input("", vpninfo, 0);
+
+	if (!response)
+		return -EINVAL;
+
+	ret = match_choice_label(vpninfo, select_opt, response);
+
+	if (saved_response)
+		*saved_response = response;
+	else
+		free(response);
+
+	return ret;
+}
 
 /* Return value:
  *  < 0, on error
@@ -1105,8 +1182,6 @@ static int process_auth_form_cb(void *_vpninfo,
 {
 	struct openconnect_info *vpninfo = _vpninfo;
 	struct oc_form_opt *opt;
-	char response[1024];
-	char *p;
 
 	if (form->banner && verbose > PRG_ERR)
 		fprintf(stderr, "%s\n", form->banner);
@@ -1117,145 +1192,50 @@ static int process_auth_form_cb(void *_vpninfo,
 	if (form->message && verbose > PRG_ERR)
 		fprintf(stderr, "%s\n", form->message);
 
-	/* scan for select options first so they are displayed first */
-	for (opt = form->opts; opt; opt = opt->next) {
-		if (opt->type == OC_FORM_OPT_SELECT) {
-			struct oc_form_opt_select *select_opt = (void *)opt;
-			struct oc_choice *choice = NULL;
-			int i;
-
-			if (!select_opt->nr_choices)
-				continue;
-
-			if (authgroup &&
-			    !strcmp(opt->name, "group_list")) {
-				for (i = 0; i < select_opt->nr_choices; i++) {
-					choice = select_opt->choices[i];
-
-					if (!strcmp(authgroup, choice->label)) {
-						opt->value = choice->name;
-						break;
-					}
-				}
-				if (!opt->value)
-					vpn_progress(vpninfo, PRG_ERR,
-						     _("Auth choice \"%s\" not available\n"),
-						     authgroup);
-			}
-			if (!opt->value && select_opt->nr_choices == 1) {
-				choice = select_opt->choices[0];
-				opt->value = choice->name;
-			}
-			if (opt->value) {
-				select_opt = NULL;
-				continue;
-			}
-			if (non_inter) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("User input required in non-interactive mode\n"));
+	/* Special handling for GROUP: field if present, as different group
+	   selections can make other fields disappear/reappear */
+	if (form->authgroup_opt) {
+		if (!authgroup ||
+		    match_choice_label(vpninfo, form->authgroup_opt, authgroup) != 0) {
+			if (prompt_opt_select(vpninfo, form->authgroup_opt, &authgroup) < 0)
 				goto err;
-			}
-			fprintf(stderr, "%s [", opt->label);
-			for (i = 0; i < select_opt->nr_choices; i++) {
-				choice = select_opt->choices[i];
-				if (i)
-					fprintf(stderr, "|");
-
-				fprintf(stderr, "%s", choice->label);
-			}
-			fprintf(stderr, "]:");
-			fflush(stderr);
-
-			if (!fgets(response, sizeof(response), stdin) || !strlen(response))
-				goto err;
-
-			p = strchr(response, '\n');
-			if (p)
-				*p = 0;
-
-			for (i = 0; i < select_opt->nr_choices; i++) {
-				choice = select_opt->choices[i];
-
-				if (!strcmp(response, choice->label)) {
-					select_opt->form.value = choice->name;
-					break;
-				}
-			}
-			if (!select_opt->form.value) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("Auth choice \"%s\" not valid\n"),
-					     response);
-				goto err;
-			}
 		}
 	}
 
 	for (opt = form->opts; opt; opt = opt->next) {
 
-		if (opt->type == OC_FORM_OPT_TEXT) {
+		/* I haven't actually seen a non-authgroup dropdown in the wild, but
+		   the Cisco clients do support them */
+		if (opt->type == OC_FORM_OPT_SELECT) {
+			struct oc_form_opt_select *select_opt = (void *)opt;
+
+			if (select_opt == form->authgroup_opt)
+				continue;
+			if (prompt_opt_select(vpninfo, select_opt, NULL) < 0)
+				goto err;
+
+		} else if (opt->type == OC_FORM_OPT_TEXT) {
 			if (username &&
 			    !strcmp(opt->name, "username")) {
 				opt->value = strdup(username);
-				if (!opt->value)
-					goto err;
-			} else if (non_inter) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("User input required in non-interactive mode\n"));
-				goto err;
 			} else {
-				opt->value = malloc(80);
-				if (!opt->value)
-					goto err;
-
-				fprintf(stderr, "%s", opt->label);
-				fflush(stderr);
-
-				if (!fgets(opt->value, 80, stdin) || !strlen(opt->value))
-					goto err;
-
-				p = strchr(opt->value, '\n');
-				if (p)
-					*p = 0;
+				opt->value = prompt_for_input(opt->label, vpninfo, 0);
 			}
+
+			if (!opt->value)
+				goto err;
 
 		} else if (opt->type == OC_FORM_OPT_PASSWORD) {
 			if (password &&
 			    !strcmp(opt->name, "password")) {
 				opt->value = password;
 				password = NULL;
-				if (!opt->value)
-					goto err;
-			} else if (non_inter) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("User input required in non-interactive mode\n"));
-				goto err;
 			} else {
-				struct termios t;
-				opt->value = malloc(80);
-				if (!opt->value)
-					goto err;
-
-				fprintf(stderr, "%s", opt->label);
-				fflush(stderr);
-
-				tcgetattr(0, &t);
-				t.c_lflag &= ~ECHO;
-				tcsetattr(0, TCSANOW, &t);
-
-				p = fgets(opt->value, 80, stdin);
-
-				t.c_lflag |= ECHO;
-				tcsetattr(0, TCSANOW, &t);
-				fprintf(stderr, "\n");
-
-				if (!p || !strlen(opt->value))
-					goto err;
-
-				p = strchr(opt->value, '\n');
-				if (p)
-					*p = 0;
+				opt->value = prompt_for_input(opt->label, vpninfo, 1);
 			}
 
+			if (!opt->value)
+				goto err;
 		}
 	}
 
