@@ -149,12 +149,15 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free(vpninfo->hostname);
 	free(vpninfo->urlpath);
 	free(vpninfo->redirect_url);
+	free(vpninfo->cookie);
 	free(vpninfo->proxy_type);
 	free(vpninfo->proxy);
 	free(vpninfo->vpnc_script);
 	free(vpninfo->cafile);
 	free(vpninfo->servercert);
 	free(vpninfo->ifname);
+	free(vpninfo->dtls_cipher);
+	free(vpninfo->dtls_addr);
 
 	if (vpninfo->csd_scriptname) {
 		unlink(vpninfo->csd_scriptname);

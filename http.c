@@ -1217,9 +1217,10 @@ newgroup:
 
 	for (opt = vpninfo->cookies; opt; opt = opt->next) {
 
-		if (!strcmp(opt->option, "webvpn"))
-			vpninfo->cookie = opt->value;
-		else if (vpninfo->write_new_config && !strcmp(opt->option, "webvpnc")) {
+		if (!strcmp(opt->option, "webvpn")) {
+			free(vpninfo->cookie);
+			vpninfo->cookie = strdup(opt->value);
+		} else if (vpninfo->write_new_config && !strcmp(opt->option, "webvpnc")) {
 			char *tok = opt->value;
 			char *bu = NULL, *fu = NULL, *sha = NULL;
 
