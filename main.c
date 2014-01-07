@@ -86,6 +86,7 @@ int cookieonly;
 char *username;
 char *password;
 char *authgroup;
+int authgroup_set;
 
 enum {
 	OPT_AUTHENTICATE = 0x100,
@@ -1223,9 +1224,16 @@ static int process_auth_form_cb(void *_vpninfo,
 			if (prompt_opt_select(vpninfo, form->authgroup_opt, &authgroup) < 0)
 				goto err;
 		}
+		if (!authgroup_set) {
+			authgroup_set = 1;
+			return OC_FORM_RESULT_NEWGROUP;
+		}
 	}
 
 	for (opt = form->opts; opt; opt = opt->next) {
+
+		if (opt->flags & OC_FORM_OPT_IGNORE)
+			continue;
 
 		/* I haven't actually seen a non-authgroup dropdown in the wild, but
 		   the Cisco clients do support them */
