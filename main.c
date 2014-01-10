@@ -1277,11 +1277,6 @@ static int process_auth_form_cb(void *_vpninfo,
 		}
 	}
 
-	if (password) {
-		free(password);
-		password = NULL;
-	}
-
 	/* prevent infinite loops if the authgroup requires certificate auth only */
 	if (last_form_empty && empty)
 		return OC_FORM_RESULT_CANCELLED;
