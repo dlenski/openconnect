@@ -1285,13 +1285,6 @@ static int process_auth_form_cb(void *_vpninfo,
 	return OC_FORM_RESULT_OK;
 
  err:
-	for (opt = form->opts; opt; opt = opt->next) {
-		if (opt->value && (opt->type == OC_FORM_OPT_TEXT ||
-				   opt->type == OC_FORM_OPT_PASSWORD)) {
-			free(opt->value);
-			opt->value = NULL;
-		}
-	}
 	return OC_FORM_RESULT_ERR;
 }
 

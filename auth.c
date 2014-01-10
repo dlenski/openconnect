@@ -631,6 +631,17 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 	return ret;
 }
 
+static void nuke_opt_values(struct oc_form_opt *opt)
+{
+	for (; opt; opt = opt->next) {
+		if (opt->type == OC_FORM_OPT_TEXT ||
+		    opt->type == OC_FORM_OPT_PASSWORD) {
+			free(opt->value);
+			opt->value = NULL;
+		}
+	}
+}
+
 int process_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form)
 {
 	int ret;
@@ -688,6 +699,9 @@ retry:
 		if (!vpninfo->xmlpost)
 			goto retry;
 	}
+
+	if (ret == OC_FORM_RESULT_CANCELLED || ret < 0)
+		nuke_opt_values(form->opts);
 
 	return ret;
 }
@@ -961,17 +975,6 @@ bad:
 	xmlpost_complete(doc, NULL, 0);
 	return -ENOMEM;
 }
-
-
-#ifdef HAVE_LIBSTOKEN
-static void nuke_opt_values(struct oc_form_opt *opt)
-{
-	for (; opt; opt = opt->next) {
-		free(opt->value);
-		opt->value = NULL;
-	}
-}
-#endif
 
 /*
  * If the user clicks OK without entering any data, we will continue
