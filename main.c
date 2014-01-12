@@ -317,14 +317,31 @@ static void usage(void)
 	exit(1);
 }
 
-static void read_stdin(char **string)
+static void read_stdin(char **string, int hidden)
 {
-	char *c = malloc(1025);
+	struct termios t;
+	char *c = malloc(1025), *ret;
+	int fd = fileno(stdin);
+
 	if (!c) {
 		fprintf(stderr, _("Allocation failure for string from stdin\n"));
 		exit(1);
 	}
-	if (!fgets(c, 1025, stdin)) {
+
+	if (hidden) {
+		tcgetattr(fd, &t);
+		t.c_lflag &= ~ECHO;
+		tcsetattr(fd, TCSANOW, &t);
+
+		ret = fgets(c, 1025, stdin);
+
+		t.c_lflag |= ECHO;
+		tcsetattr(fd, TCSANOW, &t);
+		fprintf(stderr, "\n");
+	} else
+		ret = fgets(c, 1025, stdin);
+
+	if (!ret) {
 		perror(_("fgets (stdin)"));
 		exit(1);
 	}
@@ -561,13 +578,13 @@ int main(int argc, char **argv)
 			cookieonly = 3;
 			break;
 		case OPT_COOKIE_ON_STDIN:
-			read_stdin(&vpninfo->cookie);
+			read_stdin(&vpninfo->cookie, 0);
 			/* If the cookie is empty, ignore it */
 			if (!*vpninfo->cookie)
 				vpninfo->cookie = NULL;
 			break;
 		case OPT_PASSWORD_ON_STDIN:
-			read_stdin(&password);
+			read_stdin(&password, 0);
 			break;
 		case OPT_NO_PASSWD:
 			vpninfo->nopasswd = 1;
