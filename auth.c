@@ -1020,6 +1020,7 @@ int prepare_stoken(struct openconnect_info *vpninfo)
 		opt->type = OC_FORM_OPT_PASSWORD;
 		opt->name = (char *)"password";
 		opt->label = _("PIN:");
+		opt->flags = OC_FORM_OPT_NUMERIC;
 		pin = &opt->value;
 		opt++;
 	}

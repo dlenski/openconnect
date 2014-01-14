@@ -105,6 +105,7 @@
 #endif
 
 #define OC_FORM_OPT_IGNORE		0x0001
+#define OC_FORM_OPT_NUMERIC		0x0002
 
 /* char * fields are static (owned by XML parser) and don't need to be
    freed by the form handling code -- except for value, which for TEXT
