@@ -267,9 +267,9 @@ int openconnect_get_ip_info(struct openconnect_info *,
 			    const struct oc_vpn_option **dtls_options);
 
 /* This is *not* yours and must not be destroyed with X509_free(). It
- * will be valid when a cookie has been obtained successfully, and will
- * be valid until the connection is destroyed or another attempt it made
- * to use it. */
+   will be valid when a cookie has been obtained successfully, and will
+   be valid until the connection is destroyed or another attempt it made
+   to use it. */
 OPENCONNECT_X509 *openconnect_get_peer_cert(struct openconnect_info *);
 
 int openconnect_get_port(struct openconnect_info *);
