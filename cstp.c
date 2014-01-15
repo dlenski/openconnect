@@ -220,6 +220,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	buf_append(buf, sizeof(buf), "X-CSTP-MTU: %d\r\n", mtu);
 	buf_append(buf, sizeof(buf), "X-CSTP-Address-Type: %s\r\n",
 			       vpninfo->disable_ipv6 ? "IPv4" : "IPv6,IPv4");
+	if (!vpninfo->disable_ipv6)
+		buf_append(buf, sizeof(buf), "X-CSTP-Full-IPv6-Capability: true\r\n");
 	buf_append(buf, sizeof(buf), "X-DTLS-Master-Secret: ");
 	for (i = 0; i < sizeof(vpninfo->dtls_secret); i++)
 		buf_append(buf, sizeof(buf), "%02X", vpninfo->dtls_secret[i]);
@@ -376,6 +378,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			int cstpmtu = atol(colon);
 			if (cstpmtu > mtu)
 				mtu = cstpmtu;
+		} else if (!strcmp(buf + 7, "Address-IP6")) {
+			vpninfo->ip_info.addr6 = new_option->value;
 		} else if (!strcmp(buf + 7, "Address")) {
 			if (strchr(new_option->value, ':')) {
 				if (!vpninfo->disable_ipv6)
@@ -417,14 +421,14 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			dns->route = new_option->value;
 			dns->next = vpninfo->ip_info.split_dns;
 			vpninfo->ip_info.split_dns = dns;
-		} else if (!strcmp(buf + 7, "Split-Include")) {
+		} else if (!strcmp(buf + 7, "Split-Include") || !strcmp(buf + 7, "Split-Include-IP6")) {
 			struct oc_split_include *inc = malloc(sizeof(*inc));
 			if (!inc)
 				continue;
 			inc->route = new_option->value;
 			inc->next = vpninfo->ip_info.split_includes;
 			vpninfo->ip_info.split_includes = inc;
-		} else if (!strcmp(buf + 7, "Split-Exclude")) {
+		} else if (!strcmp(buf + 7, "Split-Exclude") || !strcmp(buf + 7, "Split-Exclude-IP6")) {
 			struct oc_split_include *exc = malloc(sizeof(*exc));
 			if (!exc)
 				continue;

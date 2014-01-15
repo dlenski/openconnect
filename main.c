@@ -1066,8 +1066,8 @@ int main(int argc, char **argv)
 	vpn_progress(vpninfo, PRG_INFO,
 		     _("Connected %s as %s%s%s, using %s\n"), openconnect_get_ifname(vpninfo),
 		     ip_info->addr?:"",
-		     (ip_info->addr6 && ip_info->addr) ? " + " : "",
-		     ip_info->addr6 ? : "",
+		     (ip_info->netmask6 && ip_info->addr) ? " + " : "",
+		     ip_info->netmask6 ? : "",
 		     (vpninfo->dtls_fd == -1) ?
 		     (vpninfo->deflate ? "SSL + deflate" : "SSL")
 		     : "DTLS");
