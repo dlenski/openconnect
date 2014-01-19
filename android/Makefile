@@ -12,44 +12,55 @@
 
 NDK     := /opt/android-sdk-linux_x86/android-ndk-r9b/
 ARCH    := arm
-APIVER  := 14
-GCCVER  := 4.8
 
 # You should be able to just 'make ARCH=x86' and it should DTRT.
 ifeq ($(ARCH),arm)
 TRIPLET := arm-linux-androideabi
-TOOLCHAIN := $(TRIPLET)-$(GCCVER)
 OPENSSL_TARGET := android-armv7
 endif
 ifeq ($(ARCH),x86)
 TRIPLET := i686-linux-android
-TOOLCHAIN := x86-$(GCCVER)
 OPENSSL_TARGET := android-x86
 endif
 ifeq ($(ARCH),mips)
 TRIPLET := mipsel-linux-android
-TOOLCHAIN := $(TRIPLET)-$(GCCVER)
 OPENSSL_TARGET := android
 EXTRA_LDFLAGS := -lz
 endif
 
-NDK_SYSROOT := $(NDK)/platforms/android-$(APIVER)/arch-$(ARCH)
-OC_SYSROOT  := $(shell pwd)/sysroot-$(TRIPLET)
+TOPDIR := $(shell pwd)
 
-BINDIR := $(firstword $(wildcard $(NDK)/toolchains/$(TOOLCHAIN)/prebuilt/*/bin))
-PATH := $(BINDIR):$(PATH)
-PKG_CONFIG_LIBDIR=$(OC_SYSROOT)/lib/pkgconfig
+TOOLCHAIN := $(TOPDIR)/$(TRIPLET)/toolchain
+TOOLCHAIN_BUILT := $(TOOLCHAIN)/.built
+TOOLCHAIN_OPTS := --platform=android-14 --arch=$(ARCH) \
+		  --install-dir=$(TOOLCHAIN)
+PATH := $(TOOLCHAIN)/bin:$(PATH)
+
+OC_SYSROOT := $(TOOLCHAIN)/sysroot/usr
+PKG_CONFIG_LIBDIR := $(OC_SYSROOT)/lib/pkgconfig
+
 export PATH PKG_CONFIG_LIBDIR
 
-
-MAKEINSTALL=$(MAKE) INSTALL=$(shell pwd)/install_symlink.sh
+MAKEINSTALL=$(MAKE) INSTALL=$(TOPDIR)/install_symlink.sh
 
 CONFIGURE_ARGS := --host=$(TRIPLET) --prefix=$(OC_SYSROOT) \
-		  --disable-shared --enable-static \
-		  CFLAGS="--sysroot=$(NDK_SYSROOT) -I$(OC_SYSROOT)/include" \
-		  LDFLAGS="-L$(OC_SYSROOT)/lib"
+		  --disable-shared --enable-static
 
 all: openconnect
+
+#####################################################################
+#
+# Install a local cross toolchain + sysroot
+#
+# (The fallback logic is because NDK versions <= r8e can fail after trying to
+# use 32-bit binaries on a 64-bit NDK installation.)
+#
+$(TOOLCHAIN_BUILT):
+	mkdir -p $(TOOLCHAIN)
+	$(NDK)/build/tools/make-standalone-toolchain.sh $(TOOLCHAIN_OPTS) || \
+		$(NDK)/build/tools/make-standalone-toolchain.sh \
+			$(TOOLCHAIN_OPTS) --system=linux-x86_64
+	touch $@
 
 #####################################################################
 #
@@ -67,7 +78,7 @@ $(LIBXML2_SRC)/configure: libxml2-$(LIBXML2_VER).tar.gz
 	tar xfz $<  -C sources
 	touch $@
 
-$(LIBXML2_BUILD)/Makefile: $(LIBXML2_SRC)/configure
+$(LIBXML2_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(LIBXML2_SRC)/configure
 	mkdir -p $(LIBXML2_BUILD)
 	cd $(LIBXML2_BUILD) && ../../$(LIBXML2_SRC)/configure $(CONFIGURE_ARGS) \
 	    --without-c14n -without-catalog --without-debug --without-docbook \
@@ -113,10 +124,10 @@ $(OPENSSL_DIR)/Configure: openssl-$(OPENSSL_VER).tar.gz
 	cd $(OPENSSL_DIR) && patch -p1 < ../../0001-Check-DTLS_BAD_VER-for-version-number.patch
 	touch $(OPENSSL_DIR)/Configure # Make sure it's newer than Makefile and tarball
 
-$(OPENSSL_DIR)/Makefile: $(OPENSSL_DIR)/Configure
+$(OPENSSL_DIR)/Makefile: $(TOOLCHAIN_BUILT) $(OPENSSL_DIR)/Configure
 	cd $(OPENSSL_DIR) && perl Configure --prefix=$(OC_SYSROOT) \
 		--cross-compile-prefix=$(TRIPLET)- no-shared \
-		$(OPENSSL_TARGET):"gcc --sysroot=$(NDK_SYSROOT)"
+		$(OPENSSL_TARGET):gcc
 
 $(OPENSSL_DIR)/libssl.a: $(OPENSSL_DIR)/Makefile
 	$(MAKE) -C $(OPENSSL_DIR)
@@ -149,7 +160,7 @@ $(GMP_SRC)/configure: gmp-$(GMP_VER).tar.bz2
 	tar xfj $< -C sources
 	touch $@
 
-$(GMP_BUILD)/Makefile: $(GMP_SRC)/configure
+$(GMP_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GMP_SRC)/configure
 	mkdir -p $(GMP_BUILD)
 	cd $(GMP_BUILD) && ../../$(GMP_SRC)/configure $(CONFIGURE_ARGS) 
 
@@ -180,7 +191,7 @@ $(NETTLE_SRC)/configure: nettle-$(NETTLE_VER).tar.gz
 	tar xfz $< -C sources
 	touch $@
 
-$(NETTLE_BUILD)/Makefile: $(NETTLE_SRC)/configure $(GMP_DEPS)
+$(NETTLE_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(NETTLE_SRC)/configure $(GMP_DEPS)
 	mkdir -p $(NETTLE_BUILD)
 	cd $(NETTLE_BUILD) && ../../$(NETTLE_SRC)/configure $(CONFIGURE_ARGS)
 
@@ -219,7 +230,7 @@ $(GNUTLS_SRC)/configure: gnutls-$(GNUTLS_VER).tar.xz
 #	touch $(GNUTLS_SRC)/ChangeLog
 #	cd $(GNUTLS_SRC) && autoreconf -fvi
 
-$(GNUTLS_BUILD)/Makefile: $(GNUTLS_SRC)/configure $(NETTLE_DEPS)
+$(GNUTLS_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_SRC)/configure $(NETTLE_DEPS)
 	mkdir -p $(GNUTLS_BUILD)
 	cd $(GNUTLS_BUILD) && ../../$(GNUTLS_SRC)/configure $(CONFIGURE_ARGS) \
 		--disable-threads --disable-tests --without-zlib --disable-nls \
@@ -256,9 +267,9 @@ $(TOMCRYPT_DIR)/makefile: crypt-$(TOMCRYPT_VER).tar.bz2
 	tar xfj $< -C $(TRIPLET)
 	touch $@
 
-$(TOMCRYPT_DIR)/libtomcrypt.a: $(TOMCRYPT_DIR)/makefile
+$(TOMCRYPT_DIR)/libtomcrypt.a: $(TOOLCHAIN_BUILT) $(TOMCRYPT_DIR)/makefile
 	$(MAKE) -C $(TOMCRYPT_DIR) \
-		CC="$(TRIPLET)-gcc --sysroot=$(NDK_SYSROOT)" \
+		CC="$(TRIPLET)-gcc" \
 		AR="$(TRIPLET)-ar" \
 		RANLIB="$(TRIPLET)-ranlib"
 
@@ -292,7 +303,7 @@ $(STOKEN_SRC)/configure: stoken-$(STOKEN_VER).tar.gz
 	cd $(STOKEN_SRC) && patch -p1 < ../../0001-Remove-call-to-mlockall.patch
 	touch $@
 
-$(STOKEN_BUILD)/Makefile: $(STOKEN_SRC)/configure $(TOMCRYPT_DEPS)
+$(STOKEN_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(STOKEN_SRC)/configure $(TOMCRYPT_DEPS)
 	mkdir -p $(STOKEN_BUILD)
 	cd $(STOKEN_BUILD) && ../../$(STOKEN_SRC)/configure $(CONFIGURE_ARGS) \
 		--without-gtk
@@ -325,7 +336,7 @@ $(OATH_SRC)/configure: oath-toolkit-$(OATH_VER).tar.gz
 	cd $(OATH_SRC) && patch -p1 < ../../0001-fflush-freadahead-fseeko-Fix-for-Android.patch
 	touch $@
 
-$(OATH_BUILD)/Makefile: $(OATH_SRC)/configure
+$(OATH_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(OATH_SRC)/configure
 	mkdir -p $(OATH_BUILD)
 	cd $(OATH_BUILD) && ../../$(OATH_SRC)/configure $(CONFIGURE_ARGS) \
 		--disable-pskc --disable-pam
@@ -351,14 +362,14 @@ OPENCONNECT_BUILD := $(TRIPLET)/openconnect
 $(OPENCONNECT_SRC)/configure:
 	cd $(OPENCONNECT_SRC) && ./autogen.sh
 
-$(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) $(STOKEN_DEPS) $(OATH_DEPS) $(OPENCONNECT_SRC)/configure
+$(OPENCONNECT_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_DEPS) $(LIBXML_DEPS) $(STOKEN_DEPS) $(OATH_DEPS) $(OPENCONNECT_SRC)/configure
 	mkdir -p $(OPENCONNECT_BUILD)
 	cd $(OPENCONNECT_BUILD) && ../../../configure $(CONFIGURE_ARGS) \
-	CFLAGS="--sysroot=$(NDK_SYSROOT) -DNO_BROKEN_DTLS_CHECK" \
+	CFLAGS="-DNO_BROKEN_DTLS_CHECK" \
 	LDFLAGS="$(EXTRA_LDFLAGS)" \
 	GNUTLS_LIBS="$(shell PKG_CONFIG_LIBDIR=$(OC_SYSROOT)/lib/pkgconfig pkg-config --static --libs gnutls)" \
 	--enable-shared --with-vpnc-script=/etc/vpnc/vpnc-script \
-	--with-java=$(NDK_SYSROOT)/usr/include --enable-jni-standalone \
+	--with-java=$(OC_SYSROOT)/include --enable-jni-standalone \
 	--disable-symvers
 
 openconnect: $(OPENCONNECT_BUILD)/Makefile
