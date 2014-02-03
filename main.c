@@ -540,7 +540,7 @@ int main(int argc, char **argv)
 			/* The next option will come from the file... */
 			break;
 		case OPT_CAFILE:
-			vpninfo->cafile = keep_config_arg();
+			vpninfo->cafile = strdup(config_arg);
 			break;
 		case OPT_PIDFILE:
 			pidfile = keep_config_arg();

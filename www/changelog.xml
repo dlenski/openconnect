@@ -17,7 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li><i>No changelog entries yet</i></li>
+       <li>Fix crash on <tt>--authenticate</tt> due to freeing <tt>--cafile</tt> option in <tt>argv</tt>.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.02.tar.gz">OpenConnect v5.02</a></b>
