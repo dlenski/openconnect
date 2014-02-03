@@ -362,6 +362,12 @@ void openconnect_set_cert_expiry_warning(struct openconnect_info *vpninfo,
 	vpninfo->cert_expire_warning = seconds;
 }
 
+void openconnect_set_pfs(struct openconnect_info *vpninfo,
+					  	unsigned val)
+{
+	vpninfo->pfs = val;
+}
+
 void openconnect_set_cancel_fd(struct openconnect_info *vpninfo, int fd)
 {
 	vpninfo->cmd_fd = fd;

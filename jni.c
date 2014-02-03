@@ -858,6 +858,16 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setCertE
 	openconnect_set_cert_expiry_warning(ctx->vpninfo, arg);
 }
 
+JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setPFS(
+	JNIEnv *jenv, jobject jobj, jint arg)
+{
+	struct libctx *ctx = getctx(jenv, jobj);
+
+	if (!ctx)
+		return;
+	openconnect_set_pfs(ctx->vpninfo, arg);
+}
+
 JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_makeCSTPConnection(
 	JNIEnv *jenv, jobject jobj)
 {
