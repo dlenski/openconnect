@@ -19,18 +19,11 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.02.tar.gz">OpenConnect v5.02</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.02.tar.gz.asc">PGP signature</a>)</i>,
-released on 2014-01-01 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.03.tar.gz">OpenConnect v5.03</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.03.tar.gz.asc">PGP signature</a>)</i>,
+released on 2014-02-03 with the following changelog:</p>
      <ul>
-       <li>Fix XML POST issues with authgroups by falling back to old style login.</li>
-       <li>Fix <tt>--cookie-on-stdin</tt> with cookies from ocserv.</li>
-       <li>Fix reconnection to wrong host after redirect.</li>
-       <li>Reduce limit of queued packets on DTLS socket, to fix VoIP latency.</li>
-       <li>Fix Solaris build breakage due to missing <tt>&amp;lt;string.h&amp;gt;</tt> includes.</li>
-       <li>Include path in <tt>&amp;lt;group-access&amp;gt;</tt> node.</li>
-       <li>Include supporting CA certificates from PKCS#11 tokens <i>(with GnuTLS 3.2.7+)</i>.</li>
-       <li>Fix possible heap overflow if MTU is increased on reconnection (CVE-2013-7098).</li>
+       <li>Fix crash on <tt>--authenticate</tt> due to freeing <tt>--cafile</tt> option in <tt>argv</tt>.</li>
      </ul>
 <!-- latest-release-end -->
 
