@@ -14,7 +14,8 @@
 	<h1>Supported Platforms</h1>
 
 <p>OpenConnect is known to work, with both IPv6 and Legacy IP, on Linux
-(including Android), OpenBSD, FreeBSD (including Debian GNU/kFreeBSD), NetBSD, DragonFly BSD,
+(<a href="https://github.com/cernekee/ics-openconnect">including
+Android</a>), OpenBSD, FreeBSD (including Debian GNU/kFreeBSD), NetBSD, DragonFly BSD,
 OpenIndiana/OpenSolaris, Solaris 10/11 and Mac OS X platforms, and should be trivially
 portable to any other platform supporting
 <a href="http://en.wikipedia.org/wiki/TUN/TAP">TUN/TAP</a>devices and
