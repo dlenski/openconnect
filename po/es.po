@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2014-01-01 22:10+0000\n"
+"POT-Creation-Date: 2014-02-03 13:27+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Spanish (Castilian) (http://www.transifex.net/projects/p/"
 "meego/language/es/)\n"
@@ -67,7 +67,7 @@ msgstr "La respuesta XML no tiene nodo «auth»\n"
 
 #: auth.c:575
 msgid "Disabling XML POST due to authgroup option\n"
-msgstr ""
+msgstr "Desactivando XML POST debido a la opción de autenticación de grupo\n"
 
 #: auth.c:608
 msgid "Asked for password but '--no-passwd' set\n"
@@ -336,7 +336,7 @@ msgstr "Renegociación de clave CSTP pendiente\n"
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr "La detección de muerte del par CSTP detectó la muerte del par\n"
 
-#: cstp.c:874 dtls.c:774
+#: cstp.c:874 dtls.c:776
 msgid "Reconnect failed\n"
 msgstr "Falló al reconectar\n"
 
@@ -495,76 +495,76 @@ msgstr "Opción DTLS %s: %s\n"
 msgid "DTLS initialised. DPD %d, Keepalive %d\n"
 msgstr "DTLS inicializado. DPD %d, Keepalive %d\n"
 
-#: dtls.c:717
+#: dtls.c:719
 #, c-format
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
 msgstr "Recibió el paquete DTLS 0x%02x de %d bytes\n"
 
-#: dtls.c:731
+#: dtls.c:733
 msgid "Got DTLS DPD request\n"
 msgstr "Solicitud DTLS DPD obtenida\n"
 
-#: dtls.c:737
+#: dtls.c:739
 msgid "Failed to send DPD response. Expect disconnect\n"
 msgstr "Falló al enviar respuesta DPD. Espere desconectar\n"
 
-#: dtls.c:741
+#: dtls.c:743
 msgid "Got DTLS DPD response\n"
 msgstr "Respuesta DTLS DPD obtenida\n"
 
-#: dtls.c:745
+#: dtls.c:747
 msgid "Got DTLS Keepalive\n"
 msgstr "Obtenido Keepalive DTLS\n"
 
-#: dtls.c:750
+#: dtls.c:752
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
 msgstr "Paquete DTLS tipo %02x desconocido, longitud %d\n"
 
-#: dtls.c:769
+#: dtls.c:771
 msgid "DTLS rekey due\n"
 msgstr "Renegociación de clave DTLS pendiente\n"
 
-#: dtls.c:780
+#: dtls.c:782
 msgid "DTLS rekey failed\n"
 msgstr "Falló la renegociación de clave DTLS\n"
 
-#: dtls.c:784
+#: dtls.c:786
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
 msgstr "¡La detección de muerte del par DTLS detectó la muerte del par!\n"
 
-#: dtls.c:790
+#: dtls.c:792
 msgid "Send DTLS DPD\n"
 msgstr "Enviar DTLS DPD\n"
 
-#: dtls.c:795
+#: dtls.c:797
 msgid "Failed to send DPD request. Expect disconnect\n"
 msgstr "Falló al enviar petición DPD. Espere para desconectar\n"
 
-#: dtls.c:808
+#: dtls.c:810
 msgid "Send DTLS Keepalive\n"
 msgstr "Enviar Keepalive DTLS\n"
 
-#: dtls.c:813
+#: dtls.c:815
 msgid "Failed to send keepalive request. Expect disconnect\n"
 msgstr "Falló al enviar petición de keepalive. Espere para desconectar\n"
 
-#: dtls.c:848
+#: dtls.c:850
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
 msgstr "DTLS obtuvo el error de escritura %d. Volviendo a SSL\n"
 
-#: dtls.c:863
+#: dtls.c:865
 #, c-format
 msgid "DTLS got write error: %s. Falling back to SSL\n"
 msgstr "DTLS obtuvo el error de escritura: %s. Volviendo a SSL\n"
 
-#: dtls.c:880
+#: dtls.c:882
 #, c-format
 msgid "Sent DTLS packet of %d bytes; DTLS send returned %d\n"
 msgstr "Envió paquete DTLS de %d bytes; el envío DTLS devolvió %d\n"
 
-#: dtls.c:892
+#: dtls.c:894
 msgid "Built against SSL library with no Cisco DTLS support\n"
 msgstr "Compilado con la biblioteca SSL sin soporte para Cisco DTLS\n"
 
@@ -837,7 +837,7 @@ msgstr "Configuración de lista de revocación del certificado fallida: %s\n"
 
 #: gnutls.c:1440 gnutls.c:1450
 msgid "Failed to allocate memory for certificate\n"
-msgstr ""
+msgstr "Falló al asignar memoria para el certificado\n"
 
 #: gnutls.c:1486
 msgid ""
@@ -849,7 +849,7 @@ msgstr ""
 #: gnutls.c:1511
 #, c-format
 msgid "Got next CA '%s' from PKCS11\n"
-msgstr ""
+msgstr "Se obtuvo el siguiente CA «%s» de PKCS11\n"
 
 #: gnutls.c:1539
 msgid "Failed to allocate memory for supporting certificates\n"
@@ -2423,20 +2423,20 @@ msgstr ""
 "Servidor «%s» no listado en la configuración; se trata como nombre de "
 "servidor crudo\n"
 
-#~ msgid "Generating tokencode\n"
-#~ msgstr "Generando código de token\n"
-
-#~ msgid "Use software token to generate password"
-#~ msgstr "Usar testigo software para generar contraseña"
-
-#~ msgid "(NOTE: libstoken disabled in this build)"
-#~ msgstr "(NOTA: libstoken está desactivado en esta versión)"
-
-#~ msgid "OpenConnect was not built with soft token support\n"
-#~ msgstr "OpenConnect no se compiló con soporte para testigo débil\n"
+#~ msgid "Failed to read from SSL socket: %s"
+#~ msgstr "Falló al leer del socket SSL: %s"
 
 #~ msgid "DTLS connected. DPD %d, Keepalive %d\n"
 #~ msgstr "DTLS conectado. DPD %d, Keepalive %d\n"
 
-#~ msgid "Failed to read from SSL socket: %s"
-#~ msgstr "Falló al leer del socket SSL: %s"
+#~ msgid "OpenConnect was not built with soft token support\n"
+#~ msgstr "OpenConnect no se compiló con soporte para testigo débil\n"
+
+#~ msgid "(NOTE: libstoken disabled in this build)"
+#~ msgstr "(NOTA: libstoken está desactivado en esta versión)"
+
+#~ msgid "Use software token to generate password"
+#~ msgstr "Usar testigo software para generar contraseña"
+
+#~ msgid "Generating tokencode\n"
+#~ msgstr "Generando código de token\n"
