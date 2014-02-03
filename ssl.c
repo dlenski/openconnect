@@ -35,6 +35,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <time.h>
 #if defined(__linux__) || defined(__ANDROID__)
 #include <sys/vfs.h>
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__) || defined(__APPLE__)
@@ -66,27 +67,25 @@ static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 	int maxfd = sockfd;
 
 	fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK);
+	if (vpninfo->protect_socket)
+		vpninfo->protect_socket(vpninfo->cbdata, sockfd);
 
 	if (connect(sockfd, addr, addrlen) < 0 && errno != EINPROGRESS)
 		return -1;
 
-	FD_ZERO(&wr_set);
-	FD_ZERO(&rd_set);
-	FD_SET(sockfd, &wr_set);
-	if (vpninfo->cancel_fd != -1) {
-		FD_SET(vpninfo->cancel_fd, &rd_set);
-		if (vpninfo->cancel_fd > sockfd)
-			maxfd = vpninfo->cancel_fd;
-	}
+	do {
+		FD_ZERO(&wr_set);
+		FD_ZERO(&rd_set);
+		FD_SET(sockfd, &wr_set);
+		cmd_fd_set(vpninfo, &rd_set, &maxfd);
 
-	/* Later we'll render this whole exercise non-pointless by
-	   including a 'cancelfd' here too. */
-	select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
-	if (vpninfo->cancel_fd != -1 && FD_ISSET(vpninfo->cancel_fd, &rd_set)) {
-		vpn_progress(vpninfo, PRG_ERR, _("Socket connect cancelled\n"));
-		errno = EINTR;
-		return -1;
-	}
+		select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
+		if (is_cancel_pending(vpninfo, &rd_set)) {
+			vpn_progress(vpninfo, PRG_ERR, _("Socket connect cancelled\n"));
+			errno = EINTR;
+			return -1;
+		}
+	} while (!FD_ISSET(sockfd, &wr_set) && !vpninfo->got_pause_cmd);
 
 	/* Check whether connect() succeeded or failed by using
 	   getpeername(). See http://cr.yp.to/docs/connect.html */
@@ -239,6 +238,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 					  rp->ai_protocol);
 			if (ssl_sock < 0)
 				continue;
+			fcntl(ssl_sock, F_SETFD, fcntl(ssl_sock, F_GETFD) | FD_CLOEXEC);
 			if (cancellable_connect(vpninfo, ssl_sock, rp->ai_addr, rp->ai_addrlen) >= 0) {
 				/* Store the peer address we actually used, so that DTLS can
 				   use it again later */
@@ -318,9 +318,6 @@ int request_passphrase(struct openconnect_info *vpninfo, const char *label,
 	va_list args;
 	int ret;
 
-	if (!vpninfo->process_auth_form)
-		return -EINVAL;
-
 	buf[1023] = 0;
 	memset(&f, 0, sizeof(f));
 	va_start(args, fmt);
@@ -336,7 +333,7 @@ int request_passphrase(struct openconnect_info *vpninfo, const char *label,
 	o.label = buf;
 	o.value = NULL;
 
-	ret = vpninfo->process_auth_form(vpninfo->cbdata, &f);
+	ret = process_auth_form(vpninfo, &f);
 	if (!ret) {
 		*response = o.value;
 		return 0;
@@ -526,3 +523,65 @@ int keystore_fetch(const char *key, unsigned char **result)
 	return ret;
 }
 #endif
+
+void cmd_fd_set(struct openconnect_info *vpninfo, fd_set *fds, int *maxfd)
+{
+	if (vpninfo->cmd_fd != -1) {
+		FD_SET(vpninfo->cmd_fd, fds);
+		if (vpninfo->cmd_fd > *maxfd)
+			*maxfd = vpninfo->cmd_fd;
+	}
+}
+
+void check_cmd_fd(struct openconnect_info *vpninfo, fd_set *fds)
+{
+	char cmd;
+
+	if (vpninfo->cmd_fd == -1 || !FD_ISSET(vpninfo->cmd_fd, fds))
+		return;
+	if (vpninfo->cmd_fd_write == -1) {
+		/* legacy openconnect_set_cancel_fd() users */
+		vpninfo->got_cancel_cmd = 1;
+		return;
+	}
+
+	if (read(vpninfo->cmd_fd, &cmd, 1) != 1)
+		return;
+
+	switch (cmd) {
+	case OC_CMD_CANCEL:
+		vpninfo->got_cancel_cmd = 1;
+		break;
+	case OC_CMD_PAUSE:
+		vpninfo->got_pause_cmd = 1;
+		break;
+	case OC_CMD_STATS:
+		if (vpninfo->stats_handler)
+			vpninfo->stats_handler(vpninfo->cbdata, &vpninfo->stats);
+	}
+}
+
+int is_cancel_pending(struct openconnect_info *vpninfo, fd_set *fds)
+{
+	check_cmd_fd(vpninfo, fds);
+	return vpninfo->got_cancel_cmd;
+}
+
+void poll_cmd_fd(struct openconnect_info *vpninfo, int timeout)
+{
+	fd_set rd_set;
+	int maxfd = 0;
+	time_t expiration = time(NULL) + timeout, now;
+
+	do {
+		struct timeval tv = { 0 };
+
+		now = time(NULL);
+		tv.tv_sec = now >= expiration ? 0 : expiration - now;
+
+		FD_ZERO(&rd_set);
+		cmd_fd_set(vpninfo, &rd_set, &maxfd);
+		select(maxfd + 1, &rd_set, NULL, NULL, &tv);
+		check_cmd_fd(vpninfo, &rd_set);
+	} while (now < expiration && !vpninfo->got_cancel_cmd && !vpninfo->got_pause_cmd);
+}

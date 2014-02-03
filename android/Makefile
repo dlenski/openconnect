@@ -243,6 +243,106 @@ gnutls: $(GNUTLS_DEPS)
 
 #####################################################################
 #
+# Build libtomcrypt
+#
+TOMCRYPT_VER := 1.17
+TOMCRYPT_DIR := $(TRIPLET)/libtomcrypt-$(TOMCRYPT_VER)
+
+crypt-$(TOMCRYPT_VER).tar.bz2:
+	curl http://libtom.org/files/crypt-$(TOMCRYPT_VER).tar.bz2 -o $@.tmp && mv $@.tmp $@
+
+$(TOMCRYPT_DIR)/makefile: crypt-$(TOMCRYPT_VER).tar.bz2
+	mkdir -p $(TRIPLET)
+	tar xfj $< -C $(TRIPLET)
+	touch $@
+
+$(TOMCRYPT_DIR)/libtomcrypt.a: $(TOMCRYPT_DIR)/makefile
+	$(MAKE) -C $(TOMCRYPT_DIR) \
+		CC="$(TRIPLET)-gcc --sysroot=$(NDK_SYSROOT)" \
+		AR="$(TRIPLET)-ar" \
+		RANLIB="$(TRIPLET)-ranlib"
+
+$(OC_SYSROOT)/lib/libtomcrypt.a: $(TOMCRYPT_DIR)/libtomcrypt.a
+	$(MAKE) -C $(TOMCRYPT_DIR) \
+		DESTDIR=$(OC_SYSROOT) \
+		LIBPATH=/lib INCPATH=/include \
+		INSTALL_USER=$(shell id -u) \
+		INSTALL_GROUP=$(shell id -g) \
+		NODOCS=1 install
+
+TOMCRYPT_DEPS := $(OC_SYSROOT)/lib/libtomcrypt.a
+
+tomcrypt: $(TOMCRYPT_DEPS)
+
+
+#####################################################################
+#
+# Build libstoken
+#
+STOKEN_VER := 0.2
+STOKEN_SRC := sources/stoken-$(STOKEN_VER)
+STOKEN_BUILD := $(TRIPLET)/stoken
+
+stoken-$(STOKEN_VER).tar.gz:
+	curl -L http://sourceforge.net/projects/stoken/files/stoken-$(STOKEN_VER).tar.gz/download -o $@.tmp && mv $@.tmp $@
+
+$(STOKEN_SRC)/configure: stoken-$(STOKEN_VER).tar.gz
+	mkdir -p sources
+	tar xfz $< -C sources
+	cd $(STOKEN_SRC) && patch -p1 < ../../0001-Remove-call-to-mlockall.patch
+	touch $@
+
+$(STOKEN_BUILD)/Makefile: $(STOKEN_SRC)/configure $(TOMCRYPT_DEPS)
+	mkdir -p $(STOKEN_BUILD)
+	cd $(STOKEN_BUILD) && ../../$(STOKEN_SRC)/configure $(CONFIGURE_ARGS) \
+		--without-gtk
+
+$(STOKEN_BUILD)/libstoken.la: $(STOKEN_BUILD)/Makefile
+	$(MAKE) -C $(STOKEN_BUILD)
+
+$(OC_SYSROOT)/lib/libstoken.la: $(STOKEN_BUILD)/libstoken.la
+	$(MAKEINSTALL) -C $(STOKEN_BUILD) install
+
+STOKEN_DEPS := $(OC_SYSROOT)/lib/libstoken.la
+
+stoken: $(STOKEN_DEPS)
+
+
+#####################################################################
+#
+# Build liboath
+#
+OATH_VER := 2.4.0
+OATH_SRC := sources/oath-toolkit-$(OATH_VER)
+OATH_BUILD := $(TRIPLET)/oath
+
+oath-toolkit-$(OATH_VER).tar.gz:
+	curl -L http://download.savannah.gnu.org/releases/oath-toolkit/oath-toolkit-$(OATH_VER).tar.gz -o $@.tmp && mv $@.tmp $@
+
+$(OATH_SRC)/configure: oath-toolkit-$(OATH_VER).tar.gz
+	mkdir -p sources
+	tar xfz $< -C sources
+	cd $(OATH_SRC) && patch -p1 < ../../0001-fflush-freadahead-fseeko-Fix-for-Android.patch
+	touch $@
+
+$(OATH_BUILD)/Makefile: $(OATH_SRC)/configure
+	mkdir -p $(OATH_BUILD)
+	cd $(OATH_BUILD) && ../../$(OATH_SRC)/configure $(CONFIGURE_ARGS) \
+		--disable-pskc --disable-pam
+
+$(OATH_BUILD)/liboath.la: $(OATH_BUILD)/Makefile
+	$(MAKE) -C $(OATH_BUILD)
+
+$(OC_SYSROOT)/lib/liboath.la: $(OATH_BUILD)/liboath.la
+	$(MAKEINSTALL) -C $(OATH_BUILD) install
+
+OATH_DEPS := $(OC_SYSROOT)/lib/liboath.la
+
+oath: $(OATH_DEPS)
+
+
+#####################################################################
+#
 # Build OpenConnect for Android
 #
 OPENCONNECT_SRC := ..
@@ -251,13 +351,20 @@ OPENCONNECT_BUILD := $(TRIPLET)/openconnect
 $(OPENCONNECT_SRC)/configure:
 	cd $(OPENCONNECT_SRC) && ./autogen.sh
 
-$(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) $(OPENCONNECT_SRC)/configure
+$(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) $(STOKEN_DEPS) $(OATH_DEPS) $(OPENCONNECT_SRC)/configure
 	mkdir -p $(OPENCONNECT_BUILD)
 	cd $(OPENCONNECT_BUILD) && ../../../configure $(CONFIGURE_ARGS) \
 	CFLAGS="--sysroot=$(NDK_SYSROOT) -DNO_BROKEN_DTLS_CHECK" \
 	LDFLAGS="$(EXTRA_LDFLAGS)" \
 	GNUTLS_LIBS="$(shell PKG_CONFIG_LIBDIR=$(OC_SYSROOT)/lib/pkgconfig pkg-config --static --libs gnutls)" \
-	--enable-shared --with-vpnc-script=/etc/vpnc/vpnc-script
+	--enable-shared --with-vpnc-script=/etc/vpnc/vpnc-script \
+	--with-java=$(NDK_SYSROOT)/usr/include --enable-jni-standalone
 
 openconnect: $(OPENCONNECT_BUILD)/Makefile
 	make -C $(OPENCONNECT_BUILD)
+
+# download + extract, but do not build
+sources: $(LIBXML2_SRC)/configure $(GMP_SRC)/configure \
+	$(NETTLE_SRC)/configure $(GNUTLS_SRC)/configure \
+	$(TOMCRYPT_DIR)/makefile $(STOKEN_SRC)/configure \
+	$(OATH_SRC)/configure

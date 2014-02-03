@@ -135,7 +135,7 @@ static int buf_free(struct oc_text_buf *buf)
 static int http_add_cookie(struct openconnect_info *vpninfo,
 			   const char *option, const char *value)
 {
-	struct vpn_option *new, **this;
+	struct oc_vpn_option *new, **this;
 
 	if (*value) {
 		new = malloc(sizeof(*new));
@@ -433,7 +433,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 
 static void add_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
 {
-	struct vpn_option *opt;
+	struct oc_vpn_option *opt;
 
 	buf_append(buf, "Host: %s\r\n", vpninfo->hostname);
 	buf_append(buf, "User-Agent: %s\r\n", vpninfo->useragent);
@@ -451,6 +451,18 @@ static void add_common_headers(struct openconnect_info *vpninfo, struct oc_text_
 		buf_append(buf, "X-Aggregate-Auth: 1\r\n");
 		buf_append(buf, "X-AnyConnect-Platform: %s\r\n",
 			   vpninfo->platname);
+	}
+	if (vpninfo->mobile_platform_version) {
+		buf_append(buf, "X-AnyConnect-Identifier-ClientVersion: %s\r\n",
+			   openconnect_version_str);
+		buf_append(buf, "X-AnyConnect-Identifier-Platform: %s\r\n",
+			   vpninfo->platname);
+		buf_append(buf, "X-AnyConnect-Identifier-PlatformVersion: %s\r\n",
+			   vpninfo->mobile_platform_version);
+		buf_append(buf, "X-AnyConnect-Identifier-DeviceType: %s\r\n",
+			   vpninfo->mobile_device_type);
+		buf_append(buf, "X-AnyConnect-Identifier-Device-UniqueID: %s\r\n",
+			   vpninfo->mobile_device_uniqueid);
 	}
 }
 
@@ -594,11 +606,9 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 					  "CSD code with root privileges\n"
 					  "\t Use command line option \"--csd-user\"\n"));
 		}
-		if (vpninfo->uid_csd_given == 2) {
-			/* The NM tool really needs not to get spurious output
-			   on stdout, which the CSD trojan spews. */
-			dup2(2, 1);
-		}
+		/* Spurious stdout output from the CSD trojan will break both
+		   the NM tool and the various cookieonly modes. */
+		dup2(2, 1);
 		if (vpninfo->csd_wrapper)
 			csd_argv[i++] = vpninfo->csd_wrapper;
 		csd_argv[i++] = fname;
@@ -719,7 +729,7 @@ int internal_parse_url(char *url, char **res_proto, char **res_host,
 
 static void clear_cookies(struct openconnect_info *vpninfo)
 {
-	struct vpn_option *opt, *next;
+	struct oc_vpn_option *opt, *next;
 
 	for (opt = vpninfo->cookies; opt; opt = next) {
 		next = opt->next;
@@ -991,7 +1001,7 @@ static int check_response_type(struct openconnect_info *vpninfo, char *form_buf)
  */
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 {
-	struct vpn_option *opt;
+	struct oc_vpn_option *opt;
 	char *form_buf = NULL;
 	struct oc_auth_form *form = NULL;
 	int result, buflen, tries;
@@ -1021,6 +1031,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	 * b) Same-host redirect (e.g. Location: /foo/bar)
 	 * c) Three redirects without seeing a plausible login form
 	 */
+newgroup:
 	result = xmlpost_initial_req(vpninfo, request_body, sizeof(request_body), 0);
 	if (result < 0)
 		return result;
@@ -1175,10 +1186,17 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 		request_body[0] = 0;
 		result = handle_auth_form(vpninfo, form, request_body, sizeof(request_body),
 					  &method, &request_body_type);
-		if (result < 0 || result == 1)
+		if (result < 0 || result == OC_FORM_RESULT_CANCELLED)
 			goto out;
-		if (result == 2)
+		if (result == OC_FORM_RESULT_LOGGEDIN)
 			break;
+		if (result == OC_FORM_RESULT_NEWGROUP) {
+			free(form_buf);
+			form_buf = NULL;
+			free_auth_form(form);
+			form = NULL;
+			goto newgroup;
+		}
 
 		result = do_https_request(vpninfo, method, request_body_type, request_body,
 					  &form_buf, 1);
@@ -1199,9 +1217,10 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 
 	for (opt = vpninfo->cookies; opt; opt = opt->next) {
 
-		if (!strcmp(opt->option, "webvpn"))
-			vpninfo->cookie = opt->value;
-		else if (vpninfo->write_new_config && !strcmp(opt->option, "webvpnc")) {
+		if (!strcmp(opt->option, "webvpn")) {
+			free(vpninfo->cookie);
+			vpninfo->cookie = strdup(opt->value);
+		} else if (vpninfo->write_new_config && !strcmp(opt->option, "webvpnc")) {
 			char *tok = opt->value;
 			char *bu = NULL, *fu = NULL, *sha = NULL;
 
@@ -1292,15 +1311,10 @@ static int proxy_write(struct openconnect_info *vpninfo, int fd,
 		FD_ZERO(&wr_set);
 		FD_ZERO(&rd_set);
 		FD_SET(fd, &wr_set);
-		if (vpninfo->cancel_fd != -1) {
-			FD_SET(vpninfo->cancel_fd, &rd_set);
-			if (vpninfo->cancel_fd > fd)
-				maxfd = vpninfo->cancel_fd;
-		}
+		cmd_fd_set(vpninfo, &rd_set, &maxfd);
 
 		select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
-		if (vpninfo->cancel_fd != -1 &&
-		    FD_ISSET(vpninfo->cancel_fd, &rd_set))
+		if (is_cancel_pending(vpninfo, &rd_set))
 			return -EINTR;
 
 		/* Not that this should ever be able to happen... */
@@ -1328,15 +1342,10 @@ static int proxy_read(struct openconnect_info *vpninfo, int fd,
 
 		FD_ZERO(&rd_set);
 		FD_SET(fd, &rd_set);
-		if (vpninfo->cancel_fd != -1) {
-			FD_SET(vpninfo->cancel_fd, &rd_set);
-			if (vpninfo->cancel_fd > fd)
-				maxfd = vpninfo->cancel_fd;
-		}
+		cmd_fd_set(vpninfo, &rd_set, &maxfd);
 
 		select(maxfd + 1, &rd_set, NULL, NULL, NULL);
-		if (vpninfo->cancel_fd != -1 &&
-		    FD_ISSET(vpninfo->cancel_fd, &rd_set))
+		if (is_cancel_pending(vpninfo, &rd_set))
 			return -EINTR;
 
 		/* Not that this should ever be able to happen... */

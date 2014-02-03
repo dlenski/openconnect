@@ -5,6 +5,7 @@ version.c
 .*.h.dep
 *.o
 /libopenconnect.la
+/libopenconnect-wrapper.la
 /*.lo
 /.libs/
 /cscope.*

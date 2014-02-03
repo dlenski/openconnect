@@ -31,10 +31,25 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define OPENCONNECT_API_VERSION_MAJOR 2
-#define OPENCONNECT_API_VERSION_MINOR 2
+#define OPENCONNECT_API_VERSION_MAJOR 3
+#define OPENCONNECT_API_VERSION_MINOR 1
 
 /*
+ * API version 3.1:
+ *  - Add openconnect_setup_cmd_pipe(), openconnect_mainloop(),
+ *    openconnect_setup_tun_device(), openconnect_setup_tun_script(),
+ *    openconnect_setup_tun_fd(), openconnect_setup_dtls(),
+ *    openconnect_make_cstp_connection(), openconnect_set_server_cert_sha1(),
+ *    openconnect_get_ifname(), openconnect_set_reqmtu(),
+ *    openconnect_get_ip_info(), openconnect_set_protect_socket_handler(),
+ *    openconnect_set_mobile_info(), openconnect_set_xmlpost(),
+ *    openconnect_set_stats_handler()
+ *
+ * API version 3.0:
+ *  - Change oc_form_opt_select->choices to an array of pointers
+ *  - Add oc_form_opt->flags
+ *  - Add OC_FORM_RESULT_* and oc_auth_form->authgroup_*
+ *
  * API version 2.2:
  *  - Add openconnect_set_token_mode(), openconnect_has_oath_support()
  *  - Deprecate openconnect_set_stoken_mode()
@@ -93,6 +108,20 @@
 #define OC_FORM_OPT_HIDDEN	4
 #define OC_FORM_OPT_TOKEN	5
 
+#define OC_FORM_RESULT_ERR		-1
+#define OC_FORM_RESULT_OK		0
+#define OC_FORM_RESULT_CANCELLED	1
+#define OC_FORM_RESULT_NEWGROUP		2
+
+#ifdef __OPENCONNECT_PRIVATE__
+#define OC_FORM_RESULT_LOGGEDIN		255
+
+#define OC_FORM_OPT_SECOND_AUTH		0x8000
+#endif
+
+#define OC_FORM_OPT_IGNORE		0x0001
+#define OC_FORM_OPT_NUMERIC		0x0002
+
 /* char * fields are static (owned by XML parser) and don't need to be
    freed by the form handling code -- except for value, which for TEXT
    and PASSWORD options is allocated by process_form() when
@@ -103,6 +132,8 @@ struct oc_form_opt {
 	char *name;
 	char *label;
 	char *value;
+	unsigned int flags;
+	void *reserved;
 };
 
 /* All fields are static, owned by the XML parser */
@@ -112,12 +143,18 @@ struct oc_choice {
 	char *auth_type;
 	char *override_name;
 	char *override_label;
+#ifdef __OPENCONNECT_PRIVATE__
+	int second_auth;
+	char *secondary_username;
+	int secondary_username_editable;
+	int noaaa;
+#endif
 };
 
 struct oc_form_opt_select {
 	struct oc_form_opt form;
 	int nr_choices;
-	struct oc_choice choices[0];
+	struct oc_choice **choices;
 };
 
 /* All char * fields are static, owned by the XML parser */
@@ -129,9 +166,42 @@ struct oc_auth_form {
 	char *method;
 	char *action;
 	struct oc_form_opt *opts;
-#ifdef __OPENCONNECT_PRIVATE__
 	struct oc_form_opt_select *authgroup_opt;
-#endif
+	int authgroup_selection;
+};
+
+struct oc_split_include {
+	char *route;
+	struct oc_split_include *next;
+};
+
+struct oc_ip_info {
+	const char *addr;
+	const char *netmask;
+	const char *addr6;
+	const char *netmask6;
+	const char *dns[3];
+	const char *nbns[3];
+	const char *domain;
+	const char *proxy_pac;
+	int mtu;
+
+	struct oc_split_include *split_dns;
+	struct oc_split_include *split_includes;
+	struct oc_split_include *split_excludes;
+};
+
+struct oc_vpn_option {
+	char *option;
+	char *value;
+	struct oc_vpn_option *next;
+};
+
+struct oc_stats {
+	uint64_t tx_pkts;
+	uint64_t tx_bytes;
+	uint64_t rx_pkts;
+	uint64_t rx_bytes;
 };
 
 /****************************************************************************/
@@ -140,6 +210,14 @@ struct oc_auth_form {
 #define PRG_INFO	1
 #define PRG_DEBUG	2
 #define PRG_TRACE	3
+
+/* byte commands to write into the cmd_fd */
+#define OC_CMD_CANCEL		'x'
+#define OC_CMD_PAUSE		'p'
+#define OC_CMD_STATS		's'
+
+#define RECONNECT_INTERVAL_MIN	10
+#define RECONNECT_INTERVAL_MAX	100
 
 struct openconnect_info;
 
@@ -191,13 +269,35 @@ void openconnect_set_xmlsha1(struct openconnect_info *, const char *, int size);
 
 void openconnect_set_cafile(struct openconnect_info *, char *);
 void openconnect_setup_csd(struct openconnect_info *, uid_t, int silent, char *wrapper);
+void openconnect_set_xmlpost(struct openconnect_info *, int enable);
+
+/* Valid choices are: "linux", "linux-64", "win", "mac-intel",
+   "android", and "apple-ios". This also selects the corresponding CSD
+   trojan binary. */
 int openconnect_set_reported_os(struct openconnect_info *, const char *os);
+
+void openconnect_set_mobile_info(struct openconnect_info *vpninfo,
+				 char *mobile_platform_version,
+				 char *mobile_device_type,
+				 char *mobile_device_uniqueid);
 void openconnect_set_client_cert(struct openconnect_info *, char *cert, char *sslkey);
+void openconnect_set_server_cert_sha1(struct openconnect_info *, char *);
+const char *openconnect_get_ifname(struct openconnect_info *);
+void openconnect_set_reqmtu(struct openconnect_info *, int reqmtu);
+
+/* The returned structures are owned by the library and may be freed/replaced
+   due to rekey or reconnect. Assume that once the mainloop starts, the
+   pointers are no longer valid. For similar reasons, it is unsafe to call
+   this function from another thread. */
+int openconnect_get_ip_info(struct openconnect_info *,
+			    const struct oc_ip_info **info,
+			    const struct oc_vpn_option **cstp_options,
+			    const struct oc_vpn_option **dtls_options);
 
 /* This is *not* yours and must not be destroyed with X509_free(). It
- * will be valid when a cookie has been obtained successfully, and will
- * be valid until the connection is destroyed or another attempt it made
- * to use it. */
+   will be valid when a cookie has been obtained successfully, and will
+   be valid until the connection is destroyed or another attempt it made
+   to use it. */
 OPENCONNECT_X509 *openconnect_get_peer_cert(struct openconnect_info *);
 
 int openconnect_get_port(struct openconnect_info *);
@@ -220,7 +320,35 @@ void openconnect_set_cert_expiry_warning(struct openconnect_info *vpninfo,
    cancellation mechanism inactive. */
 void openconnect_set_cancel_fd(struct openconnect_info *vpninfo, int fd);
 
+/* Create a nonblocking pipe used to send cancellations and other commands
+   to the library. This returns a file descriptor to the write side of
+   the pipe. Both sides will be closed by openconnect_vpninfo_free().
+   This replaces openconnect_set_cancel_fd(). */
+int openconnect_setup_cmd_pipe(struct openconnect_info *vpninfo);
+
 const char *openconnect_get_version(void);
+
+/* Open CSTP connection; on success, IP information will be available. */
+int openconnect_make_cstp_connection(struct openconnect_info *vpninfo);
+
+/* Create a tun device through the OS kernel (typical use case). Both
+   strings are optional and can be NULL if desired. */
+int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_script, char *ifname);
+
+/* Pass traffic to a script program (no tun device). */
+int openconnect_setup_tun_script(struct openconnect_info *vpninfo, char *tun_script);
+
+/* Caller will provide a file descriptor for the tunnel traffic. */
+int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd);
+
+/* Optional call to enable DTLS on the connection. */
+int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_period);
+
+/* Start the main loop; exits if OC_CMD_CANCEL is received on cmd_fd or
+   the remote site aborts. */
+int openconnect_mainloop(struct openconnect_info *vpninfo,
+			 int reconnect_timeout,
+			 int reconnect_interval);
 
 /* The first (privdata) argument to each of these functions is either
    the privdata argument provided to openconnect_vpninfo_new_with_cbdata(),
@@ -265,6 +393,19 @@ struct openconnect_info *openconnect_vpninfo_new(char *useragent,
 						 openconnect_progress_vfn,
 						 void *privdata);
 void openconnect_vpninfo_free(struct openconnect_info *vpninfo);
+
+/* Callback to allow binding a newly created socket's file descriptor to
+   a specific interface, e.g. with SO_BINDTODEVICE. This tells the kernel
+   not to route the traffic in question over the VPN tunnel. */
+typedef void (*openconnect_protect_socket_vfn) (void *privdata, int fd);
+void openconnect_set_protect_socket_handler(struct openconnect_info *vpninfo,
+					    openconnect_protect_socket_vfn protect_socket);
+
+/* Callback for obtaining traffic stats via OC_CMD_STATS.
+ */
+typedef void (*openconnect_stats_vfn) (void *privdata, const struct oc_stats *stats);
+void openconnect_set_stats_handler(struct openconnect_info *vpninfo,
+				   openconnect_stats_vfn stats_handler);
 
 /* SSL certificate capabilities. openconnect_has_pkcs11_support() means that we
    can accept PKCS#11 URLs in place of filenames, for the certificate and key. */

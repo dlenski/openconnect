@@ -91,12 +91,6 @@ struct pkt {
 	unsigned char data[];
 };
 
-struct vpn_option {
-	char *option;
-	char *value;
-	struct vpn_option *next;
-};
-
 #define KA_NONE		0
 #define KA_DPD		1
 #define KA_DPD_DEAD	2
@@ -111,11 +105,6 @@ struct keepalive_info {
 	time_t last_tx;
 	time_t last_rx;
 	time_t last_dpd;
-};
-
-struct split_include {
-	char *route;
-	struct split_include *next;
 };
 
 struct pin_cache {
@@ -141,7 +130,11 @@ struct openconnect_info {
 	int redirect_type;
 
 	const char *csd_xmltag;
+	int csd_nostub;
 	const char *platname;
+	char *mobile_platform_version;
+	char *mobile_device_type;
+	char *mobile_device_uniqueid;
 	char *csd_token;
 	char *csd_ticket;
 	char *csd_stuburl;
@@ -159,7 +152,7 @@ struct openconnect_info {
 	char *proxy;
 	int proxy_port;
 
-	const char *localname;
+	char *localname;
 	char *hostname;
 	char *unique_hostname;
 	int port;
@@ -169,8 +162,8 @@ struct openconnect_info {
 	const char *sslkey;
 	int cert_type;
 	char *cert_password;
-	const char *cafile;
-	const char *servercert;
+	char *cafile;
+	char *servercert;
 	const char *xmlconfig;
 	char xmlsha1[(SHA1_SIZE * 2) + 1];
 	char *authgroup;
@@ -199,9 +192,9 @@ struct openconnect_info {
 	OPENCONNECT_X509 *peer_cert;
 
 	char *cookie; /* Pointer to within cookies list */
-	struct vpn_option *cookies;
-	struct vpn_option *cstp_options;
-	struct vpn_option *dtls_options;
+	struct oc_vpn_option *cookies;
+	struct oc_vpn_option *cstp_options;
+	struct oc_vpn_option *dtls_options;
 
 #if defined(OPENCONNECT_OPENSSL)
 	X509 *cert_x509;
@@ -263,24 +256,14 @@ struct openconnect_info {
 	unsigned char dtls_secret[48];
 
 	char *dtls_cipher;
-	const char *vpnc_script;
+	char *vpnc_script;
 	int script_tun;
 	char *ifname;
 
-	int actual_mtu;
 	int reqmtu, basemtu;
 	const char *banner;
-	const char *vpn_addr;
-	const char *vpn_netmask;
-	const char *vpn_addr6;
-	const char *vpn_netmask6;
-	const char *vpn_dns[3];
-	const char *vpn_nbns[3];
-	const char *vpn_domain;
-	const char *vpn_proxy_pac;
-	struct split_include *split_dns;
-	struct split_include *split_includes;
-	struct split_include *split_excludes;
+
+	struct oc_ip_info ip_info;
 
 	int select_nfds;
 	fd_set select_rfds;
@@ -295,12 +278,18 @@ struct openconnect_info {
 	int ssl_fd;
 	int dtls_fd;
 	int new_dtls_fd;
-	int cancel_fd;
+
+	int cmd_fd;
+	int cmd_fd_write;
+	int got_cancel_cmd;
+	int got_pause_cmd;
 
 	struct pkt *incoming_queue;
 	struct pkt *outgoing_queue;
 	int outgoing_qlen;
 	int max_qlen;
+	struct oc_stats stats;
+	openconnect_stats_vfn stats_handler;
 
 	socklen_t peer_addrlen;
 	struct sockaddr *peer_addr;
@@ -318,6 +307,7 @@ struct openconnect_info {
 	openconnect_write_new_config_vfn write_new_config;
 	openconnect_process_auth_form_vfn process_auth_form;
 	openconnect_progress_vfn progress;
+	openconnect_protect_socket_vfn protect_socket;
 };
 
 #if (defined(DTLS_OPENSSL) && defined(SSL_OP_CISCO_ANYCONNECT)) || \
@@ -367,23 +357,22 @@ char *openconnect__strcasestr(const char *haystack, const char *needle);
 /****************************************************************************/
 
 /* tun.c */
-int setup_tun(struct openconnect_info *vpninfo);
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout);
 void shutdown_tun(struct openconnect_info *vpninfo);
 int script_config_tun(struct openconnect_info *vpninfo, const char *reason);
 
 /* dtls.c */
 unsigned char unhex(const char *data);
-int setup_dtls(struct openconnect_info *vpninfo);
 int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int dtls_try_handshake(struct openconnect_info *vpninfo);
 int connect_dtls_socket(struct openconnect_info *vpninfo);
+void dtls_close(struct openconnect_info *vpninfo, int kill_handshake_too);
 
 /* cstp.c */
-int make_cstp_connection(struct openconnect_info *vpninfo);
 int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int cstp_bye(struct openconnect_info *vpninfo, const char *reason);
 int cstp_reconnect(struct openconnect_info *vpninfo);
+void cstp_free_splits(struct openconnect_info *vpninfo);
 
 /* ssl.c */
 int connect_https_socket(struct openconnect_info *vpninfo);
@@ -400,8 +389,12 @@ int openconnect_print_err_cb(const char *str, size_t len, void *ptr);
 const char *keystore_strerror(int err);
 int keystore_fetch(const char *key, unsigned char **result);
 #endif
+void cmd_fd_set(struct openconnect_info *vpninfo, fd_set *fds, int *maxfd);
+void check_cmd_fd(struct openconnect_info *vpninfo, fd_set *fds);
+int is_cancel_pending(struct openconnect_info *vpninfo, fd_set *fds);
+void poll_cmd_fd(struct openconnect_info *vpninfo, int timeout);
 
-/* ${SSL_LIBRARY}.c */
+/* {gnutls,openssl}.c */
 int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len);
 int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t len);
 int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len);
@@ -421,13 +414,10 @@ int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 
 /* mainloop.c */
 int vpn_add_pollfd(struct openconnect_info *vpninfo, int fd, short events);
-int vpn_mainloop(struct openconnect_info *vpninfo);
 int queue_new_packet(struct pkt **q, void *buf, int len);
 void queue_packet(struct pkt **q, struct pkt *new);
 int keepalive_action(struct keepalive_info *ka, int *timeout);
 int ka_stalled_action(struct keepalive_info *ka, int *timeout);
-
-extern int killed;
 
 /* xml.c */
 int config_lookup_host(struct openconnect_info *vpninfo, const char *host);
@@ -435,6 +425,8 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host);
 /* auth.c */
 int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		       struct oc_auth_form **form, int *cert_rq);
+int process_auth_form(struct openconnect_info *vpninfo,
+		      struct oc_auth_form *form);
 int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
 		     char *request_body, int req_len, const char **method,
 		     const char **request_body_type);

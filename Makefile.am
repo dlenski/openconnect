@@ -11,13 +11,14 @@ lib_LTLIBRARIES = libopenconnect.la
 sbin_PROGRAMS = openconnect
 man8_MANS = openconnect.8
 
+AM_CFLAGS = @WFLAGS@
 AM_CPPFLAGS = -DLOCALEDIR="\"$(localedir)\""
-openconnect_SOURCES = xml.c main.c dtls.c cstp.c mainloop.c tun.c
 
-openconnect_CFLAGS = $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBOATH_CFLAGS)
-openconnect_LDADD = libopenconnect.la $(SSL_LIBS) $(DTLS_SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(LIBINTL) $(LIBSTOKEN_LIBS) $(LIBOATH_LIBS)
+openconnect_SOURCES = xml.c main.c
+openconnect_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBOATH_CFLAGS)
+openconnect_LDADD = libopenconnect.la $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LIBINTL)
 
-library_srcs = ssl.c http.c auth.c library.c compat.c
+library_srcs = ssl.c http.c auth.c library.c compat.c dtls.c cstp.c mainloop.c tun.c
 lib_srcs_gnutls = gnutls.c gnutls_pkcs12.c gnutls_tpm.c
 lib_srcs_openssl = openssl.c
 
@@ -30,8 +31,8 @@ if OPENCONNECT_OPENSSL
 library_srcs += $(lib_srcs_openssl)
 endif
 libopenconnect_la_SOURCES = version.c $(library_srcs)
-libopenconnect_la_CFLAGS = $(SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(P11KIT_CFLAGS) $(TSS_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBOATH_CFLAGS)
-libopenconnect_la_LIBADD = $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LIBINTL) $(P11KIT_LIBS) $(TSS_LIBS) $(LIBSTOKEN_LIBS) $(LIBOATH_LIBS)
+libopenconnect_la_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(P11KIT_CFLAGS) $(TSS_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBOATH_CFLAGS)
+libopenconnect_la_LIBADD = $(SSL_LIBS) $(DTLS_SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(LIBINTL) $(P11KIT_LIBS) $(TSS_LIBS) $(LIBSTOKEN_LIBS) $(LIBOATH_LIBS)
 if OPENBSD_LIBTOOL
 # OpenBSD's libtool doesn't have -version-number, but its -version-info arg
 # does what GNU libtool's -version-number does. Which arguably is what the
@@ -46,6 +47,18 @@ include_HEADERS = openconnect.h
 if HAVE_SYMBOL_VERSIONING
 libopenconnect_la_LDFLAGS += -Wl,@VERSION_SCRIPT_ARG@,libopenconnect.map
 libopenconnect_la_DEPENDENCIES = libopenconnect.map
+endif
+
+if OPENCONNECT_JNI
+if JNI_STANDALONE
+libopenconnect_la_SOURCES += jni.c
+libopenconnect_la_CFLAGS += $(JNI_CFLAGS) -Wno-missing-declarations
+else
+lib_LTLIBRARIES += libopenconnect-wrapper.la
+libopenconnect_wrapper_la_SOURCES = jni.c
+libopenconnect_wrapper_la_CFLAGS = $(AM_CFLAGS) $(JNI_CFLAGS) -Wno-missing-declarations
+libopenconnect_wrapper_la_LIBADD = libopenconnect.la
+endif
 endif
 
 pkgconfig_DATA = openconnect.pc

@@ -94,14 +94,9 @@ int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t le
 			else
 				FD_SET(vpninfo->ssl_fd, &rd_set);
 
-			if (vpninfo->cancel_fd != -1) {
-				FD_SET(vpninfo->cancel_fd, &rd_set);
-				if (vpninfo->cancel_fd > vpninfo->ssl_fd)
-					maxfd = vpninfo->cancel_fd;
-			}
+			cmd_fd_set(vpninfo, &rd_set, &maxfd);
 			select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
-			if (vpninfo->cancel_fd != -1 &&
-			    FD_ISSET(vpninfo->cancel_fd, &rd_set)) {
+			if (is_cancel_pending(vpninfo, &rd_set)) {
 				vpn_progress(vpninfo, PRG_ERR, _("SSL write cancelled\n"));
 				return -EINTR;
 			}
@@ -131,14 +126,9 @@ int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len
 			else
 				FD_SET(vpninfo->ssl_fd, &rd_set);
 
-			if (vpninfo->cancel_fd != -1) {
-				FD_SET(vpninfo->cancel_fd, &rd_set);
-				if (vpninfo->cancel_fd > vpninfo->ssl_fd)
-					maxfd = vpninfo->cancel_fd;
-			}
+			cmd_fd_set(vpninfo, &rd_set, &maxfd);
 			select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
-			if (vpninfo->cancel_fd != -1 &&
-			    FD_ISSET(vpninfo->cancel_fd, &rd_set)) {
+			if (is_cancel_pending(vpninfo, &rd_set)) {
 				vpn_progress(vpninfo, PRG_ERR, _("SSL read cancelled\n"));
 				return -EINTR;
 			}
@@ -189,14 +179,9 @@ int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len
 			else
 				FD_SET(vpninfo->ssl_fd, &rd_set);
 
-			if (vpninfo->cancel_fd != -1) {
-				FD_SET(vpninfo->cancel_fd, &rd_set);
-				if (vpninfo->cancel_fd > vpninfo->ssl_fd)
-					maxfd = vpninfo->cancel_fd;
-			}
+			cmd_fd_set(vpninfo, &rd_set, &maxfd);
 			select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
-			if (vpninfo->cancel_fd != -1 &&
-			    FD_ISSET(vpninfo->cancel_fd, &rd_set)) {
+			if (is_cancel_pending(vpninfo, &rd_set)) {
 				vpn_progress(vpninfo, PRG_ERR, _("SSL read cancelled\n"));
 				ret = -EINTR;
 				break;
@@ -501,8 +486,6 @@ static int assign_privkey(struct openconnect_info *vpninfo,
 			  unsigned int nr_certs,
 			  uint8_t *free_certs)
 {
-	int i;
-
 	vpninfo->my_certs = gnutls_calloc(nr_certs, sizeof(*certs));
 	if (!vpninfo->my_certs)
 		return GNUTLS_E_MEMORY_ERROR;
@@ -1949,14 +1932,9 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			else
 				FD_SET(ssl_sock, &rd_set);
 
-			if (vpninfo->cancel_fd != -1) {
-				FD_SET(vpninfo->cancel_fd, &rd_set);
-				if (vpninfo->cancel_fd > ssl_sock)
-					maxfd = vpninfo->cancel_fd;
-			}
+			cmd_fd_set(vpninfo, &rd_set, &maxfd);
 			select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
-			if (vpninfo->cancel_fd != -1 &&
-			    FD_ISSET(vpninfo->cancel_fd, &rd_set)) {
+			if (is_cancel_pending(vpninfo, &rd_set)) {
 				vpn_progress(vpninfo, PRG_ERR, _("SSL connection cancelled\n"));
 				gnutls_deinit(vpninfo->https_sess);
 				vpninfo->https_sess = NULL;
@@ -2183,7 +2161,7 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 	o.label = (char *)_("Enter PIN:");
 	o.value = NULL;
 
-	ret = vpninfo->process_auth_form(vpninfo->cbdata, &f);
+	ret = process_auth_form(vpninfo, &f);
 	if (ret || !o.value)
 		return NULL;
 

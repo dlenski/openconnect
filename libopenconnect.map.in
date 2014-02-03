@@ -1,4 +1,4 @@
-OPENCONNECT_2.0 {
+OPENCONNECT_3.0 {
  global:
 	openconnect_clear_cookie;
 	openconnect_get_cert_sha1;
@@ -28,20 +28,31 @@ OPENCONNECT_2.0 {
 	openconnect_init_ssl;
 	openconnect_has_tss_blob_support;
 	openconnect_has_pkcs11_support;
-};
-
-OPENCONNECT_2.1 {
- global:
 	openconnect_has_stoken_support;
 	openconnect_set_stoken_mode;
 	openconnect_set_reported_os;
-} OPENCONNECT_2.0;
-
-OPENCONNECT_2.2 {
- global:
 	openconnect_has_oath_support;
 	openconnect_set_token_mode;
-} OPENCONNECT_2.1;
+};
+
+OPENCONNECT_3.1 {
+ global:
+	openconnect_setup_cmd_pipe;
+	openconnect_mainloop;
+	openconnect_setup_tun_device;
+	openconnect_setup_tun_script;
+	openconnect_setup_tun_fd;
+	openconnect_setup_dtls;
+	openconnect_make_cstp_connection;
+	openconnect_set_server_cert_sha1;
+	openconnect_get_ifname;
+	openconnect_set_reqmtu;
+	openconnect_get_ip_info;
+	openconnect_set_protect_socket_handler;
+	openconnect_set_mobile_info;
+	openconnect_set_xmlpost;
+	openconnect_set_stats_handler;
+} OPENCONNECT_3.0;
 
 OPENCONNECT_PRIVATE {
  global: @SYMVER_TIME@ @SYMVER_ASPRINTF@ @SYMVER_GETLINE@ @SYMVER_PRINT_ERR@
@@ -54,6 +65,7 @@ OPENCONNECT_PRIVATE {
 	openconnect_create_useragent;
 	openconnect_sha1;
 	openconnect_random;
+	Java_*;
  local:
 	*;
 };

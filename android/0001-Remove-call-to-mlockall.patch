@@ -1,0 +1,33 @@
+From aecf4b5e1bb335a41ea00c99c771dfa889ce314b Mon Sep 17 00:00:00 2001
+From: Kevin Cernekee <cernekee@gmail.com>
+Date: Sun, 11 Aug 2013 13:26:39 -0700
+Subject: [PATCH] Remove call to mlockall()
+
+This patch against v0.2 allows for building stoken on Android, without
+rerunning autotools.
+
+Signed-off-by: Kevin Cernekee <cernekee@gmail.com>
+---
+ src/common.c |    6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/src/common.c b/src/common.c
+index d2d22f1..4711696 100644
+--- a/src/common.c
++++ b/src/common.c
+@@ -331,12 +331,6 @@ int common_init(char *cmd)
+ 	struct securid_token *t;
+ 	int is_import = !strcmp(cmd, "import");
+ 
+-	/*
+-	 * we don't actually scrub memory, but at least try to keep the seeds
+-	 * from being swapped out to disk
+-	 */
+-	mlockall(MCL_CURRENT | MCL_FUTURE);
+-
+ 	cfg = xzalloc(sizeof(*cfg));
+ 	if (__stoken_read_rcfile(opt_rcfile, cfg, &warn) != ERR_NONE)
+ 		__stoken_zap_rcfile_data(cfg);
+-- 
+1.7.9.5
+

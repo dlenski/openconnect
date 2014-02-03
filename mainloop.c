@@ -27,7 +27,6 @@
 #include <limits.h>
 #include <sys/select.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <unistd.h>
 #include <string.h>
 
@@ -55,22 +54,27 @@ int queue_new_packet(struct pkt **q, void *buf, int len)
 	return 0;
 }
 
-int killed;
-
-static void handle_sigint(int sig)
+/* Return value:
+ *  = 0, when successfully paused (may call again)
+ *  = -EINTR, if aborted locally via cmd_fd
+ *  = -EPIPE, if the remote end explicitly terminated the session
+ *  = -EPERM, if the gateway sent 401 Unauthorized (cookie expired)
+ *  < 0, for any other error
+ */
+int openconnect_mainloop(struct openconnect_info *vpninfo,
+			 int reconnect_timeout,
+			 int reconnect_interval)
 {
-	killed = sig;
-}
+	int ret = 0;
 
-int vpn_mainloop(struct openconnect_info *vpninfo)
-{
-	struct sigaction sa;
-	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = handle_sigint;
+	vpninfo->reconnect_timeout = reconnect_timeout;
+	vpninfo->reconnect_interval = reconnect_interval;
 
-	sigaction(SIGTERM, &sa, NULL);
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGHUP, &sa, NULL);
+	if (vpninfo->cmd_fd != -1) {
+		FD_SET(vpninfo->cmd_fd, &vpninfo->select_rfds);
+		if (vpninfo->cmd_fd >= vpninfo->select_nfds)
+			vpninfo->select_nfds = vpninfo->cmd_fd + 1;
+	}
 
 	while (!vpninfo->quit_reason) {
 		int did_work = 0;
@@ -83,19 +87,23 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 			dtls_try_handshake(vpninfo);
 
 		if (vpninfo->dtls_attempt_period && !vpninfo->dtls_ssl && !vpninfo->new_dtls_ssl &&
-		    vpninfo->new_dtls_started + vpninfo->dtls_attempt_period < time(NULL)) {
+		    vpninfo->new_dtls_started + vpninfo->dtls_attempt_period < time(NULL) &&
+		    vpninfo->ssl_fd != -1) {
 			vpn_progress(vpninfo, PRG_TRACE, _("Attempt new DTLS connection\n"));
 			connect_dtls_socket(vpninfo);
 		}
-		if (vpninfo->dtls_ssl)
-			did_work += dtls_mainloop(vpninfo, &timeout);
+		if (vpninfo->dtls_ssl) {
+			ret = dtls_mainloop(vpninfo, &timeout);
+			did_work += ret;
+		}
 #endif
 		if (vpninfo->quit_reason)
 			break;
 
-		did_work += cstp_mainloop(vpninfo, &timeout);
+		ret = cstp_mainloop(vpninfo, &timeout);
 		if (vpninfo->quit_reason)
 			break;
+		did_work += ret;
 
 		/* Tun must be last because it will set/clear its bit
 		   in the select_rfds according to the queue length */
@@ -103,14 +111,22 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 		if (vpninfo->quit_reason)
 			break;
 
-		if (killed) {
-			if (killed == SIGHUP)
-				vpninfo->quit_reason = "Client received SIGHUP";
-			else if (killed == SIGINT)
-				vpninfo->quit_reason = "Client received SIGINT";
-			else
-				vpninfo->quit_reason = "Client killed";
+		poll_cmd_fd(vpninfo, 0);
+		if (vpninfo->got_cancel_cmd) {
+			vpninfo->quit_reason = "Aborted by caller";
+			ret = -EINTR;
 			break;
+		}
+		if (vpninfo->got_pause_cmd) {
+			/* close all connections and wait for the user to call
+			   openconnect_mainloop() again */
+			openconnect_close_https(vpninfo, 0);
+			dtls_close(vpninfo, 1);
+			vpninfo->new_dtls_started = 0;
+
+			vpninfo->got_pause_cmd = 0;
+			vpn_progress(vpninfo, PRG_INFO, _("Caller paused the connection\n"));
+			return 0;
 		}
 
 		if (did_work)
@@ -131,7 +147,7 @@ int vpn_mainloop(struct openconnect_info *vpninfo)
 	cstp_bye(vpninfo, vpninfo->quit_reason);
 
 	shutdown_tun(vpninfo);
-	return 0;
+	return ret < 0 ? ret : -EIO;
 }
 
 /* Called when the socket is unwritable, to get the deadline for DPD.

@@ -53,6 +53,7 @@
 #include LIBPROXY_HDR
 #endif
 #include <getopt.h>
+#include <time.h>
 
 #include "openconnect-internal.h"
 
@@ -65,8 +66,8 @@ static void syslog_progress(void *_vpninfo,
 static int validate_peer_cert(void *_vpninfo,
 			      OPENCONNECT_X509 *peer_cert,
 			      const char *reason);
-static int process_auth_form(void *_vpninfo,
-			     struct oc_auth_form *form);
+static int process_auth_form_cb(void *_vpninfo,
+				struct oc_auth_form *form);
 static void init_token(struct openconnect_info *vpninfo,
 		       oc_token_mode_t token_mode, const char *token_str);
 
@@ -77,6 +78,7 @@ static void init_token(struct openconnect_info *vpninfo,
 #undef openconnect_version_str
 
 int verbose = PRG_INFO;
+int timestamp;
 int background;
 int do_passphrase_from_fsid;
 int nocertcheck;
@@ -86,6 +88,8 @@ int cookieonly;
 char *username;
 char *password;
 char *authgroup;
+int authgroup_set;
+int last_form_empty;
 
 enum {
 	OPT_AUTHENTICATE = 0x100,
@@ -120,6 +124,7 @@ enum {
 	OPT_TOKEN_MODE,
 	OPT_TOKEN_SECRET,
 	OPT_OS,
+	OPT_TIMESTAMP,
 };
 
 #ifdef __sun__
@@ -150,6 +155,7 @@ static struct option long_options[] = {
 	OPTION("script", 1, 's'),
 	OPTION("script-tun", 0, 'S'),
 	OPTION("syslog", 0, 'l'),
+	OPTION("timestamp", 0, OPT_TIMESTAMP),
 	OPTION("key-password", 1, 'p'),
 	OPTION("proxy", 1, 'P'),
 	OPTION("user", 1, 'u'),
@@ -261,6 +267,7 @@ static void usage(void)
 	printf("  -h, --help                      %s\n", _("Display help text"));
 	printf("  -i, --interface=IFNAME          %s\n", _("Use IFNAME for tunnel interface"));
 	printf("  -l, --syslog                    %s\n", _("Use syslog for progress messages"));
+	printf("      --timestamp                 %s\n", _("Prepend timestamp to progress messages"));
 	printf("  -U, --setuid=USER               %s\n", _("Drop privileges after connecting"));
 	printf("      --csd-user=USER             %s\n", _("Drop privileges during CSD execution"));
 	printf("      --csd-wrapper=SCRIPT        %s\n", _("Run SCRIPT instead of CSD binary"));
@@ -309,7 +316,7 @@ static void usage(void)
 	printf("      --reconnect-timeout         %s\n", _("Connection retry timeout in seconds"));
 	printf("      --servercert=FINGERPRINT    %s\n", _("Server's certificate SHA1 fingerprint"));
 	printf("      --useragent=STRING          %s\n", _("HTTP header User-Agent: field"));
-	printf("      --os=STRING                 %s\n", _("OS type (linux,linux-64,mac,win) to report"));
+	printf("      --os=STRING                 %s\n", _("OS type (linux,linux-64,win,...) to report"));
 	printf("      --dtls-local-port=PORT      %s\n", _("Set local port for DTLS datagrams"));
 	printf("\n");
 
@@ -317,14 +324,31 @@ static void usage(void)
 	exit(1);
 }
 
-static void read_stdin(char **string)
+static void read_stdin(char **string, int hidden)
 {
-	char *c = malloc(1025);
+	struct termios t;
+	char *c = malloc(1025), *ret;
+	int fd = fileno(stdin);
+
 	if (!c) {
 		fprintf(stderr, _("Allocation failure for string from stdin\n"));
 		exit(1);
 	}
-	if (!fgets(c, 1025, stdin)) {
+
+	if (hidden) {
+		tcgetattr(fd, &t);
+		t.c_lflag &= ~ECHO;
+		tcsetattr(fd, TCSANOW, &t);
+
+		ret = fgets(c, 1025, stdin);
+
+		t.c_lflag |= ECHO;
+		tcsetattr(fd, TCSANOW, &t);
+		fprintf(stderr, "\n");
+	} else
+		ret = fgets(c, 1025, stdin);
+
+	if (!ret) {
 		perror(_("fgets (stdin)"));
 		exit(1);
 	}
@@ -335,6 +359,20 @@ static void read_stdin(char **string)
 	if (c)
 		*c = 0;
 }
+
+static int sig_cmd_fd;
+static int sig_caught;
+
+static void handle_sigint(int sig)
+{
+	char x = OC_CMD_CANCEL;
+
+	sig_caught = sig;
+	if (write(sig_cmd_fd, &x, 1) < 0) {
+		/* suppress warn_unused_result */
+	}
+}
+
 static void handle_sigusr(int sig)
 {
 	if (sig == SIGUSR1)
@@ -356,8 +394,20 @@ static int config_line_num = 0;
  *    For this we use the keep_config_arg() macro below.
  * 3. It may be freed during normal operation, so we have to use strdup()
  *    even when it's an option from argv[]. (e.g. vpninfo->cert_password).
+ *    For this we use the xstrdup() function below.
  */
 #define keep_config_arg() (config_file && config_arg ? strdup(config_arg) : config_arg)
+
+static char *xstrdup(const char *arg)
+{
+	char *ret = strdup(arg);
+
+	if (!ret) {
+		fprintf(stderr, _("Failed to allocate string\n"));
+		exit(1);
+	}
+	return ret;
+}
 
 static int next_option(int argc, char **argv, char **config_arg)
 {
@@ -463,14 +513,20 @@ int main(int argc, char **argv)
 	int use_syslog = 0;
 	char *urlpath = NULL;
 	char *proxy = getenv("https_proxy");
+	int script_tun = 0;
+	char *vpnc_script = NULL, *ifname = NULL;
+	const struct oc_ip_info *ip_info;
 	int autoproxy = 0;
 	uid_t uid = getuid();
 	int opt;
 	char *pidfile = NULL;
+	int use_dtls = 1;
 	FILE *fp = NULL;
 	char *config_arg;
 	char *token_str = NULL;
 	oc_token_mode_t token_mode = OC_TOKEN_MODE_NONE;
+	int reconnect_timeout = 300;
+	int ret;
 
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
@@ -485,39 +541,18 @@ int main(int argc, char **argv)
 
 	openconnect_init_ssl();
 
-	vpninfo = malloc(sizeof(*vpninfo));
+	vpninfo = openconnect_vpninfo_new((char *)"Open AnyConnect VPN Agent",
+		validate_peer_cert, NULL, process_auth_form_cb, write_progress, NULL);
 	if (!vpninfo) {
 		fprintf(stderr, _("Failed to allocate vpninfo structure\n"));
 		exit(1);
 	}
-	memset(vpninfo, 0, sizeof(*vpninfo));
 
-	/* Set up some defaults */
-	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = vpninfo->new_dtls_fd = -1;
-	vpninfo->useragent = openconnect_create_useragent("Open AnyConnect VPN Agent");
-	vpninfo->reqmtu = 0;
-	vpninfo->deflate = 1;
-	vpninfo->dtls_attempt_period = 60;
-	vpninfo->max_qlen = 10;
-	vpninfo->reconnect_interval = RECONNECT_INTERVAL_MIN;
-	vpninfo->reconnect_timeout = 300;
-	vpninfo->uid_csd = 0;
-	/* We could let them override this on the command line some day, perhaps */
-	openconnect_set_reported_os(vpninfo, NULL);
-	vpninfo->uid_csd = 0;
-	vpninfo->uid_csd_given = 0;
-	vpninfo->validate_peer_cert = validate_peer_cert;
-	vpninfo->process_auth_form = process_auth_form;
 	vpninfo->cbdata = vpninfo;
-	vpninfo->cert_expire_warning = 60 * 86400;
-	vpninfo->vpnc_script = DEFAULT_VPNCSCRIPT;
-	vpninfo->cancel_fd = -1;
-	vpninfo->xmlpost = 1;
-
-	if (!uname(&utsbuf))
-		vpninfo->localname = utsbuf.nodename;
-	else
-		vpninfo->localname = "localhost";
+	if (!uname(&utsbuf)) {
+		free(vpninfo->localname);
+		vpninfo->localname = xstrdup(utsbuf.nodename);
+	}
 
 	while ((opt = next_option(argc, argv, &config_arg))) {
 
@@ -540,16 +575,16 @@ int main(int argc, char **argv)
 			/* The next option will come from the file... */
 			break;
 		case OPT_CAFILE:
-			vpninfo->cafile = strdup(config_arg);
+			openconnect_set_cafile(vpninfo, xstrdup(config_arg));
 			break;
 		case OPT_PIDFILE:
 			pidfile = keep_config_arg();
 			break;
 		case OPT_SERVERCERT:
-			vpninfo->servercert = keep_config_arg();
+			openconnect_set_server_cert_sha1(vpninfo, xstrdup(config_arg));
 			break;
 		case OPT_NO_DTLS:
-			vpninfo->dtls_attempt_period = 0;
+			use_dtls = 0;
 			break;
 		case OPT_COOKIEONLY:
 			cookieonly = 1;
@@ -561,25 +596,25 @@ int main(int argc, char **argv)
 			cookieonly = 3;
 			break;
 		case OPT_COOKIE_ON_STDIN:
-			read_stdin(&vpninfo->cookie);
+			read_stdin(&vpninfo->cookie, 0);
 			/* If the cookie is empty, ignore it */
 			if (!*vpninfo->cookie)
 				vpninfo->cookie = NULL;
 			break;
 		case OPT_PASSWORD_ON_STDIN:
-			read_stdin(&password);
+			read_stdin(&password, 0);
 			break;
 		case OPT_NO_PASSWD:
 			vpninfo->nopasswd = 1;
 			break;
 		case OPT_NO_XMLPOST:
-			vpninfo->xmlpost = 0;
+			openconnect_set_xmlpost(vpninfo, 0);
 			break;
 		case OPT_NON_INTER:
 			non_inter = 1;
 			break;
 		case OPT_RECONNECT_TIMEOUT:
-			vpninfo->reconnect_timeout = atoi(config_arg);
+			reconnect_timeout = atoi(config_arg);
 			break;
 		case OPT_DTLS_CIPHERS:
 			vpninfo->dtls_ciphers = keep_config_arg();
@@ -615,18 +650,20 @@ int main(int argc, char **argv)
 		case 'h':
 			usage();
 		case 'i':
-			vpninfo->ifname = keep_config_arg();
+			ifname = xstrdup(config_arg);
 			break;
 		case 'l':
 			use_syslog = 1;
 			break;
-		case 'm':
-			vpninfo->reqmtu = atol(config_arg);
-			if (vpninfo->reqmtu < 576) {
-				fprintf(stderr, _("MTU %d too small\n"), vpninfo->reqmtu);
-				vpninfo->reqmtu = 576;
+		case 'm': {
+			int mtu = atol(config_arg);
+			if (mtu < 576) {
+				fprintf(stderr, _("MTU %d too small\n"), mtu);
+				mtu = 576;
 			}
+			openconnect_set_reqmtu(vpninfo, mtu);
 			break;
+		}
 		case OPT_BASEMTU:
 			vpninfo->basemtu = atol(config_arg);
 			if (vpninfo->basemtu < 576) {
@@ -659,13 +696,14 @@ int main(int argc, char **argv)
 			nocertcheck = 1;
 			break;
 		case 's':
-			vpninfo->vpnc_script = keep_config_arg();
+			vpnc_script = xstrdup(config_arg);
 			break;
 		case 'S':
-			vpninfo->script_tun = 1;
+			script_tun = 1;
 			break;
 		case 'u':
-			username = keep_config_arg();
+			free(username);
+			username = strdup(config_arg);
 			break;
 		case 'U': {
 			char *strend;
@@ -758,6 +796,16 @@ int main(int argc, char **argv)
 					config_arg);
 				exit(1);
 			}
+			if (!strcmp(config_arg, "android") || !strcmp(config_arg, "apple-ios")) {
+				/* generic defaults */
+				openconnect_set_mobile_info(vpninfo,
+					xstrdup("1.0"),
+					xstrdup(config_arg),
+					xstrdup("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
+			}
+			break;
+		case OPT_TIMESTAMP:
+			timestamp = 1;
 			break;
 		default:
 			usage();
@@ -799,11 +847,22 @@ int main(int argc, char **argv)
 		vpninfo->progress = syslog_progress;
 	}
 
-	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = handle_sigusr;
+	sig_cmd_fd = openconnect_setup_cmd_pipe(vpninfo);
+	if (sig_cmd_fd < 0) {
+		fprintf(stderr, _("Error opening cmd pipe\n"));
+		exit(1);
+	}
 
+	memset(&sa, 0, sizeof(sa));
+
+	sa.sa_handler = handle_sigusr;
 	sigaction(SIGUSR1, &sa, NULL);
 	sigaction(SIGUSR2, &sa, NULL);
+
+	sa.sa_handler = handle_sigint;
+	sigaction(SIGTERM, &sa, NULL);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGHUP, &sa, NULL);
 
 	if (vpninfo->sslkey && do_passphrase_from_fsid)
 		openconnect_passphrase_from_fsid(vpninfo);
@@ -861,13 +920,23 @@ int main(int argc, char **argv)
 			exit(0);
 		}
 	}
-	if (make_cstp_connection(vpninfo)) {
+	if (openconnect_make_cstp_connection(vpninfo)) {
 		fprintf(stderr, _("Creating SSL connection failed\n"));
+		openconnect_vpninfo_free(vpninfo);
 		exit(1);
 	}
 
-	if (setup_tun(vpninfo)) {
+	if (!vpnc_script)
+		vpnc_script = xstrdup(DEFAULT_VPNCSCRIPT);
+	if (script_tun) {
+		if (openconnect_setup_tun_script(vpninfo, vpnc_script)) {
+			fprintf(stderr, _("Set up tun script failed\n"));
+			openconnect_vpninfo_free(vpninfo);
+			exit(1);
+		}
+	} else if (openconnect_setup_tun_device(vpninfo, vpnc_script, ifname)) {
 		fprintf(stderr, _("Set up tun device failed\n"));
+		openconnect_vpninfo_free(vpninfo);
 		exit(1);
 	}
 
@@ -875,18 +944,20 @@ int main(int argc, char **argv)
 		if (setuid(uid)) {
 			fprintf(stderr, _("Failed to set uid %ld\n"),
 				(long)uid);
+			openconnect_vpninfo_free(vpninfo);
 			exit(1);
 		}
 	}
 
-	if (vpninfo->dtls_attempt_period && setup_dtls(vpninfo))
+	if (use_dtls && openconnect_setup_dtls(vpninfo, 60))
 		fprintf(stderr, _("Set up DTLS failed; using SSL instead\n"));
 
+	openconnect_get_ip_info(vpninfo, &ip_info, NULL, NULL);
 	vpn_progress(vpninfo, PRG_INFO,
-		     _("Connected %s as %s%s%s, using %s\n"), vpninfo->ifname,
-		     vpninfo->vpn_addr?:"",
-		     (vpninfo->vpn_addr6 && vpninfo->vpn_addr) ? " + " : "",
-		     vpninfo->vpn_addr6 ? : "",
+		     _("Connected %s as %s%s%s, using %s\n"), openconnect_get_ifname(vpninfo),
+		     ip_info->addr?:"",
+		     (ip_info->addr6 && ip_info->addr) ? " + " : "",
+		     ip_info->addr6 ? : "",
 		     (vpninfo->dtls_fd == -1) ?
 		     (vpninfo->deflate ? "SSL + deflate" : "SSL")
 		     : "DTLS");
@@ -909,6 +980,7 @@ int main(int argc, char **argv)
 			if (!fp) {
 				fprintf(stderr, _("Failed to open '%s' for write: %s\n"),
 					pidfile, strerror(errno));
+				openconnect_vpninfo_free(vpninfo);
 				exit(1);
 			}
 		}
@@ -920,15 +992,26 @@ int main(int argc, char **argv)
 			vpn_progress(vpninfo, PRG_INFO,
 				     _("Continuing in background; pid %d\n"),
 				     pid);
+			openconnect_vpninfo_free(vpninfo);
 			exit(0);
 		}
 		if (fp)
 			fclose(fp);
 	}
-	vpn_mainloop(vpninfo);
+	ret = openconnect_mainloop(vpninfo, reconnect_timeout, RECONNECT_INTERVAL_MIN);
 	if (fp)
 		unlink(pidfile);
-	exit(1);
+
+	if (sig_caught) {
+		vpn_progress(vpninfo, PRG_INFO, _("Caught signal: %s\n"), strsignal(sig_caught));
+		ret = 0;
+	} else if (ret == -EPERM)
+		ret = 2;
+	else
+		ret = 1;
+
+	openconnect_vpninfo_free(vpninfo);
+	exit(ret);
 }
 
 static int write_new_config(void *_vpninfo, char *buf, int buflen)
@@ -967,6 +1050,14 @@ void write_progress(void *_vpninfo, int level, const char *fmt, ...)
 		outf = stderr;
 
 	if (verbose >= level) {
+		if (timestamp) {
+			char ts[64];
+			time_t t = time(NULL);
+			struct tm *tm = localtime(&t);
+
+			strftime(ts, 64, "[%Y-%m-%d %H:%M:%S] ", tm);
+			fprintf(outf, "%s", ts);
+		}
 		va_start(args, fmt);
 		vfprintf(outf, fmt, args);
 		va_end(args);
@@ -1077,19 +1168,118 @@ static int validate_peer_cert(void *_vpninfo, OPENCONNECT_X509 *peer_cert,
 	}
 }
 
+static int match_choice_label(struct openconnect_info *vpninfo,
+			      struct oc_form_opt_select *select_opt,
+			      char *label)
+{
+	int i, input_len, partial_matches = 0;
+	char *match = NULL;
+
+	input_len = strlen(label);
+	if (input_len < 1)
+		return -EINVAL;
+
+	for (i = 0; i < select_opt->nr_choices; i++) {
+		struct oc_choice *choice = select_opt->choices[i];
+
+		if (!strncasecmp(label, choice->label, input_len)) {
+			if (strlen(choice->label) == input_len) {
+				select_opt->form.value = choice->name;
+				return 0;
+			} else {
+				match = choice->name;
+				partial_matches++;
+			}
+		}
+	}
+
+	if (partial_matches == 1) {
+		select_opt->form.value = match;
+		return 0;
+	} else if (partial_matches > 1) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Auth choice \"%s\" matches multiple options\n"), label);
+		return -EINVAL;
+	} else {
+		vpn_progress(vpninfo, PRG_ERR, _("Auth choice \"%s\" not available\n"), label);
+		return -EINVAL;
+	}
+}
+
+static char *prompt_for_input(const char *prompt,
+			      struct openconnect_info *vpninfo,
+			      int hidden)
+{
+	char *response;
+
+	fprintf(stderr, "%s", prompt);
+	fflush(stderr);
+
+	if (non_inter) {
+		fprintf(stderr, "***\n");
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("User input required in non-interactive mode\n"));
+		return NULL;
+	}
+
+	read_stdin(&response, hidden);
+	return response;
+}
+
+static int prompt_opt_select(struct openconnect_info *vpninfo,
+			     struct oc_form_opt_select *select_opt,
+			     char **saved_response)
+{
+	int i;
+	char *response;
+
+	if (!select_opt->nr_choices)
+		return -EINVAL;
+
+retry:
+	fprintf(stderr, "%s [", select_opt->form.label);
+	for (i = 0; i < select_opt->nr_choices; i++) {
+		struct oc_choice *choice = select_opt->choices[i];
+		if (i)
+			fprintf(stderr, "|");
+
+		fprintf(stderr, "%s", choice->label);
+	}
+	fprintf(stderr, "]:");
+
+	if (select_opt->nr_choices == 1) {
+		response = strdup(select_opt->choices[0]->label);
+		fprintf(stderr, "%s\n", response);
+	} else
+		response = prompt_for_input("", vpninfo, 0);
+
+	if (!response)
+		return -EINVAL;
+
+	if (match_choice_label(vpninfo, select_opt, response) < 0) {
+		free(response);
+		goto retry;
+	}
+
+	if (saved_response)
+		*saved_response = response;
+	else
+		free(response);
+
+	return 0;
+}
 
 /* Return value:
  *  < 0, on error
  *  = 0, when form was parsed and POST required
  *  = 1, when response was cancelled by user
  */
-static int process_auth_form(void *_vpninfo,
-			     struct oc_auth_form *form)
+static int process_auth_form_cb(void *_vpninfo,
+				struct oc_auth_form *form)
 {
 	struct openconnect_info *vpninfo = _vpninfo;
 	struct oc_form_opt *opt;
-	char response[1024];
-	char *p;
+	int empty = 1;
 
 	if (form->banner && verbose > PRG_ERR)
 		fprintf(stderr, "%s\n", form->banner);
@@ -1100,164 +1290,73 @@ static int process_auth_form(void *_vpninfo,
 	if (form->message && verbose > PRG_ERR)
 		fprintf(stderr, "%s\n", form->message);
 
-	/* scan for select options first so they are displayed first */
-	for (opt = form->opts; opt; opt = opt->next) {
-		if (opt->type == OC_FORM_OPT_SELECT) {
-			struct oc_form_opt_select *select_opt = (void *)opt;
-			struct oc_choice *choice = NULL;
-			int i;
-
-			if (!select_opt->nr_choices)
-				continue;
-
-			if (authgroup &&
-			    !strcmp(opt->name, "group_list")) {
-				for (i = 0; i < select_opt->nr_choices; i++) {
-					choice = &select_opt->choices[i];
-
-					if (!strcmp(authgroup, choice->label)) {
-						opt->value = choice->name;
-						break;
-					}
-				}
-				if (!opt->value)
-					vpn_progress(vpninfo, PRG_ERR,
-						     _("Auth choice \"%s\" not available\n"),
-						     authgroup);
-			}
-			if (!opt->value && select_opt->nr_choices == 1) {
-				choice = &select_opt->choices[0];
-				opt->value = choice->name;
-			}
-			if (opt->value) {
-				select_opt = NULL;
-				continue;
-			}
-			if (non_inter) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("User input required in non-interactive mode\n"));
+	/* Special handling for GROUP: field if present, as different group
+	   selections can make other fields disappear/reappear */
+	if (form->authgroup_opt) {
+		if (!authgroup ||
+		    match_choice_label(vpninfo, form->authgroup_opt, authgroup) != 0) {
+			if (prompt_opt_select(vpninfo, form->authgroup_opt, &authgroup) < 0)
 				goto err;
-			}
-			fprintf(stderr, "%s [", opt->label);
-			for (i = 0; i < select_opt->nr_choices; i++) {
-				choice = &select_opt->choices[i];
-				if (i)
-					fprintf(stderr, "|");
-
-				fprintf(stderr, "%s", choice->label);
-			}
-			fprintf(stderr, "]:");
-			fflush(stderr);
-
-			if (!fgets(response, sizeof(response), stdin) || !strlen(response))
-				goto err;
-
-			p = strchr(response, '\n');
-			if (p)
-				*p = 0;
-
-			for (i = 0; i < select_opt->nr_choices; i++) {
-				choice = &select_opt->choices[i];
-
-				if (!strcmp(response, choice->label)) {
-					select_opt->form.value = choice->name;
-					break;
-				}
-			}
-			if (!select_opt->form.value) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("Auth choice \"%s\" not valid\n"),
-					     response);
-				goto err;
-			}
+		}
+		if (!authgroup_set) {
+			authgroup_set = 1;
+			return OC_FORM_RESULT_NEWGROUP;
 		}
 	}
 
 	for (opt = form->opts; opt; opt = opt->next) {
 
-		if (opt->type == OC_FORM_OPT_TEXT) {
+		if (opt->flags & OC_FORM_OPT_IGNORE)
+			continue;
+
+		/* I haven't actually seen a non-authgroup dropdown in the wild, but
+		   the Cisco clients do support them */
+		if (opt->type == OC_FORM_OPT_SELECT) {
+			struct oc_form_opt_select *select_opt = (void *)opt;
+
+			if (select_opt == form->authgroup_opt)
+				continue;
+			if (prompt_opt_select(vpninfo, select_opt, NULL) < 0)
+				goto err;
+			empty = 0;
+
+		} else if (opt->type == OC_FORM_OPT_TEXT) {
 			if (username &&
 			    !strcmp(opt->name, "username")) {
-				opt->value = strdup(username);
-				if (!opt->value)
-					goto err;
-			} else if (non_inter) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("User input required in non-interactive mode\n"));
-				goto err;
+				opt->value = username;
+				username = NULL;
 			} else {
-				opt->value = malloc(80);
-				if (!opt->value)
-					goto err;
-
-				fprintf(stderr, "%s", opt->label);
-				fflush(stderr);
-
-				if (!fgets(opt->value, 80, stdin) || !strlen(opt->value))
-					goto err;
-
-				p = strchr(opt->value, '\n');
-				if (p)
-					*p = 0;
+				opt->value = prompt_for_input(opt->label, vpninfo, 0);
 			}
+
+			if (!opt->value)
+				goto err;
+			empty = 0;
 
 		} else if (opt->type == OC_FORM_OPT_PASSWORD) {
 			if (password &&
 			    !strcmp(opt->name, "password")) {
 				opt->value = password;
 				password = NULL;
-				if (!opt->value)
-					goto err;
-			} else if (non_inter) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("User input required in non-interactive mode\n"));
-				goto err;
 			} else {
-				struct termios t;
-				opt->value = malloc(80);
-				if (!opt->value)
-					goto err;
-
-				fprintf(stderr, "%s", opt->label);
-				fflush(stderr);
-
-				tcgetattr(0, &t);
-				t.c_lflag &= ~ECHO;
-				tcsetattr(0, TCSANOW, &t);
-
-				p = fgets(opt->value, 80, stdin);
-
-				t.c_lflag |= ECHO;
-				tcsetattr(0, TCSANOW, &t);
-				fprintf(stderr, "\n");
-
-				if (!p || !strlen(opt->value))
-					goto err;
-
-				p = strchr(opt->value, '\n');
-				if (p)
-					*p = 0;
+				opt->value = prompt_for_input(opt->label, vpninfo, 1);
 			}
 
+			if (!opt->value)
+				goto err;
+			empty = 0;
 		}
 	}
 
-	if (password) {
-		free(password);
-		password = NULL;
-	}
+	/* prevent infinite loops if the authgroup requires certificate auth only */
+	if (last_form_empty && empty)
+		return OC_FORM_RESULT_CANCELLED;
+	last_form_empty = empty;
 
-	return 0;
+	return OC_FORM_RESULT_OK;
 
  err:
-	for (opt = form->opts; opt; opt = opt->next) {
-		if (opt->value && (opt->type == OC_FORM_OPT_TEXT ||
-				   opt->type == OC_FORM_OPT_PASSWORD)) {
-			free(opt->value);
-			opt->value = NULL;
-		}
-	}
-	return -EINVAL;
+	return OC_FORM_RESULT_ERR;
 }
 
 static void init_token(struct openconnect_info *vpninfo,

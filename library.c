@@ -26,6 +26,8 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #ifdef HAVE_LIBSTOKEN
 #include <stoken.h>
@@ -36,6 +38,7 @@
 #endif
 
 #include <libxml/tree.h>
+#include <zlib.h>
 
 #include "openconnect-internal.h"
 
@@ -48,17 +51,30 @@ struct openconnect_info *openconnect_vpninfo_new(char *useragent,
 {
 	struct openconnect_info *vpninfo = calloc(sizeof(*vpninfo), 1);
 
-	vpninfo->ssl_fd = -1;
+	if (!vpninfo)
+		return NULL;
+
+	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = vpninfo->new_dtls_fd = -1;
+	vpninfo->cmd_fd = vpninfo->cmd_fd_write = -1;
 	vpninfo->cert_expire_warning = 60 * 86400;
+	vpninfo->deflate = 1;
+	vpninfo->max_qlen = 10;
+	vpninfo->localname = strdup("localhost");
 	vpninfo->useragent = openconnect_create_useragent(useragent);
 	vpninfo->validate_peer_cert = validate_peer_cert;
 	vpninfo->write_new_config = write_new_config;
 	vpninfo->process_auth_form = process_auth_form;
 	vpninfo->progress = progress;
 	vpninfo->cbdata = privdata ? : vpninfo;
-	vpninfo->cancel_fd = -1;
 	vpninfo->xmlpost = 1;
 	openconnect_set_reported_os(vpninfo, NULL);
+
+	if (!vpninfo->localname || !vpninfo->useragent) {
+		free(vpninfo->localname);
+		free(vpninfo->useragent);
+		free(vpninfo);
+		return NULL;
+	}
 
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
@@ -71,18 +87,22 @@ int openconnect_set_reported_os(struct openconnect_info *vpninfo, const char *os
 {
 	if (!os) {
 #if defined(__APPLE__)
-		os = "mac";
+		os = "mac-intel";
+#elif defined(__ANDROID__)
+		os = "android";
 #else
 		os = sizeof(long) > 4 ? "linux-64" : "linux";
 #endif
 	}
 
-	/* FIXME: is there a special platname for 64-bit Windows? */
-	if (!strcmp(os, "mac"))
+	if (!strcmp(os, "mac-intel"))
 		vpninfo->csd_xmltag = "csdMac";
 	else if (!strcmp(os, "linux") || !strcmp(os, "linux-64"))
 		vpninfo->csd_xmltag = "csdLinux";
-	else if (!strcmp(os, "win"))
+	else if (!strcmp(os, "android") || !strcmp(os, "apple-ios")) {
+		vpninfo->csd_xmltag = "csdLinux";
+		vpninfo->csd_nostub = 1;
+	} else if (!strcmp(os, "win"))
 		vpninfo->csd_xmltag = "csd";
 	else
 		return -EINVAL;
@@ -91,9 +111,19 @@ int openconnect_set_reported_os(struct openconnect_info *vpninfo, const char *os
 	return 0;
 }
 
-static void free_optlist(struct vpn_option *opt)
+void openconnect_set_mobile_info(struct openconnect_info *vpninfo,
+				 char *mobile_platform_version,
+				 char *mobile_device_type,
+				 char *mobile_device_uniqueid)
 {
-	struct vpn_option *next;
+	vpninfo->mobile_platform_version = mobile_platform_version;
+	vpninfo->mobile_device_type = mobile_device_type;
+	vpninfo->mobile_device_uniqueid = mobile_device_uniqueid;
+}
+
+static void free_optlist(struct oc_vpn_option *opt)
+{
+	struct oc_vpn_option *next;
 
 	for (; opt; opt = next) {
 		next = opt->next;
@@ -106,20 +136,36 @@ static void free_optlist(struct vpn_option *opt)
 void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 {
 	openconnect_close_https(vpninfo, 1);
+	dtls_close(vpninfo, 1);
+	if (vpninfo->cmd_fd_write != -1) {
+		close(vpninfo->cmd_fd);
+		close(vpninfo->cmd_fd_write);
+	}
 	free(vpninfo->peer_addr);
 	free_optlist(vpninfo->cookies);
 	free_optlist(vpninfo->cstp_options);
 	free_optlist(vpninfo->dtls_options);
+	cstp_free_splits(vpninfo);
 	free(vpninfo->hostname);
 	free(vpninfo->urlpath);
 	free(vpninfo->redirect_url);
+	free(vpninfo->cookie);
 	free(vpninfo->proxy_type);
 	free(vpninfo->proxy);
+	free(vpninfo->vpnc_script);
+	free(vpninfo->cafile);
+	free(vpninfo->servercert);
+	free(vpninfo->ifname);
+	free(vpninfo->dtls_cipher);
+	free(vpninfo->dtls_addr);
 
 	if (vpninfo->csd_scriptname) {
 		unlink(vpninfo->csd_scriptname);
 		free(vpninfo->csd_scriptname);
 	}
+	free(vpninfo->mobile_platform_version);
+	free(vpninfo->mobile_device_type);
+	free(vpninfo->mobile_device_uniqueid);
 	free(vpninfo->csd_token);
 	free(vpninfo->csd_ticket);
 	free(vpninfo->csd_stuburl);
@@ -132,7 +178,6 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	/* These are const in openconnect itself, but for consistency of
 	   the library API we do take ownership of the strings we're given,
 	   and thus we have to free them too. */
-	free((void *)vpninfo->cafile);
 	if (vpninfo->cert != vpninfo->sslkey)
 		free((void *)vpninfo->sslkey);
 	free((void *)vpninfo->cert);
@@ -144,7 +189,9 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 #endif
 		vpninfo->peer_cert = NULL;
 	}
+	free(vpninfo->localname);
 	free(vpninfo->useragent);
+	free(vpninfo->authgroup);
 #ifdef HAVE_LIBSTOKEN
 	if (vpninfo->stoken_pin)
 		free(vpninfo->stoken_pin);
@@ -155,7 +202,12 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	if (vpninfo->oath_secret)
 		oath_done();
 #endif
-	/* No need to free deflate streams; they weren't initialised */
+
+	/* These check strm->state so they are safe to call multiple times */
+	inflateEnd(&vpninfo->inflate_strm);
+	deflateEnd(&vpninfo->deflate_strm);
+
+	free(vpninfo->deflate_pkt);
 	free(vpninfo);
 }
 
@@ -197,11 +249,45 @@ void openconnect_set_cafile(struct openconnect_info *vpninfo, char *cafile)
 	vpninfo->cafile = cafile;
 }
 
+void openconnect_set_server_cert_sha1(struct openconnect_info *vpninfo, char *servercert)
+{
+	vpninfo->servercert = servercert;
+}
+
+const char *openconnect_get_ifname(struct openconnect_info *vpninfo)
+{
+	return vpninfo->ifname;
+}
+
+void openconnect_set_reqmtu(struct openconnect_info *vpninfo, int reqmtu)
+{
+	vpninfo->reqmtu = reqmtu;
+}
+
+int openconnect_get_ip_info(struct openconnect_info *vpninfo,
+			    const struct oc_ip_info **info,
+			    const struct oc_vpn_option **cstp_options,
+			    const struct oc_vpn_option **dtls_options)
+{
+	if (info)
+		*info = &vpninfo->ip_info;
+	if (cstp_options)
+		*cstp_options = vpninfo->cstp_options;
+	if (dtls_options)
+		*dtls_options = vpninfo->dtls_options;
+	return 0;
+}
+
 void openconnect_setup_csd(struct openconnect_info *vpninfo, uid_t uid, int silent, char *wrapper)
 {
 	vpninfo->uid_csd = uid;
 	vpninfo->uid_csd_given = silent ? 2 : 1;
 	vpninfo->csd_wrapper = wrapper;
+}
+
+void openconnect_set_xmlpost(struct openconnect_info *vpninfo, int enable)
+{
+	vpninfo->xmlpost = enable;
 }
 
 void openconnect_set_client_cert(struct openconnect_info *vpninfo, char *cert, char *sslkey)
@@ -278,7 +364,24 @@ void openconnect_set_cert_expiry_warning(struct openconnect_info *vpninfo,
 
 void openconnect_set_cancel_fd(struct openconnect_info *vpninfo, int fd)
 {
-	vpninfo->cancel_fd = fd;
+	vpninfo->cmd_fd = fd;
+}
+
+int openconnect_setup_cmd_pipe(struct openconnect_info *vpninfo)
+{
+	int pipefd[2];
+
+	if (pipe(pipefd) < 0)
+		return -EIO;
+	if (fcntl(pipefd[0], F_SETFL, O_NONBLOCK) ||
+	    fcntl(pipefd[1], F_SETFL, O_NONBLOCK)) {
+		close(pipefd[0]);
+		close(pipefd[1]);
+		return -EIO;
+	}
+	vpninfo->cmd_fd = pipefd[0];
+	vpninfo->cmd_fd_write = pipefd[1];
+	return vpninfo->cmd_fd_write;
 }
 
 const char *openconnect_get_version(void)
@@ -448,4 +551,16 @@ int openconnect_set_stoken_mode(struct openconnect_info *vpninfo,
 		token_mode = OC_TOKEN_MODE_STOKEN;
 
 	return openconnect_set_token_mode(vpninfo, token_mode, token_str);
+}
+
+void openconnect_set_protect_socket_handler(struct openconnect_info *vpninfo,
+					    openconnect_protect_socket_vfn protect_socket)
+{
+	vpninfo->protect_socket = protect_socket;
+}
+
+void openconnect_set_stats_handler(struct openconnect_info *vpninfo,
+				   openconnect_stats_vfn stats_handler)
+{
+	vpninfo->stats_handler = stats_handler;
 }

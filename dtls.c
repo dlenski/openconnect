@@ -109,6 +109,7 @@ int RAND_bytes(char *buf, int len)
 #if defined(DTLS_OPENSSL)
 #define DTLS_SEND SSL_write
 #define DTLS_RECV SSL_read
+#define DTLS_FREE SSL_free
 
 #ifdef HAVE_DTLS1_STOP_TIMER
 /* OpenSSL doesn't deliberately export this, but we need it to
@@ -221,14 +222,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	if (ret == 1) {
 		vpn_progress(vpninfo, PRG_INFO, _("Established DTLS connection (using OpenSSL)\n"));
 
-		if (vpninfo->dtls_ssl) {
-			/* We are replacing an old connection */
-			SSL_free(vpninfo->dtls_ssl);
-			close(vpninfo->dtls_fd);
-			FD_CLR(vpninfo->dtls_fd, &vpninfo->select_rfds);
-			FD_CLR(vpninfo->dtls_fd, &vpninfo->select_wfds);
-			FD_CLR(vpninfo->dtls_fd, &vpninfo->select_efds);
-		}
+		dtls_close(vpninfo, 0);
 		vpninfo->dtls_ssl = vpninfo->new_dtls_ssl;
 		vpninfo->dtls_fd = vpninfo->new_dtls_fd;
 
@@ -317,26 +311,10 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	vpn_progress(vpninfo, PRG_ERR, _("DTLS handshake failed: %d\n"), ret);
 	openconnect_report_ssl_errors(vpninfo);
 
-	/* Kill the new (failed) connection... */
-	SSL_free(vpninfo->new_dtls_ssl);
-	FD_CLR(vpninfo->new_dtls_fd, &vpninfo->select_rfds);
-	FD_CLR(vpninfo->new_dtls_fd, &vpninfo->select_efds);
-	close(vpninfo->new_dtls_fd);
-	vpninfo->new_dtls_ssl = NULL;
-	vpninfo->new_dtls_fd = -1;
-
-	/* ... and kill the old one too. The only time there'll be a valid
-	   existing session is when it was a rekey, and in that case it's
-	   time for the old one to die. */
-	if (vpninfo->dtls_ssl) {
-		SSL_free(vpninfo->dtls_ssl);
-		close(vpninfo->dtls_fd);
-		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_rfds);
-		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_wfds);
-		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_efds);
-		vpninfo->dtls_ssl = NULL;
-		vpninfo->dtls_fd = -1;
-	}
+	/* Kill both the new (failed) connection and the old one too. The
+	   only time there'll be a valid existing session is when it was a
+	   rekey, and in that case it's time for the old one to die. */
+	dtls_close(vpninfo, 1);
 
 	time(&vpninfo->new_dtls_started);
 	return -EINVAL;
@@ -361,6 +339,7 @@ struct {
 
 #define DTLS_SEND gnutls_record_send
 #define DTLS_RECV gnutls_record_recv
+#define DTLS_FREE gnutls_deinit
 static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 {
 	gnutls_session_t dtls_ssl;
@@ -423,7 +402,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 #ifdef HAVE_GNUTLS_DTLS_SET_DATA_MTU
 		/* Make sure GnuTLS's idea of the MTU is sufficient to take
 		   a full VPN MTU (with 1-byte header) in a data record. */
-		err = gnutls_dtls_set_data_mtu(vpninfo->new_dtls_ssl, vpninfo->actual_mtu + 1);
+		err = gnutls_dtls_set_data_mtu(vpninfo->new_dtls_ssl, vpninfo->ip_info.mtu + 1);
 		if (err) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to set DTLS MTU: %s\n"),
@@ -436,7 +415,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 		   We only support AES128-CBC and DES-CBC3-SHA anyway, so
 		   working out the worst case isn't hard. */
 		gnutls_dtls_set_mtu(vpninfo->new_dtls_ssl,
-				    vpninfo->actual_mtu + 1 /* packet + header */
+				    vpninfo->ip_info.mtu + 1 /* packet + header */
 				    + 13 /* DTLS header */
 				    + 20 /* biggest supported MAC (SHA1) */
 				    + 16 /* biggest supported IV (AES-128) */
@@ -445,14 +424,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 
 		vpn_progress(vpninfo, PRG_INFO, _("Established DTLS connection (using GnuTLS)\n"));
 
-		if (vpninfo->dtls_ssl) {
-			/* We are replacing an old connection */
-			gnutls_deinit(vpninfo->dtls_ssl);
-			close(vpninfo->dtls_fd);
-			FD_CLR(vpninfo->dtls_fd, &vpninfo->select_rfds);
-			FD_CLR(vpninfo->dtls_fd, &vpninfo->select_wfds);
-			FD_CLR(vpninfo->dtls_fd, &vpninfo->select_efds);
-		}
+		dtls_close(vpninfo, 0);
 		vpninfo->dtls_ssl = vpninfo->new_dtls_ssl;
 		vpninfo->dtls_fd = vpninfo->new_dtls_fd;
 
@@ -474,28 +446,11 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	vpn_progress(vpninfo, PRG_ERR, _("DTLS handshake failed: %s\n"),
 		     gnutls_strerror(err));
 
-	goto error;
  error:
-	/* Kill the new (failed) connection... */
-	gnutls_deinit(vpninfo->new_dtls_ssl);
-	FD_CLR(vpninfo->new_dtls_fd, &vpninfo->select_rfds);
-	FD_CLR(vpninfo->new_dtls_fd, &vpninfo->select_efds);
-	close(vpninfo->new_dtls_fd);
-	vpninfo->new_dtls_ssl = NULL;
-	vpninfo->new_dtls_fd = -1;
-
-	/* ... and kill the old one too. The only time there'll be a valid
-	   existing session is when it was a rekey, and in that case it's
-	   time for the old one to die. */
-	if (vpninfo->dtls_ssl) {
-		gnutls_deinit(vpninfo->dtls_ssl);
-		close(vpninfo->dtls_fd);
-		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_rfds);
-		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_wfds);
-		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_efds);
-		vpninfo->dtls_ssl = NULL;
-		vpninfo->dtls_fd = -1;
-	}
+	/* Kill both the new (failed) connection and the old one too. The
+	   only time there'll be a valid existing session is when it was a
+	   rekey, and in that case it's time for the old one to die. */
+	dtls_close(vpninfo, 1);
 
 	time(&vpninfo->new_dtls_started);
 	return -EINVAL;
@@ -531,8 +486,10 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		perror(_("Open UDP socket for DTLS:"));
 		return -EINVAL;
 	}
+	if (vpninfo->protect_socket)
+		vpninfo->protect_socket(vpninfo->cbdata, dtls_fd);
 
-	sndbuf = vpninfo->actual_mtu * 2;
+	sndbuf = vpninfo->ip_info.mtu * 2;
 	setsockopt(dtls_fd, SOL_SOCKET, SO_SNDBUF, &sndbuf, sizeof(sndbuf));
 
 	if (vpninfo->dtls_local_port) {
@@ -598,14 +555,10 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	return dtls_try_handshake(vpninfo);
 }
 
-static int dtls_restart(struct openconnect_info *vpninfo)
+void dtls_close(struct openconnect_info *vpninfo, int kill_handshake_too)
 {
 	if (vpninfo->dtls_ssl) {
-#if defined(DTLS_OPENSSL)
-		SSL_free(vpninfo->dtls_ssl);
-#elif defined(DTLS_GNUTLS)
-		gnutls_deinit(vpninfo->dtls_ssl);
-#endif
+		DTLS_FREE(vpninfo->dtls_ssl);
 		close(vpninfo->dtls_fd);
 		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_rfds);
 		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_wfds);
@@ -613,15 +566,31 @@ static int dtls_restart(struct openconnect_info *vpninfo)
 		vpninfo->dtls_ssl = NULL;
 		vpninfo->dtls_fd = -1;
 	}
+	if (kill_handshake_too && vpninfo->new_dtls_ssl) {
+		DTLS_FREE(vpninfo->new_dtls_ssl);
+		close(vpninfo->new_dtls_fd);
+		FD_CLR(vpninfo->new_dtls_fd, &vpninfo->select_rfds);
+		FD_CLR(vpninfo->new_dtls_fd, &vpninfo->select_efds);
+		vpninfo->new_dtls_ssl = NULL;
+		vpninfo->new_dtls_fd = -1;
+	}
+}
 
+static int dtls_restart(struct openconnect_info *vpninfo)
+{
+	dtls_close(vpninfo, 0);
 	return connect_dtls_socket(vpninfo);
 }
 
 
-int setup_dtls(struct openconnect_info *vpninfo)
+int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_period)
 {
-	struct vpn_option *dtls_opt = vpninfo->dtls_options;
+	struct oc_vpn_option *dtls_opt = vpninfo->dtls_options;
 	int dtls_port = 0;
+
+	vpninfo->dtls_attempt_period = dtls_attempt_period;
+	if (!dtls_attempt_period)
+		return 0;
 
 #if defined(OPENCONNECT_GNUTLS) && defined(DTLS_OPENSSL)
 	/* If we're using GnuTLS for authentication but OpenSSL for DTLS,
@@ -698,7 +667,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	char magic_pkt;
 
 	while (1) {
-		int len = vpninfo->actual_mtu;
+		int len = vpninfo->ip_info.mtu;
 		unsigned char *buf;
 
 		if (!dtls_pkt || len > dtls_pkt_max) {
@@ -767,20 +736,24 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	}
 
 	switch (keepalive_action(&vpninfo->dtls_times, timeout)) {
-	case KA_REKEY:
+	case KA_REKEY: {
+		int ret;
+
 		vpn_progress(vpninfo, PRG_INFO, _("DTLS rekey due\n"));
 
 		/* There ought to be a method of rekeying DTLS without tearing down
 		   the CSTP session and restarting, but we don't (yet) know it */
-		if (cstp_reconnect(vpninfo)) {
+		ret = cstp_reconnect(vpninfo);
+		if (ret) {
 			vpn_progress(vpninfo, PRG_ERR, _("Reconnect failed\n"));
 			vpninfo->quit_reason = "CSTP reconnect failed";
-			return 1;
+			return ret;
 		}
 
 		if (dtls_restart(vpninfo))
 			vpn_progress(vpninfo, PRG_ERR, _("DTLS rekey failed\n"));
 		return 1;
+	}
 
 	case KA_DPD_DEAD:
 		vpn_progress(vpninfo, PRG_ERR, _("DTLS Dead Peer Detection detected dead peer!\n"));
@@ -888,7 +861,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 }
 #else /* !HAVE_DTLS */
 #warning Your SSL library does not seem to support Cisco DTLS compatibility
-int setup_dtls(struct openconnect_info *vpninfo)
+int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_period)
 {
 	vpn_progress(vpninfo, PRG_ERR,
 		     _("Built against SSL library with no Cisco DTLS support\n"));

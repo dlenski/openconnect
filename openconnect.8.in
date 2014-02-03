@@ -18,6 +18,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-h,\-\-help
 .OP \-i,\-\-interface ifname
 .OP \-l,\-\-syslog
+.OP \-\-timestamp
 .OP \-U,\-\-setuid user
 .OP \-\-csd\-user user
 .OP \-m,\-\-mtu mtu
@@ -153,6 +154,9 @@ for tunnel interface
 .TP
 .B \-l,\-\-syslog
 Use syslog for progress messages
+.TP
+.B \-\-timestamp
+Prepend a timestamp to each progress message
 .TP
 .B \-U,\-\-setuid=USER
 Drop privileges after connecting, to become user
@@ -382,9 +386,18 @@ as 'User\-Agent:' field value in HTTP header.
 (e.g. \-\-useragent 'Cisco AnyConnect VPN Agent for Windows 2.2.0133')
 .TP
 .B \-\-os=STRING
-OS type to report to gateway.  Recognized values are: linux, linux-64, mac,
-win.  Reporting a different OS type may affect the security policy applied
-to the VPN session.
+OS type to report to gateway.  Recognized values are:
+.BR linux ,
+.BR linux\-64 ,
+.BR win ,
+.BR mac\-intel ,
+.BR android ,
+.BR apple\-ios .
+Reporting a different OS type may affect the dynamic access policy (DAP)
+applied to the VPN session.  If the gateway requires CSD, it will also cause
+the corresponding CSD trojan binary to be downloaded, so you may need to use
+.B \-\-csd\-wrapper
+if this code is not executable on the local machine.
 .SH LIMITATIONS
 Note that although IPv6 has been tested on all platforms on which
 .B openconnect

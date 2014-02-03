@@ -149,55 +149,62 @@ static void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *
 		*mtu = 1280;
 }
 
+void cstp_free_splits(struct openconnect_info *vpninfo)
+{
+	struct oc_split_include *inc;
+
+	for (inc = vpninfo->ip_info.split_includes; inc; ) {
+		struct oc_split_include *next = inc->next;
+		free(inc);
+		inc = next;
+	}
+	for (inc = vpninfo->ip_info.split_excludes; inc; ) {
+		struct oc_split_include *next = inc->next;
+		free(inc);
+		inc = next;
+	}
+	for (inc = vpninfo->ip_info.split_dns; inc; ) {
+		struct oc_split_include *next = inc->next;
+		free(inc);
+		inc = next;
+	}
+	vpninfo->ip_info.split_dns = vpninfo->ip_info.split_includes =
+		vpninfo->ip_info.split_excludes = NULL;
+}
+
 static int start_cstp_connection(struct openconnect_info *vpninfo)
 {
 	char buf[65536];
 	int i;
 	int retried = 0, sessid_found = 0;
-	struct vpn_option **next_dtls_option = &vpninfo->dtls_options;
-	struct vpn_option **next_cstp_option = &vpninfo->cstp_options;
-	struct vpn_option *old_cstp_opts = vpninfo->cstp_options;
-	struct vpn_option *old_dtls_opts = vpninfo->dtls_options;
-	const char *old_addr = vpninfo->vpn_addr;
-	const char *old_netmask = vpninfo->vpn_netmask;
-	const char *old_addr6 = vpninfo->vpn_addr6;
-	const char *old_netmask6 = vpninfo->vpn_netmask6;
-	struct split_include *inc;
+	struct oc_vpn_option **next_dtls_option = &vpninfo->dtls_options;
+	struct oc_vpn_option **next_cstp_option = &vpninfo->cstp_options;
+	struct oc_vpn_option *old_cstp_opts = vpninfo->cstp_options;
+	struct oc_vpn_option *old_dtls_opts = vpninfo->dtls_options;
+	const char *old_addr = vpninfo->ip_info.addr;
+	const char *old_netmask = vpninfo->ip_info.netmask;
+	const char *old_addr6 = vpninfo->ip_info.addr6;
+	const char *old_netmask6 = vpninfo->ip_info.netmask6;
 	int base_mtu, mtu;
 
 	/* Clear old options which will be overwritten */
-	vpninfo->vpn_addr = vpninfo->vpn_netmask = NULL;
-	vpninfo->vpn_addr6 = vpninfo->vpn_netmask6 = NULL;
+	vpninfo->ip_info.addr = vpninfo->ip_info.netmask = NULL;
+	vpninfo->ip_info.addr6 = vpninfo->ip_info.netmask6 = NULL;
 	vpninfo->cstp_options = vpninfo->dtls_options = NULL;
-	vpninfo->vpn_domain = vpninfo->vpn_proxy_pac = NULL;
+	vpninfo->ip_info.domain = vpninfo->ip_info.proxy_pac = NULL;
 	vpninfo->banner = NULL;
 
 	for (i = 0; i < 3; i++)
-		vpninfo->vpn_dns[i] = vpninfo->vpn_nbns[i] = NULL;
-
-	for (inc = vpninfo->split_includes; inc; ) {
-		struct split_include *next = inc->next;
-		free(inc);
-		inc = next;
-	}
-	for (inc = vpninfo->split_excludes; inc; ) {
-		struct split_include *next = inc->next;
-		free(inc);
-		inc = next;
-	}
-	for (inc = vpninfo->split_dns; inc; ) {
-		struct split_include *next = inc->next;
-		free(inc);
-		inc = next;
-	}
-	vpninfo->split_dns = vpninfo->split_includes = vpninfo->split_excludes = NULL;
+		vpninfo->ip_info.dns[i] = vpninfo->ip_info.nbns[i] = NULL;
+	cstp_free_splits(vpninfo);
 
 	/* Create (new) random master key for DTLS connection, if needed */
 	if (vpninfo->dtls_times.last_rekey + vpninfo->dtls_times.rekey <
 	    time(NULL) + 300 &&
 	    openconnect_random(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret))) {
-		fprintf(stderr, _("Failed to initialise DTLS secret\n"));
-		exit(1);
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to initialise DTLS secret\n"));
+		return -EIO;
 	}
 
  retry:
@@ -238,7 +245,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to open HTTPS connection to %s\n"),
 					     vpninfo->hostname);
-				exit(1);
+				return -EIO;
 			}
 			goto retry;
 		}
@@ -264,7 +271,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			     _("Got inappropriate HTTP CONNECT response: %s\n"),
 			     buf);
 		if (!strncmp(buf, "HTTP/1.1 401 ", 13))
-			exit(2);
+			return -EPERM;
 		return -EINVAL;
 	}
 
@@ -275,7 +282,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	mtu = 0;
 
 	while ((i = openconnect_SSL_gets(vpninfo, buf, sizeof(buf)))) {
-		struct vpn_option *new_option;
+		struct oc_vpn_option *new_option;
 		char *colon;
 
 		if (i < 0)
@@ -369,58 +376,58 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		} else if (!strcmp(buf + 7, "Address")) {
 			if (strchr(new_option->value, ':')) {
 				if (!vpninfo->disable_ipv6)
-					vpninfo->vpn_addr6 = new_option->value;
+					vpninfo->ip_info.addr6 = new_option->value;
 			} else
-				vpninfo->vpn_addr = new_option->value;
+				vpninfo->ip_info.addr = new_option->value;
 		} else if (!strcmp(buf + 7, "Netmask")) {
 			if (strchr(new_option->value, ':')) {
 				if (!vpninfo->disable_ipv6)
-					vpninfo->vpn_netmask6 = new_option->value;
+					vpninfo->ip_info.netmask6 = new_option->value;
 			} else
-				vpninfo->vpn_netmask = new_option->value;
+				vpninfo->ip_info.netmask = new_option->value;
 		} else if (!strcmp(buf + 7, "DNS")) {
 			int j;
 			for (j = 0; j < 3; j++) {
-				if (!vpninfo->vpn_dns[j]) {
-					vpninfo->vpn_dns[j] = new_option->value;
+				if (!vpninfo->ip_info.dns[j]) {
+					vpninfo->ip_info.dns[j] = new_option->value;
 					break;
 				}
 			}
 		} else if (!strcmp(buf + 7, "NBNS")) {
 			int j;
 			for (j = 0; j < 3; j++) {
-				if (!vpninfo->vpn_nbns[j]) {
-					vpninfo->vpn_nbns[j] = new_option->value;
+				if (!vpninfo->ip_info.nbns[j]) {
+					vpninfo->ip_info.nbns[j] = new_option->value;
 					break;
 				}
 			}
 		} else if (!strcmp(buf + 7, "Default-Domain")) {
-			vpninfo->vpn_domain = new_option->value;
+			vpninfo->ip_info.domain = new_option->value;
 		} else if (!strcmp(buf + 7, "MSIE-Proxy-PAC-URL")) {
-			vpninfo->vpn_proxy_pac = new_option->value;
+			vpninfo->ip_info.proxy_pac = new_option->value;
 		} else if (!strcmp(buf + 7, "Banner")) {
 			vpninfo->banner = new_option->value;
 		} else if (!strcmp(buf + 7, "Split-DNS")) {
-			struct split_include *dns = malloc(sizeof(*dns));
+			struct oc_split_include *dns = malloc(sizeof(*dns));
 			if (!dns)
 				continue;
 			dns->route = new_option->value;
-			dns->next = vpninfo->split_dns;
-			vpninfo->split_dns = dns;
+			dns->next = vpninfo->ip_info.split_dns;
+			vpninfo->ip_info.split_dns = dns;
 		} else if (!strcmp(buf + 7, "Split-Include")) {
-			struct split_include *inc = malloc(sizeof(*inc));
+			struct oc_split_include *inc = malloc(sizeof(*inc));
 			if (!inc)
 				continue;
 			inc->route = new_option->value;
-			inc->next = vpninfo->split_includes;
-			vpninfo->split_includes = inc;
+			inc->next = vpninfo->ip_info.split_includes;
+			vpninfo->ip_info.split_includes = inc;
 		} else if (!strcmp(buf + 7, "Split-Exclude")) {
-			struct split_include *exc = malloc(sizeof(*exc));
+			struct oc_split_include *exc = malloc(sizeof(*exc));
 			if (!exc)
 				continue;
 			exc->route = new_option->value;
-			exc->next = vpninfo->split_excludes;
-			vpninfo->split_excludes = exc;
+			exc->next = vpninfo->ip_info.split_excludes;
+			vpninfo->ip_info.split_excludes = exc;
 		}
 	}
 
@@ -429,55 +436,55 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			     _("No MTU received. Aborting\n"));
 		return -EINVAL;
 	}
-	vpninfo->actual_mtu = mtu;
+	vpninfo->ip_info.mtu = mtu;
 
-	if (!vpninfo->vpn_addr && !vpninfo->vpn_addr6) {
+	if (!vpninfo->ip_info.addr && !vpninfo->ip_info.addr6) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("No IP address received. Aborting\n"));
 		return -EINVAL;
 	}
 	if (old_addr) {
-		if (strcmp(old_addr, vpninfo->vpn_addr)) {
+		if (strcmp(old_addr, vpninfo->ip_info.addr)) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Reconnect gave different Legacy IP address (%s != %s)\n"),
-				     vpninfo->vpn_addr, old_addr);
+				     vpninfo->ip_info.addr, old_addr);
 			return -EINVAL;
 		}
 	}
 	if (old_netmask) {
-		if (strcmp(old_netmask, vpninfo->vpn_netmask)) {
+		if (strcmp(old_netmask, vpninfo->ip_info.netmask)) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Reconnect gave different Legacy IP netmask (%s != %s)\n"),
-				     vpninfo->vpn_netmask, old_netmask);
+				     vpninfo->ip_info.netmask, old_netmask);
 			return -EINVAL;
 		}
 	}
 	if (old_addr6) {
-		if (strcmp(old_addr6, vpninfo->vpn_addr6)) {
+		if (strcmp(old_addr6, vpninfo->ip_info.addr6)) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Reconnect gave different IPv6 address (%s != %s)\n"),
-				     vpninfo->vpn_addr6, old_addr6);
+				     vpninfo->ip_info.addr6, old_addr6);
 			return -EINVAL;
 		}
 	}
 	if (old_netmask6) {
-		if (strcmp(old_netmask6, vpninfo->vpn_netmask6)) {
+		if (strcmp(old_netmask6, vpninfo->ip_info.netmask6)) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Reconnect gave different IPv6 netmask (%s != %s)\n"),
-				     vpninfo->vpn_netmask6, old_netmask6);
+				     vpninfo->ip_info.netmask6, old_netmask6);
 			return -EINVAL;
 		}
 	}
 
 	while (old_dtls_opts) {
-		struct vpn_option *tmp = old_dtls_opts;
+		struct oc_vpn_option *tmp = old_dtls_opts;
 		old_dtls_opts = old_dtls_opts->next;
 		free(tmp->value);
 		free(tmp->option);
 		free(tmp);
 	}
 	while (old_cstp_opts) {
-		struct vpn_option *tmp = old_cstp_opts;
+		struct oc_vpn_option *tmp = old_cstp_opts;
 		old_cstp_opts = old_cstp_opts->next;
 		free(tmp->value);
 		free(tmp->option);
@@ -501,7 +508,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 }
 
 
-int make_cstp_connection(struct openconnect_info *vpninfo)
+int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 {
 	int ret;
 
@@ -536,7 +543,10 @@ int make_cstp_connection(struct openconnect_info *vpninfo)
 		}
 	}
 
-	return start_cstp_connection(vpninfo);
+	ret = start_cstp_connection(vpninfo);
+	if (ret < 0)
+		openconnect_close_https(vpninfo, 0);
+	return ret;
 }
 
 int cstp_reconnect(struct openconnect_info *vpninfo)
@@ -560,15 +570,22 @@ int cstp_reconnect(struct openconnect_info *vpninfo)
 	timeout = vpninfo->reconnect_timeout;
 	interval = vpninfo->reconnect_interval;
 
-	while ((ret = make_cstp_connection(vpninfo))) {
+	while ((ret = openconnect_make_cstp_connection(vpninfo))) {
 		if (timeout <= 0)
 			return ret;
+		if (ret == -EPERM) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Cookie is no longer valid, ending session\n"));
+			return ret;
+		}
 		vpn_progress(vpninfo, PRG_INFO,
 			     _("sleep %ds, remaining timeout %ds\n"),
 			     interval, timeout);
-		sleep(interval);
-		if (killed)
-			return 1;
+		poll_cmd_fd(vpninfo, interval);
+		if (vpninfo->got_cancel_cmd)
+			return -EINTR;
+		if (vpninfo->got_pause_cmd)
+			return 0;
 		timeout -= interval;
 		interval += vpninfo->reconnect_interval;
 		if (interval > RECONNECT_INTERVAL_MAX)
@@ -581,7 +598,7 @@ int cstp_reconnect(struct openconnect_info *vpninfo)
 static int inflate_and_queue_packet(struct openconnect_info *vpninfo,
 				    unsigned char *buf, int len)
 {
-	struct pkt *new = malloc(sizeof(struct pkt) + vpninfo->actual_mtu);
+	struct pkt *new = malloc(sizeof(struct pkt) + vpninfo->ip_info.mtu);
 	uint32_t pkt_sum;
 
 	if (!new)
@@ -593,7 +610,7 @@ static int inflate_and_queue_packet(struct openconnect_info *vpninfo,
 	vpninfo->inflate_strm.avail_in = len - 4;
 
 	vpninfo->inflate_strm.next_out = new->data;
-	vpninfo->inflate_strm.avail_out = vpninfo->actual_mtu;
+	vpninfo->inflate_strm.avail_out = vpninfo->ip_info.mtu;
 	vpninfo->inflate_strm.total_out = 0;
 
 	if (inflate(&vpninfo->inflate_strm, Z_SYNC_FLUSH)) {
@@ -709,6 +726,9 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	int len, ret;
 	int work_done = 0;
 
+	if (vpninfo->ssl_fd == -1)
+		goto do_reconnect;
+
 	/* FIXME: The poll() handling here is fairly simplistic. Actually,
 	   if the SSL connection stalls it could return a WANT_WRITE error
 	   on _either_ of the SSL_read() or SSL_write() calls. In that case,
@@ -771,7 +791,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				     _("Received server disconnect: %02x '%s'\n"),
 				     buf[8], buf + 9);
 			vpninfo->quit_reason = "Server request";
-			return 1;
+			return -EPIPE;
 		}
 		case AC_PKT_COMPRESSED:
 			if (!vpninfo->deflate) {
@@ -786,7 +806,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		case AC_PKT_TERM_SERVER:
 			vpn_progress(vpninfo, PRG_ERR, _("received server terminate packet\n"));
 			vpninfo->quit_reason = "Server request";
-			return 1;
+			return -EPIPE;
 		}
 
 	unknown_pkt:
@@ -870,10 +890,11 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("CSTP Dead Peer Detection detected dead peer!\n"));
 	do_reconnect:
-		if (cstp_reconnect(vpninfo)) {
+		ret = cstp_reconnect(vpninfo);
+		if (ret) {
 			vpn_progress(vpninfo, PRG_ERR, _("Reconnect failed\n"));
 			vpninfo->quit_reason = "CSTP reconnect failed";
-			return 1;
+			return ret;
 		}
 		/* I think we can leave DTLS to its own devices; when we reconnect
 		   with the same master secret, we do seem to get the same sessid */

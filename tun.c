@@ -28,7 +28,6 @@
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 #include <string.h>
-#include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <netdb.h>
@@ -92,7 +91,7 @@ static int set_tun_mtu(struct openconnect_info *vpninfo)
 
 	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, vpninfo->ifname, sizeof(ifr.ifr_name) - 1);
-	ifr.ifr_mtu = vpninfo->actual_mtu;
+	ifr.ifr_mtu = vpninfo->ip_info.mtu;
 
 	if (ioctl(net_fd, SIOCSIFMTU, &ifr) < 0)
 		perror(_("SIOCSIFMTU"));
@@ -203,7 +202,7 @@ static void setenv_cstp_opts(struct openconnect_info *vpninfo)
 	char *env_buf;
 	int buflen = 0;
 	int bufofs = 0;
-	struct vpn_option *opt;
+	struct oc_vpn_option *opt;
 
 	for (opt = vpninfo->cstp_options; opt; opt = opt->next)
 		buflen += 2 + strlen(opt->option) + strlen(opt->value);
@@ -260,62 +259,62 @@ static void set_script_env(struct openconnect_info *vpninfo)
 	unsetenv("CISCO_SPLIT_INC");
 	unsetenv("CISCO_SPLIT_EXC");
 
-	setenv_int("INTERNAL_IP4_MTU", vpninfo->actual_mtu);
+	setenv_int("INTERNAL_IP4_MTU", vpninfo->ip_info.mtu);
 
-	if (vpninfo->vpn_addr) {
-		setenv("INTERNAL_IP4_ADDRESS", vpninfo->vpn_addr, 1);
-		if (vpninfo->vpn_netmask) {
+	if (vpninfo->ip_info.addr) {
+		setenv("INTERNAL_IP4_ADDRESS", vpninfo->ip_info.addr, 1);
+		if (vpninfo->ip_info.netmask) {
 			struct in_addr addr;
 			struct in_addr mask;
 
-			if (inet_aton(vpninfo->vpn_addr, &addr) &&
-			    inet_aton(vpninfo->vpn_netmask, &mask)) {
+			if (inet_aton(vpninfo->ip_info.addr, &addr) &&
+			    inet_aton(vpninfo->ip_info.netmask, &mask)) {
 				char *netaddr;
 
 				addr.s_addr &= mask.s_addr;
 				netaddr = inet_ntoa(addr);
 
 				setenv("INTERNAL_IP4_NETADDR", netaddr, 1);
-				setenv("INTERNAL_IP4_NETMASK", vpninfo->vpn_netmask, 1);
+				setenv("INTERNAL_IP4_NETMASK", vpninfo->ip_info.netmask, 1);
 				setenv_int("INTERNAL_IP4_NETMASKLEN", netmasklen(mask));
 			}
 		}
 	}
-	if (vpninfo->vpn_addr6) {
-		setenv("INTERNAL_IP6_ADDRESS", vpninfo->vpn_addr6, 1);
-		setenv("INTERNAL_IP6_NETMASK", vpninfo->vpn_netmask6, 1);
+	if (vpninfo->ip_info.addr6) {
+		setenv("INTERNAL_IP6_ADDRESS", vpninfo->ip_info.addr6, 1);
+		setenv("INTERNAL_IP6_NETMASK", vpninfo->ip_info.netmask6, 1);
 	}
 
-	if (vpninfo->vpn_dns[0])
-		setenv("INTERNAL_IP4_DNS", vpninfo->vpn_dns[0], 1);
+	if (vpninfo->ip_info.dns[0])
+		setenv("INTERNAL_IP4_DNS", vpninfo->ip_info.dns[0], 1);
 	else
 		unsetenv("INTERNAL_IP4_DNS");
-	if (vpninfo->vpn_dns[1])
-		appendenv("INTERNAL_IP4_DNS", vpninfo->vpn_dns[1]);
-	if (vpninfo->vpn_dns[2])
-		appendenv("INTERNAL_IP4_DNS", vpninfo->vpn_dns[2]);
+	if (vpninfo->ip_info.dns[1])
+		appendenv("INTERNAL_IP4_DNS", vpninfo->ip_info.dns[1]);
+	if (vpninfo->ip_info.dns[2])
+		appendenv("INTERNAL_IP4_DNS", vpninfo->ip_info.dns[2]);
 
-	if (vpninfo->vpn_nbns[0])
-		setenv("INTERNAL_IP4_NBNS", vpninfo->vpn_nbns[0], 1);
+	if (vpninfo->ip_info.nbns[0])
+		setenv("INTERNAL_IP4_NBNS", vpninfo->ip_info.nbns[0], 1);
 	else
 		unsetenv("INTERNAL_IP4_NBNS");
-	if (vpninfo->vpn_nbns[1])
-		appendenv("INTERNAL_IP4_NBNS", vpninfo->vpn_nbns[1]);
-	if (vpninfo->vpn_nbns[2])
-		appendenv("INTERNAL_IP4_NBNS", vpninfo->vpn_nbns[2]);
+	if (vpninfo->ip_info.nbns[1])
+		appendenv("INTERNAL_IP4_NBNS", vpninfo->ip_info.nbns[1]);
+	if (vpninfo->ip_info.nbns[2])
+		appendenv("INTERNAL_IP4_NBNS", vpninfo->ip_info.nbns[2]);
 
-	if (vpninfo->vpn_domain)
-		setenv("CISCO_DEF_DOMAIN", vpninfo->vpn_domain, 1);
+	if (vpninfo->ip_info.domain)
+		setenv("CISCO_DEF_DOMAIN", vpninfo->ip_info.domain, 1);
 	else
 		unsetenv("CISCO_DEF_DOMAIN");
 
-	if (vpninfo->vpn_proxy_pac)
-		setenv("CISCO_PROXY_PAC", vpninfo->vpn_proxy_pac, 1);
+	if (vpninfo->ip_info.proxy_pac)
+		setenv("CISCO_PROXY_PAC", vpninfo->ip_info.proxy_pac, 1);
 
-	if (vpninfo->split_dns) {
+	if (vpninfo->ip_info.split_dns) {
 		char *list;
 		int len = 0;
-		struct split_include *dns = vpninfo->split_dns;
+		struct oc_split_include *dns = vpninfo->ip_info.split_dns;
 
 		while (dns) {
 			len += strlen(dns->route) + 1;
@@ -325,7 +324,7 @@ static void set_script_env(struct openconnect_info *vpninfo)
 		if (list) {
 			char *p = list;
 
-			dns = vpninfo->split_dns;
+			dns = vpninfo->ip_info.split_dns;
 			while (1) {
 				strcpy(p, dns->route);
 				p += strlen(p);
@@ -338,8 +337,8 @@ static void set_script_env(struct openconnect_info *vpninfo)
 			free(list);
 		}
 	}
-	if (vpninfo->split_includes) {
-		struct split_include *this = vpninfo->split_includes;
+	if (vpninfo->ip_info.split_includes) {
+		struct oc_split_include *this = vpninfo->ip_info.split_includes;
 		int nr_split_includes = 0;
 		int nr_v6_split_includes = 0;
 
@@ -354,8 +353,8 @@ static void set_script_env(struct openconnect_info *vpninfo)
 		if (nr_v6_split_includes)
 			setenv_int("CISCO_IPV6_SPLIT_INC", nr_v6_split_includes);
 	}
-	if (vpninfo->split_excludes) {
-		struct split_include *this = vpninfo->split_excludes;
+	if (vpninfo->ip_info.split_excludes) {
+		struct oc_split_include *this = vpninfo->ip_info.split_excludes;
 		int nr_split_excludes = 0;
 		int nr_v6_split_excludes = 0;
 
@@ -509,7 +508,7 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to open tun device: %s\n"),
 			     strerror(tunerr));
-		exit(1);
+		return -EIO;
 	}
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
@@ -520,7 +519,7 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("TUNSETIFF failed: %s\n"),
 			     strerror(errno));
-		exit(1);
+		return -EIO;
 	}
 	if (!vpninfo->ifname)
 		vpninfo->ifname = strdup(ifr.ifr_name);
@@ -556,7 +555,7 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 		return -EIO;
 	}
 
-	if (vpninfo->vpn_addr6) {
+	if (vpninfo->ip_info.addr6) {
 		vpninfo->ip6_fd = link_proto(unit_nr, "/dev/udp6", IFF_IPV6);
 		if (vpninfo->ip6_fd < 0) {
 			close(tun_fd);
@@ -616,8 +615,10 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 				break;
 		}
 		if (tun_fd < 0) {
-			perror(_("open tun"));
-			exit(1);
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to open tun device: %s\n"),
+				     strerror(errno));
+			return -EIO;
 		}
 		vpninfo->ifname = strdup(tun_name + 5);
 	}
@@ -625,61 +626,19 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 	i = 1;
 	if (ioctl(tun_fd, TUNSIFHEAD, &i) < 0) {
 		perror(_("TUNSIFHEAD"));
-		exit(1);
+		return -EIO;
 	}
 #endif
 #endif
 	return tun_fd;
 }
 
-/* Set up a tuntap device. */
-int setup_tun(struct openconnect_info *vpninfo)
+int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
 {
-	int tun_fd;
-
-	set_script_env(vpninfo);
-
-	if (vpninfo->script_tun) {
-		pid_t child;
-		int fds[2];
-
-		if (socketpair(AF_UNIX, SOCK_DGRAM, 0, fds)) {
-			perror(_("socketpair"));
-			exit(1);
-		}
-		tun_fd = fds[0];
-		child = fork();
-		if (child < 0) {
-			perror(_("fork"));
-			exit(1);
-		} else if (!child) {
-			if (setpgid(0, getpid()) < 0)
-				perror(_("setpgid"));
-			close(tun_fd);
-			setenv_int("VPNFD", fds[1]);
-			execl("/bin/sh", "/bin/sh", "-c", vpninfo->vpnc_script, NULL);
-			perror(_("execl"));
-			exit(1);
-		}
-		close(fds[1]);
-		vpninfo->script_tun = child;
-		vpninfo->ifname = strdup(_("(script)"));
-	} else {
-		script_config_tun(vpninfo, "pre-init");
-
-		tun_fd = os_setup_tun(vpninfo);
-		if (tun_fd < 0)
-			return tun_fd;
-
-		setenv("TUNDEV", vpninfo->ifname, 1);
-		script_config_tun(vpninfo, "connect");
-
-		/* Ancient vpnc-scripts might not get this right */
-		set_tun_mtu(vpninfo);
-	}
-
 	fcntl(tun_fd, F_SETFD, FD_CLOEXEC);
 
+	if (vpninfo->tun_fd != -1)
+		FD_CLR(vpninfo->tun_fd, &vpninfo->select_rfds);
 	vpninfo->tun_fd = tun_fd;
 
 	if (vpninfo->select_nfds <= tun_fd)
@@ -690,6 +649,62 @@ int setup_tun(struct openconnect_info *vpninfo)
 	fcntl(vpninfo->tun_fd, F_SETFL, fcntl(vpninfo->tun_fd, F_GETFL) | O_NONBLOCK);
 
 	return 0;
+}
+
+int openconnect_setup_tun_script(struct openconnect_info *vpninfo, char *tun_script)
+{
+	pid_t child;
+	int fds[2];
+
+	vpninfo->vpnc_script = tun_script;
+	vpninfo->script_tun = 1;
+
+	set_script_env(vpninfo);
+	if (socketpair(AF_UNIX, SOCK_DGRAM, 0, fds)) {
+		vpn_progress(vpninfo, PRG_ERR, _("socketpair failed: %s\n"), strerror(errno));
+		return -EIO;
+	}
+	child = fork();
+	if (child < 0) {
+		vpn_progress(vpninfo, PRG_ERR, _("fork failed: %s\n"), strerror(errno));
+		return -EIO;
+	} else if (!child) {
+		if (setpgid(0, getpid()) < 0)
+			perror(_("setpgid"));
+		close(fds[0]);
+		setenv_int("VPNFD", fds[1]);
+		execl("/bin/sh", "/bin/sh", "-c", vpninfo->vpnc_script, NULL);
+		perror(_("execl"));
+		exit(1);
+	}
+	close(fds[1]);
+	vpninfo->script_tun = child;
+	vpninfo->ifname = strdup(_("(script)"));
+
+	return openconnect_setup_tun_fd(vpninfo, fds[0]);
+}
+
+int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_script, char *ifname)
+{
+	int tun_fd;
+
+	vpninfo->vpnc_script = vpnc_script;
+	vpninfo->ifname = ifname;
+
+	set_script_env(vpninfo);
+	script_config_tun(vpninfo, "pre-init");
+
+	tun_fd = os_setup_tun(vpninfo);
+	if (tun_fd < 0)
+		return tun_fd;
+
+	setenv("TUNDEV", vpninfo->ifname, 1);
+	script_config_tun(vpninfo, "connect");
+
+	/* Ancient vpnc-scripts might not get this right */
+	set_tun_mtu(vpninfo);
+
+	return openconnect_setup_tun_fd(vpninfo, tun_fd);
 }
 
 static struct pkt *out_pkt;
@@ -706,7 +721,7 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 	if (FD_ISSET(vpninfo->tun_fd, &vpninfo->select_rfds)) {
 		while (1) {
-			int len = vpninfo->actual_mtu;
+			int len = vpninfo->ip_info.mtu;
 
 			if (!out_pkt) {
 				out_pkt = malloc(sizeof(struct pkt) + len);
@@ -720,6 +735,9 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			if (len <= prefix_size)
 				break;
 			out_pkt->len = len - prefix_size;
+
+			vpninfo->stats.tx_pkts++;
+			vpninfo->stats.tx_bytes += out_pkt->len;
 
 			queue_packet(&vpninfo->outgoing_queue, out_pkt);
 			out_pkt = NULL;
@@ -742,6 +760,9 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		struct pkt *this = vpninfo->incoming_queue;
 		unsigned char *data = this->data;
 		int len = this->len;
+
+		vpninfo->stats.rx_pkts++;
+		vpninfo->stats.rx_bytes += len;
 
 #ifdef TUN_HAS_AF_PREFIX
 		if (!vpninfo->script_tun) {
@@ -803,6 +824,7 @@ void shutdown_tun(struct openconnect_info *vpninfo)
 #endif
 	}
 
-	close(vpninfo->tun_fd);
+	if (vpninfo->vpnc_script)
+		close(vpninfo->tun_fd);
 	vpninfo->tun_fd = -1;
 }

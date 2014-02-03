@@ -112,17 +112,48 @@ static int append_form_opts(struct openconnect_info *vpninfo,
 	return 0;
 }
 
-/*
- * Maybe we should offer this choice to the user. So far we've only
- * ever seen it offer bogus choices though -- between certificate and
- * password authentication, when the former has already failed.
- * So we just accept the first option with an auth-type property.
- */
+static void free_opt(struct oc_form_opt *opt)
+{
+	/* for SELECT options, opt->value is a pointer to oc_choice->name */
+	if (opt->type != OC_FORM_OPT_SELECT)
+		free(opt->value);
+	else {
+		struct oc_form_opt_select *sel = (void *)opt;
+		int i;
+
+		for (i = 0; i < sel->nr_choices; i++) {
+			free(sel->choices[i]->name);
+			free(sel->choices[i]->label);
+			free(sel->choices[i]->auth_type);
+			free(sel->choices[i]->override_name);
+			free(sel->choices[i]->override_label);
+			free(sel->choices[i]);
+		}
+		free(sel->choices);
+	}
+
+	free(opt->name);
+	free(opt->label);
+	free(opt);
+}
+
+static int prop_equals(xmlNode *xml_node, const char *name, const char *value)
+{
+	char *tmp = (char *)xmlGetProp(xml_node, (unsigned char *)name);
+	int ret = 0;
+
+	if (tmp && !strcasecmp(tmp, value))
+		ret = 1;
+	free(tmp);
+	return ret;
+}
 
 static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_form *form,
 			     xmlNode *xml_node)
 {
 	struct oc_form_opt_select *opt;
+	xmlNode *opt_node;
+	int max_choices = 0, selection = 0;
 
 	opt = calloc(1, sizeof(*opt));
 	if (!opt)
@@ -134,8 +165,17 @@ static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_fo
 
 	if (!opt->form.name) {
 		vpn_progress(vpninfo, PRG_ERR, _("Form choice has no name\n"));
-		free(opt);
+		free_opt((struct oc_form_opt *)opt);
 		return -EINVAL;
+	}
+
+	for (opt_node = xml_node->children; opt_node; opt_node = opt_node->next)
+		max_choices++;
+
+	opt->choices = calloc(1, max_choices * sizeof(struct oc_choice *));
+	if (!opt->choices) {
+		free_opt((struct oc_form_opt *)opt);
+		return -ENOMEM;
 	}
 
 	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
@@ -154,23 +194,34 @@ static int parse_auth_choice(struct openconnect_info *vpninfo, struct oc_auth_fo
 		if (!form_id)
 			continue;
 
-		opt->nr_choices++;
-		realloc_inplace(opt, sizeof(*opt) +
-				opt->nr_choices * sizeof(*choice));
-		if (!opt)
+		choice = calloc(1, sizeof(*choice));
+		if (!choice) {
+			free_opt((struct oc_form_opt *)opt);
 			return -ENOMEM;
-
-		choice = &opt->choices[opt->nr_choices-1];
+		}
 
 		choice->name = form_id;
 		choice->label = (char *)xmlNodeGetContent(xml_node);
 		choice->auth_type = (char *)xmlGetProp(xml_node, (unsigned char *)"auth-type");
 		choice->override_name = (char *)xmlGetProp(xml_node, (unsigned char *)"override-name");
 		choice->override_label = (char *)xmlGetProp(xml_node, (unsigned char *)"override-label");
+
+		choice->second_auth = prop_equals(xml_node, "second-auth", "1");
+		choice->secondary_username = (char *)xmlGetProp(xml_node,
+			(unsigned char *)"secondary_username");
+		choice->secondary_username_editable = prop_equals(xml_node,
+			"secondary_username_editable", "true");
+		choice->noaaa = prop_equals(xml_node, "noaaa", "1");
+
+		if (prop_equals(xml_node, "selected", "true"))
+			selection = opt->nr_choices;
+
+		opt->choices[opt->nr_choices++] = choice;
 	}
 
 	if (!strcmp(opt->form.name, "group_list")) {
 		form->authgroup_opt = opt;
+		form->authgroup_selection = selection;
 	}
 
 	/* We link the choice _first_ so it's at the top of what we present
@@ -233,6 +284,7 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 
 		opt->name = input_name;
 		opt->label = input_label;
+		opt->flags = prop_equals(xml_node, "second-auth", "1") ? OC_FORM_OPT_SECOND_AUTH : 0;
 
 		if (!strcmp(input_type, "hidden")) {
 			opt->type = OC_FORM_OPT_HIDDEN;
@@ -454,7 +506,9 @@ static int parse_auth_node(struct openconnect_info *vpninfo, xmlNode *xml_node,
 			xmlnode_get_prop(xml_node, "token", &vpninfo->csd_token);
 			xmlnode_get_prop(xml_node, "ticket", &vpninfo->csd_ticket);
 		} else if (!vpninfo->csd_scriptname && xmlnode_is_named(xml_node, vpninfo->csd_xmltag)) {
-			xmlnode_get_prop(xml_node, "stuburl", &vpninfo->csd_stuburl);
+			/* ignore the CSD trojan binary on mobile platforms */
+			if (!vpninfo->csd_nostub)
+				xmlnode_get_prop(xml_node, "stuburl", &vpninfo->csd_stuburl);
 			xmlnode_get_prop(xml_node, "starturl", &vpninfo->csd_starturl);
 			xmlnode_get_prop(xml_node, "waiturl", &vpninfo->csd_waiturl);
 			vpninfo->csd_preurl = strdup(vpninfo->urlpath);
@@ -569,14 +623,6 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 		goto out;
 	}
 
-	if (form->authgroup_opt && form->authgroup_opt->nr_choices > 1 && vpninfo->xmlpost) {
-		/* XML POST + authgroups require NEWGROUP support, so disable for now */
-		vpn_progress(vpninfo, PRG_INFO,
-			     _("Disabling XML POST due to authgroup option\n"));
-		ret = -EINVAL;
-		goto out;
-	}
-
 	*formp = form;
 	xmlFreeDoc(xml_doc);
 	return 0;
@@ -587,21 +633,96 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 	return ret;
 }
 
+static void nuke_opt_values(struct oc_form_opt *opt)
+{
+	for (; opt; opt = opt->next) {
+		if (opt->type == OC_FORM_OPT_TEXT ||
+		    opt->type == OC_FORM_OPT_PASSWORD) {
+			free(opt->value);
+			opt->value = NULL;
+		}
+	}
+}
+
+int process_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form)
+{
+	int ret;
+	struct oc_form_opt_select *grp = form->authgroup_opt;
+	struct oc_choice *auth_choice;
+	struct oc_form_opt *opt;
+
+	if (!vpninfo->process_auth_form) {
+		vpn_progress(vpninfo, PRG_ERR, _("No form handler; cannot authenticate.\n"));
+		return OC_FORM_RESULT_ERR;
+	}
+
+retry:
+	auth_choice = NULL;
+	if (grp && grp->nr_choices && !vpninfo->xmlpost) {
+		if (vpninfo->authgroup) {
+			/* For non-XML-POST, the server doesn't tell us which group is selected */
+			int i;
+			for (i = 0; i < grp->nr_choices; i++)
+				if (!strcmp(grp->choices[i]->name, vpninfo->authgroup))
+					form->authgroup_selection = i;
+		}
+		auth_choice = grp->choices[form->authgroup_selection];
+	}
+
+	for (opt = form->opts; opt; opt = opt->next) {
+		int second_auth = opt->flags & OC_FORM_OPT_SECOND_AUTH;
+		opt->flags &= ~OC_FORM_OPT_IGNORE;
+
+		if (!auth_choice ||
+		    (opt->type != OC_FORM_OPT_TEXT && opt->type != OC_FORM_OPT_PASSWORD))
+			continue;
+
+		if (auth_choice->noaaa ||
+		    (!auth_choice->second_auth && second_auth))
+			opt->flags |= OC_FORM_OPT_IGNORE;
+		else if (!strcmp(opt->name, "secondary_username") && second_auth) {
+			if (auth_choice->secondary_username) {
+				free(opt->value);
+				opt->value = strdup(auth_choice->secondary_username);
+			}
+			if (!auth_choice->secondary_username_editable)
+				opt->flags |= OC_FORM_OPT_IGNORE;
+		}
+	}
+
+	ret = vpninfo->process_auth_form(vpninfo->cbdata, form);
+
+	if (ret == OC_FORM_RESULT_NEWGROUP &&
+	    form->authgroup_opt &&
+	    form->authgroup_opt->form.value) {
+		free(vpninfo->authgroup);
+		vpninfo->authgroup = strdup(form->authgroup_opt->form.value);
+
+		if (!vpninfo->xmlpost)
+			goto retry;
+	}
+
+	if (ret == OC_FORM_RESULT_CANCELLED || ret < 0)
+		nuke_opt_values(form->opts);
+
+	return ret;
+}
+
 /* Return value:
  *  < 0, on error
- *  = 0, when form parsed and POST required
- *  = 1, when response was cancelled by user
- *  = 2, when form indicates that login was already successful
+ *  = OC_FORM_RESULT_OK (0), when form parsed and POST required
+ *  = OC_FORM_RESULT_CANCELLED, when response was cancelled by user
+ *  = OC_FORM_RESULT_LOGGEDIN, when form indicates that login was already successful
  */
 int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
 		     char *request_body, int req_len, const char **method,
 		     const char **request_body_type)
 {
 	int ret;
-	struct vpn_option *opt, *next;
+	struct oc_vpn_option *opt, *next;
 
 	if (!strcmp(form->auth_id, "success"))
-		return 2;
+		return OC_FORM_RESULT_LOGGEDIN;
 
 	if (vpninfo->nopasswd) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -619,7 +740,7 @@ int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form
 			free(opt);
 		}
 		vpninfo->cookies = NULL;
-		return 0;
+		return OC_FORM_RESULT_OK;
 	}
 	if (!form->opts) {
 		if (form->message)
@@ -629,12 +750,7 @@ int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form
 		return -EPERM;
 	}
 
-	if (vpninfo->process_auth_form)
-		ret = vpninfo->process_auth_form(vpninfo->cbdata, form);
-	else {
-		vpn_progress(vpninfo, PRG_ERR, _("No form handler; cannot authenticate.\n"));
-		ret = 1;
-	}
+	ret = process_auth_form(vpninfo, form);
 	if (ret)
 		return ret;
 
@@ -659,26 +775,7 @@ void free_auth_form(struct oc_auth_form *form)
 		return;
 	while (form->opts) {
 		struct oc_form_opt *tmp = form->opts->next;
-		if (form->opts->type == OC_FORM_OPT_TEXT ||
-		    form->opts->type == OC_FORM_OPT_PASSWORD ||
-		    form->opts->type == OC_FORM_OPT_HIDDEN ||
-		    form->opts->type == OC_FORM_OPT_TOKEN)
-			free(form->opts->value);
-		else if (form->opts->type == OC_FORM_OPT_SELECT) {
-			struct oc_form_opt_select *sel = (void *)form->opts;
-			int i;
-
-			for (i = 0; i < sel->nr_choices; i++) {
-				free(sel->choices[i].name);
-				free(sel->choices[i].label);
-				free(sel->choices[i].auth_type);
-				free(sel->choices[i].override_name);
-				free(sel->choices[i].override_label);
-			}
-		}
-		free(form->opts->label);
-		free(form->opts->name);
-		free(form->opts);
+		free_opt(form->opts);
 		form->opts = tmp;
 	}
 	free(form->error);
@@ -699,7 +796,7 @@ void free_auth_form(struct oc_auth_form *form)
  *
  * <config-auth client="vpn" type="<!-- init or auth-reply -->">
  *   <version who="vpn"><!-- currently just the OpenConnect version --></version>
- *   <device-id><!-- linux, linux-64, mac, win --></device-id>
+ *   <device-id><!-- linux, linux-64, win, ... --></device-id>
  *   <opaque is-for="<!-- some name -->">
  *     <!-- just copy this verbatim from whatever the gateway sent us -->
  *   </opaque>
@@ -743,8 +840,15 @@ static xmlDocPtr xmlpost_new_query(struct openconnect_info *vpninfo, const char 
 	if (!xmlNewProp(node, XCAST("who"), XCAST("vpn")))
 		goto bad;
 
-	if (!xmlNewTextChild(root, NULL, XCAST("device-id"), XCAST(vpninfo->platname)))
+	node = xmlNewTextChild(root, NULL, XCAST("device-id"), XCAST(vpninfo->platname));
+	if (!node)
 		goto bad;
+	if (vpninfo->mobile_platform_version) {
+		if (!xmlNewProp(node, XCAST("platform-version"), XCAST(vpninfo->mobile_platform_version)) ||
+		    !xmlNewProp(node, XCAST("device-type"), XCAST(vpninfo->mobile_device_type)) ||
+		    !xmlNewProp(node, XCAST("unique-id"), XCAST(vpninfo->mobile_device_uniqueid)))
+			goto bad;
+	}
 
 	return doc;
 
@@ -881,17 +985,6 @@ bad:
 	return -ENOMEM;
 }
 
-
-#ifdef HAVE_LIBSTOKEN
-static void nuke_opt_values(struct oc_form_opt *opt)
-{
-	for (; opt; opt = opt->next) {
-		free(opt->value);
-		opt->value = NULL;
-	}
-}
-#endif
-
 /*
  * If the user clicks OK without entering any data, we will continue
  * connecting but bypass soft token generation for the duration of
@@ -939,6 +1032,7 @@ int prepare_stoken(struct openconnect_info *vpninfo)
 		opt->type = OC_FORM_OPT_PASSWORD;
 		opt->name = (char *)"password";
 		opt->label = _("PIN:");
+		opt->flags = OC_FORM_OPT_NUMERIC;
 		pin = &opt->value;
 		opt++;
 	}
@@ -952,11 +1046,11 @@ int prepare_stoken(struct openconnect_info *vpninfo)
 		if (!opts[0].type) {
 			/* don't bug the user if there's nothing to enter */
 			ret = 0;
-		} else if (vpninfo->process_auth_form) {
+		} else {
 			int some_empty = 0, all_empty = 1;
 
 			/* < 0 for error; 1 if cancelled */
-			ret = vpninfo->process_auth_form(vpninfo->cbdata, &form);
+			ret = process_auth_form(vpninfo, &form);
 			if (ret)
 				break;
 
@@ -978,11 +1072,6 @@ int prepare_stoken(struct openconnect_info *vpninfo)
 					     _("All fields are required; try again.\n"));
 				continue;
 			}
-		} else {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("No form handler; cannot authenticate.\n"));
-			ret = -EIO;
-			break;
 		}
 
 		ret = stoken_decrypt_seed(vpninfo->stoken_ctx,

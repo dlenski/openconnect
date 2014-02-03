@@ -122,7 +122,7 @@ AC_SUBST(SYMVER_TIME, $symver_time)
 AC_SUBST(SYMVER_GETLINE, $symver_getline)
 AC_SUBST(SYMVER_ASPRINTF, $symver_asprintf)
 
-AS_COMPILER_FLAGS(CFLAGS,
+AS_COMPILER_FLAGS(WFLAGS,
         "-Wall
          -Wextra
          -Wno-missing-field-initializers
@@ -139,6 +139,7 @@ AS_COMPILER_FLAGS(CFLAGS,
          -Wnested-externs
          -Wpointer-arith
          -Wwrite-strings")
+AC_SUBST(WFLAGS, [$WFLAGS])
 
 AC_CHECK_FUNC(socket, [], AC_CHECK_LIB(socket, socket, [], AC_ERROR(Cannot find socket() function)))
 AC_CHECK_FUNC(inet_aton, [], AC_CHECK_LIB(nsl, inet_aton, [], AC_ERROR(Cannot find inet_aton() function)))
@@ -387,7 +388,7 @@ case "$ssl_library" in
     gnutls)
 	AC_DEFINE(OPENCONNECT_GNUTLS, 1)
 	AC_DEFINE(DTLS_GNUTLS, 1)
-	AC_SUBST(SSL_LIBRARY, [gnutls])
+	AC_SUBST(SSL_DTLS_PC, [gnutls])
 	AC_SUBST(SSL_LIBS, ['$(GNUTLS_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
 	check_openssl_dtls=no
@@ -395,7 +396,7 @@ case "$ssl_library" in
     openssl)
 	AC_DEFINE(OPENCONNECT_OPENSSL, 1)
 	AC_DEFINE(DTLS_OPENSSL, 1)
-	AC_SUBST(SSL_LIBRARY, [openssl])
+	AC_SUBST(SSL_DTLS_PC, [openssl])
 	AC_SUBST(SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
 	AC_SUBST(SYMVER_PRINT_ERR, ["openconnect_print_err_cb;"])
@@ -405,7 +406,7 @@ case "$ssl_library" in
 	# GnuTLS for TCP, OpenSSL for DTLS
 	AC_DEFINE(OPENCONNECT_GNUTLS, 1)
 	AC_DEFINE(DTLS_OPENSSL, 1)
-	AC_SUBST(SSL_LIBRARY, [gnutls])
+	AC_SUBST(SSL_DTLS_PC, [gnutls openssl])
 	AC_SUBST(SSL_LIBS, ['$(GNUTLS_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
 	AC_SUBST(DTLS_SSL_LIBS, ['$(OPENSSL_LIBS)'])
@@ -545,6 +546,45 @@ AS_IF([test "x$with_liboath" != "xno"], [
 		 liboath_pkg=yes],
 		 liboath_pkg=no)
 ])
+
+AC_ARG_WITH([java],
+	AS_HELP_STRING([--with-java(=DIR)],
+		       [Build JNI bindings using jni.h from DIR [default=no]]),
+	[], [with_java=no])
+
+if test "$with_java" = "yes"; then
+	AX_JNI_INCLUDE_DIR
+	for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS; do
+		  JNI_CFLAGS="$JNI_CFLAGS -I$JNI_INCLUDE_DIR"
+	done
+elif test "$with_java" = "no"; then
+	JNI_CFLAGS=""
+else
+	JNI_CFLAGS="-I$with_java"
+fi
+
+if test "x$JNI_CFLAGS" != "x"; then
+	oldCFLAGS="$CFLAGS"
+	CFLAGS="$CFLAGS $JNI_CFLAGS"
+	AC_MSG_CHECKING([jni.h usability])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <jni.h>],
+		[jint foo = 0; (void)foo;])],
+		AC_MSG_RESULT([yes]),
+		[AC_MSG_RESULT([no])
+		 AC_MSG_ERROR([unable to compile JNI test program])])
+	CFLAGS="$oldCFLAGS"
+
+	AC_SUBST(JNI_CFLAGS, [$JNI_CFLAGS])
+fi
+
+AM_CONDITIONAL(OPENCONNECT_JNI, [test "$JNI_CFLAGS" != ""])
+
+AC_ARG_ENABLE([jni-standalone],
+	AS_HELP_STRING([--enable-jni-standalone],
+		       [build JNI stubs directly into libopenconnect.so [default=no]]),
+	[jni_standalone=$enableval],
+	[jni_standalone=no])
+AM_CONDITIONAL(JNI_STANDALONE, [test $jni_standalone = yes])
 
 AC_CHECK_HEADER([if_tun.h],
     [AC_DEFINE([IF_TUN_HDR], ["if_tun.h"])],
