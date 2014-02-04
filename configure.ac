@@ -580,7 +580,7 @@ AC_ARG_WITH([liboath],
 	AS_HELP_STRING([--without-liboath],
 	[Build without liboath library [default=auto]]))
 AS_IF([test "x$with_liboath" != "xno"], [
-	PKG_CHECK_MODULES(LIBOATH, liboath,
+	PKG_CHECK_MODULES(LIBOATH, [liboath >= 1.12.0],
 		[AC_SUBST(LIBOATH_PC, liboath)
 		 AC_DEFINE([HAVE_LIBOATH], 1)
 		 liboath_pkg=yes],
