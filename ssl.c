@@ -89,6 +89,21 @@ static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 	return getpeername(sockfd, (void *)&peer, &peerlen);
 }
 
+/* checks whether the provided string is an IP or a hostname.
+ */
+unsigned string_is_hostname(const char *str)
+{
+	struct in_addr buf;
+
+	/* We don't use inet_pton() because an IPv6 literal is likely to
+	   be encased in []. So just check for a colon, which shouldn't
+	   occur in hostnames anyway. */
+	if (!str || inet_aton(str, &buf) || strchr(str, ':'))
+		return 0;
+
+	return 1;
+}
+
 int connect_https_socket(struct openconnect_info *vpninfo)
 {
 	int ssl_sock = -1;

@@ -472,6 +472,7 @@ int cstp_reconnect(struct openconnect_info *vpninfo);
 void cstp_free_splits(struct openconnect_info *vpninfo);
 
 /* ssl.c */
+unsigned string_is_hostname(const char* str);
 int connect_https_socket(struct openconnect_info *vpninfo);
 int request_passphrase(struct openconnect_info *vpninfo, const char *label,
 		       char **response, const char *fmt, ...);

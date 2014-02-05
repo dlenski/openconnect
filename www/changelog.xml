@@ -32,6 +32,8 @@
        <li>Add padding when sending password, to avoid leakage of password
        and username length.</li>
        <li>Add support for DTLS 1.2 and AES-GCM when connecting to ocserv.</li>
+       <li>Add support for server name indication when compiled with GnuTLS
+       3.2.9+.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.03.tar.gz">OpenConnect v5.03</a></b>

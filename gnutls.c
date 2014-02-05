@@ -1795,6 +1795,7 @@ static int verify_peer(gnutls_session_t session)
 	return err;
 }
 
+
 /* The F5 firewall is confused when the TLS client hello is between
  * 256 and 512 bytes. By disabling several TLS options we force the
  * client hello to be < 256 bytes. We don't do that in gnutls versions
@@ -1923,6 +1924,13 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	if (vpninfo->my_pkey == OPENCONNECT_TPM_PKEY)
 		gnutls_sign_callback_set(vpninfo->https_sess, gtls2_tpm_sign_cb, vpninfo);
 #endif
+	/* We depend on 3.2.9 because that has the workaround for the
+	   obnoxious F5 firewall that drops packets of certain sizes */
+	if (gnutls_check_version("3.2.9") &&
+	    string_is_hostname(vpninfo->hostname))
+		gnutls_server_name_set(vpninfo->https_sess, GNUTLS_NAME_DNS,
+				       vpninfo->hostname,
+				       strlen(vpninfo->hostname));
 
 	if (vpninfo->pfs) {
 		prio = DEFAULT_PRIO":-RSA";
