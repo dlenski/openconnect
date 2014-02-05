@@ -24,6 +24,7 @@
 
 #include <string.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <ctype.h>
 
@@ -166,5 +167,26 @@ char *openconnect__strcasestr(const char *haystack, const char *needle)
 			return (char *)haystack + i;
 	}
 	return NULL;
+}
+#endif
+
+#ifndef HAVE_SETENV
+int openconnect__setenv(const char *name, const char *value, int overwrite)
+{
+	char *buf = alloca(strlen(name) + strlen(value) + 2);
+
+	sprintf(buf, "%s=%s", name, value);
+	putenv(buf);
+	return 0;
+}
+#endif
+
+#ifndef HAVE_UNSETENV
+void openconnect__unsetenv(const char *name)
+{
+	char *buf = alloca(strlen(name) + 2);
+
+	sprintf(buf, "%s=", name);
+	putenv(buf);
 }
 #endif

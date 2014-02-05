@@ -346,6 +346,14 @@ ssize_t openconnect__getline(char **lineptr, size_t *n, FILE *stream);
 #define strcasestr openconnect__strcasestr
 char *openconnect__strcasestr(const char *haystack, const char *needle);
 #endif
+#ifndef HAVE_SETENV
+#define setenv openconnect__setenv
+int openconnect__setenv(const char *name, const char *value, int overwrite);
+#endif
+#ifndef HAVE_UNSETENV
+#define unsetenv openconnect__unsetenv
+void openconnect__unsetenv(const char *name);
+#endif
 
 /* I always coded as if it worked like this. Now it does. */
 #define realloc_inplace(p, size) do {			\
