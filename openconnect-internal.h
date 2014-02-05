@@ -330,7 +330,7 @@ struct openconnect_info {
 
 /****************************************************************************/
 /* Oh Solaris how we hate thee! */
-#ifdef __sun__
+#ifdef HAVE_SUNOS_BROKEN_TIME
 #define time(x) openconnect__time(x)
 time_t openconnect__time(time_t *t);
 #endif

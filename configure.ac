@@ -56,6 +56,10 @@ AC_DEFINE_UNQUOTED(DEFAULT_VPNCSCRIPT, "${with_vpnc_script}")
 AC_SUBST(DEFAULT_VPNCSCRIPT, "${with_vpnc_script}")
 
 use_openbsd_libtool=
+symver_time=
+symver_getline=
+symver_asprintf=
+
 case $host_os in
  *linux* | *gnu*)
     AC_MSG_NOTICE([Applying feature macros for GNU build])
@@ -74,21 +78,16 @@ case $host_os in
     AC_MSG_NOTICE([Applying feature macros for OpenBSD build])
     use_openbsd_libtool=true
     ;;
+ *solaris*|*sunos*)
+    AC_MSG_NOTICE([Applying workaround for broken SunOS time() function])
+    AC_DEFINE(HAVE_SUNOS_BROKEN_TIME)
+    symver_time="openconnect__time;"
+    ;;
  *)
     # On FreeBSD the only way to get vsyslog() visible is to define
     #  *nothing*, which makes absolutely everything visible.
     # On Darwin enabling _POSIX_C_SOURCE breaks <sys/mount.h> because
     # u_long and other types don't get defined. OpenBSD is similar.
-    ;;
-esac
-
-symver_time=
-symver_getline=
-symver_asprintf=
-
-case $host_os in
- *solaris*|*sunos*)
-    symver_time="openconnect__time;"
     ;;
 esac
 
