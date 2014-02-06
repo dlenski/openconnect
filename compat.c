@@ -248,6 +248,26 @@ void openconnect__win32_sock_init()
 	}
 }
 #ifdef OPENCONNECT_GNUTLS
+int openconnect__win32_sock_poll(gnutls_transport_ptr_t ptr, unsigned int ms)
+{
+	fd_set rfds;
+	struct timeval tv;
+	int fd = (int)(long)ptr;
+
+	FD_ZERO(&rfds);
+	FD_SET(fd, &rfds);
+
+	tv.tv_sec = 0;
+	tv.tv_usec = ms * 1000;
+
+	while(tv.tv_usec >= 1000000) {
+		tv.tv_usec -= 1000000;
+		tv.tv_sec++;
+	}
+
+	return select(fd+1, &rfds, NULL, NULL, &tv);
+}
+
 ssize_t openconnect__win32_sock_read(gnutls_transport_ptr_t ptr, void *data, size_t size)
 {
 	return recv((long)ptr, data, size, 0);
