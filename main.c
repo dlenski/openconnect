@@ -43,12 +43,14 @@
 #include <pwd.h>
 #include <sys/utsname.h>
 #include <sys/types.h>
-#include <termios.h>
 #ifdef LIBPROXY_HDR
 #include LIBPROXY_HDR
 #endif
 #include <getopt.h>
 #include <time.h>
+#ifndef _WIN32
+#include <termios.h>
+#endif
 
 #include "openconnect-internal.h"
 
@@ -371,16 +373,18 @@ static void usage(void)
 
 static void read_stdin(char **string, int hidden)
 {
-	struct termios t;
 	char *c = malloc(1025), *ret;
-	int fd = fileno(stdin);
 
 	if (!c) {
 		fprintf(stderr, _("Allocation failure for string from stdin\n"));
 		exit(1);
 	}
 
+#ifndef _WIN32
 	if (hidden) {
+		struct termios t;
+		int fd = fileno(stdin);
+
 		tcgetattr(fd, &t);
 		t.c_lflag &= ~ECHO;
 		tcsetattr(fd, TCSANOW, &t);
@@ -391,6 +395,7 @@ static void read_stdin(char **string, int hidden)
 		tcsetattr(fd, TCSANOW, &t);
 		fprintf(stderr, "\n");
 	} else
+#endif
 		ret = fgets(c, 1025, stdin);
 
 	if (!ret) {
