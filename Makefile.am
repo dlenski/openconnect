@@ -41,7 +41,7 @@ LT_VER_ARG = -version-info
 else
 LT_VER_ARG = -version-number
 endif
-libopenconnect_la_LDFLAGS = $(LT_VER_ARG) @APIMAJOR@:@APIMINOR@
+libopenconnect_la_LDFLAGS = $(LT_VER_ARG) @APIMAJOR@:@APIMINOR@ -no-undefined
 noinst_HEADERS = openconnect-internal.h openconnect.h gnutls.h
 include_HEADERS = openconnect.h
 if HAVE_SYMBOL_VERSIONING
