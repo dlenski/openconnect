@@ -67,6 +67,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 #endif
 
 #ifdef LIBPROXY_HDR
@@ -368,6 +369,24 @@ void openconnect__unsetenv(const char *name);
 #define inet_aton openconnect__inet_aton
 int openconnect__inet_aton(const char *cp, struct in_addr *addr);
 #endif
+
+static inline int set_sock_nonblock(int fd)
+{
+#ifdef _WIN32
+	unsigned long mode = 0;
+	return ioctlsocket(fd, FIONBIO, &mode);
+#else
+	return fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
+#endif
+}
+static inline int set_fd_cloexec(int fd)
+{
+#ifdef _WIN32
+	return 0; /* Windows has O_INHERIT but... */
+#else
+	return fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) | FD_CLOEXEC);
+#endif
+}
 
 #ifdef _WIN32
 #define pipe(fds) _pipe(fds, 4096, O_BINARY)

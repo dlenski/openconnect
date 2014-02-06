@@ -547,8 +547,8 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	fcntl(dtls_fd, F_SETFD, FD_CLOEXEC);
-	fcntl(dtls_fd, F_SETFL, fcntl(dtls_fd, F_GETFL) | O_NONBLOCK);
+	set_fd_cloexec(dtls_fd);
+	set_sock_nonblock(dtls_fd);
 
 	ret = start_dtls_handshake(vpninfo, dtls_fd);
 	if (ret) {

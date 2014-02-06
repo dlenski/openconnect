@@ -633,7 +633,7 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 
 int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
 {
-	fcntl(tun_fd, F_SETFD, FD_CLOEXEC);
+	set_fd_cloexec(tun_fd);
 
 	if (vpninfo->tun_fd != -1)
 		FD_CLR(vpninfo->tun_fd, &vpninfo->select_rfds);
@@ -644,7 +644,7 @@ int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
 
 	FD_SET(tun_fd, &vpninfo->select_rfds);
 
-	fcntl(vpninfo->tun_fd, F_SETFL, fcntl(vpninfo->tun_fd, F_GETFL) | O_NONBLOCK);
+	set_sock_nonblock(tun_fd);
 
 	return 0;
 }

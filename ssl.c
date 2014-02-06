@@ -62,7 +62,7 @@ static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 	fd_set wr_set, rd_set;
 	int maxfd = sockfd;
 
-	fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK);
+	set_sock_nonblock(sockfd);
 	if (vpninfo->protect_socket)
 		vpninfo->protect_socket(vpninfo->cbdata, sockfd);
 
@@ -105,7 +105,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 			ssl_sock = socket(vpninfo->peer_addr->sa_family, SOCK_STREAM, IPPROTO_IP);
 			if (ssl_sock < 0)
 				goto reconn_err;
-			fcntl(ssl_sock, F_SETFD, fcntl(ssl_sock, F_GETFD) | FD_CLOEXEC);
+			set_fd_cloexec(ssl_sock);
 		}
 		if (cancellable_connect(vpninfo, ssl_sock, vpninfo->peer_addr, vpninfo->peer_addrlen)) {
 		reconn_err:
@@ -234,7 +234,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 					  rp->ai_protocol);
 			if (ssl_sock < 0)
 				continue;
-			fcntl(ssl_sock, F_SETFD, fcntl(ssl_sock, F_GETFD) | FD_CLOEXEC);
+			set_fd_cloexec(ssl_sock);
 			if (cancellable_connect(vpninfo, ssl_sock, rp->ai_addr, rp->ai_addrlen) >= 0) {
 				/* Store the peer address we actually used, so that DTLS can
 				   use it again later */

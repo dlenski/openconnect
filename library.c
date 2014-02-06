@@ -379,8 +379,7 @@ int openconnect_setup_cmd_pipe(struct openconnect_info *vpninfo)
 
 	if (pipe(pipefd) < 0)
 		return -EIO;
-	if (fcntl(pipefd[0], F_SETFL, O_NONBLOCK) ||
-	    fcntl(pipefd[1], F_SETFL, O_NONBLOCK)) {
+	if (set_sock_nonblock(pipefd[0]) || set_sock_nonblock(pipefd[1])) {
 		close(pipefd[0]);
 		close(pipefd[1]);
 		return -EIO;
