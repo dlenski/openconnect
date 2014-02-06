@@ -155,7 +155,9 @@ static struct option long_options[] = {
 	OPTION("base-mtu", 1, OPT_BASEMTU),
 	OPTION("setuid", 1, 'U'),
 	OPTION("script", 1, 's'),
+#ifndef _WIN32
 	OPTION("script-tun", 0, 'S'),
+#endif
 	OPTION("syslog", 0, 'l'),
 	OPTION("timestamp", 0, OPT_TIMESTAMP),
 	OPTION("key-password", 1, 'p'),
@@ -288,7 +290,9 @@ static void usage(void)
 	printf("  -Q, --queue-len=LEN             %s\n", _("Set packet queue limit to LEN pkts"));
 	printf("  -s, --script=SCRIPT             %s\n", _("Shell command line for using a vpnc-compatible config script"));
 	printf("                                  %s: \"%s\"\n", _("default"), DEFAULT_VPNCSCRIPT);
+#ifndef _WIN32
 	printf("  -S, --script-tun                %s\n", _("Pass traffic to 'script' program, not tun"));
+#endif
 	printf("  -u, --user=NAME                 %s\n", _("Set login username"));
 	printf("  -V, --version                   %s\n", _("Report version number"));
 	printf("  -v, --verbose                   %s\n", _("More output"));
@@ -427,7 +431,11 @@ static int next_option(int argc, char **argv, char **config_arg)
  next:
 	if (!config_file) {
 		opt = getopt_long(argc, argv,
+#ifdef _WIN32
+				  "bC:c:Dde:g:hi:k:lm:P:p:Q:qs:U:u:Vvx:",
+#else
 				  "bC:c:Dde:g:hi:k:lm:P:p:Q:qSs:U:u:Vvx:",
+#endif
 				  long_options, NULL);
 
 		*config_arg = optarg;
@@ -516,7 +524,6 @@ int main(int argc, char **argv)
 	int use_syslog = 0;
 	char *urlpath = NULL;
 	char *proxy = getenv("https_proxy");
-	int script_tun = 0;
 	char *vpnc_script = NULL, *ifname = NULL;
 	const struct oc_ip_info *ip_info;
 	int autoproxy = 0;
@@ -530,6 +537,9 @@ int main(int argc, char **argv)
 	oc_token_mode_t token_mode = OC_TOKEN_MODE_NONE;
 	int reconnect_timeout = 300;
 	int ret;
+#ifndef _WIN32
+	int script_tun = 0;
+#endif
 
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
@@ -704,9 +714,11 @@ int main(int argc, char **argv)
 		case 's':
 			vpnc_script = xstrdup(config_arg);
 			break;
+#ifndef _WIN32
 		case 'S':
 			script_tun = 1;
 			break;
+#endif
 		case 'u':
 			free(username);
 			username = strdup(config_arg);
