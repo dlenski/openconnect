@@ -239,6 +239,7 @@ int openconnect__win32_neterrno()
 	}
 }
 
+#ifdef OPENCONNECT_GNUTLS
 ssize_t openconnect__win32_sock_read(gnutls_transport_ptr_t ptr, void *data, size_t size)
 {
 	return recv((long)ptr, data, size, 0);
@@ -248,4 +249,5 @@ ssize_t openconnect__win32_sock_write(gnutls_transport_ptr_t ptr, const void *da
 {
 	return send((long)ptr, data, size, 0);
 }
+#endif /* OPENCONNECT_GNUTLS */
 #endif /* _WIN32 */

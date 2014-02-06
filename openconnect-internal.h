@@ -392,8 +392,10 @@ static inline int set_fd_cloexec(int fd)
 #define pipe(fds) _pipe(fds, 4096, O_BINARY)
 #define neterrno openconnect__win32_neterrno
 int openconnect__win32_neterrno();
+#ifdef OPENCONNECT_GNUTLS
 ssize_t openconnect__win32_sock_read(gnutls_transport_ptr_t ptr, void *data, size_t size);
 ssize_t openconnect__win32_sock_write(gnutls_transport_ptr_t ptr, const void *data, size_t size);
+#endif
 #else
 #define neterrno() errno
 #define closesocket close
