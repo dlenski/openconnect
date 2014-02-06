@@ -27,6 +27,8 @@
 #include <sys/types.h>
 #include <ctype.h>
 
+#include "openconnect-internal.h"
+
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/engine.h>
@@ -37,7 +39,6 @@
 #include <openssl/x509.h>
 #include <openssl/bio.h>
 
-#include "openconnect-internal.h"
 
 int openconnect_sha1(unsigned char *result, void *data, int len)
 {

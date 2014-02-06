@@ -29,6 +29,18 @@
 
 #define __OPENCONNECT_PRIVATE__
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#endif
+
 #include "openconnect.h"
 
 #if defined(OPENCONNECT_OPENSSL) || defined(DTLS_OPENSSL)
@@ -57,18 +69,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#ifdef _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#else
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#endif
 
 #ifdef LIBPROXY_HDR
 #include LIBPROXY_HDR
