@@ -38,8 +38,8 @@ Platform support for new UNIX systems is relatively simple to add
 &#8212; most of the difference is in the TUN/TAP device handling, and
 the major variants of that are already supported.</p>
 <p>
-A port to Windows should be fairly simple, since a TUN/TAP driver
-exists for Windows and Cygwin should make the basic port work OK.</p>
+OpenConnect builds for Windows using MinGW, although support for the TUN/TAP
+device has not yet been completed.</p>
 <p>
 A port to Symbian, to provide VPN connectivity on phone handsets,
 would be very useful. Any volunteers?</p>

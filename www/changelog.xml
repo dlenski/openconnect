@@ -17,6 +17,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Preliminary support for building for Windows with MinGW.</li>
        <li>Change library API to support updating the auth form when the authgroup is changed <a href="https://bugs.launchpad.net/bugs/1229195"><i>(Ubuntu #1229195)</i></a>.</li>
        <li>Change <tt>--os mac</tt> to <tt>--os mac-intel</tt>, to match the identifier used by Cisco clients.</li>
        <li>Add new API functions to support invoking the VPN mainloop directly from an application.</li>
