@@ -503,7 +503,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		vpninfo->protect_socket(vpninfo->cbdata, dtls_fd);
 
 	sndbuf = vpninfo->ip_info.mtu * 2;
-	setsockopt(dtls_fd, SOL_SOCKET, SO_SNDBUF, &sndbuf, sizeof(sndbuf));
+	setsockopt(dtls_fd, SOL_SOCKET, SO_SNDBUF, (void *)&sndbuf, sizeof(sndbuf));
 
 	if (vpninfo->dtls_local_port) {
 		union {
