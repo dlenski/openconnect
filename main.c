@@ -40,7 +40,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/utsname.h>
 #include <sys/types.h>
 #ifdef LIBPROXY_HDR
 #include LIBPROXY_HDR
@@ -48,6 +47,7 @@
 #include <getopt.h>
 #include <time.h>
 #ifndef _WIN32
+#include <sys/utsname.h>
 #include <pwd.h>
 #include <termios.h>
 #endif
@@ -568,7 +568,6 @@ static int next_option(int argc, char **argv, char **config_arg)
 int main(int argc, char **argv)
 {
 	struct openconnect_info *vpninfo;
-	struct utsname utsbuf;
 	struct sigaction sa;
 	char *urlpath = NULL;
 	char *proxy = getenv("https_proxy");
@@ -585,6 +584,7 @@ int main(int argc, char **argv)
 	int reconnect_timeout = 300;
 	int ret;
 #ifndef _WIN32
+	struct utsname utsbuf;
 	uid_t uid = getuid();
 	int use_syslog = 0;
 	int script_tun = 0;
@@ -611,10 +611,12 @@ int main(int argc, char **argv)
 	}
 
 	vpninfo->cbdata = vpninfo;
+#ifndef _WIN32
 	if (!uname(&utsbuf)) {
 		free(vpninfo->localname);
 		vpninfo->localname = xstrdup(utsbuf.nodename);
 	}
+#endif
 
 	while ((opt = next_option(argc, argv, &config_arg))) {
 
