@@ -661,7 +661,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		FILE *f;
 		PKCS12 *p12;
 
-		f = fopen(vpninfo->cert, "r");
+		f = fopen(vpninfo->cert, "rb");
 		if (!f) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to open certificate file %s: %s\n"),
@@ -749,7 +749,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 #endif /* ANDROID_KEYSTORE */
 
 	if (vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
-		FILE *f = fopen(vpninfo->sslkey, "r");
+		FILE *f = fopen(vpninfo->sslkey, "rb");
 		char buf[256];
 
 		if (!f) {

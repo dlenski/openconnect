@@ -265,7 +265,7 @@ static int load_datum(struct openconnect_info *vpninfo,
 	}
 #endif
 
-	fd = open(fname, O_RDONLY|O_CLOEXEC);
+	fd = open(fname, O_RDONLY|O_CLOEXEC|O_BINARY);
 	if (fd == -1) {
 		err = errno;
 		vpn_progress(vpninfo, PRG_ERR,

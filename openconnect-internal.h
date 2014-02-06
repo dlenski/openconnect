@@ -377,6 +377,9 @@ ssize_t openconnect__win32_sock_write(gnutls_transport_ptr_t ptr, const void *da
 #else
 #define neterrno() errno
 #define closesocket close
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
 #endif
 
 /* I always coded as if it worked like this. Now it does. */
