@@ -934,13 +934,16 @@ int main(int argc, char **argv)
 
 	if (!vpnc_script)
 		vpnc_script = xstrdup(DEFAULT_VPNCSCRIPT);
+#ifndef _WIN32
 	if (script_tun) {
 		if (openconnect_setup_tun_script(vpninfo, vpnc_script)) {
 			fprintf(stderr, _("Set up tun script failed\n"));
 			openconnect_vpninfo_free(vpninfo);
 			exit(1);
 		}
-	} else if (openconnect_setup_tun_device(vpninfo, vpnc_script, ifname)) {
+	} else
+#endif
+	if (openconnect_setup_tun_device(vpninfo, vpnc_script, ifname)) {
 		fprintf(stderr, _("Set up tun device failed\n"));
 		openconnect_vpninfo_free(vpninfo);
 		exit(1);

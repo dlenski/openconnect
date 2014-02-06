@@ -77,7 +77,7 @@
 
 static int set_tun_mtu(struct openconnect_info *vpninfo)
 {
-#ifndef __sun__ /* We don't know how to do this on Solaris */
+#if !defined(__sun__) && !defined(_WIN32) /* We don't know how to do this on Solaris */
 	struct ifreq ifr;
 	int net_fd;
 
@@ -98,7 +98,6 @@ static int set_tun_mtu(struct openconnect_info *vpninfo)
 #endif
 	return 0;
 }
-
 
 static int setenv_int(const char *opt, int value)
 {
@@ -386,13 +385,24 @@ int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
 			     vpninfo->vpnc_script, reason, strerror(e));
 		return -e;
 	}
+#ifdef _WIN32
+	if (ret == 0x2331) {
+		/* This is what cmd.exe returns for unrecognised commands */
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to spawn script '%s' for %s: %s\n"),
+			     vpninfo->vpnc_script, reason, strerror(ENOENT));
+		return -ENOENT;
+	}
+#else
 	if (!WIFEXITED(ret)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Script '%s' exited abnormally (%x)\n"),
 			       vpninfo->vpnc_script, ret);
 		return -EIO;
 	}
+
 	ret = WEXITSTATUS(ret);
+#endif
 	if (ret) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Script '%s' returned error %d\n"),
@@ -649,6 +659,7 @@ int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
 	return 0;
 }
 
+#ifndef _WIN32
 int openconnect_setup_tun_script(struct openconnect_info *vpninfo, char *tun_script)
 {
 	pid_t child;
@@ -681,6 +692,7 @@ int openconnect_setup_tun_script(struct openconnect_info *vpninfo, char *tun_scr
 
 	return openconnect_setup_tun_fd(vpninfo, fds[0]);
 }
+#endif /* !_WIN32 */
 
 int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_script, char *ifname)
 {
@@ -808,8 +820,10 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 void shutdown_tun(struct openconnect_info *vpninfo)
 {
 	if (vpninfo->script_tun) {
+#ifndef _WIN32
 		/* nuke the whole process group */
 		kill(-vpninfo->script_tun, SIGHUP);
+#endif
 	} else {
 		script_config_tun(vpninfo, "disconnect");
 #ifdef __sun__
