@@ -177,9 +177,11 @@ enum {
 #endif
 
 static struct option long_options[] = {
+#ifndef _WIN32
 	OPTION("background", 0, 'b'),
-	OPTION("pfs", 0, OPT_PFS),
 	OPTION("pid-file", 1, OPT_PIDFILE),
+#endif
+	OPTION("pfs", 0, OPT_PFS),
 	OPTION("certificate", 1, 'c'),
 	OPTION("sslkey", 1, 'k'),
 	OPTION("cookie", 1, 'C'),
@@ -299,8 +301,10 @@ static void usage(void)
 	printf(_("Open client for Cisco AnyConnect VPN, version %s\n\n"), openconnect_version_str);
 	print_build_opts();
 	printf("      --config=CONFIGFILE         %s\n", _("Read options from config file"));
+#ifndef _WIN32
 	printf("  -b, --background                %s\n", _("Continue in background after startup"));
 	printf("      --pid-file=PIDFILE          %s\n", _("Write the daemon's PID to this file"));
+#endif
 	printf("  -c, --certificate=CERT          %s\n", _("Use SSL client certificate CERT"));
 	printf("  -e, --cert-expire-warning=DAYS  %s\n", _("Warn when certificate lifetime < DAYS"));
 	printf("  -k, --sslkey=KEY                %s\n", _("Use SSL private key file KEY"));
@@ -483,7 +487,7 @@ static int next_option(int argc, char **argv, char **config_arg)
 	if (!config_file) {
 		opt = getopt_long(argc, argv,
 #ifdef _WIN32
-				  "bC:c:Dde:g:hi:k:m:P:p:Q:qs:u:Vvx:",
+				  "C:c:Dde:g:hi:k:m:P:p:Q:qs:u:Vvx:",
 #else
 				  "bC:c:Dde:g:hi:k:lm:P:p:Q:qSs:U:u:Vvx:",
 #endif
@@ -691,9 +695,11 @@ int main(int argc, char **argv)
 		case OPT_AUTHGROUP:
 			authgroup = keep_config_arg();
 			break;
+#ifndef _WIN32
 		case 'b':
 			background = 1;
 			break;
+#endif
 		case 'C':
 			vpninfo->cookie = keep_config_arg();
 			break;
@@ -1051,6 +1057,7 @@ int main(int argc, char **argv)
 			     _("See http://www.infradead.org/openconnect/vpnc-script.html\n"));
 	}
 
+#ifndef _WIN32
 	if (background) {
 		int pid;
 
@@ -1080,6 +1087,7 @@ int main(int argc, char **argv)
 		if (fp)
 			fclose(fp);
 	}
+#endif
 	ret = openconnect_mainloop(vpninfo, reconnect_timeout, RECONNECT_INTERVAL_MIN);
 	if (fp)
 		unlink(pidfile);
