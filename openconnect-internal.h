@@ -370,6 +370,7 @@ int openconnect__inet_aton(const char *cp, struct in_addr *addr);
 #endif
 
 #ifdef _WIN32
+#define pipe(fds) _pipe(fds, 4096, O_BINARY)
 #define neterrno openconnect__win32_neterrno
 int openconnect__win32_neterrno();
 ssize_t openconnect__win32_sock_read(gnutls_transport_ptr_t ptr, void *data, size_t size);
