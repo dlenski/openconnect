@@ -28,13 +28,15 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
-#include <pwd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#ifndef _WIN32
+#include <pwd.h>
+#endif
 
 #include "openconnect-internal.h"
 
@@ -528,6 +530,11 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 
 static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int buflen)
 {
+#ifdef _WIN32
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Error: Running the 'Cisco Secure Desktop' trojan on Windows is not yet implemented.\n"));
+	return -EPERM;
+#else
 	char fname[64];
 	int fd, ret;
 
@@ -657,8 +664,8 @@ out:
 	vpninfo->csd_scriptname = strdup(fname);
 
 	http_add_cookie(vpninfo, "sdesktop", vpninfo->csd_token);
-
 	return 0;
+#endif /* !_WIN32 */
 }
 
 int internal_parse_url(char *url, char **res_proto, char **res_host,
