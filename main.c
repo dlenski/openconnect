@@ -416,6 +416,7 @@ static void read_stdin(char **string, int hidden)
 		*c = 0;
 }
 
+#ifndef _WIN32
 static int sig_cmd_fd;
 static int sig_caught;
 
@@ -436,6 +437,7 @@ static void handle_sigusr(int sig)
 	else if (sig == SIGUSR2)
 		verbose = PRG_INFO;
 }
+#endif
 
 static FILE *config_file = NULL;
 static int config_line_num = 0;
@@ -568,7 +570,6 @@ static int next_option(int argc, char **argv, char **config_arg)
 int main(int argc, char **argv)
 {
 	struct openconnect_info *vpninfo;
-	struct sigaction sa;
 	char *urlpath = NULL;
 	char *proxy = getenv("https_proxy");
 	char *vpnc_script = NULL, *ifname = NULL;
@@ -584,6 +585,7 @@ int main(int argc, char **argv)
 	int reconnect_timeout = 300;
 	int ret;
 #ifndef _WIN32
+	struct sigaction sa;
 	struct utsname utsbuf;
 	uid_t uid = getuid();
 	int use_syslog = 0;
@@ -920,7 +922,6 @@ int main(int argc, char **argv)
 #endif
 		vpninfo->progress = syslog_progress;
 	}
-#endif
 
 	sig_cmd_fd = openconnect_setup_cmd_pipe(vpninfo);
 	if (sig_cmd_fd < 0) {
@@ -938,6 +939,7 @@ int main(int argc, char **argv)
 	sigaction(SIGTERM, &sa, NULL);
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGHUP, &sa, NULL);
+#endif /* !_WIN32 */
 
 	if (vpninfo->sslkey && do_passphrase_from_fsid)
 		openconnect_passphrase_from_fsid(vpninfo);
@@ -1082,10 +1084,13 @@ int main(int argc, char **argv)
 	if (fp)
 		unlink(pidfile);
 
+#ifndef _WIN32
 	if (sig_caught) {
 		vpn_progress(vpninfo, PRG_INFO, _("Caught signal: %s\n"), strsignal(sig_caught));
 		ret = 0;
-	} else if (ret == -EPERM)
+	} else
+#endif
+	if (ret == -EPERM)
 		ret = 2;
 	else
 		ret = 1;
