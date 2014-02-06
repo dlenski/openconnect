@@ -1328,7 +1328,7 @@ static int proxy_write(struct openconnect_info *vpninfo, int fd,
 		if (!FD_ISSET(fd, &wr_set))
 			continue;
 
-		i = write(fd, buf + count, len - count);
+		i = send(fd, (void *)&buf[count], len - count, 0);
 		if (i < 0)
 			return -errno;
 
@@ -1359,7 +1359,7 @@ static int proxy_read(struct openconnect_info *vpninfo, int fd,
 		if (!FD_ISSET(fd, &rd_set))
 			continue;
 
-		i = read(fd, buf + count, len - count);
+		i = recv(fd, (void *)&buf[count], len - count, 0);
 		if (i < 0)
 			return -errno;
 
