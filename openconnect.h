@@ -31,6 +31,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#ifdef _WIN32
+#define uid_t unsigned
+#endif
+
 #define OPENCONNECT_API_VERSION_MAJOR 3
 #define OPENCONNECT_API_VERSION_MINOR 1
 

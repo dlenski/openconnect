@@ -23,7 +23,6 @@
  *   Boston, MA 02110-1301 USA
  */
 
-#include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
@@ -33,9 +32,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
 #include <stdarg.h>
 
 #include "openconnect-internal.h"

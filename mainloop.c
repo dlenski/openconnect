@@ -23,9 +23,7 @@
  */
 
 #include <errno.h>
-#include <poll.h>
 #include <limits.h>
-#include <sys/select.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>

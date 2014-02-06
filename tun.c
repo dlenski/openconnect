@@ -24,18 +24,16 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/socket.h>
-#include <sys/ioctl.h>
-#include <sys/wait.h>
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <netdb.h>
+#ifndef _WIN32
+#include <sys/wait.h>
+#include <sys/ioctl.h>
 #include <netinet/in_systm.h>
-#include <netinet/in.h>
 #include <netinet/ip.h>
 #include <net/if.h>
-#include <arpa/inet.h>
+#endif
 #include <errno.h>
 #include <ctype.h>
 #include <stdio.h>
