@@ -30,11 +30,6 @@
 #endif
 
 #include <stdio.h>
-#ifdef __ANDROID__
-#include <android/log.h>
-#else
-#include <syslog.h>
-#endif
 #include <stdarg.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -61,8 +56,6 @@ static int write_new_config(void *_vpninfo,
 			    char *buf, int buflen);
 static void write_progress(void *_vpninfo,
 			   int level, const char *fmt, ...);
-static void syslog_progress(void *_vpninfo,
-			    int level, const char *fmt, ...);
 static int validate_peer_cert(void *_vpninfo,
 			      OPENCONNECT_X509 *peer_cert,
 			      const char *reason);
@@ -90,6 +83,49 @@ char *password;
 char *authgroup;
 int authgroup_set;
 int last_form_empty;
+
+#ifdef __ANDROID__
+#include <android/log.h>
+static void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
+{
+	static int l[4] = {
+		ANDROID_LOG_ERROR,	/* PRG_ERR   */
+		ANDROID_LOG_INFO,	/* PRG_INFO  */
+		ANDROID_LOG_DEBUG,	/* PRG_DEBUG */
+		ANDROID_LOG_DEBUG	/* PRG_TRACE */
+	};
+	va_list args, args2;
+
+	if (verbose >= level) {
+		va_start(args, fmt);
+		va_copy(args2, args);
+		__android_log_vprint(l[level], "openconnect", fmt, args);
+		/* Android wants it to stderr too, so the GUI can scrape
+		   it and display it as well as going to syslog */
+		vfprintf(stderr, fmt, args2);
+		va_end(args);
+		va_end(args2);
+	}
+}
+#elif defined(_WIN32)
+/*
+ * FIXME: Perhaps we could implement syslog_progress() using these APIs:
+ * http://msdn.microsoft.com/en-us/library/windows/desktop/aa364148%28v=vs.85%29.aspx
+ */
+#else /* !__ANDROID__ && !_WIN32 */
+#include <syslog.h>
+static void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
+{
+	int priority = level ? LOG_INFO : LOG_NOTICE;
+	va_list args;
+
+	if (verbose >= level) {
+		va_start(args, fmt);
+		vsyslog(priority, fmt, args);
+		va_end(args);
+	}
+}
+#endif
 
 enum {
 	OPT_AUTHENTICATE = 0x100,
@@ -157,8 +193,8 @@ static struct option long_options[] = {
 	OPTION("script", 1, 's'),
 #ifndef _WIN32
 	OPTION("script-tun", 0, 'S'),
-#endif
 	OPTION("syslog", 0, 'l'),
+#endif
 	OPTION("timestamp", 0, OPT_TIMESTAMP),
 	OPTION("key-password", 1, 'p'),
 	OPTION("proxy", 1, 'P'),
@@ -270,7 +306,9 @@ static void usage(void)
 	printf("  -g, --usergroup=GROUP           %s\n", _("Set login usergroup"));
 	printf("  -h, --help                      %s\n", _("Display help text"));
 	printf("  -i, --interface=IFNAME          %s\n", _("Use IFNAME for tunnel interface"));
+#ifndef _WIN32
 	printf("  -l, --syslog                    %s\n", _("Use syslog for progress messages"));
+#endif
 	printf("      --timestamp                 %s\n", _("Prepend timestamp to progress messages"));
 	printf("  -U, --setuid=USER               %s\n", _("Drop privileges after connecting"));
 	printf("      --csd-user=USER             %s\n", _("Drop privileges during CSD execution"));
@@ -432,7 +470,7 @@ static int next_option(int argc, char **argv, char **config_arg)
 	if (!config_file) {
 		opt = getopt_long(argc, argv,
 #ifdef _WIN32
-				  "bC:c:Dde:g:hi:k:lm:P:p:Q:qs:U:u:Vvx:",
+				  "bC:c:Dde:g:hi:k:m:P:p:Q:qs:U:u:Vvx:",
 #else
 				  "bC:c:Dde:g:hi:k:lm:P:p:Q:qSs:U:u:Vvx:",
 #endif
@@ -521,7 +559,6 @@ int main(int argc, char **argv)
 	struct openconnect_info *vpninfo;
 	struct utsname utsbuf;
 	struct sigaction sa;
-	int use_syslog = 0;
 	char *urlpath = NULL;
 	char *proxy = getenv("https_proxy");
 	char *vpnc_script = NULL, *ifname = NULL;
@@ -538,6 +575,7 @@ int main(int argc, char **argv)
 	int reconnect_timeout = 300;
 	int ret;
 #ifndef _WIN32
+	int use_syslog = 0;
 	int script_tun = 0;
 #endif
 
@@ -668,9 +706,11 @@ int main(int argc, char **argv)
 		case 'i':
 			ifname = xstrdup(config_arg);
 			break;
+#ifndef _WIN32
 		case 'l':
 			use_syslog = 1;
 			break;
+#endif
 		case 'm': {
 			int mtu = atol(config_arg);
 			if (mtu < 576) {
@@ -858,12 +898,14 @@ int main(int argc, char **argv)
 	if (proxy && openconnect_set_http_proxy(vpninfo, strdup(proxy)))
 		exit(1);
 
+#ifndef _WIN32
 	if (use_syslog) {
 #ifndef __ANDROID__
 		openlog("openconnect", LOG_PID, LOG_DAEMON);
 #endif
 		vpninfo->progress = syslog_progress;
 	}
+#endif
 
 	sig_cmd_fd = openconnect_setup_cmd_pipe(vpninfo);
 	if (sig_cmd_fd < 0) {
@@ -1085,42 +1127,6 @@ void write_progress(void *_vpninfo, int level, const char *fmt, ...)
 		fflush(outf);
 	}
 }
-
-#ifdef __ANDROID__
-void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
-{
-	static int l[4] = {
-		ANDROID_LOG_ERROR,	/* PRG_ERR   */
-		ANDROID_LOG_INFO,	/* PRG_INFO  */
-		ANDROID_LOG_DEBUG,	/* PRG_DEBUG */
-		ANDROID_LOG_DEBUG	/* PRG_TRACE */
-	};
-	va_list args, args2;
-
-	if (verbose >= level) {
-		va_start(args, fmt);
-		va_copy(args2, args);
-		__android_log_vprint(l[level], "openconnect", fmt, args);
-		/* Android wants it to stderr too, so the GUI can scrape
-		   it and display it as well as going to syslog */
-		vfprintf(stderr, fmt, args2);
-		va_end(args);
-		va_end(args2);
-	}
-}
-#else /* !__ANDROID__ */
-void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
-{
-	int priority = level ? LOG_INFO : LOG_NOTICE;
-	va_list args;
-
-	if (verbose >= level) {
-		va_start(args, fmt);
-		vsyslog(priority, fmt, args);
-		va_end(args);
-	}
-}
-#endif
 
 struct accepted_cert {
 	struct accepted_cert *next;
