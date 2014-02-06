@@ -85,6 +85,8 @@ case $host_os in
     ;;
  *mingw32*|*mingw64*)
     AC_MSG_NOTICE([Applying feature macros for MinGW/Windows build])
+    # For GetVolumeInformationByHandleW() which is Vista+
+    AC_DEFINE(_WIN32_WINNT,0x600)
     have_win=yes
     ;;
  *)

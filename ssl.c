@@ -353,6 +353,26 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 		return -ENOMEM;
 	return 0;
 }
+#elif defined(_WIN32)
+#include <fileapi.h>
+int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
+{
+	HFILE fh;
+	OFSTRUCT ofstr;
+	DWORD serial;
+
+	fh = OpenFile(vpninfo->sslkey, &ofstr, OF_READ|OF_SHARE_DENY_NONE);
+	if (fh == HFILE_ERROR)
+		return -EIO;
+
+	if (!GetVolumeInformationByHandleW((HANDLE)fh, NULL, 0, &serial, NULL, NULL, NULL, 0))
+		return -EIO;
+
+	if (asprintf(&vpninfo->cert_password, "%lx", serial))
+		return -ENOMEM;
+
+	return -EINVAL;
+}
 #else
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 {
