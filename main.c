@@ -40,7 +40,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <pwd.h>
 #include <sys/utsname.h>
 #include <sys/types.h>
 #ifdef LIBPROXY_HDR
@@ -49,6 +48,7 @@
 #include <getopt.h>
 #include <time.h>
 #ifndef _WIN32
+#include <pwd.h>
 #include <termios.h>
 #endif
 
@@ -191,7 +191,9 @@ static struct option long_options[] = {
 	OPTION("interface", 1, 'i'),
 	OPTION("mtu", 1, 'm'),
 	OPTION("base-mtu", 1, OPT_BASEMTU),
+#ifndef _WIN32
 	OPTION("setuid", 1, 'U'),
+#endif
 	OPTION("script", 1, 's'),
 #ifndef _WIN32
 	OPTION("script-tun", 0, 'S'),
@@ -221,8 +223,10 @@ static struct option long_options[] = {
 	OPTION("servercert", 1, OPT_SERVERCERT),
 	OPTION("key-password-from-fsid", 0, OPT_KEY_PASSWORD_FROM_FSID),
 	OPTION("useragent", 1, OPT_USERAGENT),
+#ifndef _WIN32
 	OPTION("csd-user", 1, OPT_CSD_USER),
 	OPTION("csd-wrapper", 1, OPT_CSD_WRAPPER),
+#endif
 	OPTION("disable-ipv6", 0, OPT_DISABLE_IPV6),
 	OPTION("no-proxy", 0, OPT_NO_PROXY),
 	OPTION("libproxy", 0, OPT_LIBPROXY),
@@ -312,9 +316,11 @@ static void usage(void)
 	printf("  -l, --syslog                    %s\n", _("Use syslog for progress messages"));
 #endif
 	printf("      --timestamp                 %s\n", _("Prepend timestamp to progress messages"));
+#ifndef _WIN32
 	printf("  -U, --setuid=USER               %s\n", _("Drop privileges after connecting"));
 	printf("      --csd-user=USER             %s\n", _("Drop privileges during CSD execution"));
 	printf("      --csd-wrapper=SCRIPT        %s\n", _("Run SCRIPT instead of CSD binary"));
+#endif
 	printf("  -m, --mtu=MTU                   %s\n", _("Request MTU from server"));
 	printf("      --base-mtu=MTU              %s\n", _("Indicate path MTU to/from server"));
 	printf("  -p, --key-password=PASS         %s\n", _("Set key passphrase or TPM SRK PIN"));
@@ -475,7 +481,7 @@ static int next_option(int argc, char **argv, char **config_arg)
 	if (!config_file) {
 		opt = getopt_long(argc, argv,
 #ifdef _WIN32
-				  "bC:c:Dde:g:hi:k:m:P:p:Q:qs:U:u:Vvx:",
+				  "bC:c:Dde:g:hi:k:m:P:p:Q:qs:u:Vvx:",
 #else
 				  "bC:c:Dde:g:hi:k:lm:P:p:Q:qSs:U:u:Vvx:",
 #endif
@@ -569,7 +575,6 @@ int main(int argc, char **argv)
 	char *vpnc_script = NULL, *ifname = NULL;
 	const struct oc_ip_info *ip_info;
 	int autoproxy = 0;
-	uid_t uid = getuid();
 	int opt;
 	char *pidfile = NULL;
 	int use_dtls = 1;
@@ -580,6 +585,7 @@ int main(int argc, char **argv)
 	int reconnect_timeout = 300;
 	int ret;
 #ifndef _WIN32
+	uid_t uid = getuid();
 	int use_syslog = 0;
 	int script_tun = 0;
 #endif
@@ -768,6 +774,7 @@ int main(int argc, char **argv)
 			free(username);
 			username = strdup(config_arg);
 			break;
+#ifndef _WIN32
 		case 'U': {
 			char *strend;
 			uid = strtol(config_arg, &strend, 0);
@@ -800,6 +807,7 @@ int main(int argc, char **argv)
 		case OPT_CSD_WRAPPER:
 			vpninfo->csd_wrapper = keep_config_arg();
 			break;
+#endif
 		case OPT_DISABLE_IPV6:
 			vpninfo->disable_ipv6 = 1;
 			break;
@@ -1008,6 +1016,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+#ifndef _WIN32
 	if (uid != getuid()) {
 		if (setuid(uid)) {
 			fprintf(stderr, _("Failed to set uid %ld\n"),
@@ -1016,6 +1025,7 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 	}
+#endif
 
 	if (use_dtls && openconnect_setup_dtls(vpninfo, 60))
 		fprintf(stderr, _("Set up DTLS failed; using SSL instead\n"));
