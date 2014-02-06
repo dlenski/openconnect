@@ -372,6 +372,8 @@ int openconnect__inet_aton(const char *cp, struct in_addr *addr);
 #ifdef _WIN32
 #define neterrno openconnect__win32_neterrno
 int openconnect__win32_neterrno();
+ssize_t openconnect__win32_sock_read(gnutls_transport_ptr_t ptr, void *data, size_t size);
+ssize_t openconnect__win32_sock_write(gnutls_transport_ptr_t ptr, const void *data, size_t size);
 #else
 #define neterrno() errno
 #define closesocket close

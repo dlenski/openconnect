@@ -238,4 +238,14 @@ int openconnect__win32_neterrno()
 	default:		return EIO;
 	}
 }
+
+ssize_t openconnect__win32_sock_read(gnutls_transport_ptr_t ptr, void *data, size_t size)
+{
+	return recv((long)ptr, data, size, 0);
+}
+
+ssize_t openconnect__win32_sock_write(gnutls_transport_ptr_t ptr, const void *data, size_t size)
+{
+	return send((long)ptr, data, size, 0);
+}
 #endif /* _WIN32 */
