@@ -364,6 +364,11 @@ int openconnect__setenv(const char *name, const char *value, int overwrite);
 void openconnect__unsetenv(const char *name);
 #endif
 
+#ifndef HAVE_INET_ATON
+#define inet_aton openconnect__inet_aton
+int openconnect__inet_aton(const char *cp, struct in_addr *addr);
+#endif
+
 /* I always coded as if it worked like this. Now it does. */
 #define realloc_inplace(p, size) do {			\
 	void *__realloc_old = p;			\

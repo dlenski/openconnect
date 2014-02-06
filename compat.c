@@ -190,3 +190,11 @@ void openconnect__unsetenv(const char *name)
 	putenv(buf);
 }
 #endif
+
+#ifndef HAVE_INET_ATON
+int openconnect__inet_aton(const char *cp, struct in_addr *addr)
+{
+  addr->s_addr = inet_addr(cp);
+  return (addr->s_addr == 0xffffffff) ? 0 : 1;
+}
+#endif

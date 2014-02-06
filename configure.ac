@@ -141,7 +141,13 @@ AS_COMPILER_FLAGS(WFLAGS,
 AC_SUBST(WFLAGS, [$WFLAGS])
 
 AC_CHECK_FUNC(socket, [], AC_CHECK_LIB(socket, socket, [], AC_ERROR(Cannot find socket() function)))
-AC_CHECK_FUNC(inet_aton, [], AC_CHECK_LIB(nsl, inet_aton, [], AC_ERROR(Cannot find inet_aton() function)))
+
+have_inet_aton=yes
+AC_CHECK_FUNC(inet_aton, [], AC_CHECK_LIB(nsl, inet_aton, [], have_inet_aton=no))
+if test "$have_inet_aton" = "yes"; then
+   AC_DEFINE(HAVE_INET_ATON, 1)
+fi
+
 AC_CHECK_FUNC(__android_log_vprint, [], AC_CHECK_LIB(log, __android_log_vprint, [], []))
 
 AC_CHECK_FUNCS(setenv unsetenv)
