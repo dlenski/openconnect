@@ -198,3 +198,44 @@ int openconnect__inet_aton(const char *cp, struct in_addr *addr)
   return (addr->s_addr == 0xffffffff) ? 0 : 1;
 }
 #endif
+
+#ifdef _WIN32
+int openconnect__win32_neterrno()
+{
+	switch (WSAGetLastError()) {
+	case WSAEINTR:		return EINTR;
+	case WSAEWOULDBLOCK:	return EWOULDBLOCK;
+	case WSAEINPROGRESS:	return EINPROGRESS;
+	case WSAEALREADY:	return EALREADY;
+	case WSAENOTSOCK:	return ENOTSOCK;
+	case WSAEDESTADDRREQ:	return EDESTADDRREQ;
+	case WSAEMSGSIZE:	return EMSGSIZE;
+	case WSAEPROTOTYPE:	return EPROTOTYPE;
+	case WSAENOPROTOOPT:	return ENOPROTOOPT;
+	case WSAEPROTONOSUPPORT:return EPROTONOSUPPORT;
+	case WSAEOPNOTSUPP:	return EOPNOTSUPP;
+	case WSAEPFNOSUPPORT:	return EAFNOSUPPORT;
+	case WSAEAFNOSUPPORT:	return EAFNOSUPPORT;
+	case WSAEADDRINUSE:	return EADDRINUSE;
+	case WSAEADDRNOTAVAIL:	return EADDRNOTAVAIL;
+	case WSAENETDOWN:	return ENETDOWN;
+	case WSAENETUNREACH:	return ENETUNREACH;
+	case WSAENETRESET:	return ENETRESET;
+	case WSAECONNABORTED:	return ECONNABORTED;
+	case WSAECONNRESET:	return ECONNRESET;
+	case WSAENOBUFS:	return ENOBUFS;
+	case WSAEISCONN:	return EISCONN;
+	case WSAENOTCONN:	return ENOTCONN;
+	case WSAETIMEDOUT:	return ETIMEDOUT;
+	case WSAECONNREFUSED:	return ECONNREFUSED;
+	case WSAELOOP:		return ELOOP;
+	case WSAENAMETOOLONG:	return ENAMETOOLONG;
+	case WSAEHOSTUNREACH:	return EHOSTUNREACH;
+	case WSAENOTEMPTY:	return ENOTEMPTY;
+	case WSAEINVAL:		return EINVAL;
+	case WSAEFAULT:		return EFAULT;
+	case 0:			return 0;
+	default:		return EIO;
+	}
+}
+#endif /* _WIN32 */

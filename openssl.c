@@ -1283,7 +1283,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 					     _("Loading certificate failed. Aborting.\n"));
 				SSL_CTX_free(vpninfo->https_ctx);
 				vpninfo->https_ctx = NULL;
-				close(ssl_sock);
+				closesocket(ssl_sock);
 				return err;
 			}
 			check_certificate_expiry(vpninfo);
@@ -1316,7 +1316,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			if (!b) {
 				SSL_CTX_free(vpninfo->https_ctx);
 				vpninfo->https_ctx = NULL;
-				close(ssl_sock);
+				closesocket(ssl_sock);
 				return -EINVAL;
 			}
 
@@ -1330,7 +1330,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 				openconnect_report_ssl_errors(vpninfo);
 				SSL_CTX_free(vpninfo->https_ctx);
 				vpninfo->https_ctx = NULL;
-				close(ssl_sock);
+				closesocket(ssl_sock);
 				return -ENOENT;
 			}
 
@@ -1354,7 +1354,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 				openconnect_report_ssl_errors(vpninfo);
 				SSL_CTX_free(vpninfo->https_ctx);
 				vpninfo->https_ctx = NULL;
-				close(ssl_sock);
+				closesocket(ssl_sock);
 				return -EINVAL;
 			}
 		}
@@ -1386,7 +1386,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			vpn_progress(vpninfo, PRG_ERR, _("SSL connection failure\n"));
 			openconnect_report_ssl_errors(vpninfo);
 			SSL_free(https_ssl);
-			close(ssl_sock);
+			closesocket(ssl_sock);
 			return -EINVAL;
 		}
 
@@ -1395,14 +1395,14 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		if (is_cancel_pending(vpninfo, &rd_set)) {
 			vpn_progress(vpninfo, PRG_ERR, _("SSL connection cancelled\n"));
 			SSL_free(https_ssl);
-			close(ssl_sock);
+			closesocket(ssl_sock);
 			return -EINVAL;
 		}
 	}
 
 	if (verify_peer(vpninfo, https_ssl)) {
 		SSL_free(https_ssl);
-		close(ssl_sock);
+		closesocket(ssl_sock);
 		return -EINVAL;
 	}
 
@@ -1430,7 +1430,7 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 		vpninfo->https_ssl = NULL;
 	}
 	if (vpninfo->ssl_fd != -1) {
-		close(vpninfo->ssl_fd);
+		closesocket(vpninfo->ssl_fd);
 		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_rfds);
 		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_wfds);
 		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_efds);

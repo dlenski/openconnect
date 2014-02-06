@@ -1862,7 +1862,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 					gnutls_free(datum.data);
 					gnutls_certificate_free_credentials(vpninfo->https_cred);
 					vpninfo->https_cred = NULL;
-					close(ssl_sock);
+					closesocket(ssl_sock);
 					return -ENOMEM;
 				}
 				err = gnutls_x509_crt_list_import(certs, &nr_certs, &datum,
@@ -1883,7 +1883,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 						     gnutls_strerror(err));
 					gnutls_certificate_free_credentials(vpninfo->https_cred);
 					vpninfo->https_cred = NULL;
-					close(ssl_sock);
+					closesocket(ssl_sock);
 					return -EINVAL;
 				}
 			}
@@ -1899,7 +1899,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 					     vpninfo->cafile, gnutls_strerror(err));
 				gnutls_certificate_free_credentials(vpninfo->https_cred);
 				vpninfo->https_cred = NULL;
-				close(ssl_sock);
+				closesocket(ssl_sock);
 				return -EINVAL;
 			}
 		}
@@ -1911,7 +1911,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 					     _("Loading certificate failed. Aborting.\n"));
 				gnutls_certificate_free_credentials(vpninfo->https_cred);
 				vpninfo->https_cred = NULL;
-				close(ssl_sock);
+				closesocket(ssl_sock);
 				return err;
 			}
 		}
@@ -1937,7 +1937,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			     gnutls_strerror(err));
 		gnutls_deinit(vpninfo->https_sess);
 		vpninfo->https_sess = NULL;
-		close(ssl_sock);
+		closesocket(ssl_sock);
 		return -EIO;
 	}
 
@@ -1967,7 +1967,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 				vpn_progress(vpninfo, PRG_ERR, _("SSL connection cancelled\n"));
 				gnutls_deinit(vpninfo->https_sess);
 				vpninfo->https_sess = NULL;
-				close(ssl_sock);
+				closesocket(ssl_sock);
 				return -EINTR;
 			}
 		} else if (err == GNUTLS_E_INTERRUPTED || gnutls_error_is_fatal(err)) {
@@ -1975,7 +1975,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 							 gnutls_strerror(err));
 			gnutls_deinit(vpninfo->https_sess);
 			vpninfo->https_sess = NULL;
-			close(ssl_sock);
+			closesocket(ssl_sock);
 			return -EIO;
 		} else {
 			/* non-fatal error or warning. Ignore it and continue */
@@ -2004,7 +2004,7 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 		vpninfo->https_sess = NULL;
 	}
 	if (vpninfo->ssl_fd != -1) {
-		close(vpninfo->ssl_fd);
+		closesocket(vpninfo->ssl_fd);
 		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_rfds);
 		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_wfds);
 		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_efds);

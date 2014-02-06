@@ -524,20 +524,20 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 				     _("Unknown protocol family %d. Cannot do DTLS\n"),
 				     vpninfo->peer_addr->sa_family);
 			vpninfo->dtls_attempt_period = 0;
-			close(dtls_fd);
+			closesocket(dtls_fd);
 			return -EINVAL;
 		}
 
 		if (bind(dtls_fd, (struct sockaddr *)&dtls_bind_addr, dtls_bind_addrlen)) {
 			perror(_("Bind UDP socket for DTLS"));
-			close(dtls_fd);
+			closesocket(dtls_fd);
 			return -EINVAL;
 		}
 	}
 
 	if (connect(dtls_fd, vpninfo->dtls_addr, vpninfo->peer_addrlen)) {
 		perror(_("UDP (DTLS) connect:\n"));
-		close(dtls_fd);
+		closesocket(dtls_fd);
 		return -EINVAL;
 	}
 
@@ -546,7 +546,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 
 	ret = start_dtls_handshake(vpninfo, dtls_fd);
 	if (ret) {
-		close(dtls_fd);
+		closesocket(dtls_fd);
 		return ret;
 	}
 
@@ -566,7 +566,7 @@ void dtls_close(struct openconnect_info *vpninfo, int kill_handshake_too)
 {
 	if (vpninfo->dtls_ssl) {
 		DTLS_FREE(vpninfo->dtls_ssl);
-		close(vpninfo->dtls_fd);
+		closesocket(vpninfo->dtls_fd);
 		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_rfds);
 		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_wfds);
 		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_efds);
@@ -575,7 +575,7 @@ void dtls_close(struct openconnect_info *vpninfo, int kill_handshake_too)
 	}
 	if (kill_handshake_too && vpninfo->new_dtls_ssl) {
 		DTLS_FREE(vpninfo->new_dtls_ssl);
-		close(vpninfo->new_dtls_fd);
+		closesocket(vpninfo->new_dtls_fd);
 		FD_CLR(vpninfo->new_dtls_fd, &vpninfo->select_rfds);
 		FD_CLR(vpninfo->new_dtls_fd, &vpninfo->select_efds);
 		vpninfo->new_dtls_ssl = NULL;

@@ -83,6 +83,10 @@ case $host_os in
     AC_DEFINE(HAVE_SUNOS_BROKEN_TIME)
     symver_time="openconnect__time;"
     ;;
+ *mingw32*|*mingw64*)
+    AC_MSG_NOTICE([Applying feature macros for MinGW/Windows build])
+    have_win=yes
+    ;;
  *)
     # On FreeBSD the only way to get vsyslog() visible is to define
     #  *nothing*, which makes absolutely everything visible.
@@ -140,7 +144,12 @@ AS_COMPILER_FLAGS(WFLAGS,
          -Wwrite-strings")
 AC_SUBST(WFLAGS, [$WFLAGS])
 
-AC_CHECK_FUNC(socket, [], AC_CHECK_LIB(socket, socket, [], AC_ERROR(Cannot find socket() function)))
+if test "$have_win" = yes; then
+   # Checking "properly" for __attribute__((dllimport,stdcall)) functions is non-trivial
+   LIBS="$LIBS -lws2_32"
+else
+   AC_CHECK_FUNC(socket, [], AC_CHECK_LIB(socket, socket, [], AC_ERROR(Cannot find socket() function)))
+fi
 
 have_inet_aton=yes
 AC_CHECK_FUNC(inet_aton, [], AC_CHECK_LIB(nsl, inet_aton, [], have_inet_aton=no))

@@ -369,6 +369,14 @@ void openconnect__unsetenv(const char *name);
 int openconnect__inet_aton(const char *cp, struct in_addr *addr);
 #endif
 
+#ifdef _WIN32
+#define neterrno openconnect__win32_neterrno
+int openconnect__win32_neterrno();
+#else
+#define neterrno() errno
+#define closesocket close
+#endif
+
 /* I always coded as if it worked like this. Now it does. */
 #define realloc_inplace(p, size) do {			\
 	void *__realloc_old = p;			\

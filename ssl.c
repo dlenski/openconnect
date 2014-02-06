@@ -66,7 +66,7 @@ static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 	if (vpninfo->protect_socket)
 		vpninfo->protect_socket(vpninfo->cbdata, sockfd);
 
-	if (connect(sockfd, addr, addrlen) < 0 && errno != EINPROGRESS)
+	if (connect(sockfd, addr, addrlen) < 0 && neterrno() != EINPROGRESS)
 		return -1;
 
 	do {
@@ -119,7 +119,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 					     vpninfo->hostname);
 			}
 			if (ssl_sock >= 0)
-				close(ssl_sock);
+				closesocket(ssl_sock);
 			return -EINVAL;
 		}
 	} else {
@@ -242,7 +242,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 				if (!vpninfo->peer_addr) {
 					vpn_progress(vpninfo, PRG_ERR,
 						     _("Failed to allocate sockaddr storage\n"));
-					close(ssl_sock);
+					closesocket(ssl_sock);
 					return -ENOMEM;
 				}
 				vpninfo->peer_addrlen = rp->ai_addrlen;
@@ -266,7 +266,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 				}
 				break;
 			}
-			close(ssl_sock);
+			closesocket(ssl_sock);
 			ssl_sock = -1;
 		}
 		freeaddrinfo(result);
@@ -282,7 +282,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 	if (vpninfo->proxy) {
 		err = process_proxy(vpninfo, ssl_sock);
 		if (err) {
-			close(ssl_sock);
+			closesocket(ssl_sock);
 			return err;
 		}
 	}
