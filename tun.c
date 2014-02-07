@@ -487,8 +487,9 @@ static int bsd_open_tun(char *tun_name)
 static int os_setup_tun(struct openconnect_info *vpninfo)
 {
 	int tun_fd = -1;
-
-#ifdef IFF_TUN /* Linux */
+#ifdef _WIN32
+	tun_fd = win32_setup_tun(vpninfo);
+#elif defined(IFF_TUN) /* Linux */
 	struct ifreq ifr;
 	int tunerr;
 
@@ -630,7 +631,7 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 		return -EIO;
 	}
 #endif
-#endif
+#endif /* BSD-style */
 	return tun_fd;
 }
 

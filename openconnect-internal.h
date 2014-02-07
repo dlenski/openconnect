@@ -278,6 +278,9 @@ struct openconnect_info {
 	int ip_fd;
 	int ip6_fd;
 #endif
+#ifdef _WIN32
+	HANDLE tun_fh;
+#endif
 	int tun_fd;
 	int ssl_fd;
 	int dtls_fd;
@@ -408,6 +411,8 @@ ssize_t openconnect__win32_sock_write(gnutls_transport_ptr_t ptr, const void *da
     } while (0)
 
 /****************************************************************************/
+/* tun-win32.c */
+int win32_setup_tun(struct openconnect_info *vpninfo);
 
 /* tun.c */
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout);
