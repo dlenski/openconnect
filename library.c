@@ -370,8 +370,13 @@ int openconnect_setup_cmd_pipe(struct openconnect_info *vpninfo)
 {
 	int pipefd[2];
 
+#ifdef _WIN32
+	if (dumb_socketpair(pipefd, 0))
+		return -EIO;
+#else
 	if (pipe(pipefd) < 0)
 		return -EIO;
+#endif
 	if (set_sock_nonblock(pipefd[0]) || set_sock_nonblock(pipefd[1])) {
 		close(pipefd[0]);
 		close(pipefd[1]);

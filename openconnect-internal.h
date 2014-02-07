@@ -394,6 +394,7 @@ int openconnect__win32_sock_poll(gnutls_transport_ptr_t ptr, unsigned int ms);
 ssize_t openconnect__win32_sock_read(gnutls_transport_ptr_t ptr, void *data, size_t size);
 ssize_t openconnect__win32_sock_write(gnutls_transport_ptr_t ptr, const void *data, size_t size);
 #endif
+int dumb_socketpair(int socks[2], int make_overlapped);
 #else
 #define neterrno() errno
 #define closesocket close

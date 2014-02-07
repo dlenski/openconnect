@@ -413,8 +413,8 @@ static void read_stdin(char **string, int hidden)
 		*c = 0;
 }
 
-#ifndef _WIN32
 static int sig_cmd_fd;
+#ifndef _WIN32
 static int sig_caught;
 
 static void handle_sigint(int sig)
@@ -921,6 +921,7 @@ int main(int argc, char **argv)
 #endif
 		vpninfo->progress = syslog_progress;
 	}
+#endif /* !_WIN32 */
 
 	sig_cmd_fd = openconnect_setup_cmd_pipe(vpninfo);
 	if (sig_cmd_fd < 0) {
@@ -928,6 +929,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+#ifndef _WIN32
 	memset(&sa, 0, sizeof(sa));
 
 	sa.sa_handler = handle_sigusr;
