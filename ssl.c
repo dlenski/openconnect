@@ -593,9 +593,9 @@ void poll_cmd_fd(struct openconnect_info *vpninfo, int timeout)
 {
 	fd_set rd_set;
 	int maxfd = 0;
-	time_t expiration = time(NULL) + timeout, now;
+	time_t expiration = time(NULL) + timeout, now = 0;
 
-	do {
+	while (now < expiration && !vpninfo->got_cancel_cmd && !vpninfo->got_pause_cmd) {
 		struct timeval tv = { 0 };
 
 		now = time(NULL);
@@ -605,5 +605,5 @@ void poll_cmd_fd(struct openconnect_info *vpninfo, int timeout)
 		cmd_fd_set(vpninfo, &rd_set, &maxfd);
 		select(maxfd + 1, &rd_set, NULL, NULL, &tv);
 		check_cmd_fd(vpninfo, &rd_set);
-	} while (now < expiration && !vpninfo->got_cancel_cmd && !vpninfo->got_pause_cmd);
+	}
 }
