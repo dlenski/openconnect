@@ -496,8 +496,15 @@ AM_CONDITIONAL(OPENBSD_LIBTOOL, [ test "$use_openbsd_libtool" = "true" ])
 # Ick. This seems like it's likely to be very fragile, but I can't see a better
 # way. I shall console myself with the observation that the failure mode isn't
 # particularly horrible — you just don't get symbol versioning if it fails.
+
+AC_ARG_ENABLE([symvers],
+	AS_HELP_STRING([--disable-symvers],
+		       [disable library symbol versioning [default=auto]]),
+	[want_symvers=$enableval],
+	[want_symvers=yes])
+
 symvers=no
-if test "$enable_shared" = "yes" ; then
+if test "$enable_shared" = "yes" -a "$want_symvers" != "no" ; then
    AC_MSG_CHECKING([if library symbol versioning is available]);
    echo 'FOO { global: foo; local: *; };' > conftest.map
    echo 'int foo = 0;' > conftest.$ac_ext

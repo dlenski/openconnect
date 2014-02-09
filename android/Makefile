@@ -358,7 +358,8 @@ $(OPENCONNECT_BUILD)/Makefile: $(GNUTLS_DEPS) $(LIBXML_DEPS) $(STOKEN_DEPS) $(OA
 	LDFLAGS="$(EXTRA_LDFLAGS)" \
 	GNUTLS_LIBS="$(shell PKG_CONFIG_LIBDIR=$(OC_SYSROOT)/lib/pkgconfig pkg-config --static --libs gnutls)" \
 	--enable-shared --with-vpnc-script=/etc/vpnc/vpnc-script \
-	--with-java=$(NDK_SYSROOT)/usr/include --enable-jni-standalone
+	--with-java=$(NDK_SYSROOT)/usr/include --enable-jni-standalone \
+	--disable-symvers
 
 openconnect: $(OPENCONNECT_BUILD)/Makefile
 	make -C $(OPENCONNECT_BUILD)
