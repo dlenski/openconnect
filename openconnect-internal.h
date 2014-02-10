@@ -369,7 +369,7 @@ int openconnect__inet_aton(const char *cp, struct in_addr *addr);
 static inline int set_sock_nonblock(int fd)
 {
 #ifdef _WIN32
-	unsigned long mode = 0;
+	unsigned long mode = 1;
 	return ioctlsocket(fd, FIONBIO, &mode);
 #else
 	return fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
