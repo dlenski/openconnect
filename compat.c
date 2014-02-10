@@ -193,11 +193,21 @@ int openconnect__inet_aton(const char *cp, struct in_addr *addr)
 #endif
 
 #ifdef _WIN32
+void openconnect__win32_sock_init()
+{
+	WSADATA data;
+	if (WSAStartup (MAKEWORD(1, 1), &data) != 0) {
+		fprintf(stderr, _("ERROR: Cannot initialize sockets\n"));
+		exit(1);
+	}
+}
+
+#ifdef OPENCONNECT_GNUTLS
 int openconnect__win32_neterrno()
 {
 	switch (WSAGetLastError()) {
 	case WSAEINTR:		return EINTR;
-	case WSAEWOULDBLOCK:	return EWOULDBLOCK;
+	case WSAEWOULDBLOCK:	return EAGAIN;
 	case WSAEINPROGRESS:	return EINPROGRESS;
 	case WSAEALREADY:	return EALREADY;
 	case WSAENOTSOCK:	return ENOTSOCK;
@@ -232,15 +242,6 @@ int openconnect__win32_neterrno()
 	}
 }
 
-void openconnect__win32_sock_init()
-{
-	WSADATA data;
-	if (WSAStartup (MAKEWORD(1, 1), &data) != 0) {
-		fprintf(stderr, _("ERROR: Cannot initialize sockets\n"));
-		exit(1);
-	}
-}
-#ifdef OPENCONNECT_GNUTLS
 int openconnect__win32_sock_poll(gnutls_transport_ptr_t ptr, unsigned int ms)
 {
 	fd_set rfds;

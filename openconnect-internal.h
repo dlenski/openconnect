@@ -386,17 +386,15 @@ static inline int set_fd_cloexec(int fd)
 
 #ifdef _WIN32
 #define pipe(fds) _pipe(fds, 4096, O_BINARY)
-#define neterrno openconnect__win32_neterrno
-int openconnect__win32_neterrno();
 void openconnect__win32_sock_init();
 #ifdef OPENCONNECT_GNUTLS
+int openconnect__win32_neterrno();
 int openconnect__win32_sock_poll(gnutls_transport_ptr_t ptr, unsigned int ms);
 ssize_t openconnect__win32_sock_read(gnutls_transport_ptr_t ptr, void *data, size_t size);
 ssize_t openconnect__win32_sock_write(gnutls_transport_ptr_t ptr, const void *data, size_t size);
 #endif
 int dumb_socketpair(int socks[2], int make_overlapped);
 #else
-#define neterrno() errno
 #define closesocket close
 #ifndef O_BINARY
 #define O_BINARY 0

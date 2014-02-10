@@ -47,6 +47,14 @@
 #define AI_NUMERICSERV 0
 #endif
 
+static inline int connect_pending()
+{
+#ifdef _WIN32
+	return WSAGetLastError() == WSAEWOULDBLOCK;
+#else
+	return errno == EINPROGRESS;
+#endif
+}
 static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 			       const struct sockaddr *addr, socklen_t addrlen)
 {
@@ -59,7 +67,7 @@ static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 	if (vpninfo->protect_socket)
 		vpninfo->protect_socket(vpninfo->cbdata, sockfd);
 
-	if (connect(sockfd, addr, addrlen) < 0 && neterrno() != EINPROGRESS)
+	if (connect(sockfd, addr, addrlen) < 0 && !connect_pending())
 		return -1;
 
 	do {
