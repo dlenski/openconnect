@@ -29,6 +29,7 @@ EXTRA_LDFLAGS := -lz
 endif
 
 TOPDIR := $(shell pwd)
+DESTDIR := $(TOPDIR)/$(TRIPLET)/out
 
 TOOLCHAIN := $(TOPDIR)/$(TRIPLET)/toolchain
 TOOLCHAIN_BUILT := $(TOOLCHAIN)/.built
@@ -364,7 +365,8 @@ $(OPENCONNECT_SRC)/configure:
 
 $(OPENCONNECT_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_DEPS) $(LIBXML_DEPS) $(STOKEN_DEPS) $(OATH_DEPS) $(OPENCONNECT_SRC)/configure
 	mkdir -p $(OPENCONNECT_BUILD)
-	cd $(OPENCONNECT_BUILD) && ../../../configure $(CONFIGURE_ARGS) \
+	cd $(OPENCONNECT_BUILD) && ../../../configure \
+	--host=$(TRIPLET) --prefix=/ \
 	CFLAGS="-DNO_BROKEN_DTLS_CHECK" \
 	LDFLAGS="$(EXTRA_LDFLAGS)" \
 	GNUTLS_LIBS="$(shell PKG_CONFIG_LIBDIR=$(OC_SYSROOT)/lib/pkgconfig pkg-config --static --libs gnutls)" \
@@ -374,6 +376,7 @@ $(OPENCONNECT_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_DEPS) $(LIBXML_DEPS) 
 
 openconnect: $(OPENCONNECT_BUILD)/Makefile
 	make -C $(OPENCONNECT_BUILD)
+	make -C $(OPENCONNECT_BUILD) install-strip DESTDIR=$(DESTDIR)
 
 # download + extract, but do not build
 sources: $(LIBXML2_SRC)/configure $(GMP_SRC)/configure \
