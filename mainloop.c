@@ -137,6 +137,9 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 			WSAEventSelect(vpninfo->cmd_fd, vpninfo->cmd_event, vpninfo->cmd_monitored);
 			events[nr_events++] = vpninfo->cmd_event;
 		}
+		if (vpninfo->tun_monitored) {
+			events[nr_events++] = vpninfo->tun_rd_overlap.hEvent;
+		}
 		if (WaitForMultipleObjects(nr_events, events, FALSE, timeout) == WAIT_FAILED) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("WaitForMultipleObjects failed: %lx\n"),

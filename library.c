@@ -47,7 +47,10 @@ struct openconnect_info *openconnect_vpninfo_new(char *useragent,
 	if (!vpninfo)
 		return NULL;
 
-	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = -1;
+#ifndef _WIN32
+	vpninfo->tun_fd = -1;
+#endif
+	vpninfo->ssl_fd = vpninfo->dtls_fd = -1;
 	vpninfo->cmd_fd = vpninfo->cmd_fd_write = -1;
 	vpninfo->cert_expire_warning = 60 * 86400;
 	vpninfo->deflate = 1;

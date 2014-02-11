@@ -38,8 +38,10 @@ Platform support for new UNIX systems is relatively simple to add
 &#8212; most of the difference is in the TUN/TAP device handling, and
 the major variants of that are already supported.</p>
 <p>
-OpenConnect builds for Windows using MinGW, although support for the TUN/TAP
-device has not yet been completed.</p>
+OpenConnect builds for Windows using MinGW and should work with the
+TAP-Windows driver shipped with OpenVPN <i>(driver version 9.9 or later)</i>.
+However, support for automatically configuring IP adddress on the network interface
+is not yet implemented, and it is only tested with Legacy IP not IPv6.</p>
 <p>
 A port to Symbian, to provide VPN connectivity on phone handsets,
 would be very useful. Any volunteers?</p>

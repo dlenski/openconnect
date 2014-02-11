@@ -124,7 +124,9 @@ static int open_tun(struct openconnect_info *vpninfo, char *guid, char *name)
 
 	snprintf(devname, sizeof(devname), DEVTEMPLATE, guid);
 	tun_fh = CreateFile(devname, GENERIC_WRITE|GENERIC_READ, 0, 0,
-			    OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM, 0);
+			    OPEN_EXISTING,
+			    FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED,
+			    0);
 	if (tun_fh == INVALID_HANDLE_VALUE) {
 		vpn_progress(vpninfo, PRG_ERR, _("Failed to open %s\n"),
 			     devname);
@@ -176,6 +178,9 @@ static int open_tun(struct openconnect_info *vpninfo, char *guid, char *name)
 		vpninfo->ifname = strdup(name);
 
 	vpninfo->tun_fh = tun_fh;
+	vpninfo->tun_rd_overlap.hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	monitor_read_fd(vpninfo, tun);
+
 	return 1;
 }
 

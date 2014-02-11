@@ -635,6 +635,12 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 	return tun_fd;
 }
 
+#ifdef _WIN32
+int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
+{
+	return 0;
+}
+#else
 int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
 {
 	set_fd_cloexec(tun_fd);
@@ -652,7 +658,6 @@ int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
 	return 0;
 }
 
-#ifndef _WIN32
 int openconnect_setup_tun_script(struct openconnect_info *vpninfo, char *tun_script)
 {
 	pid_t child;
@@ -716,6 +721,9 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
 	int work_done = 0;
 	int prefix_size = 0;
+#ifdef _WIN32
+	DWORD pkt_size = 0;
+#endif
 
 #ifdef TUN_HAS_AF_PREFIX
 	if (!vpninfo->script_tun)
@@ -732,9 +740,34 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 					vpn_progress(vpninfo, PRG_ERR, "Allocation failed\n");
 					break;
 				}
-			}
+#ifdef _WIN32
+				if (!ReadFile(vpninfo->tun_fh, out_pkt->data, len, &pkt_size, &vpninfo->tun_rd_overlap)) {
+					DWORD err = GetLastError();
+					if (err != ERROR_IO_PENDING)
+						vpn_progress(vpninfo, PRG_ERR,
+							  _("Failed to read from TAP device: %lx\n"),
+							  err);
+					break;
+				}
+				len = pkt_size;
+			} else {
+				/* if out_pkt was already non-NULL then there was lready a pending read on it. */
+				if (!GetOverlappedResult(vpninfo->tun_fh, &vpninfo->tun_rd_overlap, &pkt_size, FALSE)) {
+					DWORD err = GetLastError();
 
+					if (err != ERROR_IO_INCOMPLETE)
+						vpn_progress(vpninfo, PRG_ERR,
+							     _("Failed to complete read from TAP device: %lx\n"),
+							     err);
+					break;
+				}
+				len = pkt_size;
+#endif /* _WIN32 */
+			}
+#ifndef _WIN32
+			/* Sanity. Just non-blocking reads on a select()able file descriptor... */
 			len = read(vpninfo->tun_fd, out_pkt->data - prefix_size, len + prefix_size);
+#endif
 			if (len <= prefix_size)
 				break;
 			out_pkt->len = len - prefix_size;
@@ -793,7 +826,32 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		}
 #endif
 		vpninfo->incoming_queue = this->next;
+#ifdef _WIN32
+		if (!WriteFile(vpninfo->tun_fh, data, len, &pkt_size, &vpninfo->tun_wr_overlap)) {
+			DWORD err = GetLastError();
 
+			if (err == ERROR_IO_PENDING) {
+				/* Theoretically we should let the mainloop handle this blocking,
+				   but that's non-trivial and it doesn't ever seem to happen in
+				   practice anyway. */
+				vpn_progress(vpninfo, PRG_TRACE,
+					     _("Waiting for tun write...\n"));
+				if (!GetOverlappedResult(vpninfo->tun_fh, &vpninfo->tun_wr_overlap, &pkt_size, TRUE)) {
+					err = GetLastError();
+					goto report_write_err;
+				}
+				vpn_progress(vpninfo, PRG_TRACE,
+					     _("Wrote %ld bytes to tun after waiting\n"), pkt_size);
+			} else {
+			report_write_err:
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to write to TAP device: %lx\n"), err);
+			}
+		} else {
+			vpn_progress(vpninfo, PRG_TRACE,
+				    _("Wrote %ld bytes to tun\n"), pkt_size);
+		}
+#else
 		if (write(vpninfo->tun_fd, data, len) < 0) {
 			/* Handle death of "script" socket */
 			if (vpninfo->script_tun && errno == ENOTCONN) {
@@ -804,6 +862,7 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				     _("Failed to write incoming packet: %s\n"),
 				     strerror(errno));
 		}
+#endif
 		free(this);
 	}
 	/* Work is not done if we just got rid of packets off the queue */
@@ -812,11 +871,16 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 void shutdown_tun(struct openconnect_info *vpninfo)
 {
+#ifdef _WIN32
+	script_config_tun(vpninfo, "disconnect");
+	CloseHandle(vpninfo->tun_fh);
+	vpninfo->tun_fh = NULL;
+	CloseHandle(vpninfo->tun_rd_overlap.hEvent);
+	vpninfo->tun_rd_overlap.hEvent = NULL;
+#else
 	if (vpninfo->script_tun) {
-#ifndef _WIN32
 		/* nuke the whole process group */
 		kill(-vpninfo->script_tun, SIGHUP);
-#endif
 	} else {
 		script_config_tun(vpninfo, "disconnect");
 #ifdef __sun__
@@ -832,4 +896,5 @@ void shutdown_tun(struct openconnect_info *vpninfo)
 	if (vpninfo->vpnc_script)
 		close(vpninfo->tun_fd);
 	vpninfo->tun_fd = -1;
+#endif
 }

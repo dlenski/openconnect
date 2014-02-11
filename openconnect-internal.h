@@ -274,7 +274,7 @@ struct openconnect_info {
 
 #ifdef _WIN32
 	long dtls_monitored, ssl_monitored, cmd_monitored, tun_monitored;
-	HANDLE dtls_event, ssl_event, cmd_event, tun_event;
+	HANDLE dtls_event, ssl_event, cmd_event;
 #else
 	int _select_nfds;
 	fd_set _select_rfds;
@@ -288,8 +288,10 @@ struct openconnect_info {
 #endif
 #ifdef _WIN32
 	HANDLE tun_fh;
-#endif
+	OVERLAPPED tun_rd_overlap, tun_wr_overlap;
+#else
 	int tun_fd;
+#endif
 	int ssl_fd;
 	int dtls_fd;
 
