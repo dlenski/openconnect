@@ -47,7 +47,7 @@ struct openconnect_info *openconnect_vpninfo_new(char *useragent,
 	if (!vpninfo)
 		return NULL;
 
-	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = vpninfo->new_dtls_fd = -1;
+	vpninfo->tun_fd = vpninfo->ssl_fd = vpninfo->dtls_fd = -1;
 	vpninfo->cmd_fd = vpninfo->cmd_fd_write = -1;
 	vpninfo->cert_expire_warning = 60 * 86400;
 	vpninfo->deflate = 1;
@@ -129,7 +129,7 @@ static void free_optlist(struct oc_vpn_option *opt)
 void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 {
 	openconnect_close_https(vpninfo, 1);
-	dtls_close(vpninfo, 1);
+	dtls_close(vpninfo);
 	if (vpninfo->cmd_fd_write != -1) {
 		close(vpninfo->cmd_fd);
 		close(vpninfo->cmd_fd_write);

@@ -249,7 +249,6 @@ struct openconnect_info {
 #if defined(DTLS_OPENSSL)
 	SSL_CTX *dtls_ctx;
 	SSL *dtls_ssl;
-	SSL *new_dtls_ssl;
 	SSL_SESSION *dtls_session;
 #elif defined(DTLS_GNUTLS)
 	/* Call these *_ssl rather than *_sess because they're just
@@ -258,7 +257,6 @@ struct openconnect_info {
 	   differently named to the OpenSSL variant, and forcing us to
 	   have ifdefs or accessor macros for them. */
 	gnutls_session_t dtls_ssl;
-	gnutls_session_t new_dtls_ssl;
 #endif
 	int dtls_state;
 	struct keepalive_info dtls_times;
@@ -290,7 +288,6 @@ struct openconnect_info {
 	int tun_fd;
 	int ssl_fd;
 	int dtls_fd;
-	int new_dtls_fd;
 
 	int cmd_fd;
 	int cmd_fd_write;
@@ -423,7 +420,7 @@ unsigned char unhex(const char *data);
 int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int dtls_try_handshake(struct openconnect_info *vpninfo);
 int connect_dtls_socket(struct openconnect_info *vpninfo);
-void dtls_close(struct openconnect_info *vpninfo, int kill_handshake_too);
+void dtls_close(struct openconnect_info *vpninfo);
 
 /* cstp.c */
 int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout);

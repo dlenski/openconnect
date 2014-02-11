@@ -103,8 +103,11 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 			/* close all connections and wait for the user to call
 			   openconnect_mainloop() again */
 			openconnect_close_https(vpninfo, 0);
-			dtls_close(vpninfo, 1);
-			vpninfo->new_dtls_started = 0;
+			if (vpninfo->dtls_state != DTLS_DISABLED) {
+				dtls_close(vpninfo);
+				vpninfo->dtls_state = DTLS_SLEEPING;
+				vpninfo->new_dtls_started = 0;
+			}
 
 			vpninfo->got_pause_cmd = 0;
 			vpn_progress(vpninfo, PRG_INFO, _("Caller paused the connection\n"));
