@@ -1998,9 +1998,9 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 	}
 	if (vpninfo->ssl_fd != -1) {
 		closesocket(vpninfo->ssl_fd);
-		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_rfds);
-		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_wfds);
-		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_efds);
+		unmonitor_read_fd(vpninfo, ssl);
+		unmonitor_write_fd(vpninfo, ssl);
+		unmonitor_except_fd(vpninfo, ssl);
 		vpninfo->ssl_fd = -1;
 	}
 	if (final && vpninfo->https_cred) {

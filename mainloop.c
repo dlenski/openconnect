@@ -62,9 +62,8 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 	vpninfo->reconnect_interval = reconnect_interval;
 
 	if (vpninfo->cmd_fd != -1) {
-		FD_SET(vpninfo->cmd_fd, &vpninfo->select_rfds);
-		if (vpninfo->cmd_fd >= vpninfo->select_nfds)
-			vpninfo->select_nfds = vpninfo->cmd_fd + 1;
+		monitor_fd_new(vpninfo, cmd);
+		monitor_read_fd(vpninfo, cmd);
 	}
 
 	while (!vpninfo->quit_reason) {
@@ -119,14 +118,14 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("No work to do; sleeping for %d ms...\n"), timeout);
-		memcpy(&rfds, &vpninfo->select_rfds, sizeof(rfds));
-		memcpy(&wfds, &vpninfo->select_wfds, sizeof(wfds));
-		memcpy(&efds, &vpninfo->select_efds, sizeof(efds));
+		memcpy(&rfds, &vpninfo->_select_rfds, sizeof(rfds));
+		memcpy(&wfds, &vpninfo->_select_wfds, sizeof(wfds));
+		memcpy(&efds, &vpninfo->_select_efds, sizeof(efds));
 
 		tv.tv_sec = timeout / 1000;
 		tv.tv_usec = (timeout % 1000) * 1000;
 
-		select(vpninfo->select_nfds, &rfds, &wfds, &efds, &tv);
+		select(vpninfo->_select_nfds, &rfds, &wfds, &efds, &tv);
 	}
 
 	cstp_bye(vpninfo, vpninfo->quit_reason);

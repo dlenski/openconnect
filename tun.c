@@ -640,13 +640,12 @@ int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
 	set_fd_cloexec(tun_fd);
 
 	if (vpninfo->tun_fd != -1)
-		FD_CLR(vpninfo->tun_fd, &vpninfo->select_rfds);
+		unmonitor_read_fd(vpninfo, tun);
+
 	vpninfo->tun_fd = tun_fd;
 
-	if (vpninfo->select_nfds <= tun_fd)
-		vpninfo->select_nfds = tun_fd + 1;
-
-	FD_SET(tun_fd, &vpninfo->select_rfds);
+	monitor_fd_new(vpninfo, tun);
+	monitor_read_fd(vpninfo, tun);
 
 	set_sock_nonblock(tun_fd);
 
@@ -723,7 +722,7 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		prefix_size = sizeof(int);
 #endif
 
-	if (FD_ISSET(vpninfo->tun_fd, &vpninfo->select_rfds)) {
+	if (read_fd_monitored(vpninfo, tun)) {
 		while (1) {
 			int len = vpninfo->ip_info.mtu;
 
@@ -749,12 +748,12 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			work_done = 1;
 			vpninfo->outgoing_qlen++;
 			if (vpninfo->outgoing_qlen == vpninfo->max_qlen) {
-				FD_CLR(vpninfo->tun_fd, &vpninfo->select_rfds);
+				unmonitor_read_fd(vpninfo, tun);
 				break;
 			}
 		}
 	} else if (vpninfo->outgoing_qlen < vpninfo->max_qlen) {
-		FD_SET(vpninfo->tun_fd, &vpninfo->select_rfds);
+		monitor_read_fd(vpninfo, tun);
 	}
 
 	/* The kernel returns -ENOMEM when the queue is full, so theoretically

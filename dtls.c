@@ -540,11 +540,9 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 	vpninfo->dtls_state = DTLS_CONNECTING;
 
 	vpninfo->dtls_fd = dtls_fd;
-	if (vpninfo->select_nfds <= dtls_fd)
-		vpninfo->select_nfds = dtls_fd + 1;
-
-	FD_SET(dtls_fd, &vpninfo->select_rfds);
-	FD_SET(dtls_fd, &vpninfo->select_efds);
+	monitor_fd_new(vpninfo, dtls);
+	monitor_read_fd(vpninfo, dtls);
+	monitor_except_fd(vpninfo, dtls);
 
 	time(&vpninfo->new_dtls_started);
 
@@ -556,9 +554,9 @@ void dtls_close(struct openconnect_info *vpninfo)
 	if (vpninfo->dtls_ssl) {
 		DTLS_FREE(vpninfo->dtls_ssl);
 		closesocket(vpninfo->dtls_fd);
-		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_rfds);
-		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_wfds);
-		FD_CLR(vpninfo->dtls_fd, &vpninfo->select_efds);
+		unmonitor_read_fd(vpninfo, dtls);
+		unmonitor_write_fd(vpninfo, dtls);
+		unmonitor_except_fd(vpninfo, dtls);
 		vpninfo->dtls_ssl = NULL;
 		vpninfo->dtls_fd = -1;
 	}
@@ -800,7 +798,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	}
 
 	/* Service outgoing packet queue */
-	FD_CLR(vpninfo->dtls_fd, &vpninfo->select_wfds);
+	unmonitor_write_fd(vpninfo, dtls);
 	while (vpninfo->outgoing_queue) {
 		struct pkt *this = vpninfo->outgoing_queue;
 		int ret;
@@ -817,7 +815,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			ret = SSL_get_error(vpninfo->dtls_ssl, ret);
 
 			if (ret == SSL_ERROR_WANT_WRITE) {
-				FD_SET(vpninfo->dtls_fd, &vpninfo->select_wfds);
+				monitor_write_fd(vpninfo, dtls);
 				vpninfo->outgoing_queue = this;
 				vpninfo->outgoing_qlen++;
 
@@ -847,7 +845,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				vpninfo->outgoing_qlen++;
 				work_done = 1;
 			} else if (gnutls_record_get_direction(vpninfo->dtls_ssl)) {
-				FD_SET(vpninfo->dtls_fd, &vpninfo->select_wfds);
+				monitor_write_fd(vpninfo, dtls);
 				vpninfo->outgoing_queue = this;
 				vpninfo->outgoing_qlen++;
 			}

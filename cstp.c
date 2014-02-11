@@ -489,11 +489,11 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	vpn_progress(vpninfo, PRG_INFO, _("CSTP connected. DPD %d, Keepalive %d\n"),
 		     vpninfo->ssl_times.dpd, vpninfo->ssl_times.keepalive);
 
-	if (vpninfo->select_nfds <= vpninfo->ssl_fd)
-		vpninfo->select_nfds = vpninfo->ssl_fd + 1;
 
-	FD_SET(vpninfo->ssl_fd, &vpninfo->select_rfds);
-	FD_SET(vpninfo->ssl_fd, &vpninfo->select_efds);
+	monitor_fd_new(vpninfo, ssl);
+
+	monitor_read_fd(vpninfo, ssl);
+	monitor_except_fd(vpninfo, ssl);
 
 	if (!sessid_found)
 		vpninfo->dtls_attempt_period = 0;
@@ -666,7 +666,7 @@ static int cstp_write(struct openconnect_info *vpninfo, void *buf, int buflen)
 	case SSL_ERROR_WANT_WRITE:
 		/* Waiting for the socket to become writable -- it's
 		   probably stalled, and/or the buffers are full */
-		FD_SET(vpninfo->ssl_fd, &vpninfo->select_wfds);
+		monitor_write_fd(vpninfo, ssl);
 	case SSL_ERROR_WANT_READ:
 		return 0;
 
@@ -706,7 +706,7 @@ static int cstp_write(struct openconnect_info *vpninfo, void *buf, int buflen)
 		if (gnutls_record_get_direction(vpninfo->https_sess)) {
 			/* Waiting for the socket to become writable -- it's
 			   probably stalled, and/or the buffers are full */
-			FD_SET(vpninfo->ssl_fd, &vpninfo->select_wfds);
+			monitor_write_fd(vpninfo, ssl);
 		}
 		return 0;
 	}
@@ -823,7 +823,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	if (vpninfo->current_ssl_pkt) {
 	handle_outgoing:
 		vpninfo->ssl_times.last_tx = time(NULL);
-		FD_CLR(vpninfo->ssl_fd, &vpninfo->select_wfds);
+		unmonitor_write_fd(vpninfo, ssl);
 
 		ret = cstp_write(vpninfo,
 				 vpninfo->current_ssl_pkt->hdr,
