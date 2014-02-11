@@ -600,6 +600,13 @@ int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_pe
 			int j = atol(dtls_opt->value);
 			if (j && (!vpninfo->dtls_times.dpd || j < vpninfo->dtls_times.dpd))
 				vpninfo->dtls_times.dpd = j;
+		} else if (!strcmp(dtls_opt->option + 7, "Rekey-Method")) {
+			if (!strcmp(dtls_opt->value, "new-tunnel"))
+				vpninfo->dtls_times.rekey_method = REKEY_TUNNEL;
+			else if (!strcmp(dtls_opt->value, "ssl"))
+				vpninfo->dtls_times.rekey_method = REKEY_SSL;
+			else
+				vpninfo->dtls_times.rekey_method = REKEY_NONE;
 		} else if (!strcmp(dtls_opt->option + 7, "Rekey-Time")) {
 			vpninfo->dtls_times.rekey = atol(dtls_opt->value);
 		} else if (!strcmp(dtls_opt->option + 7, "CipherSuite")) {

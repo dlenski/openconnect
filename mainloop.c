@@ -169,7 +169,9 @@ int ka_stalled_action(struct keepalive_info *ka, int *timeout)
 {
 	time_t due, now = time(NULL);
 
-	if (ka->rekey) {
+	/* we only support the new-tunnel rekey method for
+	 * now */
+	if (ka->rekey && ka->rekey_method == REKEY_TUNNEL) {
 		due = ka->last_rekey + ka->rekey;
 
 		if (now >= due)

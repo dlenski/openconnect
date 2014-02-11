@@ -356,6 +356,13 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 				vpninfo->ssl_times.dpd = j;
 		} else if (!strcmp(buf + 7, "Rekey-Time")) {
 			vpninfo->ssl_times.rekey = atol(colon);
+		} else if (!strcmp(buf + 7, "Rekey-Method")) {
+			if (!strcmp(colon, "new-tunnel"))
+				vpninfo->ssl_times.rekey_method = REKEY_TUNNEL;
+			else if (!strcmp(colon, "ssl"))
+				vpninfo->ssl_times.rekey_method = REKEY_SSL;
+			else
+				vpninfo->ssl_times.rekey_method = REKEY_NONE;
 		} else if (!strcmp(buf + 7, "Content-Encoding")) {
 			if (!strcmp(colon, "deflate"))
 				vpninfo->deflate = 1;

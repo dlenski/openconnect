@@ -94,6 +94,10 @@ struct pkt {
 	unsigned char data[];
 };
 
+#define REKEY_NONE      0
+#define REKEY_TUNNEL    1
+#define REKEY_SSL       2
+
 #define KA_NONE		0
 #define KA_DPD		1
 #define KA_DPD_DEAD	2
@@ -109,6 +113,7 @@ struct keepalive_info {
 	int dpd;
 	int keepalive;
 	int rekey;
+	int rekey_method;
 	time_t last_rekey;
 	time_t last_tx;
 	time_t last_rx;
