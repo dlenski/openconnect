@@ -1937,12 +1937,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	gnutls_record_disable_padding(vpninfo->https_sess);
 	gnutls_credentials_set(vpninfo->https_sess, GNUTLS_CRD_CERTIFICATE, vpninfo->https_cred);
 	gnutls_transport_set_ptr(vpninfo->https_sess, /* really? */(gnutls_transport_ptr_t)(long) ssl_sock);
-#ifdef _WIN32
-	gnutls_transport_set_pull_timeout_function(vpninfo->https_sess, openconnect__win32_sock_poll);
-	gnutls_transport_set_pull_function(vpninfo->https_sess, openconnect__win32_sock_read);
-	gnutls_transport_set_push_function(vpninfo->https_sess, openconnect__win32_sock_write);
-	gnutls_transport_set_errno_function(vpninfo->https_sess, openconnect__win32_neterrno);
-#endif
 
 	vpn_progress(vpninfo, PRG_INFO, _("SSL negotiation with %s\n"),
 		     vpninfo->hostname);

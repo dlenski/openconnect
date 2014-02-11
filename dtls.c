@@ -371,12 +371,6 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 
 	gnutls_transport_set_ptr(dtls_ssl,
 				 (gnutls_transport_ptr_t)(long) dtls_fd);
-#ifdef _WIN32
-	gnutls_transport_set_pull_timeout_function(dtls_ssl, openconnect__win32_sock_poll);
-	gnutls_transport_set_pull_function(dtls_ssl, openconnect__win32_sock_read);
-	gnutls_transport_set_push_function(dtls_ssl, openconnect__win32_sock_write);
-	gnutls_transport_set_errno_function(dtls_ssl, openconnect__win32_neterrno);
-#endif
 
 	gnutls_record_disable_padding(dtls_ssl);
 	master_secret.data = vpninfo->dtls_secret;
