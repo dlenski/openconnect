@@ -251,11 +251,10 @@ struct openconnect_info {
 	SSL *dtls_ssl;
 	SSL_SESSION *dtls_session;
 #elif defined(DTLS_GNUTLS)
-	/* Call these *_ssl rather than *_sess because they're just
-	   pointers, and generic code (in mainloop.c for example)
-	   wants to check if they're NULL or not. No point in being
-	   differently named to the OpenSSL variant, and forcing us to
-	   have ifdefs or accessor macros for them. */
+	/* Call this dtls_ssl rather than dtls_sess because it's just a
+	   pointer, and generic code in dtls.c wants to check if it's
+	   NULL or not or pass it to DTLS_SEND/DTLS_RECV. This way we
+	   have fewer ifdefs and accessor macros for it. */
 	gnutls_session_t dtls_ssl;
 #endif
 	int dtls_state;
