@@ -100,6 +100,11 @@ struct pkt {
 #define KA_KEEPALIVE	3
 #define KA_REKEY	4
 
+#define DTLS_DISABLED	0
+#define DTLS_SLEEPING	1
+#define DTLS_CONNECTING	2
+#define DTLS_CONNECTED	3
+
 struct keepalive_info {
 	int dpd;
 	int keepalive;
@@ -255,6 +260,7 @@ struct openconnect_info {
 	gnutls_session_t dtls_ssl;
 	gnutls_session_t new_dtls_ssl;
 #endif
+	int dtls_state;
 	struct keepalive_info dtls_times;
 	unsigned char dtls_session_id[32];
 	unsigned char dtls_secret[48];

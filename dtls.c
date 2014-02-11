@@ -210,8 +210,10 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	int ret = SSL_do_handshake(vpninfo->new_dtls_ssl);
 
 	if (ret == 1) {
-		vpn_progress(vpninfo, PRG_INFO, _("Established DTLS connection (using OpenSSL). Ciphersuite %s.\n"),
-		        vpninfo->dtls_cipher);
+		vpninfo->dtls_state = DTLS_CONNECTED;
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("Established DTLS connection (using OpenSSL). Ciphersuite %s.\n"),
+			     vpninfo->dtls_cipher);
 
 		dtls_close(vpninfo, 0);
 		vpninfo->dtls_ssl = vpninfo->new_dtls_ssl;
@@ -307,6 +309,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	   rekey, and in that case it's time for the old one to die. */
 	dtls_close(vpninfo, 1);
 
+	vpninfo->dtls_state = DTLS_SLEEPING;
 	time(&vpninfo->new_dtls_started);
 	return -EINVAL;
 }
@@ -422,8 +425,10 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 				    + 16 /* max padding */);
 #endif
 
-		vpn_progress(vpninfo, PRG_INFO, _("Established DTLS connection (using GnuTLS). Ciphersuite %s.\n"),
-		        vpninfo->dtls_cipher);
+		vpninfo->dtls_state = DTLS_CONNECTED;
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("Established DTLS connection (using GnuTLS). Ciphersuite %s.\n"),
+			     vpninfo->dtls_cipher);
 
 		dtls_close(vpninfo, 0);
 		vpninfo->dtls_ssl = vpninfo->new_dtls_ssl;
@@ -453,6 +458,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	   rekey, and in that case it's time for the old one to die. */
 	dtls_close(vpninfo, 1);
 
+	vpninfo->dtls_state = DTLS_SLEEPING;
 	time(&vpninfo->new_dtls_started);
 	return -EINVAL;
 }
@@ -544,6 +550,8 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		return ret;
 	}
 
+	vpninfo->dtls_state = DTLS_CONNECTING;
+
 	vpninfo->new_dtls_fd = dtls_fd;
 	if (vpninfo->select_nfds <= dtls_fd)
 		vpninfo->select_nfds = dtls_fd + 1;
@@ -580,6 +588,7 @@ void dtls_close(struct openconnect_info *vpninfo, int kill_handshake_too)
 static int dtls_restart(struct openconnect_info *vpninfo)
 {
 	dtls_close(vpninfo, 0);
+	vpninfo->dtls_state = DTLS_SLEEPING;
 	return connect_dtls_socket(vpninfo);
 }
 
@@ -666,17 +675,22 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	int work_done = 0;
 	char magic_pkt;
 
-	if (vpninfo->new_dtls_ssl)
+	if (vpninfo->dtls_state == DTLS_CONNECTING) {
 		dtls_try_handshake(vpninfo);
-
-	if (vpninfo->dtls_attempt_period && !vpninfo->dtls_ssl && !vpninfo->new_dtls_ssl &&
-	    vpninfo->new_dtls_started + vpninfo->dtls_attempt_period < time(NULL) &&
-	    vpninfo->ssl_fd != -1) {
-		vpn_progress(vpninfo, PRG_TRACE, _("Attempt new DTLS connection\n"));
-		connect_dtls_socket(vpninfo);
-	}
-	if (!vpninfo->dtls_ssl)
 		return 0;
+	}
+
+	if (vpninfo->dtls_state == DTLS_SLEEPING) {
+		int when = vpninfo->new_dtls_started + vpninfo->dtls_attempt_period - time(NULL);
+
+		if (when <= 0) {
+			vpn_progress(vpninfo, PRG_TRACE, _("Attempt new DTLS connection\n"));
+			connect_dtls_socket(vpninfo);
+		} else if ((when * 1000) < *timeout) {
+			*timeout = when * 1000;
+		}
+		return 0;
+	}
 
 	while (1) {
 		int len = vpninfo->ip_info.mtu;

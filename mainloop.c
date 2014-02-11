@@ -74,10 +74,12 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 		fd_set rfds, wfds, efds;
 
 #ifdef HAVE_DTLS
-		ret = dtls_mainloop(vpninfo, &timeout);
-		if (vpninfo->quit_reason)
-			break;
-		did_work += ret;
+		if (vpninfo->dtls_state != DTLS_DISABLED) {
+			ret = dtls_mainloop(vpninfo, &timeout);
+			if (vpninfo->quit_reason)
+				break;
+			did_work += ret;
+		}
 #endif
 
 		ret = cstp_mainloop(vpninfo, &timeout);
