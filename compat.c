@@ -166,7 +166,14 @@ char *openconnect__strcasestr(const char *haystack, const char *needle)
 #ifndef HAVE_SETENV
 int openconnect__setenv(const char *name, const char *value, int overwrite)
 {
-	char *buf = alloca(strlen(name) + strlen(value) + 2);
+	char *buf;
+
+	if (!value) {
+		openconnect__unsetenv(name);
+		return 0;
+	}
+	/* Windows putenv() takes a copy of the string */
+	buf = alloca(strlen(name) + strlen(value) + 2);
 
 	sprintf(buf, "%s=%s", name, value);
 	putenv(buf);
