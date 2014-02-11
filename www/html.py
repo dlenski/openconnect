@@ -233,6 +233,12 @@ for option, value in options:
 		pass
 	pass
 
+# Handle special case VAR_ORIGIN
+idx = len(replace)
+replace[idx:] = ['VAR_ORIGIN']
+idx = len(replace)
+replace[idx:] = [lookupdir]
+
 if not arguments:
 	print "No source file specified"
 	usage()

@@ -1,8 +1,8 @@
 <PAGE>
 	<STARTMENU level="2"/>
         <MENU topic="Feature list" link="features.html" mode="VAR_SEL_FEATURE_MAIN" />
-	<MENU topic="Running as non-root user" link="VAR_ORIGINnonroot.html" mode="VAR_SEL_FEATURE_NONROOT" />
-	<MENU topic="Cisco Secure Desktop" link="VAR_ORIGINcsd.html" mode="VAR_SEL_FEATURE_CSD" />
-	<MENU topic="GUI" link="VAR_ORIGINgui.html" mode="VAR_SEL_FEATURE_GUI" />
+	<MENU topic="Running as non-root user" link="nonroot.html" mode="VAR_SEL_FEATURE_NONROOT" />
+	<MENU topic="Cisco Secure Desktop" link="csd.html" mode="VAR_SEL_FEATURE_CSD" />
+	<MENU topic="GUI" link="gui.html" mode="VAR_SEL_FEATURE_GUI" />
 	<ENDMENU />
 </PAGE>
