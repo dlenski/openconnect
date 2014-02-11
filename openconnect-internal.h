@@ -272,10 +272,15 @@ struct openconnect_info {
 
 	struct oc_ip_info ip_info;
 
+#ifdef _WIN32
+	long dtls_monitored, ssl_monitored, cmd_monitored, tun_monitored;
+	HANDLE dtls_event, ssl_event, cmd_event, tun_event;
+#else
 	int _select_nfds;
 	fd_set _select_rfds;
 	fd_set _select_wfds;
 	fd_set _select_efds;
+#endif
 
 #ifdef __sun__
 	int ip_fd;
@@ -319,6 +324,18 @@ struct openconnect_info {
 	openconnect_protect_socket_vfn protect_socket;
 };
 
+#ifdef _WIN32
+#define monitor_read_fd(_v, _n) _v->_n##_monitored |= FD_READ
+#define monitor_write_fd(_v, _n) _v->_n##_monitored |= FD_WRITE
+#define monitor_except_fd(_v, _n) _v->_n##_monitored |= FD_CLOSE
+#define unmonitor_read_fd(_v, _n) _v->_n##_monitored &= ~FD_READ
+#define unmonitor_write_fd(_v, _n) _v->_n##_monitored &= ~FD_WRITE
+#define unmonitor_except_fd(_v, _n) _v->_n##_monitored &= ~FD_CLOSE
+
+#define monitor_fd_new(_v, _n) do { if (!_v->_n##_event) _v->_n##_event = CreateEvent(NULL, FALSE, FALSE, NULL); } while (0)
+#define read_fd_monitored(_v, _n) (_v->_n##_monitored & FD_READ)
+
+#else
 #define monitor_read_fd(_v, _n) FD_SET(_v-> _n##_fd, &vpninfo->_select_rfds)
 #define unmonitor_read_fd(_v, _n) FD_CLR(_v-> _n##_fd, &vpninfo->_select_rfds)
 #define monitor_write_fd(_v, _n) FD_SET(_v-> _n##_fd, &vpninfo->_select_wfds)
@@ -332,6 +349,7 @@ struct openconnect_info {
 	} while (0)
 
 #define read_fd_monitored(_v, _n) FD_ISSET(_v->_n##_fd, &_v->_select_rfds)
+#endif
 
 #if (defined(DTLS_OPENSSL) && defined(SSL_OP_CISCO_ANYCONNECT)) || \
     (defined(DTLS_GNUTLS) && defined(HAVE_GNUTLS_SESSION_SET_PREMASTER))

@@ -69,8 +69,13 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 	while (!vpninfo->quit_reason) {
 		int did_work = 0;
 		int timeout = INT_MAX;
+#ifdef _WIN32
+		HANDLE events[4];
+		int nr_events = 0;
+#else
 		struct timeval tv;
 		fd_set rfds, wfds, efds;
+#endif
 
 #ifdef HAVE_DTLS
 		if (vpninfo->dtls_state != DTLS_DISABLED) {
@@ -118,6 +123,26 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("No work to do; sleeping for %d ms...\n"), timeout);
+
+#ifdef _WIN32
+		if (vpninfo->dtls_monitored) {
+			WSAEventSelect(vpninfo->dtls_fd, vpninfo->dtls_event, vpninfo->dtls_monitored);
+			events[nr_events++] = vpninfo->dtls_event;
+		}
+		if (vpninfo->ssl_monitored) {
+			WSAEventSelect(vpninfo->ssl_fd, vpninfo->ssl_event, vpninfo->ssl_monitored);
+			events[nr_events++] = vpninfo->ssl_event;
+		}
+		if (vpninfo->cmd_monitored) {
+			WSAEventSelect(vpninfo->cmd_fd, vpninfo->cmd_event, vpninfo->cmd_monitored);
+			events[nr_events++] = vpninfo->cmd_event;
+		}
+		if (WaitForMultipleObjects(nr_events, events, FALSE, timeout) == WAIT_FAILED) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("WaitForMultipleObjects failed: %lx\n"),
+				     GetLastError());
+		}
+#else
 		memcpy(&rfds, &vpninfo->_select_rfds, sizeof(rfds));
 		memcpy(&wfds, &vpninfo->_select_wfds, sizeof(wfds));
 		memcpy(&efds, &vpninfo->_select_efds, sizeof(efds));
@@ -126,6 +151,7 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 		tv.tv_usec = (timeout % 1000) * 1000;
 
 		select(vpninfo->_select_nfds, &rfds, &wfds, &efds, &tv);
+#endif
 	}
 
 	cstp_bye(vpninfo, vpninfo->quit_reason);

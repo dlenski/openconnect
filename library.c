@@ -134,6 +134,14 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		close(vpninfo->cmd_fd);
 		close(vpninfo->cmd_fd_write);
 	}
+#ifdef _WIN32
+	if (vpninfo->cmd_event)
+		CloseHandle(vpninfo->cmd_event);
+	if (vpninfo->ssl_event)
+		CloseHandle(vpninfo->ssl_event);
+	if (vpninfo->dtls_event)
+		CloseHandle(vpninfo->dtls_event);
+#endif
 	free(vpninfo->peer_addr);
 	free_optlist(vpninfo->cookies);
 	free_optlist(vpninfo->cstp_options);
