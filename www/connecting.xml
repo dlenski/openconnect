@@ -1,5 +1,4 @@
 <PAGE>
-	<VAR match="VAR_CVSID" replace=""/>
 	<INCLUDE file="inc/header.tmpl" />
 
 	<VAR match="VAR_SEL_STARTED" replace="selected" />
