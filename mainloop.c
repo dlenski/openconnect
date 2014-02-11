@@ -74,22 +74,11 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 		fd_set rfds, wfds, efds;
 
 #ifdef HAVE_DTLS
-		if (vpninfo->new_dtls_ssl)
-			dtls_try_handshake(vpninfo);
-
-		if (vpninfo->dtls_attempt_period && !vpninfo->dtls_ssl && !vpninfo->new_dtls_ssl &&
-		    vpninfo->new_dtls_started + vpninfo->dtls_attempt_period < time(NULL) &&
-		    vpninfo->ssl_fd != -1) {
-			vpn_progress(vpninfo, PRG_TRACE, _("Attempt new DTLS connection\n"));
-			connect_dtls_socket(vpninfo);
-		}
-		if (vpninfo->dtls_ssl) {
-			ret = dtls_mainloop(vpninfo, &timeout);
-			did_work += ret;
-		}
-#endif
+		ret = dtls_mainloop(vpninfo, &timeout);
 		if (vpninfo->quit_reason)
 			break;
+		did_work += ret;
+#endif
 
 		ret = cstp_mainloop(vpninfo, &timeout);
 		if (vpninfo->quit_reason)

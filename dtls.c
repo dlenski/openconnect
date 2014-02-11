@@ -666,6 +666,18 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	int work_done = 0;
 	char magic_pkt;
 
+	if (vpninfo->new_dtls_ssl)
+		dtls_try_handshake(vpninfo);
+
+	if (vpninfo->dtls_attempt_period && !vpninfo->dtls_ssl && !vpninfo->new_dtls_ssl &&
+	    vpninfo->new_dtls_started + vpninfo->dtls_attempt_period < time(NULL) &&
+	    vpninfo->ssl_fd != -1) {
+		vpn_progress(vpninfo, PRG_TRACE, _("Attempt new DTLS connection\n"));
+		connect_dtls_socket(vpninfo);
+	}
+	if (!vpninfo->dtls_ssl)
+		return 0;
+
 	while (1) {
 		int len = vpninfo->ip_info.mtu;
 		unsigned char *buf;
