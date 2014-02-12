@@ -248,8 +248,21 @@ if test "$with_gnutls" = "yes" || test "$with_gnutls" = ""; then
         if ! $PKG_CONFIG --atleast-version=2.12.16 gnutls; then
 	    found_gnutls=old
         fi
-     fi
-     case $with_gnutls$found_gnutls in
+	if test "$have_win" = "yes"; then
+	   AC_MSG_CHECKING([for broken GnuTLS Windows versions])
+	   if $PKG_CONFIG --atleast-version=3.2.0 gnutls &&
+	      ! $PKG_CONFIG --atleast-version=3.2.10 gnutls; then
+	      AC_MSG_RESULT([yes])
+	      found_gnutls=winbroken
+	   else
+	      AC_MSG_RESULT([no])
+	   fi
+	fi
+    fi
+    case $with_gnutls$found_gnutls in
+     yeswinbroken)
+        AC_MSG_ERROR([GnuTLS v3.2.0-v3.2.9 are not functional on Windows])
+	;;
      yesold)
         AC_MSG_ERROR([Your GnuTLS is too old. At least v2.12.16 is required])
 	;;
@@ -262,7 +275,7 @@ if test "$with_gnutls" = "yes" || test "$with_gnutls" = ""; then
      yes)
         with_gnutls=yes
 	;;
-     esac
+    esac
 elif test "$with_gnutls" != "no"; then
     AC_MSG_ERROR([Values other than 'yes' or 'no' for --with-gnutls are not supported])
 fi
