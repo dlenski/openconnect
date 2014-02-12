@@ -295,7 +295,7 @@ int dumb_socketpair(int socks[2], int make_overlapped)
     a.inaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     a.inaddr.sin_port = 0; 
 
-    socks[0] = socks[1] = INVALID_SOCKET;
+    socks[0] = socks[1] = -1;
     do {
         if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, 
                (char*) &reuse, (socklen_t) sizeof(reuse)) == -1)
