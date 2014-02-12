@@ -358,21 +358,26 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 #include <fileapi.h>
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 {
-	HFILE fh;
-	OFSTRUCT ofstr;
+	HANDLE h;
 	DWORD serial;
+	int success;
 
-	fh = OpenFile(vpninfo->sslkey, &ofstr, OF_READ|OF_SHARE_DENY_NONE);
-	if (fh == HFILE_ERROR)
+	h = CreateFile(vpninfo->sslkey, 0, 0, NULL, OPEN_EXISTING,
+		       FILE_ATTRIBUTE_NORMAL, NULL);
+	if (h == INVALID_HANDLE_VALUE)
 		return -EIO;
 
-	if (!GetVolumeInformationByHandleW((HANDLE)fh, NULL, 0, &serial, NULL, NULL, NULL, 0))
+	success = GetVolumeInformationByHandleW(h, NULL, 0, &serial, NULL,
+						NULL, NULL, 0);
+	CloseHandle(h);
+
+	if (!success)
 		return -EIO;
 
 	if (asprintf(&vpninfo->cert_password, "%lx", serial))
 		return -ENOMEM;
 
-	return -EINVAL;
+	return 0;
 }
 #else
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
