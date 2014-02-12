@@ -363,7 +363,7 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 	}
 
 	gnutls_transport_set_ptr(dtls_ssl,
-				 (gnutls_transport_ptr_t)(long) dtls_fd);
+				 (gnutls_transport_ptr_t)(intptr_t)dtls_fd);
 
 	gnutls_record_disable_padding(dtls_ssl);
 	master_secret.data = vpninfo->dtls_secret;
