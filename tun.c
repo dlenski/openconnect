@@ -440,29 +440,7 @@ int os_write_tun(struct openconnect_info *vpninfo, struct pkt *pkt)
 	return 0;
 
 }
-#endif /* !_WIN32 */
 
-int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_script, char *ifname)
-{
-	int tun_fd;
-
-	vpninfo->vpnc_script = vpnc_script;
-	vpninfo->ifname = ifname;
-
-	set_script_env(vpninfo);
-	script_config_tun(vpninfo, "pre-init");
-
-	tun_fd = os_setup_tun(vpninfo);
-	if (tun_fd < 0)
-		return tun_fd;
-
-	setenv("TUNDEV", vpninfo->ifname, 1);
-	script_config_tun(vpninfo, "connect");
-
-	return openconnect_setup_tun_fd(vpninfo, tun_fd);
-}
-
-#ifndef _WIN32
 void os_shutdown_tun(struct openconnect_info *vpninfo)
 {
 	if (vpninfo->script_tun) {
