@@ -377,6 +377,26 @@ int openconnect_setup_tun_script(struct openconnect_info *vpninfo, char *tun_scr
 
 	return openconnect_setup_tun_fd(vpninfo, fds[0]);
 }
+
+int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt, int new_pkt)
+{
+	int prefix_size = 0;
+	int len;
+
+#ifdef TUN_HAS_AF_PREFIX
+	if (!vpninfo->script_tun)
+		prefix_size = sizeof(int);
+#endif
+
+	/* Sanity. Just non-blocking reads on a select()able file descriptor... */
+	len = read(vpninfo->tun_fd, pkt->data - prefix_size, pkt->len + prefix_size);
+	if (len <= prefix_size)
+		return -1;
+
+	pkt->len = len - prefix_size;
+	return 0;
+}
+
 #endif /* !_WIN32 */
 
 int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_script, char *ifname)
@@ -407,57 +427,27 @@ static struct pkt *out_pkt;
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
 	int work_done = 0;
-	int prefix_size = 0;
 #ifdef _WIN32
 	DWORD pkt_size = 0;
-#endif
-
-#ifdef TUN_HAS_AF_PREFIX
-	if (!vpninfo->script_tun)
-		prefix_size = sizeof(int);
 #endif
 
 	if (read_fd_monitored(vpninfo, tun)) {
 		while (1) {
 			int len = vpninfo->ip_info.mtu;
+			int new_pkt = 0;
 
 			if (!out_pkt) {
+				new_pkt = 1;
 				out_pkt = malloc(sizeof(struct pkt) + len);
 				if (!out_pkt) {
 					vpn_progress(vpninfo, PRG_ERR, "Allocation failed\n");
 					break;
 				}
-#ifdef _WIN32
-				if (!ReadFile(vpninfo->tun_fh, out_pkt->data, len, &pkt_size, &vpninfo->tun_rd_overlap)) {
-					DWORD err = GetLastError();
-					if (err != ERROR_IO_PENDING)
-						vpn_progress(vpninfo, PRG_ERR,
-							  _("Failed to read from TAP device: %lx\n"),
-							  err);
-					break;
-				}
-				len = pkt_size;
-			} else {
-				/* if out_pkt was already non-NULL then there was lready a pending read on it. */
-				if (!GetOverlappedResult(vpninfo->tun_fh, &vpninfo->tun_rd_overlap, &pkt_size, FALSE)) {
-					DWORD err = GetLastError();
-
-					if (err != ERROR_IO_INCOMPLETE)
-						vpn_progress(vpninfo, PRG_ERR,
-							     _("Failed to complete read from TAP device: %lx\n"),
-							     err);
-					break;
-				}
-				len = pkt_size;
-#endif /* _WIN32 */
+				out_pkt->len = len;
 			}
-#ifndef _WIN32
-			/* Sanity. Just non-blocking reads on a select()able file descriptor... */
-			len = read(vpninfo->tun_fd, out_pkt->data - prefix_size, len + prefix_size);
-#endif
-			if (len <= prefix_size)
+
+			if (os_read_tun(vpninfo, out_pkt, new_pkt))
 				break;
-			out_pkt->len = len - prefix_size;
 
 			vpninfo->stats.tx_pkts++;
 			vpninfo->stats.tx_bytes += out_pkt->len;

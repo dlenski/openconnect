@@ -456,6 +456,7 @@ int script_config_tun(struct openconnect_info *vpninfo, const char *reason);
 /* tun.c */
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout);
 void shutdown_tun(struct openconnect_info *vpninfo);
+int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt, int new_pkt);
 
 /* dtls.c */
 unsigned char unhex(const char *data);
