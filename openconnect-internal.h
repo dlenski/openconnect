@@ -451,11 +451,11 @@ int win32_setup_tun(struct openconnect_info *vpninfo);
 /* script.c */
 int setenv_int(const char *opt, int value);
 void set_script_env(struct openconnect_info *vpninfo);
+int script_config_tun(struct openconnect_info *vpninfo, const char *reason);
 
 /* tun.c */
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout);
 void shutdown_tun(struct openconnect_info *vpninfo);
-int script_config_tun(struct openconnect_info *vpninfo, const char *reason);
 
 /* dtls.c */
 unsigned char unhex(const char *data);
