@@ -397,6 +397,51 @@ int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt, int new_pkt)
 	return 0;
 }
 
+int os_write_tun(struct openconnect_info *vpninfo, struct pkt *pkt)
+{
+	unsigned char *data = pkt->data;
+	int len = pkt->len;
+
+#ifdef TUN_HAS_AF_PREFIX
+	if (!vpninfo->script_tun) {
+		struct ip *iph = (void *)data;
+		int type;
+
+		if (iph->ip_v == 6)
+			type = AF_INET6;
+		else if (iph->ip_v == 4)
+			type = AF_INET;
+		else {
+			static int complained = 0;
+			if (!complained) {
+				complained = 1;
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Unknown packet (len %d) received: %02x %02x %02x %02x...\n"),
+					     len, data[0], data[1], data[2], data[3]);
+			}
+			return 0;
+		}
+		data -= sizeof(int);
+		len += sizeof(int);
+		*(int *)data = htonl(type);
+	}
+#endif
+	if (write(vpninfo->tun_fd, data, len) < 0) {
+		/* Handle death of "script" socket */
+		if (vpninfo->script_tun && errno == ENOTCONN) {
+			vpninfo->quit_reason = "Client connection terminated";
+			return -1;
+		}
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to write incoming packet: %s\n"),
+			     strerror(errno));
+		/* The kernel returns -ENOMEM when the queue is full, so theoretically
+		   we could handle that and retry... but it doesn't let us poll() for
+		   the no-longer-full situation, so let's not bother. */
+	}
+	return 0;
+
+}
 #endif /* !_WIN32 */
 
 int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_script, char *ifname)
@@ -427,9 +472,6 @@ static struct pkt *out_pkt;
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
 	int work_done = 0;
-#ifdef _WIN32
-	DWORD pkt_size = 0;
-#endif
 
 	if (read_fd_monitored(vpninfo, tun)) {
 		while (1) {
@@ -466,80 +508,17 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		monitor_read_fd(vpninfo, tun);
 	}
 
-	/* The kernel returns -ENOMEM when the queue is full, so theoretically
-	   we could handle that and retry... but it doesn't let us poll() for
-	   the no-longer-full situation, so let's not bother. */
 	while (vpninfo->incoming_queue) {
 		struct pkt *this = vpninfo->incoming_queue;
-		unsigned char *data = this->data;
-		int len = this->len;
+
+		if (os_write_tun(vpninfo, this))
+			break;
 
 		vpninfo->stats.rx_pkts++;
-		vpninfo->stats.rx_bytes += len;
+		vpninfo->stats.rx_bytes += this->len;
 
-#ifdef TUN_HAS_AF_PREFIX
-		if (!vpninfo->script_tun) {
-			struct ip *iph = (void *)data;
-			int type;
-
-			if (iph->ip_v == 6)
-				type = AF_INET6;
-			else if (iph->ip_v == 4)
-				type = AF_INET;
-			else {
-				static int complained = 0;
-				if (!complained) {
-					complained = 1;
-					vpn_progress(vpninfo, PRG_ERR,
-						     _("Unknown packet (len %d) received: %02x %02x %02x %02x...\n"),
-						     len, data[0], data[1], data[2], data[3]);
-				}
-				free(this);
-				continue;
-			}
-			data -= 4;
-			len += 4;
-			*(int *)data = htonl(type);
-		}
-#endif
 		vpninfo->incoming_queue = this->next;
-#ifdef _WIN32
-		if (!WriteFile(vpninfo->tun_fh, data, len, &pkt_size, &vpninfo->tun_wr_overlap)) {
-			DWORD err = GetLastError();
 
-			if (err == ERROR_IO_PENDING) {
-				/* Theoretically we should let the mainloop handle this blocking,
-				   but that's non-trivial and it doesn't ever seem to happen in
-				   practice anyway. */
-				vpn_progress(vpninfo, PRG_TRACE,
-					     _("Waiting for tun write...\n"));
-				if (!GetOverlappedResult(vpninfo->tun_fh, &vpninfo->tun_wr_overlap, &pkt_size, TRUE)) {
-					err = GetLastError();
-					goto report_write_err;
-				}
-				vpn_progress(vpninfo, PRG_TRACE,
-					     _("Wrote %ld bytes to tun after waiting\n"), pkt_size);
-			} else {
-			report_write_err:
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("Failed to write to TAP device: %lx\n"), err);
-			}
-		} else {
-			vpn_progress(vpninfo, PRG_TRACE,
-				    _("Wrote %ld bytes to tun\n"), pkt_size);
-		}
-#else
-		if (write(vpninfo->tun_fd, data, len) < 0) {
-			/* Handle death of "script" socket */
-			if (vpninfo->script_tun && errno == ENOTCONN) {
-				vpninfo->quit_reason = "Client connection terminated";
-				return 1;
-			}
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Failed to write incoming packet: %s\n"),
-				     strerror(errno));
-		}
-#endif
 		free(this);
 	}
 	/* Work is not done if we just got rid of packets off the queue */

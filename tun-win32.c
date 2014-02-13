@@ -234,3 +234,33 @@ int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt, int new_pkt)
 	pkt->len = pkt_size;
 	return 0;
 }
+
+int os_write_tun(struct openconnect_info *vpninfo, struct pkt *pkt)
+{
+	DWORD pkt_size = 0;
+	DWORD err;
+
+	if (WriteFile(vpninfo->tun_fh, pkt->data, pkt->len, &pkt_size, &vpninfo->tun_wr_overlap)) {
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Wrote %ld bytes to tun\n"), pkt_size);
+		return 0;
+	}
+
+	err = GetLastError();
+	if (err == ERROR_IO_PENDING) {
+		/* Theoretically we should let the mainloop handle this blocking,
+		   but that's non-trivial and it doesn't ever seem to happen in
+		   practice anyway. */
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Waiting for tun write...\n"));
+		if (GetOverlappedResult(vpninfo->tun_fh, &vpninfo->tun_wr_overlap, &pkt_size, TRUE)) {
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("Wrote %ld bytes to tun after waiting\n"), pkt_size);
+			return 0;
+		}
+		err = GetLastError();
+	}
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Failed to write to TAP device: %lx\n"), err);
+	return -1;
+}
