@@ -454,7 +454,6 @@ void set_script_env(struct openconnect_info *vpninfo);
 int script_config_tun(struct openconnect_info *vpninfo, const char *reason);
 
 /* tun.c */
-int tun_mainloop(struct openconnect_info *vpninfo, int *timeout);
 void shutdown_tun(struct openconnect_info *vpninfo);
 int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt, int new_pkt);
 int os_write_tun(struct openconnect_info *vpninfo, struct pkt *pkt);
@@ -511,7 +510,7 @@ int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 #endif
 
 /* mainloop.c */
-int vpn_add_pollfd(struct openconnect_info *vpninfo, int fd, short events);
+int tun_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int queue_new_packet(struct pkt **q, void *buf, int len);
 void queue_packet(struct pkt **q, struct pkt *new);
 int keepalive_action(struct keepalive_info *ka, int *timeout);
