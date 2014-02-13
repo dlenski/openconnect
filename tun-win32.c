@@ -66,7 +66,8 @@ static int search_taps(struct openconnect_info *vpninfo, tap_callback *cb)
 	status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, ADAPTERS_KEY, 0,
 			      KEY_READ, &adapters_key);
 	if (status) {
-		fprintf(stderr, "Error accessing registry\n");
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Error accessing registry key for network adapters\n"));
 		return -EIO;
 	}
 	while (!ret) {
