@@ -448,6 +448,10 @@ int dumb_socketpair(int socks[2], int make_overlapped);
 /* tun-win32.c */
 int win32_setup_tun(struct openconnect_info *vpninfo);
 
+/* script.c */
+int setenv_int(const char *opt, int value);
+void set_script_env(struct openconnect_info *vpninfo);
+
 /* tun.c */
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout);
 void shutdown_tun(struct openconnect_info *vpninfo);
