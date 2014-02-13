@@ -61,7 +61,7 @@ static int search_taps(struct openconnect_info *vpninfo, tap_callback *cb)
 	DWORD len;
 	char buf[40], name[40];
 	char keyname[strlen(CONNECTIONS_KEY) + sizeof(buf) + 1 + strlen("\\Connection")];
-	int i = 0, ret = 0;
+	int i = 0, ret = 0, found = 0;
 
 	status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, ADAPTERS_KEY, 0,
 			      KEY_READ, &adapters_key);
@@ -106,10 +106,17 @@ static int search_taps(struct openconnect_info *vpninfo, tap_callback *cb)
 		if (status)
 			continue;
 
+		found++;
+
 		ret = cb(vpninfo, buf, name);
 	}
 
 	RegCloseKey(adapters_key);
+
+	if (!found)
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("No Windows-TAP adapters found. Is the driver installed?\n"));
+
 	return ret;
 }
 
