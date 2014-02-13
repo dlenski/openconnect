@@ -143,6 +143,8 @@ static int link_proto(int unit_nr, const char *devname, uint64_t flags)
 }
 #endif
 
+#ifndef _WIN32
+
 #ifdef SIOCIFCREATE
 static int bsd_open_tun(char *tun_name)
 {
@@ -171,12 +173,10 @@ static int bsd_open_tun(char *tun_name)
 #define bsd_open_tun(tun_name) open(tun_name, O_RDWR)
 #endif
 
-static int os_setup_tun(struct openconnect_info *vpninfo)
+int os_setup_tun(struct openconnect_info *vpninfo)
 {
 	int tun_fd = -1;
-#ifdef _WIN32
-	tun_fd = win32_setup_tun(vpninfo);
-#elif defined(IFF_TUN) /* Linux */
+#ifdef IFF_TUN /* Linux */
 	struct ifreq ifr;
 	int tunerr;
 
@@ -322,7 +322,6 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 	return tun_fd;
 }
 
-#ifndef _WIN32
 int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
 {
 	set_fd_cloexec(tun_fd);

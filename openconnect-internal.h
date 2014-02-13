@@ -445,18 +445,17 @@ int dumb_socketpair(int socks[2], int make_overlapped);
     } while (0)
 
 /****************************************************************************/
-/* tun-win32.c */
-int win32_setup_tun(struct openconnect_info *vpninfo);
 
 /* script.c */
 int setenv_int(const char *opt, int value);
 void set_script_env(struct openconnect_info *vpninfo);
 int script_config_tun(struct openconnect_info *vpninfo, const char *reason);
 
-/* tun.c */
+/* tun.c / tun-win32.c */
 void os_shutdown_tun(struct openconnect_info *vpninfo);
 int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt, int new_pkt);
 int os_write_tun(struct openconnect_info *vpninfo, struct pkt *pkt);
+int os_setup_tun(struct openconnect_info *vpninfo);
 
 /* dtls.c */
 unsigned char unhex(const char *data);

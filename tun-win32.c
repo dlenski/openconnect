@@ -196,7 +196,7 @@ static int open_tun(struct openconnect_info *vpninfo, char *guid, char *name)
 	return 1;
 }
 
-int win32_setup_tun(struct openconnect_info *vpninfo)
+int os_setup_tun(struct openconnect_info *vpninfo)
 {
 	if (search_taps(vpninfo, open_tun) != 1)
 		return -1;
