@@ -119,8 +119,12 @@ static int open_tun(struct openconnect_info *vpninfo, char *guid, char *name)
 	ULONG data[3];
 	DWORD len;
 
-	if (vpninfo->ifname && strcmp(name, vpninfo->ifname))
+	if (vpninfo->ifname && strcmp(name, vpninfo->ifname)) {
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Ignoring non-matching TAP interface \"%s\""),
+			     name);
 		return 0;
+	}
 
 	snprintf(devname, sizeof(devname), DEVTEMPLATE, guid);
 	tun_fh = CreateFile(devname, GENERIC_WRITE|GENERIC_READ, 0, 0,
