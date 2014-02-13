@@ -19,12 +19,12 @@ openconnect_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFL
 openconnect_LDADD = libopenconnect.la $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LIBINTL)
 
 library_srcs = ssl.c http.c auth.c library.c compat.c dtls.c cstp.c \
-	       mainloop.c tun.c script.c
+	       mainloop.c script.c
 lib_srcs_gnutls = gnutls.c gnutls_pkcs12.c gnutls_tpm.c
 lib_srcs_openssl = openssl.c
 
 POTFILES = $(openconnect_SOURCES) $(lib_srcs_openssl) $(lib_srcs_gnutls) \
-	   $(library_srcs) tun-win32.c
+	   $(library_srcs) tun-win32.c tun.c
 
 if OPENCONNECT_GNUTLS
 library_srcs += $(lib_srcs_gnutls)
@@ -34,6 +34,8 @@ library_srcs += $(lib_srcs_openssl)
 endif
 if OPENCONNECT_WIN32
 library_srcs += tun-win32.c
+else
+library_srcs += tun.c
 endif
 libopenconnect_la_SOURCES = version.c $(library_srcs)
 libopenconnect_la_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(P11KIT_CFLAGS) $(TSS_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBOATH_CFLAGS)

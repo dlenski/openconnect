@@ -20,13 +20,11 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#ifndef _WIN32
 #include <sys/wait.h>
 #include <sys/ioctl.h>
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #include <net/if.h>
-#endif
 #include <errno.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -41,8 +39,6 @@
 #endif
 
 #include "openconnect-internal.h"
-
-#ifndef _WIN32
 
 /*
  * If an if_tun.h include file was found anywhere (by the Makefile), it's
@@ -72,7 +68,7 @@
 
 static int set_tun_mtu(struct openconnect_info *vpninfo)
 {
-#if !defined(__sun__) && !defined(_WIN32) /* We don't know how to do this on Solaris */
+#ifndef __sun__ /* We don't know how to do this on Solaris */
 	struct ifreq ifr;
 	int net_fd;
 
@@ -462,4 +458,3 @@ void os_shutdown_tun(struct openconnect_info *vpninfo)
 		close(vpninfo->tun_fd);
 	vpninfo->tun_fd = -1;
 }
-#endif
