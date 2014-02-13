@@ -230,9 +230,13 @@ compatible with the
 .B vpnc\-script
 which is shipped with the "vpnc" VPN client. See
 .I http://www.infradead.org/openconnect/vpnc-script.html
-for more information. This version of OpenConnect is configured to use
-.B @DEFAULT_VPNCSCRIPT@
-by default.
+for more information. This version of OpenConnect is configured to
+use \fB@DEFAULT_VPNCSCRIPT@\fR by default.
+
+On Windows, a relative directory for the default script will be handled as
+starting from the directory that the openconnect executable is running from,
+rather than the current directory. The script will be invoked with the
+command-based script host \fBcscript.exe\fR.
 .TP
 .B \-S,\-\-script\-tun
 Pass traffic to 'script' program over a UNIX socket, instead of to a kernel

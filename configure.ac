@@ -72,27 +72,35 @@ AC_ARG_WITH([vpnc-script],
 	  [default location of vpnc-script helper])])
 
 if test "$with_vpnc_script" = "yes" || test "$with_vpnc_script" = ""; then
-   with_vpnc_script=/etc/vpnc/vpnc-script
-   if ! test -x "$with_vpnc_script"; then
-      AC_MSG_ERROR([${with_vpnc_script} does not seem to be executable.]
-    [OpenConnect will not function correctly without a vpnc-script.]
-    [See http://www.infradead.org/openconnect/vpnc-script.html for more details.]
-    []
-    [If you are building a distribution package, please ensure that your]
-    [packaging is correct, and that a vpnc-script will be installed when the]
-    [user installs your package. You should provide a --with-vpnc-script=]
-    [argument to this configure script, giving the full path where the script]
-    [will be installed.]
-    []
-    [The standard location is ${with_vpnc_script}. To bypass this error and]
-    [build OpenConnect to use the script from this location, even though it's]
-    [not present at the time you are building OpenConnect, pass the argument]
-    ["--with-vpnc-script=${with_vpnc_script}"])
-  fi
+   if test "$have_win" = "yes"; then
+      with_vpnc_script=vpnc-script-win.js
+   else
+      with_vpnc_script=/etc/vpnc/vpnc-script
+      if ! test -x "$with_vpnc_script"; then
+	 AC_MSG_ERROR([${with_vpnc_script} does not seem to be executable.]
+	     [OpenConnect will not function correctly without a vpnc-script.]
+             [See http://www.infradead.org/openconnect/vpnc-script.html for more details.]
+             []
+             [If you are building a distribution package, please ensure that your]
+             [packaging is correct, and that a vpnc-script will be installed when the]
+             [user installs your package. You should provide a --with-vpnc-script=]
+             [argument to this configure script, giving the full path where the script]
+             [will be installed.]
+             []
+             [The standard location is ${with_vpnc_script}. To bypass this error and]
+             [build OpenConnect to use the script from this location, even though it's]
+             [not present at the time you are building OpenConnect, pass the argument]
+             ["--with-vpnc-script=${with_vpnc_script}"])
+     fi
+   fi
 elif test "$with_vpnc_script" = "no"; then
    AC_ERROR([You cannot disable vpnc-script.]
    [OpenConnect will not function correctly without it.]
    [See http://www.infradead.org/openconnect/vpnc-script.html])
+elif test "$have_win" = "yes"; then
+   # Oh Windows how we hate thee. If user specifies a vpnc-script and it contains
+   # backslashes, double them all up to survive escaping.
+   with_vpnc_script="$(echo "${with_vpnc_script}" | sed s/\\\\/\\\\\\\\/g)"
 fi
 
 AC_DEFINE_UNQUOTED(DEFAULT_VPNCSCRIPT, "${with_vpnc_script}")
@@ -149,7 +157,7 @@ AC_SUBST(WFLAGS, [$WFLAGS])
 
 if test "$have_win" = yes; then
    # Checking "properly" for __attribute__((dllimport,stdcall)) functions is non-trivial
-   LIBS="$LIBS -lws2_32"
+   LIBS="$LIBS -lws2_32 -lshlwapi"
 else
    AC_CHECK_FUNC(socket, [], AC_CHECK_LIB(socket, socket, [], AC_ERROR(Cannot find socket() function)))
 fi

@@ -288,6 +288,31 @@ static void print_build_opts(void)
 #endif
 }
 
+#ifndef _WIN32
+static const char default_vpncscript[] = DEFAULT_VPNCSCRIPT;
+#else
+#include <shlwapi.h>
+static const char *default_vpncscript;
+static void set_default_vpncscript(void)
+{
+	if (PathIsRelative(DEFAULT_VPNCSCRIPT)) {
+		char *c = strrchr(_pgmptr, '\\');
+		if (!c) {
+			fprintf(stderr, _("Cannot process this executable path \"%s\""),
+				_pgmptr);
+			exit(1);
+		}
+		if (asprintf((char **)&default_vpncscript, "cscript %.*s%s",
+			     (c - _pgmptr + 1), _pgmptr, DEFAULT_VPNCSCRIPT) < 0) {
+			fprintf(stderr, _("Allocation for vpnc-script path failed\n"));
+			exit(1);
+		}
+	} else {
+		default_vpncscript = "cscript " DEFAULT_VPNCSCRIPT;
+	}
+}
+#endif
+
 static void usage(void)
 {
 	printf(_("Usage:  openconnect [options] <server>\n"));
@@ -332,7 +357,7 @@ static void usage(void)
 	printf("  -q, --quiet                     %s\n", _("Less output"));
 	printf("  -Q, --queue-len=LEN             %s\n", _("Set packet queue limit to LEN pkts"));
 	printf("  -s, --script=SCRIPT             %s\n", _("Shell command line for using a vpnc-compatible config script"));
-	printf("                                  %s: \"%s\"\n", _("default"), DEFAULT_VPNCSCRIPT);
+	printf("                                  %s: \"%s\"\n", _("default"), default_vpncscript);
 #ifndef _WIN32
 	printf("  -S, --script-tun                %s\n", _("Pass traffic to 'script' program, not tun"));
 #endif
@@ -610,7 +635,9 @@ int main(int argc, char **argv)
 	}
 
 	vpninfo->cbdata = vpninfo;
-#ifndef _WIN32
+#ifdef _WIN32
+	set_default_vpncscript();
+#else
 	if (!uname(&utsbuf)) {
 		free(vpninfo->localname);
 		vpninfo->localname = xstrdup(utsbuf.nodename);
@@ -1005,7 +1032,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!vpnc_script)
-		vpnc_script = xstrdup(DEFAULT_VPNCSCRIPT);
+		vpnc_script = xstrdup(default_vpncscript);
 #ifndef _WIN32
 	if (script_tun) {
 		if (openconnect_setup_tun_script(vpninfo, vpnc_script)) {
