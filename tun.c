@@ -322,12 +322,7 @@ static int os_setup_tun(struct openconnect_info *vpninfo)
 	return tun_fd;
 }
 
-#ifdef _WIN32
-int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
-{
-	return 0;
-}
-#else
+#ifndef _WIN32
 int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
 {
 	set_fd_cloexec(tun_fd);

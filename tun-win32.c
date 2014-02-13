@@ -273,3 +273,8 @@ void os_shutdown_tun(struct openconnect_info *vpninfo)
 	CloseHandle(vpninfo->tun_rd_overlap.hEvent);
 	vpninfo->tun_rd_overlap.hEvent = NULL;
 }
+
+int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
+{
+	return 0;
+}
