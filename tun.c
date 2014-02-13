@@ -467,15 +467,9 @@ int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_sc
 	return openconnect_setup_tun_fd(vpninfo, tun_fd);
 }
 
-void shutdown_tun(struct openconnect_info *vpninfo)
+#ifndef _WIN32
+void os_shutdown_tun(struct openconnect_info *vpninfo)
 {
-#ifdef _WIN32
-	script_config_tun(vpninfo, "disconnect");
-	CloseHandle(vpninfo->tun_fh);
-	vpninfo->tun_fh = NULL;
-	CloseHandle(vpninfo->tun_rd_overlap.hEvent);
-	vpninfo->tun_rd_overlap.hEvent = NULL;
-#else
 	if (vpninfo->script_tun) {
 		/* nuke the whole process group */
 		kill(-vpninfo->script_tun, SIGHUP);
@@ -494,5 +488,5 @@ void shutdown_tun(struct openconnect_info *vpninfo)
 	if (vpninfo->vpnc_script)
 		close(vpninfo->tun_fd);
 	vpninfo->tun_fd = -1;
-#endif
 }
+#endif

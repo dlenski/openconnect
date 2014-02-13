@@ -264,3 +264,12 @@ int os_write_tun(struct openconnect_info *vpninfo, struct pkt *pkt)
 		     _("Failed to write to TAP device: %lx\n"), err);
 	return -1;
 }
+
+void os_shutdown_tun(struct openconnect_info *vpninfo)
+{
+	script_config_tun(vpninfo, "disconnect");
+	CloseHandle(vpninfo->tun_fh);
+	vpninfo->tun_fh = NULL;
+	CloseHandle(vpninfo->tun_rd_overlap.hEvent);
+	vpninfo->tun_rd_overlap.hEvent = NULL;
+}

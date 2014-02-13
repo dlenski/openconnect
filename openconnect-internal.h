@@ -454,7 +454,7 @@ void set_script_env(struct openconnect_info *vpninfo);
 int script_config_tun(struct openconnect_info *vpninfo, const char *reason);
 
 /* tun.c */
-void shutdown_tun(struct openconnect_info *vpninfo);
+void os_shutdown_tun(struct openconnect_info *vpninfo);
 int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt, int new_pkt);
 int os_write_tun(struct openconnect_info *vpninfo, struct pkt *pkt);
 

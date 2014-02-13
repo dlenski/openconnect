@@ -219,7 +219,7 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 
 	cstp_bye(vpninfo, vpninfo->quit_reason);
 
-	shutdown_tun(vpninfo);
+	os_shutdown_tun(vpninfo);
 	return ret < 0 ? ret : -EIO;
 }
 
