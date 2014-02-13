@@ -42,6 +42,8 @@
 
 #include "openconnect-internal.h"
 
+#ifndef _WIN32
+
 /*
  * If an if_tun.h include file was found anywhere (by the Makefile), it's
  * included. Else, we end up assuming that we have BSD-style devices such
@@ -142,8 +144,6 @@ static int link_proto(int unit_nr, const char *devname, uint64_t flags)
 	return ip_fd;
 }
 #endif
-
-#ifndef _WIN32
 
 #ifdef SIOCIFCREATE
 static int bsd_open_tun(char *tun_name)
@@ -319,6 +319,10 @@ int os_setup_tun(struct openconnect_info *vpninfo)
 	}
 #endif
 #endif /* BSD-style */
+
+	/* Ancient vpnc-scripts might not get this right */
+	set_tun_mtu(vpninfo);
+
 	return tun_fd;
 }
 
@@ -454,9 +458,6 @@ int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_sc
 
 	setenv("TUNDEV", vpninfo->ifname, 1);
 	script_config_tun(vpninfo, "connect");
-
-	/* Ancient vpnc-scripts might not get this right */
-	set_tun_mtu(vpninfo);
 
 	return openconnect_setup_tun_fd(vpninfo, tun_fd);
 }
