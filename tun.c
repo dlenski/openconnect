@@ -169,7 +169,7 @@ static int bsd_open_tun(char *tun_name)
 #define bsd_open_tun(tun_name) open(tun_name, O_RDWR)
 #endif
 
-int os_setup_tun(struct openconnect_info *vpninfo)
+intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 {
 	int tun_fd = -1;
 #ifdef IFF_TUN /* Linux */

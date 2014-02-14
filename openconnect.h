@@ -336,9 +336,13 @@ int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_sc
 /* Pass traffic to a script program (no tun device). */
 int openconnect_setup_tun_script(struct openconnect_info *vpninfo, char *tun_script);
 
+#ifdef _WIN32
+/* Caller will provide an overlap-capable handle for the tunnel traffic. */
+int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, intptr_t tun_fd);
+#else
 /* Caller will provide a file descriptor for the tunnel traffic. */
 int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd);
-
+#endif
 /* Optional call to enable DTLS on the connection. */
 int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_period);
 

@@ -192,19 +192,12 @@ static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *nam
 	if (!vpninfo->ifname)
 		vpninfo->ifname = strdup(name);
 
-	vpninfo->tun_fh = tun_fh;
-	vpninfo->tun_rd_overlap.hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-	monitor_read_fd(vpninfo, tun);
-
-	return 1;
+	return (intptr_t)tun_fh;
 }
 
-int os_setup_tun(struct openconnect_info *vpninfo)
+intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 {
-	if (search_taps(vpninfo, open_tun, 0) != 1)
-		return -1;
-
-	return 0;
+	return search_taps(vpninfo, open_tun, 0);
 }
 
 int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt, int new_pkt)
@@ -277,7 +270,11 @@ void os_shutdown_tun(struct openconnect_info *vpninfo)
 	vpninfo->tun_rd_overlap.hEvent = NULL;
 }
 
-int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
+int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, intptr_t tun_fd)
 {
+	vpninfo->tun_fh = (HANDLE)tun_fd;
+	vpninfo->tun_rd_overlap.hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	monitor_read_fd(vpninfo, tun);
+
 	return 0;
 }
