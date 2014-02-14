@@ -278,3 +278,10 @@ int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, intptr_t tun_fd)
 
 	return 0;
 }
+
+int openconnect_setup_tun_script(struct openconnect_info *vpninfo, char *tun_script)
+{
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Spawning tunnel scripts is not yet supported on Windows\n"));
+	return -1;
+}
