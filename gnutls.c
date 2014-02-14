@@ -55,9 +55,7 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 #include "gnutls.h"
 #include "openconnect-internal.h"
 
-/* Helper functions for reading/writing lines over SSL.
-   We could use cURL for the HTTP stuff, but it's overkill */
-
+/* Helper functions for reading/writing lines over SSL. */
 int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t len)
 {
 	size_t orig_len = len;
@@ -66,11 +64,8 @@ int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t le
 		int done = gnutls_record_send(vpninfo->https_sess, buf, len);
 		if (done > 0)
 			len -= done;
-		else if (done != GNUTLS_E_AGAIN) {
-			vpn_progress(vpninfo, PRG_ERR, _("Failed to write to SSL socket: %s\n"),
-				     gnutls_strerror(done));
-			return -EIO;
-		} else {
+		else if (done == GNUTLS_E_AGAIN) {
+			/* Wait for something to happen on the socket, or on cmd_fd */
 			fd_set wr_set, rd_set;
 			int maxfd = vpninfo->ssl_fd;
 
@@ -88,6 +83,10 @@ int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t le
 				vpn_progress(vpninfo, PRG_ERR, _("SSL write cancelled\n"));
 				return -EINTR;
 			}
+		} else {
+			vpn_progress(vpninfo, PRG_ERR, _("Failed to write to SSL socket: %s\n"),
+				     gnutls_strerror(done));
+			return -EIO;
 		}
 	}
 	return orig_len;
@@ -98,14 +97,11 @@ int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len
 	int done;
 
 	while ((done = gnutls_record_recv(vpninfo->https_sess, buf, len)) < 0) {
-		fd_set wr_set, rd_set;
-		int maxfd = vpninfo->ssl_fd;
+		if (done == GNUTLS_E_AGAIN) {
+			/* Wait for something to happen on the socket, or on cmd_fd */
+			fd_set wr_set, rd_set;
+			int maxfd = vpninfo->ssl_fd;
 
-		if (done != GNUTLS_E_AGAIN) {
-			vpn_progress(vpninfo, PRG_ERR, _("Failed to read from SSL socket: %s\n"),
-				     gnutls_strerror(done));
-			return -EIO;
-		} else {
 			FD_ZERO(&wr_set);
 			FD_ZERO(&rd_set);
 
@@ -120,7 +116,12 @@ int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len
 				vpn_progress(vpninfo, PRG_ERR, _("SSL read cancelled\n"));
 				return -EINTR;
 			}
+		} else {
+			vpn_progress(vpninfo, PRG_ERR, _("Failed to read from SSL socket: %s\n"),
+				     gnutls_strerror(done));
+			return -EIO;
 		}
+
 	}
 	return done;
 }
@@ -150,12 +151,8 @@ int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len
 				buf[i] = 0;
 				return i;
 			}
-		} else if (ret != GNUTLS_E_AGAIN) {
-			vpn_progress(vpninfo, PRG_ERR, _("Failed to read from SSL socket: %s\n"),
-				     gnutls_strerror(ret));
-			ret = -EIO;
-			break;
-		} else {
+		} else if (ret == GNUTLS_E_AGAIN) {
+			/* Wait for something to happen on the socket, or on cmd_fd */
 			fd_set rd_set, wr_set;
 			int maxfd = vpninfo->ssl_fd;
 
@@ -174,6 +171,11 @@ int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len
 				ret = -EINTR;
 				break;
 			}
+		} else {
+			vpn_progress(vpninfo, PRG_ERR, _("Failed to read from SSL socket: %s\n"),
+				     gnutls_strerror(ret));
+			ret = -EIO;
+			break;
 		}
 	}
 	buf[i] = 0;
