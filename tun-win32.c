@@ -52,16 +52,17 @@
 #define ADAPTERS_KEY CONTROL_KEY "Class\\" NETDEV_GUID
 #define CONNECTIONS_KEY CONTROL_KEY "Network\\" NETDEV_GUID
 
-typedef int (tap_callback)(struct openconnect_info *vpninfo, char *idx, char *name);
+typedef intptr_t (tap_callback)(struct openconnect_info *vpninfo, char *idx, char *name);
 
-static int search_taps(struct openconnect_info *vpninfo, tap_callback *cb)
+static intptr_t search_taps(struct openconnect_info *vpninfo, tap_callback *cb, int all)
 {
 	LONG status;
 	HKEY adapters_key;
 	DWORD len;
 	char buf[40], name[40];
 	char keyname[strlen(CONNECTIONS_KEY) + sizeof(buf) + 1 + strlen("\\Connection")];
-	int i = 0, ret = 0, found = 0;
+	int i = 0, found = 0;
+	intptr_t ret;
 
 	status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, ADAPTERS_KEY, 0,
 			      KEY_READ, &adapters_key);
@@ -70,13 +71,13 @@ static int search_taps(struct openconnect_info *vpninfo, tap_callback *cb)
 			     _("Error accessing registry key for network adapters\n"));
 		return -EIO;
 	}
-	while (!ret) {
+	while (1) {
 		len = sizeof(buf);
 		status = RegEnumKeyEx(adapters_key, i++, buf, &len,
 				       NULL, NULL, NULL, NULL);
 		if (status) {
 			if (status != ERROR_NO_MORE_ITEMS)
-				ret = -EIO;
+				ret = -1;
 			break;
 		}
 
@@ -116,6 +117,8 @@ static int search_taps(struct openconnect_info *vpninfo, tap_callback *cb)
 		}
 
 		ret = cb(vpninfo, buf, name);
+		if (!all)
+			break;
 	}
 
 	RegCloseKey(adapters_key);
@@ -127,7 +130,7 @@ static int search_taps(struct openconnect_info *vpninfo, tap_callback *cb)
 	return ret;
 }
 
-static int open_tun(struct openconnect_info *vpninfo, char *guid, char *name)
+static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *name)
 {
 	char devname[80];
 	HANDLE tun_fh;
@@ -198,7 +201,7 @@ static int open_tun(struct openconnect_info *vpninfo, char *guid, char *name)
 
 int os_setup_tun(struct openconnect_info *vpninfo)
 {
-	if (search_taps(vpninfo, open_tun) != 1)
+	if (search_taps(vpninfo, open_tun, 0) != 1)
 		return -1;
 
 	return 0;
