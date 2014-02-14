@@ -379,7 +379,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			if (cstpmtu > mtu)
 				mtu = cstpmtu;
 		} else if (!strcmp(buf + 7, "Address-IP6")) {
-			vpninfo->ip_info.addr6 = new_option->value;
+			vpninfo->ip_info.netmask6 = new_option->value;
 		} else if (!strcmp(buf + 7, "Address")) {
 			if (strchr(new_option->value, ':')) {
 				if (!vpninfo->disable_ipv6)
