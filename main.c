@@ -721,7 +721,7 @@ int main(int argc, char **argv)
 			break;
 #endif
 		case 'C':
-			vpninfo->cookie = keep_config_arg();
+			vpninfo->cookie = strdup(config_arg);
 			break;
 		case 'c':
 			vpninfo->cert = strdup(config_arg);
