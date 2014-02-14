@@ -22,10 +22,6 @@
 #include <unistd.h>
 #ifndef _WIN32
 #include <sys/wait.h>
-#include <sys/ioctl.h>
-#include <netinet/in_systm.h>
-#include <netinet/ip.h>
-#include <net/if.h>
 #endif
 #include <errno.h>
 #include <ctype.h>

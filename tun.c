@@ -20,11 +20,15 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <signal.h>
 #include <sys/wait.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
 #include <netinet/in_systm.h>
+#include <netinet/in.h>
 #include <netinet/ip.h>
 #include <net/if.h>
+#include <arpa/inet.h>
 #include <errno.h>
 #include <ctype.h>
 #include <stdio.h>
