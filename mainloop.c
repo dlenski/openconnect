@@ -223,33 +223,29 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 	return ret < 0 ? ret : -EIO;
 }
 
+static int ka_check_deadline(int *timeout, time_t now, time_t due)
+{
+	if (now >= due)
+		return 1;
+	if (*timeout > (due - now) * 1000)
+		*timeout = (due - now) * 1000;
+	return 0;
+}
+
 /* Called when the socket is unwritable, to get the deadline for DPD.
    Returns 1 if DPD deadline has already arrived. */
 int ka_stalled_action(struct keepalive_info *ka, int *timeout)
 {
-	time_t due, now = time(NULL);
+	time_t now = time(NULL);
 
 	/* We only support the new-tunnel rekey method for now. */
-	if (ka->rekey_method == REKEY_TUNNEL) {
-		due = ka->last_rekey + ka->rekey;
+	if (ka->rekey_method == REKEY_TUNNEL &&
+	    ka_check_deadline(timeout, now, ka->last_rekey + ka->rekey))
+		return KA_REKEY;
 
-		if (now >= due)
-			return KA_REKEY;
-
-		if (*timeout > (due - now) * 1000)
-			*timeout = (due - now) * 1000;
-	}
-
-	if (!ka->dpd)
-		return KA_NONE;
-
-	due = ka->last_rx + (2 * ka->dpd);
-
-	if (now > due)
+	if (ka->dpd &&
+	    ka_check_deadline(timeout, now, ka->last_rx + (2 * ka->dpd)))
 		return KA_DPD_DEAD;
-
-	if (*timeout > (due - now) * 1000)
-		*timeout = (due - now) * 1000;
 
 	return KA_NONE;
 }
@@ -259,16 +255,10 @@ int keepalive_action(struct keepalive_info *ka, int *timeout)
 {
 	time_t now = time(NULL);
 
-	if (ka->rekey_method == REKEY_TUNNEL) {
-		time_t due = ka->last_rekey + ka->rekey;
-
-		if (now >= due) {
-			ka->last_rekey = now;
-			return KA_REKEY;
-		}
-
-		if (*timeout > (due - now) * 1000)
-			*timeout = (due - now) * 1000;
+	if (ka->rekey_method == REKEY_TUNNEL &&
+	    ka_check_deadline(timeout, now, ka->last_rekey + ka->rekey)) {
+		ka->last_rekey = now;
+		return KA_REKEY;
 	}
 
 	/* DPD is bidirectional -- PKT 3 out, PKT 4 back */
@@ -287,26 +277,18 @@ int keepalive_action(struct keepalive_info *ka, int *timeout)
 
 		/* We haven't seen a packet from this host for $DPD seconds.
 		   Prod it to see if it's still alive */
-		if (now >= due) {
+		if (ka_check_deadline(timeout, now, due)) {
 			ka->last_dpd = now;
 			return KA_DPD;
 		}
-		if (*timeout > (due - now) * 1000)
-			*timeout = (due - now) * 1000;
 	}
 
-	/* Keepalive is just client -> server */
-	if (ka->keepalive) {
-		time_t due = ka->last_tx + ka->keepalive;
-
-		/* If we haven't sent anything for $KEEPALIVE seconds, send a
-		   dummy packet (which the server will discard) */
-		if (now >= due)
-			return KA_KEEPALIVE;
-
-		if (*timeout > (due - now) * 1000)
-			*timeout = (due - now) * 1000;
-	}
+	/* Keepalive is just client -> server.
+	   If we haven't sent anything for $KEEPALIVE seconds, send a
+	   dummy packet (which the server will discard) */
+	if (ka->keepalive &&
+	    ka_check_deadline(timeout, now, ka->last_tx + ka->keepalive))
+		return KA_KEEPALIVE;
 
 	return KA_NONE;
 }
