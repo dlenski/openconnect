@@ -622,6 +622,8 @@ int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_pe
 		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
+	if (vpninfo->dtls_times.rekey <= 0)
+		vpninfo->dtls_times.rekey_method = REKEY_NONE;
 
 	vpninfo->dtls_addr = malloc(vpninfo->peer_addrlen);
 	if (!vpninfo->dtls_addr) {

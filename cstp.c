@@ -509,6 +509,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	if (!sessid_found)
 		vpninfo->dtls_attempt_period = 0;
 
+	if (vpninfo->ssl_times.rekey <= 0)
+		vpninfo->ssl_times.rekey_method = REKEY_NONE;
+
 	vpninfo->ssl_times.last_rekey = vpninfo->ssl_times.last_rx =
 		vpninfo->ssl_times.last_tx = time(NULL);
 	return 0;
