@@ -587,6 +587,9 @@ int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_pe
 	OpenSSL_add_all_algorithms();
 #endif
 
+	/* There usually isn't a separate X-DTLS-Rekey-Method: header. */
+	vpninfo->dtls_times.rekey_method = vpninfo->ssl_times.rekey_method;
+
 	while (dtls_opt) {
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("DTLS option %s : %s\n"),
