@@ -1068,7 +1068,7 @@ int main(int argc, char **argv)
 		     ip_info->addr?:"",
 		     (ip_info->netmask6 && ip_info->addr) ? " + " : "",
 		     ip_info->netmask6 ? : "",
-		     (vpninfo->dtls_fd == -1) ?
+		     (vpninfo->dtls_state != DTLS_CONNECTED) ?
 		     (vpninfo->deflate ? "SSL + deflate" : "SSL")
 		     : "DTLS");
 

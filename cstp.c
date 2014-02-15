@@ -916,7 +916,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	case KA_KEEPALIVE:
 		/* No need to send an explicit keepalive
 		   if we have real data to send */
-		if (vpninfo->dtls_fd == -1 && vpninfo->outgoing_queue)
+		if (vpninfo->dtls_state != DTLS_CONNECTED && vpninfo->outgoing_queue)
 			break;
 
 		vpn_progress(vpninfo, PRG_TRACE, _("Send CSTP Keepalive\n"));
@@ -929,7 +929,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	}
 
 	/* Service outgoing packet queue, if no DTLS */
-	while (vpninfo->dtls_fd == -1 && vpninfo->outgoing_queue) {
+	while (vpninfo->dtls_state != DTLS_CONNECTED && vpninfo->outgoing_queue) {
 		struct pkt *this = vpninfo->outgoing_queue;
 		vpninfo->outgoing_queue = this->next;
 		vpninfo->outgoing_qlen--;
