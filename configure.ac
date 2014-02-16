@@ -709,5 +709,7 @@ for a in ${srcdir}/.git/index ${srcdir}/.git/packed-refs \
 done
 AC_SUBST(GITVERSIONDEPS)
 
-AC_OUTPUT(Makefile openconnect.pc po/Makefile www/Makefile libopenconnect.map \
-	  openconnect.8 www/styles/Makefile www/inc/Makefile www/images/Makefile)
+AC_CONFIG_FILES(Makefile openconnect.pc po/Makefile www/Makefile \
+		libopenconnect.map openconnect.8 www/styles/Makefile \
+		www/inc/Makefile www/images/Makefile)
+AC_OUTPUT
