@@ -280,7 +280,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	ret = SSL_get_error(vpninfo->dtls_ssl, ret);
 	if (ret == SSL_ERROR_WANT_WRITE || ret == SSL_ERROR_WANT_READ) {
 		static int badossl_bitched = 0;
-		if (time(NULL) < vpninfo->new_dtls_started + 5)
+		if (time(NULL) < vpninfo->new_dtls_started + 12)
 			return 0;
 		if (((OPENSSL_VERSION_NUMBER >= 0x100000b0L && OPENSSL_VERSION_NUMBER <= 0x100000c0L) || \
 		     (OPENSSL_VERSION_NUMBER >= 0x10001040L && OPENSSL_VERSION_NUMBER <= 0x10001060L) || \
@@ -427,7 +427,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	}
 
 	if (err == GNUTLS_E_AGAIN) {
-		if (time(NULL) < vpninfo->new_dtls_started + 5)
+		if (time(NULL) < vpninfo->new_dtls_started + 12)
 			return 0;
 		vpn_progress(vpninfo, PRG_TRACE, _("DTLS handshake timed out\n"));
 	}
