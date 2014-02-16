@@ -882,4 +882,8 @@ int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_pe
 		     _("Built against SSL library with no Cisco DTLS support\n"));
 	return -EINVAL;
 }
+
+void dtls_close(struct openconnect_info *vpninfo)
+{
+}
 #endif
