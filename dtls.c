@@ -751,17 +751,29 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		vpn_progress(vpninfo, PRG_INFO, _("DTLS rekey due\n"));
 
-		/* There ought to be a method of rekeying DTLS without tearing down
-		   the CSTP session and restarting, but we don't (yet) know it */
-		ret = cstp_reconnect(vpninfo);
-		if (ret) {
-			vpn_progress(vpninfo, PRG_ERR, _("Reconnect failed\n"));
-			vpninfo->quit_reason = "CSTP reconnect failed";
-			return ret;
+		if (vpninfo->dtls_times.rekey_method == REKEY_SSL) {
+			time(&vpninfo->new_dtls_started);
+			vpninfo->dtls_state = DTLS_CONNECTING;
+			ret = dtls_try_handshake(vpninfo);
+			if (ret) {
+				vpn_progress(vpninfo, PRG_ERR, _("DTLS Rehandshake failed\n"));
+				vpninfo->quit_reason = "DTLS rehandshake failed";
+				return ret;
+			}
+		} else if (vpninfo->dtls_times.rekey_method == REKEY_TUNNEL) {
+			/* There ought to be a method of rekeying DTLS without tearing down
+			   the CSTP session and restarting, but we don't (yet) know it */
+			ret = cstp_reconnect(vpninfo);
+			if (ret) {
+				vpn_progress(vpninfo, PRG_ERR, _("Reconnect failed\n"));
+				vpninfo->quit_reason = "CSTP reconnect failed";
+				return ret;
+			}
+
+			if (dtls_restart(vpninfo))
+				vpn_progress(vpninfo, PRG_ERR, _("DTLS rekey failed\n"));
 		}
 
-		if (dtls_restart(vpninfo))
-			vpn_progress(vpninfo, PRG_ERR, _("DTLS rekey failed\n"));
 		return 1;
 	}
 
