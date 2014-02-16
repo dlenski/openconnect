@@ -263,8 +263,10 @@ int keepalive_action(struct keepalive_info *ka, int *timeout)
 	if (ka->rekey) {
 		time_t due = ka->last_rekey + ka->rekey;
 
-		if (now >= due)
+		if (now >= due) {
+			ka->last_rekey = now;
 			return KA_REKEY;
+		}
 
 		if (*timeout > (due - now) * 1000)
 			*timeout = (due - now) * 1000;

@@ -1949,6 +1949,24 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	vpn_progress(vpninfo, PRG_INFO, _("SSL negotiation with %s\n"),
 		     vpninfo->hostname);
 
+
+	err = cstp_handshake(vpninfo, 1);
+	if (err)
+		return err;
+
+	vpninfo->ssl_fd = ssl_sock;
+
+
+	return 0;
+}
+
+int cstp_handshake(struct openconnect_info *vpninfo, unsigned init)
+{
+	int err;
+	int ssl_sock = -1;
+
+	ssl_sock = (long)gnutls_transport_get_ptr(vpninfo->https_sess);
+
 	while ((err = gnutls_handshake(vpninfo->https_sess))) {
 		if (err == GNUTLS_E_AGAIN) {
 			fd_set rd_set, wr_set;
@@ -1986,10 +2004,13 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		}
 	}
 
-	vpninfo->ssl_fd = ssl_sock;
-
-	vpn_progress(vpninfo, PRG_INFO, _("Connected to HTTPS on %s\n"),
-		     vpninfo->hostname);
+	if (init) {
+		vpn_progress(vpninfo, PRG_INFO, _("Connected to HTTPS on %s\n"),
+			     vpninfo->hostname);
+	} else {
+		vpn_progress(vpninfo, PRG_INFO, _("Renegotiated SSL on %s\n"),
+			     vpninfo->hostname);
+	}
 
 	return 0;
 }

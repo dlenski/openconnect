@@ -1413,6 +1413,11 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	return 0;
 }
 
+int cstp_handshake(struct openconnect_info *vpninfo, unsigned init)
+{
+	return -EOPNOTSUPP;
+}
+
 void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 {
 	if (vpninfo->peer_cert) {

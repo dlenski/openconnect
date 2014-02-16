@@ -496,6 +496,7 @@ int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t le
 int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len);
 int openconnect_open_https(struct openconnect_info *vpninfo);
 void openconnect_close_https(struct openconnect_info *vpninfo, int final);
+int cstp_handshake(struct openconnect_info *vpninfo, unsigned init);
 int get_cert_md5_fingerprint(struct openconnect_info *vpninfo, OPENCONNECT_X509 *cert,
 			     char *buf);
 int openconnect_sha1(unsigned char *result, void *data, int len);
