@@ -71,6 +71,8 @@ endif
 pkgconfig_DATA = openconnect.pc
 
 EXTRA_DIST = version.sh COPYING.LGPL $(lib_srcs_openssl) $(lib_srcs_gnutls)
+EXTRA_DIST += $(shell cd "$(top_srcdir)" && \
+		git ls-tree HEAD --name-only -- android/ 2>/dev/null)
 
 DISTCLEANFILES = $(pkgconfig_DATA)
 
