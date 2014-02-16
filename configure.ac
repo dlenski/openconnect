@@ -625,6 +625,13 @@ AC_ARG_ENABLE([jni-standalone],
 	[jni_standalone=$enableval],
 	[jni_standalone=no])
 AM_CONDITIONAL(JNI_STANDALONE, [test $jni_standalone = yes])
+symver_java=
+if test "$jni_standalone" = "yes" ; then
+   symver_java=$(sed -n '/JNIEXPORT/{s/^JNIEXPORT.*\(Java_.*\) *(/\1;/ p}' ${srcdir}/jni.c)
+   # Remove the newlines between each item.
+   symver_java=$(echo $symver_java)
+fi
+AC_SUBST(SYMVER_JAVA, $symver_java)
 
 AC_CHECK_HEADER([if_tun.h],
     [AC_DEFINE([IF_TUN_HDR], ["if_tun.h"])],

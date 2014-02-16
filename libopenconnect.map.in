@@ -55,7 +55,7 @@ OPENCONNECT_3.1 {
 } OPENCONNECT_3.0;
 
 OPENCONNECT_PRIVATE {
- global: @SYMVER_TIME@ @SYMVER_ASPRINTF@ @SYMVER_GETLINE@ @SYMVER_PRINT_ERR@
+ global: @SYMVER_TIME@ @SYMVER_ASPRINTF@ @SYMVER_GETLINE@ @SYMVER_PRINT_ERR@ @SYMVER_JAVA@
 	openconnect_SSL_gets;
 	openconnect_close_https;
 	openconnect_open_https;
@@ -65,7 +65,6 @@ OPENCONNECT_PRIVATE {
 	openconnect_create_useragent;
 	openconnect_sha1;
 	openconnect_random;
-	Java_*;
  local:
 	*;
 };
