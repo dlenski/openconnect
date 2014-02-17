@@ -898,6 +898,8 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				vpn_progress(vpninfo, PRG_ERR, _("Rehandshake failed; attempting new-tunnel\n"));
 				goto do_reconnect;
 			}
+
+			goto do_dtls_reconnect;
 		}
 		break;
 
@@ -912,8 +914,14 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpninfo->quit_reason = "CSTP reconnect failed";
 			return ret;
 		}
-		/* I think we can leave DTLS to its own devices; when we reconnect
-		   with the same master secret, we do seem to get the same sessid */
+
+	do_dtls_reconnect:
+		/* succeeded, let's rekey DTLS, if it is not rekeying
+		 * itself. */
+		if (vpninfo->dtls_times.rekey_method == REKEY_NONE) {
+			dtls_reconnect(vpninfo);
+		}
+
 		return 1;
 
 	case KA_DPD:

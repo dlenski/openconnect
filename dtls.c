@@ -562,7 +562,7 @@ void dtls_close(struct openconnect_info *vpninfo)
 	}
 }
 
-static int dtls_restart(struct openconnect_info *vpninfo)
+int dtls_reconnect(struct openconnect_info *vpninfo)
 {
 	dtls_close(vpninfo);
 	vpninfo->dtls_state = DTLS_SLEEPING;
@@ -770,7 +770,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				return ret;
 			}
 
-			if (dtls_restart(vpninfo))
+			if (dtls_reconnect(vpninfo))
 				vpn_progress(vpninfo, PRG_ERR, _("DTLS rekey failed\n"));
 		}
 
@@ -780,7 +780,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	case KA_DPD_DEAD:
 		vpn_progress(vpninfo, PRG_ERR, _("DTLS Dead Peer Detection detected dead peer!\n"));
 		/* Fall back to SSL, and start a new DTLS connection */
-		dtls_restart(vpninfo);
+		dtls_reconnect(vpninfo);
 		return 1;
 
 	case KA_DPD:
@@ -845,7 +845,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 					     _("DTLS got write error %d. Falling back to SSL\n"),
 					     ret);
 				openconnect_report_ssl_errors(vpninfo);
-				dtls_restart(vpninfo);
+				dtls_reconnect(vpninfo);
 				vpninfo->outgoing_queue = this;
 				vpninfo->outgoing_qlen++;
 				work_done = 1;
@@ -859,7 +859,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("DTLS got write error: %s. Falling back to SSL\n"),
 					     gnutls_strerror(ret));
-				dtls_restart(vpninfo);
+				dtls_reconnect(vpninfo);
 				vpninfo->outgoing_queue = this;
 				vpninfo->outgoing_qlen++;
 				work_done = 1;
