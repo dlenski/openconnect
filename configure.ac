@@ -677,7 +677,7 @@ if test "$ssl_library" = "openssl" || test "$ssl_library" = "both"; then
     CFLAGS="$oldCFLAGS"
 fi
 
-AC_PATH_PROG(PYTHON, [python], [], $PATH:/bin:/usr/bin)
+AC_PATH_PROGS(PYTHON, [python2 python], [], $PATH:/bin:/usr/bin)
 if (test -n "${ac_cv_path_PYTHON}"); then
    AC_SUBST(PYTHON, ${ac_cv_path_PYTHON})
 else
