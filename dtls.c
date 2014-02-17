@@ -280,7 +280,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	ret = SSL_get_error(vpninfo->dtls_ssl, ret);
 	if (ret == SSL_ERROR_WANT_WRITE || ret == SSL_ERROR_WANT_READ) {
 		static int badossl_bitched = 0;
-		if (time(NULL) < vpninfo->new_dtls_started + 5)
+		if (time(NULL) < vpninfo->new_dtls_started + 12)
 			return 0;
 		if (((OPENSSL_VERSION_NUMBER >= 0x100000b0L && OPENSSL_VERSION_NUMBER <= 0x100000c0L) || \
 		     (OPENSSL_VERSION_NUMBER >= 0x10001040L && OPENSSL_VERSION_NUMBER <= 0x10001060L) || \
@@ -427,7 +427,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	}
 
 	if (err == GNUTLS_E_AGAIN) {
-		if (time(NULL) < vpninfo->new_dtls_started + 5)
+		if (time(NULL) < vpninfo->new_dtls_started + 12)
 			return 0;
 		vpn_progress(vpninfo, PRG_TRACE, _("DTLS handshake timed out\n"));
 	}
@@ -562,7 +562,7 @@ void dtls_close(struct openconnect_info *vpninfo)
 	}
 }
 
-static int dtls_restart(struct openconnect_info *vpninfo)
+int dtls_reconnect(struct openconnect_info *vpninfo)
 {
 	dtls_close(vpninfo);
 	vpninfo->dtls_state = DTLS_SLEEPING;
@@ -756,24 +756,24 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		vpn_progress(vpninfo, PRG_INFO, _("DTLS rekey due\n"));
 
-		/* There ought to be a method of rekeying DTLS without tearing down
-		   the CSTP session and restarting, but we don't (yet) know it */
-		ret = cstp_reconnect(vpninfo);
-		if (ret) {
-			vpn_progress(vpninfo, PRG_ERR, _("Reconnect failed\n"));
-			vpninfo->quit_reason = "CSTP reconnect failed";
-			return ret;
+		if (vpninfo->dtls_times.rekey_method == REKEY_SSL) {
+			time(&vpninfo->new_dtls_started);
+			vpninfo->dtls_state = DTLS_CONNECTING;
+			ret = dtls_try_handshake(vpninfo);
+			if (ret) {
+				vpn_progress(vpninfo, PRG_ERR, _("DTLS Rehandshake failed\n"));
+				vpninfo->quit_reason = "DTLS rehandshake failed";
+				return ret;
+			}
 		}
 
-		if (dtls_restart(vpninfo))
-			vpn_progress(vpninfo, PRG_ERR, _("DTLS rekey failed\n"));
 		return 1;
 	}
 
 	case KA_DPD_DEAD:
 		vpn_progress(vpninfo, PRG_ERR, _("DTLS Dead Peer Detection detected dead peer!\n"));
 		/* Fall back to SSL, and start a new DTLS connection */
-		dtls_restart(vpninfo);
+		dtls_reconnect(vpninfo);
 		return 1;
 
 	case KA_DPD:
@@ -838,7 +838,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 					     _("DTLS got write error %d. Falling back to SSL\n"),
 					     ret);
 				openconnect_report_ssl_errors(vpninfo);
-				dtls_restart(vpninfo);
+				dtls_reconnect(vpninfo);
 				vpninfo->outgoing_queue = this;
 				vpninfo->outgoing_qlen++;
 				work_done = 1;
@@ -852,7 +852,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("DTLS got write error: %s. Falling back to SSL\n"),
 					     gnutls_strerror(ret));
-				dtls_restart(vpninfo);
+				dtls_reconnect(vpninfo);
 				vpninfo->outgoing_queue = this;
 				vpninfo->outgoing_qlen++;
 				work_done = 1;
