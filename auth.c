@@ -1173,6 +1173,37 @@ static int can_gen_totp_code(struct openconnect_info *vpninfo,
  *  < 0, if unable to generate a tokencode
  *  = 0, on success
  */
+static int can_gen_hotp_code(struct openconnect_info *vpninfo,
+			     struct oc_auth_form *form,
+			     struct oc_form_opt *opt)
+{
+#ifdef HAVE_LIBOATH
+	if ((strcmp(opt->name, "secondary_password") != 0) ||
+	    vpninfo->token_bypassed)
+		return -EINVAL;
+	if (vpninfo->token_tries == 0) {
+		vpn_progress(vpninfo, PRG_DEBUG,
+			     _("OK to generate INITIAL tokencode\n"));
+	} else if (vpninfo->token_tries == 1) {
+		vpn_progress(vpninfo, PRG_DEBUG,
+			     _("OK to generate NEXT tokencode\n"));
+		vpninfo->token_time++;
+	} else {
+		/* limit the number of retries, to avoid account lockouts */
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("Server is rejecting the soft token; switching to manual entry\n"));
+		return -ENOENT;
+	}
+	return 0;
+#else
+	return -EOPNOTSUPP;
+#endif
+}
+
+/* Return value:
+ *  < 0, if unable to generate a tokencode
+ *  = 0, on success
+ */
 static int can_gen_tokencode(struct openconnect_info *vpninfo,
 			     struct oc_auth_form *form,
 			     struct oc_form_opt *opt)
@@ -1183,6 +1214,9 @@ static int can_gen_tokencode(struct openconnect_info *vpninfo,
 
 	case OC_TOKEN_MODE_TOTP:
 		return can_gen_totp_code(vpninfo, form, opt);
+
+	case OC_TOKEN_MODE_HOTP:
+		return can_gen_hotp_code(vpninfo, form, opt);
 
 	default:
 		return -EINVAL;
@@ -1249,6 +1283,36 @@ static int do_gen_totp_code(struct openconnect_info *vpninfo,
 #endif
 }
 
+static int do_gen_hotp_code(struct openconnect_info *vpninfo,
+			    struct oc_auth_form *form,
+			    struct oc_form_opt *opt)
+{
+#ifdef HAVE_LIBOATH
+	int oath_err;
+	char tokencode[7];
+
+	vpn_progress(vpninfo, PRG_INFO, _("Generating OATH HOTP token code\n"));
+
+	oath_err = oath_hotp_generate(vpninfo->oath_secret,
+				      vpninfo->oath_secret_len,
+				      vpninfo->token_time,
+				      6, false, OATH_HOTP_DYNAMIC_TRUNCATION,
+				      tokencode);
+	if (oath_err != OATH_OK) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Unable to generate OATH HOTP token code: %s\n"),
+			     oath_strerror(oath_err));
+		return -EIO;
+	}
+
+	vpninfo->token_tries++;
+	opt->value = strdup(tokencode);
+	return opt->value ? 0 : -ENOMEM;
+#else
+	return 0;
+#endif
+}
+
 /* Return value:
  *  < 0, if unable to generate a tokencode
  *  = 0, on success
@@ -1272,6 +1336,9 @@ static int do_gen_tokencode(struct openconnect_info *vpninfo,
 
 	case OC_TOKEN_MODE_TOTP:
 		return do_gen_totp_code(vpninfo, form, opt);
+
+	case OC_TOKEN_MODE_HOTP:
+		return do_gen_hotp_code(vpninfo, form, opt);
 
 	default:
 		return -EINVAL;

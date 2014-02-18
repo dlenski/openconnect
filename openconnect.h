@@ -29,9 +29,13 @@
 #endif
 
 #define OPENCONNECT_API_VERSION_MAJOR 3
-#define OPENCONNECT_API_VERSION_MINOR 1
+#define OPENCONNECT_API_VERSION_MINOR 2
 
 /*
+ * API version 3.2:
+ *  - Add OC_TOKEN_MODE_HOTP and allow openconnect_has_oath_support() to
+ *    return 2 to indicate that it is present.
+ *
  * API version 3.1:
  *  - Add openconnect_setup_cmd_pipe(), openconnect_mainloop(),
  *    openconnect_setup_tun_device(), openconnect_setup_tun_script(),
@@ -224,6 +228,7 @@ typedef enum {
 	OC_TOKEN_MODE_NONE,
 	OC_TOKEN_MODE_STOKEN,
 	OC_TOKEN_MODE_TOTP,
+	OC_TOKEN_MODE_HOTP,
 } oc_token_mode_t;
 
 /* Unless otherwise specified, all functions which set strings will take

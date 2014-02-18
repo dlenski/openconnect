@@ -15,6 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Add RFC4226 HOTP token support.</li>
        <li>Tolerate servers closing connection uncleanly after HTTP/1.0 response <a href="https://bugs.launchpad.net/bugs/1225276"><i>(Ubuntu #1225276)</i></a>.</li>
        <li>Add support for IPv6 split tunnel configuration.</li>
        <li>Add Windows support with MinGW <i>(tested with both IPv6 and Legacy IP with latest <a href="http://git.infradead.org/users/dwmw2/vpnc-scripts.git/blob_plain/HEAD:/vpnc-script-win.js">vpnc-script-win.js</a>)</i></li>

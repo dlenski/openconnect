@@ -272,7 +272,11 @@ static void print_build_opts(void)
 		printf("%sRSA software token", sep);
 		sep = comma;
 	}
-	if (openconnect_has_oath_support()) {
+	switch(openconnect_has_oath_support()) {
+	case 2:
+		printf("%sHOTP software token", sep);
+		sep = comma;
+	case 1:
 		printf("%sTOTP software token", sep);
 		sep = comma;
 	}
@@ -380,13 +384,13 @@ static void usage(void)
 	printf("      --no-xmlpost                %s\n", _("Do not attempt XML POST authentication"));
 	printf("      --non-inter                 %s\n", _("Do not expect user input; exit if it is required"));
 	printf("      --passwd-on-stdin           %s\n", _("Read password from standard input"));
-	printf("      --token-mode=MODE           %s\n", _("Software token type: rsa or totp"));
+	printf("      --token-mode=MODE           %s\n", _("Software token type: rsa, totp or hotp"));
 	printf("      --token-secret=STRING       %s\n", _("Software token secret"));
 #ifndef HAVE_LIBSTOKEN
 	printf("                                  %s\n", _("(NOTE: libstoken (RSA SecurID) disabled in this build)"));
 #endif
 #ifndef HAVE_LIBOATH
-	printf("                                  %s\n", _("(NOTE: liboath (TOTP) disabled in this build)"));
+	printf("                                  %s\n", _("(NOTE: liboath (TOTP,HOTP) disabled in this build)"));
 #endif
 	printf("      --reconnect-timeout         %s\n", _("Connection retry timeout in seconds"));
 	printf("      --servercert=FINGERPRINT    %s\n", _("Server's certificate SHA1 fingerprint"));
@@ -882,6 +886,8 @@ int main(int argc, char **argv)
 				token_mode = OC_TOKEN_MODE_STOKEN;
 			} else if (strcasecmp(config_arg, "totp") == 0) {
 				token_mode = OC_TOKEN_MODE_TOTP;
+			} else if (strcasecmp(config_arg, "hotp") == 0) {
+				token_mode = OC_TOKEN_MODE_HOTP;
 			} else {
 				fprintf(stderr, _("Invalid software token mode \"%s\"\n"),
 					config_arg);
@@ -1467,6 +1473,7 @@ static void init_token(struct openconnect_info *vpninfo,
 		break;
 
 	case OC_TOKEN_MODE_TOTP:
+	case OC_TOKEN_MODE_HOTP:
 		switch (ret) {
 		case 0:
 			return;
