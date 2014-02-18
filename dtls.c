@@ -758,9 +758,8 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpninfo->dtls_state = DTLS_CONNECTING;
 			ret = dtls_try_handshake(vpninfo);
 			if (ret) {
-				vpn_progress(vpninfo, PRG_ERR, _("DTLS Rehandshake failed\n"));
-				vpninfo->quit_reason = "DTLS rehandshake failed";
-				return ret;
+				vpn_progress(vpninfo, PRG_ERR, _("DTLS Rehandshake failed; reconnecting.\n"));
+				return connect_dtls_socket(vpninfo);
 			}
 		}
 
