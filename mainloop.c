@@ -239,9 +239,11 @@ int ka_stalled_action(struct keepalive_info *ka, int *timeout)
 	time_t now = time(NULL);
 
 	/* We only support the new-tunnel rekey method for now. */
-	if (ka->rekey_method == REKEY_TUNNEL &&
-	    ka_check_deadline(timeout, now, ka->last_rekey + ka->rekey))
+	if (ka->rekey_method != REKEY_NONE &&
+	    ka_check_deadline(timeout, now, ka->last_rekey + ka->rekey)) {
+		ka->last_rekey = now;
 		return KA_REKEY;
+	}
 
 	if (ka->dpd &&
 	    ka_check_deadline(timeout, now, ka->last_rx + (2 * ka->dpd)))
@@ -255,7 +257,7 @@ int keepalive_action(struct keepalive_info *ka, int *timeout)
 {
 	time_t now = time(NULL);
 
-	if (ka->rekey_method == REKEY_TUNNEL &&
+	if (ka->rekey_method != REKEY_NONE &&
 	    ka_check_deadline(timeout, now, ka->last_rekey + ka->rekey)) {
 		ka->last_rekey = now;
 		return KA_REKEY;
