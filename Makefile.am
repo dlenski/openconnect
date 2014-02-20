@@ -131,6 +131,23 @@ tag: uncommitted-check
 	@git tag v$(VERSION)
 	@cd $(srcdir) && ./autogen.sh
 
+update-po: po/$(PACKAGE).pot
+	@cd $(top_srcdir); if ! git diff-index --name-only --exit-code HEAD -- po/; then \
+		echo "*** ERROR: Uncommitted changes in above files"; exit 1; \
+	else \
+		for a in po/*.po; do \
+			msgmerge -q -N -F $$a $(abs_builddir)/po/$(PACKAGE).pot > $$a.merge ; \
+			msgattrib -F --no-fuzzy --no-obsolete $$a.merge > $$a ; \
+			rm $$a.merge ; \
+		done && \
+		if ! git update-index -q --refresh --unmerged || \
+		   ! git diff-index --name-only --exit-code HEAD -- po/ >/dev/null; then \
+			git commit -s -m "Resync translations with sources" -- po/ ; \
+		else \
+			echo No changes to commit ; \
+		fi; \
+	fi
+
 update-translations: po/$(PACKAGE).pot
 	@cd $(top_srcdir); if ! git diff-index --name-only --exit-code HEAD -- po/; then \
 		echo "*** ERROR: Uncommitted changes in above files"; exit 1; \
