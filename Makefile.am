@@ -136,22 +136,24 @@ update-translations: po/$(PACKAGE).pot
 		echo "*** ERROR: Uncommitted changes in above files"; exit 1; \
 	else \
 		for a in po/*.po; do \
-			msgmerge -q -N -F $$a $(abs_builddir)/po/$(PACKAGE).pot | sed '0,/^#:/d' > $$a.old ; \
+			msgmerge -q -N -F $$a $(abs_builddir)/po/$(PACKAGE).pot > $$a.old; \
+			sed '0,/^#:/d' $$a.old > $$a.old.cmp ; \
 		done && \
 		tx pull -af && \
 		for a in po/*.po; do \
-			msgmerge -q -N -F $$a $(abs_builddir)/po/$(PACKAGE).pot > $$a.new ; \
+			touch $$a.old; \
+			msgmerge -q -N -F -C $$a.old $$a $(abs_builddir)/po/$(PACKAGE).pot > $$a.new ; \
 			sed '0,/^#:/d' $$a.new > $$a.new.cmp ; \
 			if ! git ls-tree --name-only HEAD $$a | grep -q $$a; then \
 				echo New file $$a ; \
 				git add $$a ; \
-			elif ! diff -u $$a.old $$a.new.cmp; then \
+			elif ! diff -u $$a.old.cmp $$a.new.cmp; then \
 				echo New changes for $$a; \
 				mv $$a.new $$a; \
 			else \
 				git checkout -f HEAD $$a ; \
 			fi ; \
-			rm -f $$a.old $$a.new $$a.new.cmp ; \
+			rm -f $$a.old $$a.old.cmp $$a.new $$a.new.cmp ; \
 		done && \
 		ls po/*.po | sed 's%^po/\(.*\)\.po%\1%' > po/LINGUAS ; \
 		if ! git update-index -q --refresh --unmerged || \
