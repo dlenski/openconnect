@@ -194,7 +194,7 @@ upload-pot: po/$(PACKAGE).pot
 		ln -sf ${abs_top_srcdir}/.tx .tx; fi
 	@tx push -s
 
-po/$(PACKAGE).pot: $(POTFILES) Makefile
+po/$(PACKAGE).pot: $(POTFILES) version.sh
 	@echo "Regenerating $@" ; rm -f $@ && \
 	xgettext --directory=$(top_srcdir) --from-code=UTF-8 \
 	  --add-comments --keyword=_ --keyword=N_ \
