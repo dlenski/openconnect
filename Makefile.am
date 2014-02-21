@@ -163,6 +163,7 @@ update-translations: po/$(PACKAGE).pot
 			sed '0,/^#:/d' $$a.new > $$a.new.cmp ; \
 			if ! git ls-tree --name-only HEAD $$a | grep -q $$a; then \
 				echo New file $$a ; \
+				mv $$a.new $$a; \
 				git add $$a ; \
 			elif ! diff -u $$a.old.cmp $$a.new.cmp; then \
 				echo New changes for $$a; \
