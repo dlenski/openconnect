@@ -3,15 +3,17 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Translators:
-# Pavel Fric <pavelfric@seznam.cz>, 2011.
-#   <pavelfric@seznam.cz>, 2011-2013.
+# fri <pavelfric@seznam.cz>, 2011,2013
+# fri <pavelfric@seznam.cz>, 2011
+# fri <pavelfric@seznam.cz>, 2013
+# fri <pavelfric@seznam.cz>, 2011-2013
 msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
 "POT-Creation-Date: 2014-02-21 01:48+0000\n"
-"PO-Revision-Date: 2013-01-12 13:15+0000\n"
-"Last-Translator: fri <pavelfric@seznam.cz>\n"
+"PO-Revision-Date: 2014-02-21 01:11+0000\n"
+"Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Czech (http://www.transifex.com/projects/p/meego/language/"
 "cs/)\n"
 "Language: cs\n"
@@ -867,7 +869,7 @@ msgstr "Nastavení seznamu odvolaných certifikátů selhalo: %s\n"
 
 #: gnutls.c:1434 gnutls.c:1444
 msgid "Failed to allocate memory for certificate\n"
-msgstr ""
+msgstr "Nepodařilo se přidělit paměť pro certifikát\n"
 
 #: gnutls.c:1480
 msgid ""

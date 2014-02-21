@@ -3,8 +3,6 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Translators:
-# osama7 <madboy221@hotmail.com>, 2013
-# osama7 <madboy221@hotmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
@@ -12,41 +10,40 @@ msgstr ""
 "POT-Creation-Date: 2014-02-21 01:48+0000\n"
 "PO-Revision-Date: 2014-02-19 09:05+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
-"Language-Team: Arabic (http://www.transifex.com/projects/p/meego/language/"
-"ar/)\n"
-"Language: ar\n"
+"Language-Team: Crimean Turkish (http://www.transifex.com/projects/p/meego/"
+"language/crh/)\n"
+"Language: crh\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
-"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: auth.c:159
 msgid "Form choice has no name\n"
-msgstr "النموذج ليس له أسم\n"
+msgstr ""
 
 #: auth.c:244
 #, c-format
 msgid "name %s not input\n"
-msgstr "الأسم%s غير مدخل\n"
+msgstr ""
 
 #: auth.c:251
 msgid "No input type in form\n"
-msgstr "لايوجد مدخلات في النموذج\n"
+msgstr ""
 
 #: auth.c:263
 msgid "No input name in form\n"
-msgstr "لايوجد اسم مدخل في النموذج\n"
+msgstr ""
 
 #: auth.c:295
 #, c-format
 msgid "Unknown input type %s in form\n"
-msgstr "شكل غير معروف مدخل %s في النموذج\n"
+msgstr ""
 
 #: auth.c:490
 #, c-format
 msgid "Cannot handle form method='%s', action='%s'\n"
-msgstr "لا يمكن التعامل بهذه الطريقة ='%s' العمل ='%s'\n"
+msgstr ""
 
 #: auth.c:559
 msgid "Empty response from server\n"
@@ -54,12 +51,12 @@ msgstr ""
 
 #: auth.c:570
 msgid "Failed to parse server response\n"
-msgstr "فشل في تحليل استجابة الملقم\n"
+msgstr ""
 
 #: auth.c:572
 #, c-format
 msgid "Response was:%s\n"
-msgstr "الرد هو:%s\n"
+msgstr ""
 
 #: auth.c:594
 msgid "Received <client-cert-request> when not expected.\n"
@@ -75,7 +72,7 @@ msgstr ""
 
 #: auth.c:728
 msgid "Asked for password but '--no-passwd' set\n"
-msgstr "طلب لكلمة المرور ولكن '- لايوجد كلمة مرور' معينة\n"
+msgstr ""
 
 #: auth.c:1011
 msgid "Enter credentials to unlock software token."
@@ -1932,7 +1929,7 @@ msgstr ""
 #: main.c:1289
 #, c-format
 msgid "Auth choice \"%s\" not available\n"
-msgstr "خيار المصادقة  \"%s\" غير متاح\n"
+msgstr ""
 
 #: main.c:1306
 msgid "User input required in non-interactive mode\n"
