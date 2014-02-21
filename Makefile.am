@@ -135,10 +135,14 @@ update-po: po/$(PACKAGE).pot
 	@cd $(top_srcdir); if ! git diff-index --name-only --exit-code HEAD -- po/; then \
 		echo "*** ERROR: Uncommitted changes in above files"; exit 1; \
 	else \
+		> po/LINGUAS; \
 		for a in po/*.po; do \
 			msgmerge -q -N -F $$a $(abs_builddir)/po/$(PACKAGE).pot > $$a.merge ; \
 			msgattrib -F --no-fuzzy --no-obsolete $$a.merge > $$a ; \
 			rm $$a.merge ; \
+			if msgattrib --translated $$a | grep -q msgstr; then \
+				echo $$a | sed 's%^po/\(.*\)\.po%\1%' >> po/LINGUAS ; \
+			fi ; \
 		done && \
 		if ! git update-index -q --refresh --unmerged || \
 		   ! git diff-index --name-only --exit-code HEAD -- po/ >/dev/null; then \
@@ -157,6 +161,7 @@ update-translations: po/$(PACKAGE).pot
 			sed '0,/^#:/d' $$a.old > $$a.old.cmp ; \
 		done && \
 		tx pull -af && \
+		> po/LINGUAS; \
 		for a in po/*.po; do \
 			touch $$a.old; \
 			msgmerge -q -N -F -C $$a.old $$a $(abs_builddir)/po/$(PACKAGE).pot > $$a.new ; \
@@ -172,8 +177,10 @@ update-translations: po/$(PACKAGE).pot
 				git checkout -f HEAD $$a ; \
 			fi ; \
 			rm -f $$a.old $$a.old.cmp $$a.new $$a.new.cmp ; \
+			if msgattrib --translated $$a | grep -q msgstr; then \
+				echo $$a | sed 's%^po/\(.*\)\.po%\1%' >> po/LINGUAS ; \
+			fi ; \
 		done && \
-		ls po/*.po | sed 's%^po/\(.*\)\.po%\1%' > po/LINGUAS ; \
 		if ! git update-index -q --refresh --unmerged || \
 		   ! git diff-index --name-only --exit-code HEAD -- po/ >/dev/null; then \
 			git commit -s -m "Update translations from Transifex" -- po/ ; \
