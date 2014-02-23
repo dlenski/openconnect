@@ -468,7 +468,6 @@ int dtls_reconnect(struct openconnect_info *vpninfo);
 /* cstp.c */
 int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int cstp_bye(struct openconnect_info *vpninfo, const char *reason);
-int cstp_reconnect(struct openconnect_info *vpninfo);
 void cstp_free_splits(struct openconnect_info *vpninfo);
 
 /* ssl.c */

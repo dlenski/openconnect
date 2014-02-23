@@ -549,7 +549,7 @@ int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 	return ret;
 }
 
-int cstp_reconnect(struct openconnect_info *vpninfo)
+static int cstp_reconnect(struct openconnect_info *vpninfo)
 {
 	int ret;
 	int timeout;
