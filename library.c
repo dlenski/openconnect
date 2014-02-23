@@ -65,18 +65,23 @@ struct openconnect_info *openconnect_vpninfo_new(char *useragent,
 	vpninfo->xmlpost = 1;
 	openconnect_set_reported_os(vpninfo, NULL);
 
-	if (!vpninfo->localname || !vpninfo->useragent) {
-		free(vpninfo->localname);
-		free(vpninfo->useragent);
-		free(vpninfo);
-		return NULL;
-	}
+	if (!vpninfo->localname || !vpninfo->useragent)
+		goto err;
+
+	if (openconnect_random(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)))
+		goto err;
 
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
 #endif
 
 	return vpninfo;
+
+err:
+	free(vpninfo->localname);
+	free(vpninfo->useragent);
+	free(vpninfo);
+	return NULL;
 }
 
 int openconnect_set_reported_os(struct openconnect_info *vpninfo, const char *os)

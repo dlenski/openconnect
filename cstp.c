@@ -194,15 +194,6 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		vpninfo->ip_info.dns[i] = vpninfo->ip_info.nbns[i] = NULL;
 	cstp_free_splits(vpninfo);
 
-	/* Create (new) random master key for DTLS connection, if needed */
-	if (vpninfo->dtls_times.last_rekey + vpninfo->dtls_times.rekey <
-	    time(NULL) + 300 &&
-	    openconnect_random(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret))) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to initialise DTLS secret\n"));
-		return -EIO;
-	}
-
  retry:
 	calculate_mtu(vpninfo, &base_mtu, &mtu);
 
@@ -341,7 +332,6 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 				for (i = 0; i < 64; i += 2)
 					vpninfo->dtls_session_id[i/2] = unhex(colon + i);
 				sessid_found = 1;
-				time(&vpninfo->dtls_times.last_rekey);
 			}
 			continue;
 		}
