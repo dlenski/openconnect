@@ -13,22 +13,26 @@
 
 <p>OpenConnect is known to work, with both IPv6 and Legacy IP, on Linux
 (<a href="https://github.com/cernekee/ics-openconnect">including
-Android</a>), OpenBSD, FreeBSD (including Debian GNU/kFreeBSD), NetBSD, DragonFly BSD,
-OpenIndiana/OpenSolaris, Solaris 10/11 and Mac OS X platforms, and should be trivially
-portable to any other platform supporting
-<a href="http://en.wikipedia.org/wiki/TUN/TAP">TUN/TAP</a>devices and
-on which <a href="http://www.openssl.org/">OpenSSL</a> runs.</p>
+Android</a>), OpenBSD, FreeBSD (including Debian GNU/kFreeBSD), NetBSD,
+DragonFly BSD, OpenIndiana/OpenSolaris, Solaris 10/11, Windows and 
+Mac OS X platforms, and should be trivially portable to any other platform
+supporting <a href="http://en.wikipedia.org/wiki/TUN/TAP">TUN/TAP</a>devices
+and on which <a href="http://www.gnutls.org/">GnuTLS</a> or
+<a href="http://www.openssl.org/">OpenSSL</a> runs.</p>
 
 <p>For Solaris support, and for IPv6 on any platform, the
 <tt>vpnc-script</tt> shipped with vpnc itself (as of v0.5.3)
-is not sufficient. It is necessary to use the script from my <a
+is not sufficient. It is necessary to use the script from the <a
 href="http://git.infradead.org/users/dwmw2/vpnc-scripts.git">vpnc-scripts</a>
-repository instead.</p>
+repository instead. That repository also contains an updated version of
+<tt>vpnc-script-win.js</tt> which is required for correct IPv6 configuration
+under Windows.</p>
 
 <p>
-It is known to work on at least i386, x86_64, PowerPC and MIPS
+OpenConnect is known to work on at least i386, x86_64, PowerPC and MIPS
 processors, and should not have issues with portability to other CPUs.</p>
-<p>Note that 'Cisco Secure Desktop' support may require the ability to run Linux/i386 binaries; see the <a href="csd.html">CSD page</a>.</p>
+<p>Note that 'Cisco Secure Desktop' support may require the ability to run Linux/i386 binaries; see the <a href="csd.html">CSD page</a>. CSD is not yet
+supported under Windows.</p>
 
 <h2>New Ports</h2>
 <p>
@@ -36,10 +40,9 @@ Platform support for new UNIX systems is relatively simple to add
 &#8212; most of the difference is in the TUN/TAP device handling, and
 the major variants of that are already supported.</p>
 <p>
-OpenConnect builds for Windows using MinGW and should work with the
-TAP-Windows driver shipped with OpenVPN <i>(driver version 9.9 or later)</i>.
-However, support for automatically configuring IP adddress on the network interface
-is not yet implemented, and it is only tested with Legacy IP not IPv6.</p>
+OpenConnect builds for Windows using MinGW in 32-bit and 64-bit mode, and
+works with the TAP-Windows driver shipped with OpenVPN <i>(driver version
+9.9 or later)</i>.</p>
 
 
 <INCLUDE file="inc/footer.tmpl" />
