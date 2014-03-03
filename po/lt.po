@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2014-02-21 01:48+0000\n"
+"POT-Creation-Date: 2014-03-03 20:14+0000\n"
 "PO-Revision-Date: 2011-09-22 22:31+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Lithuanian (http://www.transifex.net/projects/p/meego/team/"
@@ -143,17 +143,17 @@ msgstr "Nepavyksta sugeneruoti OATH TOTP leksemos kodo: %s\n"
 
 #: auth.c:1301
 msgid "Generating OATH HOTP token code\n"
-msgstr ""
+msgstr "Generuojamas OATH HOTP leksemos kodas\n"
 
 #: auth.c:1310
 #, c-format
 msgid "Unable to generate OATH HOTP token code: %s\n"
-msgstr ""
+msgstr "Nepavyksta sugeneruoti OATH HOTP leksemos kodo: %s\n"
 
 #: compat.c:207
 #, c-format
 msgid "ERROR: Cannot initialize sockets\n"
-msgstr ""
+msgstr "KLAIDA: nepavyksta inicializuoti lizdų\n"
 
 #: cstp.c:109
 #, c-format
@@ -254,7 +254,7 @@ msgstr "Nepavyko išskirti buferio\n"
 
 #: cstp.c:588
 msgid "Cookie is no longer valid, ending session\n"
-msgstr ""
+msgstr "Slapukas nebegalioja, baigiamas seansas\n"
 
 #: cstp.c:592
 #, c-format
@@ -345,7 +345,7 @@ msgstr "Atliekamas CSTP raktų pakeitimas\n"
 #. if we failed rehandshake try establishing a new-tunnel instead of failing
 #: cstp.c:901
 msgid "Rehandshake failed; attempting new-tunnel\n"
-msgstr ""
+msgstr "Pakartotinis rankos paspaudimas nepavyko; bandomas naujas tunelis\n"
 
 #: cstp.c:912
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
@@ -415,7 +415,7 @@ msgstr ""
 #: dtls.c:215
 #, c-format
 msgid "Established DTLS connection (using OpenSSL). Ciphersuite %s.\n"
-msgstr ""
+msgstr "Užmezgamas DTLS ryšys (naudojant OpenSSL). Šifrų rinkinys %s.\n"
 
 #: dtls.c:240
 msgid "Your OpenSSL is older than the one you built against, so DTLS may fail!"
@@ -462,7 +462,7 @@ msgstr "Nepavyko nustatyti DTLS MTU: %s\n"
 #: dtls.c:420
 #, c-format
 msgid "Established DTLS connection (using GnuTLS). Ciphersuite %s.\n"
-msgstr ""
+msgstr "Užmegztas DTLS ryšys (naudojant GnuTLS). Šifrų rinkinys %s.\n"
 
 #: dtls.c:435
 #, c-format
@@ -471,7 +471,7 @@ msgstr "Nepavyko DTLS rankos paspaudimas: %s\n"
 
 #: dtls.c:453
 msgid "DTLS connection attempted with an existing fd\n"
-msgstr ""
+msgstr "DTLS ryšys bandytas su esamu fd\n"
 
 #: dtls.c:459
 msgid "No DTLS address\n"
@@ -550,7 +550,7 @@ msgstr "Atliekamas DTLS raktų pasikeitimas\n"
 
 #: dtls.c:761
 msgid "DTLS Rehandshake failed; reconnecting.\n"
-msgstr ""
+msgstr "Nepavyko DTLS rankos paspaudimas; jungiamasi iš naujo.\n"
 
 #: dtls.c:770
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
@@ -609,7 +609,7 @@ msgstr "SSL skaitymas atšauktas\n"
 #. https://bugs.launchpad.net/bugs/1225276
 #: gnutls.c:123
 msgid "SSL socket closed uncleanly\n"
-msgstr ""
+msgstr "SSL lizdas netvarkingai užvertas\n"
 
 #: gnutls.c:126 gnutls.c:181
 #, c-format
@@ -864,7 +864,7 @@ msgstr "Nepavyko nustatyti liudijimų atšaukimų sąrašo: %s\n"
 
 #: gnutls.c:1434 gnutls.c:1444
 msgid "Failed to allocate memory for certificate\n"
-msgstr ""
+msgstr "Nepavyko išskirti atminties liudijimui\n"
 
 #: gnutls.c:1480
 msgid ""
@@ -876,7 +876,7 @@ msgstr ""
 #: gnutls.c:1505
 #, c-format
 msgid "Got next CA '%s' from PKCS11\n"
-msgstr ""
+msgstr "Gauta kita LĮ „%s“ iš PKCS11\n"
 
 #: gnutls.c:1533
 msgid "Failed to allocate memory for supporting certificates\n"
@@ -1002,7 +1002,7 @@ msgstr "Prisijungta prie HTTPS %s\n"
 #: gnutls.c:2011
 #, c-format
 msgid "Renegotiated SSL on %s\n"
-msgstr ""
+msgstr "Iš naujo užmezgamas SSL su %s\n"
 
 #: gnutls.c:2195
 #, c-format
@@ -1194,6 +1194,8 @@ msgid ""
 "Error: Running the 'Cisco Secure Desktop' trojan on Windows is not yet "
 "implemented.\n"
 msgstr ""
+"Klaida: „Cisco Secure Desktop“ trojos arklio vykdymas Windows sistemoje dar "
+"nerealizuotas.\n"
 
 #: http.c:536
 msgid ""
@@ -1481,12 +1483,12 @@ msgstr ""
 #: main.c:305
 #, c-format
 msgid "Cannot process this executable path \"%s\""
-msgstr ""
+msgstr "Negalima apdoroti šio vykdomojo failo kelio „%s“"
 
 #: main.c:311
 #, c-format
 msgid "Allocation for vpnc-script path failed\n"
-msgstr ""
+msgstr "Nepavyko išskirti vpnc-script keliui\n"
 
 #: main.c:322
 #, c-format
@@ -1562,7 +1564,7 @@ msgstr "Naudoti syslog eigos pranešimams"
 
 #: main.c:344
 msgid "Prepend timestamp to progress messages"
-msgstr ""
+msgstr "Prie eigos pranešimų pridėti laiko žymą"
 
 #: main.c:346
 msgid "Drop privileges after connecting"
@@ -1610,7 +1612,7 @@ msgstr "(PASTABA: libproxy išjungtas šioje programoje)"
 
 #: main.c:360
 msgid "Require perfect forward secrecy"
-msgstr ""
+msgstr "Reikalauti tobulo pirminio slaptumo"
 
 #: main.c:361
 msgid "Less output"
@@ -1711,7 +1713,7 @@ msgstr "Skaityti slaptažodį iš standartinės įvesties"
 
 #: main.c:387
 msgid "Software token type: rsa, totp or hotp"
-msgstr ""
+msgstr "Programinės leksemos tipas: rsa, totp arba hotp"
 
 #: main.c:388
 msgid "Software token secret"
@@ -1723,7 +1725,7 @@ msgstr "(PASTABA: libstoken (RSA SecurID) išjungta šioje programoje)"
 
 #: main.c:393
 msgid "(NOTE: liboath (TOTP,HOTP) disabled in this build)"
-msgstr ""
+msgstr "(PASTABA: liboath (TOTP,HOTP) išjungta šioje programoje)"
 
 #: main.c:395
 msgid "Connection retry timeout in seconds"
@@ -1739,7 +1741,7 @@ msgstr "HTTP antraštės User-Agent: laukas"
 
 #: main.c:398
 msgid "OS type (linux,linux-64,win,...) to report"
-msgstr ""
+msgstr "Pranešamas OS tipas (linux,linux-64,win,...)"
 
 #: main.c:399
 msgid "Set local port for DTLS datagrams"
@@ -1757,7 +1759,7 @@ msgstr "fgets (stdin)"
 #: main.c:490
 #, c-format
 msgid "Failed to allocate string\n"
-msgstr ""
+msgstr "Nepavyko išskirti simbolių eilutės\n"
 
 #: main.c:529
 #, c-format
@@ -1859,7 +1861,7 @@ msgstr "Ši openconnect versija sukurta be libproxy palaikymo\n"
 #: main.c:961
 #, c-format
 msgid "Error opening cmd pipe\n"
-msgstr ""
+msgstr "Klaida atveriant cmd kanalą\n"
 
 #: main.c:1011
 #, c-format
@@ -1874,7 +1876,7 @@ msgstr "Nepavyko sukurti SSL ryšio\n"
 #: main.c:1045
 #, c-format
 msgid "Set up tun script failed\n"
-msgstr ""
+msgstr "Nepavyko nustatyti tun scenarijaus\n"
 
 #: main.c:1052
 #, c-format
@@ -1913,7 +1915,7 @@ msgstr "Tęsiama fone; pid %d\n"
 #: main.c:1125
 #, c-format
 msgid "Caught signal: %s\n"
-msgstr ""
+msgstr "Gautas signalas: %s\n"
 
 #: main.c:1147
 #, c-format
@@ -1957,7 +1959,7 @@ msgstr "SHA1 prišto atspaudas: %s\n"
 #: main.c:1286
 #, c-format
 msgid "Auth choice \"%s\" matches multiple options\n"
-msgstr ""
+msgstr "Auth pasirinkimas „%s“ atitinka kelis parametrus\n"
 
 #: main.c:1289
 #, c-format
@@ -2000,7 +2002,7 @@ msgstr "Bendra liboath klaida\n"
 
 #: mainloop.c:177
 msgid "Caller paused the connection\n"
-msgstr ""
+msgstr "Kvietėjas pristabdė ryšį\n"
 
 #: mainloop.c:185
 #, c-format
@@ -2010,7 +2012,7 @@ msgstr "Nėra darbo; miegama %d ms...\n"
 #: mainloop.c:205
 #, c-format
 msgid "WaitForMultipleObjects failed: %lx\n"
-msgstr ""
+msgstr "WaitForMultipleObjects nepavyko: %lx\n"
 
 #: openssl.c:103
 msgid "Failed to write to SSL socket\n"
@@ -2337,79 +2339,80 @@ msgstr "Nežinoma klaida"
 
 #: tun-win32.c:71
 msgid "Error accessing registry key for network adapters\n"
-msgstr ""
+msgstr "Klaida prieinant prie registro rakto tinklo adapteriams\n"
 
 #: tun-win32.c:114
 #, c-format
 msgid "Ignoring non-matching TAP interface \"%s\""
-msgstr ""
+msgstr "Nepaisoma neatitinkančios TAP sąsajos „%s“"
 
 #: tun-win32.c:128
 msgid "No Windows-TAP adapters found. Is the driver installed?\n"
-msgstr ""
+msgstr "Rasti ne Windows-TAP adapteriai. Ar tvarkyklė įdiegta?\n"
 
 #: tun-win32.c:146
 #, c-format
 msgid "Failed to open %s\n"
-msgstr ""
+msgstr "Nepavyko atverti %s\n"
 
 #: tun-win32.c:151
 #, c-format
 msgid "Opened tun device %s\n"
-msgstr ""
+msgstr "Atvertas tun įrenginys %s\n"
 
 #: tun-win32.c:158
 #, c-format
 msgid "Failed to obtain TAP driver version: %lx\n"
-msgstr ""
+msgstr "Nepavyko gauti TAP tvarkyklės versijos: %lx\n"
 
 #: tun-win32.c:163
 #, c-format
 msgid "Error: TAP-Windows driver v9.9 or greater is required (found %ld.%ld)\n"
 msgstr ""
+"Klaida: reikalinga TAP-Windows tvarkylė v9.9  arba naujesnė (rasta %ld.%ld)\n"
 
 #: tun-win32.c:179
 #, c-format
 msgid "Failed to set TAP IP addresses: %lx\n"
-msgstr ""
+msgstr "Nepavyko nustatyti TAP IP adresų: %lx\n"
 
 #: tun-win32.c:189
 #, c-format
 msgid "Failed to set TAP media status: %lx\n"
-msgstr ""
+msgstr "Nepavyko nustatyti TAP laikmenos būsenos: %lx\n"
 
 #: tun-win32.c:213
 #, c-format
 msgid "Failed to read from TAP device: %lx\n"
-msgstr ""
+msgstr "Nepavyko skaityti iš TAP įrenginio: %lx\n"
 
 #: tun-win32.c:224
 #, c-format
 msgid "Failed to complete read from TAP device: %lx\n"
-msgstr ""
+msgstr "Nepavyko skaityti iš TAP įrenginio: %lx\n"
 
 #: tun-win32.c:241
 #, c-format
 msgid "Wrote %ld bytes to tun\n"
-msgstr ""
+msgstr "Į tun įrašyta %ld baitų\n"
 
 #: tun-win32.c:251
 msgid "Waiting for tun write...\n"
-msgstr ""
+msgstr "Laukiama tun rašymui...\n"
 
 #: tun-win32.c:254
 #, c-format
 msgid "Wrote %ld bytes to tun after waiting\n"
-msgstr ""
+msgstr "Po laukimo į tun įrašyta %ld baitų\n"
 
 #: tun-win32.c:260
 #, c-format
 msgid "Failed to write to TAP device: %lx\n"
-msgstr ""
+msgstr "Nepavyko rašyti į TAP įrenginį: %lx\n"
 
 #: tun-win32.c:285
 msgid "Spawning tunnel scripts is not yet supported on Windows\n"
-msgstr ""
+msgstr "Tunelio scenarijų paleidimas Windows aplinkoje dar nepalaikomas\n"
 
 #: tun.c:81
 msgid "open net"
@@ -2481,12 +2484,12 @@ msgstr "TUNSIFHEAD"
 #: tun.c:356
 #, c-format
 msgid "socketpair failed: %s\n"
-msgstr ""
+msgstr "socketpair nepavyko: %s\n"
 
 #: tun.c:361
 #, c-format
 msgid "fork failed: %s\n"
-msgstr ""
+msgstr "fork nepavyko: %s\n"
 
 #: tun.c:365
 msgid "setpgid"
@@ -2513,22 +2516,22 @@ msgstr "Nepavyko įrašyti įeinančio paketo: %s\n"
 #: xml.c:42
 #, c-format
 msgid "Failed to open XML config file: %s\n"
-msgstr ""
+msgstr "Nepavyko atverti XML konfigūracijos failo %s\n"
 
 #: xml.c:49
 #, c-format
 msgid "Failed to fstat() XML config file: %s\n"
-msgstr ""
+msgstr "Nepavyko įvykdyti fstat() XML konfigūracijos failui: %s\n"
 
 #: xml.c:58
 #, c-format
 msgid "Failed to allocate %lu bytes for XML config file\n"
-msgstr ""
+msgstr "Nepavyko išskirti %lu baitų XML konfigūracijos failui\n"
 
 #: xml.c:65
 #, c-format
 msgid "Failed to read XML config file: %s\n"
-msgstr ""
+msgstr "Nepavyko perskaityti XML konfigūracijos failo: %s\n"
 
 #: xml.c:95 xml.c:118
 #, c-format
