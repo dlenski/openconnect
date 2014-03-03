@@ -1973,7 +1973,7 @@ int cstp_handshake(struct openconnect_info *vpninfo, unsigned init)
 	int err;
 	int ssl_sock = -1;
 
-	ssl_sock = (long)gnutls_transport_get_ptr(vpninfo->https_sess);
+	ssl_sock = (intptr_t)gnutls_transport_get_ptr(vpninfo->https_sess);
 
 	while ((err = gnutls_handshake(vpninfo->https_sess))) {
 		if (err == GNUTLS_E_AGAIN) {
