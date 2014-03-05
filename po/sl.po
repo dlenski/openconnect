@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2014-02-21 01:48+0000\n"
+"POT-Creation-Date: 2014-03-05 11:09+0000\n"
 "PO-Revision-Date: 2012-11-15 08:31+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Slovenian <lugos-slo@lugos.si>\n"
@@ -966,76 +966,76 @@ msgstr "Napaka med uvažanjem potrdila strežnika\n"
 msgid "certificate does not match hostname"
 msgstr "potrdilo se ne ujema z imenom gostitelja"
 
-#: gnutls.c:1862
+#: gnutls.c:1863
 msgid "Failed to allocate memory for cafile certs\n"
 msgstr "Dodeljevanje pomnilnika podpornim potrdilom je spodletelo\n"
 
-#: gnutls.c:1883
+#: gnutls.c:1884
 #, c-format
 msgid "Failed to read certs from cafile: %s\n"
 msgstr "Ni mogoče prebrati potrdil iz datoteke cafile: %s\n"
 
-#: gnutls.c:1899
+#: gnutls.c:1900
 #, c-format
 msgid "Failed to open CA file '%s': %s\n"
 msgstr "Odpiranje datoteke CA '%s' je spodletelo: %s\n"
 
-#: gnutls.c:1912 openssl.c:1277
+#: gnutls.c:1913 openssl.c:1277
 msgid "Loading certificate failed. Aborting.\n"
 msgstr "Nalaganje potrdila je spodletelo. Opravilo je prekinjeno.\n"
 
-#: gnutls.c:1937
+#: gnutls.c:1945
 #, c-format
 msgid "Failed to set TLS priority string: %s\n"
 msgstr "Niza prednosti TLS ni mogoče nastaviti: %s\n"
 
-#: gnutls.c:1949 openssl.c:1364
+#: gnutls.c:1957 openssl.c:1372
 #, c-format
 msgid "SSL negotiation with %s\n"
 msgstr "Poteka pogajanje SSL z %s\n"
 
-#: gnutls.c:1986 openssl.c:1390
+#: gnutls.c:1994 openssl.c:1398
 msgid "SSL connection cancelled\n"
 msgstr "Povezava SSL je preklicana\n"
 
-#: gnutls.c:1993
+#: gnutls.c:2001
 #, c-format
 msgid "SSL connection failure: %s\n"
 msgstr "Povezava SSL je spodletela: %s\n"
 
-#: gnutls.c:2002
+#: gnutls.c:2010
 #, c-format
 msgid "GnuTLS non-fatal return during handshake: %s\n"
 msgstr "Vrnjena je ne-usodna napaka GnuTLS med izmenjavo signalov: %s\n"
 
-#: gnutls.c:2008 openssl.c:1410
+#: gnutls.c:2016 openssl.c:1418
 #, c-format
 msgid "Connected to HTTPS on %s\n"
 msgstr "Vzpostavljena je povezava s HTTPS na %s\n"
 
-#: gnutls.c:2011
+#: gnutls.c:2019
 #, c-format
 msgid "Renegotiated SSL on %s\n"
 msgstr ""
 
-#: gnutls.c:2195
+#: gnutls.c:2203
 #, c-format
 msgid "PIN required for %s"
 msgstr "Za %s je zahtevana koda PIN"
 
-#: gnutls.c:2205
+#: gnutls.c:2213
 msgid "Wrong PIN"
 msgstr "Napačna koda PIN"
 
-#: gnutls.c:2208
+#: gnutls.c:2216
 msgid "This is the final try before locking!"
 msgstr "To je zadnji poskus pred zaklepom!"
 
-#: gnutls.c:2210
+#: gnutls.c:2218
 msgid "Only a few tries left before locking!"
 msgstr "Ostaja le še nekaj poskusov do zaklepa!"
 
-#: gnutls.c:2215
+#: gnutls.c:2223
 msgid "Enter PIN:"
 msgstr "Koda PIN:"
 
@@ -2243,7 +2243,7 @@ msgstr "Branje potrdil iz datoteke CA '%s' je spodletelo\n"
 msgid "Failed to open CA file '%s'\n"
 msgstr "Odpiranje datoteke CA '%s' je spodletelo\n"
 
-#: openssl.c:1380
+#: openssl.c:1388
 msgid "SSL connection failure\n"
 msgstr "Povezava SSL je spodletela\n"
 
@@ -2276,96 +2276,96 @@ msgstr "Skript '%s' je vrnil napako %d\n"
 msgid "Socket connect cancelled\n"
 msgstr "Povezava z vtičem je spodletela\n"
 
-#: ssl.c:115
+#: ssl.c:130
 #, c-format
 msgid "Failed to reconnect to proxy %s\n"
 msgstr "Ponovna povezava z gostiteljem %s je spodletela.\n"
 
-#: ssl.c:119
+#: ssl.c:134
 #, c-format
 msgid "Failed to reconnect to host %s\n"
 msgstr "Ponovna povezava z gostiteljem %s je spodletela.\n"
 
-#: ssl.c:182
+#: ssl.c:197
 #, c-format
 msgid "Proxy from libproxy: %s://%s:%d/\n"
 msgstr "Posredniški strežnik iz libproxy: %s://%s:%d/\n"
 
-#: ssl.c:211
+#: ssl.c:226
 #, c-format
 msgid "getaddrinfo failed for host '%s': %s\n"
 msgstr "Ukaz getaddrinfo za gostitelja '%s' je spodletel: %s\n"
 
-#: ssl.c:227
+#: ssl.c:242
 #, c-format
 msgid "Attempting to connect to proxy %s%s%s:%s\n"
 msgstr "Vzpostavlja se povezava s posredniškim strežnikom %s%s%s:%s\n"
 
-#: ssl.c:228
+#: ssl.c:243
 #, c-format
 msgid "Attempting to connect to server %s%s%s:%s\n"
 msgstr "Vzpostavlja se povezava s strežnikom %s%s%s:%s\n"
 
-#: ssl.c:245
+#: ssl.c:260
 msgid "Failed to allocate sockaddr storage\n"
 msgstr "Dodeljevanje shrambe sockaddr je spodletelo\n"
 
-#: ssl.c:277
+#: ssl.c:292
 #, c-format
 msgid "Failed to connect to host %s\n"
 msgstr "Povezava z gostiteljem %s je spodletela.\n"
 
-#: ssl.c:349
+#: ssl.c:364
 #, c-format
 msgid "statvfs: %s\n"
 msgstr "statvfs: %s\n"
 
-#: ssl.c:391
+#: ssl.c:406
 #, c-format
 msgid "statfs: %s\n"
 msgstr "statfs: %s\n"
 
-#: ssl.c:472
+#: ssl.c:487
 msgid "No error"
 msgstr "Brez napake"
 
-#: ssl.c:473
+#: ssl.c:488
 msgid "Keystore locked"
 msgstr "Shramba ključev je zaklenjena"
 
-#: ssl.c:474
+#: ssl.c:489
 msgid "Keystore uninitialized"
 msgstr "Shramba ključev ni začeta"
 
-#: ssl.c:475
+#: ssl.c:490
 msgid "System error"
 msgstr "Sistemska napaka"
 
-#: ssl.c:476
+#: ssl.c:491
 msgid "Protocol error"
 msgstr "Napaka v protokolu"
 
-#: ssl.c:477
+#: ssl.c:492
 msgid "Permission denied"
 msgstr "Dovoljenje je zavrnjeno"
 
-#: ssl.c:478
+#: ssl.c:493
 msgid "Key not found"
 msgstr "Ključa ni mogoče najti"
 
-#: ssl.c:479
+#: ssl.c:494
 msgid "Value corrupted"
 msgstr "Vrednost je okvarjena"
 
-#: ssl.c:480
+#: ssl.c:495
 msgid "Undefined action"
 msgstr "Nedoločeno dejanje"
 
-#: ssl.c:484
+#: ssl.c:499
 msgid "Wrong password"
 msgstr "Napačno geslo"
 
-#: ssl.c:485
+#: ssl.c:500
 msgid "Unknown error"
 msgstr "Neznana napaka"
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2014-02-21 01:48+0000\n"
+"POT-Creation-Date: 2014-03-05 11:09+0000\n"
 "PO-Revision-Date: 2013-01-18 22:04+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Portuguese (Brazil) <l10n-pt-br@meego.org.br>\n"
@@ -954,76 +954,76 @@ msgstr "Erro na importação do certificado do servidor\n"
 msgid "certificate does not match hostname"
 msgstr "certificado não confere com o hostname"
 
-#: gnutls.c:1862
+#: gnutls.c:1863
 msgid "Failed to allocate memory for cafile certs\n"
 msgstr "Falhou ao alocar memória para certificados do CAfile\n"
 
-#: gnutls.c:1883
+#: gnutls.c:1884
 #, c-format
 msgid "Failed to read certs from cafile: %s\n"
 msgstr "Falhou ao ler certificados do CAfile: %s\n"
 
-#: gnutls.c:1899
+#: gnutls.c:1900
 #, c-format
 msgid "Failed to open CA file '%s': %s\n"
 msgstr "Falhou ao abrir o CAfile \"%s\": %s\n"
 
-#: gnutls.c:1912 openssl.c:1277
+#: gnutls.c:1913 openssl.c:1277
 msgid "Loading certificate failed. Aborting.\n"
 msgstr "Carregamento do certificado falhou. Abortando.\n"
 
-#: gnutls.c:1937
+#: gnutls.c:1945
 #, c-format
 msgid "Failed to set TLS priority string: %s\n"
 msgstr "Falhou ao definir string de prioridade TLS: %s\n"
 
-#: gnutls.c:1949 openssl.c:1364
+#: gnutls.c:1957 openssl.c:1372
 #, c-format
 msgid "SSL negotiation with %s\n"
 msgstr "Negociação SSL com %s\n"
 
-#: gnutls.c:1986 openssl.c:1390
+#: gnutls.c:1994 openssl.c:1398
 msgid "SSL connection cancelled\n"
 msgstr "Conexão SSL cancelada\n"
 
-#: gnutls.c:1993
+#: gnutls.c:2001
 #, c-format
 msgid "SSL connection failure: %s\n"
 msgstr "Falha de conexão SSL: %s\n"
 
-#: gnutls.c:2002
+#: gnutls.c:2010
 #, c-format
 msgid "GnuTLS non-fatal return during handshake: %s\n"
 msgstr "Retorno não fatal do GnuTLS durante negociação: %s\n"
 
-#: gnutls.c:2008 openssl.c:1410
+#: gnutls.c:2016 openssl.c:1418
 #, c-format
 msgid "Connected to HTTPS on %s\n"
 msgstr "Conectado a HTTPS em %s\n"
 
-#: gnutls.c:2011
+#: gnutls.c:2019
 #, c-format
 msgid "Renegotiated SSL on %s\n"
 msgstr ""
 
-#: gnutls.c:2195
+#: gnutls.c:2203
 #, c-format
 msgid "PIN required for %s"
 msgstr "PIN necessário para %s"
 
-#: gnutls.c:2205
+#: gnutls.c:2213
 msgid "Wrong PIN"
 msgstr "PIN incorreto"
 
-#: gnutls.c:2208
+#: gnutls.c:2216
 msgid "This is the final try before locking!"
 msgstr "Essa é a tentativa final antes de travar!"
 
-#: gnutls.c:2210
+#: gnutls.c:2218
 msgid "Only a few tries left before locking!"
 msgstr "Somente poucas tentativas restantes antes de travar!"
 
-#: gnutls.c:2215
+#: gnutls.c:2223
 msgid "Enter PIN:"
 msgstr "Insira o PIN:"
 
@@ -2221,7 +2221,7 @@ msgstr "Falhou ao ler certificados do CAfile \"%s\"\n"
 msgid "Failed to open CA file '%s'\n"
 msgstr "Falhou ao abrir o CAfile \"%s\"\n"
 
-#: openssl.c:1380
+#: openssl.c:1388
 msgid "SSL connection failure\n"
 msgstr "Falha de conexão SSL\n"
 
@@ -2254,96 +2254,96 @@ msgstr "O script \"%s\" retornou erro %d\n"
 msgid "Socket connect cancelled\n"
 msgstr "Conexão de socket cancelada\n"
 
-#: ssl.c:115
+#: ssl.c:130
 #, c-format
 msgid "Failed to reconnect to proxy %s\n"
 msgstr "Falhou ao reconectar ao proxy %s\n"
 
-#: ssl.c:119
+#: ssl.c:134
 #, c-format
 msgid "Failed to reconnect to host %s\n"
 msgstr "Falhou ao reconectar ao host %s\n"
 
-#: ssl.c:182
+#: ssl.c:197
 #, c-format
 msgid "Proxy from libproxy: %s://%s:%d/\n"
 msgstr "Proxy de libproxy: %s://%s:%d/\n"
 
-#: ssl.c:211
+#: ssl.c:226
 #, c-format
 msgid "getaddrinfo failed for host '%s': %s\n"
 msgstr "getaddrinfo falhou para o host \"%s\": %s\n"
 
-#: ssl.c:227
+#: ssl.c:242
 #, c-format
 msgid "Attempting to connect to proxy %s%s%s:%s\n"
 msgstr "Tentando conectar ao proxy %s%s%s:%s\n"
 
-#: ssl.c:228
+#: ssl.c:243
 #, c-format
 msgid "Attempting to connect to server %s%s%s:%s\n"
 msgstr "Tentando conectar ao servidor %s%s%s:%s\n"
 
-#: ssl.c:245
+#: ssl.c:260
 msgid "Failed to allocate sockaddr storage\n"
 msgstr "Falhou ao alocar armazenamento de sockaddr\n"
 
-#: ssl.c:277
+#: ssl.c:292
 #, c-format
 msgid "Failed to connect to host %s\n"
 msgstr "Falhou ao conectar ao host %s\n"
 
-#: ssl.c:349
+#: ssl.c:364
 #, c-format
 msgid "statvfs: %s\n"
 msgstr "statvfs: %s\n"
 
-#: ssl.c:391
+#: ssl.c:406
 #, c-format
 msgid "statfs: %s\n"
 msgstr "statfs: %s\n"
 
-#: ssl.c:472
+#: ssl.c:487
 msgid "No error"
 msgstr "Nenhum erro"
 
-#: ssl.c:473
+#: ssl.c:488
 msgid "Keystore locked"
 msgstr "Keystore travada"
 
-#: ssl.c:474
+#: ssl.c:489
 msgid "Keystore uninitialized"
 msgstr "Keystore não inicializada"
 
-#: ssl.c:475
+#: ssl.c:490
 msgid "System error"
 msgstr "Erro de sistema"
 
-#: ssl.c:476
+#: ssl.c:491
 msgid "Protocol error"
 msgstr "Erro de protocolo"
 
-#: ssl.c:477
+#: ssl.c:492
 msgid "Permission denied"
 msgstr "Permissão negada"
 
-#: ssl.c:478
+#: ssl.c:493
 msgid "Key not found"
 msgstr "Chave não encontrada"
 
-#: ssl.c:479
+#: ssl.c:494
 msgid "Value corrupted"
 msgstr "Valor corrompido"
 
-#: ssl.c:480
+#: ssl.c:495
 msgid "Undefined action"
 msgstr "Ação não definida"
 
-#: ssl.c:484
+#: ssl.c:499
 msgid "Wrong password"
 msgstr "Senha incorreta"
 
-#: ssl.c:485
+#: ssl.c:500
 msgid "Unknown error"
 msgstr "Erro desconhecido"
 
