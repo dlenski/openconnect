@@ -15,6 +15,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.99.tar.gz">OpenConnect v5.99</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.99.tar.gz.asc">PGP signature</a>)</i> &#8212; 2014-03-05
+     <ul>
        <li>Add RFC4226 HOTP token support.</li>
        <li>Tolerate servers closing connection uncleanly after HTTP/1.0 response <a href="https://bugs.launchpad.net/bugs/1225276"><i>(Ubuntu #1225276)</i></a>.</li>
        <li>Add support for IPv6 split tunnel configuration.</li>

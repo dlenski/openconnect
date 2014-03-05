@@ -1,4 +1,4 @@
-AC_INIT(openconnect, 5.03)
+AC_INIT(openconnect, 5.99)
 PKG_PROG_PKG_CONFIG
 AC_LANG_C
 AC_CANONICAL_HOST
