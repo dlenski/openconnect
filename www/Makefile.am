@@ -31,7 +31,7 @@ $(top_builddir)/openconnect.8: $(top_srcdir)/openconnect.8.in $(top_builddir)/co
 # If this command line ever changes significantly, so should the
 # corresponding autoconf check.
 openconnect.8.inc: $(top_builddir)/openconnect.8
-	groff -t -K UTF-8 -mandoc -Txhtml $< > $@.html.tmp
+	$(GROFF) -t -K UTF-8 -mandoc -Txhtml $< > $@.html.tmp
 	sed -e '1,/<body>/d' -e '/<\/body>/,$$d' $@.html.tmp > $@.tmp
 	rm -f $@.html.tmp
 	mv $@.tmp $@

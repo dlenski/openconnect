@@ -681,8 +681,12 @@ else
 fi
 if test "${build_www}" = "yes"; then
    AC_MSG_CHECKING([if groff can create UTF-8 XHTML])
-   if groff -t -K UTF-8 -mandoc -Txhtml /dev/null >/dev/null 2>/dev/null; then
+   AC_PATH_PROGS_FEATURE_CHECK([GROFF], [groff],
+	[$ac_path_GROFF -t -K UTF-8 -mandoc -Txhtml /dev/null > /dev/null 2>&1 &&
+	 ac_cv_path_GROFF=$ac_path_GROFF])
+   if test -n "$ac_cv_path_GROFF"; then
       AC_MSG_RESULT(yes)
+      AC_SUBST(GROFF, ${ac_cv_path_GROFF})
    else
       AC_MSG_RESULT([no. Not building HTML pages])
       build_www=no
