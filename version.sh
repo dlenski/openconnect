@@ -2,7 +2,7 @@
 
 v="v5.99"
 
-if [ -d .git ] && tag=`git describe --tags`; then
+if [ -d ${GIT_DIR:-.git} ] && tag=`git describe --tags`; then
 	v="$tag"
 
 	# Update the index from working tree first
