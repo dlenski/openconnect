@@ -116,12 +116,14 @@ int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len
 				vpn_progress(vpninfo, PRG_ERR, _("SSL read cancelled\n"));
 				return -EINTR;
 			}
+#ifdef GNUTLS_E_PERMATURE_TERMINATION
 		} else if (done == GNUTLS_E_PREMATURE_TERMINATION) {
 			/* We've seen this with HTTP 1.0 responses followed by abrupt
 			   socket closure and no clean SSL shutdown.
 			   https://bugs.launchpad.net/bugs/1225276 */
 			vpn_progress(vpninfo, PRG_TRACE, _("SSL socket closed uncleanly\n"));
 			return 0;
+#endif
 		} else {
 			vpn_progress(vpninfo, PRG_ERR, _("Failed to read from SSL socket: %s\n"),
 				     gnutls_strerror(done));
