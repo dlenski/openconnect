@@ -6,13 +6,7 @@ AM_MAINTAINER_MODE([enable])
 AM_INIT_AUTOMAKE([foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
-# Define htmldir and localedir for users of ancient autoconf building from git
-AC_PREREQ([2.59c], [], [AC_SUBST([htmldir], [m4_ifset([AC_PACKAGE_TARNAME],
-	  ['${datadir}/doc/${PACKAGE_TARNAME}'],
-	  ['${datadir}/doc/${PACKAGE}'])
-])])
-
-AC_PREREQ([2.60], [], [AC_SUBST([localedir], ['$(datadir)/locale'])])
+AC_PREREQ([2.62], [], [AC_SUBST([localedir], ['$(datadir)/locale'])])
 
 # Upstream's pkg.m4 (since 0.27) offers this now, but define our own
 # compatible version in case the local version of pkgconfig isn't new enough.
