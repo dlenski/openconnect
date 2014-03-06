@@ -183,7 +183,7 @@ gmp: $(GMP_DEPS)
 #
 # Build nettle
 #
-NETTLE_VER := 2.6
+NETTLE_VER := 2.7
 NETTLE_SRC := sources/nettle-$(NETTLE_VER)
 NETTLE_BUILD := $(TRIPLET)/nettle
 nettle-$(NETTLE_VER).tar.gz:
