@@ -213,16 +213,17 @@ nettle: $(NETTLE_DEPS)
 #
 # Build GnuTLS
 #
-GNUTLS_VER := 3.1.12
+GNUTLS_VER := 3.2.12
 GNUTLS_SRC := sources/gnutls-$(GNUTLS_VER)
 GNUTLS_BUILD := $(TRIPLET)/gnutls
 
 gnutls-$(GNUTLS_VER).tar.xz:
-	curl ftp://ftp.gnutls.org/gcrypt/gnutls/v3.1/$@ -o $@.tmp && mv $@.tmp $@
+	curl ftp://ftp.gnutls.org/gcrypt/gnutls/v3.2/$@ -o $@.tmp && mv $@.tmp $@
 
 $(GNUTLS_SRC)/configure: gnutls-$(GNUTLS_VER).tar.xz
 	mkdir -p sources
 	xz -d < $< | tar xf - -C sources
+	cd $(GNUTLS_SRC) && patch -p1 < ../../0001-gl-stdint-read-file-fix-missing-SIZE_MAX-on-Android.patch
 	touch $@
 
 #$(GNUTLS_SRC)/configure.ac:
@@ -236,6 +237,7 @@ $(GNUTLS_SRC)/configure: gnutls-$(GNUTLS_VER).tar.xz
 $(GNUTLS_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_SRC)/configure $(NETTLE_DEPS)
 	mkdir -p $(GNUTLS_BUILD)
 	cd $(GNUTLS_BUILD) && ../../$(GNUTLS_SRC)/configure $(CONFIGURE_ARGS) \
+		AUTOGEN=/bin/true \
 		--disable-threads --disable-tests --without-zlib --disable-nls \
 		--disable-doc --disable-openssl-compatibility --disable-cxx \
 		--disable-openssl-compatibility --disable-ocsp \
