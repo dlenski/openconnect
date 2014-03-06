@@ -17,6 +17,7 @@ ARCH    := arm
 ifeq ($(ARCH),arm)
 TRIPLET := arm-linux-androideabi
 OPENSSL_TARGET := android-armv7
+EXTRA_CFLAGS := -march=armv7-a
 endif
 ifeq ($(ARCH),x86)
 TRIPLET := i686-linux-android
@@ -45,7 +46,8 @@ export PATH PKG_CONFIG_LIBDIR
 MAKEINSTALL=$(MAKE) INSTALL=$(TOPDIR)/install_symlink.sh
 
 CONFIGURE_ARGS := --host=$(TRIPLET) --prefix=$(OC_SYSROOT) \
-		  --disable-shared --enable-static
+		  --disable-shared --enable-static \
+		  CFLAGS="$(EXTRA_CFLAGS)"
 
 all: openconnect
 
@@ -270,7 +272,7 @@ $(TOMCRYPT_DIR)/makefile: crypt-$(TOMCRYPT_VER).tar.bz2
 
 $(TOMCRYPT_DIR)/libtomcrypt.a: $(TOOLCHAIN_BUILT) $(TOMCRYPT_DIR)/makefile
 	$(MAKE) -C $(TOMCRYPT_DIR) \
-		CC="$(TRIPLET)-gcc" \
+		CC="$(TRIPLET)-gcc $(EXTRA_CFLAGS)" \
 		AR="$(TRIPLET)-ar" \
 		RANLIB="$(TRIPLET)-ranlib"
 
@@ -367,7 +369,7 @@ $(OPENCONNECT_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_DEPS) $(LIBXML_DEPS) 
 	mkdir -p $(OPENCONNECT_BUILD)
 	cd $(OPENCONNECT_BUILD) && ../../../configure \
 	--host=$(TRIPLET) --prefix=/ \
-	CFLAGS="-DNO_BROKEN_DTLS_CHECK" \
+	CFLAGS="$(EXTRA_CFLAGS) -DNO_BROKEN_DTLS_CHECK" \
 	LDFLAGS="$(EXTRA_LDFLAGS)" \
 	GNUTLS_LIBS="$(shell PKG_CONFIG_LIBDIR=$(OC_SYSROOT)/lib/pkgconfig pkg-config --static --libs gnutls)" \
 	--enable-shared --with-vpnc-script=/etc/vpnc/vpnc-script \
