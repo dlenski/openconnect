@@ -677,13 +677,24 @@ if test "$ssl_library" = "openssl" || test "$ssl_library" = "both"; then
     CFLAGS="$oldCFLAGS"
 fi
 
+build_www=yes
 AC_PATH_PROGS(PYTHON, [python2 python], [], $PATH:/bin:/usr/bin)
 if (test -n "${ac_cv_path_PYTHON}"); then
    AC_SUBST(PYTHON, ${ac_cv_path_PYTHON})
 else
    AC_MSG_NOTICE([Python not found; not building HTML pages])
+   build_www=no
 fi
-AM_CONDITIONAL(BUILD_WWW, [test -n "${ac_cv_path_PYTHON}"])
+if test "${build_www}" = "yes"; then
+   AC_MSG_CHECKING([if groff can create UTF-8 XHTML])
+   if groff -t -K UTF-8 -mandoc -Txhtml /dev/null >/dev/null 2>/dev/null; then
+      AC_MSG_RESULT(yes)
+   else
+      AC_MSG_RESULT([no. Not building HTML pages])
+      build_www=no
+   fi
+fi
+AM_CONDITIONAL(BUILD_WWW, [test "${build_www}" = "yes"])
 
 AC_SUBST([CONFIG_STATUS_DEPENDENCIES], ['$(top_srcdir)/po/LINGUAS $(top_srcdir)/openconnect.h ${top_srcdir}/libopenconnect.map.in'])
 RAWLINGUAS=`sed -e "/^#/d" -e "s/#.*//" "${srcdir}/po/LINGUAS"`
