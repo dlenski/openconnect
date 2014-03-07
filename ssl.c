@@ -611,10 +611,11 @@ void poll_cmd_fd(struct openconnect_info *vpninfo, int timeout)
 	time_t expiration = time(NULL) + timeout, now = 0;
 
 	while (now < expiration && !vpninfo->got_cancel_cmd && !vpninfo->got_pause_cmd) {
-		struct timeval tv = { 0 };
+		struct timeval tv;
 
 		now = time(NULL);
 		tv.tv_sec = now >= expiration ? 0 : expiration - now;
+		tv.tv_usec = 0;
 
 		FD_ZERO(&rd_set);
 		cmd_fd_set(vpninfo, &rd_set, &maxfd);
