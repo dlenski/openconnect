@@ -1,8 +1,0 @@
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-sources/
-arm-linux-androideabi/
-i686-linux-android/
-mipsel-linux-android/
-sysroot-*/
