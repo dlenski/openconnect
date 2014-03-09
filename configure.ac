@@ -433,7 +433,6 @@ case "$ssl_library" in
 	AC_SUBST(SSL_DTLS_PC, [openssl])
 	AC_SUBST(SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
-	AC_SUBST(SYMVER_PRINT_ERR, ["openconnect_print_err_cb;"])
 	check_openssl_dtls=yes
 	;;
     both)
@@ -445,7 +444,6 @@ case "$ssl_library" in
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
 	AC_SUBST(DTLS_SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(DTLS_SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
-	AC_SUBST(SYMVER_PRINT_ERR, ["openconnect_print_err_cb;"])
 	check_openssl_dtls=yes
 	;;
     *)
