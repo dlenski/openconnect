@@ -215,7 +215,8 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 			     _("Established DTLS connection (using OpenSSL). Ciphersuite %s.\n"),
 			     vpninfo->dtls_cipher);
 
-		vpninfo->dtls_times.last_rx = vpninfo->dtls_times.last_tx = time(NULL);
+		vpninfo->dtls_times.last_rekey = vpninfo->dtls_times.last_rx = 
+			vpninfo->dtls_times.last_tx = time(NULL);
 
 		/* From about 8.4.1(11) onwards, the ASA seems to get
 		   very unhappy if we resend ChangeCipherSpec messages
@@ -420,7 +421,8 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 			     _("Established DTLS connection (using GnuTLS). Ciphersuite %s.\n"),
 			     vpninfo->dtls_cipher);
 
-		vpninfo->dtls_times.last_rx = vpninfo->dtls_times.last_tx = time(NULL);
+		vpninfo->dtls_times.last_rekey = vpninfo->dtls_times.last_rx = 
+			vpninfo->dtls_times.last_tx = time(NULL);
 
 		/* XXX: For OpenSSL we explicitly prevent retransmits here. */
 		return 0;
