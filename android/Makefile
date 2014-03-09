@@ -371,7 +371,7 @@ $(OPENCONNECT_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_DEPS) $(LIBXML_DEPS) 
 	mkdir -p $(OPENCONNECT_BUILD)
 	cd $(OPENCONNECT_BUILD) && ../../../configure \
 	--host=$(TRIPLET) --prefix=/ \
-	CFLAGS="$(EXTRA_CFLAGS) -DNO_BROKEN_DTLS_CHECK" \
+	CFLAGS="$(EXTRA_CFLAGS)" \
 	LDFLAGS="$(EXTRA_LDFLAGS)" \
 	GNUTLS_LIBS="$(shell PKG_CONFIG_LIBDIR=$(OC_SYSROOT)/lib/pkgconfig pkg-config --static --libs gnutls)" \
 	--enable-shared --with-vpnc-script=/etc/vpnc/vpnc-script \
