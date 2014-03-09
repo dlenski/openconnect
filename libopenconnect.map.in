@@ -55,7 +55,7 @@ OPENCONNECT_3.1 {
 } OPENCONNECT_3.0;
 
 OPENCONNECT_PRIVATE {
- global: @SYMVER_TIME@ @SYMVER_ASPRINTF@ @SYMVER_GETLINE@ @SYMVER_JAVA@
+ global: @SYMVER_TIME@ @SYMVER_GETLINE@ @SYMVER_JAVA@
 	openconnect_version_str;
 	openconnect_sha1;
  local:
