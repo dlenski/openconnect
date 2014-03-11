@@ -294,6 +294,7 @@ struct openconnect_info {
 #ifdef _WIN32
 	HANDLE tun_fh;
 	OVERLAPPED tun_rd_overlap, tun_wr_overlap;
+	int tun_rd_pending;
 #else
 	int tun_fd;
 #endif
@@ -453,7 +454,7 @@ int script_config_tun(struct openconnect_info *vpninfo, const char *reason);
 
 /* tun.c / tun-win32.c */
 void os_shutdown_tun(struct openconnect_info *vpninfo);
-int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt, int new_pkt);
+int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt);
 int os_write_tun(struct openconnect_info *vpninfo, struct pkt *pkt);
 intptr_t os_setup_tun(struct openconnect_info *vpninfo);
 

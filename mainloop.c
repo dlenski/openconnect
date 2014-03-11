@@ -56,10 +56,8 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	if (read_fd_monitored(vpninfo, tun)) {
 		while (1) {
 			int len = vpninfo->ip_info.mtu;
-			int new_pkt = 0;
 
 			if (!out_pkt) {
-				new_pkt = 1;
 				out_pkt = malloc(sizeof(struct pkt) + len);
 				if (!out_pkt) {
 					vpn_progress(vpninfo, PRG_ERR, "Allocation failed\n");
@@ -68,7 +66,7 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				out_pkt->len = len;
 			}
 
-			if (os_read_tun(vpninfo, out_pkt, new_pkt))
+			if (os_read_tun(vpninfo, out_pkt))
 				break;
 
 			vpninfo->stats.tx_pkts++;

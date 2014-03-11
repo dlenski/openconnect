@@ -376,7 +376,7 @@ int openconnect_setup_tun_script(struct openconnect_info *vpninfo, char *tun_scr
 	return openconnect_setup_tun_fd(vpninfo, fds[0]);
 }
 
-int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt, int new_pkt)
+int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt)
 {
 	int prefix_size = 0;
 	int len;
