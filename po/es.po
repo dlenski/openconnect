@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2014-03-05 11:09+0000\n"
+"POT-Creation-Date: 2014-03-11 20:35-0700\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Spanish (Castilian) (http://www.transifex.net/projects/p/"
 "meego/language/es/)\n"
@@ -143,17 +143,17 @@ msgstr ""
 
 #: auth.c:1301
 msgid "Generating OATH HOTP token code\n"
-msgstr ""
+msgstr "Generando código de testigo OATH HOTP\n"
 
 #: auth.c:1310
 #, c-format
 msgid "Unable to generate OATH HOTP token code: %s\n"
-msgstr ""
+msgstr "No se puede generar el código de testigo OATH HOTP: %s\n"
 
 #: compat.c:207
 #, c-format
 msgid "ERROR: Cannot initialize sockets\n"
-msgstr ""
+msgstr "Error: no se pueden inicializar los sockets\n"
 
 #: cstp.c:109
 #, c-format
@@ -165,223 +165,219 @@ msgstr "TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"
 msgid "TCP_MAXSEG %d\n"
 msgstr "TCP_MAXSEG %d\n"
 
-#: cstp.c:202
-msgid "Failed to initialise DTLS secret\n"
-msgstr "Falló al inicializar el secreto DTLS\n"
-
-#: cstp.c:237 http.c:193
+#: cstp.c:228 http.c:193
 msgid "Error fetching HTTPS response\n"
 msgstr "Error al obtener respuesta HTTPS\n"
 
-#: cstp.c:244 http.c:475 http.c:935
+#: cstp.c:235 http.c:475 http.c:935
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "Falló al abrir una conexión HTTPS con %s\n"
 
-#: cstp.c:264
+#: cstp.c:255
 #, c-format
 msgid "VPN service unavailable; reason: %s\n"
 msgstr "Servicio VPN no disponible; razón: %s\n"
 
-#: cstp.c:269
+#: cstp.c:260
 #, c-format
 msgid "Got inappropriate HTTP CONNECT response: %s\n"
 msgstr "Se obtuvo una respuesta HTTP CONNECT inadecuada: %s\n"
 
-#: cstp.c:276
+#: cstp.c:267
 #, c-format
 msgid "Got CONNECT response: %s\n"
 msgstr "Se obtuvo la respuesta CONNECT: %s\n"
 
-#: cstp.c:304 cstp.c:312
+#: cstp.c:295 cstp.c:303
 msgid "No memory for options\n"
 msgstr "No hay memoria para opciones\n"
 
-#: cstp.c:321 http.c:253
+#: cstp.c:312 http.c:253
 msgid "<elided>"
 msgstr "<omitido>"
 
-#: cstp.c:336
+#: cstp.c:327
 #, c-format
 msgid "X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"
 msgstr "X-DTLS-Session no es de 64 caracteres; es: «%s»\n"
 
-#: cstp.c:373
+#: cstp.c:363
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
 msgstr "CSTP-Content-Encoding %s desconocido\n"
 
-#: cstp.c:443
+#: cstp.c:433
 msgid "No MTU received. Aborting\n"
 msgstr "No se recibió MTU. Abortando\n"
 
-#: cstp.c:450
+#: cstp.c:440
 msgid "No IP address received. Aborting\n"
 msgstr "No se recibió dirección IP. Abortando\n"
 
-#: cstp.c:456
+#: cstp.c:446
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr "La reconexión dio una dirección IP heredada distinta (%s != %s)\n"
 
-#: cstp.c:464
+#: cstp.c:454
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr "La reconexión dio una máscara de red heredada distinta (%s != %s)\n"
 
-#: cstp.c:472
+#: cstp.c:462
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
 msgstr "La reconexión dio una dirección IPv6 heredada distinta (%s != %s)\n"
 
-#: cstp.c:480
+#: cstp.c:470
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr ""
 "La reconexión dio una máscara de red IPv6 heredada distinta (%s != %s)\n"
 
-#: cstp.c:500
+#: cstp.c:490
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr "CSTP conectado. DPD %d, Keepalive %d\n"
 
-#: cstp.c:536
+#: cstp.c:526
 msgid "Compression setup failed\n"
 msgstr "Falló la configuración de compresión\n"
 
-#: cstp.c:544
+#: cstp.c:534
 msgid "Allocation of deflate buffer failed\n"
 msgstr "Falló la localización del buffer vacío\n"
 
-#: cstp.c:588
+#: cstp.c:578
 msgid "Cookie is no longer valid, ending session\n"
-msgstr ""
+msgstr "La cookie ya no es válida, cerrando la sesión\n"
 
-#: cstp.c:592
+#: cstp.c:582
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
 msgstr "dormir %ds, timeout restante %ds\n"
 
-#: cstp.c:627
+#: cstp.c:617
 msgid "inflate failed\n"
 msgstr "falló el llenado\n"
 
-#: cstp.c:644
+#: cstp.c:634
 #, c-format
 msgid "Received compressed data packet of %ld bytes\n"
 msgstr "Se recibió el paquete de datos comprimidos de %ld bytes\n"
 
-#: cstp.c:663
+#: cstp.c:653
 #, c-format
 msgid "SSL read error %d (server probably closed connection); reconnecting.\n"
 msgstr ""
 "Error de lectura SSL %d (probablemente el servidor cerró la conexión); "
 "reconectando.\n"
 
-#: cstp.c:688
+#: cstp.c:678
 #, c-format
 msgid "SSL_write failed: %d\n"
 msgstr "Falló el SSL_write: %d\n"
 
-#: cstp.c:704
+#: cstp.c:694
 #, c-format
 msgid "SSL read error: %s; reconnecting.\n"
 msgstr "Error de lectura SSL: %s; reconectando.\n"
 
-#: cstp.c:727
+#: cstp.c:717
 #, c-format
 msgid "SSL send failed: %s\n"
 msgstr "Falló el envío SSL: %s\n"
 
-#: cstp.c:758
+#: cstp.c:748
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
 msgstr ""
 "Longitud de paquete inesperada. SSL_read devolvió %d pero el paquete es\n"
 
-#: cstp.c:770
+#: cstp.c:760
 msgid "Got CSTP DPD request\n"
 msgstr "Se obtuvo la petición CSTP DPD\n"
 
-#: cstp.c:776
+#: cstp.c:766
 msgid "Got CSTP DPD response\n"
 msgstr "Se obtuvo la respuesta CSTP DPD\n"
 
-#: cstp.c:781
+#: cstp.c:771
 msgid "Got CSTP Keepalive\n"
 msgstr "Se obtuvo Keppalive CSTP\n"
 
-#: cstp.c:786
+#: cstp.c:776
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr "Se recibió el paquete de datos sin comprimir de %d bytes\n"
 
-#: cstp.c:801
+#: cstp.c:791
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
 msgstr "Se recibió el una desconexión del servidor: %02x '%s'\n"
 
-#: cstp.c:809
+#: cstp.c:799
 msgid "Compressed packet received in !deflate mode\n"
 msgstr "Se recibió el paquete comprimido en modo !vacío\n"
 
-#: cstp.c:817
+#: cstp.c:807
 msgid "received server terminate packet\n"
 msgstr "se recibió el paquete de fin del servidor\n"
 
-#: cstp.c:824
+#: cstp.c:814
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr "Paquete desconocido %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
-#: cstp.c:867
+#: cstp.c:857
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr "SSL escribió demasiados pocos bytes. Se pidieron %d, se enviaron %d\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:894
+#: cstp.c:884
 msgid "CSTP rekey due\n"
 msgstr "Renegociación de clave CSTP pendiente\n"
 
 #. if we failed rehandshake try establishing a new-tunnel instead of failing
-#: cstp.c:901
+#: cstp.c:891
 msgid "Rehandshake failed; attempting new-tunnel\n"
 msgstr ""
 
-#: cstp.c:912
+#: cstp.c:902
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr "La detección de muerte del par CSTP detectó la muerte del par\n"
 
-#: cstp.c:916
+#: cstp.c:906
 msgid "Reconnect failed\n"
 msgstr "Falló al reconectar\n"
 
-#: cstp.c:931
+#: cstp.c:921
 msgid "Send CSTP DPD\n"
 msgstr "Enviar CSTP DPD\n"
 
-#: cstp.c:942
+#: cstp.c:932
 msgid "Send CSTP Keepalive\n"
 msgstr "Enviar CSTP Keepalive\n"
 
-#: cstp.c:969
+#: cstp.c:959
 #, c-format
 msgid "deflate failed %d\n"
 msgstr "falló el vaciado %d\n"
 
-#: cstp.c:989
+#: cstp.c:979
 #, c-format
 msgid "Sending compressed data packet of %d bytes\n"
 msgstr "Enviando paquete de datos comprimidos de %d bytes\n"
 
-#: cstp.c:1001
+#: cstp.c:991
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr "Enviando paquete de datos sin comprimir de %d bytes\n"
 
-#: cstp.c:1041
+#: cstp.c:1031
 #, c-format
 msgid "Send BYE packet: %s\n"
 msgstr "Enviar paquete BYE: %s\n"
@@ -418,19 +414,19 @@ msgstr ""
 #: dtls.c:215
 #, c-format
 msgid "Established DTLS connection (using OpenSSL). Ciphersuite %s.\n"
-msgstr ""
+msgstr "Establecida la conexíon DTLS (usando OpenSSL). Ciphersuite %s.\n"
 
-#: dtls.c:240
+#: dtls.c:241
 msgid "Your OpenSSL is older than the one you built against, so DTLS may fail!"
 msgstr ""
 "Su versión de OpenSSL es anterior a la que usó para compilar, por lo que "
 "DTLS podría fallar."
 
-#: dtls.c:289 dtls.c:293 dtls.c:432
+#: dtls.c:290 dtls.c:294 dtls.c:434
 msgid "DTLS handshake timed out\n"
 msgstr "Expiró tiempo de la negociación DTLS\n"
 
-#: dtls.c:290
+#: dtls.c:291
 msgid ""
 "This is probably because your OpenSSL is broken\n"
 "See http://rt.openssl.org/Ticket/Display.html?id=2984\n"
@@ -438,161 +434,161 @@ msgstr ""
 "Esto es probablemente debido a que su OpenSSL está roto\n"
 "Consulte http://rt.openssl.org/Ticket/Display.html?id=2984\n"
 
-#: dtls.c:297
+#: dtls.c:298
 #, c-format
 msgid "DTLS handshake failed: %d\n"
 msgstr "Falló la negociación DTLS: %d\n"
 
-#: dtls.c:345
+#: dtls.c:346
 #, c-format
 msgid "Unknown DTLS parameters for requested CipherSuite '%s'\n"
 msgstr ""
 "Parámetros DTLS desconocidos para la petición del conjunto de cifrado «%s»\n"
 
-#: dtls.c:358
+#: dtls.c:359
 #, c-format
 msgid "Failed to set DTLS priority: %s\n"
 msgstr "Falló al establecer la prioridad DTLS: %s\n"
 
-#: dtls.c:379
+#: dtls.c:380
 #, c-format
 msgid "Failed to set DTLS session parameters: %s\n"
 msgstr "Falló al establecer los parámetros de sesión: %s\n"
 
-#: dtls.c:401
+#: dtls.c:402
 #, c-format
 msgid "Failed to set DTLS MTU: %s\n"
 msgstr "Falló al establecer la MTU de DTLS %s\n"
 
-#: dtls.c:420
+#: dtls.c:421
 #, c-format
 msgid "Established DTLS connection (using GnuTLS). Ciphersuite %s.\n"
-msgstr ""
+msgstr "Conexión DTLS establecida (usando GnuTLS). Ciphersuite %s.\n"
 
-#: dtls.c:435
+#: dtls.c:437
 #, c-format
 msgid "DTLS handshake failed: %s\n"
 msgstr "Falló la negociación DTLS: %s\n"
 
-#: dtls.c:453
+#: dtls.c:455
 msgid "DTLS connection attempted with an existing fd\n"
-msgstr ""
+msgstr "Intento de conexión DTLS con un «fd» existente\n"
 
-#: dtls.c:459
+#: dtls.c:461
 msgid "No DTLS address\n"
 msgstr "Sin dirección DTLS\n"
 
 #. We probably didn't offer it any ciphers it liked
-#: dtls.c:466
+#: dtls.c:468
 msgid "Server offered no DTLS cipher option\n"
 msgstr "El servidor no ofreció opción de cifrado DTLS\n"
 
 #. XXX: Theoretically, SOCKS5 proxies can do UDP too
-#: dtls.c:473
+#: dtls.c:475
 msgid "No DTLS when connected via proxy\n"
 msgstr "Sin DTLS cuando se conecta vía proxy\n"
 
-#: dtls.c:480
+#: dtls.c:482
 msgid "Open UDP socket for DTLS:"
 msgstr "Abrir socket UDP para DTLS:"
 
-#: dtls.c:511 dtls.c:640
+#: dtls.c:513 dtls.c:642
 #, c-format
 msgid "Unknown protocol family %d. Cannot do DTLS\n"
 msgstr "Fmilia de protocolo %d desconocida. No se puede realizar DTLS\n"
 
-#: dtls.c:519
+#: dtls.c:521
 msgid "Bind UDP socket for DTLS"
 msgstr "Enlace del socket UDP para DTLS"
 
-#: dtls.c:526
+#: dtls.c:528
 msgid "UDP (DTLS) connect:\n"
 msgstr "Conectar UDP(DTLS):\n"
 
-#: dtls.c:592
+#: dtls.c:594
 #, c-format
 msgid "DTLS option %s : %s\n"
 msgstr "Opción DTLS %s: %s\n"
 
-#: dtls.c:650
+#: dtls.c:652
 #, c-format
 msgid "DTLS initialised. DPD %d, Keepalive %d\n"
 msgstr "DTLS inicializado. DPD %d, Keepalive %d\n"
 
-#: dtls.c:673
+#: dtls.c:675
 msgid "Attempt new DTLS connection\n"
 msgstr "Intentar nueva conexión DTLS\n"
 
-#: dtls.c:700
+#: dtls.c:702
 #, c-format
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
 msgstr "Recibió el paquete DTLS 0x%02x de %d bytes\n"
 
-#: dtls.c:714
+#: dtls.c:716
 msgid "Got DTLS DPD request\n"
 msgstr "Solicitud DTLS DPD obtenida\n"
 
-#: dtls.c:720
+#: dtls.c:722
 msgid "Failed to send DPD response. Expect disconnect\n"
 msgstr "Falló al enviar respuesta DPD. Espere desconectar\n"
 
-#: dtls.c:724
+#: dtls.c:726
 msgid "Got DTLS DPD response\n"
 msgstr "Respuesta DTLS DPD obtenida\n"
 
-#: dtls.c:728
+#: dtls.c:730
 msgid "Got DTLS Keepalive\n"
 msgstr "Obtenido Keepalive DTLS\n"
 
-#: dtls.c:733
+#: dtls.c:735
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
 msgstr "Paquete DTLS tipo %02x desconocido, longitud %d\n"
 
-#: dtls.c:754
+#: dtls.c:756
 msgid "DTLS rekey due\n"
 msgstr "Renegociación de clave DTLS pendiente\n"
 
-#: dtls.c:761
+#: dtls.c:763
 msgid "DTLS Rehandshake failed; reconnecting.\n"
-msgstr ""
+msgstr "Falló la renegociación DTLS; reconectando\n"
 
-#: dtls.c:770
+#: dtls.c:772
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
 msgstr "¡La detección de muerte del par DTLS detectó la muerte del par!\n"
 
-#: dtls.c:776
+#: dtls.c:778
 msgid "Send DTLS DPD\n"
 msgstr "Enviar DTLS DPD\n"
 
-#: dtls.c:781
+#: dtls.c:783
 msgid "Failed to send DPD request. Expect disconnect\n"
 msgstr "Falló al enviar petición DPD. Espere para desconectar\n"
 
-#: dtls.c:794
+#: dtls.c:796
 msgid "Send DTLS Keepalive\n"
 msgstr "Enviar Keepalive DTLS\n"
 
-#: dtls.c:799
+#: dtls.c:801
 msgid "Failed to send keepalive request. Expect disconnect\n"
 msgstr "Falló al enviar petición de keepalive. Espere para desconectar\n"
 
-#: dtls.c:834
+#: dtls.c:836
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
 msgstr "DTLS obtuvo el error de escritura %d. Volviendo a SSL\n"
 
-#: dtls.c:849
+#: dtls.c:851
 #, c-format
 msgid "DTLS got write error: %s. Falling back to SSL\n"
 msgstr "DTLS obtuvo el error de escritura: %s. Volviendo a SSL\n"
 
-#: dtls.c:866
+#: dtls.c:868
 #, c-format
 msgid "Sent DTLS packet of %d bytes; DTLS send returned %d\n"
 msgstr "Envió paquete DTLS de %d bytes; el envío DTLS devolvió %d\n"
 
-#: dtls.c:878
+#: dtls.c:880
 msgid "Built against SSL library with no Cisco DTLS support\n"
 msgstr "Compilado con la biblioteca SSL sin soporte para Cisco DTLS\n"
 
@@ -605,431 +601,431 @@ msgstr "Escritura SSL cancelada\n"
 msgid "Failed to write to SSL socket: %s\n"
 msgstr "Falló al escribir en el socket SSL: %s\n"
 
-#: gnutls.c:116 gnutls.c:176 openssl.c:142 openssl.c:195
+#: gnutls.c:116 gnutls.c:178 openssl.c:142 openssl.c:195
 msgid "SSL read cancelled\n"
 msgstr "Lectura SSL cancelada\n"
 
 #. We've seen this with HTTP 1.0 responses followed by abrupt
 #. socket closure and no clean SSL shutdown.
 #. https://bugs.launchpad.net/bugs/1225276
-#: gnutls.c:123
+#: gnutls.c:124
 msgid "SSL socket closed uncleanly\n"
-msgstr ""
+msgstr "Socket SSL cerrado no limpiamente\n"
 
-#: gnutls.c:126 gnutls.c:181
+#: gnutls.c:128 gnutls.c:183
 #, c-format
 msgid "Failed to read from SSL socket: %s\n"
 msgstr "Falló al leer del socket SSL: %s\n"
 
-#: gnutls.c:199
+#: gnutls.c:201
 msgid "Could not extract expiration time of certificate\n"
 msgstr "No se pudo extraer la fecha de caducidad del certificado\n"
 
-#: gnutls.c:204 openssl.c:1218
+#: gnutls.c:206 openssl.c:1218
 msgid "Client certificate has expired at"
 msgstr "El certificado del cliente ha caducado el"
 
-#: gnutls.c:206 openssl.c:1223
+#: gnutls.c:208 openssl.c:1223
 msgid "Client certificate expires soon at"
 msgstr "El certificado del cliente caduca pronto el"
 
-#: gnutls.c:260 openssl.c:599
+#: gnutls.c:262 openssl.c:599
 #, c-format
 msgid "Failed to load item '%s' from keystore: %s\n"
 msgstr "Falló al cargar el elemento «%s» del almacén de claves: %s\n"
 
-#: gnutls.c:273
+#: gnutls.c:275
 #, c-format
 msgid "Failed to open key/certificate file %s: %s\n"
 msgstr "Falló al abrir el archivo de clave/certificado %s: %s\n"
 
-#: gnutls.c:280
+#: gnutls.c:282
 #, c-format
 msgid "Failed to stat key/certificate file %s: %s\n"
 msgstr "Falló al obtener el estado del archivo de clave/certificado %s: %s\n"
 
-#: gnutls.c:289
+#: gnutls.c:291
 msgid "Failed to allocate certificate buffer\n"
 msgstr "Falló al asignar el búfer del certificado\n"
 
-#: gnutls.c:297
+#: gnutls.c:299
 #, c-format
 msgid "Failed to read certificate into memory: %s\n"
 msgstr "Falló al leer el certificado en memoria: %s\n"
 
-#: gnutls.c:328
+#: gnutls.c:330
 #, c-format
 msgid "Failed to setup PKCS#12 data structure: %s\n"
 msgstr "Falló al configurar la estructura de datos PKCS#12: %s\n"
 
-#: gnutls.c:339
+#: gnutls.c:341
 #, c-format
 msgid "Failed to import PKCS#12 file: %s\n"
 msgstr "Falló al importar el archivo PKCS#12: %s\n"
 
-#: gnutls.c:348
+#: gnutls.c:350
 msgid "Failed to decrypt PKCS#12 certificate file\n"
 msgstr "Falló al descifrar el archivo del certificado PKCS#12\n"
 
-#: gnutls.c:352 openssl.c:407
+#: gnutls.c:354 openssl.c:407
 msgid "Enter PKCS#12 pass phrase:"
 msgstr "Introduzca contraseña PKCS#12:"
 
-#: gnutls.c:376
+#: gnutls.c:378
 #, c-format
 msgid "Failed to process PKCS#12 file: %s\n"
 msgstr "Falló al procesar el archivo PKCS#12: %s\n"
 
-#: gnutls.c:388
+#: gnutls.c:390
 #, c-format
 msgid "Failed to load PKCS#12 certificate: %s\n"
 msgstr "Falló al cargar el certificado PKCS#12: %s\n"
 
-#: gnutls.c:548
+#: gnutls.c:550
 #, c-format
 msgid "Importing X509 certificate failed: %s\n"
 msgstr "Falló la importación del certificado X509: %s\n"
 
-#: gnutls.c:558
+#: gnutls.c:560
 #, c-format
 msgid "Setting PKCS#11 certificate failed: %s\n"
 msgstr "Falló la configuración del certificado PKCS#11: %s\n"
 
-#: gnutls.c:598
+#: gnutls.c:600
 #, c-format
 msgid "Could not initialise MD5 hash: %s\n"
 msgstr "No se pudo inicializar el hash MD5: %s\n"
 
-#: gnutls.c:608
+#: gnutls.c:610
 #, c-format
 msgid "MD5 hash error: %s\n"
 msgstr "Error del hash MD5: %s\n"
 
-#: gnutls.c:666
+#: gnutls.c:668
 msgid "Missing DEK-Info: header from OpenSSL encrypted key\n"
 msgstr "DEK-Info perdido: cabecera desde clave OpenSSL cifrada\n"
 
-#: gnutls.c:673
+#: gnutls.c:675
 msgid "Cannot determine PEM encryption type\n"
 msgstr "No se puede determinar el tipo de cifrado PEM\n"
 
-#: gnutls.c:686
+#: gnutls.c:688
 #, c-format
 msgid "Unsupported PEM encryption type: %s\n"
 msgstr "Tipo de cifrado PEM no soportado: %s\n"
 
-#: gnutls.c:711 gnutls.c:724
+#: gnutls.c:713 gnutls.c:726
 msgid "Invalid salt in encrypted PEM file\n"
 msgstr "Semilla no válida en el archivo PEM cifrado\n"
 
-#: gnutls.c:748
+#: gnutls.c:750
 #, c-format
 msgid "Error base64-decoding encrypted PEM file: %s\n"
 msgstr "Error base64-decoding del archivo PEM cifrado: %s\n"
 
-#: gnutls.c:756
+#: gnutls.c:758
 msgid "Encrypted PEM file too short\n"
 msgstr "Archivo cifrado PEM demasiado corto\n"
 
-#: gnutls.c:784
+#: gnutls.c:786
 #, c-format
 msgid "Failed to initialise cipher for decrypting PEM file: %s\n"
 msgstr ""
 "Falló al inicializar el cifrado para el archivo PEM de descifrado: %s\n"
 
-#: gnutls.c:795
+#: gnutls.c:797
 #, c-format
 msgid "Failed to decrypt PEM key: %s\n"
 msgstr "Falló al descrifrar la clave PEM: %s\n"
 
-#: gnutls.c:847
+#: gnutls.c:849
 msgid "Decrypting PEM key failed\n"
 msgstr "Falló al descifrar la clave PEM\n"
 
-#: gnutls.c:851 gnutls.c:1289 openssl.c:372
+#: gnutls.c:853 gnutls.c:1291 openssl.c:372
 msgid "Enter PEM pass phrase:"
 msgstr "Introduzca contraseña PEM:"
 
-#: gnutls.c:905 openssl.c:645
+#: gnutls.c:907 openssl.c:645
 msgid "This binary built without PKCS#11 support\n"
 msgstr "Este binario se compiló sin soporte PKCS#11\n"
 
-#: gnutls.c:955
+#: gnutls.c:957
 #, c-format
 msgid "Using PKCS#11 certificate %s\n"
 msgstr "Usando certificado PKCS#11 %s\n"
 
-#: gnutls.c:968
+#: gnutls.c:970
 #, c-format
 msgid "Error loading certificate from PKCS#11: %s\n"
 msgstr "Error al cargar el certificado desde PKCS#11: %s\n"
 
-#: gnutls.c:979 openssl.c:650
+#: gnutls.c:981 openssl.c:650
 #, c-format
 msgid "Using certificate file %s\n"
 msgstr "Usando archivo de certificado %s\n"
 
-#: gnutls.c:1008
+#: gnutls.c:1010
 msgid "PKCS#11 file contained no certificate\n"
 msgstr "El archivo PKCS#11 no contiene ningún certificado\n"
 
-#: gnutls.c:1034
+#: gnutls.c:1036
 msgid "No certificate found in file"
 msgstr "Certificado no encontrado en el archivo"
 
-#: gnutls.c:1039
+#: gnutls.c:1041
 #, c-format
 msgid "Loading certificate failed: %s\n"
 msgstr "Falló al cargar certificado: %s\n"
 
-#: gnutls.c:1054
+#: gnutls.c:1056
 #, c-format
 msgid "Using PKCS#11 key %s\n"
 msgstr "Usando clave PKCS#11 %s\n"
 
-#: gnutls.c:1059
+#: gnutls.c:1061
 #, c-format
 msgid "Error initialising PKCS#11 key structure: %s\n"
 msgstr "Error al inicializar la estructura de clave PKCS#11: %s\n"
 
-#: gnutls.c:1149
+#: gnutls.c:1151
 #, c-format
 msgid "Error importing PKCS#11 URL %s: %s\n"
 msgstr "Error al importar el URL PKCS#11 %s: %s\n"
 
-#: gnutls.c:1159
+#: gnutls.c:1161
 #, c-format
 msgid "Error initialising private key structure: %s\n"
 msgstr "Error al inicializar la estructura de clave privada: %s\n"
 
-#: gnutls.c:1169
+#: gnutls.c:1171
 #, c-format
 msgid "Error importing PKCS#11 key into private key structure: %s\n"
 msgstr ""
 "Error al importar la clave PKCS#11 a la estructura de clave privada: %s\n"
 
-#: gnutls.c:1197
+#: gnutls.c:1199
 #, c-format
 msgid "Using private key file %s\n"
 msgstr "Usando archivo de clave privada: %s\n"
 
-#: gnutls.c:1210 openssl.c:548
+#: gnutls.c:1212 openssl.c:548
 msgid "This version of OpenConnect was built without TPM support\n"
 msgstr "Esta versión de OpenConnect se compiló sin soporte TPM\n"
 
-#: gnutls.c:1231
+#: gnutls.c:1233
 msgid "Failed to interpret PEM file\n"
 msgstr "Falló al traducir el archivo PEM\n"
 
-#: gnutls.c:1250
+#: gnutls.c:1252
 #, c-format
 msgid "Failed to load PKCS#1 private key: %s\n"
 msgstr "Falló al cargar la clave privada PKCS#1: %s\n"
 
-#: gnutls.c:1263 gnutls.c:1277
+#: gnutls.c:1265 gnutls.c:1279
 #, c-format
 msgid "Failed to load private key as PKCS#8: %s\n"
 msgstr "Falló al cargar la clave privada como PKCS#8: %s\n"
 
-#: gnutls.c:1285
+#: gnutls.c:1287
 msgid "Failed to decrypt PKCS#8 certificate file\n"
 msgstr "Falló al descifrar el archivo del certificado PKCS#8\n"
 
-#: gnutls.c:1299
+#: gnutls.c:1301
 #, c-format
 msgid "Failed to determine type of private key %s\n"
 msgstr "Falló al determinar el tipo de clave privada %s\n"
 
-#: gnutls.c:1311
+#: gnutls.c:1313
 #, c-format
 msgid "Failed to get key ID: %s\n"
 msgstr "Falló al obtener el ID de la clave: %s\n"
 
-#: gnutls.c:1356
+#: gnutls.c:1358
 #, c-format
 msgid "Error signing test data with private key: %s\n"
 msgstr "Error al firmar el test de datos con la clave privada: %s\n"
 
-#: gnutls.c:1371
+#: gnutls.c:1373
 #, c-format
 msgid "Error validating signature against certificate: %s\n"
 msgstr "Error al validar la firma con el certificado: %s\n"
 
-#: gnutls.c:1395
+#: gnutls.c:1397
 msgid "No SSL certificate found to match private key\n"
 msgstr ""
 "No se encontró ningún certificado SSL que coincida con la clave privada\n"
 
-#: gnutls.c:1406 openssl.c:439 openssl.c:576
+#: gnutls.c:1408 openssl.c:439 openssl.c:576
 #, c-format
 msgid "Using client certificate '%s'\n"
 msgstr "Usando el certificado del cliente '%s'\n"
 
-#: gnutls.c:1413
+#: gnutls.c:1415
 #, c-format
 msgid "Setting certificate recovation list failed: %s\n"
 msgstr "Configuración de lista de revocación del certificado fallida: %s\n"
 
-#: gnutls.c:1434 gnutls.c:1444
+#: gnutls.c:1436 gnutls.c:1446
 msgid "Failed to allocate memory for certificate\n"
 msgstr "Falló al asignar memoria para el certificado\n"
 
-#: gnutls.c:1480
+#: gnutls.c:1482
 msgid ""
 "WARNING: GnuTLS returned incorrect issuer certs; authentication may fail!\n"
 msgstr ""
 "AVISO: GnuTLS devolvió un distribuidor de certificados incorrecto; puede que "
 "falle la autenticación\n"
 
-#: gnutls.c:1505
+#: gnutls.c:1507
 #, c-format
 msgid "Got next CA '%s' from PKCS11\n"
 msgstr "Se obtuvo el siguiente CA «%s» de PKCS11\n"
 
-#: gnutls.c:1533
+#: gnutls.c:1535
 msgid "Failed to allocate memory for supporting certificates\n"
 msgstr "Falló al asignar memoria para soportar certificados\n"
 
-#: gnutls.c:1556
+#: gnutls.c:1558
 #, c-format
 msgid "Adding supporting CA '%s'\n"
 msgstr "Añadiendo soporte CA '%s'\n"
 
-#: gnutls.c:1584
+#: gnutls.c:1586
 #, c-format
 msgid "Setting certificate failed: %s\n"
 msgstr "Falló al configurar el certificado: %s\n"
 
-#: gnutls.c:1716
+#: gnutls.c:1718
 msgid "Server presented no certificate\n"
 msgstr "El servidor no presentó ningún certificado\n"
 
-#: gnutls.c:1728
+#: gnutls.c:1730
 msgid "Could not calculate SHA1 of server's certificate\n"
 msgstr "No se pudo calcular el SHA1 del certificado del servidor\n"
 
-#: gnutls.c:1736 openssl.c:832
+#: gnutls.c:1738 openssl.c:832
 #, c-format
 msgid "Server SSL certificate didn't match: %s\n"
 msgstr "El certificado del servidor SSL no coincide: %s\n"
 
-#: gnutls.c:1744
+#: gnutls.c:1746
 msgid "Error checking server cert status\n"
 msgstr "Error al comprobar el estado del certificado del servidor\n"
 
-#: gnutls.c:1749
+#: gnutls.c:1751
 msgid "certificate revoked"
 msgstr "certificado revocado"
 
-#: gnutls.c:1751
+#: gnutls.c:1753
 msgid "signer not found"
 msgstr "firmante no encontrado"
 
-#: gnutls.c:1753
+#: gnutls.c:1755
 msgid "signer not a CA certificate"
 msgstr "el firmante no es un certificado CA"
 
-#: gnutls.c:1755
+#: gnutls.c:1757
 msgid "insecure algorithm"
 msgstr "algoritmo inseguro"
 
-#: gnutls.c:1757
+#: gnutls.c:1759
 msgid "certificate not yet activated"
 msgstr "certificado no activado todavía"
 
-#: gnutls.c:1759
+#: gnutls.c:1761
 msgid "certificate expired"
 msgstr "certificado caducado"
 
 #. If this is set and no other reason, it apparently means
 #. that signature verification failed. Not entirely sure
 #. why we don't just set a bit for that too.
-#: gnutls.c:1764
+#: gnutls.c:1766
 msgid "signature verification failed"
 msgstr "verificación de la firma fallida"
 
-#: gnutls.c:1768
+#: gnutls.c:1770
 msgid "Error initialising X509 cert structure\n"
 msgstr "Error al inicializar la estructura de certificado X509\n"
 
-#: gnutls.c:1774
+#: gnutls.c:1776
 msgid "Error importing server's cert\n"
 msgstr "Error al importar el certificado del servidor\n"
 
-#: gnutls.c:1780 openssl.c:1130
+#: gnutls.c:1782 openssl.c:1130
 msgid "certificate does not match hostname"
 msgstr "el certificado no coincide con el nombre del servidor"
 
-#: gnutls.c:1863
+#: gnutls.c:1865
 msgid "Failed to allocate memory for cafile certs\n"
 msgstr "Falló al asignar memoria para certificados cafile\n"
 
-#: gnutls.c:1884
+#: gnutls.c:1886
 #, c-format
 msgid "Failed to read certs from cafile: %s\n"
 msgstr "Falló al leer certificados desde cafile: %s\n"
 
-#: gnutls.c:1900
+#: gnutls.c:1902
 #, c-format
 msgid "Failed to open CA file '%s': %s\n"
 msgstr "Falló al abrir el archivo CA '%s': %s\n"
 
-#: gnutls.c:1913 openssl.c:1277
+#: gnutls.c:1915 openssl.c:1277
 msgid "Loading certificate failed. Aborting.\n"
 msgstr "Carga de certificado fallida. Abortando.\n"
 
-#: gnutls.c:1945
+#: gnutls.c:1947
 #, c-format
 msgid "Failed to set TLS priority string: %s\n"
 msgstr "Falló al establecer la cadena de prioridad TLS: %s\n"
 
-#: gnutls.c:1957 openssl.c:1372
+#: gnutls.c:1959 openssl.c:1372
 #, c-format
 msgid "SSL negotiation with %s\n"
 msgstr "Negociación SSL con «%s»\n"
 
-#: gnutls.c:1994 openssl.c:1398
+#: gnutls.c:1996 openssl.c:1398
 msgid "SSL connection cancelled\n"
 msgstr "Conexión SSL cancelada\n"
 
-#: gnutls.c:2001
+#: gnutls.c:2003
 #, c-format
 msgid "SSL connection failure: %s\n"
 msgstr "Fallo de la conexión TLS: %s\n"
 
-#: gnutls.c:2010
+#: gnutls.c:2012
 #, c-format
 msgid "GnuTLS non-fatal return during handshake: %s\n"
 msgstr "Retorno no fatal de GnuTLS durante la negociación: %s\n"
 
-#: gnutls.c:2016 openssl.c:1418
+#: gnutls.c:2018 openssl.c:1418
 #, c-format
 msgid "Connected to HTTPS on %s\n"
 msgstr "Conectó a HTTPS en %s\n"
 
-#: gnutls.c:2019
+#: gnutls.c:2021
 #, c-format
 msgid "Renegotiated SSL on %s\n"
-msgstr ""
+msgstr "Renegociar SSL en %s\n"
 
-#: gnutls.c:2203
+#: gnutls.c:2205
 #, c-format
 msgid "PIN required for %s"
 msgstr "PIN requerido por %s"
 
-#: gnutls.c:2213
+#: gnutls.c:2215
 msgid "Wrong PIN"
 msgstr "PIN incorrecto"
 
-#: gnutls.c:2216
+#: gnutls.c:2218
 msgid "This is the final try before locking!"
 msgstr "¡Éste es el último intento antes de bloquear!"
 
-#: gnutls.c:2218
+#: gnutls.c:2220
 msgid "Only a few tries left before locking!"
 msgstr "¡Sólo quedan unos pocos intentos antes de bloquear!"
 
-#: gnutls.c:2223
+#: gnutls.c:2225
 msgid "Enter PIN:"
 msgstr "Introducir PIN:"
 
@@ -1450,12 +1446,12 @@ msgstr "Tipo de proxy desconocido '%s'\n"
 msgid "Only http or socks(5) proxies supported\n"
 msgstr "Sólo se soportan proxies HTTP o socks(5)\n"
 
-#: library.c:350
+#: library.c:355
 #, c-format
 msgid "Failed to parse server URL '%s'\n"
 msgstr "Falló al analizar el URL del servidor '%s'\n"
 
-#: library.c:356
+#: library.c:361
 msgid "Only https:// permitted for server URL\n"
 msgstr "Sólo se permite https:// para el URL del servidor\n"
 
@@ -1497,7 +1493,7 @@ msgstr ""
 #: main.c:305
 #, c-format
 msgid "Cannot process this executable path \"%s\""
-msgstr ""
+msgstr "No se puede procesar esta ruta ejecutable «%s»"
 
 #: main.c:311
 #, c-format
@@ -1730,7 +1726,7 @@ msgstr "Leer contraseña de la entrada estándar"
 
 #: main.c:387
 msgid "Software token type: rsa, totp or hotp"
-msgstr ""
+msgstr "Tipo de testigo software: RSA, TOTP o HOTP"
 
 #: main.c:388
 msgid "Software token secret"
@@ -1742,7 +1738,7 @@ msgstr "(Nota: libstoken (RSA SecurID) está desactivado en esta versión)"
 
 #: main.c:393
 msgid "(NOTE: liboath (TOTP,HOTP) disabled in this build)"
-msgstr ""
+msgstr "(Nota: liboath (TOTP, HOTP) está desactivado en esta versión)"
 
 #: main.c:395
 msgid "Connection retry timeout in seconds"
@@ -1758,7 +1754,7 @@ msgstr "Cabecera HTTP User_Agent: campo"
 
 #: main.c:398
 msgid "OS type (linux,linux-64,win,...) to report"
-msgstr ""
+msgstr "Tipo de SO (linux, linux-64, win...) que informar"
 
 #: main.c:399
 msgid "Set local port for DTLS datagrams"
@@ -1776,7 +1772,7 @@ msgstr "fgets (stdin)"
 #: main.c:490
 #, c-format
 msgid "Failed to allocate string\n"
-msgstr ""
+msgstr "Falló al asignar la cadena\n"
 
 #: main.c:529
 #, c-format
@@ -1880,7 +1876,7 @@ msgstr "Esta versión de openconnect se compiló sin soporte para libproxy\n"
 #: main.c:961
 #, c-format
 msgid "Error opening cmd pipe\n"
-msgstr ""
+msgstr "Error al abrir la tubería cmd\n"
 
 #: main.c:1011
 #, c-format
@@ -1935,7 +1931,7 @@ msgstr "Se continúa en segundo plano; PID %d\n"
 #: main.c:1125
 #, c-format
 msgid "Caught signal: %s\n"
-msgstr ""
+msgstr "Señal capturada: %s\n"
 
 #: main.c:1147
 #, c-format
@@ -2022,19 +2018,19 @@ msgstr "OpenConnect no se compiló con soporte para liboath\n"
 msgid "General failure in liboath\n"
 msgstr "Fallo general en liboath\n"
 
-#: mainloop.c:177
+#: mainloop.c:175
 msgid "Caller paused the connection\n"
 msgstr ""
 
-#: mainloop.c:185
+#: mainloop.c:183
 #, c-format
 msgid "No work to do; sleeping for %d ms...\n"
 msgstr "Sin trabajo que hacer; durmiendo durante %d ms…\n"
 
-#: mainloop.c:205
+#: mainloop.c:203
 #, c-format
 msgid "WaitForMultipleObjects failed: %lx\n"
-msgstr ""
+msgstr "Falló WaitForMultipleObjects: %lx\n"
 
 #: openssl.c:103
 msgid "Failed to write to SSL socket\n"
@@ -2362,7 +2358,7 @@ msgstr "Error desconocido"
 
 #: tun-win32.c:71
 msgid "Error accessing registry key for network adapters\n"
-msgstr ""
+msgstr "Error al acceder a la clave del registro para adaptadores de red\n"
 
 #: tun-win32.c:114
 #, c-format
@@ -2376,7 +2372,7 @@ msgstr ""
 #: tun-win32.c:146
 #, c-format
 msgid "Failed to open %s\n"
-msgstr ""
+msgstr "Falló al abrir: %s\n"
 
 #: tun-win32.c:151
 #, c-format
@@ -2386,7 +2382,7 @@ msgstr ""
 #: tun-win32.c:158
 #, c-format
 msgid "Failed to obtain TAP driver version: %lx\n"
-msgstr ""
+msgstr "Falló al obtener la versión del driver TAP: %lx\n"
 
 #: tun-win32.c:163
 #, c-format
@@ -2403,36 +2399,36 @@ msgstr ""
 msgid "Failed to set TAP media status: %lx\n"
 msgstr ""
 
-#: tun-win32.c:213
+#: tun-win32.c:217
 #, c-format
 msgid "Failed to read from TAP device: %lx\n"
-msgstr ""
+msgstr "Falló al leer del dispositivo TAP: %lx\n"
 
-#: tun-win32.c:224
+#: tun-win32.c:228
 #, c-format
 msgid "Failed to complete read from TAP device: %lx\n"
 msgstr ""
 
-#: tun-win32.c:241
+#: tun-win32.c:249
 #, c-format
 msgid "Wrote %ld bytes to tun\n"
-msgstr ""
+msgstr "Escritos %ld bytes en tun\n"
 
-#: tun-win32.c:251
+#: tun-win32.c:259
 msgid "Waiting for tun write...\n"
 msgstr ""
 
-#: tun-win32.c:254
+#: tun-win32.c:262
 #, c-format
 msgid "Wrote %ld bytes to tun after waiting\n"
 msgstr ""
 
-#: tun-win32.c:260
+#: tun-win32.c:268
 #, c-format
 msgid "Failed to write to TAP device: %lx\n"
-msgstr ""
+msgstr "Falló al escribir en el dispositivo TAP: %lx\n"
 
-#: tun-win32.c:285
+#: tun-win32.c:293
 msgid "Spawning tunnel scripts is not yet supported on Windows\n"
 msgstr ""
 
@@ -2539,22 +2535,22 @@ msgstr "Falló al escribir el paquete entrante: %s\n"
 #: xml.c:42
 #, c-format
 msgid "Failed to open XML config file: %s\n"
-msgstr ""
+msgstr "Falló al abrir el archivo XML de configuración %s\n"
 
 #: xml.c:49
 #, c-format
 msgid "Failed to fstat() XML config file: %s\n"
-msgstr ""
+msgstr "Falló al hacer fstat() en el archivo XML de configuración %s\n"
 
 #: xml.c:58
 #, c-format
 msgid "Failed to allocate %lu bytes for XML config file\n"
-msgstr ""
+msgstr "Falló al reservar %lu bytes el archivo XML de configuración\n"
 
 #: xml.c:65
 #, c-format
 msgid "Failed to read XML config file: %s\n"
-msgstr ""
+msgstr "Falló al leer el archivo XML de configuración %s\n"
 
 #: xml.c:95 xml.c:118
 #, c-format
@@ -2592,3 +2588,6 @@ msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""
 "Servidor «%s» no listado en la configuración; se trata como nombre de "
 "servidor crudo\n"
+
+#~ msgid "Failed to initialise DTLS secret\n"
+#~ msgstr "Falló al inicializar el secreto DTLS\n"
