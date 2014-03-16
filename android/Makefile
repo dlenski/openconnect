@@ -295,7 +295,7 @@ tomcrypt: $(TOMCRYPT_DEPS)
 #
 # Build libstoken
 #
-STOKEN_VER := 0.2
+STOKEN_VER := 0.5
 STOKEN_SRC := sources/stoken-$(STOKEN_VER)
 STOKEN_BUILD := $(TRIPLET)/stoken
 
@@ -305,7 +305,6 @@ stoken-$(STOKEN_VER).tar.gz:
 $(STOKEN_SRC)/configure: stoken-$(STOKEN_VER).tar.gz
 	mkdir -p sources
 	tar xfz $< -C sources
-	cd $(STOKEN_SRC) && patch -p1 < ../../0001-Remove-call-to-mlockall.patch
 	touch $@
 
 $(STOKEN_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(STOKEN_SRC)/configure $(TOMCRYPT_DEPS)
