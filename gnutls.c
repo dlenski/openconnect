@@ -848,6 +848,7 @@ static int import_openssl_pem(struct openconnect_info *vpninfo,
 		if (pass) {
 			vpn_progress(vpninfo, PRG_ERR,  _("Decrypting PEM key failed\n"));
 			free(pass);
+			pass = NULL;
 		}
 		err = request_passphrase(vpninfo, "openconnect_pem",
 					 &pass, _("Enter PEM pass phrase:"));
