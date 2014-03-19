@@ -208,6 +208,7 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("TUNSETIFF failed: %s\n"),
 			     strerror(errno));
+		close(tun_fd);
 		return -EIO;
 	}
 	if (!vpninfo->ifname)
@@ -315,6 +316,7 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 	i = 1;
 	if (ioctl(tun_fd, TUNSIFHEAD, &i) < 0) {
 		perror(_("TUNSIFHEAD"));
+		close(tun_fd);
 		return -EIO;
 	}
 #endif
