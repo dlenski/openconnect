@@ -305,6 +305,13 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	return -EINVAL;
 }
 
+void dtls_shutdown(struct openconnect_info *vpninfo)
+{
+	dtls_close(vpninfo);
+	SSL_CTX_free(vpninfo->dtls_ctx);
+	SSL_SESSION_free(vpninfo->dtls_session);
+}
+
 #elif defined(DTLS_GNUTLS)
 #include <gnutls/dtls.h>
 
@@ -443,6 +450,11 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	vpninfo->dtls_state = DTLS_SLEEPING;
 	time(&vpninfo->new_dtls_started);
 	return -EINVAL;
+}
+
+void dtls_shutdown(struct openconnect_info *vpninfo)
+{
+	dtls_close(vpninfo);
 }
 #endif
 
@@ -887,6 +899,10 @@ int dtls_reconnect(struct openconnect_info *vpninfo)
 }
 
 void dtls_close(struct openconnect_info *vpninfo)
+{
+}
+
+void dtls_shutdown(struct openconnect_info *vpninfo)
 {
 }
 #endif
