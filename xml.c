@@ -34,7 +34,7 @@ static int load_xml_conf_file(struct openconnect_info *vpninfo, char **ptr,
 {
 	struct stat st;
 	int fd;
-	char *xmlfile;
+	char *xmlfile = NULL;
 
 	fd = open(vpninfo->xmlconfig, O_RDONLY);
 	if (fd < 0) {
@@ -48,8 +48,7 @@ static int load_xml_conf_file(struct openconnect_info *vpninfo, char **ptr,
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to fstat() XML config file: %s\n"),
 			     strerror(errno));
-		close(fd);
-		return -1;
+		goto err;
 	}
 
 	xmlfile = malloc(st.st_size);
@@ -57,16 +56,14 @@ static int load_xml_conf_file(struct openconnect_info *vpninfo, char **ptr,
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to allocate %lu bytes for XML config file\n"),
 			     (unsigned long)st.st_size);
-		return -1;
+		goto err;
 	}
 
 	if (read(fd, xmlfile, st.st_size) != st.st_size) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to read XML config file: %s\n"),
 			     strerror(errno));
-		close(fd);
-		free(xmlfile);
-		return -1;
+		goto err;
 	}
 
 	*ptr = xmlfile;
@@ -75,6 +72,11 @@ static int load_xml_conf_file(struct openconnect_info *vpninfo, char **ptr,
 	close(fd);
 
 	return 1;
+
+err:
+	close(fd);
+	free(xmlfile);
+	return -1;
 }
 
 int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
