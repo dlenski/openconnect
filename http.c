@@ -1094,6 +1094,8 @@ newgroup:
 			goto fail;
 
 		if (cert_rq) {
+			free_auth_form(form);
+			form = NULL;
 			if (vpninfo->cert) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Server requested SSL client certificate after one was provided\n"));
