@@ -1016,7 +1016,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	char request_body[2048];
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
-	char *orig_host = NULL, *orig_path = NULL;
+	char *orig_host = NULL, *orig_path = NULL, *form_path = NULL;
 	int orig_port = 0;
 	int cert_rq;
 
@@ -1131,7 +1131,6 @@ newgroup:
 
 	/* Step 4: Run the CSD trojan, if applicable */
 	if (vpninfo->csd_starturl && vpninfo->csd_waiturl) {
-		char *form_path = NULL;
 		buflen = 0;
 
 		if (vpninfo->urlpath) {
@@ -1181,6 +1180,7 @@ newgroup:
 		/* refresh the form page, to see if we're authorized now */
 		free(vpninfo->urlpath);
 		vpninfo->urlpath = form_path;
+		form_path = NULL;
 
 		result = do_https_request(vpninfo,
 					  vpninfo->xmlpost ? "POST" : "GET",
@@ -1259,6 +1259,7 @@ newgroup:
 	result = 0;
 
 out:
+	free(form_path);
 	free(form_buf);
 	free_auth_form(form);
 
