@@ -881,6 +881,11 @@ int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_pe
 	return -EINVAL;
 }
 
+int dtls_reconnect(struct openconnect_info *vpninfo)
+{
+	return -EINVAL;
+}
+
 void dtls_close(struct openconnect_info *vpninfo)
 {
 }
