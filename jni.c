@@ -743,10 +743,14 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setCSDWr
 		return;
 	}
 	openconnect_setup_csd(ctx->vpninfo, getuid(), 1, arg0);
+
 	if (arg1)
 		setenv("TMPDIR", arg1, 1);
+	free(arg1);
+
 	if (arg2)
 		setenv("PATH", arg2, 1);
+	free(arg2);
 }
 
 JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setMobileInfo(
@@ -1009,6 +1013,7 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setXMLSH
 {
 	SET_STRING_START()
 	openconnect_set_xmlsha1(ctx->vpninfo, arg, strlen(arg) + 1);
+	free(arg);
 }
 
 JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setHostname(
