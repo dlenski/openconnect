@@ -221,7 +221,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
 	openconnect_SSL_write(vpninfo, buf, strlen(buf));
 
-	if ((i = openconnect_SSL_gets(vpninfo, buf, 65536) < 0)) {
+	if ((i = openconnect_SSL_gets(vpninfo, buf, 65536)) < 0) {
 		if (i == -EINTR)
 			return i;
 		vpn_progress(vpninfo, PRG_ERR,
