@@ -460,7 +460,7 @@ static void add_common_headers(struct openconnect_info *vpninfo, struct oc_text_
 	}
 }
 
-static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
+static int fetch_config(struct openconnect_info *vpninfo, char *bu, char *fu,
 			char *server_sha1)
 {
 	struct oc_text_buf *buf;
@@ -478,7 +478,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *fu, char *bu,
 	}
 
 	buf = buf_alloc();
-	buf_append(buf, "GET %s%s HTTP/1.1\r\n", fu, bu);
+	buf_append(buf, "GET %s%s HTTP/1.1\r\n", bu, fu);
 	add_common_headers(vpninfo, buf);
 	buf_append(buf, "\r\n");
 
