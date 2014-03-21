@@ -911,7 +911,8 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	do_dtls_reconnect:
 		/* succeeded, let's rekey DTLS, if it is not rekeying
 		 * itself. */
-		if (vpninfo->dtls_times.rekey_method == REKEY_NONE) {
+		if (vpninfo->dtls_state != DTLS_DISABLED &&
+		    vpninfo->dtls_times.rekey_method == REKEY_NONE) {
 			dtls_reconnect(vpninfo);
 		}
 
