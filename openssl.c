@@ -403,25 +403,26 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 	   when PKCS12_parse() returns an error, but *ca is left pointing
 	   to the freed memory. */
 	ca = NULL;
-	if (!pass && request_passphrase(vpninfo, "openconnect_pkcs12", &pass,
-					_("Enter PKCS#12 pass phrase:")) < 0) {
-		PKCS12_free(p12);
-		return -EINVAL;
-	}
 	if (!PKCS12_parse(p12, pass, &pkey, &cert, &ca)) {
 		unsigned long err = ERR_peek_error();
-
-		openconnect_report_ssl_errors(vpninfo);
 
 		if (ERR_GET_LIB(err) == ERR_LIB_PKCS12 &&
 		    ERR_GET_FUNC(err) == PKCS12_F_PKCS12_PARSE &&
 		    ERR_GET_REASON(err) == PKCS12_R_MAC_VERIFY_FAILURE) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Parse PKCS#12 failed (wrong passphrase?)\n"));
+			if (pass)
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to decrypt PKCS#12 certificate file\n"));
 			free(pass);
-			pass = NULL;
+			if (request_passphrase(vpninfo, "openconnect_pkcs12", &pass,
+					       _("Enter PKCS#12 pass phrase:")) < 0) {
+				PKCS12_free(p12);
+				return -EINVAL;
+			}
+
 			goto retrypass;
 		}
+
+		openconnect_report_ssl_errors(vpninfo);
 
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Parse PKCS#12 failed (see above errors)\n"));
