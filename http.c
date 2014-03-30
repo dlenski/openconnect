@@ -1018,7 +1018,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	const char *method = "POST";
 	char *orig_host = NULL, *orig_path = NULL, *form_path = NULL;
 	int orig_port = 0;
-	int cert_rq;
+	int cert_rq, cert_sent = !vpninfo->cert;
 
 	/* Step 1: Unlock software token (if applicable) */
 	if (vpninfo->token_mode == OC_TOKEN_MODE_STOKEN) {
@@ -1082,6 +1082,12 @@ newgroup:
 		if (buflen < 0)
 			return buflen;
 
+		/* Some ASAs forget to send the TLS cert request on the initial connection.
+		 * If we have a client cert, disable HTTP keepalive until we get a real
+		 * login form (not a redirect). */
+		if (!cert_sent)
+			openconnect_close_https(vpninfo, 0);
+
 		/* XML POST does not allow local redirects, but GET does. */
 		if (vpninfo->xmlpost &&
 		    vpninfo->redirect_type == REDIR_TYPE_LOCAL)
@@ -1094,25 +1100,25 @@ newgroup:
 			goto fail;
 
 		if (cert_rq) {
+			int cert_failed = 0;
+
 			free_auth_form(form);
 			form = NULL;
-			if (vpninfo->cert) {
+
+			if (!cert_sent && vpninfo->cert) {
+				/* Try again on a fresh connection. */
+				cert_sent = 1;
+			} else if (cert_sent && vpninfo->cert) {
+				/* Try again with <client-cert-fail/> in the request */
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Server requested SSL client certificate after one was provided\n"));
-				/* Continue anyway. Authentication will probably fail but there might
-				 * be special login options which are username/password only. If there
-				 * is some special tag we're supposed to include in our 'init' XML
-				 * to make the server actually look for the client cert, and merely
-				 * having it present in the SSL negotiation isn't sufficient, then
-				 * perhaps this is a bug. And users might need too use --no-xmlpost
-				 * to make things work. */
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("Try the --no-xmlpost option. If that works, please report as an OpenConnect bug\n"));
+				cert_failed = 1;
 			} else {
-				vpn_progress(vpninfo, PRG_INFO, _("Server requested SSL client certificate; none was configured\n"));
+				vpn_progress(vpninfo, PRG_INFO,
+					     _("Server requested SSL client certificate; none was configured\n"));
+				cert_failed = 1;
 			}
-			/* Try again with <client-cert-fail/> in the request */
-			result = xmlpost_initial_req(vpninfo, request_body, sizeof(request_body), 1);
+			result = xmlpost_initial_req(vpninfo, request_body, sizeof(request_body), cert_failed);
 			if (result < 0)
 				goto fail;
 			continue;
