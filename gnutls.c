@@ -345,7 +345,15 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 
 	pass = vpninfo->cert_password;
 	while ((err = gnutls_pkcs12_verify_mac(p12, pass)) == GNUTLS_E_MAC_VERIFY_FAILED) {
-		if (pass)
+		if (!pass) {
+			/* OpenSSL's PKCS12_parse() code will try both NULL and "" automatically,
+			 * but GnuTLS requires two separate attempts. */
+			err = gnutls_pkcs12_verify_mac(p12, "");
+			if (err != GNUTLS_E_MAC_VERIFY_FAILED) {
+				pass = strdup("");
+				break;
+			}
+		} else
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to decrypt PKCS#12 certificate file\n"));
 		free(pass);
