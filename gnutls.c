@@ -349,7 +349,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 			/* OpenSSL's PKCS12_parse() code will try both NULL and "" automatically,
 			 * but GnuTLS requires two separate attempts. */
 			err = gnutls_pkcs12_verify_mac(p12, "");
-			if (err != GNUTLS_E_MAC_VERIFY_FAILED) {
+			if (!err) {
 				pass = strdup("");
 				break;
 			}
