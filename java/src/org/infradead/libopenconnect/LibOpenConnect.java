@@ -76,7 +76,7 @@ public abstract class LibOpenConnect {
 	/* async requests (safe to call from any thread) */
 
 	public void cancel() {
-		synchronized (cancelLock) {
+		synchronized (asyncLock) {
 			if (!canceled) {
 				doCancel();
 				canceled = true;
@@ -85,7 +85,7 @@ public abstract class LibOpenConnect {
 	}
 
 	public boolean isCanceled() {
-		synchronized (cancelLock) {
+		synchronized (asyncLock) {
 			return canceled;
 		}
 	}
@@ -255,7 +255,7 @@ public abstract class LibOpenConnect {
 
 	long libctx;
 	boolean canceled = false;
-	Object cancelLock = new Object();
+	Object asyncLock = new Object();
 
 	static synchronized native void globalInit();
 	static {

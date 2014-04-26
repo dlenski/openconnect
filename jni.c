@@ -28,6 +28,7 @@
 struct libctx {
 	JNIEnv *jenv;
 	jobject jobj;
+	jobject async_lock;
 	struct openconnect_info *vpninfo;
 	OPENCONNECT_X509 *cert;
 	int cmd_fd;
@@ -520,6 +521,17 @@ out:
 
 /* Library init/uninit */
 
+static jobject init_async_lock(struct libctx *ctx)
+{
+	jclass jcls = (*ctx->jenv)->GetObjectClass(ctx->jenv, ctx->jobj);
+	jfieldID jfld = (*ctx->jenv)->GetFieldID(ctx->jenv, jcls, "asyncLock", "Ljava/lang/Object;");
+	jobject jobj = (*ctx->jenv)->GetObjectField(ctx->jenv, ctx->jobj, jfld);
+
+	if (jobj)
+		jobj = (*ctx->jenv)->NewGlobalRef(ctx->jenv, jobj);
+	return jobj;
+}
+
 JNIEXPORT jlong JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_init(
 	JNIEnv *jenv, jobject jobj, jstring juseragent)
 {
@@ -533,6 +545,9 @@ JNIEXPORT jlong JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_init(
 	ctx->jobj = (*jenv)->NewGlobalRef(jenv, jobj);
 	if (!ctx->jobj)
 		goto bad_free_ctx;
+	ctx->async_lock = init_async_lock(ctx);
+	if (!ctx->async_lock)
+		goto bad_delete_obj_ref;
 
 	useragent = (char *)(*jenv)->GetStringUTFChars(jenv, juseragent, NULL);
 	if (!useragent)
@@ -559,6 +574,8 @@ JNIEXPORT jlong JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_init(
 bad_free_vpninfo:
 	openconnect_vpninfo_free(ctx->vpninfo);
 bad_delete_ref:
+	(*jenv)->DeleteGlobalRef(jenv, ctx->async_lock);
+bad_delete_obj_ref:
 	(*jenv)->DeleteGlobalRef(jenv, ctx->jobj);
 bad_free_ctx:
 	free(ctx);
@@ -575,6 +592,7 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_free(
 	if (!ctx)
 		return;
 	openconnect_vpninfo_free(ctx->vpninfo);
+	(*jenv)->DeleteGlobalRef(jenv, ctx->async_lock);
 	(*jenv)->DeleteGlobalRef(jenv, ctx->jobj);
 	free(ctx);
 }
