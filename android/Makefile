@@ -50,6 +50,15 @@ CONFIGURE_ARGS := --host=$(TRIPLET) --prefix=$(OC_SYSROOT) \
 		  --disable-shared --enable-static \
 		  CFLAGS="$(EXTRA_CFLAGS)"
 
+SOURCE_LIST = $(LIBXML2_SRC)/configure $(GMP_SRC)/configure \
+	$(NETTLE_SRC)/configure $(GNUTLS_SRC)/configure \
+	$(TOMCRYPT_DIR)/makefile $(STOKEN_SRC)/configure \
+	$(OATH_SRC)/configure
+
+PKG_LIST := LIBXML2 OPENSSL GMP NETTLE GNUTLS TOMCRYPT STOKEN OATH
+
+MIRROR_TEST_TARGETS := $(addprefix mirror-test-,$(PKG_LIST))
+
 all: openconnect
 
 #####################################################################
@@ -399,8 +408,20 @@ openconnect: $(OPENCONNECT_BUILD)/Makefile
 	make -C $(OPENCONNECT_BUILD)
 	make -C $(OPENCONNECT_BUILD) install-strip DESTDIR=$(DESTDIR)
 
+
+#####################################################################
+#
+# Special targets for maintainer use
+#
+
 # download + extract, but do not build
-sources: $(LIBXML2_SRC)/configure $(GMP_SRC)/configure \
-	$(NETTLE_SRC)/configure $(GNUTLS_SRC)/configure \
-	$(TOMCRYPT_DIR)/makefile $(STOKEN_SRC)/configure \
-	$(OATH_SRC)/configure
+.PHONY: sources
+sources: $(SOURCE_LIST)
+
+.PHONY: $(MIRROR_TEST_TARGETS)
+$(MIRROR_TEST_TARGETS) : mirror-test-% :
+	$(FETCH) --mirror-test $($(*)_TAR) $($(*)_SHA1)
+
+# (re)test all mirrors for all packages. safe for use with "make -jN"
+.PHONY: mirror-test
+mirror-test: $(MIRROR_TEST_TARGETS)
