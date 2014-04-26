@@ -127,9 +127,9 @@ libxml: $(LIBXML_DEPS)
 #
 # Build OpenSSL for Android
 #
-OPENSSL_VER := 1.0.1e
+OPENSSL_VER := 1.0.1g
 OPENSSL_TAR := openssl-$(OPENSSL_VER).tar.gz
-OPENSSL_SHA1 := 3f1b1223c9e8189bfe4e186d86449775bd903460
+OPENSSL_SHA1 := b28b3bcb1dc3ee7b55024c9f795be60eb3183e3c
 OPENSSL_DIR := $(TRIPLET)/openssl-$(OPENSSL_VER)
 
 $(OPENSSL_TAR):
@@ -138,7 +138,6 @@ $(OPENSSL_TAR):
 $(OPENSSL_DIR)/Configure: $(OPENSSL_TAR)
 	mkdir -p $(TRIPLET)
 	tar xfz $< -C $(TRIPLET)
-	cd $(OPENSSL_DIR) && patch -p1 < ../../0001-Check-DTLS_BAD_VER-for-version-number.patch
 	touch $(OPENSSL_DIR)/Configure # Make sure it's newer than Makefile and tarball
 
 $(OPENSSL_DIR)/Makefile: $(TOOLCHAIN_BUILT) $(OPENSSL_DIR)/Configure
