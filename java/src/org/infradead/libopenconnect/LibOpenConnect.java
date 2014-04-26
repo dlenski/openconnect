@@ -92,6 +92,7 @@ public abstract class LibOpenConnect {
 
 	public native void pause();
 	public native void requestStats();
+	public native void setLogLevel(int level);
 
 	/* control operations */
 
@@ -108,7 +109,6 @@ public abstract class LibOpenConnect {
 
 	/* connection settings */
 
-	public synchronized native void setLogLevel(int level);
 	public synchronized native int passphraseFromFSID();
 	public synchronized native void setCertExpiryWarning(int seconds);
 	public synchronized native int setHTTPProxy(String proxy);

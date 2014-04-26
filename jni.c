@@ -488,10 +488,14 @@ static void progress_cb(void *privdata, int level, const char *fmt, ...)
 	va_list ap;
 	char *msg;
 	jstring jmsg;
-	int ret;
+	int ret, loglevel;
 	jmethodID mid;
 
-	if (level > ctx->loglevel)
+	(*ctx->jenv)->MonitorEnter(ctx->jenv, ctx->async_lock);
+	loglevel = ctx->loglevel;
+	(*ctx->jenv)->MonitorExit(ctx->jenv, ctx->async_lock);
+
+	if (level > loglevel)
 		return;
 
 	va_start(ap, fmt);
@@ -930,7 +934,10 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setLogLe
 
 	if (!ctx)
 		return;
+
+	(*ctx->jenv)->MonitorEnter(ctx->jenv, ctx->async_lock);
 	ctx->loglevel = arg;
+	(*ctx->jenv)->MonitorExit(ctx->jenv, ctx->async_lock);
 }
 
 JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setupTunFD(
