@@ -44,6 +44,7 @@ PKG_CONFIG_LIBDIR := $(OC_SYSROOT)/lib/pkgconfig
 export PATH PKG_CONFIG_LIBDIR
 
 MAKEINSTALL=$(MAKE) INSTALL=$(TOPDIR)/install_symlink.sh
+FETCH=$(TOPDIR)/fetch.sh
 
 CONFIGURE_ARGS := --host=$(TRIPLET) --prefix=$(OC_SYSROOT) \
 		  --disable-shared --enable-static \
@@ -70,11 +71,12 @@ $(TOOLCHAIN_BUILT):
 # Build libxml2 with minimal configuration for OpenConnect
 #
 LIBXML2_VER := 2.9.0
+LIBXML2_SHA1 := a43d7c0a8e463ac5a7846254f2a732a9af146fab
 LIBXML2_SRC := sources/libxml2-$(LIBXML2_VER)
 LIBXML2_BUILD := $(TRIPLET)/libxml2
 
 libxml2-$(LIBXML2_VER).tar.gz:
-	curl ftp://xmlsoft.org/libxml2/libxml2-$(LIBXML2_VER).tar.gz -o $@.tmp && mv $@.tmp $@
+	$(FETCH) $@ $(LIBXML2_SHA1)
 
 $(LIBXML2_SRC)/configure: libxml2-$(LIBXML2_VER).tar.gz
 	mkdir -p sources
@@ -116,10 +118,11 @@ libxml: $(LIBXML_DEPS)
 # Build OpenSSL for Android
 #
 OPENSSL_VER := 1.0.1e
+OPENSSL_SHA1 := 3f1b1223c9e8189bfe4e186d86449775bd903460
 OPENSSL_DIR := $(TRIPLET)/openssl-$(OPENSSL_VER)
 
 openssl-$(OPENSSL_VER).tar.gz:
-	curl http://www.openssl.org/source/openssl-$(OPENSSL_VER).tar.gz -o $@.tmp && mv $@.tmp $@
+	$(FETCH) $@ $(OPENSSL_SHA1)
 
 $(OPENSSL_DIR)/Configure: openssl-$(OPENSSL_VER).tar.gz
 	mkdir -p $(TRIPLET)
@@ -152,11 +155,12 @@ openssl: $(OPENSSL_DEPS)
 # Build GNU MP
 #
 GMP_VER := 5.1.2
+GMP_SHA1 := 2cb498322b9be4713829d94dee944259c017d615
 GMP_SRC := sources/gmp-$(GMP_VER)
 GMP_BUILD := $(TRIPLET)/gmp
 
 gmp-$(GMP_VER).tar.bz2:
-	curl ftp://ftp.gmplib.org/pub/gmp/gmp-$(GMP_VER).tar.bz2 -o $@.tmp && mv $@.tmp $@
+	$(FETCH) $@ $(GMP_SHA1)
 
 $(GMP_SRC)/configure: gmp-$(GMP_VER).tar.bz2
 	mkdir -p sources
@@ -184,10 +188,11 @@ gmp: $(GMP_DEPS)
 # Build nettle
 #
 NETTLE_VER := 2.7
+NETTLE_SHA1 := e17de3678b987841e88a724b7d2f6856d97ab139
 NETTLE_SRC := sources/nettle-$(NETTLE_VER)
 NETTLE_BUILD := $(TRIPLET)/nettle
 nettle-$(NETTLE_VER).tar.gz:
-	curl http://www.lysator.liu.se/~nisse/archive/nettle-$(NETTLE_VER).tar.gz -o $@.tmp && mv $@.tmp $@
+	$(FETCH) $@ $(NETTLE_SHA1)
 
 $(NETTLE_SRC)/configure: nettle-$(NETTLE_VER).tar.gz
 	mkdir -p sources
@@ -214,11 +219,12 @@ nettle: $(NETTLE_DEPS)
 # Build GnuTLS
 #
 GNUTLS_VER := 3.2.12
+GNUTLS_SHA1 := bf14fdd897d572091b51a71070ed91332a0376a4
 GNUTLS_SRC := sources/gnutls-$(GNUTLS_VER)
 GNUTLS_BUILD := $(TRIPLET)/gnutls
 
 gnutls-$(GNUTLS_VER).tar.xz:
-	curl ftp://ftp.gnutls.org/gcrypt/gnutls/v3.2/$@ -o $@.tmp && mv $@.tmp $@
+	$(FETCH) $@ $(GNUTLS_SHA1)
 
 $(GNUTLS_SRC)/configure: gnutls-$(GNUTLS_VER).tar.xz
 	mkdir -p sources
@@ -262,10 +268,11 @@ gnutls: $(GNUTLS_DEPS)
 # Build libtomcrypt
 #
 TOMCRYPT_VER := 1.17
+TOMCRYPT_SHA1 := 9c746822c84e4276e432b64964f94d1d5ddd13ad
 TOMCRYPT_DIR := $(TRIPLET)/libtomcrypt-$(TOMCRYPT_VER)
 
 crypt-$(TOMCRYPT_VER).tar.bz2:
-	curl http://libtom.org/files/crypt-$(TOMCRYPT_VER).tar.bz2 -o $@.tmp && mv $@.tmp $@
+	$(FETCH) $@ $(TOMCRYPT_SHA1)
 
 $(TOMCRYPT_DIR)/makefile: crypt-$(TOMCRYPT_VER).tar.bz2
 	mkdir -p $(TRIPLET)
@@ -296,11 +303,12 @@ tomcrypt: $(TOMCRYPT_DEPS)
 # Build libstoken
 #
 STOKEN_VER := 0.5
+STOKEN_SHA1 := 1fcc026580a3cf28904212f34ae2cf2180586f86
 STOKEN_SRC := sources/stoken-$(STOKEN_VER)
 STOKEN_BUILD := $(TRIPLET)/stoken
 
 stoken-$(STOKEN_VER).tar.gz:
-	curl -L http://sourceforge.net/projects/stoken/files/stoken-$(STOKEN_VER).tar.gz/download -o $@.tmp && mv $@.tmp $@
+	$(FETCH) $@ $(STOKEN_SHA1)
 
 $(STOKEN_SRC)/configure: stoken-$(STOKEN_VER).tar.gz
 	mkdir -p sources
@@ -328,11 +336,12 @@ stoken: $(STOKEN_DEPS)
 # Build liboath
 #
 OATH_VER := 2.4.0
+OATH_SHA1 := 89d2cd30dd401a3f6973ec3c2b26f1cb737764a7
 OATH_SRC := sources/oath-toolkit-$(OATH_VER)
 OATH_BUILD := $(TRIPLET)/oath
 
 oath-toolkit-$(OATH_VER).tar.gz:
-	curl -L http://download.savannah.gnu.org/releases/oath-toolkit/oath-toolkit-$(OATH_VER).tar.gz -o $@.tmp && mv $@.tmp $@
+	$(FETCH) $@ $(OATH_SHA1)
 
 $(OATH_SRC)/configure: oath-toolkit-$(OATH_VER).tar.gz
 	mkdir -p sources
