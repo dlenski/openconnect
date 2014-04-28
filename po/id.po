@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2014-03-05 11:09+0000\n"
+"POT-Creation-Date: 2014-04-28 13:14+0100\n"
 "PO-Revision-Date: 2012-11-15 08:31+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Indonesian (http://www.transifex.com/projects/p/meego/"
@@ -142,17 +142,17 @@ msgstr "Tak bisa menjangkitkan kode token OATH TOTP: %s\n"
 
 #: auth.c:1301
 msgid "Generating OATH HOTP token code\n"
-msgstr ""
+msgstr "Menjangkitkan kode token OATH HOTP\n"
 
 #: auth.c:1310
 #, c-format
 msgid "Unable to generate OATH HOTP token code: %s\n"
-msgstr ""
+msgstr "Tak bisa menjangkitkan kode token OATH HOTP: %s\n"
 
 #: compat.c:207
 #, c-format
 msgid "ERROR: Cannot initialize sockets\n"
-msgstr ""
+msgstr "GALAT: Tak bisa menginisialisasi soket\n"
 
 #: cstp.c:109
 #, c-format
@@ -164,220 +164,216 @@ msgstr "TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"
 msgid "TCP_MAXSEG %d\n"
 msgstr "TCP_MAXSEG %d\n"
 
-#: cstp.c:202
-msgid "Failed to initialise DTLS secret\n"
-msgstr "Gagal menginisialisasi rahasia DTLS\n"
-
-#: cstp.c:237 http.c:193
+#: cstp.c:228 http.c:193
 msgid "Error fetching HTTPS response\n"
 msgstr "Galat saat mengambil respon HTTPS\n"
 
-#: cstp.c:244 http.c:475 http.c:935
+#: cstp.c:235 http.c:475 http.c:935
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "Gagal membuka koneksi HTTPS ke %s\n"
 
-#: cstp.c:264
+#: cstp.c:255
 #, c-format
 msgid "VPN service unavailable; reason: %s\n"
 msgstr "Layanan VPN tak tersedia; alasan: %s\n"
 
-#: cstp.c:269
+#: cstp.c:260
 #, c-format
 msgid "Got inappropriate HTTP CONNECT response: %s\n"
 msgstr "Mendapat respon HTTP CONNECT yang tak sepantasnya: %s\n"
 
-#: cstp.c:276
+#: cstp.c:267
 #, c-format
 msgid "Got CONNECT response: %s\n"
 msgstr "Mendapat respon CONNECT: %s\n"
 
-#: cstp.c:304 cstp.c:312
+#: cstp.c:295 cstp.c:303
 msgid "No memory for options\n"
 msgstr "Tak ada memori bagi opsi\n"
 
-#: cstp.c:321 http.c:253
+#: cstp.c:312 http.c:253
 msgid "<elided>"
 msgstr "<tak dibunyikan>"
 
-#: cstp.c:336
+#: cstp.c:327
 #, c-format
 msgid "X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"
 msgstr "X-DTLS-Session-ID buka 64 karacter; yaitu: \"%s\"\n"
 
-#: cstp.c:373
+#: cstp.c:363
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
 msgstr "CSTP-Content-Encoding %s tak dikenal\n"
 
-#: cstp.c:443
+#: cstp.c:433
 msgid "No MTU received. Aborting\n"
 msgstr "MTU tak diterima. Menggugurkan\n"
 
-#: cstp.c:450
+#: cstp.c:440
 msgid "No IP address received. Aborting\n"
 msgstr "Alamat IP tak diterima. Menggugurkan\n"
 
-#: cstp.c:456
+#: cstp.c:446
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr "Menyambung ulang memberi alamat IP Legacy yang berbeda (%s != %s)\n"
 
-#: cstp.c:464
+#: cstp.c:454
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr "Menyambung ulang memberi netmask IP Legacy yang berbeda (%s != %s)\n"
 
-#: cstp.c:472
+#: cstp.c:462
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
 msgstr "Menyambung ulang memberi alamat IPv6 yang berbeda (%s != %s)\n"
 
-#: cstp.c:480
+#: cstp.c:470
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr "Menyambung ulang memberi netmask IPv6 yang berbeda (%s != %s)\n"
 
-#: cstp.c:500
+#: cstp.c:490
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr "CSTP tersambung. DPD %d, Keepalive %d\n"
 
-#: cstp.c:536
+#: cstp.c:526
 msgid "Compression setup failed\n"
 msgstr "Penyiapan kompresi gagal\n"
 
-#: cstp.c:544
+#: cstp.c:534
 msgid "Allocation of deflate buffer failed\n"
 msgstr "Alokasi penyangga deflate gagal\n"
 
-#: cstp.c:588
+#: cstp.c:578
 msgid "Cookie is no longer valid, ending session\n"
-msgstr ""
+msgstr "Cookie tak valid lagi, mengakhiri sesi\n"
 
-#: cstp.c:592
+#: cstp.c:582
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
 msgstr "tidur %dd, tenggang waktu tersisa %dd\n"
 
-#: cstp.c:627
+#: cstp.c:617
 msgid "inflate failed\n"
 msgstr "inflate gagal\n"
 
-#: cstp.c:644
+#: cstp.c:634
 #, c-format
 msgid "Received compressed data packet of %ld bytes\n"
 msgstr "Menerima paket data terkompresi %ld byte\n"
 
-#: cstp.c:663
+#: cstp.c:653
 #, c-format
 msgid "SSL read error %d (server probably closed connection); reconnecting.\n"
 msgstr ""
 "Galat baca SSL %d (server mungkin menutup koneksi); menyambung ulang.\n"
 
-#: cstp.c:688
+#: cstp.c:678
 #, c-format
 msgid "SSL_write failed: %d\n"
 msgstr "SSL_write gagal: %d\n"
 
-#: cstp.c:704
+#: cstp.c:694
 #, c-format
 msgid "SSL read error: %s; reconnecting.\n"
 msgstr "Galat SSL read: %s; menyambung ulang.\n"
 
-#: cstp.c:727
+#: cstp.c:717
 #, c-format
 msgid "SSL send failed: %s\n"
 msgstr "SSL send gagal: %s\n"
 
-#: cstp.c:758
+#: cstp.c:748
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
 msgstr "Panjang paket tak diharapkan. SSL_read mengembalikan %d tapi paket\n"
 
-#: cstp.c:770
+#: cstp.c:760
 msgid "Got CSTP DPD request\n"
 msgstr "Mendapat permintaan CSTP DPD\n"
 
-#: cstp.c:776
+#: cstp.c:766
 msgid "Got CSTP DPD response\n"
 msgstr "Mendapat respon CSTP DPD\n"
 
-#: cstp.c:781
+#: cstp.c:771
 msgid "Got CSTP Keepalive\n"
 msgstr "Mendapat CSTP Keepalive\n"
 
-#: cstp.c:786
+#: cstp.c:776
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr "Menerima paket data tak terkompresi %d byte\n"
 
-#: cstp.c:801
+#: cstp.c:791
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
 msgstr "Menerima pemutusan server: %02x '%s'\n"
 
-#: cstp.c:809
+#: cstp.c:799
 msgid "Compressed packet received in !deflate mode\n"
 msgstr "Paket terkompresi diterima dalam mode !deflate\n"
 
-#: cstp.c:817
+#: cstp.c:807
 msgid "received server terminate packet\n"
 msgstr "menerima paket terminasi server\n"
 
-#: cstp.c:824
+#: cstp.c:814
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr "Paket tak dikenal %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
-#: cstp.c:867
+#: cstp.c:857
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr "SSL menulis terlalu sedikit byte! Minta %d, dikirimi %d\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:894
+#: cstp.c:884
 msgid "CSTP rekey due\n"
 msgstr "Kunci ulang CSTP jatuh tempo\n"
 
 #. if we failed rehandshake try establishing a new-tunnel instead of failing
-#: cstp.c:901
+#: cstp.c:891
 msgid "Rehandshake failed; attempting new-tunnel\n"
-msgstr ""
+msgstr "Jabat tangan ulang gagal; mencoba tunnel baru\n"
 
-#: cstp.c:912
+#: cstp.c:902
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr "Pendeteksi Pasangan Mati CSTP mendeteksi pasangan yang mati!\n"
 
-#: cstp.c:916
+#: cstp.c:906
 msgid "Reconnect failed\n"
 msgstr "Sambung ulang gagal\n"
 
-#: cstp.c:931
+#: cstp.c:922
 msgid "Send CSTP DPD\n"
 msgstr "Kirim DPD CSTP\n"
 
-#: cstp.c:942
+#: cstp.c:933
 msgid "Send CSTP Keepalive\n"
 msgstr "Kirim Keepalive CSTP\n"
 
-#: cstp.c:969
+#: cstp.c:960
 #, c-format
 msgid "deflate failed %d\n"
 msgstr "deflate gagal %d\n"
 
-#: cstp.c:989
+#: cstp.c:980
 #, c-format
 msgid "Sending compressed data packet of %d bytes\n"
 msgstr "Mengirim paket data terkompresi %d byte\n"
 
-#: cstp.c:1001
+#: cstp.c:992
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr "Mengirim paket data tak terkompresi %d byte\n"
 
-#: cstp.c:1041
+#: cstp.c:1032
 #, c-format
 msgid "Send BYE packet: %s\n"
 msgstr "Kirim paket BYE: %s\n"
@@ -414,19 +410,19 @@ msgstr ""
 #: dtls.c:215
 #, c-format
 msgid "Established DTLS connection (using OpenSSL). Ciphersuite %s.\n"
-msgstr ""
+msgstr "Terjalin koneksi DTLS (memakai OpenSSL). Ciphersuite %s.\n"
 
-#: dtls.c:240
+#: dtls.c:241
 msgid "Your OpenSSL is older than the one you built against, so DTLS may fail!"
 msgstr ""
 "OpenSSL Anda lebih tua daripada yang Anda pakai untuk membangun, sehingga "
 "DTLS mungkin gagal!"
 
-#: dtls.c:289 dtls.c:293 dtls.c:432
+#: dtls.c:290 dtls.c:294 dtls.c:441
 msgid "DTLS handshake timed out\n"
 msgstr "Habis waktu jabat tangan DTLS\n"
 
-#: dtls.c:290
+#: dtls.c:291
 msgid ""
 "This is probably because your OpenSSL is broken\n"
 "See http://rt.openssl.org/Ticket/Display.html?id=2984\n"
@@ -434,160 +430,160 @@ msgstr ""
 "Ini mungkin karena OpenSSL Anda rusak\n"
 "Lihat http://rt.openssl.org/Ticket/Display.html?id=2984\n"
 
-#: dtls.c:297
+#: dtls.c:298
 #, c-format
 msgid "DTLS handshake failed: %d\n"
 msgstr "Jabat tangan DTLS gagal: %d\n"
 
-#: dtls.c:345
+#: dtls.c:353
 #, c-format
 msgid "Unknown DTLS parameters for requested CipherSuite '%s'\n"
 msgstr "Parameter DTLS tak dikenal bagi CipherSuite '%s' yang diminta\n"
 
-#: dtls.c:358
+#: dtls.c:366
 #, c-format
 msgid "Failed to set DTLS priority: %s\n"
 msgstr "Gagal menata prioritas DTLS: %s\n"
 
-#: dtls.c:379
+#: dtls.c:387
 #, c-format
 msgid "Failed to set DTLS session parameters: %s\n"
 msgstr "Gagal menata parameter sesi DTLS: %s\n"
 
-#: dtls.c:401
+#: dtls.c:409
 #, c-format
 msgid "Failed to set DTLS MTU: %s\n"
 msgstr "Gagal menata MTU DTLS: %s\n"
 
-#: dtls.c:420
+#: dtls.c:428
 #, c-format
 msgid "Established DTLS connection (using GnuTLS). Ciphersuite %s.\n"
-msgstr ""
+msgstr "Terjalink koneksi DTLS (memakai GnuTLS). Ciphersuite %s.\n"
 
-#: dtls.c:435
+#: dtls.c:444
 #, c-format
 msgid "DTLS handshake failed: %s\n"
 msgstr "Jabat tangan DTLS gagal: %s\n"
 
-#: dtls.c:453
+#: dtls.c:467
 msgid "DTLS connection attempted with an existing fd\n"
-msgstr ""
+msgstr "Koneksi DTLS dicoba dengan fd yang ada\n"
 
-#: dtls.c:459
+#: dtls.c:473
 msgid "No DTLS address\n"
 msgstr "Tak ada alamat DTLS\n"
 
 #. We probably didn't offer it any ciphers it liked
-#: dtls.c:466
+#: dtls.c:480
 msgid "Server offered no DTLS cipher option\n"
 msgstr "Server tak menawarkan opsi cipher DTLS\n"
 
 #. XXX: Theoretically, SOCKS5 proxies can do UDP too
-#: dtls.c:473
+#: dtls.c:487
 msgid "No DTLS when connected via proxy\n"
 msgstr "Tak ada DTLS ketika tersambung lewat proksi\n"
 
-#: dtls.c:480
+#: dtls.c:494
 msgid "Open UDP socket for DTLS:"
 msgstr "Buka soket UDP bagi DTLS:"
 
-#: dtls.c:511 dtls.c:640
+#: dtls.c:525 dtls.c:654
 #, c-format
 msgid "Unknown protocol family %d. Cannot do DTLS\n"
 msgstr "Keluarga protokol %d tak dikenal. Tak bisa lakukan DTLS\n"
 
-#: dtls.c:519
+#: dtls.c:533
 msgid "Bind UDP socket for DTLS"
 msgstr "Ikat soket UDP bagi DTLS"
 
-#: dtls.c:526
+#: dtls.c:540
 msgid "UDP (DTLS) connect:\n"
 msgstr "Koneksi UDP (DTLS):\n"
 
-#: dtls.c:592
+#: dtls.c:606
 #, c-format
 msgid "DTLS option %s : %s\n"
 msgstr "Opsi DTLS %s : %s\n"
 
-#: dtls.c:650
+#: dtls.c:664
 #, c-format
 msgid "DTLS initialised. DPD %d, Keepalive %d\n"
 msgstr "DTLS diinisialisasi. DPD %d, Keepalive %d\n"
 
-#: dtls.c:673
+#: dtls.c:687
 msgid "Attempt new DTLS connection\n"
 msgstr "Mencoba koneksi DTLS baru\n"
 
-#: dtls.c:700
+#: dtls.c:714
 #, c-format
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
 msgstr "Diterima paket DTLS 0x%02x dari %d byte\n"
 
-#: dtls.c:714
+#: dtls.c:728
 msgid "Got DTLS DPD request\n"
 msgstr "Mendapat permintaan DTLS DPD\n"
 
-#: dtls.c:720
+#: dtls.c:734
 msgid "Failed to send DPD response. Expect disconnect\n"
 msgstr "Gagal mengirim respon DPD. Mengharapkan pemutusan koneksi\n"
 
-#: dtls.c:724
+#: dtls.c:738
 msgid "Got DTLS DPD response\n"
 msgstr "Mendapat respon DTLS DPD\n"
 
-#: dtls.c:728
+#: dtls.c:742
 msgid "Got DTLS Keepalive\n"
 msgstr "Mendapat DTLS Keepalive\n"
 
-#: dtls.c:733
+#: dtls.c:747
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
 msgstr "Tipe paket DTLS tak dikenal %02x, len %d\n"
 
-#: dtls.c:754
+#: dtls.c:768
 msgid "DTLS rekey due\n"
 msgstr "Kunci ulang DTLS jatuh tempo\n"
 
-#: dtls.c:761
+#: dtls.c:775
 msgid "DTLS Rehandshake failed; reconnecting.\n"
-msgstr ""
+msgstr "Jabat tangan ulang DTLS gagal; menyambung ulang.\n"
 
-#: dtls.c:770
+#: dtls.c:784
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
 msgstr "Pendeteksi Pasangan Mati DTLS mendeteksi pasangan yang mati!\n"
 
-#: dtls.c:776
+#: dtls.c:790
 msgid "Send DTLS DPD\n"
 msgstr "Kirim DPD DTLS\n"
 
-#: dtls.c:781
+#: dtls.c:795
 msgid "Failed to send DPD request. Expect disconnect\n"
 msgstr "Gagal mengirim permintaan DPD. Mengharapkan pemutusan koneksi\n"
 
-#: dtls.c:794
+#: dtls.c:808
 msgid "Send DTLS Keepalive\n"
 msgstr "Kirim Keepalive DTLS\n"
 
-#: dtls.c:799
+#: dtls.c:813
 msgid "Failed to send keepalive request. Expect disconnect\n"
 msgstr "Gagal mengirim permintaan keepalive. Mengharapkan pemutusan koneksi\n"
 
-#: dtls.c:834
+#: dtls.c:848
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
 msgstr "DTLS mendapat galat tulis %d. Berpindah ke SSL\n"
 
-#: dtls.c:849
+#: dtls.c:863
 #, c-format
 msgid "DTLS got write error: %s. Falling back to SSL\n"
 msgstr "DTLS mendapat galat tulis: %s. Berpindah ke SSL\n"
 
-#: dtls.c:866
+#: dtls.c:880
 #, c-format
 msgid "Sent DTLS packet of %d bytes; DTLS send returned %d\n"
 msgstr "Dikirim paket DTLS %d byte; DTLS send mengembalikan %d\n"
 
-#: dtls.c:878
+#: dtls.c:892
 msgid "Built against SSL library with no Cisco DTLS support\n"
 msgstr "Dibangun terhadap pustaka SSL tanpa dukungan DTLS Cisco\n"
 
@@ -600,428 +596,428 @@ msgstr "SSL write dibatalkan\n"
 msgid "Failed to write to SSL socket: %s\n"
 msgstr "Gagal menulis ke soket SSL: %s\n"
 
-#: gnutls.c:116 gnutls.c:176 openssl.c:142 openssl.c:195
+#: gnutls.c:116 gnutls.c:178 openssl.c:142 openssl.c:195
 msgid "SSL read cancelled\n"
 msgstr "SSL read dibatalkan\n"
 
 #. We've seen this with HTTP 1.0 responses followed by abrupt
 #. socket closure and no clean SSL shutdown.
 #. https://bugs.launchpad.net/bugs/1225276
-#: gnutls.c:123
+#: gnutls.c:124
 msgid "SSL socket closed uncleanly\n"
-msgstr ""
+msgstr "Soket SSL ditutup tak secara bersih\n"
 
-#: gnutls.c:126 gnutls.c:181
+#: gnutls.c:128 gnutls.c:183
 #, c-format
 msgid "Failed to read from SSL socket: %s\n"
 msgstr "Gagal baca dari soket SSL: %s\n"
 
-#: gnutls.c:199
+#: gnutls.c:201
 msgid "Could not extract expiration time of certificate\n"
 msgstr "Tak bisa mengekstrak waktu kedaluarsa dari sertifikat\n"
 
-#: gnutls.c:204 openssl.c:1218
+#: gnutls.c:206 openssl.c:1220
 msgid "Client certificate has expired at"
 msgstr "Sertifikat klien telah kedaluarsa pada"
 
-#: gnutls.c:206 openssl.c:1223
+#: gnutls.c:208 openssl.c:1225
 msgid "Client certificate expires soon at"
 msgstr "Sertifikat klien segera kedaluarsa pada"
 
-#: gnutls.c:260 openssl.c:599
+#: gnutls.c:262 openssl.c:600
 #, c-format
 msgid "Failed to load item '%s' from keystore: %s\n"
 msgstr "Gagal memuat butir '%s' dari penyimpanan kunci: %s\n"
 
-#: gnutls.c:273
+#: gnutls.c:275
 #, c-format
 msgid "Failed to open key/certificate file %s: %s\n"
 msgstr "Gagal membuka berkas kunci/sertifikat %s: %s\n"
 
-#: gnutls.c:280
+#: gnutls.c:282
 #, c-format
 msgid "Failed to stat key/certificate file %s: %s\n"
 msgstr "Gagal men-stat berkas kunci/sertifikat %s: %s\n"
 
-#: gnutls.c:289
+#: gnutls.c:291
 msgid "Failed to allocate certificate buffer\n"
 msgstr "Gagal mengalokasikan penyangga sertifikat\n"
 
-#: gnutls.c:297
+#: gnutls.c:299
 #, c-format
 msgid "Failed to read certificate into memory: %s\n"
 msgstr "Gagal membaca sertifikat ke dalam memori: %s\n"
 
-#: gnutls.c:328
+#: gnutls.c:330
 #, c-format
 msgid "Failed to setup PKCS#12 data structure: %s\n"
 msgstr "Gagal menyiapkan struktur data PKCS#12: %s\n"
 
-#: gnutls.c:339
+#: gnutls.c:341
 #, c-format
 msgid "Failed to import PKCS#12 file: %s\n"
 msgstr "Gagal mengimpor berkas PKCS#12: %s\n"
 
-#: gnutls.c:348
+#: gnutls.c:358 openssl.c:414
 msgid "Failed to decrypt PKCS#12 certificate file\n"
 msgstr "Gagal mendekripsi berkas sertifikat PKCS#12\n"
 
-#: gnutls.c:352 openssl.c:407
+#: gnutls.c:362 openssl.c:417
 msgid "Enter PKCS#12 pass phrase:"
 msgstr "Masukkan frasa sandi PKCS#12:"
 
-#: gnutls.c:376
+#: gnutls.c:386
 #, c-format
 msgid "Failed to process PKCS#12 file: %s\n"
 msgstr "Gagal memroses berkas PKCS#12: %s\n"
 
-#: gnutls.c:388
+#: gnutls.c:398
 #, c-format
 msgid "Failed to load PKCS#12 certificate: %s\n"
 msgstr "Gagal memuat sertifikat PKCS#12: %s\n"
 
-#: gnutls.c:548
+#: gnutls.c:558
 #, c-format
 msgid "Importing X509 certificate failed: %s\n"
 msgstr "Pengimporan sertifikat X509 gagal: %s\n"
 
-#: gnutls.c:558
+#: gnutls.c:568
 #, c-format
 msgid "Setting PKCS#11 certificate failed: %s\n"
 msgstr "Penataan sertifikat PKCS#12 gagal: %s\n"
 
-#: gnutls.c:598
+#: gnutls.c:608
 #, c-format
 msgid "Could not initialise MD5 hash: %s\n"
 msgstr "Tak bisa menginisialisasi hash MD5: %s\n"
 
-#: gnutls.c:608
+#: gnutls.c:618
 #, c-format
 msgid "MD5 hash error: %s\n"
 msgstr "Galat hash MD5: %s\n"
 
-#: gnutls.c:666
+#: gnutls.c:676
 msgid "Missing DEK-Info: header from OpenSSL encrypted key\n"
 msgstr "Kurang DEK-Info: header dari kunci terenkripsi OpenSSL\n"
 
-#: gnutls.c:673
+#: gnutls.c:683
 msgid "Cannot determine PEM encryption type\n"
 msgstr "Tak bisa menentukan tipe enkripsi PEM\n"
 
-#: gnutls.c:686
+#: gnutls.c:696
 #, c-format
 msgid "Unsupported PEM encryption type: %s\n"
 msgstr "Tipe enkripsi PEM yang tak didukung: %s\n"
 
-#: gnutls.c:711 gnutls.c:724
+#: gnutls.c:721 gnutls.c:734
 msgid "Invalid salt in encrypted PEM file\n"
 msgstr "Salt tak valid dalam berkas PEM yang terenkripsi\n"
 
-#: gnutls.c:748
+#: gnutls.c:758
 #, c-format
 msgid "Error base64-decoding encrypted PEM file: %s\n"
 msgstr "Galat saat mengawa kode base64 berkas PEM terenkripsi: %s\n"
 
-#: gnutls.c:756
+#: gnutls.c:766
 msgid "Encrypted PEM file too short\n"
 msgstr "Berkas PEM terenkripsi terlalu pendek\n"
 
-#: gnutls.c:784
+#: gnutls.c:794
 #, c-format
 msgid "Failed to initialise cipher for decrypting PEM file: %s\n"
 msgstr "Gagal menginisialisasi cipher untuk pendekripsian berkas PEM: %s\n"
 
-#: gnutls.c:795
+#: gnutls.c:805
 #, c-format
 msgid "Failed to decrypt PEM key: %s\n"
 msgstr "Gagal mendekripsi kunci PEM: %s\n"
 
-#: gnutls.c:847
+#: gnutls.c:857
 msgid "Decrypting PEM key failed\n"
 msgstr "Pendekripsian kunci PEM gagal\n"
 
-#: gnutls.c:851 gnutls.c:1289 openssl.c:372
+#: gnutls.c:862 gnutls.c:1300 openssl.c:372
 msgid "Enter PEM pass phrase:"
 msgstr "Masukkan frasa sandi PEM:"
 
-#: gnutls.c:905 openssl.c:645
+#: gnutls.c:916 openssl.c:646
 msgid "This binary built without PKCS#11 support\n"
 msgstr "Biner ini dibangun tanpa dukungan PKCS#12\n"
 
-#: gnutls.c:955
+#: gnutls.c:966
 #, c-format
 msgid "Using PKCS#11 certificate %s\n"
 msgstr "Memakai sertifikat PKCS#11 %s\n"
 
-#: gnutls.c:968
+#: gnutls.c:979
 #, c-format
 msgid "Error loading certificate from PKCS#11: %s\n"
 msgstr "Galat saat memuat sertifikat dari PKCS#11: %s\n"
 
-#: gnutls.c:979 openssl.c:650
+#: gnutls.c:990 openssl.c:651
 #, c-format
 msgid "Using certificate file %s\n"
 msgstr "Memakai berkas sertifikat %s\n"
 
-#: gnutls.c:1008
+#: gnutls.c:1019
 msgid "PKCS#11 file contained no certificate\n"
 msgstr "Berkas PKCS#11 tak memuat sertifikat\n"
 
-#: gnutls.c:1034
+#: gnutls.c:1045
 msgid "No certificate found in file"
 msgstr "Tak ditemukan sertifikat dalam berkas"
 
-#: gnutls.c:1039
+#: gnutls.c:1050
 #, c-format
 msgid "Loading certificate failed: %s\n"
 msgstr "Pemuatan sertifikat gagal: %s\n"
 
-#: gnutls.c:1054
+#: gnutls.c:1065
 #, c-format
 msgid "Using PKCS#11 key %s\n"
 msgstr "Memakai kunci PKCS#11 %s\n"
 
-#: gnutls.c:1059
+#: gnutls.c:1070
 #, c-format
 msgid "Error initialising PKCS#11 key structure: %s\n"
 msgstr "Galat saat menginisialisasi struktur kunci PKCS#11: %s\n"
 
-#: gnutls.c:1149
+#: gnutls.c:1160
 #, c-format
 msgid "Error importing PKCS#11 URL %s: %s\n"
 msgstr "Galat saat mengimpor URL PKCS#11 %s: %s\n"
 
-#: gnutls.c:1159
+#: gnutls.c:1170
 #, c-format
 msgid "Error initialising private key structure: %s\n"
 msgstr "Galat saat menginisialisasi struktur kunci pribadi: %s\n"
 
-#: gnutls.c:1169
+#: gnutls.c:1180
 #, c-format
 msgid "Error importing PKCS#11 key into private key structure: %s\n"
 msgstr "Galat saat mengimpor kunci PKCS#11 ke struktur kunci pribadi: %s\n"
 
-#: gnutls.c:1197
+#: gnutls.c:1208
 #, c-format
 msgid "Using private key file %s\n"
 msgstr "Memakai berkas kunci pribadi %s\n"
 
-#: gnutls.c:1210 openssl.c:548
+#: gnutls.c:1221 openssl.c:549
 msgid "This version of OpenConnect was built without TPM support\n"
 msgstr "Versi OpenConnect ini dibangun tanpa dukungan TPM\n"
 
-#: gnutls.c:1231
+#: gnutls.c:1242
 msgid "Failed to interpret PEM file\n"
 msgstr "Gagal mengintepretasi berkas PEM\n"
 
-#: gnutls.c:1250
+#: gnutls.c:1261
 #, c-format
 msgid "Failed to load PKCS#1 private key: %s\n"
 msgstr "Gagal memuat kunci privat PKCS#1: %s\n"
 
-#: gnutls.c:1263 gnutls.c:1277
+#: gnutls.c:1274 gnutls.c:1288
 #, c-format
 msgid "Failed to load private key as PKCS#8: %s\n"
 msgstr "Gagal memuat kunci privat sebagai PKCS#8: %s\n"
 
-#: gnutls.c:1285
+#: gnutls.c:1296
 msgid "Failed to decrypt PKCS#8 certificate file\n"
 msgstr "Gagal mendekripsi berkas sertifikat PKCS#8\n"
 
-#: gnutls.c:1299
+#: gnutls.c:1310
 #, c-format
 msgid "Failed to determine type of private key %s\n"
 msgstr "Gagal menentukan jenis kunci privat %s\n"
 
-#: gnutls.c:1311
+#: gnutls.c:1322
 #, c-format
 msgid "Failed to get key ID: %s\n"
 msgstr "Gagal memperoleh ID kunci: %s\n"
 
-#: gnutls.c:1356
+#: gnutls.c:1367
 #, c-format
 msgid "Error signing test data with private key: %s\n"
 msgstr "Galat saat menandatangani data uji dengan kunci privat: %s\n"
 
-#: gnutls.c:1371
+#: gnutls.c:1382
 #, c-format
 msgid "Error validating signature against certificate: %s\n"
 msgstr "Galat saat memvalidasi tanda tangan terhadap sertifikat: %s\n"
 
-#: gnutls.c:1395
+#: gnutls.c:1406
 msgid "No SSL certificate found to match private key\n"
 msgstr "Tak ditemukan sertifikat SSL yang cocok dengan kunci privat\n"
 
-#: gnutls.c:1406 openssl.c:439 openssl.c:576
+#: gnutls.c:1417 openssl.c:440 openssl.c:577
 #, c-format
 msgid "Using client certificate '%s'\n"
 msgstr "Memakai sertifikat klien '%s'\n"
 
-#: gnutls.c:1413
+#: gnutls.c:1424
 #, c-format
 msgid "Setting certificate recovation list failed: %s\n"
 msgstr "Pengaturan daftar pencabutan sertifikat gagal: %s\n"
 
-#: gnutls.c:1434 gnutls.c:1444
+#: gnutls.c:1445 gnutls.c:1455
 msgid "Failed to allocate memory for certificate\n"
-msgstr ""
+msgstr "Gagal mengalokasikan memori untuk sertifikat\n"
 
-#: gnutls.c:1480
+#: gnutls.c:1491
 msgid ""
 "WARNING: GnuTLS returned incorrect issuer certs; authentication may fail!\n"
 msgstr ""
 "PERINGATAN: GnuTLS mengembalikan sert penerbit yang tak benar; otentikasi "
 "mungkin gagal!\n"
 
-#: gnutls.c:1505
+#: gnutls.c:1516
 #, c-format
 msgid "Got next CA '%s' from PKCS11\n"
-msgstr ""
+msgstr "Mendapat CA berikutnya '%s' dari PKCS11\n"
 
-#: gnutls.c:1533
+#: gnutls.c:1544
 msgid "Failed to allocate memory for supporting certificates\n"
 msgstr "Gagal mengalokasikan memori untuk sertifikat pendukung\n"
 
-#: gnutls.c:1556
+#: gnutls.c:1567
 #, c-format
 msgid "Adding supporting CA '%s'\n"
 msgstr "Menambah dukungan CA '%s'\n"
 
-#: gnutls.c:1584
+#: gnutls.c:1595
 #, c-format
 msgid "Setting certificate failed: %s\n"
 msgstr "Penataan sertifikat gagal: %s\n"
 
-#: gnutls.c:1716
+#: gnutls.c:1727
 msgid "Server presented no certificate\n"
 msgstr "Server tak menyajikan sertifikat\n"
 
-#: gnutls.c:1728
+#: gnutls.c:1739
 msgid "Could not calculate SHA1 of server's certificate\n"
 msgstr "Tak bisa menghitung SHA1 dari sertifikat server\n"
 
-#: gnutls.c:1736 openssl.c:832
+#: gnutls.c:1747 openssl.c:834
 #, c-format
 msgid "Server SSL certificate didn't match: %s\n"
 msgstr "Sertifikat SSL server tak cocok: %s\n"
 
-#: gnutls.c:1744
+#: gnutls.c:1755
 msgid "Error checking server cert status\n"
 msgstr "Galat saat memeriksa status sert server\n"
 
-#: gnutls.c:1749
+#: gnutls.c:1760
 msgid "certificate revoked"
 msgstr "sertifikat dicabut"
 
-#: gnutls.c:1751
+#: gnutls.c:1762
 msgid "signer not found"
 msgstr "penandatangan tak ditemukan"
 
-#: gnutls.c:1753
+#: gnutls.c:1764
 msgid "signer not a CA certificate"
 msgstr "penandatangan bukan suatu sertifikat CA"
 
-#: gnutls.c:1755
+#: gnutls.c:1766
 msgid "insecure algorithm"
 msgstr "algoritma tak aman"
 
-#: gnutls.c:1757
+#: gnutls.c:1768
 msgid "certificate not yet activated"
 msgstr "sertifikat belum diaktifkan"
 
-#: gnutls.c:1759
+#: gnutls.c:1770
 msgid "certificate expired"
 msgstr "sertifikat kadaluarsa"
 
 #. If this is set and no other reason, it apparently means
 #. that signature verification failed. Not entirely sure
 #. why we don't just set a bit for that too.
-#: gnutls.c:1764
+#: gnutls.c:1775
 msgid "signature verification failed"
 msgstr "verifikasi tandatangan gagal"
 
-#: gnutls.c:1768
+#: gnutls.c:1779
 msgid "Error initialising X509 cert structure\n"
 msgstr "Galat saat menginisialisasi struktur sert X509\n"
 
-#: gnutls.c:1774
+#: gnutls.c:1785
 msgid "Error importing server's cert\n"
 msgstr "Galat ketika mengimpor sert server\n"
 
-#: gnutls.c:1780 openssl.c:1130
+#: gnutls.c:1791 openssl.c:1132
 msgid "certificate does not match hostname"
 msgstr "sertifikat tak cocok dengan nama host"
 
-#: gnutls.c:1863
+#: gnutls.c:1874
 msgid "Failed to allocate memory for cafile certs\n"
 msgstr "Gagal mengalokasikan memori untuk sert cafile\n"
 
-#: gnutls.c:1884
+#: gnutls.c:1895
 #, c-format
 msgid "Failed to read certs from cafile: %s\n"
 msgstr "Gagal baca sert dari cafile: %s\n"
 
-#: gnutls.c:1900
+#: gnutls.c:1911
 #, c-format
 msgid "Failed to open CA file '%s': %s\n"
 msgstr "Gagal membuka berkas CA '%s': %s\n"
 
-#: gnutls.c:1913 openssl.c:1277
+#: gnutls.c:1924 openssl.c:1279
 msgid "Loading certificate failed. Aborting.\n"
 msgstr "Pemuatan sertifikat gagal. Menggugurkan.\n"
 
-#: gnutls.c:1945
+#: gnutls.c:1956
 #, c-format
 msgid "Failed to set TLS priority string: %s\n"
 msgstr "Gagal menata string prioritas TLS: %s\n"
 
-#: gnutls.c:1957 openssl.c:1372
+#: gnutls.c:1968 openssl.c:1374
 #, c-format
 msgid "SSL negotiation with %s\n"
 msgstr "Negosiasi SSL dengan %s\n"
 
-#: gnutls.c:1994 openssl.c:1398
+#: gnutls.c:2005 openssl.c:1400
 msgid "SSL connection cancelled\n"
 msgstr "Koneksi SSL dibatalkan\n"
 
-#: gnutls.c:2001
+#: gnutls.c:2012
 #, c-format
 msgid "SSL connection failure: %s\n"
 msgstr "Kegagalan koneksi SSL: %s\n"
 
-#: gnutls.c:2010
+#: gnutls.c:2021
 #, c-format
 msgid "GnuTLS non-fatal return during handshake: %s\n"
 msgstr "GnuTLS kembalian tak fatal selama jabat tangan: %s\n"
 
-#: gnutls.c:2016 openssl.c:1418
+#: gnutls.c:2027 openssl.c:1420
 #, c-format
 msgid "Connected to HTTPS on %s\n"
 msgstr "Tersambung ke HTTPS pada %s\n"
 
-#: gnutls.c:2019
+#: gnutls.c:2030
 #, c-format
 msgid "Renegotiated SSL on %s\n"
-msgstr ""
+msgstr "Renegosiasi SSL pada %s\n"
 
-#: gnutls.c:2203
+#: gnutls.c:2214
 #, c-format
 msgid "PIN required for %s"
 msgstr "Diperlukan PIN untuk %s"
 
-#: gnutls.c:2213
+#: gnutls.c:2224
 msgid "Wrong PIN"
 msgstr "PIN salah"
 
-#: gnutls.c:2216
+#: gnutls.c:2227
 msgid "This is the final try before locking!"
 msgstr "Ini adalah percobaan terakhir sebelum penguncian!"
 
-#: gnutls.c:2218
+#: gnutls.c:2229
 msgid "Only a few tries left before locking!"
 msgstr "Hanya beberapa percobaan tersisa sebelum mengunci!"
 
-#: gnutls.c:2223
+#: gnutls.c:2234
 msgid "Enter PIN:"
 msgstr "Masukkan PIN:"
 
@@ -1194,6 +1190,8 @@ msgid ""
 "Error: Running the 'Cisco Secure Desktop' trojan on Windows is not yet "
 "implemented.\n"
 msgstr ""
+"Galat: Menjalankan trojan 'Cisco Secure Desktop' pada Windows belum "
+"diimplementasi.\n"
 
 #: http.c:536
 msgid ""
@@ -1281,165 +1279,157 @@ msgstr "Hasil %d yang tak diharapkan dari server\n"
 msgid "Unknown response from server\n"
 msgstr "Respon tak dikenal dari server\n"
 
-#: http.c:1099
+#: http.c:1114
 msgid "Server requested SSL client certificate after one was provided\n"
 msgstr "Server meminta sertifikat klien SSL setelah satu disediakan\n"
 
-#: http.c:1108
-msgid ""
-"Try the --no-xmlpost option. If that works, please report as an OpenConnect "
-"bug\n"
-msgstr ""
-"Cobalah opsi --no-xmlpost. Bila itu bekerja, harap laporkan sebagai kutu "
-"OpenConnect\n"
-
-#: http.c:1110
+#: http.c:1118
 msgid "Server requested SSL client certificate; none was configured\n"
 msgstr "Server meminta sertifikat klien SSL; tak ada yang dikonfigurasi\n"
 
-#: http.c:1125
+#: http.c:1133
 msgid "XML POST enabled\n"
 msgstr "XML POST difungsikan\n"
 
-#: http.c:1172
+#: http.c:1179
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
 msgstr "Menyegarkan %s setelah 1 detik...\n"
 
-#: http.c:1375
+#: http.c:1384
 msgid "request granted"
 msgstr "permintaan diberikan"
 
-#: http.c:1376
+#: http.c:1385
 msgid "general failure"
 msgstr "kegagalan umum"
 
-#: http.c:1377
+#: http.c:1386
 msgid "connection not allowed by ruleset"
 msgstr "koneksi tidak diijinkan oleh ruleset"
 
-#: http.c:1378
+#: http.c:1387
 msgid "network unreachable"
 msgstr "jaringan tak dapat dijangkau"
 
-#: http.c:1379
+#: http.c:1388
 msgid "host unreachable"
 msgstr "host tak dapat dihubungi"
 
-#: http.c:1380
+#: http.c:1389
 msgid "connection refused by destination host"
 msgstr "koneksi ditolak oleh host tujuan"
 
-#: http.c:1381
+#: http.c:1390
 msgid "TTL expired"
 msgstr "TTL kadaluarsa"
 
-#: http.c:1382
+#: http.c:1391
 msgid "command not supported / protocol error"
 msgstr "perintah tidak didukung / galat protokol"
 
-#: http.c:1383
+#: http.c:1392
 msgid "address type not supported"
 msgstr "tipe alamat tidak didukung"
 
-#: http.c:1397
+#: http.c:1406
 #, c-format
 msgid "Error writing auth request to SOCKS proxy: %s\n"
 msgstr "Galat saat menulis permintaan auth ke proksi SOCKS: %s\n"
 
-#: http.c:1404
+#: http.c:1413
 #, c-format
 msgid "Error reading auth response from SOCKS proxy: %s\n"
 msgstr "Galat saat membaca respon auth dari proksi SOCKS: %s\n"
 
-#: http.c:1410
+#: http.c:1419
 #, c-format
 msgid "Unexpected auth response from SOCKS proxy: %02x %02x\n"
 msgstr "Respon auth yang tak diharapkan dari proksi SOCKS: %02x %02x\n"
 
-#: http.c:1418
+#: http.c:1427
 #, c-format
 msgid "SOCKS proxy error %02x: %s\n"
 msgstr "Galat proksi SOCKS %02x: %s\n"
 
-#: http.c:1422
+#: http.c:1431
 #, c-format
 msgid "SOCKS proxy error %02x\n"
 msgstr "Galat proksi SOCKS %02x\n"
 
-#: http.c:1428
+#: http.c:1437
 #, c-format
 msgid "Requesting SOCKS proxy connection to %s:%d\n"
 msgstr "Meminta koneksi proksi SOCKS ke %s:%d\n"
 
-#: http.c:1443
+#: http.c:1452
 #, c-format
 msgid "Error writing connect request to SOCKS proxy: %s\n"
 msgstr "Galat saat menulis permintaan koneksi ke proksi SOCKS: %s\n"
 
-#: http.c:1451 http.c:1484
+#: http.c:1460 http.c:1493
 #, c-format
 msgid "Error reading connect response from SOCKS proxy: %s\n"
 msgstr "Galat saat membaca respon koneksi dari proksi SOCKS: %s\n"
 
-#: http.c:1457
+#: http.c:1466
 #, c-format
 msgid "Unexpected connect response from SOCKS proxy: %02x %02x...\n"
 msgstr "Respon koneksi yang tak diharapkan dari proksi SOCKS: %02x %02x\n"
 
-#: http.c:1477
+#: http.c:1486
 #, c-format
 msgid "Unexpected address type %02x in SOCKS connect response\n"
 msgstr "Tipe alamat yang tak diharapkan %02x dalam respon koneksi SOCKS\n"
 
-#: http.c:1510
+#: http.c:1519
 #, c-format
 msgid "Requesting HTTP proxy connection to %s:%d\n"
 msgstr "Meminta koneksi proksi HTTP ke %s:%d\n"
 
-#: http.c:1518
+#: http.c:1527
 #, c-format
 msgid "Sending proxy request failed: %s\n"
 msgstr "Pengiriman permintaan proksi gagal: %s\n"
 
-#: http.c:1525
+#: http.c:1534
 msgid "Error fetching proxy response\n"
 msgstr "Galat saat mengambil respon proksi\n"
 
-#: http.c:1532
+#: http.c:1541
 #, c-format
 msgid "Failed to parse proxy response '%s'\n"
 msgstr "Gagal mengurai tanggapan proksi '%s'\n"
 
-#: http.c:1538
+#: http.c:1547
 #, c-format
 msgid "Proxy CONNECT request failed: %s\n"
 msgstr "Permintaan CONNECT proksi gagal: %s\n"
 
-#: http.c:1545
+#: http.c:1554
 msgid "Failed to read proxy response\n"
 msgstr "Gagal baca respon proksi\n"
 
-#: http.c:1549
+#: http.c:1558
 #, c-format
 msgid "Unexpected continuation line after CONNECT response: '%s'\n"
 msgstr "Baris pelanjutan yang tak diharapkan setelah respon CONNECT: '%s'\n"
 
-#: http.c:1565
+#: http.c:1574
 #, c-format
 msgid "Unknown proxy type '%s'\n"
 msgstr "Tipe proksi '%s' tak dikenal\n"
 
-#: http.c:1593
+#: http.c:1602
 msgid "Only http or socks(5) proxies supported\n"
 msgstr "Hanya proksi http atau socks(5) yang didukung\n"
 
-#: library.c:350
+#: library.c:355
 #, c-format
 msgid "Failed to parse server URL '%s'\n"
 msgstr "Gagal mengurai URL server '%s\n"
 
-#: library.c:356
+#: library.c:361
 msgid "Only https:// permitted for server URL\n"
 msgstr "Hanya https:// yang diijinkan bagi URL server\n"
 
@@ -1480,12 +1470,12 @@ msgstr ""
 #: main.c:305
 #, c-format
 msgid "Cannot process this executable path \"%s\""
-msgstr ""
+msgstr "Tak bisa memroses path executable \"%s\" ini"
 
 #: main.c:311
 #, c-format
 msgid "Allocation for vpnc-script path failed\n"
-msgstr ""
+msgstr "Alokasi bagi path vpnc-script gagal\n"
 
 #: main.c:322
 #, c-format
@@ -1563,7 +1553,7 @@ msgstr "Pakai syslog untuk pesan-pesan kemajuan"
 
 #: main.c:344
 msgid "Prepend timestamp to progress messages"
-msgstr ""
+msgstr "Sisipkan tanda waktu ke pesan-pesan kemajuan"
 
 #: main.c:346
 msgid "Drop privileges after connecting"
@@ -1611,7 +1601,7 @@ msgstr "(CATATAN: libproxy dimatikan dalam build ini)"
 
 #: main.c:360
 msgid "Require perfect forward secrecy"
-msgstr ""
+msgstr "Persyaratkan perfect forward secrecy"
 
 #: main.c:361
 msgid "Less output"
@@ -1711,7 +1701,7 @@ msgstr "Baca kata sandi dari masukan standar"
 
 #: main.c:387
 msgid "Software token type: rsa, totp or hotp"
-msgstr ""
+msgstr "Tipe token perangkat lunak: rsa, totp, atau hotp"
 
 #: main.c:388
 msgid "Software token secret"
@@ -1723,7 +1713,7 @@ msgstr "(CATATAN: libstoken (RSA SecurID) dimatikan dalam build ini)"
 
 #: main.c:393
 msgid "(NOTE: liboath (TOTP,HOTP) disabled in this build)"
-msgstr ""
+msgstr "(CATATAN: liboath (TOTP,HOTP) dimatikan dalam build ini)"
 
 #: main.c:395
 msgid "Connection retry timeout in seconds"
@@ -1739,7 +1729,7 @@ msgstr "HTTP header ruas User-Agent:"
 
 #: main.c:398
 msgid "OS type (linux,linux-64,win,...) to report"
-msgstr ""
+msgstr "Tipe OS (linux,linux-64,win,…) untuk dilaporkan"
 
 #: main.c:399
 msgid "Set local port for DTLS datagrams"
@@ -1757,7 +1747,7 @@ msgstr "fgets (stdin)"
 #: main.c:490
 #, c-format
 msgid "Failed to allocate string\n"
-msgstr ""
+msgstr "Gagal mengalokasikan string\n"
 
 #: main.c:529
 #, c-format
@@ -1860,7 +1850,7 @@ msgstr "Versi openconnect ini dibangun tanpa dukungan libproxy\n"
 #: main.c:961
 #, c-format
 msgid "Error opening cmd pipe\n"
-msgstr ""
+msgstr "Gagal membuka pipa cmd\n"
 
 #: main.c:1011
 #, c-format
@@ -1875,7 +1865,7 @@ msgstr "Pembuatan koneksi SSL gagal\n"
 #: main.c:1045
 #, c-format
 msgid "Set up tun script failed\n"
-msgstr ""
+msgstr "Penyiapan skrip tun gagal\n"
 
 #: main.c:1052
 #, c-format
@@ -1913,7 +1903,7 @@ msgstr "Menlanjutkan di latar belakang; pid %d\n"
 #: main.c:1125
 #, c-format
 msgid "Caught signal: %s\n"
-msgstr ""
+msgstr "Menangkap sinyal: %s\n"
 
 #: main.c:1147
 #, c-format
@@ -1959,7 +1949,7 @@ msgstr "Sidikjari SHA1: %s\n"
 #: main.c:1286
 #, c-format
 msgid "Auth choice \"%s\" matches multiple options\n"
-msgstr ""
+msgstr "Pilihan auth \"%s\" cocok dengan opsi berganda\n"
 
 #: main.c:1289
 #, c-format
@@ -2000,19 +1990,19 @@ msgstr "OpenConnect tak dibangun dengan dukungan liboath\n"
 msgid "General failure in liboath\n"
 msgstr "Kegagalan umum dalam liboath\n"
 
-#: mainloop.c:177
+#: mainloop.c:175
 msgid "Caller paused the connection\n"
-msgstr ""
+msgstr "Pemanggil mengistirahatkan koneksi\n"
 
-#: mainloop.c:185
+#: mainloop.c:183
 #, c-format
 msgid "No work to do; sleeping for %d ms...\n"
 msgstr "Tak ada pekerjaan; tidur selama %d ms...\n"
 
-#: mainloop.c:205
+#: mainloop.c:203
 #, c-format
 msgid "WaitForMultipleObjects failed: %lx\n"
-msgstr ""
+msgstr "WaitForMultipleObjects gagal: %lx\n"
 
 #: openssl.c:103
 msgid "Failed to write to SSL socket\n"
@@ -2027,191 +2017,187 @@ msgstr "Gagal baca dari soket SSL\n"
 msgid "PEM password too long (%d >= %d)\n"
 msgstr "Kata sandi PEM terlalu panjang (%d >= %d)\n"
 
-#: openssl.c:420
-msgid "Parse PKCS#12 failed (wrong passphrase?)\n"
-msgstr "Mengurai PKCS#12 gagal (kata sandi salah?)\n"
-
-#: openssl.c:427
+#: openssl.c:428
 msgid "Parse PKCS#12 failed (see above errors)\n"
 msgstr "Mengurai PKCS#12 gagal (lihat galat di atas)\n"
 
-#: openssl.c:442
+#: openssl.c:443
 msgid "PKCS#12 contained no certificate!"
 msgstr "PKCS#12 tak memuat sertifikat!"
 
-#: openssl.c:451
+#: openssl.c:452
 msgid "PKCS#12 contained no private key!"
 msgstr "PKCS#12 tak memuat kunci privat!"
 
-#: openssl.c:472
+#: openssl.c:473
 #, c-format
 msgid "Extra cert from PKCS#12: '%s'\n"
 msgstr "Sertifikat ekstra dari PKCS#12: '%s'\n"
 
-#: openssl.c:498
+#: openssl.c:499
 msgid "Can't load TPM engine.\n"
 msgstr "Tak bisa memuat mesin TPM.\n"
 
-#: openssl.c:504
+#: openssl.c:505
 msgid "Failed to init TPM engine\n"
 msgstr "Gagal init mesin TPM\n"
 
-#: openssl.c:514
+#: openssl.c:515
 msgid "Failed to set TPM SRK password\n"
 msgstr "Gagal menata kata sandi SRK TPM\n"
 
-#: openssl.c:528
+#: openssl.c:529
 msgid "Failed to load TPM private key\n"
 msgstr "Gagal memuat kunci privat TPM\n"
 
-#: openssl.c:534
+#: openssl.c:535
 msgid "Add key from TPM failed\n"
 msgstr "Gagal menambah kunci dari TPM\n"
 
-#: openssl.c:565
+#: openssl.c:566
 msgid "Failed to reload X509 cert for expiry check\n"
 msgstr "Gagal memuat ulang sertifikat X509 untuk uji kedaluarsa\n"
 
-#: openssl.c:605
+#: openssl.c:606
 #, c-format
 msgid "Failed to create BIO for keystore item '%s'\n"
 msgstr "Gagal membuat BIO bagi butir penyimpanan kunci '%s'\n"
 
-#: openssl.c:630
+#: openssl.c:631
 msgid "Loading private key failed (wrong passphrase?)\n"
 msgstr "Memuat kunci privat gagal (kata sandi salah?)\n"
 
-#: openssl.c:636
+#: openssl.c:637
 msgid "Loading private key failed (see above errors)\n"
 msgstr "Memuat kunci privat gagal (lihat galat di atas)\n"
 
-#: openssl.c:661
+#: openssl.c:662
 #, c-format
 msgid "Failed to open certificate file %s: %s\n"
 msgstr "Gagal membuka berkas sertifikat %s: %s\n"
 
-#: openssl.c:672
+#: openssl.c:673
 msgid "Read PKCS#12 failed\n"
 msgstr "Baca PKCS#12 gagal\n"
 
-#: openssl.c:690
+#: openssl.c:691
 msgid "Failed to load X509 certificate from keystore\n"
 msgstr "Gagal memuat sertifikat X509 dari penyimpanan kunci\n"
 
-#: openssl.c:696
+#: openssl.c:697
 msgid "Failed to use X509 certificate from keystore\n"
 msgstr "Gagal memakai sertifikat X509 dari penyimpanan kunci\n"
 
-#: openssl.c:708
+#: openssl.c:709
 msgid "Loading certificate failed\n"
 msgstr "Pemuatan sertifikat gagal\n"
 
-#: openssl.c:735
+#: openssl.c:736
 msgid "Failed to use private key from keystore\n"
 msgstr "Gagal memakai kunci privat dari penyimpanan kunci\n"
 
-#: openssl.c:751
+#: openssl.c:752
 #, c-format
 msgid "Failed to open private key file %s: %s\n"
 msgstr "Gagal membuka berkas kunci pribadi %s: %s\n"
 
-#: openssl.c:771
+#: openssl.c:773
 #, c-format
 msgid "Failed to identify private key type in '%s'\n"
 msgstr "Gagal mengidentifikasi tipe kunci privat dalam '%s'\n"
 
-#: openssl.c:952
+#: openssl.c:954
 #, c-format
 msgid "Matched DNS altname '%s'\n"
 msgstr "Altname DNS cocok '%s'\n"
 
-#: openssl.c:959
+#: openssl.c:961
 #, c-format
 msgid "No match for altname '%s'\n"
 msgstr "Tak ada yang cocok dengan altname '%s'\n"
 
-#: openssl.c:973
+#: openssl.c:975
 #, c-format
 msgid "Certificate has GEN_IPADD altname with bogus length %d\n"
 msgstr "Sertifikat memiliki altname GEN_IPADD dengan panjang palsu %d\n"
 
-#: openssl.c:984
+#: openssl.c:986
 #, c-format
 msgid "Matched %s address '%s'\n"
 msgstr "Cocok alamat %s '%s'\n"
 
-#: openssl.c:991
+#: openssl.c:993
 #, c-format
 msgid "No match for %s address '%s'\n"
 msgstr "Tak ada kecocokan bagi alamat %s '%s'\n"
 
-#: openssl.c:1033
+#: openssl.c:1035
 #, c-format
 msgid "URI '%s' has non-empty path; ignoring\n"
 msgstr "URI '%s' mengandung path tak kosong; mengabaikan\n"
 
-#: openssl.c:1038
+#: openssl.c:1040
 #, c-format
 msgid "Matched URI '%s'\n"
 msgstr "Cocok URI '%s'\n"
 
-#: openssl.c:1049
+#: openssl.c:1051
 #, c-format
 msgid "No match for URI '%s'\n"
 msgstr "Tidak ada yang cocok untuk URI '%s'\n"
 
-#: openssl.c:1064
+#: openssl.c:1066
 #, c-format
 msgid "No altname in peer cert matched '%s'\n"
 msgstr "Tak ada altname dalam sert pasangan cocok dengan '%s'\n"
 
-#: openssl.c:1072
+#: openssl.c:1074
 msgid "No subject name in peer cert!\n"
 msgstr "Tak ada nama subjek dalam sert pasangan!\n"
 
-#: openssl.c:1092
+#: openssl.c:1094
 msgid "Failed to parse subject name in peer cert\n"
 msgstr "Gagal mengurai nama subjek dalam sert pasangan\n"
 
-#: openssl.c:1099
+#: openssl.c:1101
 #, c-format
 msgid "Peer cert subject mismatch ('%s' != '%s')\n"
 msgstr "Subjek sert pasangan tak cocok ('%s' != '%s')\n"
 
-#: openssl.c:1104
+#: openssl.c:1106
 #, c-format
 msgid "Matched peer certificate subject name '%s'\n"
 msgstr "Nama subjek sertifikat pasangan cocok '%s'\n"
 
-#: openssl.c:1134
+#: openssl.c:1136
 #, c-format
 msgid "Server certificate verify failed: %s\n"
 msgstr "Gagal verifikasi sertifikat server: %s\n"
 
-#: openssl.c:1184
+#: openssl.c:1186
 #, c-format
 msgid "Extra cert from cafile: '%s'\n"
 msgstr "Sert ekstra dari cafile: '%s'\n"
 
-#: openssl.c:1215
+#: openssl.c:1217
 msgid "Error in client cert notAfter field\n"
 msgstr "Galat dalam sert klien ruas notAfter\n"
 
-#: openssl.c:1228
+#: openssl.c:1230
 msgid "<error>"
 msgstr "<galat>"
 
-#: openssl.c:1322
+#: openssl.c:1324
 #, c-format
 msgid "Failed to read certs from CA file '%s'\n"
 msgstr "Gagal baca sert dari berkas CA '%s'\n"
 
-#: openssl.c:1346
+#: openssl.c:1348
 #, c-format
 msgid "Failed to open CA file '%s'\n"
 msgstr "Gagal membuka berkas CA '%s'\n"
 
-#: openssl.c:1388
+#: openssl.c:1390
 msgid "SSL connection failure\n"
 msgstr "Kegagalan koneksi SSL\n"
 
@@ -2339,79 +2325,80 @@ msgstr "Galat tak dikenal"
 
 #: tun-win32.c:71
 msgid "Error accessing registry key for network adapters\n"
-msgstr ""
+msgstr "Galat saat mengakses kunci registri bagi adaptor jaringan\n"
 
 #: tun-win32.c:114
 #, c-format
 msgid "Ignoring non-matching TAP interface \"%s\""
-msgstr ""
+msgstr "Mengabaikan antar muka TAP \"%s\" yang tak cocok"
 
 #: tun-win32.c:128
 msgid "No Windows-TAP adapters found. Is the driver installed?\n"
-msgstr ""
+msgstr "Tak ditemukan adaptor Windows-TAP. Apakah driver terpasang?\n"
 
 #: tun-win32.c:146
 #, c-format
 msgid "Failed to open %s\n"
-msgstr ""
+msgstr "Gagal membuka %s\n"
 
 #: tun-win32.c:151
 #, c-format
 msgid "Opened tun device %s\n"
-msgstr ""
+msgstr "Membuka perangkat tun: %s\n"
 
 #: tun-win32.c:158
 #, c-format
 msgid "Failed to obtain TAP driver version: %lx\n"
-msgstr ""
+msgstr "Gagal memperoleh versi driver TAP: %lx\n"
 
 #: tun-win32.c:163
 #, c-format
 msgid "Error: TAP-Windows driver v9.9 or greater is required (found %ld.%ld)\n"
 msgstr ""
+"Galat: Diperlukan driver TAP-Windows v9.9 atau lebih (ditemukan %ld.%ld)\n"
 
 #: tun-win32.c:179
 #, c-format
 msgid "Failed to set TAP IP addresses: %lx\n"
-msgstr ""
+msgstr "Gagal menata alamat IP TAP: %lx\n"
 
 #: tun-win32.c:189
 #, c-format
 msgid "Failed to set TAP media status: %lx\n"
-msgstr ""
+msgstr "Gagal menata status media TAP: %lx\n"
 
-#: tun-win32.c:213
+#: tun-win32.c:217
 #, c-format
 msgid "Failed to read from TAP device: %lx\n"
-msgstr ""
+msgstr "Gagal membaca dari perangkat TAP: %lx\n"
 
-#: tun-win32.c:224
+#: tun-win32.c:228
 #, c-format
 msgid "Failed to complete read from TAP device: %lx\n"
-msgstr ""
+msgstr "Gagal melengkapi baca dari perangkat TAP: %lx\n"
 
-#: tun-win32.c:241
+#: tun-win32.c:249
 #, c-format
 msgid "Wrote %ld bytes to tun\n"
-msgstr ""
+msgstr "Menulis %ld byte ke tun\n"
 
-#: tun-win32.c:251
+#: tun-win32.c:259
 msgid "Waiting for tun write...\n"
-msgstr ""
+msgstr "Menunggun menulis tun…\n"
 
-#: tun-win32.c:254
+#: tun-win32.c:262
 #, c-format
 msgid "Wrote %ld bytes to tun after waiting\n"
-msgstr ""
+msgstr "Menulis %ld byte ke tun setelah menunggu\n"
 
-#: tun-win32.c:260
+#: tun-win32.c:268
 #, c-format
 msgid "Failed to write to TAP device: %lx\n"
-msgstr ""
+msgstr "Gagal menulis ke perangkat TAP: %lx\n"
 
-#: tun-win32.c:285
+#: tun-win32.c:293
 msgid "Spawning tunnel scripts is not yet supported on Windows\n"
-msgstr ""
+msgstr "Span skrip tunnel belum didukung pada Windows\n"
 
 #: tun.c:81
 msgid "open net"
@@ -2443,7 +2430,7 @@ msgstr "Tak bisa membuka %s: %s"
 msgid "Can't plumb %s for IPv%d: %s\n"
 msgstr "Tak bisa plumb %s untuk IPv%d: %s\n"
 
-#: tun.c:198 tun.c:308
+#: tun.c:198 tun.c:309
 #, c-format
 msgid "Failed to open tun device: %s\n"
 msgstr "Gagal membuka perangkat tun: %s\n"
@@ -2453,60 +2440,60 @@ msgstr "Gagal membuka perangkat tun: %s\n"
 msgid "TUNSETIFF failed: %s\n"
 msgstr "TUNSETIFF gagal: %s\n"
 
-#: tun.c:221
+#: tun.c:222
 msgid "open /dev/tun"
 msgstr "buka /dev/tun"
 
-#: tun.c:227
+#: tun.c:228
 msgid "Failed to create new tun"
 msgstr "Gagal membuat tun baru"
 
-#: tun.c:233
+#: tun.c:234
 msgid "Failed to put tun file descriptor into message-discard mode"
 msgstr "Gagal meletakkan deskriptor berkas tun ke dalam mode message-discard"
 
-#: tun.c:268
+#: tun.c:269
 #, c-format
 msgid "Invalid interface name '%s'; must match 'tun%%d'\n"
 msgstr "Nama antar muka '%s' tak valid; mesti sesuai pola 'tun%%d'\n"
 
-#: tun.c:278
+#: tun.c:279
 #, c-format
 msgid "Cannot open '%s': %s\n"
 msgstr "Tak bisa membuka '%s': %s\n"
 
-#: tun.c:317
+#: tun.c:318
 msgid "TUNSIFHEAD"
 msgstr "TUNSIFHEAD"
 
-#: tun.c:356
+#: tun.c:358
 #, c-format
 msgid "socketpair failed: %s\n"
-msgstr ""
+msgstr "socketpair gagal: %s\n"
 
-#: tun.c:361
+#: tun.c:363
 #, c-format
 msgid "fork failed: %s\n"
-msgstr ""
+msgstr "fork gagal: %s\n"
 
-#: tun.c:365
+#: tun.c:367
 msgid "setpgid"
 msgstr "setpgid"
 
-#: tun.c:369
+#: tun.c:371
 msgid "execl"
 msgstr "execl"
 
-#: tun.c:374
+#: tun.c:376
 msgid "(script)"
 msgstr "(skrip)"
 
-#: tun.c:417
+#: tun.c:419
 #, c-format
 msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
 msgstr "Paket tak dikenal (len %d) diterima: %02x %02x %02x %02x...\n"
 
-#: tun.c:434
+#: tun.c:436
 #, c-format
 msgid "Failed to write incoming packet: %s\n"
 msgstr "Gagal menulis paket datang: %s\n"
@@ -2514,56 +2501,69 @@ msgstr "Gagal menulis paket datang: %s\n"
 #: xml.c:42
 #, c-format
 msgid "Failed to open XML config file: %s\n"
-msgstr ""
+msgstr "Gagal membuka berkas konfig XML: %s\n"
 
 #: xml.c:49
 #, c-format
 msgid "Failed to fstat() XML config file: %s\n"
-msgstr ""
+msgstr "Gagal fstat() berkas konfig XML: %s\n"
 
-#: xml.c:58
+#: xml.c:57
 #, c-format
 msgid "Failed to allocate %lu bytes for XML config file\n"
-msgstr ""
+msgstr "Gagal mengalokasikan %lu byte bagi berkas konfig XML\n"
 
-#: xml.c:65
+#: xml.c:64
 #, c-format
 msgid "Failed to read XML config file: %s\n"
-msgstr ""
+msgstr "Gagal membaca berkas konfig XML: %s\n"
 
-#: xml.c:95 xml.c:118
+#: xml.c:97 xml.c:120
 #, c-format
 msgid "Treating host \"%s\" as a raw hostname\n"
 msgstr "Memperlakukan host \"%s\" sebagai nama host mentah\n"
 
-#: xml.c:101
+#: xml.c:103
 #, c-format
 msgid "Failed to SHA1 existing file\n"
 msgstr "Gagal menghitung SHA1 berkas yang ada\n"
 
-#: xml.c:108
+#: xml.c:110
 #, c-format
 msgid "XML config file SHA1: %s\n"
 msgstr "SHA1 berkas konfig XML: %s\n"
 
-#: xml.c:116
+#: xml.c:118
 #, c-format
 msgid "Failed to parse XML config file %s\n"
 msgstr "Gagal mengurai berkas konfig XML %s\n"
 
-#: xml.c:153
+#: xml.c:155
 #, c-format
 msgid "Host \"%s\" has address \"%s\"\n"
 msgstr "Host \"%s\" memiliki alamat \"%s\"\n"
 
-#: xml.c:162
+#: xml.c:164
 #, c-format
 msgid "Host \"%s\" has UserGroup \"%s\"\n"
 msgstr "Host \"%s\" memiliki UserGroup \"%s\"\n"
 
-#: xml.c:176
+#: xml.c:178
 #, c-format
 msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""
 "Host \"%s\" tidak terdaftar dalam konfig; memperlakukan sebagai nama host "
 "mentah\n"
+
+#~ msgid "Parse PKCS#12 failed (wrong passphrase?)\n"
+#~ msgstr "Mengurai PKCS#12 gagal (kata sandi salah?)\n"
+
+#~ msgid ""
+#~ "Try the --no-xmlpost option. If that works, please report as an "
+#~ "OpenConnect bug\n"
+#~ msgstr ""
+#~ "Cobalah opsi --no-xmlpost. Bila itu bekerja, harap laporkan sebagai kutu "
+#~ "OpenConnect\n"
+
+#~ msgid "Failed to initialise DTLS secret\n"
+#~ msgstr "Gagal menginisialisasi rahasia DTLS\n"
