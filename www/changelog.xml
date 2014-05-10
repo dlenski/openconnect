@@ -15,7 +15,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li><i>No changelog entries yet</i></li>
+       <li>Fix a couple of bugs involving DTLS rekeying.</li>
+       <li>Fix problems seen when building or connecting without DTLS enabled.</li>
+       <li>Fix tun error handling on Windows hosts.</li>
+       <li>Skip password prompts when using PKCS#8 and PKCS#12 certificates with empty passwords.</li>
+       <li>Fix several minor memory leaks and error paths.</li>
+       <li>Update several Android dependencies, and make the download process more robust.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.99.tar.gz">OpenConnect v5.99</a></b>
