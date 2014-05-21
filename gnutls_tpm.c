@@ -100,7 +100,7 @@ static int tpm_sign_fn(gnutls_privkey_t key, void *_vpninfo,
 	TSS_HHASH hash;
 	int err;
 
-	vpn_progress(vpninfo, PRG_TRACE,
+	vpn_progress(vpninfo, PRG_DEBUG,
 		     _("TPM sign function called for %d bytes.\n"),
 		     data->size);
 

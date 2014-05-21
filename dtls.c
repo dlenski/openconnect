@@ -291,7 +291,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 			vpn_progress(vpninfo, PRG_ERR, _("This is probably because your OpenSSL is broken\n"
 				"See http://rt.openssl.org/Ticket/Display.html?id=2984\n"));
 		} else {
-			vpn_progress(vpninfo, PRG_TRACE, _("DTLS handshake timed out\n"));
+			vpn_progress(vpninfo, PRG_DEBUG, _("DTLS handshake timed out\n"));
 		}
 	}
 
@@ -438,7 +438,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	if (err == GNUTLS_E_AGAIN) {
 		if (time(NULL) < vpninfo->new_dtls_started + 12)
 			return 0;
-		vpn_progress(vpninfo, PRG_TRACE, _("DTLS handshake timed out\n"));
+		vpn_progress(vpninfo, PRG_DEBUG, _("DTLS handshake timed out\n"));
 	}
 
 	vpn_progress(vpninfo, PRG_ERR, _("DTLS handshake failed: %s\n"),
@@ -602,7 +602,7 @@ int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_pe
 #endif
 
 	while (dtls_opt) {
-		vpn_progress(vpninfo, PRG_TRACE,
+		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("DTLS option %s : %s\n"),
 			     dtls_opt->option, dtls_opt->value);
 
@@ -660,7 +660,7 @@ int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_pe
 	if (connect_dtls_socket(vpninfo))
 		return -EINVAL;
 
-	vpn_progress(vpninfo, PRG_TRACE,
+	vpn_progress(vpninfo, PRG_DEBUG,
 		     _("DTLS initialised. DPD %d, Keepalive %d\n"),
 		     vpninfo->dtls_times.dpd, vpninfo->dtls_times.keepalive);
 
@@ -684,7 +684,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		int when = vpninfo->new_dtls_started + vpninfo->dtls_attempt_period - time(NULL);
 
 		if (when <= 0) {
-			vpn_progress(vpninfo, PRG_TRACE, _("Attempt new DTLS connection\n"));
+			vpn_progress(vpninfo, PRG_DEBUG, _("Attempt new DTLS connection\n"));
 			connect_dtls_socket(vpninfo);
 		} else if ((when * 1000) < *timeout) {
 			*timeout = when * 1000;
@@ -725,7 +725,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			break;
 
 		case AC_PKT_DPD_OUT:
-			vpn_progress(vpninfo, PRG_TRACE, _("Got DTLS DPD request\n"));
+			vpn_progress(vpninfo, PRG_DEBUG, _("Got DTLS DPD request\n"));
 
 			/* FIXME: What if the packet doesn't get through? */
 			magic_pkt = AC_PKT_DPD_RESP;
@@ -735,11 +735,11 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			continue;
 
 		case AC_PKT_DPD_RESP:
-			vpn_progress(vpninfo, PRG_TRACE, _("Got DTLS DPD response\n"));
+			vpn_progress(vpninfo, PRG_DEBUG, _("Got DTLS DPD response\n"));
 			break;
 
 		case AC_PKT_KEEPALIVE:
-			vpn_progress(vpninfo, PRG_TRACE, _("Got DTLS Keepalive\n"));
+			vpn_progress(vpninfo, PRG_DEBUG, _("Got DTLS Keepalive\n"));
 			break;
 
 		default:
@@ -787,7 +787,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		return 1;
 
 	case KA_DPD:
-		vpn_progress(vpninfo, PRG_TRACE, _("Send DTLS DPD\n"));
+		vpn_progress(vpninfo, PRG_DEBUG, _("Send DTLS DPD\n"));
 
 		magic_pkt = AC_PKT_DPD_OUT;
 		if (DTLS_SEND(vpninfo->dtls_ssl, &magic_pkt, 1) != 1)
@@ -805,7 +805,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		if (vpninfo->outgoing_queue)
 			break;
 
-		vpn_progress(vpninfo, PRG_TRACE, _("Send DTLS Keepalive\n"));
+		vpn_progress(vpninfo, PRG_DEBUG, _("Send DTLS Keepalive\n"));
 
 		magic_pkt = AC_PKT_KEEPALIVE;
 		if (DTLS_SEND(vpninfo->dtls_ssl, &magic_pkt, 1) != 1)

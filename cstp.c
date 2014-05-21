@@ -105,7 +105,7 @@ static void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *
 
 		if (!getsockopt(vpninfo->ssl_fd, IPPROTO_TCP, TCP_INFO,
 				&ti, &ti_size)) {
-			vpn_progress(vpninfo, PRG_TRACE,
+			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"),
 				     ti.tcpi_rcv_mss, ti.tcpi_snd_mss, ti.tcpi_advmss, ti.tcpi_pmtu);
 			if (!*base_mtu)
@@ -125,7 +125,7 @@ static void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *
 		socklen_t mss_size = sizeof(mss);
 		if (!getsockopt(vpninfo->ssl_fd, IPPROTO_TCP, TCP_MAXSEG,
 				&mss, &mss_size)) {
-			vpn_progress(vpninfo, PRG_TRACE, _("TCP_MAXSEG %d\n"), mss);
+			vpn_progress(vpninfo, PRG_DEBUG, _("TCP_MAXSEG %d\n"), mss);
 			*mtu = mss - 13;
 		}
 	}
@@ -309,9 +309,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
 		/* This contains the whole document, including the webvpn cookie. */
 		if (!strcasecmp(buf, "X-CSTP-Post-Auth-XML"))
-			vpn_progress(vpninfo, PRG_TRACE, "%s: %s\n", buf, _("<elided>"));
+			vpn_progress(vpninfo, PRG_DEBUG, "%s: %s\n", buf, _("<elided>"));
 		else
-			vpn_progress(vpninfo, PRG_TRACE, "%s: %s\n", buf, colon);
+			vpn_progress(vpninfo, PRG_DEBUG, "%s: %s\n", buf, colon);
 
 		if (!strncmp(buf, "X-DTLS-", 7)) {
 			*next_dtls_option = new_option;
@@ -756,18 +756,18 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpninfo->ssl_times.last_rx = time(NULL);
 		switch (buf[6]) {
 		case AC_PKT_DPD_OUT:
-			vpn_progress(vpninfo, PRG_TRACE,
+			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Got CSTP DPD request\n"));
 			vpninfo->owe_ssl_dpd_response = 1;
 			continue;
 
 		case AC_PKT_DPD_RESP:
-			vpn_progress(vpninfo, PRG_TRACE,
+			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Got CSTP DPD response\n"));
 			continue;
 
 		case AC_PKT_KEEPALIVE:
-			vpn_progress(vpninfo, PRG_TRACE,
+			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Got CSTP Keepalive\n"));
 			continue;
 
@@ -919,7 +919,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		return 1;
 
 	case KA_DPD:
-		vpn_progress(vpninfo, PRG_TRACE, _("Send CSTP DPD\n"));
+		vpn_progress(vpninfo, PRG_DEBUG, _("Send CSTP DPD\n"));
 
 		vpninfo->current_ssl_pkt = &dpd_pkt;
 		goto handle_outgoing;
@@ -930,7 +930,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		if (vpninfo->dtls_state != DTLS_CONNECTED && vpninfo->outgoing_queue)
 			break;
 
-		vpn_progress(vpninfo, PRG_TRACE, _("Send CSTP Keepalive\n"));
+		vpn_progress(vpninfo, PRG_DEBUG, _("Send CSTP Keepalive\n"));
 
 		vpninfo->current_ssl_pkt = &keepalive_pkt;
 		goto handle_outgoing;

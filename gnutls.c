@@ -121,7 +121,7 @@ int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len
 			/* We've seen this with HTTP 1.0 responses followed by abrupt
 			   socket closure and no clean SSL shutdown.
 			   https://bugs.launchpad.net/bugs/1225276 */
-			vpn_progress(vpninfo, PRG_TRACE, _("SSL socket closed uncleanly\n"));
+			vpn_progress(vpninfo, PRG_DEBUG, _("SSL socket closed uncleanly\n"));
 			return 0;
 #endif
 		} else {
@@ -378,7 +378,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 		if (pass == vpninfo->cert_password &&
 		    vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
 			/* Make it non-fatal... */
-			level = PRG_TRACE;
+			level = PRG_DEBUG;
 			ret = NOT_PKCS12;
 		}
 
@@ -962,7 +962,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 	/* Load certificate(s) first... */
 	if (cert_is_p11) {
-		vpn_progress(vpninfo, PRG_TRACE,
+		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Using PKCS#11 certificate %s\n"), cert_url);
 
 		err = gnutls_x509_crt_init(&cert);
@@ -986,7 +986,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 #endif /* HAVE_P11KIT */
 
 	/* OK, not a PKCS#11 certificate so it must be coming from a file... */
-	vpn_progress(vpninfo, PRG_TRACE,
+	vpn_progress(vpninfo, PRG_DEBUG,
 		     _("Using certificate file %s\n"), vpninfo->cert);
 
 	/* Load file contents */
@@ -1061,7 +1061,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	   them in extra_certs[]. Next we look for the private key ... */
 #if defined(HAVE_P11KIT)
 	if (key_is_p11) {
-		vpn_progress(vpninfo, PRG_TRACE,
+		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Using PKCS#11 key %s\n"), key_url);
 
 		err = gnutls_pkcs11_privkey_init(&p11key);
@@ -1204,7 +1204,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		gnutls_free(fdata.data);
 		fdata.data = NULL;
 
-		vpn_progress(vpninfo, PRG_TRACE,
+		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Using private key file %s\n"), vpninfo->sslkey);
 
 		ret = load_datum(vpninfo, &fdata, vpninfo->sslkey);
@@ -2017,7 +2017,7 @@ int cstp_handshake(struct openconnect_info *vpninfo, unsigned init)
 			return -EIO;
 		} else {
 			/* non-fatal error or warning. Ignore it and continue */
-			vpn_progress(vpninfo, PRG_TRACE,
+			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("GnuTLS non-fatal return during handshake: %s\n"),
 				     gnutls_strerror(err));
 		}

@@ -647,7 +647,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	vpn_progress(vpninfo, PRG_TRACE,
+	vpn_progress(vpninfo, PRG_DEBUG,
 		     _("Using certificate file %s\n"), vpninfo->cert);
 
 	if (strncmp(vpninfo->cert, "keystore:", 9) &&
@@ -950,14 +950,14 @@ static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert
 				continue;
 
 			if (!match_hostname(vpninfo->hostname, str)) {
-				vpn_progress(vpninfo, PRG_TRACE,
+				vpn_progress(vpninfo, PRG_DEBUG,
 					     _("Matched DNS altname '%s'\n"),
 					     str);
 				GENERAL_NAMES_free(altnames);
 				OPENSSL_free(str);
 				return 0;
 			} else {
-				vpn_progress(vpninfo, PRG_TRACE,
+				vpn_progress(vpninfo, PRG_DEBUG,
 					     _("No match for altname '%s'\n"),
 					     str);
 			}
@@ -982,14 +982,14 @@ static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert
 
 			if (this->d.ip->length == addrlen &&
 			    !memcmp(addrbuf, this->d.ip->data, addrlen)) {
-				vpn_progress(vpninfo, PRG_TRACE,
+				vpn_progress(vpninfo, PRG_DEBUG,
 					     _("Matched %s address '%s'\n"),
 					     (family == AF_INET6) ? "IPv6" : "IPv4",
 					     host);
 				GENERAL_NAMES_free(altnames);
 				return 0;
 			} else {
-				vpn_progress(vpninfo, PRG_TRACE,
+				vpn_progress(vpninfo, PRG_DEBUG,
 					     _("No match for %s address '%s'\n"),
 					     (family == AF_INET6) ? "IPv6" : "IPv4",
 					     host);
@@ -1031,12 +1031,12 @@ static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert
 				goto no_uri_match;
 
 			if (url_path) {
-				vpn_progress(vpninfo, PRG_TRACE,
+				vpn_progress(vpninfo, PRG_DEBUG,
 					     _("URI '%s' has non-empty path; ignoring\n"),
 					     str);
 				goto no_uri_match_silent;
 			}
-			vpn_progress(vpninfo, PRG_TRACE,
+			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Matched URI '%s'\n"),
 				     str);
 			free(url_proto);
@@ -1047,7 +1047,7 @@ static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert
 			return 0;
 
 		no_uri_match:
-			vpn_progress(vpninfo, PRG_TRACE,
+			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("No match for URI '%s'\n"),
 				     str);
 		no_uri_match_silent:
@@ -1102,7 +1102,7 @@ static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert
 			     subjstr, vpninfo->hostname);
 		ret = -EINVAL;
 	} else {
-		vpn_progress(vpninfo, PRG_TRACE,
+		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Matched peer certificate subject name '%s'\n"),
 			     subjstr);
 	}

@@ -240,7 +240,7 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 			continue;
 		}
 		if (strcmp((char *)xml_node->name, "input")) {
-			vpn_progress(vpninfo, PRG_TRACE,
+			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("name %s not input\n"), xml_node->name);
 			continue;
 		}
@@ -555,7 +555,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 		*cert_rq = 0;
 
 	if (!response) {
-		vpn_progress(vpninfo, PRG_TRACE,
+		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Empty response from server\n"));
 		return -EINVAL;
 	}
@@ -568,7 +568,7 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 	if (!xml_doc) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to parse server response\n"));
-		vpn_progress(vpninfo, PRG_TRACE,
+		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Response was:%s\n"), response);
 		free(form);
 		return -EINVAL;

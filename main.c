@@ -862,8 +862,9 @@ int main(int argc, char **argv)
 			break;
 		case OPT_DUMP_HTTP:
 			vpninfo->dump_http_traffic = 1;
+			break;
 		case 'v':
-			verbose = PRG_TRACE;
+			verbose++;
 			break;
 		case 'V':
 			printf(_("OpenConnect version %s\n"), openconnect_version_str);
@@ -934,6 +935,9 @@ int main(int argc, char **argv)
 
 	if (!vpninfo->sslkey)
 		vpninfo->sslkey = vpninfo->cert;
+
+	if (vpninfo->dump_http_traffic && verbose < PRG_DEBUG)
+		verbose = PRG_DEBUG;
 
 	vpninfo->progress = write_progress;
 

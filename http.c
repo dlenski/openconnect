@@ -205,7 +205,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		return -EINVAL;
 	}
 
-	vpn_progress(vpninfo, (*result == 200) ? PRG_TRACE : PRG_INFO,
+	vpn_progress(vpninfo, (*result == 200) ? PRG_DEBUG : PRG_INFO,
 		     _("Got HTTP response: %s\n"), buf);
 
 	/* Eat headers... */
@@ -251,7 +251,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			   want people posting it in public with debugging output */
 			if (!strcmp(colon, "webvpn") && *equals)
 				print_equals = _("<elided>");
-			vpn_progress(vpninfo, PRG_TRACE, "%s: %s=%s%s%s\n",
+			vpn_progress(vpninfo, PRG_DEBUG, "%s: %s=%s%s%s\n",
 				     buf, colon, print_equals, semicolon ? ";" : "",
 				     semicolon ? (semicolon+1) : "");
 
@@ -266,7 +266,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			if (ret)
 				return ret;
 		} else {
-			vpn_progress(vpninfo, PRG_TRACE, "%s: %s\n", buf, colon);
+			vpn_progress(vpninfo, PRG_DEBUG, "%s: %s\n", buf, colon);
 		}
 
 		if (!strcasecmp(buf, "Connection")) {
@@ -317,7 +317,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		goto cont;
 
 	/* Now the body, if there is one */
-	vpn_progress(vpninfo, PRG_TRACE, _("HTTP body %s (%d)\n"),
+	vpn_progress(vpninfo, PRG_DEBUG, _("HTTP body %s (%d)\n"),
 		     bodylen == BODY_HTTP10 ? "http 1.0" :
 		     bodylen == BODY_CHUNKED ? "chunked" : "length: ",
 		     bodylen);
@@ -840,7 +840,7 @@ static void dump_buf(struct openconnect_info *vpninfo, char prefix, char *buf)
 			eol++;
 		}
 
-		vpn_progress(vpninfo, PRG_TRACE, "%c %s\n", prefix, buf);
+		vpn_progress(vpninfo, PRG_DEBUG, "%c %s\n", prefix, buf);
 		if (!eol_char)
 			break;
 

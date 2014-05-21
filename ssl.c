@@ -193,7 +193,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 			free(url);
 			free(proxies);
 			if (vpninfo->proxy)
-				vpn_progress(vpninfo, PRG_TRACE,
+				vpn_progress(vpninfo, PRG_DEBUG,
 					     _("Proxy from libproxy: %s://%s:%d/\n"),
 					     vpninfo->proxy_type, vpninfo->proxy, vpninfo->port);
 		}

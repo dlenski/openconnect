@@ -110,7 +110,7 @@ static intptr_t search_taps(struct openconnect_info *vpninfo, tap_callback *cb, 
 		found++;
 
 		if (vpninfo->ifname && strcmp(name, vpninfo->ifname)) {
-			vpn_progress(vpninfo, PRG_TRACE,
+			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Ignoring non-matching TAP interface \"%s\""),
 				     name);
 			continue;
@@ -148,7 +148,7 @@ static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *nam
 		return -1;
 
 	}
-	vpn_progress(vpninfo, PRG_TRACE, _("Opened tun device %s\n"), devname);
+	vpn_progress(vpninfo, PRG_DEBUG, _("Opened tun device %s\n"), devname);
 
 	if (!DeviceIoControl(tun_fh, TAP_IOCTL_GET_VERSION,
 			     NULL, 0, data, sizeof(data), &len, NULL)) {
@@ -164,7 +164,7 @@ static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *nam
 			     data[0], data[1]);
 		return -1;
 	}
-	vpn_progress(vpninfo, PRG_TRACE, "TAP-Windows driver v%ld.%ld (%ld)\n",
+	vpn_progress(vpninfo, PRG_DEBUG, "TAP-Windows driver v%ld.%ld (%ld)\n",
 		     data[0], data[1], data[2]);
 
 	data[0] = inet_addr(vpninfo->ip_info.addr);

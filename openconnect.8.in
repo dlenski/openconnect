@@ -252,7 +252,7 @@ Set login username to
 Report version number
 .TP
 .B \-v,\-\-verbose
-More output
+More output (may be specified multiple times for additional output)
 .TP
 .B \-x,\-\-xmlconfig=CONFIG
 XML config file
