@@ -443,26 +443,31 @@ static void read_stdin(char **string, int hidden)
 }
 
 static int sig_cmd_fd;
+
 #ifndef _WIN32
-static int sig_caught;
 
-static void handle_sigint(int sig)
+static void handle_signal(int sig)
 {
-	char x = OC_CMD_CANCEL;
+	char cmd;
 
-	sig_caught = sig;
-	if (write(sig_cmd_fd, &x, 1) < 0) {
+	switch (sig) {
+	case SIGINT:
+		cmd = OC_CMD_CANCEL;
+		break;
+	case SIGHUP:
+		cmd = OC_CMD_DETACH;
+		break;
+	case SIGUSR2:
+	default:
+		cmd = OC_CMD_PAUSE;
+		break;
+	}
+
+	if (write(sig_cmd_fd, &cmd, 1) < 0) {
 		/* suppress warn_unused_result */
 	}
 }
 
-static void handle_sigusr(int sig)
-{
-	if (sig == SIGUSR1)
-		verbose = PRG_TRACE;
-	else if (sig == SIGUSR2)
-		verbose = PRG_INFO;
-}
 #endif
 
 static FILE *config_file = NULL;
@@ -965,14 +970,10 @@ int main(int argc, char **argv)
 #ifndef _WIN32
 	memset(&sa, 0, sizeof(sa));
 
-	sa.sa_handler = handle_sigusr;
-	sigaction(SIGUSR1, &sa, NULL);
-	sigaction(SIGUSR2, &sa, NULL);
-
-	sa.sa_handler = handle_sigint;
-	sigaction(SIGTERM, &sa, NULL);
+	sa.sa_handler = handle_signal;
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGHUP, &sa, NULL);
+	sigaction(SIGUSR2, &sa, NULL);
 #endif /* !_WIN32 */
 
 	if (vpninfo->sslkey && do_passphrase_from_fsid)
@@ -1116,20 +1117,40 @@ int main(int argc, char **argv)
 			fclose(fp);
 	}
 #endif
-	ret = openconnect_mainloop(vpninfo, reconnect_timeout, RECONNECT_INTERVAL_MIN);
+
+	while (1) {
+		ret = openconnect_mainloop(vpninfo, reconnect_timeout, RECONNECT_INTERVAL_MIN);
+		if (ret)
+			break;
+
+		vpn_progress(vpninfo, PRG_INFO, _("User requested reconnect\n"));
+	}
+
 	if (fp)
 		unlink(pidfile);
 
-#ifndef _WIN32
-	if (sig_caught) {
-		vpn_progress(vpninfo, PRG_INFO, _("Caught signal: %s\n"), strsignal(sig_caught));
-		ret = 0;
-	} else
-#endif
-	if (ret == -EPERM)
+	switch (ret) {
+	case -EPERM:
+		vpn_progress(vpninfo, PRG_ERR, _("Cookie was rejected on reconnection; exiting.\n"));
 		ret = 2;
-	else
+		break;
+	case -EPIPE:
+		vpn_progress(vpninfo, PRG_ERR, _("Session terminated by server; exiting.\n"));
 		ret = 1;
+		break;
+	case -EINTR:
+		vpn_progress(vpninfo, PRG_INFO, _("User canceled (SIGINT); exiting.\n"));
+		ret = 0;
+		break;
+	case -ECONNABORTED:
+		vpn_progress(vpninfo, PRG_INFO, _("User detached from session (SIGHUP); exiting.\n"));
+		ret = 0;
+		break;
+	default:
+		vpn_progress(vpninfo, PRG_ERR, _("Unknown error; exiting.\n"));
+		ret = 1;
+		break;
+	}
 
 	openconnect_vpninfo_free(vpninfo);
 	exit(ret);

@@ -420,6 +420,24 @@ applied to the VPN session.  If the gateway requires CSD, it will also cause
 the corresponding CSD trojan binary to be downloaded, so you may need to use
 .B \-\-csd\-wrapper
 if this code is not executable on the local machine.
+.SH SIGNALS
+In the data phase of the connection, the following signals are handled:
+.TP
+.B SIGINT
+performs a clean shutdown by logging the session off, disconnecting from the
+gateway, and running the vpnc\-script to restore the network configuration.
+.TP
+.B SIGHUP
+disconnects from the gateway and runs the vpnc\-script, but does not log the
+session off; this allows for reconnection later using
+.BR \-\-cookie .
+.TP
+.B SIGUSR2
+forces an immediate disconnection and reconnection; this can be used to
+quickly recover from LAN IP address changes.
+.TP
+.B SIGTERM
+exits immediately without logging off or running vpnc\-script.
 .SH LIMITATIONS
 Note that although IPv6 has been tested on all platforms on which
 .B openconnect
