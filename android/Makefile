@@ -231,9 +231,9 @@ nettle: $(NETTLE_DEPS)
 #
 # Build GnuTLS
 #
-GNUTLS_VER := 3.2.13
+GNUTLS_VER := 3.2.15
 GNUTLS_TAR := gnutls-$(GNUTLS_VER).tar.xz
-GNUTLS_SHA1 := c4a95902bb67df46e9b2c08d4c10523db94e2736
+GNUTLS_SHA1 := 31f289b48b0bf054f5f8c16d3b878615d0ae06fc
 GNUTLS_SRC := sources/gnutls-$(GNUTLS_VER)
 GNUTLS_BUILD := $(TRIPLET)/gnutls
 
@@ -243,7 +243,6 @@ $(GNUTLS_TAR):
 $(GNUTLS_SRC)/configure: $(GNUTLS_TAR)
 	mkdir -p sources
 	xz -d < $< | tar xf - -C sources
-	cd $(GNUTLS_SRC) && patch -p1 < ../../0001-gl-stdint-read-file-fix-missing-SIZE_MAX-on-Android.patch
 	touch $@
 
 #$(GNUTLS_SRC)/configure.ac:
