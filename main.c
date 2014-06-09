@@ -675,7 +675,7 @@ int main(int argc, char **argv)
 			pidfile = keep_config_arg();
 			break;
 		case OPT_PFS:
-			vpninfo->pfs = 1;
+			openconnect_set_pfs(vpninfo, 1);
 			break;
 		case OPT_SERVERCERT:
 			openconnect_set_server_cert_sha1(vpninfo, xstrdup(config_arg));
