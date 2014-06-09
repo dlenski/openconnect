@@ -877,6 +877,16 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setCertE
 	openconnect_set_cert_expiry_warning(ctx->vpninfo, arg);
 }
 
+JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setReqMTU(
+	JNIEnv *jenv, jobject jobj, jint arg)
+{
+	struct libctx *ctx = getctx(jenv, jobj);
+
+	if (!ctx)
+		return;
+	openconnect_set_reqmtu(ctx->vpninfo, arg);
+}
+
 JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setPFS(
 	JNIEnv *jenv, jobject jobj, jint arg)
 {
@@ -895,16 +905,6 @@ JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_makeCSTP
 	if (!ctx)
 		return -EINVAL;
 	return openconnect_make_cstp_connection(ctx->vpninfo);
-}
-
-JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setupFD(
-	JNIEnv *jenv, jobject jobj, jint arg)
-{
-	struct libctx *ctx = getctx(jenv, jobj);
-
-	if (!ctx)
-		return -EINVAL;
-	return openconnect_setup_tun_fd(ctx->vpninfo, arg);
 }
 
 JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setupDTLS(
@@ -957,7 +957,7 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setXMLPo
 
 	if (!ctx)
 		return;
-	openconnect_set_xmlpost(ctx->vpninfo, !!arg);
+	openconnect_set_xmlpost(ctx->vpninfo, arg);
 }
 
 /* simple cases: return a const string (no need to free it) */
