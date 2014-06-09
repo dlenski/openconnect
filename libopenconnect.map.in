@@ -57,6 +57,7 @@ OPENCONNECT_3.1 {
 OPENCONNECT_3.3 {
  global:
 	openconnect_set_pfs;
+	openconnect_set_dpd;
 } OPENCONNECT_3.1;
 
 OPENCONNECT_PRIVATE {

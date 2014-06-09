@@ -887,6 +887,16 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setReqMT
 	openconnect_set_reqmtu(ctx->vpninfo, arg);
 }
 
+JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setDPD(
+	JNIEnv *jenv, jobject jobj, jint arg)
+{
+	struct libctx *ctx = getctx(jenv, jobj);
+
+	if (!ctx)
+		return;
+	openconnect_set_dpd(ctx->vpninfo, arg);
+}
+
 JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setPFS(
 	JNIEnv *jenv, jobject jobj, jboolean arg)
 {

@@ -273,6 +273,15 @@ void openconnect_set_reqmtu(struct openconnect_info *vpninfo, int reqmtu)
 	vpninfo->reqmtu = reqmtu;
 }
 
+void openconnect_set_dpd(struct openconnect_info *vpninfo, int min_seconds)
+{
+	/* Make sure (ka->dpd / 2), our computed midway point, isn't 0 */
+	if (!min_seconds || min_seconds >= 2)
+		vpninfo->dtls_times.dpd = vpninfo->ssl_times.dpd = min_seconds;
+	else if (min_seconds == 1)
+		vpninfo->dtls_times.dpd = vpninfo->ssl_times.dpd = 2;
+}
+
 int openconnect_get_ip_info(struct openconnect_info *vpninfo,
 			    const struct oc_ip_info **info,
 			    const struct oc_vpn_option **cstp_options,

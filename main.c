@@ -876,7 +876,7 @@ int main(int argc, char **argv)
 			vpninfo->useragent = strdup(config_arg);
 			break;
 		case OPT_FORCE_DPD:
-			vpninfo->dtls_times.dpd = vpninfo->ssl_times.dpd = atoi(config_arg);
+			openconnect_set_dpd(vpninfo, atoi(config_arg));
 			break;
 		case OPT_DTLS_LOCAL_PORT:
 			vpninfo->dtls_local_port = atoi(config_arg);

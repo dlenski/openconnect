@@ -33,7 +33,7 @@
 
 /*
  * API version 3.3:
- *  - Add openconnect_set_pfs()
+ *  - Add openconnect_set_pfs(), openconnect_set_dpd()
  *
  * API version 3.2:
  *  - Add OC_TOKEN_MODE_HOTP and allow openconnect_has_oath_support() to
@@ -299,6 +299,7 @@ void openconnect_set_client_cert(struct openconnect_info *, char *cert, char *ss
 void openconnect_set_server_cert_sha1(struct openconnect_info *, char *);
 const char *openconnect_get_ifname(struct openconnect_info *);
 void openconnect_set_reqmtu(struct openconnect_info *, int reqmtu);
+void openconnect_set_dpd(struct openconnect_info *, int min_seconds);
 
 /* The returned structures are owned by the library and may be freed/replaced
    due to rekey or reconnect. Assume that once the mainloop starts, the
