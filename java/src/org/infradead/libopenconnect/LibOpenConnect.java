@@ -126,7 +126,7 @@ public abstract class LibOpenConnect {
 	public synchronized native void setClientCert(String cert, String sslKey);
 	public synchronized native void setServerCertSHA1(String hash);
 	public synchronized native void setReqMTU(int mtu);
-	public synchronized native void setPFS(int isEnabled);
+	public synchronized native void setPFS(boolean isEnabled);
 
 	/* connection info */
 

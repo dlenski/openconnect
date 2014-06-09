@@ -888,7 +888,7 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setReqMT
 }
 
 JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setPFS(
-	JNIEnv *jenv, jobject jobj, jint arg)
+	JNIEnv *jenv, jobject jobj, jboolean arg)
 {
 	struct libctx *ctx = getctx(jenv, jobj);
 
