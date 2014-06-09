@@ -320,6 +320,11 @@ long-term key is compromised, any session keys established before the compromise
 will be unaffected. If this option is provided and the server does not support PFS
 in the TLS channel the connection will fail.
 
+PFS is available in Cisco ASA releases 9.1(2) and higher; a suitable cipher
+suite may need to be manually enabled by the administrator using the
+.B ssl encryption
+setting.
+
 .TP
 .B \-\-no\-dtls
 Disable DTLS
