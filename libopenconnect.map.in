@@ -54,6 +54,11 @@ OPENCONNECT_3.1 {
 	openconnect_set_stats_handler;
 } OPENCONNECT_3.0;
 
+OPENCONNECT_3.3 {
+ global:
+	openconnect_set_pfs;
+} OPENCONNECT_3.1;
+
 OPENCONNECT_PRIVATE {
  global: @SYMVER_TIME@ @SYMVER_GETLINE@ @SYMVER_JAVA@
 	openconnect_version_str;

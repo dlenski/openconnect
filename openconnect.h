@@ -29,9 +29,12 @@
 #endif
 
 #define OPENCONNECT_API_VERSION_MAJOR 3
-#define OPENCONNECT_API_VERSION_MINOR 2
+#define OPENCONNECT_API_VERSION_MINOR 3
 
 /*
+ * API version 3.3:
+ *  - Add openconnect_set_pfs()
+ *
  * API version 3.2:
  *  - Add OC_TOKEN_MODE_HOTP and allow openconnect_has_oath_support() to
  *    return 2 to indicate that it is present.
