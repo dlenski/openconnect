@@ -86,6 +86,16 @@
  *
  * API version 1.0:
  *  - Initial version
+ *
+ * NEW LIBRARY FUNCTION CHECKLIST:
+ *
+ * 1) Bump the API version if the current API version has already appeared
+ *    in a release
+ * 2) Add function to the above changelog
+ * 3) Add function to libopenconnect.map.in
+ * 4) Add declaration + comments in the latter part of this file
+ * 5) Add function to jni.c, then test with ./configure --with-java && make
+ * 6) Add declaration to LibOpenConnect.java, then run "ant" to test
  */
 
 /* Before API version 1.4 (OpenConnect 3.19) this macro didn't exist.
