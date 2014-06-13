@@ -305,6 +305,7 @@ struct openconnect_info {
 	int cmd_fd_write;
 	int got_cancel_cmd;
 	int got_pause_cmd;
+	char cancel_type;
 
 	struct pkt *incoming_queue;
 	struct pkt *outgoing_queue;

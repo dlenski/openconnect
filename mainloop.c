@@ -105,7 +105,8 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 /* Return value:
  *  = 0, when successfully paused (may call again)
- *  = -EINTR, if aborted locally via cmd_fd
+ *  = -EINTR, if aborted locally via OC_CMD_CANCEL
+ *  = -ECONNABORTED, if aborted locally via OC_CMD_DETACH
  *  = -EPIPE, if the remote end explicitly terminated the session
  *  = -EPERM, if the gateway sent 401 Unauthorized (cookie expired)
  *  < 0, for any other error
@@ -157,8 +158,12 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 
 		poll_cmd_fd(vpninfo, 0);
 		if (vpninfo->got_cancel_cmd) {
-			vpninfo->quit_reason = "Aborted by caller";
-			ret = -EINTR;
+			if (vpninfo->cancel_type == OC_CMD_CANCEL) {
+				vpninfo->quit_reason = "Aborted by caller";
+				ret = -EINTR;
+			} else {
+				ret = -ECONNABORTED;
+			}
 			break;
 		}
 		if (vpninfo->got_pause_cmd) {
@@ -215,7 +220,8 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 #endif
 	}
 
-	cstp_bye(vpninfo, vpninfo->quit_reason);
+	if (vpninfo->quit_reason)
+		cstp_bye(vpninfo, vpninfo->quit_reason);
 
 	os_shutdown_tun(vpninfo);
 	return ret < 0 ? ret : -EIO;

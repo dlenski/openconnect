@@ -225,9 +225,21 @@ struct oc_stats {
 #define PRG_DEBUG	2
 #define PRG_TRACE	3
 
-/* byte commands to write into the cmd_fd */
+/* Byte commands to write into the cmd_fd:
+ *
+ *  CANCEL closes network connections, logs off the session (cookie)
+ *    and shuts down the tun device.
+ *  PAUSE closes network connections and returns. The caller is expected
+ *    to call openconnect_mainloop() again soon.
+ *  DETACH closes network connections and shuts down the tun device.
+ *    It is not legal to call openconnect_mainloop() again after this,
+ *    but a new instance of openconnect can be started using the same
+ *    cookie.
+ *  STATS calls the stats_handler.
+ */
 #define OC_CMD_CANCEL		'x'
 #define OC_CMD_PAUSE		'p'
+#define OC_CMD_DETACH		'd'
 #define OC_CMD_STATS		's'
 
 #define RECONNECT_INTERVAL_MIN	10
