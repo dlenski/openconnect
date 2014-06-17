@@ -15,6 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Download XML profile in XML POST mode.</li>
        <li>Fix a couple of bugs involving DTLS rekeying.</li>
        <li>Fix problems seen when building or connecting without DTLS enabled.</li>
        <li>Fix tun error handling on Windows hosts.</li>

@@ -488,6 +488,8 @@ static int fetch_config(struct openconnect_info *vpninfo)
 	buf = buf_alloc();
 	buf_append(buf, "GET %s HTTP/1.1\r\n", vpninfo->profile_url);
 	add_common_headers(vpninfo, buf);
+	if (vpninfo->xmlpost)
+		buf_append(buf, "Cookie: webvpn=%s\r\n", vpninfo->cookie);
 	buf_append(buf, "\r\n");
 
 	if (buf_error(buf))

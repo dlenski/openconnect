@@ -387,6 +387,21 @@ static int xmlnode_get_prop(xmlNode *xml_node, const char *name, char **var)
 	return 0;
 }
 
+static int xmlnode_match_prop(xmlNode *xml_node, const char *name, const char *match)
+{
+	char *str = (char *)xmlGetProp(xml_node, (unsigned char *)name);
+	int ret = 0;
+
+	if (!str)
+		return -ENOENT;
+
+	if (strcmp(str, match))
+	    ret = -EEXIST;
+
+	free(str);
+	return ret;
+}
+
 static int xmlnode_get_text(xmlNode *xml_node, const char *name, char **var)
 {
 	char *str;
@@ -536,6 +551,63 @@ static int parse_host_scan_node(struct openconnect_info *vpninfo, xmlNode *xml_n
 	return 0;
 }
 
+static void parse_profile_node(struct openconnect_info *vpninfo, xmlNode *xml_node)
+{
+	/* ignore this whole section if we already have a URL */
+	if (vpninfo->profile_url && vpninfo->profile_sha1)
+		return;
+
+	/* Find <vpn rev="1.0"> child... */
+	xml_node = xml_node->children;
+	while (1) {
+		if (!xml_node)
+			return;
+
+		if (xml_node->type == XML_ELEMENT_NODE &&
+		    xmlnode_is_named(xml_node, "vpn") &&
+		    !xmlnode_match_prop(xml_node, "rev", "1.0"))
+			break;
+
+		xml_node = xml_node->next;
+	}
+
+	/* Find <file type="profile" service-type="user"> */
+	xml_node = xml_node->children;
+	while (1) {
+		if (!xml_node)
+			return;
+
+		if (xml_node->type == XML_ELEMENT_NODE &&
+		    xmlnode_is_named(xml_node, "file") &&
+		    !xmlnode_match_prop(xml_node, "type", "profile") &&
+		    !xmlnode_match_prop(xml_node, "service-type", "user"))
+			break;
+
+		xml_node = xml_node->next;
+	}
+
+	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
+		if (xml_node->type != XML_ELEMENT_NODE)
+			continue;
+
+		xmlnode_get_text(xml_node, "uri", &vpninfo->profile_url);
+		/* FIXME: Check for <hash type="sha1"> */
+		xmlnode_get_text(xml_node, "hash", &vpninfo->profile_sha1);
+	}
+}
+
+static void parse_config_node(struct openconnect_info *vpninfo, xmlNode *xml_node)
+{
+	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
+		if (xml_node->type != XML_ELEMENT_NODE)
+			continue;
+
+		if (xmlnode_is_named(xml_node, "vpn-profile-manifest"))
+			parse_profile_node(vpninfo, xml_node);
+	}
+}
+
+
 /* Return value:
  *  < 0, on error
  *  = 0, on success; *form is populated
@@ -605,6 +677,8 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
 				ret = -ENOMEM;
 		} else if (xmlnode_is_named(xml_node, "host-scan")) {
 			ret = parse_host_scan_node(vpninfo, xml_node);
+		} else if (xmlnode_is_named(xml_node, "config")) {
+			parse_config_node(vpninfo, xml_node);
 		} else {
 			xmlnode_get_text(xml_node, "session-token", &vpninfo->cookie);
 			xmlnode_get_text(xml_node, "error", &form->error);
