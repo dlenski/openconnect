@@ -183,6 +183,8 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free(vpninfo->csd_preurl);
 	if (vpninfo->opaque_srvdata)
 		xmlFreeNode(vpninfo->opaque_srvdata);
+	free(vpninfo->profile_url);
+	free(vpninfo->profile_sha1);
 
 	/* These are const in openconnect itself, but for consistency of
 	   the library API we do take ownership of the strings we're given,

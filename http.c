@@ -460,8 +460,7 @@ static void add_common_headers(struct openconnect_info *vpninfo, struct oc_text_
 	}
 }
 
-static int fetch_config(struct openconnect_info *vpninfo, char *bu, char *fu,
-			char *server_sha1)
+static int fetch_config(struct openconnect_info *vpninfo)
 {
 	struct oc_text_buf *buf;
 	char *config_buf = NULL;
@@ -469,6 +468,15 @@ static int fetch_config(struct openconnect_info *vpninfo, char *bu, char *fu,
 	unsigned char local_sha1_bin[SHA1_SIZE];
 	char local_sha1_ascii[(SHA1_SIZE * 2)+1];
 	int i;
+
+	if (!vpninfo->profile_url || !vpninfo->profile_sha1)
+		return -ENOENT;
+
+	if (!strncasecmp(vpninfo->xmlsha1, vpninfo->profile_sha1, SHA1_SIZE * 2)) {
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Not downloading XML profile because SHA1 already matches\n"));
+		return 0;
+	}
 
 	if (openconnect_open_https(vpninfo)) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -478,7 +486,7 @@ static int fetch_config(struct openconnect_info *vpninfo, char *bu, char *fu,
 	}
 
 	buf = buf_alloc();
-	buf_append(buf, "GET %s%s HTTP/1.1\r\n", bu, fu);
+	buf_append(buf, "GET %s HTTP/1.1\r\n", vpninfo->profile_url);
 	add_common_headers(vpninfo, buf);
 	buf_append(buf, "\r\n");
 
@@ -509,12 +517,14 @@ static int fetch_config(struct openconnect_info *vpninfo, char *bu, char *fu,
 	for (i = 0; i < SHA1_SIZE; i++)
 		sprintf(&local_sha1_ascii[i*2], "%02x", local_sha1_bin[i]);
 
-	if (strcasecmp(server_sha1, local_sha1_ascii)) {
+	if (strcasecmp(vpninfo->profile_sha1, local_sha1_ascii)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Downloaded config file did not match intended SHA1\n"));
 		free(config_buf);
 		return -EINVAL;
 	}
+
+	vpn_progress(vpninfo, PRG_DEBUG, _("Downloaded new XML profile\n"));
 
 	result = vpninfo->write_new_config(vpninfo->cbdata, config_buf, buflen);
 	free(config_buf);
@@ -1250,19 +1260,19 @@ newgroup:
 					bu = tok + 3;
 				else if (!strncmp(tok, "fu:", 3))
 					fu = tok + 3;
-				else if (!strncmp(tok, "fh:", 3)) {
-					if (!strncasecmp(tok+3, vpninfo->xmlsha1,
-							 SHA1_SIZE * 2))
-						break;
+				else if (!strncmp(tok, "fh:", 3))
 					sha = tok + 3;
-				}
 			} while ((tok = strchr(tok, '&')));
 
-			if (bu && fu && sha)
-				fetch_config(vpninfo, bu, fu, sha);
+			if (bu && fu && sha) {
+				asprintf(&vpninfo->profile_url, "%s%s", bu, fu);
+				vpninfo->profile_sha1 = strdup(sha);
+			}
 		}
 	}
 	result = 0;
+
+	fetch_config(vpninfo);
 
 out:
 	free(form_path);

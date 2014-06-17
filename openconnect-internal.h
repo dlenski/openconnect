@@ -158,6 +158,9 @@ struct openconnect_info {
 	char *csd_scriptname;
 	xmlNode *opaque_srvdata;
 
+	char *profile_url;
+	char *profile_sha1;
+
 #ifdef LIBPROXY_HDR
 	pxProxyFactory *proxy_factory;
 #endif
