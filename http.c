@@ -203,7 +203,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result, 
 		return -EINVAL;
 	}
 
-	vpn_progress(vpninfo, (*result == 200) ? PRG_DEBUG : PRG_INFO,
+	vpn_progress(vpninfo, (*result == 200 || *result == 407) ? PRG_DEBUG : PRG_INFO,
 		     _("Got HTTP response: %s\n"), buf);
 
 	/* Eat headers... */
@@ -306,7 +306,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result, 
 				return -EINVAL;
 			}
 		}
-		if (header_cb && !strncmp(buf, "X-", 2))
+		if (header_cb)
 			header_cb(vpninfo, buf, colon);
 	}
 
@@ -1516,13 +1516,159 @@ static int process_socks_proxy(struct openconnect_info *vpninfo)
 	return 0;
 }
 
+/* Ick. Yet another wheel to reinvent. But although we could pull it
+   in from OpenSSL, we can't from GnuTLS */
+static const char b64_table[] = {
+	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+	'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+	'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+	'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
+};
+
+static void b64_frag(struct oc_text_buf *buf, int len, unsigned char *in)
+{
+	int hibits;
+	char b64[5];
+
+	b64[0] = b64_table[in[0] >> 2];
+	hibits = (in[0] << 4) & 0x30;
+	if (len == 1) {
+		b64[1] = b64_table[hibits];
+		b64[2] = '=';
+		b64[3] = '=';
+		goto out;
+	}
+	b64[1] = b64_table[hibits | (in[1] >> 4)];
+	hibits = (in[1] << 2) & 0x3c;
+	if (len == 2) {
+		b64[2] = b64_table[hibits];
+		b64[3] = '=';
+		goto out;
+	}
+	b64[2] = b64_table[hibits | (in[2] >> 6)];
+	b64[3] = b64_table[in[2] & 0x3f];
+ out:
+	b64[4] = 0;
+	buf_append(buf, b64);
+}
+
+/* State in vpninfo->proxy_auth_state */
+#define AUTH_UNSEEN		0	/* Server has not offered it */
+#define AUTH_AVAILABLE		1	/* Server has offered it, we have not tried it */
+#define AUTH_IN_PROGRESS	2	/* In-progress attempt */
+#define AUTH_FAILED		3	/* Failed */
+
+/* Generate Proxy-Authorization: header for request if appropriate */
+
+static int proxy_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+{
+	if (vpninfo->basic_auth.state == AUTH_AVAILABLE &&
+	    vpninfo->proxy_user && vpninfo->proxy_pass) {
+		char *p = vpninfo->proxy_user;
+		unsigned char buf2[3];
+		int i;
+
+		buf_append(buf, "Proxy-Authorization: Basic ");
+
+		i = strlen(p);
+		while (i >= 3) {
+			b64_frag(buf, 3, (unsigned char *)p);
+			p += 3;
+			i -= 3;
+		}
+
+		/* Fill base64 chunk of 3 chars with end of username, colon, and
+		   start of password. */
+		if (i)
+			memcpy(buf2, p, i);
+		buf2[i++] = ':';
+		p = vpninfo->proxy_pass;
+		while (i < 3 && *p)
+			buf2[i++] = *(p++);
+
+		b64_frag(buf, i, buf2);
+
+		i = strlen(p);
+		while (i) {
+			int j = (i > 3) ? 3 : i;
+
+			b64_frag(buf, j, (unsigned char *)p);
+			p += j;
+			i -= j;
+		}
+
+		buf_append(buf, "\r\n");
+
+		vpn_progress(vpninfo, PRG_INFO, _("Attempting HTTP Basic authentication to proxy\n"));
+		vpninfo->basic_auth.state = AUTH_IN_PROGRESS;
+		return 0;
+	}
+
+	vpn_progress(vpninfo, PRG_INFO, _("No more authentication methods to try\n"));
+	return -ENOENT;
+}
+
+static void handle_auth_proto(struct openconnect_info *vpninfo, struct proxy_auth_state *auth,
+				     const char *name, char *hdr)
+{
+	int l = strlen(name);
+
+	if (auth->state == AUTH_FAILED)
+		return;
+
+	if (strncmp(name, hdr, l))
+		return;
+	if (hdr[l] != ' ' && hdr[l] != 0)
+		return;
+
+	if (auth->state == AUTH_UNSEEN)
+		auth->state = AUTH_AVAILABLE;
+
+	free(auth->challenge);
+	if (hdr[l])
+		auth->challenge = strdup(hdr + l + 1);
+	else
+		auth->challenge = NULL;
+}
+
+static int proxy_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val)
+{
+	if (strcasecmp(hdr, "Proxy-Authenticate"))
+		return 0;
+
+	handle_auth_proto(vpninfo, &vpninfo->basic_auth, "Basic", val);
+	handle_auth_proto(vpninfo, &vpninfo->ntlm_auth, "NTLM", val);
+	handle_auth_proto(vpninfo, &vpninfo->gssapi_auth, "Negotiate", val);
+
+	return 0;
+}
+
+static void clear_auth_state(struct proxy_auth_state *auth, int reset)
+{
+	/* The 'reset' argument is set when we're connected successfully,
+	   to fully reset the state to allow another connection to start
+	   again. Otherwise, we need to remember which auth methods have
+	   been tried and should not be attempted again. */
+	if (reset || auth->state == AUTH_AVAILABLE)
+		auth->state = AUTH_UNSEEN;
+	free(auth->challenge);
+	auth->challenge = NULL;
+}
+
+
 static int process_http_proxy(struct openconnect_info *vpninfo)
 {
 	char *resp = NULL;
 	int resplen;
 	struct oc_text_buf *reqbuf;
 	int result;
+	int auth = 0;
 
+	vpn_progress(vpninfo, PRG_INFO,
+		     _("Requesting HTTP proxy connection to %s:%d\n"),
+		     vpninfo->hostname, vpninfo->port);
+
+ retry:
 	reqbuf = buf_alloc();
 	buf_append(reqbuf, "CONNECT %s:%d HTTP/1.1\r\n", vpninfo->hostname, vpninfo->port);
 	buf_append(reqbuf, "Host: %s\r\n", vpninfo->hostname);
@@ -1530,14 +1676,21 @@ static int process_http_proxy(struct openconnect_info *vpninfo)
 	buf_append(reqbuf, "Proxy-Connection: keep-alive\r\n");
 	buf_append(reqbuf, "Connection: keep-alive\r\n");
 	buf_append(reqbuf, "Accept-Encoding: identity\r\n");
+	if (auth) {
+		result = proxy_authorization(vpninfo, reqbuf);
+		if (result) {
+			buf_free(reqbuf);
+			return result;
+		}
+		/* Forget existing challenges */
+		clear_auth_state(&vpninfo->basic_auth, 0);
+		clear_auth_state(&vpninfo->ntlm_auth, 0);
+		clear_auth_state(&vpninfo->gssapi_auth, 0);
+	}
 	buf_append(reqbuf, "\r\n");
 
 	if (buf_error(reqbuf))
 		return buf_free(reqbuf);
-
-	vpn_progress(vpninfo, PRG_INFO,
-		     _("Requesting HTTP proxy connection to %s:%d\n"),
-		     vpninfo->hostname, vpninfo->port);
 
 	result = proxy_write(vpninfo, reqbuf->data, reqbuf->pos);
 	buf_free(reqbuf);
@@ -1549,13 +1702,18 @@ static int process_http_proxy(struct openconnect_info *vpninfo)
 		return result;
 	}
 
-	resplen = process_http_response(vpninfo, &result, 1, NULL, &resp);
+	resplen = process_http_response(vpninfo, &result, 1, proxy_hdrs, &resp);
 	if (resplen < 0)
 		return -EINVAL;
 
 	if (resp) {
 		free(resp);
 		resp = NULL;
+	}
+
+	if (result == 407) {
+		auth = 1;
+		goto retry;
 	}
 
 	if (result == 200)
@@ -1587,12 +1745,15 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	}
 
 	vpninfo->proxy_fd = -1;
+	clear_auth_state(&vpninfo->basic_auth, 1);
+	clear_auth_state(&vpninfo->ntlm_auth, 1);
+	clear_auth_state(&vpninfo->gssapi_auth, 1);
 	return ret;
 }
 
 int openconnect_set_http_proxy(struct openconnect_info *vpninfo, char *proxy)
 {
-	char *url = proxy;
+	char *url = proxy, *p;
 	int ret;
 
 	if (!url)
@@ -1607,6 +1768,19 @@ int openconnect_set_http_proxy(struct openconnect_info *vpninfo, char *proxy)
 				 &vpninfo->proxy_port, NULL, 80);
 	if (ret)
 		goto out;
+
+	p = strchr(vpninfo->proxy, '@');
+	if (p) {
+		/* Proxy username/password */
+		*p = 0;
+		vpninfo->proxy_user = vpninfo->proxy;
+		vpninfo->proxy = strdup(p + 1);
+		p = strchr(vpninfo->proxy_user, ':');
+		if (p) {
+			*p = 0;
+			vpninfo->proxy_pass = strdup(p + 1);
+		}
+	}
 
 	if (vpninfo->proxy_type &&
 	    strcmp(vpninfo->proxy_type, "http") &&

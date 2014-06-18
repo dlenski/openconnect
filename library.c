@@ -161,6 +161,8 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free(vpninfo->cookie);
 	free(vpninfo->proxy_type);
 	free(vpninfo->proxy);
+	free(vpninfo->proxy_user);
+	free(vpninfo->proxy_pass);
 	free(vpninfo->vpnc_script);
 	free(vpninfo->cafile);
 	free(vpninfo->servercert);

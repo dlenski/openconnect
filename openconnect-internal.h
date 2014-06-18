@@ -138,6 +138,11 @@ struct pin_cache {
 #define REDIR_TYPE_NEWHOST	1
 #define REDIR_TYPE_LOCAL	2
 
+struct proxy_auth_state {
+	int state;
+	char *challenge;
+};
+
 struct openconnect_info {
 	char *redirect_url;
 	int redirect_type;
@@ -168,6 +173,11 @@ struct openconnect_info {
 	char *proxy;
 	int proxy_port;
 	int proxy_fd;
+	char *proxy_user;
+	char *proxy_pass;
+	struct proxy_auth_state basic_auth;
+	struct proxy_auth_state ntlm_auth;
+	struct proxy_auth_state gssapi_auth;
 
 	char *localname;
 	char *hostname;
