@@ -1269,7 +1269,10 @@ newgroup:
 			} while ((tok = strchr(tok, '&')));
 
 			if (bu && fu && sha) {
-				asprintf(&vpninfo->profile_url, "%s%s", bu, fu);
+				if (asprintf(&vpninfo->profile_url, "%s%s", bu, fu) == -1) {
+					result = -ENOMEM;
+					goto out;
+				}
 				vpninfo->profile_sha1 = strdup(sha);
 			}
 		}
