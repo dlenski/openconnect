@@ -480,11 +480,11 @@ static int fetch_config(struct openconnect_info *vpninfo)
 		return 0;
 	}
 
-	if (openconnect_open_https(vpninfo)) {
+	if ((result = openconnect_open_https(vpninfo))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to open HTTPS connection to %s\n"),
 			     vpninfo->hostname);
-		return -EINVAL;
+		return result;
 	}
 
 	buf = buf_alloc();
@@ -944,12 +944,12 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 		rq_retry = 1;
 	} else {
 		rq_retry = 0;
-		if (openconnect_open_https(vpninfo)) {
+		if ((result = openconnect_open_https(vpninfo))) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to open HTTPS connection to %s\n"),
 				     vpninfo->hostname);
 			buf_free(buf);
-			return -EINVAL;
+			return result;
 		}
 	}
 
