@@ -1897,6 +1897,7 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 {
 	int ret;
 
+	vpninfo->ntlm_helper_fd = -1;
 	vpninfo->proxy_fd = ssl_sock;
 	vpninfo->ssl_read = proxy_read;
 	vpninfo->ssl_write = proxy_write;
@@ -1911,6 +1912,11 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 		vpn_progress(vpninfo, PRG_ERR, _("Unknown proxy type '%s'\n"),
 			     vpninfo->proxy_type);
 		ret = -EIO;
+	}
+
+	if (vpninfo->ntlm_helper_fd != -1) {
+		close(vpninfo->ntlm_helper_fd);
+		vpninfo->ntlm_helper_fd = -1;
 	}
 
 	vpninfo->proxy_fd = -1;
