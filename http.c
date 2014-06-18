@@ -174,7 +174,7 @@ static int http_add_cookie(struct openconnect_info *vpninfo,
 #define BODY_HTTP10 -1
 #define BODY_CHUNKED -2
 
-static int process_http_response(struct openconnect_info *vpninfo, int *result,
+static int process_http_response(struct openconnect_info *vpninfo, int *result, int connect,
 				 int (*header_cb)(struct openconnect_info *, char *, char *),
 				 char **body_ret)
 {
@@ -313,6 +313,10 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	/* Handle 'HTTP/1.1 100 Continue'. Not that we should ever see it */
 	if (*result == 100)
 		goto cont;
+
+	/* On successful CONNECT, there is no body. Return success */
+	if (connect && *result == 200)
+		return 0;
 
 	/* Now the body, if there is one */
 	vpn_progress(vpninfo, PRG_DEBUG, _("HTTP body %s (%d)\n"),
@@ -501,7 +505,7 @@ static int fetch_config(struct openconnect_info *vpninfo)
 	}
 	buf_free(buf);
 
-	buflen = process_http_response(vpninfo, &result, NULL, &config_buf);
+	buflen = process_http_response(vpninfo, &result, 0, NULL, &config_buf);
 	if (buflen < 0) {
 		/* We'll already have complained about whatever offended us */
 		return -EINVAL;
@@ -961,7 +965,7 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 	if (result < 0)
 		return result;
 
-	buflen = process_http_response(vpninfo, &result, NULL, form_buf);
+	buflen = process_http_response(vpninfo, &result, 0, NULL, form_buf);
 	if (buflen < 0) {
 		/* We'll already have complained about whatever offended us */
 		return buflen;
@@ -1514,9 +1518,10 @@ static int process_socks_proxy(struct openconnect_info *vpninfo)
 
 static int process_http_proxy(struct openconnect_info *vpninfo)
 {
-	char buf[MAX_BUF_LEN];
+	char *resp = NULL;
+	int resplen;
 	struct oc_text_buf *reqbuf;
-	int buflen, result;
+	int result;
 
 	reqbuf = buf_alloc();
 	buf_append(reqbuf, "CONNECT %s:%d HTTP/1.1\r\n", vpninfo->hostname, vpninfo->port);
@@ -1544,37 +1549,21 @@ static int process_http_proxy(struct openconnect_info *vpninfo)
 		return result;
 	}
 
-	if (proxy_gets(vpninfo, buf, sizeof(buf)) < 0) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Error fetching proxy response\n"));
-		return -EIO;
-	}
-
-	if (strncmp(buf, "HTTP/1.", 7) || (buf[7] != '0' && buf[7] != '1') ||
-	    buf[8] != ' ' || !(result = atoi(buf+9))) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to parse proxy response '%s'\n"), buf);
+	resplen = process_http_response(vpninfo, &result, 1, NULL, &resp);
+	if (resplen < 0)
 		return -EINVAL;
+
+	if (resp) {
+		free(resp);
+		resp = NULL;
 	}
 
-	if (result != 200) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Proxy CONNECT request failed: %s\n"), buf);
-		return -EIO;
-	}
+	if (result == 200)
+		return 0;
 
-	while ((buflen = proxy_gets(vpninfo, buf, sizeof(buf)))) {
-		if (buflen < 0) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Failed to read proxy response\n"));
-			return -EIO;
-		}
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Unexpected continuation line after CONNECT response: '%s'\n"),
-			     buf);
-	}
-
-	return 0;
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Proxy CONNECT request failed: %d\n"), result);
+	return -EIO;
 }
 
 int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
