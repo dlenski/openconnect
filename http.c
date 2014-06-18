@@ -469,7 +469,7 @@ static int fetch_config(struct openconnect_info *vpninfo)
 	char local_sha1_ascii[(SHA1_SIZE * 2)+1];
 	int i;
 
-	if (!vpninfo->profile_url || !vpninfo->profile_sha1)
+	if (!vpninfo->profile_url || !vpninfo->profile_sha1 || !vpninfo->write_new_config)
 		return -ENOENT;
 
 	if (!strncasecmp(vpninfo->xmlsha1, vpninfo->profile_sha1, SHA1_SIZE * 2)) {
