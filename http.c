@@ -1309,7 +1309,7 @@ static int proxy_gets(struct openconnect_info *vpninfo, int fd,
 	if (len < 2)
 		return -EINVAL;
 
-	while ((ret = proxy_read(vpninfo, fd, (void *)(buf + i), 1)) == 0) {
+	while ((ret = proxy_read(vpninfo, fd, (void *)(buf + i), 1)) == 1) {
 		if (buf[i] == '\n') {
 			buf[i] = 0;
 			if (i && buf[i-1] == '\r') {
@@ -1358,7 +1358,7 @@ static int proxy_write(struct openconnect_info *vpninfo, int fd,
 
 		count += i;
 	}
-	return 0;
+	return count;
 }
 
 static int proxy_read(struct openconnect_info *vpninfo, int fd,
@@ -1389,7 +1389,7 @@ static int proxy_read(struct openconnect_info *vpninfo, int fd,
 
 		count += i;
 	}
-	return 0;
+	return count;
 }
 
 static const char *socks_errors[] = {
@@ -1413,14 +1413,14 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	buf[1] = 1; /* # auth methods */
 	buf[2] = 0; /* No auth supported */
 
-	if ((i = proxy_write(vpninfo, ssl_sock, buf, 3))) {
+	if ((i = proxy_write(vpninfo, ssl_sock, buf, 3)) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error writing auth request to SOCKS proxy: %s\n"),
 			     strerror(-i));
 		return i;
 	}
 
-	if ((i = proxy_read(vpninfo, ssl_sock, buf, 2))) {
+	if ((i = proxy_read(vpninfo, ssl_sock, buf, 2)) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error reading auth response from SOCKS proxy: %s\n"),
 			     strerror(-i));
@@ -1459,7 +1459,7 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	buf[i++] = vpninfo->port >> 8;
 	buf[i++] = vpninfo->port & 0xff;
 
-	if ((i = proxy_write(vpninfo, ssl_sock, buf, i))) {
+	if ((i = proxy_write(vpninfo, ssl_sock, buf, i)) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error writing connect request to SOCKS proxy: %s\n"),
 			     strerror(-i));
@@ -1467,13 +1467,13 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	}
 	/* Read 5 bytes -- up to and including the first byte of the returned
 	   address (which might be the length byte of a domain name) */
-	if ((i = proxy_read(vpninfo, ssl_sock, buf, 5))) {
+	if ((i = proxy_read(vpninfo, ssl_sock, buf, 5)) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error reading connect response from SOCKS proxy: %s\n"),
 			     strerror(-i));
 		return i;
 	}
-	if (buf[0] != 5) {
+	if (i != 5 || buf[0] != 5) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unexpected connect response from SOCKS proxy: %02x %02x...\n"),
 			     buf[0], buf[1]);
@@ -1500,7 +1500,7 @@ static int process_socks_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 		return -EIO;
 	}
 
-	if ((i = proxy_read(vpninfo, ssl_sock, buf, i))) {
+	if ((i = proxy_read(vpninfo, ssl_sock, buf, i)) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error reading connect response from SOCKS proxy: %s\n"),
 			     strerror(-i));
@@ -1534,7 +1534,7 @@ static int process_http_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	result = proxy_write(vpninfo, ssl_sock, (unsigned char *)reqbuf->data, reqbuf->pos);
 	buf_free(reqbuf);
 
-	if (result) {
+	if (result < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Sending proxy request failed: %s\n"),
 			     strerror(-result));
