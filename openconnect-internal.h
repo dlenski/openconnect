@@ -178,6 +178,7 @@ struct openconnect_info {
 	struct proxy_auth_state basic_auth;
 	struct proxy_auth_state ntlm_auth;
 	struct proxy_auth_state gssapi_auth;
+	int ntlm_helper_fd;
 
 	char *localname;
 	char *hostname;
