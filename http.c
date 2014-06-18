@@ -1680,6 +1680,8 @@ static int ntlm_helper_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	buf_append(buf, "Proxy-Authorization: NTLM %s\r\n", helperbuf + 3);
 	close(vpninfo->ntlm_helper_fd);
 	vpninfo->ntlm_helper_fd = -1;
+
+	vpn_progress(vpninfo, PRG_INFO, _("Attempting HTTP NTLM authentication to proxy (single-sign-on)\n"));
 	return 0;
 
 }
@@ -1687,6 +1689,7 @@ static int ntlm_helper_challenge(struct openconnect_info *vpninfo, struct oc_tex
 
 static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
 {
+	vpn_progress(vpninfo, PRG_INFO, _("Attempting HTTP NTLM authentication to proxy (manual)\n"));
 	return -EIO;
 }
 
