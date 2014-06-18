@@ -167,6 +167,7 @@ struct openconnect_info {
 	char *proxy_type;
 	char *proxy;
 	int proxy_port;
+	int proxy_fd;
 
 	char *localname;
 	char *hostname;
