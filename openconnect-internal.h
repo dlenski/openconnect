@@ -334,6 +334,10 @@ struct openconnect_info {
 	openconnect_process_auth_form_vfn process_auth_form;
 	openconnect_progress_vfn progress;
 	openconnect_protect_socket_vfn protect_socket;
+
+	int (*ssl_read)(struct openconnect_info *vpninfo, char *buf, size_t len);
+	int (*ssl_gets)(struct openconnect_info *vpninfo, char *buf, size_t len);
+	int (*ssl_write)(struct openconnect_info *vpninfo, char *buf, size_t len);
 };
 
 #ifdef _WIN32
@@ -498,9 +502,6 @@ int is_cancel_pending(struct openconnect_info *vpninfo, fd_set *fds);
 void poll_cmd_fd(struct openconnect_info *vpninfo, int timeout);
 
 /* {gnutls,openssl}.c */
-int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len);
-int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t len);
-int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len);
 int openconnect_open_https(struct openconnect_info *vpninfo);
 void openconnect_close_https(struct openconnect_info *vpninfo, int final);
 int cstp_handshake(struct openconnect_info *vpninfo, unsigned init);

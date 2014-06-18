@@ -56,7 +56,7 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 #include "openconnect-internal.h"
 
 /* Helper functions for reading/writing lines over SSL. */
-int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t len)
+static int openconnect_gnutls_write(struct openconnect_info *vpninfo, char *buf, size_t len)
 {
 	size_t orig_len = len;
 
@@ -92,7 +92,7 @@ int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t le
 	return orig_len;
 }
 
-int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len)
+static int openconnect_gnutls_read(struct openconnect_info *vpninfo, char *buf, size_t len)
 {
 	int done;
 
@@ -134,7 +134,7 @@ int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len
 	return done;
 }
 
-int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len)
+static int openconnect_gnutls_gets(struct openconnect_info *vpninfo, char *buf, size_t len)
 {
 	int i = 0;
 	int ret;
@@ -1975,6 +1975,9 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 	vpninfo->ssl_fd = ssl_sock;
 
+	vpninfo->ssl_read = openconnect_gnutls_read;
+	vpninfo->ssl_write = openconnect_gnutls_write;
+	vpninfo->ssl_gets = openconnect_gnutls_gets;
 
 	return 0;
 }

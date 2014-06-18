@@ -78,7 +78,7 @@ int openconnect_random(void *bytes, int len)
 /* Helper functions for reading/writing lines over SSL.
    We could use cURL for the HTTP stuff, but it's overkill */
 
-int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t len)
+static int openconnect_openssl_write(struct openconnect_info *vpninfo, char *buf, size_t len)
 {
 	size_t orig_len = len;
 
@@ -115,7 +115,7 @@ int openconnect_SSL_write(struct openconnect_info *vpninfo, char *buf, size_t le
 	return orig_len;
 }
 
-int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len)
+static int openconnect_openssl_read(struct openconnect_info *vpninfo, char *buf, size_t len)
 {
 	int done;
 
@@ -146,7 +146,7 @@ int openconnect_SSL_read(struct openconnect_info *vpninfo, char *buf, size_t len
 	return done;
 }
 
-int openconnect_SSL_gets(struct openconnect_info *vpninfo, char *buf, size_t len)
+static int openconnect_openssl_gets(struct openconnect_info *vpninfo, char *buf, size_t len)
 {
 	int i = 0;
 	int ret;
@@ -1412,6 +1412,10 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 	vpninfo->ssl_fd = ssl_sock;
 	vpninfo->https_ssl = https_ssl;
+
+	vpninfo->ssl_read = openconnect_openssl_read;
+	vpninfo->ssl_write = openconnect_openssl_write;
+	vpninfo->ssl_gets = openconnect_openssl_gets;
 
 	/* Stash this now, because it might not be available later if the
 	   server has disconnected. */

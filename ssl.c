@@ -317,7 +317,7 @@ int  __attribute__ ((format (printf, 2, 3)))
 	va_start(args, fmt);
 	vsnprintf(buf, 1023, fmt, args);
 	va_end(args);
-	return openconnect_SSL_write(vpninfo, buf, strlen(buf));
+	return vpninfo->ssl_write(vpninfo, buf, strlen(buf));
 
 }
 

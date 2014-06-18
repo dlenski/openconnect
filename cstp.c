@@ -219,9 +219,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	buf_append(buf, sizeof(buf), "\r\nX-DTLS-CipherSuite: %s\r\n\r\n",
 			       vpninfo->dtls_ciphers ? : DEFAULT_CIPHER_LIST);
 
-	openconnect_SSL_write(vpninfo, buf, strlen(buf));
+	vpninfo->ssl_write(vpninfo, buf, strlen(buf));
 
-	if ((i = openconnect_SSL_gets(vpninfo, buf, 65536)) < 0) {
+	if ((i = vpninfo->ssl_gets(vpninfo, buf, 65536)) < 0) {
 		if (i == -EINTR)
 			return i;
 		vpn_progress(vpninfo, PRG_ERR,
@@ -245,7 +245,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		if (!strncmp(buf, "HTTP/1.1 503 ", 13)) {
 			/* "Service Unavailable. Why? */
 			const char *reason = "<unknown>";
-			while ((i = openconnect_SSL_gets(vpninfo, buf, sizeof(buf)))) {
+			while ((i = vpninfo->ssl_gets(vpninfo, buf, sizeof(buf)))) {
 				if (!strncmp(buf, "X-Reason: ", 10)) {
 					reason = buf + 10;
 					break;
@@ -270,7 +270,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	vpninfo->deflate = 0;
 	mtu = 0;
 
-	while ((i = openconnect_SSL_gets(vpninfo, buf, sizeof(buf)))) {
+	while ((i = vpninfo->ssl_gets(vpninfo, buf, sizeof(buf)))) {
 		struct oc_vpn_option *new_option;
 		char *colon;
 

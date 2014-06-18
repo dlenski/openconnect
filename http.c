@@ -188,7 +188,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 	int i;
 
  cont:
-	if (openconnect_SSL_gets(vpninfo, buf, sizeof(buf)) < 0) {
+	if (vpninfo->ssl_gets(vpninfo, buf, sizeof(buf)) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error fetching HTTPS response\n"));
 		openconnect_close_https(vpninfo, 0);
@@ -209,7 +209,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		     _("Got HTTP response: %s\n"), buf);
 
 	/* Eat headers... */
-	while ((i = openconnect_SSL_gets(vpninfo, buf, sizeof(buf)))) {
+	while ((i = vpninfo->ssl_gets(vpninfo, buf, sizeof(buf)))) {
 		char *colon;
 
 		if (i < 0) {
@@ -328,7 +328,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		if (!body)
 			return -ENOMEM;
 		while (done < bodylen) {
-			i = openconnect_SSL_read(vpninfo, body + done, bodylen - done);
+			i = vpninfo->ssl_read(vpninfo, body + done, bodylen - done);
 			if (i < 0) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Error reading HTTP response body\n"));
@@ -340,7 +340,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 		}
 	} else if (bodylen == BODY_CHUNKED) {
 		/* ... else, chunked */
-		while ((i = openconnect_SSL_gets(vpninfo, buf, sizeof(buf)))) {
+		while ((i = vpninfo->ssl_gets(vpninfo, buf, sizeof(buf)))) {
 			int chunklen, lastchunk = 0;
 
 			if (i < 0) {
@@ -357,7 +357,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			if (!body)
 				return -ENOMEM;
 			while (chunklen) {
-				i = openconnect_SSL_read(vpninfo, body + done, chunklen);
+				i = vpninfo->ssl_read(vpninfo, body + done, chunklen);
 				if (i < 0) {
 					vpn_progress(vpninfo, PRG_ERR,
 						     _("Error reading HTTP response body\n"));
@@ -368,7 +368,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 				done += i;
 			}
 		skip:
-			if ((i = openconnect_SSL_gets(vpninfo, buf, sizeof(buf)))) {
+			if ((i = vpninfo->ssl_gets(vpninfo, buf, sizeof(buf)))) {
 				if (i < 0) {
 					vpn_progress(vpninfo, PRG_ERR,
 						     _("Error fetching HTTP response body\n"));
@@ -397,7 +397,7 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result,
 			realloc_inplace(body, done + 16384);
 			if (!body)
 				return -ENOMEM;
-			i = openconnect_SSL_read(vpninfo, body + done, 16384);
+			i = vpninfo->ssl_read(vpninfo, body + done, 16384);
 			if (i > 0) {
 				/* Got more data */
 				done += i;
@@ -495,7 +495,7 @@ static int fetch_config(struct openconnect_info *vpninfo)
 	if (buf_error(buf))
 		return buf_free(buf);
 
-	if (openconnect_SSL_write(vpninfo, buf->data, buf->pos) != buf->pos) {
+	if (vpninfo->ssl_write(vpninfo, buf->data, buf->pos) != buf->pos) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to send GET request for new config\n"));
 		buf_free(buf);
@@ -954,7 +954,7 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 	if (vpninfo->dump_http_traffic)
 		dump_buf(vpninfo, '>', buf->data);
 
-	result = openconnect_SSL_write(vpninfo, buf->data, buf->pos);
+	result = vpninfo->ssl_write(vpninfo, buf->data, buf->pos);
 	if (rq_retry && result < 0) {
 		openconnect_close_https(vpninfo, 0);
 		goto retry;
