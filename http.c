@@ -1587,6 +1587,12 @@ void buf_append_base64(struct oc_text_buf *buf, const void *bytes, int len)
 /* Generate Proxy-Authorization: header for request if appropriate */
 static int proxy_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
 {
+#ifdef HAVE_GSSAPI
+	if (vpninfo->gssapi_auth.state > AUTH_UNSEEN &&
+	    !gssapi_authorization(vpninfo, buf))
+		return 0;
+#endif
+
 	if (vpninfo->ntlm_auth.state > AUTH_UNSEEN &&
 	    !ntlm_authorization(vpninfo, buf))
 		return 0;

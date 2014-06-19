@@ -584,6 +584,23 @@ AS_IF([test "x$with_liboath" != "xno"], [
 		 liboath_pkg=no)
 ])
 
+have_gssapi=no
+AC_ARG_WITH([gssapi],
+	AS_HELP_STRING([--without-gssapi],
+	[Build without GSSAPI support [default=auto]]))
+AS_IF([test "x$with_gssapi" != "xno"], [
+	    AC_PATH_PROG([KRB5_CONFIG], krb5-config, [], $PATH:/usr/kerberos/bin)
+	    if test "$KRB5_CONFIG" != ""; then
+	        have_gssapi=yes
+	        GSSAPI_LIBS="`${KRB5_CONFIG} --libs gssapi`"
+		GSSAPI_CFLAGS="`${KRB5_CONFIG} --cflags gssapi`"
+		AC_SUBST(GSSAPI_CFLAGS)
+		AC_SUBST(GSSAPI_LIBS)
+		AC_DEFINE([HAVE_GSSAPI], 1)
+	    fi
+])
+AM_CONDITIONAL(OPENCONNECT_GSSAPI, [test "$have_gssapi" = "yes"])
+
 AC_ARG_WITH([java],
 	AS_HELP_STRING([--with-java(=DIR)],
 		       [Build JNI bindings using jni.h from DIR [default=no]]),
