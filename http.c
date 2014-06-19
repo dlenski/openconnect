@@ -1546,7 +1546,7 @@ static const char b64_table[] = {
 	'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
 };
 
-static void b64_frag(struct oc_text_buf *buf, int len, unsigned char *in)
+static void b64_frag(struct oc_text_buf *buf, int len, const unsigned char *in)
 {
 	int hibits;
 	char b64[5];
@@ -1573,7 +1573,16 @@ static void b64_frag(struct oc_text_buf *buf, int len, unsigned char *in)
 	buf_append(buf, "%s", b64);
 }
 
+void buf_append_base64(struct oc_text_buf *buf, const void *bytes, int len)
+{
+	const unsigned char *p = bytes;
 
+	while (len > 0) {
+		b64_frag(buf, len, p);
+		p += 3;
+		len -= 3;
+	}
+}
 
 /* Generate Proxy-Authorization: header for request if appropriate */
 static int proxy_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
