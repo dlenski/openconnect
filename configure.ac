@@ -662,6 +662,8 @@ AC_CHECK_HEADER([if_tun.h],
             [AC_CHECK_HEADER([net/tun/if_tun.h],
                 [AC_DEFINE([IF_TUN_HDR], ["net/tun/if_tun.h"])])])])])
 
+AC_CHECK_HEADER([alloca.h], AC_DEFINE([HAVE_ALLOCA_H]))
+
 if test "$ssl_library" = "openssl" || test "$ssl_library" = "both"; then
     oldLIBS="$LIBS"
     LIBS="$LIBS $OPENSSL_LIBS"
