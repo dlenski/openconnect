@@ -711,23 +711,10 @@ static void ntlm_lanmanager_hash (const char *password, char hash[21])
 	des (ks, (unsigned char *) hash + 8);
 }
 
-static void ntlm_nt_hash (const char *password, char hash[21])
+static void ntlm_nt_hash (struct oc_text_buf *pass, char hash[21])
 {
-	unsigned char *buf, *p;
-
-	p = buf = malloc (strlen (password) * 2);
-	if (!p)
-		return;
-
-	while (*password) {
-		*p++ = *password++;
-		*p++ = '\0';
-	}
-
-	md4sum (buf, p - buf, (unsigned char *) hash);
+	md4sum ((void *)pass->data, pass->pos, (unsigned char *) hash);
 	memset (hash + 16, 0, 5);
-
-	free (buf);
 }
 
 static void ntlm_calc_response (const unsigned char key[21],
@@ -799,6 +786,53 @@ static const char ntlm_response_base[NTLM_RESPONSE_BASE_SIZE] = {
 	0x00, 0x00, 0x00, 0x00, 0x82, 0x01, 0x00, 0x00
 };
 
+static int buf_append_ucs2le(struct oc_text_buf *buf, const char *utf8)
+{
+	int len = 0;
+	unsigned char c;
+	unsigned char b[2];
+	int utfchar;
+
+	/* Ick. Now I'm implementing my own UTF8 handling too. Perhaps it's
+	   time to bite the bullet and start requiring something like glib? */
+	while (*utf8) {
+		c = *(utf8++);
+		if (c < 128) {
+			utfchar = c;
+		} else if ((c & 0xe0) == 0xc0) {
+			utfchar = (c & 0x1f) << 6;
+			c = *(utf8++);
+			if ((c & 0xc0) != 0x80)
+				return -EINVAL;
+			utfchar |= (c & 0x3f);
+			if (utfchar < 0x80)
+				return -EINVAL;
+		} else if ((c & 0xf0) == 0xe0) {
+			utfchar = (c & 0x0f) << 12;
+			c = *(utf8++);
+			if ((c & 0xc0) != 0x80)
+				return -EINVAL;
+			utfchar |= (c & 0x3f) << 6;
+			c = *(utf8++);
+			if ((c & 0xc0) != 0x80)
+				return -EINVAL;
+			utfchar |= (c & 0x3f);
+			if (utfchar < 0x800)
+				return -EINVAL;
+		} else {
+			/* We can't encode anything higher into UCS2LE so bail. */
+			return -EINVAL;
+		}
+
+		b[0] = utfchar & 0xff;
+		b[1] = utfchar >> 8;
+		buf_append_bytes(buf, b, 2);
+		len += 2;
+	}
+	return len;
+}
+
+
 static void ntlm_set_string (struct oc_text_buf *buf, int offset,
 			     const void *data, int len)
 {
@@ -812,7 +846,7 @@ static void ntlm_set_string (struct oc_text_buf *buf, int offset,
 
 static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_text_buf *hdrbuf)
 {
-	struct oc_text_buf *resp;
+	struct oc_text_buf *resp, *ucs2pass;
 	int domain_len;
 	char *domain, *user;
 	unsigned char nonce[8], hash[21], lm_resp[24], nt_resp[24];
@@ -842,6 +876,13 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 		return -EINVAL;
 	}
 
+	ucs2pass = buf_alloc();
+	if (buf_append_ucs2le(ucs2pass, vpninfo->proxy_pass) < 0 ||
+	    buf_error(ucs2pass)) {
+		free(token);
+		return -EINVAL;
+	}
+
 	/* 0x00080000: Negotiate NTLM2 Key */
 	if (token[NTLM_CHALLENGE_FLAGS_OFFSET + 2] & 8) {
 		/* NTLM2 session response */
@@ -854,6 +895,7 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 		ntlmver = 2;
 		if (openconnect_random(sess_nonce.clnt, sizeof(sess_nonce.clnt))) {
 			free(token);
+			buf_free(ucs2pass);
 			return -EIO;
 		}
 
@@ -868,10 +910,10 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 		/* Take MD5 of session nonce */
 		if (openconnect_md5(digest, &sess_nonce, sizeof(sess_nonce))) {
 			free(token);
+			buf_free(ucs2pass);
 			return -EIO;
 		}
-		ntlm_nt_hash (vpninfo->proxy_pass, (char *) hash);
-
+		ntlm_nt_hash (ucs2pass, (char *) hash);
 		ntlm_calc_response (hash, digest, nt_resp);
 	} else {
 		/* NTLM1 */
@@ -879,9 +921,10 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 		memcpy (nonce, token + NTLM_CHALLENGE_NONCE_OFFSET, 8);
 		ntlm_lanmanager_hash (vpninfo->proxy_pass, (char *) hash);
 		ntlm_calc_response (hash, nonce, lm_resp);
-		ntlm_nt_hash (vpninfo->proxy_pass, (char *) hash);
+		ntlm_nt_hash (ucs2pass, (char *) hash);
 		ntlm_calc_response (hash, nonce, nt_resp);
 	}
+	buf_free(ucs2pass);
 
 	user = strchr(vpninfo->proxy_user, '\\');
 	if (user) {
