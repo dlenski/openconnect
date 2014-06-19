@@ -592,8 +592,14 @@ AS_IF([test "x$with_gssapi" != "xno"], [
 	    AC_PATH_PROG([KRB5_CONFIG], krb5-config, [], $PATH:/usr/kerberos/bin)
 	    if test "$KRB5_CONFIG" != ""; then
 	        have_gssapi=yes
-	        GSSAPI_LIBS="`${KRB5_CONFIG} --libs gssapi`"
-		GSSAPI_CFLAGS="`${KRB5_CONFIG} --cflags gssapi`"
+		gssapi_ver="`${KRB5_CONFIG} --version`"
+		if echo "$gssapi_ver" | grep -q Solaris; then
+		    GSSAPI_LIBS=-lgss
+		    GSSAPI_CFLAGS=
+		else
+	            GSSAPI_LIBS="`${KRB5_CONFIG} --libs gssapi`"
+		    GSSAPI_CFLAGS="`${KRB5_CONFIG} --cflags gssapi`"
+		fi
 		AC_SUBST(GSSAPI_CFLAGS)
 		AC_SUBST(GSSAPI_LIBS)
 		AC_DEFINE([HAVE_GSSAPI], 1)
