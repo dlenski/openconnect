@@ -126,6 +126,13 @@ struct pin_cache {
 	char *pin;
 };
 
+struct oc_text_buf {
+	char *data;
+	int pos;
+	int buf_len;
+	int error;
+};
+
 #define RECONNECT_INTERVAL_MIN	10
 #define RECONNECT_INTERVAL_MAX	100
 
@@ -552,6 +559,10 @@ int xmlpost_initial_req(struct openconnect_info *vpninfo, char *request_body, in
 int prepare_stoken(struct openconnect_info *vpninfo);
 
 /* http.c */
+struct oc_text_buf *buf_alloc(void);
+void buf_append(struct oc_text_buf *buf, const char *fmt, ...);
+int buf_error(struct oc_text_buf *buf);
+int buf_free(struct oc_text_buf *buf);
 char *openconnect_create_useragent(const char *base);
 int process_proxy(struct openconnect_info *vpninfo, int ssl_sock);
 int internal_parse_url(char *url, char **res_proto, char **res_host,

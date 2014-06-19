@@ -40,19 +40,12 @@ static int proxy_read(struct openconnect_info *vpninfo, char *buf, size_t len);
 #define MAX_BUF_LEN 131072
 #define BUF_CHUNK_SIZE 4096
 
-struct oc_text_buf {
-	char *data;
-	int pos;
-	int buf_len;
-	int error;
-};
-
-static struct oc_text_buf *buf_alloc(void)
+struct oc_text_buf *buf_alloc(void)
 {
 	return calloc(1, sizeof(struct oc_text_buf));
 }
 
-static void buf_append(struct oc_text_buf *buf, const char *fmt, ...)
+void buf_append(struct oc_text_buf *buf, const char *fmt, ...)
 {
 	va_list ap;
 
@@ -99,12 +92,12 @@ static void buf_append(struct oc_text_buf *buf, const char *fmt, ...)
 	}
 }
 
-static int buf_error(struct oc_text_buf *buf)
+int buf_error(struct oc_text_buf *buf)
 {
 	return buf ? buf->error : -ENOMEM;
 }
 
-static int buf_free(struct oc_text_buf *buf)
+int buf_free(struct oc_text_buf *buf)
 {
 	int error = buf_error(buf);
 
