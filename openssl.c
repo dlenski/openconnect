@@ -44,6 +44,17 @@ int openconnect_sha1(unsigned char *result, void *data, int len)
 	return 0;
 }
 
+int openconnect_md5(unsigned char *result, void *data, int len)
+{
+	EVP_MD_CTX c;
+
+	EVP_MD_CTX_init(&c);
+	EVP_Digest(data, len, result, NULL, EVP_md5(), NULL);
+	EVP_MD_CTX_cleanup(&c);
+
+	return 0;
+}
+
 int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
 			     OPENCONNECT_X509 *cert, unsigned char **buf)
 {

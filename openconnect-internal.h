@@ -533,6 +533,7 @@ int cstp_handshake(struct openconnect_info *vpninfo, unsigned init);
 int get_cert_md5_fingerprint(struct openconnect_info *vpninfo, OPENCONNECT_X509 *cert,
 			     char *buf);
 int openconnect_sha1(unsigned char *result, void *data, int len);
+int openconnect_md5(unsigned char *result, void *data, int len);
 int openconnect_random(void *bytes, int len);
 int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 			       char *buf);

@@ -2139,6 +2139,19 @@ int openconnect_sha1(unsigned char *result, void *data, int datalen)
 	return 0;
 }
 
+int openconnect_md5(unsigned char *result, void *data, int datalen)
+{
+	gnutls_datum_t d;
+	size_t md5len = MD5_SIZE;
+
+	d.data = data;
+	d.size = datalen;
+	if (gnutls_fingerprint(GNUTLS_DIG_MD5, &d, result, &md5len))
+		return -1;
+
+	return 0;
+}
+
 int openconnect_random(void *bytes, int len)
 {
 	if (gnutls_rnd(GNUTLS_RND_RANDOM, bytes, len))
