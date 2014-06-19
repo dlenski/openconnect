@@ -820,6 +820,7 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	unsigned char nonce[8], hash[21], lm_resp[24], nt_resp[24];
 	unsigned char *token;
 	int token_len;
+	int ntlmver;
 
 	if (!vpninfo->ntlm_auth.challenge)
 		return -EINVAL;
@@ -845,41 +846,38 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 
 	/* 0x00080000: Negotiate NTLM2 Key */
 	if (token[NTLM_CHALLENGE_FLAGS_OFFSET + 2] & 8) {
-#if 0
 		/* NTLM2 session response */
 		struct {
-			guint32 srv[2];
-			guint32 clnt[2];
+			uint32_t srv[2];
+			uint32_t clnt[2];
 		} sess_nonce;
-		GChecksum *md5;
-		guint8 digest[16];
-		gsize digest_len = sizeof (digest);
+		unsigned char digest[16];
 
-		sess_nonce.clnt[0] = g_random_int ();
-		sess_nonce.clnt[1] = g_random_int ();
+		ntlmver = 2;
+		if (openconnect_random(sess_nonce.clnt, sizeof(sess_nonce.clnt))) {
+			free(token);
+			return -EIO;
+		}
 
 		/* LM response is 8-byte client nonce, NUL-padded to 24 */
 		memcpy (lm_resp, sess_nonce.clnt, 8);
 		memset (lm_resp + 8, 0, 16);
 
 		/* Session nonce is client nonce + server nonce */
-		memcpy (
-			sess_nonce.srv,
-			token->data + NTLM_CHALLENGE_NONCE_OFFSET, 8);
+		memcpy (sess_nonce.srv,
+			token + NTLM_CHALLENGE_NONCE_OFFSET, 8);
 
 		/* Take MD5 of session nonce */
-		md5 = g_checksum_new (G_CHECKSUM_MD5);
-		g_checksum_update (md5, (gpointer) &sess_nonce, 16);
-		g_checksum_get_digest (md5, (gpointer) &digest, &digest_len);
-		g_checksum_get_digest (md5, digest, &digest_len);
-
-		g_checksum_free (md5);
-		ntlm_nt_hash (password, (gchar *) hash);
+		if (openconnect_md5(digest, &sess_nonce, sizeof(sess_nonce))) {
+			free(token);
+			return -EIO;
+		}
+		ntlm_nt_hash (vpninfo->proxy_pass, (char *) hash);
 
 		ntlm_calc_response (hash, digest, nt_resp);
-#endif
 	} else {
 		/* NTLM1 */
+		ntlmver = 1;
 		memcpy (nonce, token + NTLM_CHALLENGE_NONCE_OFFSET, 8);
 		ntlm_lanmanager_hash (vpninfo->proxy_pass, (char *) hash);
 		ntlm_calc_response (hash, nonce, lm_resp);
@@ -928,7 +926,9 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	buf_append(hdrbuf, "\r\n");
 
 	buf_free(resp);
-	vpn_progress(vpninfo, PRG_INFO, _("Attempting HTTP NTLM authentication to proxy (manual)\n"));
+	vpn_progress(vpninfo, PRG_INFO,
+		     _("Attempting HTTP NTLMv%d authentication to proxy\n"),
+		     ntlmver);
 	return 0;
 }
 
@@ -952,8 +952,7 @@ int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf
 	if (vpninfo->ntlm_auth.state == NTLM_MANUAL && vpninfo->proxy_user &&
 	    vpninfo->proxy_pass) {
 		buf_append(buf, "Proxy-Authorization: NTLM %s\r\n",
-			   "TlRMTVNTUAABAAAABoIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAwAAAA");
-		//v2 "TlRMTVNTUAABAAAABoIIAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAwAAAA");
+			   "TlRMTVNTUAABAAAABoIIAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAwAAAA");
 		vpninfo->ntlm_auth.state = NTLM_MANUAL_REQ;
 		return 0;
 	}
