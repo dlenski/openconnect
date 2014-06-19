@@ -560,7 +560,8 @@ int prepare_stoken(struct openconnect_info *vpninfo);
 
 /* http.c */
 struct oc_text_buf *buf_alloc(void);
-void buf_append(struct oc_text_buf *buf, const char *fmt, ...);
+void  __attribute__ ((format (printf, 2, 3)))
+	buf_append(struct oc_text_buf *buf, const char *fmt, ...);
 int buf_error(struct oc_text_buf *buf);
 int buf_free(struct oc_text_buf *buf);
 char *openconnect_create_useragent(const char *base);

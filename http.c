@@ -45,7 +45,8 @@ struct oc_text_buf *buf_alloc(void)
 	return calloc(1, sizeof(struct oc_text_buf));
 }
 
-void buf_append(struct oc_text_buf *buf, const char *fmt, ...)
+void  __attribute__ ((format (printf, 2, 3)))
+	buf_append(struct oc_text_buf *buf, const char *fmt, ...)
 {
 	va_list ap;
 
@@ -1546,7 +1547,7 @@ static void b64_frag(struct oc_text_buf *buf, int len, unsigned char *in)
 	b64[3] = b64_table[in[2] & 0x3f];
  out:
 	b64[4] = 0;
-	buf_append(buf, b64);
+	buf_append(buf, "%s", b64);
 }
 
 /* State in vpninfo->proxy_auth_state */
