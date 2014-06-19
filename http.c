@@ -1754,10 +1754,14 @@ static void clear_auth_state(struct proxy_auth_state *auth, int reset)
 	   to fully reset the state to allow another connection to start
 	   again. Otherwise, we need to remember which auth methods have
 	   been tried and should not be attempted again. */
-	if (reset || auth->state == AUTH_AVAILABLE)
-		auth->state = AUTH_UNSEEN;
+
 	free(auth->challenge);
 	auth->challenge = NULL;
+	/* If it *failed* don't try it again even next time */
+	if (auth->state == AUTH_FAILED)
+		return;
+	if (reset || auth->state == AUTH_AVAILABLE)
+		auth->state = AUTH_UNSEEN;
 }
 
 
