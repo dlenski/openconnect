@@ -57,26 +57,6 @@ static struct pkt dpd_resp_pkt = {
 	.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_RESP, 0 },
 };
 
-static int  __attribute__ ((format (printf, 3, 4)))
-    cbuf_append(char *buf, int len, const char *fmt, ...)
-{
-	int start = strlen(buf);
-	int ret;
-	va_list args;
-
-	if (start >= len)
-		return 0;
-
-	va_start(args, fmt);
-	ret = vsnprintf(buf + start, len - start, fmt, args);
-	va_end(args);
-
-	if (ret > len)
-		ret = len;
-
-	return ret;
-}
-
 /* Calculate MTU to request. Old servers simply use the X-CSTP-MTU: header,
  * which represents the tunnel MTU, while new servers do calculations on the
  * X-CSTP-Base-MTU: header which represents the cleartext MTU between client
@@ -170,6 +150,7 @@ void cstp_free_splits(struct openconnect_info *vpninfo)
 
 static int start_cstp_connection(struct openconnect_info *vpninfo)
 {
+	struct oc_text_buf *reqbuf;
 	char buf[65536];
 	int i;
 	int retried = 0, sessid_found = 0;
@@ -197,29 +178,35 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
  retry:
 	calculate_mtu(vpninfo, &base_mtu, &mtu);
 
-	buf[0] = 0;
-	cbuf_append(buf, sizeof(buf), "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
-	cbuf_append(buf, sizeof(buf), "Host: %s\r\n", vpninfo->hostname);
-	cbuf_append(buf, sizeof(buf), "User-Agent: %s\r\n", vpninfo->useragent);
-	cbuf_append(buf, sizeof(buf), "Cookie: webvpn=%s\r\n", vpninfo->cookie);
-	cbuf_append(buf, sizeof(buf), "X-CSTP-Version: 1\r\n");
-	cbuf_append(buf, sizeof(buf), "X-CSTP-Hostname: %s\r\n", vpninfo->localname);
+	reqbuf = buf_alloc();
+	buf_append(reqbuf, "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
+	buf_append(reqbuf, "Host: %s\r\n", vpninfo->hostname);
+	buf_append(reqbuf, "User-Agent: %s\r\n", vpninfo->useragent);
+	buf_append(reqbuf, "Cookie: webvpn=%s\r\n", vpninfo->cookie);
+	buf_append(reqbuf, "X-CSTP-Version: 1\r\n");
+	buf_append(reqbuf, "X-CSTP-Hostname: %s\r\n", vpninfo->localname);
 	if (vpninfo->deflate && i < sizeof(buf))
-		cbuf_append(buf, sizeof(buf), "X-CSTP-Accept-Encoding: deflate;q=1.0\r\n");
+		buf_append(reqbuf, "X-CSTP-Accept-Encoding: deflate;q=1.0\r\n");
 	if (base_mtu)
-		cbuf_append(buf, sizeof(buf), "X-CSTP-Base-MTU: %d\r\n", base_mtu);
-	cbuf_append(buf, sizeof(buf), "X-CSTP-MTU: %d\r\n", mtu);
-	cbuf_append(buf, sizeof(buf), "X-CSTP-Address-Type: %s\r\n",
+		buf_append(reqbuf, "X-CSTP-Base-MTU: %d\r\n", base_mtu);
+	buf_append(reqbuf, "X-CSTP-MTU: %d\r\n", mtu);
+	buf_append(reqbuf, "X-CSTP-Address-Type: %s\r\n",
 			       vpninfo->disable_ipv6 ? "IPv4" : "IPv6,IPv4");
 	if (!vpninfo->disable_ipv6)
-		cbuf_append(buf, sizeof(buf), "X-CSTP-Full-IPv6-Capability: true\r\n");
-	cbuf_append(buf, sizeof(buf), "X-DTLS-Master-Secret: ");
+		buf_append(reqbuf, "X-CSTP-Full-IPv6-Capability: true\r\n");
+	buf_append(reqbuf, "X-DTLS-Master-Secret: ");
 	for (i = 0; i < sizeof(vpninfo->dtls_secret); i++)
-		cbuf_append(buf, sizeof(buf), "%02X", vpninfo->dtls_secret[i]);
-	cbuf_append(buf, sizeof(buf), "\r\nX-DTLS-CipherSuite: %s\r\n\r\n",
+		buf_append(reqbuf, "%02X", vpninfo->dtls_secret[i]);
+	buf_append(reqbuf, "\r\nX-DTLS-CipherSuite: %s\r\n\r\n",
 			       vpninfo->dtls_ciphers ? : DEFAULT_CIPHER_LIST);
 
-	vpninfo->ssl_write(vpninfo, buf, strlen(buf));
+	if (buf_error(reqbuf)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Error creating HTTPS CONNECT request\n"));
+		return buf_free(reqbuf);
+	}
+	vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
+	buf_free(reqbuf);
 
 	if ((i = vpninfo->ssl_gets(vpninfo, buf, 65536)) < 0) {
 		if (i == -EINTR)
