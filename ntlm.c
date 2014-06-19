@@ -810,8 +810,6 @@ static void ntlm_set_string (struct oc_text_buf *buf, int offset,
 	buf_append_bytes(buf, data, len);
 }
 
-
-void b64_frag(struct oc_text_buf *buf, int len, unsigned char *in);
 static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_text_buf *hdrbuf)
 {
 	struct oc_text_buf *resp;
