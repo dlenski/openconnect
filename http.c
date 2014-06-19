@@ -92,6 +92,30 @@ void  __attribute__ ((format (printf, 2, 3)))
 	}
 }
 
+void buf_append_bytes(struct oc_text_buf *buf, const void *bytes, int len)
+{
+	int new_buf_len;
+
+	if (!buf || buf->error)
+		return;
+
+	new_buf_len = (buf->pos + len + BUF_CHUNK_SIZE - 1) & ~(BUF_CHUNK_SIZE-1);
+	if (new_buf_len > MAX_BUF_LEN) {
+		buf->error = -E2BIG;
+		return;
+	}
+	if (buf->buf_len < new_buf_len) {
+		realloc_inplace(buf->data, new_buf_len);
+		if (!buf->data) {
+			buf->error =- -ENOMEM;
+			return;
+		}
+		buf->buf_len = new_buf_len;
+	}
+	memcpy(buf->data + buf->pos, bytes, len);
+	buf->pos += len;
+}
+
 int buf_error(struct oc_text_buf *buf)
 {
 	return buf ? buf->error : -ENOMEM;

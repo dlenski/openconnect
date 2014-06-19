@@ -568,6 +568,7 @@ int prepare_stoken(struct openconnect_info *vpninfo);
 struct oc_text_buf *buf_alloc(void);
 void  __attribute__ ((format (printf, 2, 3)))
 	buf_append(struct oc_text_buf *buf, const char *fmt, ...);
+void buf_append_bytes(struct oc_text_buf *buf, const void *bytes, int len);
 int buf_error(struct oc_text_buf *buf);
 int buf_free(struct oc_text_buf *buf);
 char *openconnect_create_useragent(const char *base);
