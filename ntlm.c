@@ -833,8 +833,20 @@ static int buf_append_ucs2le(struct oc_text_buf *buf, const char *utf8)
 }
 
 
-static void ntlm_set_string (struct oc_text_buf *buf, int offset,
-			     const void *data, int len)
+static void ntlm_set_string_utf8(struct oc_text_buf *buf, int offset,
+				 const char *data)
+{
+	int oldpos = buf->pos;
+	int len = buf_append_ucs2le(buf, data);
+
+	/* Fill in the SecurityBuffer pointing to the string */
+	store_le16(buf->data + offset, len);		/* len */
+	store_le16(buf->data + offset + 2, len);	/* allocated */
+	store_le32(buf->data + offset + 4, oldpos);	/* offset */
+}
+
+static void ntlm_set_string_binary(struct oc_text_buf *buf, int offset,
+				   const void *data, int len)
 {
 	/* Fill in the SecurityBuffer pointing to the string */
 	store_le16(buf->data + offset, len);		/* len */
@@ -847,8 +859,7 @@ static void ntlm_set_string (struct oc_text_buf *buf, int offset,
 static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_text_buf *hdrbuf)
 {
 	struct oc_text_buf *resp, *ucs2pass;
-	int domain_len;
-	char *domain, *user;
+	char *user;
 	unsigned char nonce[8], hash[21], lm_resp[24], nt_resp[24];
 	unsigned char *token;
 	int token_len;
@@ -926,22 +937,6 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	}
 	buf_free(ucs2pass);
 
-	user = strchr(vpninfo->proxy_user, '\\');
-	if (user) {
-		domain = vpninfo->proxy_user;
-		domain_len = user - domain;
-		user++;
-	} else {
-		int offset = load_le32(token + NTLM_CHALLENGE_DOMAIN_OFFSET + 4);
-		domain_len = load_le16(token + NTLM_CHALLENGE_DOMAIN_OFFSET);
-		if (!domain_len || offset + domain_len >= token_len) {
-			free(token);
-			return -EINVAL;
-		}
-		domain = (char *)token + offset;
-		user = vpninfo->proxy_user;
-	}
-
 	resp = buf_alloc();
 	buf_append_bytes(resp, ntlm_response_base, sizeof(ntlm_response_base));
 	if (buf_error(resp)) {
@@ -951,11 +946,29 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	/* Mask in the NTLM2SESSION flag */
 	resp->data[NTLM_RESPONSE_FLAGS_OFFSET + 2] = token[NTLM_CHALLENGE_FLAGS_OFFSET + 2] & 8;
 
-	ntlm_set_string(resp, NTLM_RESPONSE_DOMAIN_OFFSET, domain, domain_len);
-	ntlm_set_string(resp, NTLM_RESPONSE_USER_OFFSET, user, strlen(user));
-	ntlm_set_string(resp, NTLM_RESPONSE_HOST_OFFSET, "UNKNOWN", sizeof ("UNKNOWN") - 1);
-	ntlm_set_string(resp, NTLM_RESPONSE_LM_RESP_OFFSET, lm_resp, sizeof(lm_resp));
-	ntlm_set_string(resp, NTLM_RESPONSE_NT_RESP_OFFSET, nt_resp, sizeof(nt_resp));
+	user = strchr(vpninfo->proxy_user, '\\');
+	if (user) {
+		*user = 0;
+		ntlm_set_string_utf8(resp, NTLM_RESPONSE_DOMAIN_OFFSET, vpninfo->proxy_user);
+		*user = '\\';
+		user++;
+	} else {
+		int offset = load_le32(token + NTLM_CHALLENGE_DOMAIN_OFFSET + 4);
+		int len = load_le16(token + NTLM_CHALLENGE_DOMAIN_OFFSET);
+		if (!len || offset + len >= token_len) {
+			free(token);
+			buf_free(resp);
+			return -EINVAL;
+		}
+		ntlm_set_string_binary(resp, NTLM_RESPONSE_DOMAIN_OFFSET, token + offset, len);
+
+		user = vpninfo->proxy_user;
+	}
+
+	ntlm_set_string_utf8(resp, NTLM_RESPONSE_USER_OFFSET, user);
+	ntlm_set_string_utf8(resp, NTLM_RESPONSE_HOST_OFFSET, "UNKNOWN");
+	ntlm_set_string_binary(resp, NTLM_RESPONSE_LM_RESP_OFFSET, lm_resp, sizeof(lm_resp));
+	ntlm_set_string_binary(resp, NTLM_RESPONSE_NT_RESP_OFFSET, nt_resp, sizeof(nt_resp));
 
 	free(token);
 
@@ -993,7 +1006,7 @@ int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf
 	if (vpninfo->ntlm_auth.state == NTLM_MANUAL && vpninfo->proxy_user &&
 	    vpninfo->proxy_pass) {
 		buf_append(buf, "Proxy-Authorization: NTLM %s\r\n",
-			   "TlRMTVNTUAABAAAABoIIAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAwAAAA");
+			   "TlRMTVNTUAABAAAABYIIAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAwAAAA");
 		vpninfo->ntlm_auth.state = NTLM_MANUAL_REQ;
 		return 0;
 	}
