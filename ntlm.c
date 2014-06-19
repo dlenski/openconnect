@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <alloca.h>
 #ifndef _WIN32
 #include <sys/wait.h>
 #endif
