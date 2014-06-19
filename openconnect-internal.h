@@ -71,6 +71,10 @@
 #include <stoken.h>
 #endif
 
+#ifdef HAVE_GSSAPI
+#include <gssapi/gssapi.h>
+#endif
+
 #ifdef ENABLE_NLS
 #include <locale.h>
 #include <libintl.h>
@@ -191,6 +195,10 @@ struct openconnect_info {
 	struct proxy_auth_state basic_auth;
 	struct proxy_auth_state ntlm_auth;
 	struct proxy_auth_state gssapi_auth;
+#ifdef HAVE_GSSAPI
+	gss_name_t gss_target_name;
+	gss_ctx_id_t gss_context;
+#endif
 	int ntlm_helper_fd;
 
 	char *localname;
@@ -584,6 +592,7 @@ int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf
 
 /* gssapi.c */
 int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
+void cleanup_gssapi_auth(struct openconnect_info *vpninfo);
 
 /* ssl_ui.c */
 int set_openssl_ui(void);
