@@ -145,6 +145,12 @@ struct oc_text_buf {
 #define REDIR_TYPE_NEWHOST	1
 #define REDIR_TYPE_LOCAL	2
 
+#define AUTH_FAILED		-1	/* Failed */
+#define AUTH_UNSEEN		0	/* Server has not offered it */
+#define AUTH_AVAILABLE		1	/* Server has offered it, we have not tried it */
+	/* Individual auth types may use 2 onwards for their own state */
+#define AUTH_IN_PROGRESS	2	/* In-progress attempt */
+
 struct proxy_auth_state {
 	int state;
 	char *challenge;
@@ -568,6 +574,9 @@ char *openconnect_create_useragent(const char *base);
 int process_proxy(struct openconnect_info *vpninfo, int ssl_sock);
 int internal_parse_url(char *url, char **res_proto, char **res_host,
 		       int *res_port, char **res_path, int default_port);
+
+/* ntlm.c */
+int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
 
 /* ssl_ui.c */
 int set_openssl_ui(void);

@@ -19,7 +19,7 @@ openconnect_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFL
 openconnect_LDADD = libopenconnect.la $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LIBINTL)
 
 library_srcs = ssl.c http.c auth.c library.c compat.c dtls.c cstp.c \
-	       mainloop.c script.c
+	       mainloop.c script.c ntlm.c
 lib_srcs_gnutls = gnutls.c gnutls_pkcs12.c gnutls_tpm.c
 lib_srcs_openssl = openssl.c
 
