@@ -104,6 +104,9 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	if (in.value)
 		free(in.value);
 	gss_release_buffer(&minor, &out);
+	if (!vpninfo->gssapi_auth.challenge)
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("Attempting GSSAPI authentication to proxy\n"));
 	return 0;
 }
 
