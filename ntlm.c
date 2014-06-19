@@ -167,7 +167,8 @@ int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf
 	if (vpninfo->ntlm_auth.state == AUTH_AVAILABLE) {
 		vpninfo->ntlm_auth.state = NTLM_MANUAL;
 #ifndef _WIN32
-		if (!ntlm_helper_spawn(vpninfo, buf)) {
+		/* Don't attempt automatic NTLM auth if we were given a password */
+		if (!vpninfo->proxy_pass && !ntlm_helper_spawn(vpninfo, buf)) {
 			vpninfo->ntlm_auth.state = NTLM_SSO_REQ;
 			return 0;
 		}
