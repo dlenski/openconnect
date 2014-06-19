@@ -15,7 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li>Support HTTP proxy authentication (Basic only).</li>
+       <li>Support HTTP proxy authentication (Basic and NTLM only).</li>
        <li>Download XML profile in XML POST mode.</li>
        <li>Fix a couple of bugs involving DTLS rekeying.</li>
        <li>Fix problems seen when building or connecting without DTLS enabled.</li>
