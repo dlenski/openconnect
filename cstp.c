@@ -208,6 +208,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
 	buf_free(reqbuf);
 
+	/* FIXME: Use process_http_response() instead of reimplementing it. It has
+	   a header callback function, and can cope with CONNECT requests. */
 	if ((i = vpninfo->ssl_gets(vpninfo, buf, 65536)) < 0) {
 		if (i == -EINTR)
 			return i;
