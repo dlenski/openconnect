@@ -1865,7 +1865,9 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	vpninfo->proxy_fd = -1;
 	clear_auth_state(&vpninfo->basic_auth, 1);
 	clear_auth_state(&vpninfo->ntlm_auth, 1);
+#ifdef HAVE_GSSAPI
 	cleanup_gssapi_auth(vpninfo);
+#endif
 	clear_auth_state(&vpninfo->gssapi_auth, 1);
 	return ret;
 }
