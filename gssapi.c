@@ -81,6 +81,11 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 		if (len < 0)
 			return -EINVAL;
 		in.length = len;
+	} else if (vpninfo->gssapi_auth.state > AUTH_AVAILABLE) {
+		/* This indicates failure. We were trying, but got an empty
+		   'Proxy-Authorization: Negotiate' header back from the server
+		   implying that we should start again... */
+		goto fail_gssapi;
 	}
 
 	major = gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL, &vpninfo->gss_context,
@@ -93,6 +98,7 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 		vpninfo->gssapi_auth.state = GSSAPI_CONTINUE;
 	else {
 		print_gss_err(vpninfo, major, minor);
+	fail_gssapi:
 		vpninfo->gssapi_auth.state = AUTH_FAILED;
 		gss_release_name(&minor, &vpninfo->gss_target_name);
 		gss_delete_sec_context(&minor, &vpninfo->gss_context, GSS_C_NO_BUFFER);
