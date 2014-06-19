@@ -1572,11 +1572,11 @@ int openconnect_base64_decode(unsigned char **out, char *in)
 	while (*in) {
 		if (!in[1] || !in[2] || !in[3])
 			goto err;
-	        b[1] = b64_char(in[0]);
-		b[2] = b64_char(in[1]);
-		if (b[1] < 0 || b[2] < 0)
+	        b[0] = b64_char(in[0]);
+		b[1] = b64_char(in[1]);
+		if (b[0] < 0 || b[1] < 0)
 			goto err;
-		*(buf++) = (b[1] << 2) | (b[2] >> 4);
+		*(buf++) = (b[0] << 2) | (b[1] >> 4);
 
 		if (in[2] == '=') {
 			if (in[3] != '=' || in[4] != 0)
@@ -1584,20 +1584,20 @@ int openconnect_base64_decode(unsigned char **out, char *in)
 			len += 1;
 			break;
 		}
-		b[3] = b64_char(in[2]);
-		if (b[3] < 0)
+		b[2] = b64_char(in[2]);
+		if (b[2] < 0)
 			goto err;
-		*(buf++) = (b[2] << 4) | (b[3] >> 2);
+		*(buf++) = (b[1] << 4) | (b[2] >> 2);
 		if (in[3] == '=') {
 			if (in[4] != 0)
 				goto err;
 			len += 2;
 			break;
 		}
-		b[4] = b64_char(in[3]);
-		if (b[4] < 0)
+		b[3] = b64_char(in[3]);
+		if (b[3] < 0)
 			goto err;
-		*(buf++) = (b[3] << 6) | b[4];
+		*(buf++) = (b[2] << 6) | b[3];
 		len += 3;
 		in += 4;
 	}
