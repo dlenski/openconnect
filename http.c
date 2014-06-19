@@ -1539,6 +1539,76 @@ static int process_socks_proxy(struct openconnect_info *vpninfo)
 
 /* Ick. Yet another wheel to reinvent. But although we could pull it
    in from OpenSSL, we can't from GnuTLS */
+
+static inline int b64_char(char c)
+{
+	if (c >= 'A' && c <= 'Z')
+		return c - 'A';
+	if (c >= 'a' && c <= 'z')
+		return c - 'a' + 26;
+	if (c >= '0' && c <= '9')
+		return c - '0' + 52;
+	if (c == '+')
+		return 62;
+	if (c == '/')
+		return 63;
+	return -1;
+}
+
+int openconnect_base64_decode(unsigned char **out, char *in)
+{
+	unsigned char *buf;
+	int b[4];
+	int len = strlen(in);
+
+	if (len & 3)
+		return -EINVAL;
+	len = (len * 3) / 4;
+	*out = buf = malloc(len);
+	if (!buf)
+		return -ENOMEM;
+
+	len = 0;
+	while (*in) {
+		if (!in[1] || !in[2] || !in[3])
+			goto err;
+	        b[1] = b64_char(in[0]);
+		b[2] = b64_char(in[1]);
+		if (b[1] < 0 || b[2] < 0)
+			goto err;
+		*(buf++) = (b[1] << 2) | (b[2] >> 4);
+
+		if (in[2] == '=') {
+			if (in[3] != '=' || in[4] != 0)
+				goto err;
+			len += 1;
+			break;
+		}
+		b[3] = b64_char(in[2]);
+		if (b[3] < 0)
+			goto err;
+		*(buf++) = (b[2] << 4) | (b[3] >> 2);
+		if (in[3] == '=') {
+			if (in[4] != 0)
+				goto err;
+			len += 2;
+			break;
+		}
+		b[4] = b64_char(in[3]);
+		if (b[4] < 0)
+			goto err;
+		*(buf++) = (b[3] << 6) | b[4];
+		len += 3;
+		in += 4;
+	}
+	return len;
+
+ err:
+	free(buf);
+	*out = NULL;
+	return -EINVAL;
+}
+
 static const char b64_table[] = {
 	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
 	'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',

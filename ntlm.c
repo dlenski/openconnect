@@ -157,62 +157,6 @@ static int ntlm_helper_challenge(struct openconnect_info *vpninfo, struct oc_tex
 }
 #endif /* !_WIN32 */
 
-static inline int b64_char(char c)
-{
-	if (c >= 'A' && c <= 'Z')
-		return c - 'A';
-	if (c >= 'a' && c <= 'z')
-		return c - 'a' + 26;
-	if (c >= '0' && c <= '9')
-		return c - '0' + 52;
-	if (c == '+')
-		return 62;
-	if (c == '/')
-		return 63;
-	return -1;
-}
-
-static int b64_decode(unsigned char *out, char *in)
-{
-	int b[4];
-	int len = 0;
-
-	while (*in) {
-		if (!in[1] || !in[2] || !in[3])
-			return -EINVAL;
-	        b[1] = b64_char(in[0]);
-		b[2] = b64_char(in[1]);
-		if (b[1] < 0 || b[2] < 0)
-			return -EINVAL;
-		*(out++) = (b[1] << 2) | (b[2] >> 4);
-
-		if (in[2] == '=') {
-			if (in[3] != '=' || in[4] != 0)
-				return -EINVAL;
-			len += 1;
-			break;
-		}
-		b[3] = b64_char(in[2]);
-		if (b[3] < 0)
-			return -EINVAL;
-		*(out++) = (b[2] << 4) | (b[3] >> 2);
-		if (in[3] == '=') {
-			if (in[4] != 0)
-				return -EINVAL;
-			len += 2;
-			break;
-		}
-		b[4] = b64_char(in[3]);
-		if (b[4] < 0)
-			return -EINVAL;
-		*(out++) = (b[3] << 6) | b[4];
-		len += 3;
-		in += 4;
-	}
-	return len;
-}
-
-
 /*
  * NTLM implementation taken from libsoup / Evolution Data Server
  * Copyright (C) 2007 Red Hat, Inc.
@@ -868,14 +812,8 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	if (!vpninfo->ntlm_auth.challenge)
 		return -EINVAL;
 
-	token_len = strlen(vpninfo->ntlm_auth.challenge);
-	if (token_len & 3)
-		return -EINVAL;
-	token_len = (token_len * 3) / 4;
-	token = malloc(token_len);
-	if (!token)
-		return -ENOMEM;
-	token_len = b64_decode(token, vpninfo->ntlm_auth.challenge);
+	token_len = openconnect_base64_decode(&token,
+					      vpninfo->ntlm_auth.challenge);
 	if (token_len < 0)
 		return token_len;
 
