@@ -149,6 +149,13 @@ struct oc_text_buf {
 #define REDIR_TYPE_NEWHOST	1
 #define REDIR_TYPE_LOCAL	2
 
+#define AUTH_TYPE_GSSAPI	0
+#define AUTH_TYPE_NTLM		1
+#define AUTH_TYPE_DIGEST	2
+#define AUTH_TYPE_BASIC		3
+
+#define MAX_AUTH_TYPES		4
+
 #define AUTH_FAILED		-1	/* Failed */
 #define AUTH_UNSEEN		0	/* Server has not offered it */
 #define AUTH_AVAILABLE		1	/* Server has offered it, we have not tried it */
@@ -192,10 +199,7 @@ struct openconnect_info {
 	int proxy_fd;
 	char *proxy_user;
 	char *proxy_pass;
-	struct proxy_auth_state basic_auth;
-	struct proxy_auth_state ntlm_auth;
-	struct proxy_auth_state gssapi_auth;
-	struct proxy_auth_state digest_auth;
+	struct proxy_auth_state auth[MAX_AUTH_TYPES];
 #ifdef HAVE_GSSAPI
 	gss_name_t gss_target_name;
 	gss_ctx_id_t gss_context;

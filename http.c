@@ -1664,8 +1664,8 @@ static int basic_authorization(struct openconnect_info *vpninfo, struct oc_text_
 	if (!vpninfo->proxy_user || !vpninfo->proxy_pass)
 		return -EINVAL;
 
-	if (vpninfo->basic_auth.state == AUTH_IN_PROGRESS) {
-		vpninfo->basic_auth.state = AUTH_FAILED;
+	if (vpninfo->auth[AUTH_TYPE_BASIC].state == AUTH_IN_PROGRESS) {
+		vpninfo->auth[AUTH_TYPE_BASIC].state = AUTH_FAILED;
 		return -EAGAIN;
 	}
 
@@ -1701,7 +1701,7 @@ static int basic_authorization(struct openconnect_info *vpninfo, struct oc_text_
 	buf_append(buf, "\r\n");
 
 	vpn_progress(vpninfo, PRG_INFO, _("Attempting HTTP Basic authentication to proxy\n"));
-	vpninfo->basic_auth.state = AUTH_IN_PROGRESS;
+	vpninfo->auth[AUTH_TYPE_BASIC].state = AUTH_IN_PROGRESS;
 	return 0;
 }
 
@@ -1710,26 +1710,26 @@ static int proxy_authorization(struct openconnect_info *vpninfo, struct oc_text_
 {
 	int ret;
 #ifdef HAVE_GSSAPI
-	if (vpninfo->gssapi_auth.state > AUTH_UNSEEN) {
+	if (vpninfo->auth[AUTH_TYPE_GSSAPI].state > AUTH_UNSEEN) {
 		ret = gssapi_authorization(vpninfo, buf);
 		if (ret == -EAGAIN || !ret)
 			return ret;
 	}
 #endif
 
-	if (vpninfo->ntlm_auth.state > AUTH_UNSEEN) {
+	if (vpninfo->auth[AUTH_TYPE_NTLM].state > AUTH_UNSEEN) {
 		ret = ntlm_authorization(vpninfo, buf);
 		if (ret == -EAGAIN || !ret)
 			return ret;
 	}
 
-	if (vpninfo->digest_auth.state > AUTH_UNSEEN) {
+	if (vpninfo->auth[AUTH_TYPE_DIGEST].state > AUTH_UNSEEN) {
 		ret = digest_authorization(vpninfo, buf);
 		if (ret == -EAGAIN || !ret)
 			return ret;
 	}
 
-	if (vpninfo->basic_auth.state > AUTH_UNSEEN) {
+	if (vpninfo->auth[AUTH_TYPE_BASIC].state > AUTH_UNSEEN) {
 		ret = basic_authorization(vpninfo, buf);
 		if (ret == -EAGAIN || !ret)
 			return ret;
@@ -1767,10 +1767,10 @@ static int proxy_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val)
 	if (strcasecmp(hdr, "Proxy-Authenticate"))
 		return 0;
 
-	handle_auth_proto(vpninfo, &vpninfo->basic_auth, "Basic", val);
-	handle_auth_proto(vpninfo, &vpninfo->ntlm_auth, "NTLM", val);
-	handle_auth_proto(vpninfo, &vpninfo->gssapi_auth, "Negotiate", val);
-	handle_auth_proto(vpninfo, &vpninfo->digest_auth, "Digest", val);
+	handle_auth_proto(vpninfo, &vpninfo->auth[AUTH_TYPE_BASIC], "Basic", val);
+	handle_auth_proto(vpninfo, &vpninfo->auth[AUTH_TYPE_NTLM], "NTLM", val);
+	handle_auth_proto(vpninfo, &vpninfo->auth[AUTH_TYPE_GSSAPI], "Negotiate", val);
+	handle_auth_proto(vpninfo, &vpninfo->auth[AUTH_TYPE_DIGEST], "Digest", val);
 
 	return 0;
 }
@@ -1819,10 +1819,10 @@ static int process_http_proxy(struct openconnect_info *vpninfo)
 			return result;
 		}
 		/* Forget existing challenges */
-		clear_auth_state(&vpninfo->basic_auth, 0);
-		clear_auth_state(&vpninfo->ntlm_auth, 0);
-		clear_auth_state(&vpninfo->gssapi_auth, 0);
-		clear_auth_state(&vpninfo->digest_auth, 0);
+		clear_auth_state(&vpninfo->auth[AUTH_TYPE_BASIC], 0);
+		clear_auth_state(&vpninfo->auth[AUTH_TYPE_NTLM], 0);
+		clear_auth_state(&vpninfo->auth[AUTH_TYPE_GSSAPI], 0);
+		clear_auth_state(&vpninfo->auth[AUTH_TYPE_DIGEST], 0);
 	}
 	buf_append(reqbuf, "\r\n");
 
@@ -1885,14 +1885,14 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	}
 
 	vpninfo->proxy_fd = -1;
-	clear_auth_state(&vpninfo->basic_auth, 1);
+	clear_auth_state(&vpninfo->auth[AUTH_TYPE_BASIC], 1);
 	cleanup_ntlm_auth(vpninfo);
-	clear_auth_state(&vpninfo->ntlm_auth, 1);
+	clear_auth_state(&vpninfo->auth[AUTH_TYPE_NTLM], 1);
 #ifdef HAVE_GSSAPI
 	cleanup_gssapi_auth(vpninfo);
 #endif
-	clear_auth_state(&vpninfo->gssapi_auth, 1);
-	clear_auth_state(&vpninfo->digest_auth, 1);
+	clear_auth_state(&vpninfo->auth[AUTH_TYPE_GSSAPI], 1);
+	clear_auth_state(&vpninfo->auth[AUTH_TYPE_DIGEST], 1);
 	return ret;
 }
 

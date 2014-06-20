@@ -134,10 +134,10 @@ static int ntlm_helper_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	char helperbuf[4096];
 	int len;
 
-	if (!vpninfo->ntlm_auth.challenge ||
+	if (!vpninfo->auth[AUTH_TYPE_NTLM].challenge ||
 	    write(vpninfo->ntlm_helper_fd, "TT ", 3) != 3 ||
-	    write(vpninfo->ntlm_helper_fd, vpninfo->ntlm_auth.challenge,
-		  strlen(vpninfo->ntlm_auth.challenge)) != strlen(vpninfo->ntlm_auth.challenge) ||
+	    write(vpninfo->ntlm_helper_fd, vpninfo->auth[AUTH_TYPE_NTLM].challenge,
+		  strlen(vpninfo->auth[AUTH_TYPE_NTLM].challenge)) != strlen(vpninfo->auth[AUTH_TYPE_NTLM].challenge) ||
 	    write(vpninfo->ntlm_helper_fd, "\n", 1) != 1) {
 	err:
 		close(vpninfo->ntlm_helper_fd);
@@ -812,11 +812,11 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	int token_len;
 	int ntlmver;
 
-	if (!vpninfo->ntlm_auth.challenge)
+	if (!vpninfo->auth[AUTH_TYPE_NTLM].challenge)
 		return -EINVAL;
 
 	token_len = openconnect_base64_decode(&token,
-					      vpninfo->ntlm_auth.challenge);
+					      vpninfo->auth[AUTH_TYPE_NTLM].challenge);
 	if (token_len < 0)
 		return token_len;
 
@@ -929,43 +929,43 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 
 int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
 {
-	if (vpninfo->ntlm_auth.state == AUTH_AVAILABLE) {
-		vpninfo->ntlm_auth.state = NTLM_MANUAL;
+	if (vpninfo->auth[AUTH_TYPE_NTLM].state == AUTH_AVAILABLE) {
+		vpninfo->auth[AUTH_TYPE_NTLM].state = NTLM_MANUAL;
 #ifndef _WIN32
 		/* Don't attempt automatic NTLM auth if we were given a password */
 		if (!vpninfo->proxy_pass && !ntlm_helper_spawn(vpninfo, buf)) {
-			vpninfo->ntlm_auth.state = NTLM_SSO_REQ;
+			vpninfo->auth[AUTH_TYPE_NTLM].state = NTLM_SSO_REQ;
 			return 0;
 		}
 	}
-	if (vpninfo->ntlm_auth.state == NTLM_SSO_REQ) {
+	if (vpninfo->auth[AUTH_TYPE_NTLM].state == NTLM_SSO_REQ) {
 		int ret;
-		vpninfo->ntlm_auth.state = NTLM_MANUAL;
+		vpninfo->auth[AUTH_TYPE_NTLM].state = NTLM_MANUAL;
 		ret = ntlm_helper_challenge(vpninfo, buf);
 		if (!ret || ret == -EAGAIN)
 			return ret;
 #endif
 	}
-	if (vpninfo->ntlm_auth.state == NTLM_MANUAL && vpninfo->proxy_user &&
+	if (vpninfo->auth[AUTH_TYPE_NTLM].state == NTLM_MANUAL && vpninfo->proxy_user &&
 	    vpninfo->proxy_pass) {
 		buf_append(buf, "Proxy-Authorization: NTLM %s\r\n",
 			   "TlRMTVNTUAABAAAABYIIAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAwAAAA");
-		vpninfo->ntlm_auth.state = NTLM_MANUAL_REQ;
+		vpninfo->auth[AUTH_TYPE_NTLM].state = NTLM_MANUAL_REQ;
 		return 0;
 	}
-	if (vpninfo->ntlm_auth.state == NTLM_MANUAL_REQ &&
+	if (vpninfo->auth[AUTH_TYPE_NTLM].state == NTLM_MANUAL_REQ &&
 	    !ntlm_manual_challenge(vpninfo, buf)) {
 		/* Leave the state as it is. If we come back there'll be no
 		   challenge string and we'll fail then. */
 		return 0;
 	}
-	vpninfo->ntlm_auth.state = AUTH_FAILED;
+	vpninfo->auth[AUTH_TYPE_NTLM].state = AUTH_FAILED;
 	return -EAGAIN;
 }
 
 void cleanup_ntlm_auth(struct openconnect_info *vpninfo)
 {
-	if (vpninfo->ntlm_auth.state == NTLM_SSO_REQ) {
+	if (vpninfo->auth[AUTH_TYPE_NTLM].state == NTLM_SSO_REQ) {
 		close(vpninfo->ntlm_helper_fd);
 		vpninfo->ntlm_helper_fd = -1;}
 }

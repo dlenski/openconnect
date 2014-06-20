@@ -91,15 +91,15 @@ int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	if (!vpninfo->proxy_user || !vpninfo->proxy_pass)
 		return -EINVAL;
 
-	if (vpninfo->digest_auth.state < AUTH_AVAILABLE)
+	if (vpninfo->auth[AUTH_TYPE_DIGEST].state < AUTH_AVAILABLE)
 		return -EINVAL;
 
-	if (vpninfo->digest_auth.state == AUTH_IN_PROGRESS) {
-		vpninfo->digest_auth.state = AUTH_FAILED;
+	if (vpninfo->auth[AUTH_TYPE_DIGEST].state == AUTH_IN_PROGRESS) {
+		vpninfo->auth[AUTH_TYPE_DIGEST].state = AUTH_FAILED;
 		return -EAGAIN;
 	}
 
-	chall = vpninfo->digest_auth.challenge;
+	chall = vpninfo->auth[AUTH_TYPE_DIGEST].challenge;
 	if (!chall)
 		return -EINVAL;
 
@@ -226,7 +226,7 @@ int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 
 	ret = 0;
 
-	vpninfo->digest_auth.state = AUTH_IN_PROGRESS;
+	vpninfo->auth[AUTH_TYPE_DIGEST].state = AUTH_IN_PROGRESS;
 	vpn_progress(vpninfo, PRG_INFO,
 		     _("Attempting Digest authentication to proxy\n"));
  err:

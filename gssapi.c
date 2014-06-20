@@ -71,17 +71,17 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	gss_buffer_desc in = GSS_C_EMPTY_BUFFER;
 	gss_buffer_desc out = GSS_C_EMPTY_BUFFER;
 
-	if (vpninfo->gssapi_auth.state == AUTH_AVAILABLE && gssapi_setup(vpninfo)) {
-		vpninfo->gssapi_auth.state = AUTH_FAILED;
+	if (vpninfo->auth[AUTH_TYPE_GSSAPI].state == AUTH_AVAILABLE && gssapi_setup(vpninfo)) {
+		vpninfo->auth[AUTH_TYPE_GSSAPI].state = AUTH_FAILED;
 		return -EIO;
 	}
 
-	if (vpninfo->gssapi_auth.challenge && *vpninfo->gssapi_auth.challenge) {
-		int len = openconnect_base64_decode(in.value, vpninfo->gssapi_auth.challenge);
+	if (vpninfo->auth[AUTH_TYPE_GSSAPI].challenge && *vpninfo->auth[AUTH_TYPE_GSSAPI].challenge) {
+		int len = openconnect_base64_decode(in.value, vpninfo->auth[AUTH_TYPE_GSSAPI].challenge);
 		if (len < 0)
 			return -EINVAL;
 		in.length = len;
-	} else if (vpninfo->gssapi_auth.state > AUTH_AVAILABLE) {
+	} else if (vpninfo->auth[AUTH_TYPE_GSSAPI].state > AUTH_AVAILABLE) {
 		/* This indicates failure. We were trying, but got an empty
 		   'Proxy-Authorization: Negotiate' header back from the server
 		   implying that we should start again... */
@@ -93,13 +93,13 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 				     GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS, &in, NULL,
 				     &out, NULL, NULL);
 	if (major == GSS_S_COMPLETE)
-		vpninfo->gssapi_auth.state = GSSAPI_COMPLETE;
+		vpninfo->auth[AUTH_TYPE_GSSAPI].state = GSSAPI_COMPLETE;
 	else if (major == GSS_S_CONTINUE_NEEDED)
-		vpninfo->gssapi_auth.state = GSSAPI_CONTINUE;
+		vpninfo->auth[AUTH_TYPE_GSSAPI].state = GSSAPI_CONTINUE;
 	else {
 		print_gss_err(vpninfo, major, minor);
 	fail_gssapi:
-		vpninfo->gssapi_auth.state = AUTH_FAILED;
+		vpninfo->auth[AUTH_TYPE_GSSAPI].state = AUTH_FAILED;
 		gss_release_name(&minor, &vpninfo->gss_target_name);
 		gss_delete_sec_context(&minor, &vpninfo->gss_context, GSS_C_NO_BUFFER);
 		return -EAGAIN;
@@ -110,7 +110,7 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	if (in.value)
 		free(in.value);
 	gss_release_buffer(&minor, &out);
-	if (!vpninfo->gssapi_auth.challenge)
+	if (!vpninfo->auth[AUTH_TYPE_GSSAPI].challenge)
 		vpn_progress(vpninfo, PRG_INFO,
 			     _("Attempting GSSAPI authentication to proxy\n"));
 	return 0;
@@ -120,7 +120,7 @@ void cleanup_gssapi_auth(struct openconnect_info *vpninfo)
 {
 	OM_uint32 minor;
 
-	if (vpninfo->gssapi_auth.state <= AUTH_AVAILABLE)
+	if (vpninfo->auth[AUTH_TYPE_GSSAPI].state <= AUTH_AVAILABLE)
 		return;
 
 	gss_release_name(&minor, &vpninfo->gss_target_name);
