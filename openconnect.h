@@ -33,7 +33,8 @@
 
 /*
  * API version 3.3:
- *  - Add openconnect_set_pfs(), openconnect_set_dpd()
+ *  - Add openconnect_set_pfs(), openconnect_set_dpd(),
+ *    openconnect_set_proxy_auth()
  *
  * API version 3.2:
  *  - Add OC_TOKEN_MODE_HOTP and allow openconnect_has_oath_support() to
@@ -271,6 +272,10 @@ char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
    that will need to be freed by the caller. */
 int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
 			     OPENCONNECT_X509 *cert, unsigned char **buf);
+
+/* Contains a comma-separated list of authentication methods to enabled.
+   Currently supported: Negotiate,NTLM,Digest,Basic */
+int openconnect_set_proxy_auth(struct openconnect_info *vpninfo, char *methods);
 int openconnect_set_http_proxy(struct openconnect_info *vpninfo, char *proxy);
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo);
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo);

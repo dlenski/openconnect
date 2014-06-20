@@ -58,6 +58,7 @@ OPENCONNECT_3.3 {
  global:
 	openconnect_set_pfs;
 	openconnect_set_dpd;
+	openconnect_set_proxy_auth;
 } OPENCONNECT_3.1;
 
 OPENCONNECT_PRIVATE {

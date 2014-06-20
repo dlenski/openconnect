@@ -157,6 +157,7 @@ enum {
 	OPT_OS,
 	OPT_TIMESTAMP,
 	OPT_PFS,
+	OPT_PROXY_AUTH,
 };
 
 #ifdef __sun__
@@ -197,6 +198,7 @@ static struct option long_options[] = {
 	OPTION("timestamp", 0, OPT_TIMESTAMP),
 	OPTION("key-password", 1, 'p'),
 	OPTION("proxy", 1, 'P'),
+	OPTION("proxy-auth", 1, OPT_PROXY_AUTH),
 	OPTION("user", 1, 'u'),
 	OPTION("verbose", 0, 'v'),
 	OPTION("version", 0, 'V'),
@@ -352,6 +354,7 @@ static void usage(void)
 	printf("  -p, --key-password=PASS         %s\n", _("Set key passphrase or TPM SRK PIN"));
 	printf("      --key-password-from-fsid    %s\n", _("Key passphrase is fsid of file system"));
 	printf("  -P, --proxy=URL                 %s\n", _("Set proxy server"));
+	printf("      --proxy-auth=METHODS        %s\n", _("Set proxy authentication methods"));
 	printf("      --no-proxy                  %s\n", _("Disable proxy"));
 	printf("      --libproxy                  %s\n", _("Use libproxy to automatically configure proxy"));
 #ifndef LIBPROXY_HDR
@@ -783,6 +786,9 @@ int main(int argc, char **argv)
 		case 'P':
 			proxy = keep_config_arg();
 			autoproxy = 0;
+			break;
+		case OPT_PROXY_AUTH:
+			openconnect_set_proxy_auth(vpninfo, xstrdup(config_arg));
 			break;
 		case OPT_NO_PROXY:
 			autoproxy = 0;

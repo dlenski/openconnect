@@ -156,6 +156,7 @@ struct oc_text_buf {
 
 #define MAX_AUTH_TYPES		4
 
+#define AUTH_DISABLED		-2
 #define AUTH_FAILED		-1	/* Failed */
 #define AUTH_UNSEEN		0	/* Server has not offered it */
 #define AUTH_AVAILABLE		1	/* Server has offered it, we have not tried it */

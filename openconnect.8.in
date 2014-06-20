@@ -25,6 +25,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-\-basemtu mtu
 .OP \-p,\-\-key\-password pass
 .OP \-P,\-\-proxy proxyurl
+.OP \-\-proxy\-auth methods
 .OP \-\-no\-proxy
 .OP \-\-libproxy
 .OP \-\-key\-password\-from\-fsid
@@ -191,6 +192,13 @@ Use HTTP or SOCKS proxy for connection. A username and password can be provided
 in the given URL, and will be used for authentication. If authentication is
 required but no credentials are given, GSSAPI and automatic NTLM authentication
 using Samba's ntlm_auth helper tool may be attempted.
+.TP
+.B \-\-proxy-auth=METHODS
+Use only the specified methods for HTTP authentication to a proxy. The argument
+is a comma-separated list of methods to be enabled. Note that the order does
+not matter: OpenConnect will use Negotiate, NTLM, Digest and Basic authentication
+in that order, if each is enabled, regardless of the order specified in the METHODS
+string.
 .TP
 .B \-\-no\-proxy
 Disable use of proxy

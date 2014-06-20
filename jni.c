@@ -1034,6 +1034,15 @@ JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_parseURL
 	return ret;
 }
 
+JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setProxyAuth(
+	JNIEnv *jenv, jobject jobj, jstring jarg)
+{
+	int ret;
+	SET_STRING_START(-ENOMEM)
+	ret = openconnect_set_proxy_auth(ctx->vpninfo, arg);
+	return ret;
+}
+
 JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setHTTPProxy(
 	JNIEnv *jenv, jobject jobj, jstring jarg)
 {

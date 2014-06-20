@@ -1743,7 +1743,7 @@ static void handle_auth_proto(struct openconnect_info *vpninfo,
 	struct proxy_auth_state *auth = &vpninfo->auth[method->state_index];
 	int l = strlen(method->name);
 
-	if (auth->state == AUTH_FAILED)
+	if (auth->state <= AUTH_FAILED)
 		return;
 
 	if (strncmp(method->name, hdr, l))
@@ -1789,7 +1789,7 @@ static void clear_auth_state(struct openconnect_info *vpninfo,
 	free(auth->challenge);
 	auth->challenge = NULL;
 	/* If it *failed* don't try it again even next time */
-	if (auth->state == AUTH_FAILED)
+	if (auth->state <= AUTH_FAILED)
 		return;
 	if (reset || auth->state == AUTH_AVAILABLE)
 		auth->state = AUTH_UNSEEN;
@@ -1892,6 +1892,31 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++)
 		clear_auth_state(vpninfo, &auth_methods[i], 1);
 	return ret;
+}
+
+int openconnect_set_proxy_auth(struct openconnect_info *vpninfo, char *methods)
+{
+	int i;
+	char *p, *start = methods;
+
+	for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++)
+		vpninfo->auth[auth_methods[i].state_index].state = AUTH_DISABLED;
+
+	while (methods) {
+		p = strchr(methods, ',');
+		if (p)
+			*(p++) = 0;
+
+		for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++) {
+			if (!strcasecmp(methods, auth_methods[i].name)) {
+				vpninfo->auth[auth_methods[i].state_index].state = AUTH_UNSEEN;
+				break;
+			}
+		}
+		methods = p;
+	}
+	free(start);
+	return 0;
 }
 
 int openconnect_set_http_proxy(struct openconnect_info *vpninfo, char *proxy)
