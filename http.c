@@ -1658,19 +1658,26 @@ void buf_append_base64(struct oc_text_buf *buf, const void *bytes, int len)
 /* Generate Proxy-Authorization: header for request if appropriate */
 static int proxy_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
 {
+	int ret;
 #ifdef HAVE_GSSAPI
-	if (vpninfo->gssapi_auth.state > AUTH_UNSEEN &&
-	    !gssapi_authorization(vpninfo, buf))
-		return 0;
+	if (vpninfo->gssapi_auth.state > AUTH_UNSEEN) {
+		ret = gssapi_authorization(vpninfo, buf);
+		if (ret == -EAGAIN || !ret)
+			return ret;
+	}
 #endif
 
-	if (vpninfo->ntlm_auth.state > AUTH_UNSEEN &&
-	    !ntlm_authorization(vpninfo, buf))
-		return 0;
+	if (vpninfo->ntlm_auth.state > AUTH_UNSEEN) {
+		ret = ntlm_authorization(vpninfo, buf);
+		if (ret == -EAGAIN || !ret)
+			return ret;
+	}
 
-	if (vpninfo->digest_auth.state > AUTH_UNSEEN &&
-	    !digest_authorization(vpninfo, buf))
-		return 0;
+	if (vpninfo->digest_auth.state > AUTH_UNSEEN) {
+		ret = digest_authorization(vpninfo, buf);
+		if (ret == -EAGAIN || !ret)
+			return ret;
+	}
 
 	if (vpninfo->basic_auth.state == AUTH_AVAILABLE &&
 	    vpninfo->proxy_user && vpninfo->proxy_pass) {

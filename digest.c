@@ -96,7 +96,7 @@ int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 
 	if (vpninfo->digest_auth.state == AUTH_IN_PROGRESS) {
 		vpninfo->digest_auth.state = AUTH_FAILED;
-		return -EINVAL;
+		return -EAGAIN;
 	}
 
 	chall = vpninfo->digest_auth.challenge;

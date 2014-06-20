@@ -142,7 +142,7 @@ static int ntlm_helper_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	err:
 		close(vpninfo->ntlm_helper_fd);
 		vpninfo->ntlm_helper_fd = -1;
-		return -EIO;
+		return -EAGAIN;
 	}
 	len = read(vpninfo->ntlm_helper_fd, helperbuf, sizeof(helperbuf));
 	if (len < 4 || helperbuf[0] != 'K' || helperbuf[1] != 'K' ||
@@ -939,9 +939,11 @@ int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf
 		}
 	}
 	if (vpninfo->ntlm_auth.state == NTLM_SSO_REQ) {
+		int ret;
 		vpninfo->ntlm_auth.state = NTLM_MANUAL;
-		if (!ntlm_helper_challenge(vpninfo, buf))
-			return 0;
+		ret = ntlm_helper_challenge(vpninfo, buf);
+		if (!ret || ret == -EAGAIN)
+			return ret;
 #endif
 	}
 	if (vpninfo->ntlm_auth.state == NTLM_MANUAL && vpninfo->proxy_user &&
@@ -951,10 +953,12 @@ int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf
 		vpninfo->ntlm_auth.state = NTLM_MANUAL_REQ;
 		return 0;
 	}
-	if (vpninfo->ntlm_auth.state == NTLM_MANUAL_REQ) {
-		vpninfo->ntlm_auth.state = AUTH_FAILED;
-		return ntlm_manual_challenge(vpninfo, buf);
-
+	if (vpninfo->ntlm_auth.state == NTLM_MANUAL_REQ &&
+	    !ntlm_manual_challenge(vpninfo, buf)) {
+		/* Leave the state as it is. If we come back there'll be no
+		   challenge string and we'll fail then. */
+		return 0;
 	}
-	return -EINVAL;
+	vpninfo->ntlm_auth.state = AUTH_FAILED;
+	return -EAGAIN;
 }

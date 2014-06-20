@@ -113,6 +113,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 		vpninfo->port = 443;
 
 	if (vpninfo->peer_addr) {
+	reconnect:
 #ifdef SOCK_CLOEXEC
 		ssl_sock = socket(vpninfo->peer_addr->sa_family, SOCK_STREAM | SOCK_CLOEXEC, IPPROTO_IP);
 		if (ssl_sock < 0)
@@ -299,6 +300,12 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 		err = process_proxy(vpninfo, ssl_sock);
 		if (err) {
 			closesocket(ssl_sock);
+			if (err == -EAGAIN) {
+				/* Proxy authentication failed and we need to retry */
+				vpn_progress(vpninfo, PRG_DEBUG,
+					     _("Reconnecting to proxy %s\n"), vpninfo->proxy);
+				goto reconnect;
+			}
 			return err;
 		}
 	}
