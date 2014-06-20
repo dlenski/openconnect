@@ -1607,42 +1607,39 @@ static const char b64_table[] = {
 	'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
 };
 
-static void b64_frag(struct oc_text_buf *buf, int len, const unsigned char *in)
-{
-	int hibits;
-	char b64[5];
-
-	b64[0] = b64_table[in[0] >> 2];
-	hibits = (in[0] << 4) & 0x30;
-	if (len == 1) {
-		b64[1] = b64_table[hibits];
-		b64[2] = '=';
-		b64[3] = '=';
-		goto out;
-	}
-	b64[1] = b64_table[hibits | (in[1] >> 4)];
-	hibits = (in[1] << 2) & 0x3c;
-	if (len == 2) {
-		b64[2] = b64_table[hibits];
-		b64[3] = '=';
-		goto out;
-	}
-	b64[2] = b64_table[hibits | (in[2] >> 6)];
-	b64[3] = b64_table[in[2] & 0x3f];
- out:
-	b64[4] = 0;
-	buf_append(buf, "%s", b64);
-}
-
 void buf_append_base64(struct oc_text_buf *buf, const void *bytes, int len)
 {
-	const unsigned char *p = bytes;
+	const unsigned char *in = bytes;
+	int hibits;
+
+	if (!buf || buf->error)
+		return;
+
+	if (buf_ensure_space(buf, (4 * (len + 2) / 3) + 1))
+		return;
 
 	while (len > 0) {
-		b64_frag(buf, len, p);
-		p += 3;
+		buf->data[buf->pos++] = b64_table[in[0] >> 2];
+		hibits = (in[0] << 4) & 0x30;
+		if (len == 1) {
+			buf->data[buf->pos++] = b64_table[hibits];
+			buf->data[buf->pos++] = '=';
+			buf->data[buf->pos++] = '=';
+			break;
+		}
+		buf->data[buf->pos++] = b64_table[hibits | (in[1] >> 4)];
+		hibits = (in[1] << 2) & 0x3c;
+		if (len == 2) {
+			buf->data[buf->pos++] = b64_table[hibits];
+			buf->data[buf->pos++] = '=';
+			break;
+		}
+		buf->data[buf->pos++] = b64_table[hibits | (in[2] >> 6)];
+		buf->data[buf->pos++] = b64_table[in[2] & 0x3f];
+		in += 3;
 		len -= 3;
 	}
+	buf->data[buf->pos] = 0;
 }
 
 static int basic_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *hdrbuf)
