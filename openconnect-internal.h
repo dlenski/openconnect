@@ -195,6 +195,7 @@ struct openconnect_info {
 	struct proxy_auth_state basic_auth;
 	struct proxy_auth_state ntlm_auth;
 	struct proxy_auth_state gssapi_auth;
+	struct proxy_auth_state digest_auth;
 #ifdef HAVE_GSSAPI
 	gss_name_t gss_target_name;
 	gss_ctx_id_t gss_context;
@@ -593,6 +594,10 @@ int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf
 /* gssapi.c */
 int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
 void cleanup_gssapi_auth(struct openconnect_info *vpninfo);
+
+/* digest.c */
+int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
+void cleanup_digest_auth(struct openconnect_info *vpninfo);
 
 /* ssl_ui.c */
 int set_openssl_ui(void);

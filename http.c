@@ -1667,6 +1667,10 @@ static int proxy_authorization(struct openconnect_info *vpninfo, struct oc_text_
 	    !ntlm_authorization(vpninfo, buf))
 		return 0;
 
+	if (vpninfo->digest_auth.state > AUTH_UNSEEN &&
+	    !digest_authorization(vpninfo, buf))
+		return 0;
+
 	if (vpninfo->basic_auth.state == AUTH_AVAILABLE &&
 	    vpninfo->proxy_user && vpninfo->proxy_pass) {
 		char *p = vpninfo->proxy_user;
@@ -1744,6 +1748,7 @@ static int proxy_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val)
 	handle_auth_proto(vpninfo, &vpninfo->basic_auth, "Basic", val);
 	handle_auth_proto(vpninfo, &vpninfo->ntlm_auth, "NTLM", val);
 	handle_auth_proto(vpninfo, &vpninfo->gssapi_auth, "Negotiate", val);
+	handle_auth_proto(vpninfo, &vpninfo->digest_auth, "Digest", val);
 
 	return 0;
 }
@@ -1795,6 +1800,7 @@ static int process_http_proxy(struct openconnect_info *vpninfo)
 		clear_auth_state(&vpninfo->basic_auth, 0);
 		clear_auth_state(&vpninfo->ntlm_auth, 0);
 		clear_auth_state(&vpninfo->gssapi_auth, 0);
+		clear_auth_state(&vpninfo->digest_auth, 0);
 	}
 	buf_append(reqbuf, "\r\n");
 
@@ -1869,6 +1875,7 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	cleanup_gssapi_auth(vpninfo);
 #endif
 	clear_auth_state(&vpninfo->gssapi_auth, 1);
+	clear_auth_state(&vpninfo->digest_auth, 1);
 	return ret;
 }
 
