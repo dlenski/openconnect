@@ -187,7 +187,10 @@ this value.
 Provide passphrase for certificate file, or SRK (System Root Key) PIN for TPM
 .TP
 .B \-P,\-\-proxy=PROXYURL
-Use HTTP or SOCKS proxy for connection
+Use HTTP or SOCKS proxy for connection. A username and password can be provided
+in the given URL, and will be used for authentication. If authentication is
+required but no credentials are given, GSSAPI and automatic NTLM authentication
+using Samba's ntlm_auth helper tool may be attempted.
 .TP
 .B \-\-no\-proxy
 Disable use of proxy
