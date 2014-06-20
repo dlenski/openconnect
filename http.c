@@ -44,6 +44,28 @@ struct oc_text_buf *buf_alloc(void)
 	return calloc(1, sizeof(struct oc_text_buf));
 }
 
+static int buf_ensure_space(struct oc_text_buf *buf, int len)
+{
+	int new_buf_len;
+
+	new_buf_len = (buf->pos + len + BUF_CHUNK_SIZE - 1) & ~(BUF_CHUNK_SIZE - 1);
+
+	if (new_buf_len <= buf->buf_len)
+		return 0;
+
+	if (new_buf_len > MAX_BUF_LEN) {
+		buf->error = -E2BIG;
+		return buf->error;
+	} else {
+		realloc_inplace(buf->data, new_buf_len);
+		if (!buf->data)
+			buf->error = -ENOMEM;
+		else
+			buf->buf_len = new_buf_len;
+	}
+	return buf->error;
+}
+
 void  __attribute__ ((format (printf, 2, 3)))
 	buf_append(struct oc_text_buf *buf, const char *fmt, ...)
 {
@@ -52,14 +74,8 @@ void  __attribute__ ((format (printf, 2, 3)))
 	if (!buf || buf->error)
 		return;
 
-	if (!buf->data) {
-		buf->data = malloc(BUF_CHUNK_SIZE);
-		if (!buf->data) {
-			buf->error = -ENOMEM;
-			return;
-		}
-		buf->buf_len = BUF_CHUNK_SIZE;
-	}
+	if (buf_ensure_space(buf, 1))
+		return;
 
 	while (1) {
 		int max_len = buf->buf_len - buf->pos, ret;
@@ -73,45 +89,19 @@ void  __attribute__ ((format (printf, 2, 3)))
 		} else if (ret < max_len) {
 			buf->pos += ret;
 			break;
-		} else {
-			int new_buf_len = buf->buf_len + BUF_CHUNK_SIZE;
-
-			if (new_buf_len > MAX_BUF_LEN) {
-				/* probably means somebody is messing with us */
-				buf->error = -E2BIG;
-				break;
-			}
-
-			realloc_inplace(buf->data, new_buf_len);
-			if (!buf->data) {
-				buf->error = -ENOMEM;
-				break;
-			}
-			buf->buf_len = new_buf_len;
-		}
+		} else if (buf_ensure_space(buf, ret))
+			break;
 	}
 }
 
 void buf_append_bytes(struct oc_text_buf *buf, const void *bytes, int len)
 {
-	int new_buf_len;
-
 	if (!buf || buf->error)
 		return;
 
-	new_buf_len = (buf->pos + len + BUF_CHUNK_SIZE) & ~(BUF_CHUNK_SIZE-1);
-	if (new_buf_len > MAX_BUF_LEN) {
-		buf->error = -E2BIG;
+	if (buf_ensure_space(buf, len + 1))
 		return;
-	}
-	if (buf->buf_len < new_buf_len) {
-		realloc_inplace(buf->data, new_buf_len);
-		if (!buf->data) {
-			buf->error =- -ENOMEM;
-			return;
-		}
-		buf->buf_len = new_buf_len;
-	}
+
 	memcpy(buf->data + buf->pos, bytes, len);
 	buf->pos += len;
 	buf->data[buf->pos] = 0;
