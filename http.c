@@ -1645,11 +1645,9 @@ void buf_append_base64(struct oc_text_buf *buf, const void *bytes, int len)
 	}
 }
 
-static int basic_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+static int basic_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *hdrbuf)
 {
-	char *p = vpninfo->proxy_user;
-	unsigned char buf2[3];
-	int i;
+	struct oc_text_buf *text;
 
 	if (!vpninfo->proxy_user || !vpninfo->proxy_pass)
 		return -EINVAL;
@@ -1666,36 +1664,16 @@ static int basic_authorization(struct openconnect_info *vpninfo, struct oc_text_
 		return -EAGAIN;
 	}
 
-	buf_append(buf, "Proxy-Authorization: Basic ");
+	text = buf_alloc();
+	buf_append(text, "%s:%s", vpninfo->proxy_user, vpninfo->proxy_pass);
+	if (buf_error(text))
+		return buf_free(text);
 
-	i = strlen(p);
-	while (i >= 3) {
-		b64_frag(buf, 3, (unsigned char *)p);
-		p += 3;
-		i -= 3;
-	}
+	buf_append(hdrbuf, "Proxy-Authorization: Basic ");
+	buf_append_base64(hdrbuf, text->data, text->pos);
+	buf_append(hdrbuf, "\r\n");
 
-	/* Fill base64 chunk of 3 chars with end of username, colon, and
-	   start of password. */
-	if (i)
-		memcpy(buf2, p, i);
-	buf2[i++] = ':';
-	p = vpninfo->proxy_pass;
-	while (i < 3 && *p)
-		buf2[i++] = *(p++);
-
-	b64_frag(buf, i, buf2);
-
-	i = strlen(p);
-	while (i) {
-		int j = (i > 3) ? 3 : i;
-
-		b64_frag(buf, j, (unsigned char *)p);
-		p += j;
-		i -= j;
-	}
-
-	buf_append(buf, "\r\n");
+	buf_free(text);
 
 	vpn_progress(vpninfo, PRG_INFO, _("Attempting HTTP Basic authentication to proxy\n"));
 	vpninfo->auth[AUTH_TYPE_BASIC].state = AUTH_IN_PROGRESS;
