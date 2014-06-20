@@ -602,7 +602,6 @@ void cleanup_gssapi_auth(struct openconnect_info *vpninfo);
 
 /* digest.c */
 int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
-void cleanup_digest_auth(struct openconnect_info *vpninfo);
 
 /* ssl_ui.c */
 int set_openssl_ui(void);

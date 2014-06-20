@@ -1715,7 +1715,7 @@ struct auth_method {
 	{ AUTH_TYPE_GSSAPI, "Negotiate", gssapi_authorization, cleanup_gssapi_auth },
 #endif
 	{ AUTH_TYPE_NTLM, "NTLM", ntlm_authorization, cleanup_ntlm_auth },
-	{ AUTH_TYPE_DIGEST, "Digest", digest_authorization, cleanup_digest_auth },
+	{ AUTH_TYPE_DIGEST, "Digest", digest_authorization, NULL },
 	{ AUTH_TYPE_BASIC, "Basic", basic_authorization, NULL }
 };
 

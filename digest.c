@@ -239,7 +239,3 @@ int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	buf_free(opaque);
 	return ret;
 }
-
-void cleanup_digest_auth(struct openconnect_info *vpninfo)
-{
-}
