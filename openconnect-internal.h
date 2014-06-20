@@ -206,6 +206,7 @@ struct openconnect_info {
 	gss_ctx_id_t gss_context;
 #endif
 	int ntlm_helper_fd;
+	int authmethods_set;
 
 	char *localname;
 	char *hostname;

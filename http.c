@@ -1664,6 +1664,13 @@ static int basic_authorization(struct openconnect_info *vpninfo, struct oc_text_
 	if (!vpninfo->proxy_user || !vpninfo->proxy_pass)
 		return -EINVAL;
 
+	if (!vpninfo->authmethods_set) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Proxy requested Basic authentication which is disabled by default\n"));
+		vpninfo->auth[AUTH_TYPE_BASIC].state = AUTH_FAILED;
+		return -EINVAL;
+	}
+
 	if (vpninfo->auth[AUTH_TYPE_BASIC].state == AUTH_IN_PROGRESS) {
 		vpninfo->auth[AUTH_TYPE_BASIC].state = AUTH_FAILED;
 		return -EAGAIN;
@@ -1915,6 +1922,7 @@ int openconnect_set_proxy_auth(struct openconnect_info *vpninfo, char *methods)
 		}
 		methods = p;
 	}
+	vpninfo->authmethods_set = 1;
 	free(start);
 	return 0;
 }
