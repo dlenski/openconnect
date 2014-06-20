@@ -99,7 +99,7 @@ void buf_append_bytes(struct oc_text_buf *buf, const void *bytes, int len)
 	if (!buf || buf->error)
 		return;
 
-	new_buf_len = (buf->pos + len + BUF_CHUNK_SIZE - 1) & ~(BUF_CHUNK_SIZE-1);
+	new_buf_len = (buf->pos + len + BUF_CHUNK_SIZE) & ~(BUF_CHUNK_SIZE-1);
 	if (new_buf_len > MAX_BUF_LEN) {
 		buf->error = -E2BIG;
 		return;
@@ -114,6 +114,7 @@ void buf_append_bytes(struct oc_text_buf *buf, const void *bytes, int len)
 	}
 	memcpy(buf->data + buf->pos, bytes, len);
 	buf->pos += len;
+	buf->data[buf->pos] = 0;
 }
 
 int buf_error(struct oc_text_buf *buf)
