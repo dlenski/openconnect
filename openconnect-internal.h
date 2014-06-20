@@ -590,6 +590,7 @@ int internal_parse_url(char *url, char **res_proto, char **res_host,
 
 /* ntlm.c */
 int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
+void cleanup_ntlm_auth(struct openconnect_info *vpninfo);
 
 /* gssapi.c */
 int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);

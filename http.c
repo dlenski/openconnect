@@ -1854,7 +1854,6 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 {
 	int ret;
 
-	vpninfo->ntlm_helper_fd = -1;
 	vpninfo->proxy_fd = ssl_sock;
 	vpninfo->ssl_read = proxy_read;
 	vpninfo->ssl_write = proxy_write;
@@ -1871,13 +1870,9 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 		ret = -EIO;
 	}
 
-	if (vpninfo->ntlm_helper_fd != -1) {
-		close(vpninfo->ntlm_helper_fd);
-		vpninfo->ntlm_helper_fd = -1;
-	}
-
 	vpninfo->proxy_fd = -1;
 	clear_auth_state(&vpninfo->basic_auth, 1);
+	cleanup_ntlm_auth(vpninfo);
 	clear_auth_state(&vpninfo->ntlm_auth, 1);
 #ifdef HAVE_GSSAPI
 	cleanup_gssapi_auth(vpninfo);

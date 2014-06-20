@@ -962,3 +962,10 @@ int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf
 	vpninfo->ntlm_auth.state = AUTH_FAILED;
 	return -EAGAIN;
 }
+
+void cleanup_ntlm_auth(struct openconnect_info *vpninfo)
+{
+	if (vpninfo->ntlm_auth.state == NTLM_SSO_REQ) {
+		close(vpninfo->ntlm_helper_fd);
+		vpninfo->ntlm_helper_fd = -1;}
+}
