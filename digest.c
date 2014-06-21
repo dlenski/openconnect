@@ -181,6 +181,8 @@ int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 		goto err;
 	cnonce = buf_alloc();
 	buf_append_base64(cnonce, cnonce_random, sizeof(cnonce_random));
+	if (buf_error(cnonce))
+		goto err;
 
 	a1 = buf_alloc();
 	buf_append_unq(a1, vpninfo->proxy_user);
@@ -210,6 +212,8 @@ int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 		buf_append(kd, "%08x:%s:auth:", nc, cnonce->data);
 	}
 	buf_append_md5(kd, a2->data, a2->pos);
+	if (buf_error(kd))
+		goto err;
 
 	buf_append(hdrbuf, "Proxy-Authorization: Digest username=\"");
 	buf_append_unq(hdrbuf, vpninfo->proxy_user);
