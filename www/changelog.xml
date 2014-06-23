@@ -15,6 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Support SOCKS proxy authentication (password).</li>
        <li>Support HTTP proxy authentication (Basic, Digest, NTLM and GSSAPI).</li>
        <li>Download XML profile in XML POST mode.</li>
        <li>Fix a couple of bugs involving DTLS rekeying.</li>
