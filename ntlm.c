@@ -718,6 +718,14 @@ static int ntlm_nt_hash (const char *pass, char hash[21])
 	struct oc_text_buf *ucs2pass = buf_alloc();
 	int ret;
 
+	/* Preallocate just to ensure md4sum() doesn't have to realloc, which
+	   would leave a copy of the password lying around. There is always
+	   at least one byte of padding, then 8 bytes of length, and round up
+	   to the next multiple of 64. */
+	ret = buf_ensure_space(ucs2pass, ((strlen(pass) * 2) + 1 + 8 + 63) & ~63);
+	if (ret)
+		return ret;
+
 	ret = buf_append_ucs2le(ucs2pass, pass);
 	if (ret < 0)
 		return ret;
