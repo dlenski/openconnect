@@ -616,8 +616,8 @@ static void deskey (DES_KS k, unsigned char *key, int decrypt)
 	}
 }
 
-#define KEYBITS(k,s) \
-        (((k[(s) / 8] << ((s) % 8)) & 0xFF) | (k[(s) / 8 + 1] >> (8 - (s) % 8)))
+#define HIKEYBITS(k,s) ((k[(s) / 8] << ((s) % 8)) & 0xFF)
+#define LOKEYBITS(k,s) (k[(s) / 8 + 1] >> (8 - (s) % 8))
 
 /* DES utils */
 /* Set up a key schedule based on a 56bit key */
@@ -627,7 +627,12 @@ static void setup_schedule (const unsigned char *key_56, DES_KS ks)
 	int i, c, bit;
 
 	for (i = 0; i < 8; i++) {
-		key[i] = KEYBITS (key_56, i * 7);
+		key[i] = HIKEYBITS (key_56, i * 7);
+		/* Mask in the low bits only if they're used. It doesn't
+		 * matter if we get an unwanted bit 0; it's going to be
+		 * overwritten with parity anyway. */
+		if (i && i < 7)
+			key[i] |= LOKEYBITS(key_56, i * 7);
 
 		/* Fix parity */
 		for (c = bit = 0; bit < 8; bit++)
