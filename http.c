@@ -1423,16 +1423,28 @@ static const char *socks_errors[] = {
 	N_("address type not supported")
 };
 
+#define SOCKS_AUTH_NONE			0	/* RFC1928 */
+#define SOCKS_AUTH_GSSAPI		1	/* RFC1961 */
+#define SOCKS_AUTH_PASSWORD		2	/* RFC1929 */
+#define SOCKS_AUTH_NO_ACCEPTABLE	0xff	/* RFC1928 */
+
 static int process_socks_proxy(struct openconnect_info *vpninfo)
 {
 	char buf[1024];
-	int i;
+	int i, nr_auth_methods = 0;
 
 	buf[0] = 5; /* SOCKS version */
-	buf[1] = 1; /* # auth methods */
-	buf[2] = 0; /* No auth supported */
 
-	if ((i = proxy_write(vpninfo, buf, 3)) < 0) {
+	buf[2 + nr_auth_methods++] = SOCKS_AUTH_NONE;
+#ifdef HAVE_GSSAPI
+	//buf[2 + nr_auth_methods++] = SOCKS_AUTH_GSSAPI;
+#endif
+	if (vpninfo->proxy_user && vpninfo->proxy_pass)
+		buf[2 + nr_auth_methods++] = SOCKS_AUTH_PASSWORD;
+
+	buf[1] = nr_auth_methods;
+
+	if ((i = proxy_write(vpninfo, buf, 2 + nr_auth_methods)) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error writing auth request to SOCKS proxy: %s\n"),
 			     strerror(-i));
@@ -1451,16 +1463,30 @@ static int process_socks_proxy(struct openconnect_info *vpninfo)
 			     buf[0], buf[1]);
 		return -EIO;
 	}
-	if (buf[1]) {
-	socks_err:
-		if (buf[1] < sizeof(socks_errors) / sizeof(socks_errors[0]))
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("SOCKS proxy error %02x: %s\n"),
-				     buf[1], _(socks_errors[(unsigned char)buf[1]]));
-		else
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("SOCKS proxy error %02x\n"),
-				     buf[1]);
+	switch ((unsigned char)buf[1]) {
+	case SOCKS_AUTH_NONE:
+		/* No authentication */
+		break;
+
+	case SOCKS_AUTH_GSSAPI:
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("SOCKS server requested GSSAPI authentication\n"));
+		return -EIO;
+
+	case SOCKS_AUTH_PASSWORD:
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("SOCKS server requested password authentication\n"));
+		return -EIO;
+
+	case SOCKS_AUTH_NO_ACCEPTABLE:
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("SOCKS server requires authentication\n"));
+		return -EIO;
+
+	default:
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("SOCKS server requested unknown authentication type %02x\n"),
+			     (unsigned char)buf[1]);
 		return -EIO;
 	}
 
@@ -1498,8 +1524,17 @@ static int process_socks_proxy(struct openconnect_info *vpninfo)
 			     buf[0], buf[1]);
 		return -EIO;
 	}
-	if (buf[1])
-		goto socks_err;
+	if (buf[1]) {
+		unsigned char err = buf[1];
+		if (err < sizeof(socks_errors) / sizeof(socks_errors[0]))
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("SOCKS proxy error %02x: %s\n"),
+				     err, _(socks_errors[err]));
+		else
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("SOCKS proxy error %02x\n"), err);
+		return -EIO;
+	}
 
 	/* Connect responses contain an address */
 	switch (buf[3]) {
