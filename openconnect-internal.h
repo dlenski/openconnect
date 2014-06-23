@@ -602,6 +602,7 @@ void cleanup_ntlm_auth(struct openconnect_info *vpninfo);
 /* gssapi.c */
 int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
 void cleanup_gssapi_auth(struct openconnect_info *vpninfo);
+int socks_gssapi_auth(struct openconnect_info *vpninfo);
 
 /* digest.c */
 int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);

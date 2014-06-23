@@ -42,19 +42,20 @@ static void print_gss_err(struct openconnect_info *vpninfo, OM_uint32 err_maj, O
 	} while (msg_ctx);
 }
 
-static int gssapi_setup(struct openconnect_info *vpninfo)
+static int gssapi_setup(struct openconnect_info *vpninfo, const char *service)
 {
 	OM_uint32 major, minor;
 	gss_buffer_desc token = GSS_C_EMPTY_BUFFER;
-	char *service;
+	char *name;
 
-	if (asprintf(&service, "HTTP@%s", vpninfo->proxy) == -1)
+	if (asprintf(&name, "%s@%s", service, vpninfo->proxy) == -1)
 		return -ENOMEM;
-	token.length = strlen(service);
-	token.value = service;
+	token.length = strlen(name);
+	token.value = name;
 
-	major = gss_import_name(&minor, &token, (gss_OID)GSS_C_NT_HOSTBASED_SERVICE, &vpninfo->gss_target_name);
-	free(service);
+	major = gss_import_name(&minor, &token, (gss_OID)GSS_C_NT_HOSTBASED_SERVICE,
+				&vpninfo->gss_target_name);
+	free(name);
 	if (GSS_ERROR(major)) {
 		print_gss_err(vpninfo, major, minor);
 		return -EIO;
@@ -71,7 +72,7 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	gss_buffer_desc in = GSS_C_EMPTY_BUFFER;
 	gss_buffer_desc out = GSS_C_EMPTY_BUFFER;
 
-	if (vpninfo->auth[AUTH_TYPE_GSSAPI].state == AUTH_AVAILABLE && gssapi_setup(vpninfo)) {
+	if (vpninfo->auth[AUTH_TYPE_GSSAPI].state == AUTH_AVAILABLE && gssapi_setup(vpninfo, "HTTP")) {
 		vpninfo->auth[AUTH_TYPE_GSSAPI].state = AUTH_FAILED;
 		return -EIO;
 	}
@@ -127,4 +128,187 @@ void cleanup_gssapi_auth(struct openconnect_info *vpninfo)
 	vpninfo->gss_target_name = GSS_C_NO_NAME;
 	gss_delete_sec_context(&minor, &vpninfo->gss_context, GSS_C_NO_BUFFER);
 	vpninfo->gss_context = GSS_C_NO_CONTEXT;
+}
+
+int socks_gssapi_auth(struct openconnect_info *vpninfo)
+{
+	gss_buffer_desc in = GSS_C_EMPTY_BUFFER;
+	gss_buffer_desc out = GSS_C_EMPTY_BUFFER;
+	OM_uint32 major, minor;
+	unsigned char *pktbuf;
+	int i;
+	int ret = -EIO;
+
+	if (gssapi_setup(vpninfo, "rcmd"))
+		return -EIO;
+
+	/* So that cleanup_gssapi_auth actally does something */
+	vpninfo->auth[AUTH_TYPE_GSSAPI].state = AUTH_IN_PROGRESS;
+
+	pktbuf = malloc(65538);
+	if (!pktbuf)
+		return -ENOMEM;
+	while (1) {
+		major = gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL, &vpninfo->gss_context,
+					     vpninfo->gss_target_name, GSS_C_NO_OID, GSS_C_MUTUAL_FLAG,
+					     GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS, &in, NULL,
+					     &out, NULL, NULL);
+		in.value = NULL;
+		if (major == GSS_S_COMPLETE) {
+			vpn_progress(vpninfo, PRG_DEBUG,
+				     _("GSSAPI authentication completed\n"));
+			gss_release_buffer(&minor, &out);
+			ret = 0;
+			break;
+		}
+		if (major != GSS_S_CONTINUE_NEEDED) {
+			print_gss_err(vpninfo, major, minor);
+			break;
+		}
+		if (out.length > 65535) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("GSSAPI token too large (%ld bytes)\n"),
+				     out.length);
+			break;
+		}
+
+		pktbuf[0] = 1; /* ver */
+		pktbuf[1] = 1; /* mtyp */
+		pktbuf[2] = (out.length >> 8) & 0xff;
+		pktbuf[3] = out.length & 0xff;
+		memcpy(pktbuf + 4, out.value, out.length);
+
+		free(out.value);
+
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Sending GSSAPI token of %zu bytes\n"), out.length + 4);
+
+		i = vpninfo->ssl_write(vpninfo, (void *)pktbuf, out.length + 4);
+		if (i < 0) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to send GSSAPI authentication token to proxy: %s\n"),
+				     strerror(-i));
+			break;
+		}
+
+		i = vpninfo->ssl_read(vpninfo, (void *)pktbuf, 4);
+		if (i < 0) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to receive GSSAPI authentication token from proxy: %s\n"),
+				     strerror(-i));
+			break;
+		}
+		if (pktbuf[1] == 0xff) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("SOCKS server reported GSSAPI context failure\n"));
+			break;
+		} else if (pktbuf[1] != 1) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Unknown GSSAPI status response (0x%02x) from SOCKS server\n"),
+				     pktbuf[1]);
+			break;
+		}
+		in.length = (pktbuf[2] << 8) | pktbuf[3];
+		in.value = pktbuf;
+
+		i = vpninfo->ssl_read(vpninfo, (void *)pktbuf, in.length);
+		if (i < 0) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to receive GSSAPI authentication token from proxy: %s\n"),
+				     strerror(-i));
+			break;
+		}
+		vpn_progress(vpninfo, PRG_TRACE, _("Got GSSAPI token of %zu bytes: %02x %02x %02x %02x\n"),
+			     in.length, pktbuf[0], pktbuf[1], pktbuf[2], pktbuf[3]);
+	}
+
+	if (!ret) {
+		ret = -EIO;
+
+		pktbuf[0] = 0;
+		in.value = pktbuf;
+		in.length = 1;
+
+		major = gss_wrap(&minor, vpninfo->gss_context, 0,
+				 GSS_C_QOP_DEFAULT, &in, NULL, &out);
+		if (major != GSS_S_COMPLETE) {
+			print_gss_err(vpninfo, major, minor);
+			goto err;
+		}
+
+		pktbuf[0] = 1;
+		pktbuf[1] = 2;
+		pktbuf[2] = (out.length >> 8) & 0xff;
+		pktbuf[3] = out.length & 0xff;
+		memcpy(pktbuf + 4, out.value, out.length);
+
+		free(out.value);
+
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Sending GSSAPI protection negotiation of %zu bytes\n"), out.length + 4);
+
+		i = vpninfo->ssl_write(vpninfo, (void *)pktbuf, out.length + 4);
+		if (i < 0) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to send GSSAPI protection response to proxy: %s\n"),
+				     strerror(-i));
+			goto err;
+		}
+
+		i = vpninfo->ssl_read(vpninfo, (void *)pktbuf, 4);
+		if (i < 0) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to receive GSSAPI protection response from proxy: %s\n"),
+				     strerror(-i));
+			goto err;
+		}
+		in.length = (pktbuf[2] << 8) | pktbuf[3];
+		in.value = pktbuf;
+
+		i = vpninfo->ssl_read(vpninfo, (void *)pktbuf, in.length);
+		if (i < 0) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to receive GSSAPI protection response from proxy: %s\n"),
+				     strerror(-i));
+			goto err;
+		}
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Got GSSAPI protection response of %zu bytes: %02x %02x %02x %02x\n"),
+			     in.length, pktbuf[0], pktbuf[1], pktbuf[2], pktbuf[3]);
+
+		major = gss_unwrap(&minor, vpninfo->gss_context, &in, &out, NULL, GSS_C_QOP_DEFAULT);
+		if (major != GSS_S_COMPLETE) {
+			print_gss_err(vpninfo, major, minor);
+			goto err;
+		}
+		if (out.length != 1) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Invalid GSSAPI protection response from proxy (%zu bytes)\n"),
+				     out.length);
+			gss_release_buffer(&minor, &out);
+			goto err;
+		}
+		i = *(char *)out.value;
+		gss_release_buffer(&minor, &out);
+		if (i == 1) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("SOCKS proxy demands message integrity, which is not supported\n"));
+			goto err;
+		} else if (i == 2) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("SOCKS proxy demands message confidentiality, which is not supported\n"));
+			goto err;
+		} else if (i) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("SOCKS proxy demands protection unknown type 0x%02x\n"),
+				     (unsigned char)i);
+			goto err;
+		}
+		ret = 0;
+	}
+ err:
+	cleanup_gssapi_auth(vpninfo);
+	free(pktbuf);
+
+	return ret;
 }

@@ -1499,7 +1499,7 @@ static int process_socks_proxy(struct openconnect_info *vpninfo)
 
 	buf[2 + nr_auth_methods++] = SOCKS_AUTH_NONE;
 #ifdef HAVE_GSSAPI
-	//buf[2 + nr_auth_methods++] = SOCKS_AUTH_GSSAPI;
+	buf[2 + nr_auth_methods++] = SOCKS_AUTH_GSSAPI;
 #endif
 	if (vpninfo->proxy_user && vpninfo->proxy_pass)
 		buf[2 + nr_auth_methods++] = SOCKS_AUTH_PASSWORD;
@@ -1531,12 +1531,21 @@ static int process_socks_proxy(struct openconnect_info *vpninfo)
 		break;
 
 	case SOCKS_AUTH_GSSAPI:
+#ifdef HAVE_GSSAPI
+		vpn_progress(vpninfo, PRG_DEBUG,
+			     _("SOCKS server requested GSSAPI authentication\n"));
+		if (socks_gssapi_auth(vpninfo))
+			return -EIO;
+		break;
+#else
+		/* This should never happen since we didn't ask for it! */
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("SOCKS server requested GSSAPI authentication\n"));
 		return -EIO;
+#endif
 
 	case SOCKS_AUTH_PASSWORD:
-		vpn_progress(vpninfo, PRG_ERR,
+		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("SOCKS server requested password authentication\n"));
 		if (socks_password_auth(vpninfo))
 			return -EIO;
