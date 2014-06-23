@@ -1092,6 +1092,7 @@ newgroup:
 				}
 				openconnect_close_https(vpninfo, 0);
 			} else {
+				free(orig_host);
 				return -EIO;
 			}
 		}
@@ -1102,8 +1103,10 @@ newgroup:
 			return 1;
 		if (buflen == -EINVAL)
 			goto fail;
-		if (buflen < 0)
+		if (buflen < 0) {
+			free(orig_host);
 			return buflen;
+		}
 
 		/* Some ASAs forget to send the TLS cert request on the initial connection.
 		 * If we have a client cert, disable HTTP keepalive until we get a real
