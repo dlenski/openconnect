@@ -44,7 +44,7 @@ struct oc_text_buf *buf_alloc(void)
 	return calloc(1, sizeof(struct oc_text_buf));
 }
 
-static int buf_ensure_space(struct oc_text_buf *buf, int len)
+int buf_ensure_space(struct oc_text_buf *buf, int len)
 {
 	int new_buf_len;
 
