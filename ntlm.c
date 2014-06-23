@@ -633,6 +633,52 @@ static void setup_schedule (const unsigned char *key_56, DES_KS ks)
 	deskey (ks, key, 0);
 }
 
+static int buf_append_ucs2le(struct oc_text_buf *buf, const char *utf8)
+{
+	int len = 0;
+	unsigned char c;
+	unsigned char b[2];
+	int utfchar;
+
+	/* Ick. Now I'm implementing my own UTF8 handling too. Perhaps it's
+	   time to bite the bullet and start requiring something like glib? */
+	while (*utf8) {
+		c = *(utf8++);
+		if (c < 128) {
+			utfchar = c;
+		} else if ((c & 0xe0) == 0xc0) {
+			utfchar = (c & 0x1f) << 6;
+			c = *(utf8++);
+			if ((c & 0xc0) != 0x80)
+				return -EINVAL;
+			utfchar |= (c & 0x3f);
+			if (utfchar < 0x80)
+				return -EINVAL;
+		} else if ((c & 0xf0) == 0xe0) {
+			utfchar = (c & 0x0f) << 12;
+			c = *(utf8++);
+			if ((c & 0xc0) != 0x80)
+				return -EINVAL;
+			utfchar |= (c & 0x3f) << 6;
+			c = *(utf8++);
+			if ((c & 0xc0) != 0x80)
+				return -EINVAL;
+			utfchar |= (c & 0x3f);
+			if (utfchar < 0x800)
+				return -EINVAL;
+		} else {
+			/* We can't encode anything higher into UCS2LE so bail. */
+			return -EINVAL;
+		}
+
+		b[0] = utfchar & 0xff;
+		b[1] = utfchar >> 8;
+		buf_append_bytes(buf, b, 2);
+		len += 2;
+	}
+	return len;
+}
+
 #define LM_PASSWORD_MAGIC "\x4B\x47\x53\x21\x40\x23\x24\x25" \
                           "\x4B\x47\x53\x21\x40\x23\x24\x25" \
 			  "\x00\x00\x00\x00\x00"
@@ -734,53 +780,6 @@ static const char ntlm_response_base[NTLM_RESPONSE_BASE_SIZE] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x82, 0x01, 0x00, 0x00
 };
-
-static int buf_append_ucs2le(struct oc_text_buf *buf, const char *utf8)
-{
-	int len = 0;
-	unsigned char c;
-	unsigned char b[2];
-	int utfchar;
-
-	/* Ick. Now I'm implementing my own UTF8 handling too. Perhaps it's
-	   time to bite the bullet and start requiring something like glib? */
-	while (*utf8) {
-		c = *(utf8++);
-		if (c < 128) {
-			utfchar = c;
-		} else if ((c & 0xe0) == 0xc0) {
-			utfchar = (c & 0x1f) << 6;
-			c = *(utf8++);
-			if ((c & 0xc0) != 0x80)
-				return -EINVAL;
-			utfchar |= (c & 0x3f);
-			if (utfchar < 0x80)
-				return -EINVAL;
-		} else if ((c & 0xf0) == 0xe0) {
-			utfchar = (c & 0x0f) << 12;
-			c = *(utf8++);
-			if ((c & 0xc0) != 0x80)
-				return -EINVAL;
-			utfchar |= (c & 0x3f) << 6;
-			c = *(utf8++);
-			if ((c & 0xc0) != 0x80)
-				return -EINVAL;
-			utfchar |= (c & 0x3f);
-			if (utfchar < 0x800)
-				return -EINVAL;
-		} else {
-			/* We can't encode anything higher into UCS2LE so bail. */
-			return -EINVAL;
-		}
-
-		b[0] = utfchar & 0xff;
-		b[1] = utfchar >> 8;
-		buf_append_bytes(buf, b, 2);
-		len += 2;
-	}
-	return len;
-}
-
 
 static void ntlm_set_string_utf8(struct oc_text_buf *buf, int offset,
 				 const char *data)
