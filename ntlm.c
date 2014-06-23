@@ -706,10 +706,19 @@ static void ntlm_lanmanager_hash (const char *password, char hash[21])
 	memset(lm_password, 0, sizeof(lm_password));
 }
 
-static void ntlm_nt_hash (struct oc_text_buf *pass, char hash[21])
+static int ntlm_nt_hash (const char *pass, char hash[21])
 {
-	md4sum ((void *)pass->data, pass->pos, (unsigned char *) hash);
+	struct oc_text_buf *ucs2pass = buf_alloc();
+	if (buf_append_ucs2le(ucs2pass, pass) < 0 ||
+	    buf_error(ucs2pass))
+		return -EINVAL;
+
+	md4sum ((void *)ucs2pass->data, ucs2pass->pos, (unsigned char *) hash);
 	memset (hash + 16, 0, 5);
+
+	memset(ucs2pass->data, 0, ucs2pass->pos);
+	buf_free(ucs2pass);
+	return 0;
 }
 
 static void ntlm_calc_response (const unsigned char key[21],
@@ -806,7 +815,7 @@ static void ntlm_set_string_binary(struct oc_text_buf *buf, int offset,
 
 static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_text_buf *hdrbuf)
 {
-	struct oc_text_buf *resp, *ucs2pass;
+	struct oc_text_buf *resp;
 	char *user;
 	unsigned char nonce[8], hash[21], lm_resp[24], nt_resp[24];
 	unsigned char *token;
@@ -814,6 +823,9 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	int ntlmver;
 
 	if (!vpninfo->auth[AUTH_TYPE_NTLM].challenge)
+		return -EINVAL;
+
+	if (ntlm_nt_hash (vpninfo->proxy_pass, (char *) hash))
 		return -EINVAL;
 
 	token_len = openconnect_base64_decode(&token,
@@ -825,13 +837,6 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	    token[1] != 'T' || token[2] != 'L' || token[3] != 'M' ||
 	    token[4] != 'S' || token[5] != 'S' || token[6] != 'P' ||
 	    token[7] || token[8] != 2 || token[9] || token[10] || token[11]) {
-		free(token);
-		return -EINVAL;
-	}
-
-	ucs2pass = buf_alloc();
-	if (buf_append_ucs2le(ucs2pass, vpninfo->proxy_pass) < 0 ||
-	    buf_error(ucs2pass)) {
 		free(token);
 		return -EINVAL;
 	}
@@ -848,7 +853,6 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 		ntlmver = 2;
 		if (openconnect_random(sess_nonce.clnt, sizeof(sess_nonce.clnt))) {
 			free(token);
-			buf_free(ucs2pass);
 			return -EIO;
 		}
 
@@ -863,21 +867,17 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 		/* Take MD5 of session nonce */
 		if (openconnect_md5(digest, &sess_nonce, sizeof(sess_nonce))) {
 			free(token);
-			buf_free(ucs2pass);
 			return -EIO;
 		}
-		ntlm_nt_hash (ucs2pass, (char *) hash);
 		ntlm_calc_response (hash, digest, nt_resp);
 	} else {
 		/* NTLM1 */
 		ntlmver = 1;
 		memcpy (nonce, token + NTLM_CHALLENGE_NONCE_OFFSET, 8);
+		ntlm_calc_response (hash, nonce, nt_resp);
 		ntlm_lanmanager_hash (vpninfo->proxy_pass, (char *) hash);
 		ntlm_calc_response (hash, nonce, lm_resp);
-		ntlm_nt_hash (ucs2pass, (char *) hash);
-		ntlm_calc_response (hash, nonce, nt_resp);
 	}
-	buf_free(ucs2pass);
 
 	resp = buf_alloc();
 	buf_append_bytes(resp, ntlm_response_base, sizeof(ntlm_response_base));
