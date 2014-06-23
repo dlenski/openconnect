@@ -1502,9 +1502,12 @@ static int process_socks_proxy(struct openconnect_info *vpninfo)
 
 	buf[2 + nr_auth_methods++] = SOCKS_AUTH_NONE;
 #ifdef HAVE_GSSAPI
-	buf[2 + nr_auth_methods++] = SOCKS_AUTH_GSSAPI;
+	if (vpninfo->auth[AUTH_TYPE_GSSAPI].state != AUTH_DISABLED &&
+	    !vpninfo->proxy_user && !vpninfo->proxy_pass)
+		buf[2 + nr_auth_methods++] = SOCKS_AUTH_GSSAPI;
 #endif
-	if (vpninfo->proxy_user && vpninfo->proxy_pass)
+	if (vpninfo->auth[AUTH_TYPE_BASIC].state != AUTH_DISABLED &&
+	    vpninfo->proxy_user && vpninfo->proxy_pass)
 		buf[2 + nr_auth_methods++] = SOCKS_AUTH_PASSWORD;
 
 	buf[1] = nr_auth_methods;
