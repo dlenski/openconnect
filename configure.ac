@@ -45,7 +45,7 @@ case $host_os in
     AC_DEFINE(HAVE_SUNOS_BROKEN_TIME)
     symver_time="openconnect__time;"
     ;;
- *mingw32*|*mingw64*)
+ *mingw32*|*mingw64*|*msys*)
     AC_MSG_NOTICE([Applying feature macros for MinGW/Windows build])
     # For GetVolumeInformationByHandleW() which is Vista+
     AC_DEFINE(_WIN32_WINNT,0x600)
