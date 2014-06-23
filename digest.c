@@ -184,6 +184,11 @@ int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	if (buf_error(cnonce))
 		goto err;
 
+	/*
+	 * According to RFC2617 §3.2.2.2:
+	 *  A1       = unq(username-value) ":" unq(realm-value) ":" passwd
+	 * So the username is escaped, while the password isn't.
+	 */
 	a1 = buf_alloc();
 	buf_append_unq(a1, vpninfo->proxy_user);
 	buf_append(a1, ":%s:%s", realm->data, vpninfo->proxy_pass);
@@ -234,6 +239,8 @@ int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	vpn_progress(vpninfo, PRG_INFO,
 		     _("Attempting Digest authentication to proxy\n"));
  err:
+	if (a1 && a1->data)
+		memset(a1->data, 0, a1->pos);
 	buf_free(a1);
 	buf_free(a2);
 	buf_free(kd);

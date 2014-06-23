@@ -656,6 +656,8 @@ static void ntlm_lanmanager_hash (const char *password, char hash[21])
 
 	setup_schedule (lm_password + 7, ks);
 	des (ks, (unsigned char *) hash + 8);
+
+	memset(lm_password, 0, sizeof(lm_password));
 }
 
 static void ntlm_nt_hash (struct oc_text_buf *pass, char hash[21])

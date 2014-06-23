@@ -1670,6 +1670,7 @@ static int basic_authorization(struct openconnect_info *vpninfo, struct oc_text_
 	buf_append_base64(hdrbuf, text->data, text->pos);
 	buf_append(hdrbuf, "\r\n");
 
+	memset(text->data, 0, text->pos);
 	buf_free(text);
 
 	vpn_progress(vpninfo, PRG_INFO, _("Attempting HTTP Basic authentication to proxy\n"));
