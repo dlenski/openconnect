@@ -695,7 +695,15 @@ fi
 build_www=yes
 AC_PATH_PROGS(PYTHON, [python2 python], [], $PATH:/bin:/usr/bin)
 if (test -n "${ac_cv_path_PYTHON}"); then
-   AC_SUBST(PYTHON, ${ac_cv_path_PYTHON})
+   AC_MSG_CHECKING([that python is version 2.x])
+   if $PYTHON --version 2>&1 | grep -q "Python 2\."; then
+      AC_MSG_RESULT([yes])
+      AC_SUBST(PYTHON, ${ac_cv_path_PYTHON})
+   else
+      AC_MSG_RESULT([no])
+      AC_MSG_NOTICE([Python is not v2.x; not building HTML pages])
+      build_www=no
+   fi
 else
    AC_MSG_NOTICE([Python not found; not building HTML pages])
    build_www=no
