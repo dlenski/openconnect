@@ -181,15 +181,19 @@ typedef uint32_t DES_KS[16][2]; /* Single-key DES key schedule */
 #define H(X,Y,Z) ( (X)^(Y)^(Z) )
 #define ROT(val, n) ( ((val) << (n)) | ((val) >> (32 - (n))) )
 
-static void md4sum (const unsigned char *in, int nbytes, unsigned char digest[16])
+static int md4sum (struct oc_text_buf *buf, unsigned char digest[16])
 {
+	int nbytes = buf->pos;
 	unsigned char *M;
 	uint32_t A, B, C, D, AA, BB, CC, DD, X[16];
 	int pbytes, nbits = nbytes * 8, i, j;
 
 	pbytes = (120 - (nbytes % 64)) % 64;
-	M = alloca (nbytes + pbytes + 8);
-	memcpy (M, in, nbytes);
+
+	if (buf_ensure_space (buf, pbytes + 8))
+		return -ENOMEM;
+
+	M = (void *)buf->data;
 	memset (M + nbytes, 0, pbytes + 8);
 	M[nbytes] = 0x80;
 	M[nbytes + pbytes] = nbits & 0xFF;
@@ -288,6 +292,8 @@ static void md4sum (const unsigned char *in, int nbytes, unsigned char digest[16
 	digest[13] = (D >>  8) & 0xFF;
 	digest[14] = (D >> 16) & 0xFF;
 	digest[15] = (D >> 24) & 0xFF;
+
+	return 0;
 }
 
 /* Public domain DES implementation from Phil Karn */
@@ -709,11 +715,20 @@ static void ntlm_lanmanager_hash (const char *password, char hash[21])
 static int ntlm_nt_hash (const char *pass, char hash[21])
 {
 	struct oc_text_buf *ucs2pass = buf_alloc();
-	if (buf_append_ucs2le(ucs2pass, pass) < 0 ||
-	    buf_error(ucs2pass))
-		return -EINVAL;
+	int ret;
 
-	md4sum ((void *)ucs2pass->data, ucs2pass->pos, (unsigned char *) hash);
+	ret = buf_append_ucs2le(ucs2pass, pass);
+	if (ret < 0)
+		return ret;
+
+	ret = buf_error(ucs2pass);
+	if (ret)
+		return ret;
+
+	ret = md4sum(ucs2pass, (unsigned char *) hash);
+	if (ret)
+		return ret;
+
 	memset (hash + 16, 0, 5);
 
 	memset(ucs2pass->data, 0, ucs2pass->pos);
