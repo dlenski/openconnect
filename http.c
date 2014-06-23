@@ -1405,6 +1405,8 @@ static int proxy_read(struct openconnect_info *vpninfo, char *buf, size_t len)
 		i = recv(fd, (void *)&buf[count], len - count, 0);
 		if (i < 0)
 			return -errno;
+		else if (i == 0)
+			return -ECONNRESET;
 
 		count += i;
 	}
