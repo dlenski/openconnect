@@ -188,7 +188,8 @@ static int md4sum (struct oc_text_buf *buf, unsigned char digest[16])
 	uint32_t A, B, C, D, AA, BB, CC, DD, X[16];
 	int pbytes, nbits = nbytes * 8, i, j;
 
-	pbytes = (120 - (nbytes % 64)) % 64;
+	/* There is *always* padding of at least one bit. */
+	pbytes = ((119 - (nbytes % 64)) % 64) + 1;
 
 	if (buf_ensure_space (buf, pbytes + 8))
 		return -ENOMEM;
