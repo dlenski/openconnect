@@ -2741,19 +2741,3 @@ msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""
 "Servidor «%s» no listado en la configuración; se trata como nombre de "
 "servidor crudo\n"
-
-#~ msgid "Unexpected continuation line after CONNECT response: '%s'\n"
-#~ msgstr ""
-#~ "Línea de continuación inesperada después de la respuesta CONNECT: '%s'\n"
-
-#~ msgid "Failed to read proxy response\n"
-#~ msgstr "Falló al leer la respuesta del proxy\n"
-
-#~ msgid "Proxy CONNECT request failed: %s\n"
-#~ msgstr "Falló la petición CONNECT del proxy: %s\n"
-
-#~ msgid "Failed to parse proxy response '%s'\n"
-#~ msgstr "Falló al analizar la respuesta del proxy '%s'\n"
-
-#~ msgid "Error fetching proxy response\n"
-#~ msgstr "Error al obtener la respuesta del proxy\n"

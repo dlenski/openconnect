@@ -2741,18 +2741,3 @@ msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""
 "Ο οικοδεσπότης \"%s\" δεν αναφέρεται στις ρυθμίσεις· αντιμετωπίζεται ως "
 "ακατέργαστο όνομα οικοδεσπότη\n"
-
-#~ msgid "Unexpected continuation line after CONNECT response: '%s'\n"
-#~ msgstr "Αναπάντεχη γραμμή συνέχισης μετά την απάντηση CONNECT: '%s'\n"
-
-#~ msgid "Failed to read proxy response\n"
-#~ msgstr "Αποτυχία ανάγνωσης απάντησης μεσολαβητή\n"
-
-#~ msgid "Proxy CONNECT request failed: %s\n"
-#~ msgstr "Αποτυχία αιτήματος CONNECT μεσολαβητή: %s\n"
-
-#~ msgid "Failed to parse proxy response '%s'\n"
-#~ msgstr "Αποτυχία ανάλυσης απάντησης μεσολαβητή '%s'\n"
-
-#~ msgid "Error fetching proxy response\n"
-#~ msgstr "Σφάλμα κατά την προσκόμιση απάντησης μεσολαβητή\n"
