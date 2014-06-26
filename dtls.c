@@ -657,6 +657,9 @@ int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_pe
 		return -EINVAL;
 	}
 
+	if (openconnect_random(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)))
+		return -EINVAL;
+
 	if (connect_dtls_socket(vpninfo))
 		return -EINVAL;
 

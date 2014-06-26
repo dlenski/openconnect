@@ -68,9 +68,6 @@ struct openconnect_info *openconnect_vpninfo_new(char *useragent,
 	if (!vpninfo->localname || !vpninfo->useragent)
 		goto err;
 
-	if (openconnect_random(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)))
-		goto err;
-
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
 #endif
