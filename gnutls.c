@@ -1834,7 +1834,8 @@ static int verify_peer(gnutls_session_t session)
 	}
  done:
 	if (reason) {
-		vpn_progress(vpninfo, PRG_INFO, "Server certificate verify failed: %s\n",
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("Server certificate verify failed: %s\n"),
 			     reason);
 		if (vpninfo->validate_peer_cert)
 			err = vpninfo->validate_peer_cert(vpninfo->cbdata,
