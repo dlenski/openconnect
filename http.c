@@ -1099,10 +1099,8 @@ newgroup:
 
 		buflen = do_https_request(vpninfo, method, request_body_type, request_body,
 					  &form_buf, 0);
-		if (vpninfo->got_cancel_cmd) {
-			vpninfo->got_cancel_cmd = 0;
+		if (vpninfo->got_cancel_cmd)
 			return 1;
-		}
 		if (buflen == -EINVAL)
 			goto fail;
 		if (buflen < 0) {
