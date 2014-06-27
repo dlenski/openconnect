@@ -153,6 +153,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	struct oc_text_buf *reqbuf;
 	char buf[65536];
 	int i;
+	int dtls_secret_set = 0;
 	int retried = 0, sessid_found = 0;
 	struct oc_vpn_option **next_dtls_option = &vpninfo->dtls_options;
 	struct oc_vpn_option **next_cstp_option = &vpninfo->cstp_options;
@@ -195,8 +196,16 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	if (!vpninfo->disable_ipv6)
 		buf_append(reqbuf, "X-CSTP-Full-IPv6-Capability: true\r\n");
 	buf_append(reqbuf, "X-DTLS-Master-Secret: ");
-	for (i = 0; i < sizeof(vpninfo->dtls_secret); i++)
+	for (i = 0; i < sizeof(vpninfo->dtls_secret); i++) {
 		buf_append(reqbuf, "%02X", vpninfo->dtls_secret[i]);
+		dtls_secret_set |= vpninfo->dtls_secret[i];
+	}
+	if (!dtls_secret_set) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("CRITICAL ERROR: DTLS master secret is uninitialised. Please report this.\n"));
+		return -EINVAL;
+	}
+
 	buf_append(reqbuf, "\r\nX-DTLS-CipherSuite: %s\r\n\r\n",
 			       vpninfo->dtls_ciphers ? : DEFAULT_CIPHER_LIST);
 
