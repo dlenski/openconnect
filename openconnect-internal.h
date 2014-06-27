@@ -108,10 +108,11 @@ struct pkt {
 #define KA_KEEPALIVE	3
 #define KA_REKEY	4
 
-#define DTLS_DISABLED	0
-#define DTLS_SLEEPING	1
-#define DTLS_CONNECTING	2
-#define DTLS_CONNECTED	3
+#define DTLS_NOSECRET	0
+#define DTLS_DISABLED	1
+#define DTLS_SLEEPING	2
+#define DTLS_CONNECTING	3
+#define DTLS_CONNECTED	4
 
 struct keepalive_info {
 	int dpd;

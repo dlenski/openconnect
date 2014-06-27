@@ -501,6 +501,16 @@ int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 {
 	int ret;
 
+	/* This needs to be done before openconnect_setup_dtls() because it's
+	   sent with the CSTP CONNECT handshake. Even if we don't end up doing
+	   DTLS. */
+	if (vpninfo->dtls_state == DTLS_NOSECRET) {
+		if (openconnect_random(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)))
+			return -EINVAL;
+		/* The application will later call openconnect_setup_dtls() */
+		vpninfo->dtls_state = DTLS_DISABLED;
+	}
+
 	ret = openconnect_open_https(vpninfo);
 	if (ret)
 		return ret;
