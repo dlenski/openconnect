@@ -167,7 +167,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 		}
 		if (out.length > 65535) {
 			vpn_progress(vpninfo, PRG_ERR,
-				     _("GSSAPI token too large (%ld bytes)\n"),
+				     _("GSSAPI token too large (%zd bytes)\n"),
 				     out.length);
 			break;
 		}
