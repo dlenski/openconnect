@@ -595,7 +595,7 @@ AS_IF([test "x$with_gssapi" != "xno"], [
 		gssapi_ver="`${KRB5_CONFIG} --version`"
 		if echo "$gssapi_ver" | grep -q Solaris; then
 		    GSSAPI_LIBS=-lgss
-		    GSSAPI_CFLAGS=
+		    GSSAPI_CFLAGS=-I/usr/include/gssapi
 		else
 	            GSSAPI_LIBS="`${KRB5_CONFIG} --libs gssapi`"
 		    GSSAPI_CFLAGS="`${KRB5_CONFIG} --cflags gssapi`"
