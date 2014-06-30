@@ -105,7 +105,7 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 	}
 
 	for (i = 0; i < SHA1_SIZE; i++)
-		sprintf(&vpninfo->xmlsha1[i*2], "%02x", sha1[i]);
+		snprintf(&vpninfo->xmlsha1[i*2], 3, "%02x", sha1[i]);
 
 	vpn_progress(vpninfo, PRG_DEBUG, _("XML config file SHA1: %s\n"),
 		     vpninfo->xmlsha1);
