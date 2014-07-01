@@ -44,6 +44,12 @@ static void print_gss_err(struct openconnect_info *vpninfo, OM_uint32 err_maj, O
 	} while (msg_ctx);
 }
 
+static const char spnego_OID[] = "\x2b\x06\x01\x05\x05\x02";
+static const gss_OID_desc gss_mech_spnego = {
+        6,
+	&spnego_OID
+};
+
 static int gssapi_setup(struct openconnect_info *vpninfo, const char *service)
 {
 	OM_uint32 major, minor;
@@ -92,7 +98,7 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	}
 
 	major = gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL, &vpninfo->gss_context,
-				     vpninfo->gss_target_name, GSS_C_NO_OID, GSS_C_MUTUAL_FLAG,
+				     vpninfo->gss_target_name, (gss_OID)&gss_mech_spnego, GSS_C_MUTUAL_FLAG,
 				     GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS, &in, NULL,
 				     &out, NULL, NULL);
 	if (major == GSS_S_COMPLETE)
@@ -150,7 +156,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 		return -ENOMEM;
 	while (1) {
 		major = gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL, &vpninfo->gss_context,
-					     vpninfo->gss_target_name, GSS_C_NO_OID, GSS_C_MUTUAL_FLAG,
+					     vpninfo->gss_target_name, (gss_OID)&gss_mech_spnego, GSS_C_MUTUAL_FLAG,
 					     GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS, &in, NULL,
 					     &out, NULL, NULL);
 		in.value = NULL;
