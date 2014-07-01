@@ -103,8 +103,7 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 		print_gss_err(vpninfo, major, minor);
 	fail_gssapi:
 		vpninfo->auth[AUTH_TYPE_GSSAPI].state = AUTH_FAILED;
-		gss_release_name(&minor, &vpninfo->gss_target_name);
-		gss_delete_sec_context(&minor, &vpninfo->gss_context, GSS_C_NO_BUFFER);
+		cleanup_gssapi_auth(vpninfo);
 		return -EAGAIN;
 	}
 	buf_append(hdrbuf, "Proxy-Authorization: Negotiate ");
