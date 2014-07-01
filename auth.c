@@ -17,6 +17,8 @@
  * Lesser General Public License for more details.
  */
 
+#include <config.h>
+
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>

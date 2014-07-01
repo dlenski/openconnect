@@ -1,4 +1,6 @@
 AC_INIT(openconnect, 5.99)
+AC_CONFIG_HEADERS([config.h])
+
 PKG_PROG_PKG_CONFIG
 AC_LANG_C
 AC_CANONICAL_HOST
@@ -25,16 +27,16 @@ symver_getline=
 case $host_os in
  *linux* | *gnu*)
     AC_MSG_NOTICE([Applying feature macros for GNU build])
-    AC_DEFINE(_POSIX_C_SOURCE, 200112L)
+    AC_DEFINE(_POSIX_C_SOURCE, 200112L, [_POSIX_C_SOURCE])
     # For strcasecmp() 
-    AC_DEFINE(_BSD_SOURCE)
+    AC_DEFINE(_BSD_SOURCE, 1, [_BSD_SOURCE])
     # For asprintf()
-    AC_DEFINE(_GNU_SOURCE)
+    AC_DEFINE(_GNU_SOURCE, 1, [_GNU_SOURCE])
     ;;
  *netbsd*)
     AC_MSG_NOTICE([Applying feature macros for NetBSD build])
-    AC_DEFINE(_POSIX_C_SOURCE, 200112L)
-    AC_DEFINE(_NETBSD_SOURCE)
+    AC_DEFINE(_POSIX_C_SOURCE, 200112L, [_POSIX_C_SOURCE])
+    AC_DEFINE(_NETBSD_SOURCE, 1, [_NETBSD_SOURCE])
     ;;
  *openbsd*)
     AC_MSG_NOTICE([Applying feature macros for OpenBSD build])
@@ -42,13 +44,13 @@ case $host_os in
     ;;
  *solaris*|*sunos*)
     AC_MSG_NOTICE([Applying workaround for broken SunOS time() function])
-    AC_DEFINE(HAVE_SUNOS_BROKEN_TIME)
+    AC_DEFINE(HAVE_SUNOS_BROKEN_TIME, 1, [On SunOS time() can go backwards])
     symver_time="openconnect__time;"
     ;;
  *mingw32*|*mingw64*|*msys*)
     AC_MSG_NOTICE([Applying feature macros for MinGW/Windows build])
     # For GetVolumeInformationByHandleW() which is Vista+
-    AC_DEFINE(_WIN32_WINNT,0x600)
+    AC_DEFINE(_WIN32_WINNT, 0x600, [Windows API version])
     have_win=yes
     ;;
  *)
@@ -71,19 +73,19 @@ if test "$with_vpnc_script" = "yes" || test "$with_vpnc_script" = ""; then
       with_vpnc_script=/etc/vpnc/vpnc-script
       if ! test -x "$with_vpnc_script"; then
 	 AC_MSG_ERROR([${with_vpnc_script} does not seem to be executable.]
-	     [OpenConnect will not function correctly without a vpnc-script.]
-             [See http://www.infradead.org/openconnect/vpnc-script.html for more details.]
-             []
-             [If you are building a distribution package, please ensure that your]
-             [packaging is correct, and that a vpnc-script will be installed when the]
-             [user installs your package. You should provide a --with-vpnc-script=]
-             [argument to this configure script, giving the full path where the script]
-             [will be installed.]
-             []
-             [The standard location is ${with_vpnc_script}. To bypass this error and]
-             [build OpenConnect to use the script from this location, even though it's]
-             [not present at the time you are building OpenConnect, pass the argument]
-             ["--with-vpnc-script=${with_vpnc_script}"])
+ [OpenConnect will not function correctly without a vpnc-script.]
+ [See http://www.infradead.org/openconnect/vpnc-script.html for more details.]
+ []
+ [If you are building a distribution package, please ensure that your]
+ [packaging is correct, and that a vpnc-script will be installed when the]
+ [user installs your package. You should provide a --with-vpnc-script=]
+ [argument to this configure script, giving the full path where the script]
+ [will be installed.]
+ []
+ [The standard location is ${with_vpnc_script}. To bypass this error and]
+ [build OpenConnect to use the script from this location, even though it is]
+ [not present at the time you are building OpenConnect, pass the argument]
+ ["--with-vpnc-script=${with_vpnc_script}"])
      fi
    fi
 elif test "$with_vpnc_script" = "no"; then
@@ -96,13 +98,14 @@ elif test "$have_win" = "yes"; then
    with_vpnc_script="$(echo "${with_vpnc_script}" | sed s/\\\\/\\\\\\\\/g)"
 fi
 
-AC_DEFINE_UNQUOTED(DEFAULT_VPNCSCRIPT, "${with_vpnc_script}")
+AC_DEFINE_UNQUOTED(DEFAULT_VPNCSCRIPT, "${with_vpnc_script}", [Default vpnc-script locatin])
 AC_SUBST(DEFAULT_VPNCSCRIPT, "${with_vpnc_script}")
 
-AC_CHECK_FUNC(fdevname_r, [AC_DEFINE(HAVE_FDEVNAME_R, 1)], [])
-AC_CHECK_FUNC(getline, [AC_DEFINE(HAVE_GETLINE, 1)], [symver_getline="openconnect__getline;"])
-AC_CHECK_FUNC(strcasestr, [AC_DEFINE(HAVE_STRCASESTR, 1)], [])
-AC_CHECK_FUNC(asprintf, [AC_DEFINE(HAVE_ASPRINTF, 1)], [])
+AC_CHECK_FUNC(fdevname_r, [AC_DEFINE(HAVE_FDEVNAME_R, 1, [Have fdevname_r() function])], [])
+AC_CHECK_FUNC(getline, [AC_DEFINE(HAVE_GETLINE, 1, [Have getline() function])],
+    [symver_getline="openconnect__getline;"])
+AC_CHECK_FUNC(strcasestr, [AC_DEFINE(HAVE_STRCASESTR, 1, [Have strcasestr() function])], [])
+AC_CHECK_FUNC(asprintf, [AC_DEFINE(HAVE_ASPRINTF, 1, [Have asprintf() function])], [])
 if test -n "$symver_asprintf"; then
   AC_MSG_CHECKING([for va_copy])
   AC_LINK_IFELSE([AC_LANG_PROGRAM([
@@ -111,7 +114,7 @@ if test -n "$symver_asprintf"; then
 	va_list b;
 	va_copy(b,a);
 	va_end(b);])],
-	[AC_DEFINE(HAVE_VA_COPY, 1)
+	[AC_DEFINE(HAVE_VA_COPY, 1, [Have va_copy()])
 	AC_MSG_RESULT(va_copy)],
 	[AC_LINK_IFELSE([AC_LANG_PROGRAM([
 		#include <stdarg.h>
@@ -119,7 +122,7 @@ if test -n "$symver_asprintf"; then
 		va_list b;
 		__va_copy(b,a);
 		va_end(b);])],
-		[AC_DEFINE(HAVE___VA_COPY, 1)
+		[AC_DEFINE(HAVE___VA_COPY, 1, [Have __va_copy()])
 		AC_MSG_RESULT(__va_copy)],
 		[AC_MSG_RESULT(no)
 		AC_MSG_ERROR([Your system lacks asprintf() and va_copy()])])
@@ -157,7 +160,7 @@ fi
 have_inet_aton=yes
 AC_CHECK_FUNC(inet_aton, [], AC_CHECK_LIB(nsl, inet_aton, [], have_inet_aton=no))
 if test "$have_inet_aton" = "yes"; then
-   AC_DEFINE(HAVE_INET_ATON, 1)
+   AC_DEFINE(HAVE_INET_ATON, 1, [Have inet_aton()])
 fi
 
 AC_CHECK_FUNC(__android_log_vprint, [], AC_CHECK_LIB(log, __android_log_vprint, [], []))
@@ -213,7 +216,7 @@ fi
 
 if test "$USE_NLS" = "yes"; then
    AC_SUBST(LIBINTL)
-   AC_DEFINE(ENABLE_NLS, 1)
+   AC_DEFINE(ENABLE_NLS, 1, [Enable NLS support])
 fi
 AM_CONDITIONAL(USE_NLS, [test "$USE_NLS" = "yes"])
 
@@ -286,11 +289,11 @@ if test "$with_gnutls" = "yes"; then
     oldcflags="$CFLAGS"
     CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
     AC_CHECK_FUNC(gnutls_dtls_set_data_mtu,
-		 [AC_DEFINE(HAVE_GNUTLS_DTLS_SET_DATA_MTU, 1)], [])
+		 [AC_DEFINE(HAVE_GNUTLS_DTLS_SET_DATA_MTU, 1, [Have this function])], [])
     AC_CHECK_FUNC(gnutls_pkcs11_get_raw_issuer,
-		 [AC_DEFINE(HAVE_GNUTLS_PKCS11_GET_RAW_ISSUER, 1)], [])
+		 [AC_DEFINE(HAVE_GNUTLS_PKCS11_GET_RAW_ISSUER, 1, [Have this function])], [])
     AC_CHECK_FUNC(gnutls_certificate_set_x509_system_trust,
-		 [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_X509_SYSTEM_TRUST, 1)], [])
+		 [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_X509_SYSTEM_TRUST, 1, [I hate autoheader])], [])
     if test "$ac_cv_func_gnutls_certificate_set_x509_system_trust" != "yes"; then
 	# We will need to tell GnuTLS the path to the system CA file.
 	if test "$with_system_cafile" = "yes" || test "$with_system_cafile" = ""; then
@@ -323,14 +326,14 @@ if test "$with_gnutls" = "yes"; then
     [location of the system CA certificate store on your system, to the]
     [openconnect-devel@lists.infradead.org mailing list.])
 	fi
-	AC_DEFINE_UNQUOTED([DEFAULT_SYSTEM_CAFILE], ["$with_system_cafile"])
+	AC_DEFINE_UNQUOTED([DEFAULT_SYSTEM_CAFILE], ["$with_system_cafile"], [Location of System CA trust file])
     fi
     AC_CHECK_FUNC(gnutls_pkcs12_simple_parse,
-		 [AC_DEFINE(HAVE_GNUTLS_PKCS12_SIMPLE_PARSE, 1)], [])
+		 [AC_DEFINE(HAVE_GNUTLS_PKCS12_SIMPLE_PARSE, 1, [This one was obvious too])], [])
     AC_CHECK_FUNC(gnutls_certificate_set_key,
-		 [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_KEY, 1)], [])
+		 [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_KEY, 1, [stupid])], [])
     AC_CHECK_FUNC(gnutls_pk_to_sign,
-		 [AC_DEFINE(HAVE_GNUTLS_PK_TO_SIGN, 1)], [])
+		 [AC_DEFINE(HAVE_GNUTLS_PK_TO_SIGN, 1, [autoheader])], [])
     if test "$with_openssl" = "" || test "$with_openssl" = "no"; then
 	AC_CHECK_FUNC(gnutls_session_set_premaster,
 		 [have_gnutls_dtls=yes], [have_gnutls_dtls=no])
@@ -341,7 +344,7 @@ if test "$with_gnutls" = "yes"; then
 	if test "$with_openssl" = "" || test "$with_openssl" = "no"; then
 	    # They either said no OpenSSL or didn't specify, and GnuTLS can
 	    # do DTLS, so just use GnuTLS.
-            AC_DEFINE(HAVE_GNUTLS_SESSION_SET_PREMASTER, 1)
+            AC_DEFINE(HAVE_GNUTLS_SESSION_SET_PREMASTER, 1, [the fish are hungry tonight])
 	    ssl_library=gnutls
 	    with_openssl=no
 	else
@@ -361,7 +364,7 @@ if test "$with_gnutls" = "yes"; then
 	fi
     fi
     AC_CHECK_FUNC(gnutls_pkcs11_add_provider,
-		 [PKG_CHECK_MODULES(P11KIT, p11-kit-1, [AC_DEFINE(HAVE_P11KIT)
+		 [PKG_CHECK_MODULES(P11KIT, p11-kit-1, [AC_DEFINE(HAVE_P11KIT, 1, [Have. P11. Kit.])
     			      		  AC_SUBST(P11KIT_PC, p11-kit-1)], [:])], [])
     LIBS="$oldlibs -ltspi"
     AC_MSG_CHECKING([for tss library])
@@ -373,7 +376,7 @@ if test "$with_gnutls" = "yes"; then
 		  [AC_MSG_RESULT(yes)
 		   AC_SUBST([TSS_LIBS], [-ltspi])
 		   AC_SUBST([TSS_CFLAGS], [])
-		   AC_DEFINE(HAVE_TROUSERS, 1)],
+		   AC_DEFINE(HAVE_TROUSERS, 1, [Have Trousers TSS library])],
 		  [AC_MSG_RESULT(no)])
     LIBS="$oldlibs"
     CFLAGS="$oldcflags"
@@ -410,7 +413,7 @@ elif test "$with_openssl" != "no" ; then
     AC_SUBST(OPENSSL_LIBS)
     enable_static=yes
     enable_shared=no
-    AC_DEFINE(DTLS_OPENSSL, 1)
+    AC_DEFINE(DTLS_OPENSSL, 1, [Using OpenSSL for DTLS])
     if test "$ssl_library" != "both"; then
         ssl_library=openssl
     fi
@@ -418,16 +421,16 @@ fi
 
 case "$ssl_library" in
     gnutls)
-	AC_DEFINE(OPENCONNECT_GNUTLS, 1)
-	AC_DEFINE(DTLS_GNUTLS, 1)
+	AC_DEFINE(OPENCONNECT_GNUTLS, 1, [Using GnuTLS])
+	AC_DEFINE(DTLS_GNUTLS, 1, [Using GnuTLS for DTLS])
 	AC_SUBST(SSL_DTLS_PC, [gnutls])
 	AC_SUBST(SSL_LIBS, ['$(GNUTLS_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
 	check_openssl_dtls=no
 	;;
     openssl)
-	AC_DEFINE(OPENCONNECT_OPENSSL, 1)
-	AC_DEFINE(DTLS_OPENSSL, 1)
+	AC_DEFINE(OPENCONNECT_OPENSSL, 1, [Using OpenSSL])
+	AC_DEFINE(DTLS_OPENSSL, 1, [Using OpenSSL for DTLS])
 	AC_SUBST(SSL_DTLS_PC, [openssl])
 	AC_SUBST(SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
@@ -435,8 +438,8 @@ case "$ssl_library" in
 	;;
     both)
 	# GnuTLS for TCP, OpenSSL for DTLS
-	AC_DEFINE(OPENCONNECT_GNUTLS, 1)
-	AC_DEFINE(DTLS_OPENSSL, 1)
+	AC_DEFINE(OPENCONNECT_GNUTLS, 1, [Using GnuTLS])
+	AC_DEFINE(DTLS_OPENSSL, 1, [Using OpenSSL for DTLS])
 	AC_SUBST(SSL_DTLS_PC, [gnutls openssl])
 	AC_SUBST(SSL_LIBS, ['$(GNUTLS_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
@@ -537,7 +540,7 @@ AC_ARG_WITH([libproxy],
 AS_IF([test "x$with_libproxy" != "xno"], [
 	PKG_CHECK_MODULES(LIBPROXY, libproxy-1.0,
 			[AC_SUBST(LIBPROXY_PC, libproxy-1.0)
-			 AC_DEFINE([LIBPROXY_HDR], ["proxy.h"])
+			 AC_DEFINE([LIBPROXY_HDR], ["proxy.h"], [libproxy header file])
 			 libproxy_pkg=yes],
 			 libproxy_pkg=no)
 ], [libproxy_pkg=disabled])
@@ -568,7 +571,7 @@ AC_ARG_WITH([stoken],
 AS_IF([test "x$with_stoken" != "xno"], [
 	PKG_CHECK_MODULES(LIBSTOKEN, stoken,
 			[AC_SUBST(LIBSTOKEN_PC, stoken)
-			 AC_DEFINE([HAVE_LIBSTOKEN], 1)
+			 AC_DEFINE([HAVE_LIBSTOKEN], 1, [Have libstoken])
 			 libstoken_pkg=yes],
 			 libstoken_pkg=no)
 ], [libstoken_pkg=disabled])
@@ -579,7 +582,7 @@ AC_ARG_WITH([liboath],
 AS_IF([test "x$with_liboath" != "xno"], [
 	PKG_CHECK_MODULES(LIBOATH, [liboath >= 1.12.0],
 		[AC_SUBST(LIBOATH_PC, liboath)
-		 AC_DEFINE([HAVE_LIBOATH], 1)
+		 AC_DEFINE([HAVE_LIBOATH], 1, [Have liboath])
 		 liboath_pkg=yes],
 		 liboath_pkg=no)
 ])
@@ -609,7 +612,7 @@ if test "$with_gssapi" != "no"; then
 		GSSAPI_LIBS="`${KRB5_CONFIG} --libs gssapi`"
 		GSSAPI_CFLAGS="`${KRB5_CONFIG} --cflags gssapi`"
 	    fi
-	elif test -d /usr/include/kerberosV/gssapi.h; then
+	elif test -f /usr/include/kerberosV/gssapi.h; then
 	    # OpenBSD 5.2 at least...
             have_gssapi=yes
 	    GSSAPI_CFLAGS="-I/usr/include/kerberosV"
@@ -633,7 +636,7 @@ if test "$with_gssapi" != "no"; then
 			AC_MSG_WARN([Neither <gssapi/gssapi.h> nor <gssapi.h> is usable])])])
 
 	if test "$have_gssapi" = "yes"; then
-	    AC_DEFINE_UNQUOTED(GSSAPI_HDR,$gssapi_hdr)
+	    AC_DEFINE_UNQUOTED(GSSAPI_HDR, $gssapi_hdr, [GSSAPI header])
 
 	    AC_MSG_CHECKING([GSSAPI compilation])
 	    AC_LINK_IFELSE([AC_LANG_PROGRAM([
@@ -653,7 +656,7 @@ if test "$with_gssapi" != "no"; then
     fi
 
     if test "$have_gssapi" = "yes"; then
-	AC_DEFINE([HAVE_GSSAPI], 1)
+	AC_DEFINE([HAVE_GSSAPI], 1, [Have GSSAPI support])
 	AC_SUBST(GSSAPI_CFLAGS)
 	AC_SUBST(GSSAPI_LIBS)
     elif test "$with_gssapi" = ""; then
@@ -713,7 +716,7 @@ fi
 AC_SUBST(SYMVER_JAVA, $symver_java)
 
 AC_CHECK_HEADER([if_tun.h],
-    [AC_DEFINE([IF_TUN_HDR], ["if_tun.h"])],
+    [AC_DEFINE([IF_TUN_HDR], ["if_tun.h"], [if_tun.h include path])],
     [AC_CHECK_HEADER([linux/if_tun.h],
         [AC_DEFINE([IF_TUN_HDR], ["linux/if_tun.h"])],
         [AC_CHECK_HEADER([net/if_tun.h],
@@ -721,7 +724,7 @@ AC_CHECK_HEADER([if_tun.h],
             [AC_CHECK_HEADER([net/tun/if_tun.h],
                 [AC_DEFINE([IF_TUN_HDR], ["net/tun/if_tun.h"])])])])])
 
-AC_CHECK_HEADER([alloca.h], AC_DEFINE([HAVE_ALLOCA_H]))
+AC_CHECK_HEADER([alloca.h], AC_DEFINE([HAVE_ALLOCA_H], 1, [Have alloca.h]))
 
 if test "$ssl_library" = "openssl" || test "$ssl_library" = "both"; then
     oldLIBS="$LIBS"

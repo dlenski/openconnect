@@ -15,6 +15,8 @@
  * Lesser General Public License for more details.
  */
 
+#include <config.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>

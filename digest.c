@@ -15,6 +15,8 @@
  * Lesser General Public License for more details.
  */
 
+#include <config.h>
+
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>

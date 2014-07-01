@@ -7,6 +7,8 @@
  * explicit permission.
  */
 
+#include <config.h>
+
 #ifndef HAVE_GNUTLS_PKCS12_SIMPLE_PARSE
 
 #include <string.h>

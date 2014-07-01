@@ -20,6 +20,8 @@
  * Carolin Latze <latze@angry-red-pla.net> and Tobias Soder
  */
 
+#include <config.h>
+
 #include <errno.h>
 #include <string.h>
 

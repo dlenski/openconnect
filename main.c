@@ -17,6 +17,8 @@
  * Lesser General Public License for more details.
  */
 
+#include <config.h>
+
 #ifdef HAVE_GETLINE
 /* Various BSD systems require this for getline() to be visible */
 #define _WITH_GETLINE

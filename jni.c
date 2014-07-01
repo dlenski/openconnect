@@ -13,6 +13,8 @@
  * Lesser General Public License for more details.
  */
 
+#include <config.h>
+
 #include <errno.h>
 #include <stdarg.h>
 #include <stdint.h>
