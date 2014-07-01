@@ -123,12 +123,14 @@ void cleanup_gssapi_auth(struct openconnect_info *vpninfo)
 {
 	OM_uint32 minor;
 
-	if (vpninfo->auth[AUTH_TYPE_GSSAPI].state <= AUTH_AVAILABLE)
-		return;
+	if (vpninfo->gss_target_name != GSS_C_NO_NAME)
+		gss_release_name(&minor, &vpninfo->gss_target_name);
 
-	gss_release_name(&minor, &vpninfo->gss_target_name);
+	if (vpninfo->gss_context != GSS_C_NO_CONTEXT)
+		gss_delete_sec_context(&minor, &vpninfo->gss_context, GSS_C_NO_BUFFER);
+
+	/* Shouldn't be necessary, but make sure... */
 	vpninfo->gss_target_name = GSS_C_NO_NAME;
-	gss_delete_sec_context(&minor, &vpninfo->gss_context, GSS_C_NO_BUFFER);
 	vpninfo->gss_context = GSS_C_NO_CONTEXT;
 }
 
@@ -143,9 +145,6 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 
 	if (gssapi_setup(vpninfo, "rcmd"))
 		return -EIO;
-
-	/* So that cleanup_gssapi_auth actally does something */
-	vpninfo->auth[AUTH_TYPE_GSSAPI].state = AUTH_IN_PROGRESS;
 
 	pktbuf = malloc(65538);
 	if (!pktbuf)
