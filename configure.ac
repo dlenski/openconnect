@@ -588,23 +588,82 @@ have_gssapi=no
 AC_ARG_WITH([gssapi],
 	AS_HELP_STRING([--without-gssapi],
 	[Build without GSSAPI support [default=auto]]))
-AS_IF([test "x$with_gssapi" != "xno"], [
-	    AC_PATH_PROG([KRB5_CONFIG], krb5-config, [], $PATH:/usr/kerberos/bin)
-	    if test "$KRB5_CONFIG" != ""; then
-	        have_gssapi=yes
-		gssapi_ver="`${KRB5_CONFIG} --version`"
-		if echo "$gssapi_ver" | grep -q Solaris; then
-		    GSSAPI_LIBS=-lgss
-		    GSSAPI_CFLAGS=-I/usr/include/gssapi
-		else
-	            GSSAPI_LIBS="`${KRB5_CONFIG} --libs gssapi`"
-		    GSSAPI_CFLAGS="`${KRB5_CONFIG} --cflags gssapi`"
-		fi
-		AC_SUBST(GSSAPI_CFLAGS)
-		AC_SUBST(GSSAPI_LIBS)
-		AC_DEFINE([HAVE_GSSAPI], 1)
+
+# Attempt to work out how to build with GSSAPI. Mostly, krb5-config will
+# exist and work. Tested on FreeBSD 9, OpenBSD 5.5, NetBSD 6.1.4. Solaris
+# has krb5-config but it doesn't do GSSAPI so hard-code the results there.
+# Older OpenBSD (I tested 5.2) lacks krb5-config so leave that as an example.
+if test "$with_gssapi" != "no"; then
+    # If they specify GSSAPI_LIBS and/or GSSAPI_CFLAGS then use them.
+    if test "$GSSAPI_LIBS$GSSAPI_CFLAGS" != ""; then
+	have_gssapi=yes
+    else
+	AC_PATH_PROG([KRB5_CONFIG], krb5-config, [], $PATH:/usr/kerberos/bin)
+	if test "$KRB5_CONFIG" != ""; then
+            have_gssapi=yes
+	    gssapi_ver="`${KRB5_CONFIG} --version`"
+	    if echo "$gssapi_ver" | grep -q Solaris; then
+		GSSAPI_LIBS=-lgss
+		GSSAPI_CFLAGS=-I/usr/include/gssapi
+	    else
+		GSSAPI_LIBS="`${KRB5_CONFIG} --libs gssapi`"
+		GSSAPI_CFLAGS="`${KRB5_CONFIG} --cflags gssapi`"
 	    fi
-])
+	elif test -d /usr/include/kerberosV/gssapi.h; then
+	    # OpenBSD 5.2 at least...
+            have_gssapi=yes
+	    GSSAPI_CFLAGS="-I/usr/include/kerberosV"
+	    GSSAPI_LIBS="-lgssapi -lkrb5 -lcrypto"
+	else
+	    AC_MSG_WARN([Cannot find GSSAPI. Try setting GSSAPI_LIBS and GSSAPI_CFLAGS manually])
+	fi
+    fi
+
+    # If explicitly told --with-gssapi or if we think we found it...
+    if test "$have_gssapi" = "yes" -o "$with_gssapi" = "yes"; then
+	oldlibs="$LIBS"
+	oldcflags="$CFLAGS"
+	LIBS="$LIBS ${GSSAPI_LIBS}"
+	CFLAGS="$CFLAGS ${GSSAPI_CFLAGS}"
+	AC_CHECK_HEADER([gssapi/gssapi.h],
+	    [gssapi_hdr="<gssapi/gssapi.h>"],
+	    [AC_CHECK_HEADER([gssapi.h],
+		    [gssapi_hdr="<gssapi.h>"],
+		    [have_gssapi=no
+			AC_MSG_WARN([Neither <gssapi/gssapi.h> nor <gssapi.h> is usable])])])
+
+	if test "$have_gssapi" = "yes"; then
+	    AC_DEFINE_UNQUOTED(GSSAPI_HDR,$gssapi_hdr)
+
+	    AC_MSG_CHECKING([GSSAPI compilation])
+	    AC_LINK_IFELSE([AC_LANG_PROGRAM([
+			    #include $gssapi_hdr],[
+			    OM_uint32 major, minor;
+			    gss_buffer_desc b = GSS_C_EMPTY_BUFFER;
+			    gss_ctx_id_t ctx = GSS_C_NO_CONTEXT;
+			    gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL, &ctx, GSS_C_NO_NAME, GSS_C_NO_OID,
+				GSS_C_MUTUAL_FLAG, GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS, NULL, NULL,
+				NULL, NULL, NULL);])],
+		[AC_MSG_RESULT(yes)],
+		[have_gssapi=no
+		    AC_MSG_RESULT(no)])
+	fi
+	LIBS="$oldlibs"
+	CFLAGS="$oldcflags"
+    fi
+
+    if test "$have_gssapi" = "yes"; then
+	AC_DEFINE([HAVE_GSSAPI], 1)
+	AC_SUBST(GSSAPI_CFLAGS)
+	AC_SUBST(GSSAPI_LIBS)
+    elif test "$with_gssapi" = ""; then
+	AC_MSG_WARN([Building without GSSAPI support]);
+	unset GSSAPI_CFLAGS
+	unset GSSAPI_LIBS
+    else
+	AC_MSG_ERROR([GSSAPI support requested but not found. Try setting GSSAPI_LIBS/GSSAPI_CFLAGS])
+    fi
+fi
 AM_CONDITIONAL(OPENCONNECT_GSSAPI, [test "$have_gssapi" = "yes"])
 
 AC_ARG_WITH([java],

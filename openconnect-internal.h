@@ -73,7 +73,7 @@
 #endif
 
 #ifdef HAVE_GSSAPI
-#include <gssapi.h>
+#include GSSAPI_HDR
 #endif
 
 #ifdef ENABLE_NLS
