@@ -156,7 +156,8 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 		return -ENOMEM;
 	while (1) {
 		major = gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL, &vpninfo->gss_context,
-					     vpninfo->gss_target_name, (gss_OID)&gss_mech_spnego, GSS_C_MUTUAL_FLAG,
+					     vpninfo->gss_target_name, (gss_OID)&gss_mech_spnego,
+					     GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_DELEG_FLAG | GSS_C_SEQUENCE_FLAG,
 					     GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS, &in, NULL,
 					     &out, NULL, NULL);
 		in.value = NULL;
