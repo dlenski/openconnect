@@ -162,14 +162,14 @@ int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 				chall = p;
 			}
 		}
-		while (isspace(*chall))
+		while (isspace((int)(unsigned char)*chall))
 			chall++;
 		if (!*chall)
 			break;
 		if (*chall != ',')
 			goto err;
 		chall++;
-		while (isspace(*chall))
+		while (isspace((int)(unsigned char)*chall))
 			chall++;
 		if (!*chall)
 			break;
