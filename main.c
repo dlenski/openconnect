@@ -48,6 +48,10 @@
 #endif
 
 #include "openconnect-internal.h"
+#ifdef _WIN32
+#include <wtypes.h>
+#include <wincon.h>
+#endif
 
 static int write_new_config(void *_vpninfo,
 			    char *buf, int buflen);
@@ -408,6 +412,35 @@ static void usage(void)
 	exit(1);
 }
 
+#ifdef _WIN32
+static HANDLE hconin = INVALID_HANDLE_VALUE;
+static DWORD cmode;
+
+static void disable_echo(void)
+{
+	hconin = CreateFile("CONIN$", GENERIC_READ | GENERIC_WRITE,
+			    FILE_SHARE_READ, NULL, OPEN_EXISTING,
+			    FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hconin == INVALID_HANDLE_VALUE)
+		return;
+	GetConsoleMode(hconin, &cmode);
+	if (!SetConsoleMode(hconin, cmode & (~ENABLE_ECHO_INPUT))) {
+		CloseHandle(hconin);
+		hconin = INVALID_HANDLE_VALUE;
+	}
+}
+
+static void restore_echo(void)
+{
+	if (hconin == INVALID_HANDLE_VALUE)
+		return;
+
+	SetConsoleMode(hconin, cmode);
+	CloseHandle(hconin);
+	hconin = INVALID_HANDLE_VALUE;
+}
+#endif
+
 static void read_stdin(char **string, int hidden)
 {
 	char *c = malloc(1025), *ret;
@@ -417,8 +450,12 @@ static void read_stdin(char **string, int hidden)
 		exit(1);
 	}
 
-#ifndef _WIN32
 	if (hidden) {
+#ifdef _WIN32
+		disable_echo();
+		ret = fgets(c, 1025, stdin);
+		restore_echo();
+#else /* ! _WIN32 */
 		struct termios t;
 		int fd = fileno(stdin);
 
@@ -431,8 +468,8 @@ static void read_stdin(char **string, int hidden)
 		t.c_lflag |= ECHO;
 		tcsetattr(fd, TCSANOW, &t);
 		fprintf(stderr, "\n");
-	} else
 #endif
+	} else
 		ret = fgets(c, 1025, stdin);
 
 	if (!ret) {
