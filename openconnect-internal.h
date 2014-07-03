@@ -444,6 +444,11 @@ ssize_t openconnect__getline(char **lineptr, size_t *n, FILE *stream);
 #define strcasestr openconnect__strcasestr
 char *openconnect__strcasestr(const char *haystack, const char *needle);
 #endif
+#ifndef HAVE_STRNDUP
+#undef strndup
+#define strndup openconnect__strndup
+char *openconnect__strndup(const char *s, size_t n);
+#endif
 #ifndef HAVE_SETENV
 #define setenv openconnect__setenv
 int openconnect__setenv(const char *name, const char *value, int overwrite);

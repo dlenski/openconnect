@@ -105,6 +105,7 @@ AC_CHECK_FUNC(fdevname_r, [AC_DEFINE(HAVE_FDEVNAME_R, 1, [Have fdevname_r() func
 AC_CHECK_FUNC(getline, [AC_DEFINE(HAVE_GETLINE, 1, [Have getline() function])],
     [symver_getline="openconnect__getline;"])
 AC_CHECK_FUNC(strcasestr, [AC_DEFINE(HAVE_STRCASESTR, 1, [Have strcasestr() function])], [])
+AC_CHECK_FUNC(strndup, [AC_DEFINE(HAVE_STRNDUP, 1, [Have strndup() function])], [])
 AC_CHECK_FUNC(asprintf, [AC_DEFINE(HAVE_ASPRINTF, 1, [Have asprintf() function])], [])
 if test -n "$symver_asprintf"; then
   AC_MSG_CHECKING([for va_copy])

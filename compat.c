@@ -165,6 +165,23 @@ char *openconnect__strcasestr(const char *haystack, const char *needle)
 }
 #endif
 
+#ifndef HAVE_STRNDUP
+char *openconnect__strndup(const char *s, size_t n)
+{
+	char *r;
+
+	if (n > strlen(s))
+		n = strlen(s);
+
+	r = malloc(n + 1);
+	if (r) {
+		memcpy(r, s, n);
+		r[n] = 0;
+	}
+	return r;
+}
+#endif
+
 #ifndef HAVE_SETENV
 int openconnect__setenv(const char *name, const char *value, int overwrite)
 {
