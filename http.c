@@ -1503,7 +1503,7 @@ static int process_socks_proxy(struct openconnect_info *vpninfo)
 	buf[0] = 5; /* SOCKS version */
 
 	buf[2 + nr_auth_methods++] = SOCKS_AUTH_NONE;
-#ifdef HAVE_GSSAPI
+#if defined(HAVE_GSSAPI) || defined(_WIN32)
 	if (vpninfo->auth[AUTH_TYPE_GSSAPI].state != AUTH_DISABLED &&
 	    !vpninfo->proxy_user && !vpninfo->proxy_pass)
 		buf[2 + nr_auth_methods++] = SOCKS_AUTH_GSSAPI;
@@ -1539,7 +1539,7 @@ static int process_socks_proxy(struct openconnect_info *vpninfo)
 		break;
 
 	case SOCKS_AUTH_GSSAPI:
-#ifdef HAVE_GSSAPI
+#if defined(HAVE_GSSAPI) || defined(_WIN32)
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("SOCKS server requested GSSAPI authentication\n"));
 		if (socks_gssapi_auth(vpninfo))
