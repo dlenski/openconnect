@@ -25,6 +25,10 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#ifndef SECURITY_WIN32
+#define SECURITY_WIN32 1
+#endif
+#include <security.h>
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -207,7 +211,12 @@ struct openconnect_info {
 	gss_name_t gss_target_name;
 	gss_ctx_id_t gss_context;
 #endif
+#ifdef _WIN32
+	CredHandle ntlm_sspi_cred;
+	CtxtHandle ntlm_sspi_ctx;
+#else
 	int ntlm_helper_fd;
+#endif
 	int authmethods_set;
 
 	char *localname;

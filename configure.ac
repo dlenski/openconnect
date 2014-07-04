@@ -153,7 +153,7 @@ AC_SUBST(WFLAGS, [$WFLAGS])
 
 if test "$have_win" = yes; then
    # Checking "properly" for __attribute__((dllimport,stdcall)) functions is non-trivial
-   LIBS="$LIBS -lws2_32 -lshlwapi"
+   LIBS="$LIBS -lws2_32 -lshlwapi -lsecur32"
 else
    AC_CHECK_FUNC(socket, [], AC_CHECK_LIB(socket, socket, [], AC_ERROR(Cannot find socket() function)))
 fi
