@@ -36,7 +36,7 @@ if OPENCONNECT_OPENSSL
 library_srcs += $(lib_srcs_openssl)
 endif
 if OPENCONNECT_WIN32
-library_srcs += tun-win32.c
+library_srcs += tun-win32.c sspi.c
 else
 library_srcs += tun.c
 endif

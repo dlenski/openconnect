@@ -1800,7 +1800,7 @@ struct auth_method {
 	int (*authorization)(struct openconnect_info *, struct oc_text_buf *);
 	void (*cleanup)(struct openconnect_info *);
 } auth_methods[] = {
-#ifdef HAVE_GSSAPI
+#if defined(HAVE_GSSAPI) || defined(_WIN32)
 	{ AUTH_TYPE_GSSAPI, "Negotiate", gssapi_authorization, cleanup_gssapi_auth },
 #endif
 	{ AUTH_TYPE_NTLM, "NTLM", ntlm_authorization, cleanup_ntlm_auth },
