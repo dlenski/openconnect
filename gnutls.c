@@ -1793,25 +1793,29 @@ static int verify_peer(gnutls_session_t session)
 		goto done;
 
 	if (!gnutls_x509_crt_check_hostname(cert, vpninfo->hostname)) {
-#if GNUTLS_VERSION_NUMBER <= 0x999999 /* FIXME when GnuTLS is fixed. */
-		/* GnuTLS as of 3.2.x doesn't bother to check the IP address */
 		int i, ret;
 		unsigned char addrbuf[sizeof(struct in6_addr)];
 		unsigned char certaddr[sizeof(struct in6_addr)];
-		size_t addrlen, certaddrlen;
+		size_t addrlen = 0, certaddrlen;
 
-		if (inet_pton(AF_INET, vpninfo->hostname, addrbuf) > 0)
-			addrlen = 4;
-		else if (inet_pton(AF_INET6, vpninfo->hostname, addrbuf) > 0)
-			addrlen = 16;
-		else if (vpninfo->hostname[0] == '[' &&
-			 vpninfo->hostname[strlen(vpninfo->hostname)-1] == ']') {
+		/* gnutls_x509_crt_check_hostname() doesn't cope with IPv6 literals
+		   in URI form with surrounding [] so we must check for ourselves. */
+		if (vpninfo->hostname[0] == '[' &&
+		    vpninfo->hostname[strlen(vpninfo->hostname)-1] == ']') {
 			char *p = &vpninfo->hostname[strlen(vpninfo->hostname)-1];
 			*p = 0;
 			if (inet_pton(AF_INET6, vpninfo->hostname + 1, addrbuf) > 0)
 				addrlen = 16;
 			*p = ']';
-		} else {
+		}
+#if GNUTLS_VERSION_NUMBER < 0x030306
+		/* And before 3.3.6 it didn't check IP addresses at all. */
+		else if (inet_pton(AF_INET, vpninfo->hostname, addrbuf) > 0)
+			addrlen = 4;
+		else if (inet_pton(AF_INET6, vpninfo->hostname, addrbuf) > 0)
+			addrlen = 16;
+#endif
+		if (!addrlen) {
 			/* vpninfo->hostname was not a bare IP address. Nothing to do */
 			goto badhost;
 		}
@@ -1831,7 +1835,6 @@ static int verify_peer(gnutls_session_t session)
 				goto done;
 		}
 	badhost:
-#endif
 		reason = _("certificate does not match hostname");
 	}
  done:
