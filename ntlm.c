@@ -43,7 +43,7 @@
 #define NTLM_MANUAL_REQ		4	/* manual type1 packet sent */
 
 #ifdef _WIN32
-static int ntlm_sspi(struct openconnect_info *vpninfo, struct oc_text_buf *buf, char *challenge)
+static int ntlm_sspi(struct openconnect_info *vpninfo, struct oc_text_buf *buf, const char *challenge)
 {
         SECURITY_STATUS status;
         SecBufferDesc input_desc, output_desc;
@@ -58,7 +58,7 @@ static int ntlm_sspi(struct openconnect_info *vpninfo, struct oc_text_buf *buf, 
 		input_desc.ulVersion = SECBUFFER_VERSION;
 
 		in_token.BufferType = SECBUFFER_TOKEN;
-		token_len = openconnect_base64_decode((unsigned char **)&in_token.pvBuffer, challenge);
+		token_len = openconnect_base64_decode(&in_token.pvBuffer, challenge);
 		if (token_len < 0)
 			return token_len;
 		in_token.cbBuffer = token_len;
@@ -947,7 +947,7 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	if (ntlm_nt_hash (vpninfo->proxy_pass, (char *) hash))
 		return -EINVAL;
 
-	token_len = openconnect_base64_decode(&token,
+	token_len = openconnect_base64_decode((void **)&token,
 					      vpninfo->auth[AUTH_TYPE_NTLM].challenge);
 	if (token_len < 0)
 		return token_len;

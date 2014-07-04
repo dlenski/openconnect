@@ -1662,7 +1662,7 @@ static inline int b64_char(char c)
 	return -1;
 }
 
-int openconnect_base64_decode(unsigned char **out, char *in)
+int openconnect_base64_decode(void **out, const char *in)
 {
 	unsigned char *buf;
 	int b[4];

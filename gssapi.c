@@ -86,7 +86,7 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	}
 
 	if (vpninfo->auth[AUTH_TYPE_GSSAPI].challenge && *vpninfo->auth[AUTH_TYPE_GSSAPI].challenge) {
-		int len = openconnect_base64_decode((unsigned char **)&in.value, vpninfo->auth[AUTH_TYPE_GSSAPI].challenge);
+		int len = openconnect_base64_decode(&in.value, vpninfo->auth[AUTH_TYPE_GSSAPI].challenge);
 		if (len < 0)
 			return -EINVAL;
 		in.length = len;
