@@ -735,12 +735,13 @@ static void setup_schedule (const unsigned char *key_56, DES_KS ks)
 	deskey (ks, key, 0);
 }
 
-static int buf_append_ucs2le(struct oc_text_buf *buf, const char *utf8)
+static int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8)
 {
 	int len = 0;
 	unsigned char c;
-	unsigned char b[2];
-	int utfchar;
+	unsigned long utfchar;
+	int min;
+	int nr_extra;
 
 	/* Ick. Now I'm implementing my own UTF8 handling too. Perhaps it's
 	   time to bite the bullet and start requiring something like glib? */
@@ -748,35 +749,50 @@ static int buf_append_ucs2le(struct oc_text_buf *buf, const char *utf8)
 		c = *(utf8++);
 		if (c < 128) {
 			utfchar = c;
+			nr_extra = 0;
+			min = 0;
 		} else if ((c & 0xe0) == 0xc0) {
-			utfchar = (c & 0x1f) << 6;
-			c = *(utf8++);
-			if ((c & 0xc0) != 0x80)
-				return -EINVAL;
-			utfchar |= (c & 0x3f);
-			if (utfchar < 0x80)
-				return -EINVAL;
+			utfchar = c & 0x1f;
+			nr_extra = 1;
+			min = 0x80;
 		} else if ((c & 0xf0) == 0xe0) {
-			utfchar = (c & 0x0f) << 12;
-			c = *(utf8++);
-			if ((c & 0xc0) != 0x80)
-				return -EINVAL;
-			utfchar |= (c & 0x3f) << 6;
-			c = *(utf8++);
-			if ((c & 0xc0) != 0x80)
-				return -EINVAL;
-			utfchar |= (c & 0x3f);
-			if (utfchar < 0x800)
-				return -EINVAL;
+			utfchar = c & 0x0f;
+			nr_extra = 2;
+			min = 0x800;
+		} else if ((c & 0xf8) == 0xf0) {
+			utfchar = c & 0x07;
+			nr_extra = 3;
+			min = 0x10000;
 		} else {
-			/* We can't encode anything higher into UCS2LE so bail. */
 			return -EINVAL;
 		}
 
-		b[0] = utfchar & 0xff;
-		b[1] = utfchar >> 8;
-		buf_append_bytes(buf, b, 2);
-		len += 2;
+		while (nr_extra--) {
+			c = *(utf8++);
+			if ((c & 0xc0) != 0x80)
+				return -EINVAL;
+			utfchar <<= 6;
+			utfchar |= (c & 0x3f);
+		}
+		if (utfchar > 0x10ffff || utfchar < min)
+			return -EINVAL;
+
+		if (utfchar >= 0x10000) {
+			utfchar -= 0x10000;
+			if (buf_ensure_space(buf, 4))
+				return -ENOMEM;
+			buf->data[buf->pos++] = (utfchar >> 10) & 0xff;
+			buf->data[buf->pos++] = 0xd8 | ((utfchar >> 18) & 3);
+			buf->data[buf->pos++] = utfchar & 0xff;
+			buf->data[buf->pos++] = 0xdc | ((utfchar >> 8) & 3);
+			len += 4;
+		} else {
+			if (buf_ensure_space(buf, 2))
+				return -ENOMEM;
+			buf->data[buf->pos++] = utfchar & 0xff;
+			buf->data[buf->pos++] = utfchar >> 8;
+			len += 2;
+		}
 	}
 	return len;
 }
@@ -810,33 +826,33 @@ static void ntlm_lanmanager_hash (const char *password, char hash[21])
 
 static int ntlm_nt_hash (const char *pass, char hash[21])
 {
-	struct oc_text_buf *ucs2pass = buf_alloc();
+	struct oc_text_buf *utf16pass = buf_alloc();
 	int ret;
 
 	/* Preallocate just to ensure md4sum() doesn't have to realloc, which
 	   would leave a copy of the password lying around. There is always
 	   at least one byte of padding, then 8 bytes of length, and round up
 	   to the next multiple of 64. */
-	ret = buf_ensure_space(ucs2pass, ((strlen(pass) * 2) + 1 + 8 + 63) & ~63);
+	ret = buf_ensure_space(utf16pass, ((strlen(pass) * 2) + 1 + 8 + 63) & ~63);
 	if (ret)
 		return ret;
 
-	ret = buf_append_ucs2le(ucs2pass, pass);
+	ret = buf_append_utf16le(utf16pass, pass);
 	if (ret < 0)
 		return ret;
 
-	ret = buf_error(ucs2pass);
+	ret = buf_error(utf16pass);
 	if (ret)
 		return ret;
 
-	ret = md4sum(ucs2pass, (unsigned char *) hash);
+	ret = md4sum(utf16pass, (unsigned char *) hash);
 	if (ret)
 		return ret;
 
 	memset (hash + 16, 0, 5);
 
-	memset(ucs2pass->data, 0, ucs2pass->pos);
-	buf_free(ucs2pass);
+	memset(utf16pass->data, 0, utf16pass->pos);
+	buf_free(utf16pass);
 	return 0;
 }
 
@@ -913,7 +929,7 @@ static void ntlm_set_string_utf8(struct oc_text_buf *buf, int offset,
 				 const char *data)
 {
 	int oldpos = buf->pos;
-	int len = buf_append_ucs2le(buf, data);
+	int len = buf_append_utf16le(buf, data);
 
 	/* Fill in the SecurityBuffer pointing to the string */
 	store_le16(buf->data + offset, len);		/* len */
