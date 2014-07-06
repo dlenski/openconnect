@@ -110,7 +110,7 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 		vpninfo->auth[AUTH_TYPE_GSSAPI].state = GSSAPI_CONTINUE;
 	else {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Error importing GSSAPI name for authentication:\n"));
+			     _("Error generating GSSAPI response:\n"));
 		print_gss_err(vpninfo, "gss_init_sec_context()", major, minor);
 	fail_gssapi:
 		vpninfo->auth[AUTH_TYPE_GSSAPI].state = AUTH_FAILED;
