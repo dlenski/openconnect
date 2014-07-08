@@ -15,6 +15,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-6.00.tar.gz">OpenConnect v6.00</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-6.00.tar.gz.asc">PGP signature</a>)</i> &#8212; 2014-07-08
+     <ul>
        <li>Support SOCKS proxy authentication (password, GSSAPI).</li>
        <li>Support HTTP proxy authentication (Basic, Digest, NTLM and GSSAPI).</li>
        <li>Download XML profile in XML POST mode.</li>

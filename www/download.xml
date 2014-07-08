@@ -17,29 +17,19 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.99.tar.gz">OpenConnect v5.99</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-5.99.tar.gz.asc">PGP signature</a>)</i>,
-released on 2014-03-05 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-6.00.tar.gz">OpenConnect v6.00</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-6.00.tar.gz.asc">PGP signature</a>)</i>,
+released on 2014-07-08 with the following changelog:</p>
      <ul>
-       <li>Add RFC4226 HOTP token support.</li>
-       <li>Tolerate servers closing connection uncleanly after HTTP/1.0 response <a href="https://bugs.launchpad.net/bugs/1225276"><i>(Ubuntu #1225276)</i></a>.</li>
-       <li>Add support for IPv6 split tunnel configuration.</li>
-       <li>Add Windows support with MinGW <i>(tested with both IPv6 and Legacy IP with latest <a href="http://git.infradead.org/users/dwmw2/vpnc-scripts.git/blob_plain/HEAD:/vpnc-script-win.js">vpnc-script-win.js</a>)</i></li>
-       <li>Change library API to support updating the auth form when the authgroup is changed <a href="https://bugs.launchpad.net/bugs/1229195"><i>(Ubuntu #1229195)</i></a>.</li>
-       <li>Change <tt>--os mac</tt> to <tt>--os mac-intel</tt>, to match the identifier used by Cisco clients.</li>
-       <li>Add new API functions to support invoking the VPN mainloop directly from an application.</li>
-       <li>Add JNI interface and sample Java application.</li>
-       <li>Fix junk in <tt>--cookieonly</tt> output when CSD is enabled.</li>
-       <li>Enable TOTP, stoken, and JNI support in the Android builds.</li>
-       <li>Add <tt>--pfs</tt> option to enforce perfect forward secrecy.</li>
-       <li>Enable elliptic curves with GnuTLS 3.2.9+, where there is a
-       workaround for certain firewalls that fail with client hellos between
-       256 and 512 bytes.</li>
-       <li>Add padding when sending password, to avoid leakage of password
-       and username length.</li>
-       <li>Add support for DTLS 1.2 and AES-GCM when connecting to ocserv.</li>
-       <li>Add support for server name indication when compiled with GnuTLS
-       3.2.9+.</li>
+       <li>Support SOCKS proxy authentication (password, GSSAPI).</li>
+       <li>Support HTTP proxy authentication (Basic, Digest, NTLM and GSSAPI).</li>
+       <li>Download XML profile in XML POST mode.</li>
+       <li>Fix a couple of bugs involving DTLS rekeying.</li>
+       <li>Fix problems seen when building or connecting without DTLS enabled.</li>
+       <li>Fix tun error handling on Windows hosts.</li>
+       <li>Skip password prompts when using PKCS#8 and PKCS#12 certificates with empty passwords.</li>
+       <li>Fix several minor memory leaks and error paths.</li>
+       <li>Update several Android dependencies, and make the download process more robust.</li>
      </ul>
 <!-- latest-release-end -->
 
