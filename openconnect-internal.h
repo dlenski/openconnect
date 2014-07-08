@@ -626,9 +626,6 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo);
 /* digest.c */
 int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
 
-/* ssl_ui.c */
-int set_openssl_ui(void);
-
 /* version.c */
 extern const char *openconnect_version_str;
 

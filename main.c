@@ -1035,10 +1035,6 @@ int main(int argc, char **argv)
 	}
 	free(urlpath);
 
-#ifdef SSL_UI
-	set_openssl_ui();
-#endif
-
 	if (!vpninfo->cookie && openconnect_obtain_cookie(vpninfo)) {
 		if (vpninfo->csd_scriptname) {
 			unlink(vpninfo->csd_scriptname);
