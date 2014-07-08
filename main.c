@@ -319,7 +319,6 @@ static void restore_echo(void)
 	tcgetattr(fd, &t);
 	t.c_lflag |= ECHO;
 	tcsetattr(fd, TCSANOW, &t);
-	fprintf(stderr, "\n");
 }
 
 static void handle_signal(int sig)
@@ -493,6 +492,7 @@ static void read_stdin(char **string, int hidden)
 		disable_echo();
 		ret = fgets(c, 1025, stdin);
 		restore_echo();
+		fprintf(stderr, "\n");
 	} else
 		ret = fgets(c, 1025, stdin);
 
