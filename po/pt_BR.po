@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2014-07-08 15:16+0100\n"
+"POT-Creation-Date: 2014-07-08 15:48+0100\n"
 "PO-Revision-Date: 2013-01-18 22:04+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Portuguese (Brazil) <l10n-pt-br@meego.org.br>\n"
@@ -1140,7 +1140,7 @@ msgstr ""
 msgid "Attempting GSSAPI authentication to proxy\n"
 msgstr ""
 
-#: gssapi.c:171
+#: gssapi.c:171 sspi.c:168
 msgid "GSSAPI authentication completed\n"
 msgstr ""
 
@@ -1203,15 +1203,15 @@ msgstr ""
 msgid "Invalid GSSAPI protection response from proxy (%zu bytes)\n"
 msgstr ""
 
-#: gssapi.c:307
+#: gssapi.c:307 sspi.c:377
 msgid "SOCKS proxy demands message integrity, which is not supported\n"
 msgstr ""
 
-#: gssapi.c:311
+#: gssapi.c:311 sspi.c:381
 msgid "SOCKS proxy demands message confidentiality, which is not supported\n"
 msgstr ""
 
-#: gssapi.c:315
+#: gssapi.c:315 sspi.c:385
 #, c-format
 msgid "SOCKS proxy demands protection unknown type 0x%02x\n"
 msgstr ""
@@ -1342,7 +1342,7 @@ msgstr "Falhou ao abrir arquivo de script CSD temporário: %s\n"
 msgid "Failed to write temporary CSD script file: %s\n"
 msgstr "Falhou ao escrever arquivo de script CSD temporário: %s\n"
 
-#: http.c:613 main.c:1096
+#: http.c:613 main.c:1092
 #, c-format
 msgid "Failed to set uid %ld\n"
 msgstr "Falha ao definir uid %ld\n"
@@ -1614,22 +1614,22 @@ msgstr ""
 "\n"
 "AVISO: nenhum suporte a DTLS neste binário. A performance será prejudicada.\n"
 
-#: main.c:353
+#: main.c:352
 #, c-format
 msgid "Cannot process this executable path \"%s\""
 msgstr "Não foi possível processar este caminho de executável \"%s\""
 
-#: main.c:359
+#: main.c:358
 #, c-format
 msgid "Allocation for vpnc-script path failed\n"
 msgstr "Alocação para caminho de vpnc-script falhou\n"
 
-#: main.c:397
+#: main.c:396
 #, c-format
 msgid "Usage:  openconnect [options] <server>\n"
 msgstr "Uso:  openconnect [opções] <servidor>\n"
 
-#: main.c:398
+#: main.c:397
 #, c-format
 msgid ""
 "Open client for Cisco AnyConnect VPN, version %s\n"
@@ -1638,257 +1638,257 @@ msgstr ""
 "Cliente aberto para Cisco AnyConnect VPN, versão %s\n"
 "\n"
 
-#: main.c:400
+#: main.c:399
 msgid "Read options from config file"
 msgstr "Lê as opções do arquivo de configuração"
 
-#: main.c:402
+#: main.c:401
 msgid "Continue in background after startup"
 msgstr "Continua em plano de fundo após inicialização"
 
-#: main.c:403
+#: main.c:402
 msgid "Write the daemon's PID to this file"
 msgstr "Escreve o PID do daemon neste arquivo"
 
-#: main.c:405
+#: main.c:404
 msgid "Use SSL client certificate CERT"
 msgstr "Usa o certificado CERT do cliente SSL"
 
-#: main.c:406
+#: main.c:405
 msgid "Warn when certificate lifetime < DAYS"
 msgstr "Avisa quando o tempo de vida do certificado < DAYS"
 
-#: main.c:407
+#: main.c:406
 msgid "Use SSL private key file KEY"
 msgstr "Usa o arquivo KEY de chave privada SSL"
 
-#: main.c:408
+#: main.c:407
 msgid "Use WebVPN cookie COOKIE"
 msgstr "Usa o cookie COOKIE de WebVPN"
 
-#: main.c:409
+#: main.c:408
 msgid "Read cookie from standard input"
 msgstr "Lê o cookie da entrada padrão"
 
-#: main.c:410
+#: main.c:409
 msgid "Enable compression (default)"
 msgstr "Habilita compressão (padrão)"
 
-#: main.c:411
+#: main.c:410
 msgid "Disable compression"
 msgstr "Desabilita compressão"
 
-#: main.c:412
+#: main.c:411
 msgid "Set minimum Dead Peer Detection interval"
 msgstr "Define um intervalo mínimo de Dead Peer Detection"
 
-#: main.c:413
+#: main.c:412
 msgid "Set login usergroup"
 msgstr "Define o grupo de usuário do login"
 
-#: main.c:414
+#: main.c:413
 msgid "Display help text"
 msgstr "Exibe o texto de ajuda"
 
-#: main.c:415
+#: main.c:414
 msgid "Use IFNAME for tunnel interface"
 msgstr "Usa IFNAME para a interface do túnel"
 
-#: main.c:417
+#: main.c:416
 msgid "Use syslog for progress messages"
 msgstr "Usa syslog para as mensagens de progresso"
 
-#: main.c:419
+#: main.c:418
 msgid "Prepend timestamp to progress messages"
 msgstr "Prefixa marca de tempo nas mensagens de progresso"
 
-#: main.c:421
+#: main.c:420
 msgid "Drop privileges after connecting"
 msgstr "Descarta privilégios após conexão"
 
-#: main.c:422
+#: main.c:421
 msgid "Drop privileges during CSD execution"
 msgstr "Descarta privilégios durante execução de CSD"
 
-#: main.c:423
+#: main.c:422
 msgid "Run SCRIPT instead of CSD binary"
 msgstr "Executa SCRIPT ao invés do binário do CSD"
 
-#: main.c:425
+#: main.c:424
 msgid "Request MTU from server"
 msgstr "Requisita MTU do servidor"
 
-#: main.c:426
+#: main.c:425
 msgid "Indicate path MTU to/from server"
 msgstr "Indica MTU do caminho de/para o servidor"
 
-#: main.c:427
+#: main.c:426
 msgid "Set key passphrase or TPM SRK PIN"
 msgstr "Define a frase secreta chave ou TPM SRK PIN"
 
-#: main.c:428
+#: main.c:427
 msgid "Key passphrase is fsid of file system"
 msgstr "Frase secreta chave é fsid do sistema de arquivos"
 
-#: main.c:429
+#: main.c:428
 msgid "Set proxy server"
 msgstr "Define o servidor proxy"
 
-#: main.c:430
+#: main.c:429
 msgid "Set proxy authentication methods"
 msgstr ""
 
-#: main.c:431
+#: main.c:430
 msgid "Disable proxy"
 msgstr "Desabilita o proxy"
 
-#: main.c:432
+#: main.c:431
 msgid "Use libproxy to automatically configure proxy"
 msgstr "Usa libproxy para configurar automaticamente o proxy"
 
-#: main.c:434
+#: main.c:433
 msgid "(NOTE: libproxy disabled in this build)"
 msgstr "(NOTA: libproxy desabilitado nesta compilação)"
 
-#: main.c:436
+#: main.c:435
 msgid "Require perfect forward secrecy"
 msgstr "Exige perfect forward secrecy (PFS)"
 
-#: main.c:437
+#: main.c:436
 msgid "Less output"
 msgstr "Menos saída"
 
-#: main.c:438
+#: main.c:437
 msgid "Set packet queue limit to LEN pkts"
 msgstr "Define limite da fila de pacotes para LEN pkts"
 
-#: main.c:439
+#: main.c:438
 msgid "Shell command line for using a vpnc-compatible config script"
 msgstr ""
 "Linha de comando shell para usar um script de configuração compatível com "
 "vpnc"
 
-#: main.c:440
+#: main.c:439
 msgid "default"
 msgstr "padrão"
 
-#: main.c:442
+#: main.c:441
 msgid "Pass traffic to 'script' program, not tun"
 msgstr "Passa tráfego para o programa \"script\", ao invés do tun"
 
-#: main.c:444
+#: main.c:443
 msgid "Set login username"
 msgstr "Define o nome de usuário do login"
 
-#: main.c:445
+#: main.c:444
 msgid "Report version number"
 msgstr "Informa o número da versão"
 
-#: main.c:446
+#: main.c:445
 msgid "More output"
 msgstr "Mais saída"
 
-#: main.c:447
+#: main.c:446
 msgid "Dump HTTP authentication traffic (implies --verbose"
 msgstr "Despeja o tráfego de autenticação HTTP (--verbose implícito)"
 
-#: main.c:448
+#: main.c:447
 msgid "XML config file"
 msgstr "Arquivo de configuração XML"
 
-#: main.c:449
+#: main.c:448
 msgid "Choose authentication login selection"
 msgstr "Escolhe a seleção de login para autenticação"
 
-#: main.c:450
+#: main.c:449
 msgid "Authenticate only and print login info"
 msgstr "Só autentica e imprime informação de login"
 
-#: main.c:451
+#: main.c:450
 msgid "Fetch webvpn cookie only; don't connect"
 msgstr "Só obtém cookie de webvpn - não conecta"
 
-#: main.c:452
+#: main.c:451
 msgid "Print webvpn cookie before connecting"
 msgstr "Imprime o cookie de webvpn antes de conectar."
 
-#: main.c:453
+#: main.c:452
 msgid "Cert file for server verification"
 msgstr "Arquivo de certificado para verificação do servidor"
 
-#: main.c:454
+#: main.c:453
 msgid "Do not ask for IPv6 connectivity"
 msgstr "Não solicita conectividade em IPv6"
 
-#: main.c:455
+#: main.c:454
 msgid "OpenSSL ciphers to support for DTLS"
 msgstr "Cifras de OpenSSL a serem suportadas para DTLS"
 
-#: main.c:456
+#: main.c:455
 msgid "Disable DTLS"
 msgstr "Desabilita DTLS"
 
-#: main.c:457
+#: main.c:456
 msgid "Disable HTTP connection re-use"
 msgstr "Desabilita reuso de conexão HTTP"
 
-#: main.c:458
+#: main.c:457
 msgid "Disable password/SecurID authentication"
 msgstr "Desabilita autenticação por senha/SecurID"
 
-#: main.c:459
+#: main.c:458
 msgid "Do not require server SSL cert to be valid"
 msgstr "Não exige que o certificado SSL do servidor seja válido"
 
-#: main.c:460
+#: main.c:459
 msgid "Do not attempt XML POST authentication"
 msgstr "Não tenta autenticação XML POST"
 
-#: main.c:461
+#: main.c:460
 msgid "Do not expect user input; exit if it is required"
 msgstr "Não espera entrada do usuário - sai se for requisitado"
 
-#: main.c:462
+#: main.c:461
 msgid "Read password from standard input"
 msgstr "Lê senha da entrada padrão"
 
-#: main.c:463
+#: main.c:462
 msgid "Software token type: rsa, totp or hotp"
 msgstr "Tipo de token de software: rsa, totp ou hotp"
 
-#: main.c:464
+#: main.c:463
 msgid "Software token secret"
 msgstr "Segredo de token de software"
 
-#: main.c:466
+#: main.c:465
 msgid "(NOTE: libstoken (RSA SecurID) disabled in this build)"
 msgstr "(NOTA: libstoken (RSA SecurID) desabilitado nesta compilação)"
 
-#: main.c:469
+#: main.c:468
 msgid "(NOTE: liboath (TOTP,HOTP) disabled in this build)"
 msgstr "(NOTA: liboath (TOTP,HOTP) desabilitado nesta compilação)"
 
-#: main.c:471
+#: main.c:470
 msgid "Connection retry timeout in seconds"
 msgstr "Limite de tempo em segundos para nova tentativa de conexão"
 
-#: main.c:472
+#: main.c:471
 msgid "Server's certificate SHA1 fingerprint"
 msgstr "Impressão digital SHA1 do certificado do servidor"
 
-#: main.c:473
+#: main.c:472
 msgid "HTTP header User-Agent: field"
 msgstr "Campo User-Agent: do cabeçalho de HTTP"
 
-#: main.c:474
+#: main.c:473
 msgid "OS type (linux,linux-64,win,...) to report"
 msgstr "Tipo de SO (linux,linux-64,mac,win,...) para informar"
 
-#: main.c:475
+#: main.c:474
 msgid "Set local port for DTLS datagrams"
 msgstr "Define a porta local para datagramas DTLS"
 
-#: main.c:488
+#: main.c:487
 #, c-format
 msgid "Allocation failure for string from stdin\n"
 msgstr "Falha ao alocar de string da stdin\n"
@@ -2005,91 +2005,91 @@ msgstr "Essa versão do openconnect foi compilada sem suporte a libproxy\n"
 msgid "Error opening cmd pipe\n"
 msgstr "Erro ao abrir redirecionamento de comando\n"
 
-#: main.c:1047
+#: main.c:1043
 #, c-format
 msgid "Failed to obtain WebVPN cookie\n"
 msgstr "Falha ao obter um cookie de WebVPN\n"
 
-#: main.c:1071
+#: main.c:1067
 #, c-format
 msgid "Creating SSL connection failed\n"
 msgstr "A criação da conexão SSL falhou\n"
 
-#: main.c:1081
+#: main.c:1077
 #, c-format
 msgid "Set up tun script failed\n"
 msgstr "A configuração de script tun falhou\n"
 
-#: main.c:1088
+#: main.c:1084
 #, c-format
 msgid "Set up tun device failed\n"
 msgstr "A configuração de um dispositivo tun falhou\n"
 
-#: main.c:1105
+#: main.c:1101
 #, c-format
 msgid "Set up DTLS failed; using SSL instead\n"
 msgstr "A configuração de DTLS falhou - usando SSL em vez disso\n"
 
-#: main.c:1109
+#: main.c:1105
 #, c-format
 msgid "Connected %s as %s%s%s, using %s\n"
 msgstr "Conectado a %s com %s%s%s, usando %s\n"
 
-#: main.c:1119
+#: main.c:1115
 msgid "No --script argument provided; DNS and routing are not configured\n"
 msgstr ""
 "Nenhum argumento --script fornecido - DNS e roteamento não estão "
 "configurados\n"
 
-#: main.c:1121
+#: main.c:1117
 msgid "See http://www.infradead.org/openconnect/vpnc-script.html\n"
 msgstr "Veja http://www.infradead.org/openconnect/vpnc-script.html\n"
 
-#: main.c:1134
+#: main.c:1130
 #, c-format
 msgid "Failed to open '%s' for write: %s\n"
 msgstr "Falha ao abrir \"%s\" para escrita: %s\n"
 
-#: main.c:1146
+#: main.c:1142
 #, c-format
 msgid "Continuing in background; pid %d\n"
 msgstr "Continuando em plano de fundo - pid %d\n"
 
-#: main.c:1161
+#: main.c:1157
 msgid "User requested reconnect\n"
 msgstr "Usuário requisitou reconexão\n"
 
-#: main.c:1169
+#: main.c:1165
 msgid "Cookie was rejected on reconnection; exiting.\n"
 msgstr "Cookie rejeitado na reconexão; saindo.\n"
 
-#: main.c:1173
+#: main.c:1169
 msgid "Session terminated by server; exiting.\n"
 msgstr "Sessão terminada pelo servidor; saindo.\n"
 
-#: main.c:1177
+#: main.c:1173
 msgid "User canceled (SIGINT); exiting.\n"
 msgstr "Usuário cancelado (SIGINT); saindo.\n"
 
-#: main.c:1181
+#: main.c:1177
 msgid "User detached from session (SIGHUP); exiting.\n"
 msgstr "Usuário desanexado da sessão (SIGHUP); saindo.\n"
 
-#: main.c:1185
+#: main.c:1181
 msgid "Unknown error; exiting.\n"
 msgstr "Erro desconhecido; saída.\n"
 
-#: main.c:1203
+#: main.c:1199
 #, c-format
 msgid "Failed to open %s for write: %s\n"
 msgstr "Falha ao abrir %s para escrita: %s\n"
 
-#: main.c:1211
+#: main.c:1207
 #, c-format
 msgid "Failed to write config to %s: %s\n"
 msgstr "Falha ao escrever a configuração para %s: %s\n"
 
-#: main.c:1277
+#: main.c:1273
 #, c-format
 msgid ""
 "\n"
@@ -2100,66 +2100,66 @@ msgstr ""
 "Certificado do servidor VPN \"%s\" falhou na verificação.\n"
 "Motivo: %s\n"
 
-#: main.c:1283
+#: main.c:1279
 #, c-format
 msgid "Enter '%s' to accept, '%s' to abort; anything else to view: "
 msgstr ""
 "Digite \"%s\" para aceitar, \"%s\" para abortar ou qualquer outra coisa para "
 "visualizar: "
 
-#: main.c:1284 main.c:1302
+#: main.c:1280 main.c:1298
 msgid "no"
 msgstr "não"
 
-#: main.c:1284 main.c:1291
+#: main.c:1280 main.c:1287
 msgid "yes"
 msgstr "sim"
 
-#: main.c:1308
+#: main.c:1304
 #, c-format
 msgid "SHA1 fingerprint: %s\n"
 msgstr "Impressão digital SHA1: %s\n"
 
-#: main.c:1342
+#: main.c:1338
 #, c-format
 msgid "Auth choice \"%s\" matches multiple options\n"
 msgstr "Escolha de autenticação \"%s\" corresponde a múltiplas opções\n"
 
-#: main.c:1345
+#: main.c:1341
 #, c-format
 msgid "Auth choice \"%s\" not available\n"
 msgstr "Escolha de autenticação \"%s\" não disponível\n"
 
-#: main.c:1362
+#: main.c:1358
 msgid "User input required in non-interactive mode\n"
 msgstr "Entrada do usuário requisitada em modo não interativo\n"
 
-#: main.c:1516 main.c:1537
+#: main.c:1512 main.c:1533
 #, c-format
 msgid "Soft token string is invalid\n"
 msgstr "String de token de software é inválida\n"
 
-#: main.c:1519
+#: main.c:1515
 #, c-format
 msgid "Can't open ~/.stokenrc file\n"
 msgstr "Não foi possível abrir o arquivo ~/.stokenrc\n"
 
-#: main.c:1522
+#: main.c:1518
 #, c-format
 msgid "OpenConnect was not built with libstoken support\n"
 msgstr "OpenConnect não foi compilado com suporte a libstoken\n"
 
-#: main.c:1525
+#: main.c:1521
 #, c-format
 msgid "General failure in libstoken\n"
 msgstr "Falha geral no libstoken\n"
 
-#: main.c:1540
+#: main.c:1536
 #, c-format
 msgid "OpenConnect was not built with liboath support\n"
 msgstr "OpenConnect não foi compilado com suporte a libauth\n"
 
-#: main.c:1543
+#: main.c:1539
 #, c-format
 msgid "General failure in liboath\n"
 msgstr "Falha geral no libauth\n"
@@ -2178,12 +2178,12 @@ msgstr "Nenhum trabalho para fazer - dormindo por %d ms...\n"
 msgid "WaitForMultipleObjects failed: %lx\n"
 msgstr "WaitForMultipleObjects falhou: %lx\n"
 
-#: ntlm.c:81
+#: ntlm.c:81 sspi.c:99 sspi.c:174
 #, c-format
 msgid "InitializeSecurityContext() failed: %lx\n"
 msgstr ""
 
-#: ntlm.c:103
+#: ntlm.c:103 sspi.c:37
 #, c-format
 msgid "AcquireCredentialsHandle() failed: %lx\n"
 msgstr ""
@@ -2515,6 +2515,85 @@ msgstr "Senha incorreta"
 #: ssl.c:503
 msgid "Unknown error"
 msgstr "Erro desconhecido"
+
+#: sspi.c:180
+#, c-format
+msgid "SSPI token too large (%ld bytes)\n"
+msgstr ""
+
+#: sspi.c:194
+#, c-format
+msgid "Sending SSPI token of %lu bytes\n"
+msgstr ""
+
+#: sspi.c:199
+#, c-format
+msgid "Failed to send SSPI authentication token to proxy: %s\n"
+msgstr ""
+
+#: sspi.c:207 sspi.c:228
+#, c-format
+msgid "Failed to receive SSPI authentication token from proxy: %s\n"
+msgstr ""
+
+#: sspi.c:213
+msgid "SOCKS server reported SSPI context failure\n"
+msgstr ""
+
+#: sspi.c:217
+#, c-format
+msgid "Unknown SSPI status response (0x%02x) from SOCKS server\n"
+msgstr ""
+
+#: sspi.c:232
+#, c-format
+msgid "Got SSPI token of %lu bytes: %02x %02x %02x %02x\n"
+msgstr ""
+
+#: sspi.c:248
+#, c-format
+msgid "QueryContextAttributes() failed: %lx\n"
+msgstr ""
+
+#: sspi.c:284
+#, c-format
+msgid "EncryptMessage() failed: %lx\n"
+msgstr ""
+
+#: sspi.c:296
+#, c-format
+msgid "EncryptMessage() result too large (%lu + %lu + %lu)\n"
+msgstr ""
+
+#: sspi.c:318
+#, c-format
+msgid "Sending SSPI protection negotiation of %u bytes\n"
+msgstr ""
+
+#: sspi.c:323
+#, c-format
+msgid "Failed to send SSPI protection response to proxy: %s\n"
+msgstr ""
+
+#: sspi.c:331 sspi.c:341
+#, c-format
+msgid "Failed to receive SSPI protection response from proxy: %s\n"
+msgstr ""
+
+#: sspi.c:346
+#, c-format
+msgid "Got SSPI protection response of %d bytes: %02x %02x %02x %02x\n"
+msgstr ""
+
+#: sspi.c:362
+#, c-format
+msgid "DecryptMessage failed: %lx\n"
+msgstr ""
+
+#: sspi.c:367
+#, c-format
+msgid "Invalid SSPI protection response from proxy (%lu bytes)\n"
+msgstr ""
 
 #: tun-win32.c:73
 msgid "Error accessing registry key for network adapters\n"

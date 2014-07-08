@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2014-07-08 15:16+0100\n"
+"POT-Creation-Date: 2014-07-08 15:48+0100\n"
 "PO-Revision-Date: 2012-06-20 08:43+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Basque (http://www.transifex.net/projects/p/meego/language/"
@@ -1145,7 +1145,7 @@ msgstr ""
 msgid "Attempting GSSAPI authentication to proxy\n"
 msgstr ""
 
-#: gssapi.c:171
+#: gssapi.c:171 sspi.c:168
 msgid "GSSAPI authentication completed\n"
 msgstr ""
 
@@ -1208,15 +1208,15 @@ msgstr ""
 msgid "Invalid GSSAPI protection response from proxy (%zu bytes)\n"
 msgstr ""
 
-#: gssapi.c:307
+#: gssapi.c:307 sspi.c:377
 msgid "SOCKS proxy demands message integrity, which is not supported\n"
 msgstr ""
 
-#: gssapi.c:311
+#: gssapi.c:311 sspi.c:381
 msgid "SOCKS proxy demands message confidentiality, which is not supported\n"
 msgstr ""
 
-#: gssapi.c:315
+#: gssapi.c:315 sspi.c:385
 #, c-format
 msgid "SOCKS proxy demands protection unknown type 0x%02x\n"
 msgstr ""
@@ -1348,7 +1348,7 @@ msgstr "Huts egin du CSD script-aren aldi baterako fitxategia irekitzean: %s\n"
 msgid "Failed to write temporary CSD script file: %s\n"
 msgstr "Huts egin du CSD script-aren aldi baterako fitxategia idaztean: %s\n"
 
-#: http.c:613 main.c:1096
+#: http.c:613 main.c:1092
 #, c-format
 msgid "Failed to set uid %ld\n"
 msgstr "Huts egin du %ld UIDa ezartzean\n"
@@ -1620,22 +1620,22 @@ msgstr ""
 "ABISUA: ez dago DTLS euskarririk bitar honetan. Errendimenduan eragina "
 "izango du.\n"
 
-#: main.c:353
+#: main.c:352
 #, c-format
 msgid "Cannot process this executable path \"%s\""
 msgstr "Ezin da '%s' bide-izen exekutagarria prozesatu"
 
-#: main.c:359
+#: main.c:358
 #, c-format
 msgid "Allocation for vpnc-script path failed\n"
 msgstr "Huts egin du vpnc-script bide-izenaren esleipenak\n"
 
-#: main.c:397
+#: main.c:396
 #, c-format
 msgid "Usage:  openconnect [options] <server>\n"
 msgstr "Erabilera: openconnect [aukerak] <zerbitzaria>\n"
 
-#: main.c:398
+#: main.c:397
 #, c-format
 msgid ""
 "Open client for Cisco AnyConnect VPN, version %s\n"
@@ -1644,256 +1644,256 @@ msgstr ""
 "Cisco AnyConnect VPN-ren bezero irekia, %s bertsioa\n"
 "\n"
 
-#: main.c:400
+#: main.c:399
 msgid "Read options from config file"
 msgstr "Irakurri aukerak konfigurazio-fitxategitik"
 
-#: main.c:402
+#: main.c:401
 msgid "Continue in background after startup"
 msgstr "Jarraitu atzeko planoan abiatu ondoren"
 
-#: main.c:403
+#: main.c:402
 msgid "Write the daemon's PID to this file"
 msgstr "Idatzi daemon-aren PIDa fitxategi honetan"
 
-#: main.c:405
+#: main.c:404
 msgid "Use SSL client certificate CERT"
 msgstr "Erabili SSL bezeroaren CERT ziurtagiria"
 
-#: main.c:406
+#: main.c:405
 msgid "Warn when certificate lifetime < DAYS"
 msgstr "Abisatu ziurtagiriaren bizi-iraupena < EGUN denean"
 
-#: main.c:407
+#: main.c:406
 msgid "Use SSL private key file KEY"
 msgstr "Erabili SSL-ren gako pribatuaren KEY fitxategia"
 
-#: main.c:408
+#: main.c:407
 msgid "Use WebVPN cookie COOKIE"
 msgstr "Erabili WebVPN-ren COOKIE cookie-a"
 
-#: main.c:409
+#: main.c:408
 msgid "Read cookie from standard input"
 msgstr "Irakurri cookie-a sarrera estandarretik"
 
-#: main.c:410
+#: main.c:409
 msgid "Enable compression (default)"
 msgstr "Gaitu konpresioa (lehenetsia)"
 
-#: main.c:411
+#: main.c:410
 msgid "Disable compression"
 msgstr "Desgaitu konpresioa"
 
-#: main.c:412
+#: main.c:411
 msgid "Set minimum Dead Peer Detection interval"
 msgstr "Ezarri  Hildako _Parekoen Detekzioaren (DPD) bitartea"
 
-#: main.c:413
+#: main.c:412
 msgid "Set login usergroup"
 msgstr "Ezarri saio-hasieraren erabiltzaile-taldea"
 
-#: main.c:414
+#: main.c:413
 msgid "Display help text"
 msgstr "Bistaratu laguntzaren testua"
 
-#: main.c:415
+#: main.c:414
 msgid "Use IFNAME for tunnel interface"
 msgstr "Erabili IFNAME tunelaren interfazearentzako"
 
-#: main.c:417
+#: main.c:416
 msgid "Use syslog for progress messages"
 msgstr "Erabili sistemaren egunkaria (syslog) aurrerapenen mezuentzako"
 
-#: main.c:419
+#: main.c:418
 msgid "Prepend timestamp to progress messages"
 msgstr "Atxikitu denbora-zigilua aurretik aurrerapenen mezuei"
 
-#: main.c:421
+#: main.c:420
 msgid "Drop privileges after connecting"
 msgstr "Jaregin pribilegioak konektatu ondoren"
 
-#: main.c:422
+#: main.c:421
 msgid "Drop privileges during CSD execution"
 msgstr "Jaregin pribilegioak CSV exekutatzean"
 
-#: main.c:423
+#: main.c:422
 msgid "Run SCRIPT instead of CSD binary"
 msgstr "Exekutatu SCRIPT, CSD bitarraren ordez"
 
-#: main.c:425
+#: main.c:424
 msgid "Request MTU from server"
 msgstr "Eskatu MTU zerbitzaritik"
 
-#: main.c:426
+#: main.c:425
 msgid "Indicate path MTU to/from server"
 msgstr "Adierazi MTUren bide-izena zerbitzariari/zerbitzaritik"
 
-#: main.c:427
+#: main.c:426
 msgid "Set key passphrase or TPM SRK PIN"
 msgstr "Ezarri pasaesaldia edo TPM SRK PINa"
 
-#: main.c:428
+#: main.c:427
 msgid "Key passphrase is fsid of file system"
 msgstr "Gakoaren pasaesaldia fitxategi-sistemaren fsid-a da"
 
-#: main.c:429
+#: main.c:428
 msgid "Set proxy server"
 msgstr "Ezarri proxy zerbitzaria"
 
-#: main.c:430
+#: main.c:429
 msgid "Set proxy authentication methods"
 msgstr ""
 
-#: main.c:431
+#: main.c:430
 msgid "Disable proxy"
 msgstr "Desgaitu proxy-a"
 
-#: main.c:432
+#: main.c:431
 msgid "Use libproxy to automatically configure proxy"
 msgstr "Erabili 'libproxy' proxy-a automatikoki konfiguratzeko"
 
-#: main.c:434
+#: main.c:433
 msgid "(NOTE: libproxy disabled in this build)"
 msgstr "(OHARRA: 'libproxy' desgaituta bertsio honetan)"
 
-#: main.c:436
+#: main.c:435
 msgid "Require perfect forward secrecy"
 msgstr "Konfidentzialtasun iraunkorra (PFS) behar da"
 
-#: main.c:437
+#: main.c:436
 msgid "Less output"
 msgstr "Irteera laburragoa"
 
-#: main.c:438
+#: main.c:437
 msgid "Set packet queue limit to LEN pkts"
 msgstr "Mugatu paketeen ilara LEN (luzera) paketetara"
 
-#: main.c:439
+#: main.c:438
 msgid "Shell command line for using a vpnc-compatible config script"
 msgstr ""
 "Komando-lerroa  vpnc-compatible konfigurazioaren script bat erabiltzeko"
 
-#: main.c:440
+#: main.c:439
 msgid "default"
 msgstr "lehenetsia"
 
-#: main.c:442
+#: main.c:441
 msgid "Pass traffic to 'script' program, not tun"
 msgstr "Igorri trafikoa 'script' programari, ez TUN-ari"
 
-#: main.c:444
+#: main.c:443
 msgid "Set login username"
 msgstr "Ezarri erabiltzaile-izena"
 
-#: main.c:445
+#: main.c:444
 msgid "Report version number"
 msgstr "Eman bertsio-zenbakiaren berri"
 
-#: main.c:446
+#: main.c:445
 msgid "More output"
 msgstr "Irteera xehatuagoa"
 
-#: main.c:447
+#: main.c:446
 msgid "Dump HTTP authentication traffic (implies --verbose"
 msgstr "Irauli HTTP autentifikazioaren trafikoa (--verbose inplikatzen du)"
 
-#: main.c:448
+#: main.c:447
 msgid "XML config file"
 msgstr "XML konfigurazio-fitxategia"
 
-#: main.c:449
+#: main.c:448
 msgid "Choose authentication login selection"
 msgstr "Aukeratu autentifikazioaren saio-hasieraren hautapena"
 
-#: main.c:450
+#: main.c:449
 msgid "Authenticate only and print login info"
 msgstr "Autentifikatu soilik eta erakutsi saio-hasieraren informazioa"
 
-#: main.c:451
+#: main.c:450
 msgid "Fetch webvpn cookie only; don't connect"
 msgstr "Eskuratu webvpn cookie-a soilik; ez konektatu"
 
-#: main.c:452
+#: main.c:451
 msgid "Print webvpn cookie before connecting"
 msgstr "Erakutsi webvpn cookie-a konektatu aurretik"
 
-#: main.c:453
+#: main.c:452
 msgid "Cert file for server verification"
 msgstr "Ziurtagiriaren fitxategia zerbitzaria egiaztatzeko"
 
-#: main.c:454
+#: main.c:453
 msgid "Do not ask for IPv6 connectivity"
 msgstr "Ez eskatu IPv6 konektagarritasuna"
 
-#: main.c:455
+#: main.c:454
 msgid "OpenSSL ciphers to support for DTLS"
 msgstr "OpenSSL zifraketak DTLS onartzeko"
 
-#: main.c:456
+#: main.c:455
 msgid "Disable DTLS"
 msgstr "Desgaitu DTLS"
 
-#: main.c:457
+#: main.c:456
 msgid "Disable HTTP connection re-use"
 msgstr "Desgaitu HTTP konexioa berrerabiltzea"
 
-#: main.c:458
+#: main.c:457
 msgid "Disable password/SecurID authentication"
 msgstr "Desgaitu pasahitzaren/SecurID-ren autentifikazioa"
 
-#: main.c:459
+#: main.c:458
 msgid "Do not require server SSL cert to be valid"
 msgstr "Ez eskatu zerbitzariaren SSLaren ziurtagiria egiaztatzeko "
 
-#: main.c:460
+#: main.c:459
 msgid "Do not attempt XML POST authentication"
 msgstr "Ez saiatu XML POST-en autentifikazioa"
 
-#: main.c:461
+#: main.c:460
 msgid "Do not expect user input; exit if it is required"
 msgstr "Ez itxaron erabiltzailearen sarrerarik; irten beharrezkoa izanez gero"
 
-#: main.c:462
+#: main.c:461
 msgid "Read password from standard input"
 msgstr "Irakurri pasahitza sarrera estandarretik"
 
-#: main.c:463
+#: main.c:462
 msgid "Software token type: rsa, totp or hotp"
 msgstr "Softwarearen token mota: 'rsa', 'totp' edo 'hotp'"
 
-#: main.c:464
+#: main.c:463
 msgid "Software token secret"
 msgstr "Softwarearen ezkutuko token-a"
 
-#: main.c:466
+#: main.c:465
 msgid "(NOTE: libstoken (RSA SecurID) disabled in this build)"
 msgstr "(Oharra: 'libstoken' (RSA SecurID) desgaituta bertsio honetan)"
 
-#: main.c:469
+#: main.c:468
 msgid "(NOTE: liboath (TOTP,HOTP) disabled in this build)"
 msgstr "(Oharra: 'liboath' (TOTP,HOTP) desgaituta bertsio honetan)"
 
-#: main.c:471
+#: main.c:470
 msgid "Connection retry timeout in seconds"
 msgstr "Berriro konektatzeko saiakeraren denbora (segundotan)"
 
-#: main.c:472
+#: main.c:471
 msgid "Server's certificate SHA1 fingerprint"
 msgstr "Zerbitzariaren ziurtagiriaren SHA1 hatz-maraka"
 
-#: main.c:473
+#: main.c:472
 msgid "HTTP header User-Agent: field"
 msgstr "HTTP goiburuaren 'User-Agent': eremua"
 
-#: main.c:474
+#: main.c:473
 msgid "OS type (linux,linux-64,win,...) to report"
 msgstr "SE mota (linux,linux-64,win,...) berri emateko"
 
-#: main.c:475
+#: main.c:474
 msgid "Set local port for DTLS datagrams"
 msgstr "Ezarri DTLS datagramen lokaleko ataka"
 
-#: main.c:488
+#: main.c:487
 #, c-format
 msgid "Allocation failure for string from stdin\n"
 msgstr "Huts egin du katea sarrera estandarretik esleitzean\n"
@@ -2010,91 +2010,91 @@ msgstr "Openconnect-en bertsio hau 'libproxy' euskarririk gabe konpilatuta\n"
 msgid "Error opening cmd pipe\n"
 msgstr "Errorea 'cmd'-ren kanalizazioa irekitzean\n"
 
-#: main.c:1047
+#: main.c:1043
 #, c-format
 msgid "Failed to obtain WebVPN cookie\n"
 msgstr "Huts egin du WebVPN cookie-a eskuratzean\n"
 
-#: main.c:1071
+#: main.c:1067
 #, c-format
 msgid "Creating SSL connection failed\n"
 msgstr "Huts egin du SSL konexioa sortzean\n"
 
-#: main.c:1081
+#: main.c:1077
 #, c-format
 msgid "Set up tun script failed\n"
 msgstr "Huts egin du 'tun' script-a konfiguratzean\n"
 
-#: main.c:1088
+#: main.c:1084
 #, c-format
 msgid "Set up tun device failed\n"
 msgstr "Huts egin du TUN gailua konfiguratzean\n"
 
-#: main.c:1105
+#: main.c:1101
 #, c-format
 msgid "Set up DTLS failed; using SSL instead\n"
 msgstr "Huts egin du DTLS konfiguratzean: horren ordez SSL erabiltzen\n"
 
-#: main.c:1109
+#: main.c:1105
 #, c-format
 msgid "Connected %s as %s%s%s, using %s\n"
 msgstr "'%s' konektatuta '%s%s%s' gisa, '%s' erabiltzen\n"
 
-#: main.c:1119
+#: main.c:1115
 msgid "No --script argument provided; DNS and routing are not configured\n"
 msgstr ""
 "Ez da --script argumenturik eman. DNSa eta bideratzea ez daude "
 "konfiguratuta.\n"
 
-#: main.c:1121
+#: main.c:1117
 msgid "See http://www.infradead.org/openconnect/vpnc-script.html\n"
 msgstr "Ikus http://www.infradead.org/openconnect/vpnc-script.html\n"
 
-#: main.c:1134
+#: main.c:1130
 #, c-format
 msgid "Failed to open '%s' for write: %s\n"
 msgstr "Huts egin du '%s' idazteko irekitzean: %s\n"
 
-#: main.c:1146
+#: main.c:1142
 #, c-format
 msgid "Continuing in background; pid %d\n"
 msgstr "Atzeko planoan jarraitzen du: %d PIDa\n"
 
-#: main.c:1161
+#: main.c:1157
 msgid "User requested reconnect\n"
 msgstr ""
 
-#: main.c:1169
+#: main.c:1165
 msgid "Cookie was rejected on reconnection; exiting.\n"
 msgstr ""
 
-#: main.c:1173
+#: main.c:1169
 msgid "Session terminated by server; exiting.\n"
 msgstr ""
 
-#: main.c:1177
+#: main.c:1173
 msgid "User canceled (SIGINT); exiting.\n"
 msgstr ""
 
-#: main.c:1181
+#: main.c:1177
 msgid "User detached from session (SIGHUP); exiting.\n"
 msgstr ""
 
-#: main.c:1185
+#: main.c:1181
 msgid "Unknown error; exiting.\n"
 msgstr ""
 
-#: main.c:1203
+#: main.c:1199
 #, c-format
 msgid "Failed to open %s for write: %s\n"
 msgstr "Huts egin du '%s' idazteko irekitzean: %s\n"
 
-#: main.c:1211
+#: main.c:1207
 #, c-format
 msgid "Failed to write config to %s: %s\n"
 msgstr "Huts egin du konfigurazioa '%s'(e)n idaztean: %s\n"
 
-#: main.c:1277
+#: main.c:1273
 #, c-format
 msgid ""
 "\n"
@@ -2105,65 +2105,65 @@ msgstr ""
 "Huts egin du '%s' VPN zerbitzariaren ziurtagiria egiaztatzean.\n"
 "Zergatia: %s\n"
 
-#: main.c:1283
+#: main.c:1279
 #, c-format
 msgid "Enter '%s' to accept, '%s' to abort; anything else to view: "
 msgstr ""
 "Sartu '%s' onartzeko, '%s' bertan behera uzteko; beste edozer hau ikusteko:"
 
-#: main.c:1284 main.c:1302
+#: main.c:1280 main.c:1298
 msgid "no"
 msgstr "ez"
 
-#: main.c:1284 main.c:1291
+#: main.c:1280 main.c:1287
 msgid "yes"
 msgstr "bai"
 
-#: main.c:1308
+#: main.c:1304
 #, c-format
 msgid "SHA1 fingerprint: %s\n"
 msgstr "SHA1 hatz-marka: %s\n"
 
-#: main.c:1342
+#: main.c:1338
 #, c-format
 msgid "Auth choice \"%s\" matches multiple options\n"
 msgstr "Autentifikazioaren '%s' aukera hainbat aukerekin bat dator\n"
 
-#: main.c:1345
+#: main.c:1341
 #, c-format
 msgid "Auth choice \"%s\" not available\n"
 msgstr "Autentifikazioaren '%s' aukera ez dago erabilgarri\n"
 
-#: main.c:1362
+#: main.c:1358
 msgid "User input required in non-interactive mode\n"
 msgstr "Erabiltzailearen sarrera behar da modu ez-elkarreragilean\n"
 
-#: main.c:1516 main.c:1537
+#: main.c:1512 main.c:1533
 #, c-format
 msgid "Soft token string is invalid\n"
 msgstr "Softwarearen tokenaren katea baliogabea da\n"
 
-#: main.c:1519
+#: main.c:1515
 #, c-format
 msgid "Can't open ~/.stokenrc file\n"
 msgstr "Ezin da ~/.stokenrc fitxategia ireki\n"
 
-#: main.c:1522
+#: main.c:1518
 #, c-format
 msgid "OpenConnect was not built with libstoken support\n"
 msgstr "OpenConnect ez zen 'libstoken' euskarriarekin konpilatu\n"
 
-#: main.c:1525
+#: main.c:1521
 #, c-format
 msgid "General failure in libstoken\n"
 msgstr "Hutsegite orokorra 'libstoken' liburutegian\n"
 
-#: main.c:1540
+#: main.c:1536
 #, c-format
 msgid "OpenConnect was not built with liboath support\n"
 msgstr "OpenConnect ez zen 'liboath' euskarriarekin konpilatu\n"
 
-#: main.c:1543
+#: main.c:1539
 #, c-format
 msgid "General failure in liboath\n"
 msgstr "Hutsegite orokorra 'liboath' liburutegian\n"
@@ -2182,12 +2182,12 @@ msgstr "Lanik ez egiteko. %d ms lotan...\n"
 msgid "WaitForMultipleObjects failed: %lx\n"
 msgstr "'WaitForMultipleObjects'-ek  huts egin du: %lx\n"
 
-#: ntlm.c:81
+#: ntlm.c:81 sspi.c:99 sspi.c:174
 #, c-format
 msgid "InitializeSecurityContext() failed: %lx\n"
 msgstr ""
 
-#: ntlm.c:103
+#: ntlm.c:103 sspi.c:37
 #, c-format
 msgid "AcquireCredentialsHandle() failed: %lx\n"
 msgstr ""
@@ -2522,6 +2522,85 @@ msgstr "Okerreko pasahitza"
 #: ssl.c:503
 msgid "Unknown error"
 msgstr "Errore ezezaguna"
+
+#: sspi.c:180
+#, c-format
+msgid "SSPI token too large (%ld bytes)\n"
+msgstr ""
+
+#: sspi.c:194
+#, c-format
+msgid "Sending SSPI token of %lu bytes\n"
+msgstr ""
+
+#: sspi.c:199
+#, c-format
+msgid "Failed to send SSPI authentication token to proxy: %s\n"
+msgstr ""
+
+#: sspi.c:207 sspi.c:228
+#, c-format
+msgid "Failed to receive SSPI authentication token from proxy: %s\n"
+msgstr ""
+
+#: sspi.c:213
+msgid "SOCKS server reported SSPI context failure\n"
+msgstr ""
+
+#: sspi.c:217
+#, c-format
+msgid "Unknown SSPI status response (0x%02x) from SOCKS server\n"
+msgstr ""
+
+#: sspi.c:232
+#, c-format
+msgid "Got SSPI token of %lu bytes: %02x %02x %02x %02x\n"
+msgstr ""
+
+#: sspi.c:248
+#, c-format
+msgid "QueryContextAttributes() failed: %lx\n"
+msgstr ""
+
+#: sspi.c:284
+#, c-format
+msgid "EncryptMessage() failed: %lx\n"
+msgstr ""
+
+#: sspi.c:296
+#, c-format
+msgid "EncryptMessage() result too large (%lu + %lu + %lu)\n"
+msgstr ""
+
+#: sspi.c:318
+#, c-format
+msgid "Sending SSPI protection negotiation of %u bytes\n"
+msgstr ""
+
+#: sspi.c:323
+#, c-format
+msgid "Failed to send SSPI protection response to proxy: %s\n"
+msgstr ""
+
+#: sspi.c:331 sspi.c:341
+#, c-format
+msgid "Failed to receive SSPI protection response from proxy: %s\n"
+msgstr ""
+
+#: sspi.c:346
+#, c-format
+msgid "Got SSPI protection response of %d bytes: %02x %02x %02x %02x\n"
+msgstr ""
+
+#: sspi.c:362
+#, c-format
+msgid "DecryptMessage failed: %lx\n"
+msgstr ""
+
+#: sspi.c:367
+#, c-format
+msgid "Invalid SSPI protection response from proxy (%lu bytes)\n"
+msgstr ""
 
 #: tun-win32.c:73
 msgid "Error accessing registry key for network adapters\n"
