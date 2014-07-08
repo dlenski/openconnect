@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2014-07-04 14:52+0100\n"
+"POT-Creation-Date: 2014-07-08 12:17+0100\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Spanish (Castilian) (http://www.transifex.net/projects/p/"
 "meego/language/es/)\n"
@@ -169,6 +169,8 @@ msgstr "TCP_MAXSEG %d\n"
 msgid ""
 "CRITICAL ERROR: DTLS master secret is uninitialised. Please report this.\n"
 msgstr ""
+"Error crítico: el secreto DTLS maestro no está inicializado. Informe de "
+"esto.\n"
 
 #: cstp.c:216
 msgid "Error creating HTTPS CONNECT request\n"
@@ -1134,85 +1136,93 @@ msgstr "Introduzca el PIN de la clave TPM:"
 msgid "Failed to set key PIN: %s\n"
 msgstr "Falló al establecer el PIN de la clave: %s\n"
 
-#: gssapi.c:123
+#: gssapi.c:70
+msgid "Error importing GSSAPI name for authentication:\n"
+msgstr "Error al importar el nombre GSSAPI para la autenticación:\n"
+
+#: gssapi.c:113
+msgid "Error generating GSSAPI response:\n"
+msgstr "Error al generar la respuesta GSSAPI\n"
+
+#: gssapi.c:128
 msgid "Attempting GSSAPI authentication to proxy\n"
 msgstr "Intentando la autenticación GSSAPI en el proxy\n"
 
-#: gssapi.c:166
+#: gssapi.c:171
 msgid "GSSAPI authentication completed\n"
 msgstr "Autenticación GSSAPI completada\n"
 
-#: gssapi.c:177
+#: gssapi.c:182
 #, c-format
 msgid "GSSAPI token too large (%zd bytes)\n"
-msgstr ""
+msgstr "Testigo GSSAPI demasiado largo (%zd bytes)\n"
 
-#: gssapi.c:191
+#: gssapi.c:196
 #, c-format
 msgid "Sending GSSAPI token of %zu bytes\n"
 msgstr "Enviando testigo GSSAPI de %zu bytes\n"
 
-#: gssapi.c:196
+#: gssapi.c:201
 #, c-format
 msgid "Failed to send GSSAPI authentication token to proxy: %s\n"
 msgstr "Falló al enviar el testigo de autenticación GSSAPI al proxy: %s\n"
 
-#: gssapi.c:204 gssapi.c:224
+#: gssapi.c:209 gssapi.c:229
 #, c-format
 msgid "Failed to receive GSSAPI authentication token from proxy: %s\n"
 msgstr "Falló al recibir el testigo de autenticación GSSAPI del proxy: %s\n"
 
-#: gssapi.c:210
+#: gssapi.c:215
 msgid "SOCKS server reported GSSAPI context failure\n"
 msgstr "El servidor SOCKS ha informado de un fallo de contexto de GSSAPI\n"
 
-#: gssapi.c:214
+#: gssapi.c:219
 #, c-format
 msgid "Unknown GSSAPI status response (0x%02x) from SOCKS server\n"
 msgstr "Respuesta de estado GSSAPI desconocida (0x%02x) del servidor SOCKS\n"
 
-#: gssapi.c:228
+#: gssapi.c:233
 #, c-format
 msgid "Got GSSAPI token of %zu bytes: %02x %02x %02x %02x\n"
 msgstr "Obtenido el testigo GSSAPI de %zu bytes:  %02x %02x %02x %02x\n"
 
-#: gssapi.c:255
+#: gssapi.c:260
 #, c-format
 msgid "Sending GSSAPI protection negotiation of %zu bytes\n"
 msgstr "Enviando negociación de protección GSSAPI de %zu bytes\n"
 
-#: gssapi.c:260
+#: gssapi.c:265
 #, c-format
 msgid "Failed to send GSSAPI protection response to proxy: %s\n"
 msgstr "Falló al enviar la respuesta de protección GSSAPI al proxy %s\n"
 
-#: gssapi.c:268 gssapi.c:278
+#: gssapi.c:273 gssapi.c:283
 #, c-format
 msgid "Failed to receive GSSAPI protection response from proxy: %s\n"
 msgstr "Falló al recibir la respuesta de protección GSSAPI al proxy %s\n"
 
-#: gssapi.c:283
+#: gssapi.c:288
 #, c-format
 msgid "Got GSSAPI protection response of %zu bytes: %02x %02x %02x %02x\n"
 msgstr ""
 "Obtenida la espuesta de protección GSSAPI de %zu bytes: %02x %02x %02x %02x\n"
 
-#: gssapi.c:293
+#: gssapi.c:298
 #, c-format
 msgid "Invalid GSSAPI protection response from proxy (%zu bytes)\n"
 msgstr "Respuesta de protección GSSAPI no válida del proxy (%zu bytes)\n"
 
-#: gssapi.c:302
+#: gssapi.c:307
 msgid "SOCKS proxy demands message integrity, which is not supported\n"
 msgstr ""
 "El proxy SOCKS solicita integridad del mensaje, que no está soportada\n"
 
-#: gssapi.c:306
+#: gssapi.c:311
 msgid "SOCKS proxy demands message confidentiality, which is not supported\n"
 msgstr ""
 "El proxy SOCKS solicita confidencialidad del mensaje, que no está soportada\n"
 
-#: gssapi.c:310
+#: gssapi.c:315
 #, c-format
 msgid "SOCKS proxy demands protection unknown type 0x%02x\n"
 msgstr "El servidor SOCKS solicita un tipo de protección 0x%02x desconocido\n"
@@ -2194,19 +2204,19 @@ msgstr "Falló WaitForMultipleObjects: %lx\n"
 #: ntlm.c:81
 #, c-format
 msgid "InitializeSecurityContext() failed: %lx\n"
-msgstr ""
+msgstr "Falló InitializeSecurityContext(): %lx\n"
 
 #: ntlm.c:103
 #, c-format
 msgid "AcquireCredentialsHandle() failed: %lx\n"
-msgstr ""
+msgstr "Falló AcquireCredentialsHandle(): %lx\n"
 
 #: ntlm.c:240
 msgid "Attempting HTTP NTLM authentication to proxy (single-sign-on)\n"
 msgstr ""
 "Intentando la autenticación HTTP NTLM en el proxy (inicio de sesión único)\n"
 
-#: ntlm.c:1045
+#: ntlm.c:1061
 #, c-format
 msgid "Attempting HTTP NTLMv%d authentication to proxy\n"
 msgstr "Intentando la autenticación HTTP NTLM %d en el proxy\n"
