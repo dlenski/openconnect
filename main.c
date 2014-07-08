@@ -36,21 +36,23 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <getopt.h>
+#include <time.h>
+
 #ifdef LIBPROXY_HDR
 #include LIBPROXY_HDR
 #endif
-#include <getopt.h>
-#include <time.h>
-#ifndef _WIN32
+
+#include "openconnect-internal.h"
+
+#ifdef _WIN32
+#include <shlwapi.h>
+#include <wtypes.h>
+#include <wincon.h>
+#else
 #include <sys/utsname.h>
 #include <pwd.h>
 #include <termios.h>
-#endif
-
-#include "openconnect-internal.h"
-#ifdef _WIN32
-#include <wtypes.h>
-#include <wincon.h>
 #endif
 
 static int write_new_config(void *_vpninfo,
@@ -71,19 +73,21 @@ static void init_token(struct openconnect_info *vpninfo,
 #include <version.c>
 #undef openconnect_version_str
 
-int verbose = PRG_INFO;
-int timestamp;
+static int verbose = PRG_INFO;
+static int timestamp;
 int background;
-int do_passphrase_from_fsid;
-int nocertcheck;
-int non_inter;
-int cookieonly;
+static int do_passphrase_from_fsid;
+static int nocertcheck;
+static int non_inter;
+static int cookieonly;
 
-char *username;
-char *password;
-char *authgroup;
-int authgroup_set;
-int last_form_empty;
+static char *username;
+static char *password;
+static char *authgroup;
+static int authgroup_set;
+static int last_form_empty;
+
+static int sig_cmd_fd;
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -108,6 +112,7 @@ static void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
 		va_end(args2);
 	}
 }
+#define openlog(...)  /* */
 #elif defined(_WIN32)
 /*
  * FIXME: Perhaps we could implement syslog_progress() using these APIs:
@@ -180,6 +185,11 @@ static struct option long_options[] = {
 #ifndef _WIN32
 	OPTION("background", 0, 'b'),
 	OPTION("pid-file", 1, OPT_PIDFILE),
+	OPTION("setuid", 1, 'U'),
+	OPTION("script-tun", 0, 'S'),
+	OPTION("syslog", 0, 'l'),
+	OPTION("csd-user", 1, OPT_CSD_USER),
+	OPTION("csd-wrapper", 1, OPT_CSD_WRAPPER),
 #endif
 	OPTION("pfs", 0, OPT_PFS),
 	OPTION("certificate", 1, 'c'),
@@ -193,14 +203,7 @@ static struct option long_options[] = {
 	OPTION("interface", 1, 'i'),
 	OPTION("mtu", 1, 'm'),
 	OPTION("base-mtu", 1, OPT_BASEMTU),
-#ifndef _WIN32
-	OPTION("setuid", 1, 'U'),
-#endif
 	OPTION("script", 1, 's'),
-#ifndef _WIN32
-	OPTION("script-tun", 0, 'S'),
-	OPTION("syslog", 0, 'l'),
-#endif
 	OPTION("timestamp", 0, OPT_TIMESTAMP),
 	OPTION("key-password", 1, 'p'),
 	OPTION("proxy", 1, 'P'),
@@ -226,10 +229,6 @@ static struct option long_options[] = {
 	OPTION("servercert", 1, OPT_SERVERCERT),
 	OPTION("key-password-from-fsid", 0, OPT_KEY_PASSWORD_FROM_FSID),
 	OPTION("useragent", 1, OPT_USERAGENT),
-#ifndef _WIN32
-	OPTION("csd-user", 1, OPT_CSD_USER),
-	OPTION("csd-wrapper", 1, OPT_CSD_WRAPPER),
-#endif
 	OPTION("disable-ipv6", 0, OPT_DISABLE_IPV6),
 	OPTION("no-proxy", 0, OPT_NO_PROXY),
 	OPTION("libproxy", 0, OPT_LIBPROXY),
@@ -302,8 +301,49 @@ static void print_build_opts(void)
 
 #ifndef _WIN32
 static const char default_vpncscript[] = DEFAULT_VPNCSCRIPT;
-#else
-#include <shlwapi.h>
+static void disable_echo(void)
+{
+	struct termios t;
+	int fd = fileno(stdin);
+
+	tcgetattr(fd, &t);
+	t.c_lflag &= ~ECHO;
+	tcsetattr(fd, TCSANOW, &t);
+}
+
+static void restore_echo(void)
+{
+	struct termios t;
+	int fd = fileno(stdin);
+
+	tcgetattr(fd, &t);
+	t.c_lflag |= ECHO;
+	tcsetattr(fd, TCSANOW, &t);
+	fprintf(stderr, "\n");
+}
+
+static void handle_signal(int sig)
+{
+	char cmd;
+
+	switch (sig) {
+	case SIGINT:
+		cmd = OC_CMD_CANCEL;
+		break;
+	case SIGHUP:
+		cmd = OC_CMD_DETACH;
+		break;
+	case SIGUSR2:
+	default:
+		cmd = OC_CMD_PAUSE;
+		break;
+	}
+
+	if (write(sig_cmd_fd, &cmd, 1) < 0) {
+	/* suppress warn_unused_result */
+	}
+}
+#else /* _WIN32 */
 static const char *default_vpncscript;
 static void set_default_vpncscript(void)
 {
@@ -322,6 +362,33 @@ static void set_default_vpncscript(void)
 	} else {
 		default_vpncscript = "cscript " DEFAULT_VPNCSCRIPT;
 	}
+}
+
+static HANDLE hconin = INVALID_HANDLE_VALUE;
+static DWORD cmode;
+
+static void disable_echo(void)
+{
+	hconin = CreateFile("CONIN$", GENERIC_READ | GENERIC_WRITE,
+			    FILE_SHARE_READ, NULL, OPEN_EXISTING,
+			    FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hconin == INVALID_HANDLE_VALUE)
+		return;
+	GetConsoleMode(hconin, &cmode);
+	if (!SetConsoleMode(hconin, cmode & (~ENABLE_ECHO_INPUT))) {
+		CloseHandle(hconin);
+		hconin = INVALID_HANDLE_VALUE;
+	}
+}
+
+static void restore_echo(void)
+{
+	if (hconin == INVALID_HANDLE_VALUE)
+		return;
+
+	SetConsoleMode(hconin, cmode);
+	CloseHandle(hconin);
+	hconin = INVALID_HANDLE_VALUE;
 }
 #endif
 
@@ -412,34 +479,6 @@ static void usage(void)
 	exit(1);
 }
 
-#ifdef _WIN32
-static HANDLE hconin = INVALID_HANDLE_VALUE;
-static DWORD cmode;
-
-static void disable_echo(void)
-{
-	hconin = CreateFile("CONIN$", GENERIC_READ | GENERIC_WRITE,
-			    FILE_SHARE_READ, NULL, OPEN_EXISTING,
-			    FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hconin == INVALID_HANDLE_VALUE)
-		return;
-	GetConsoleMode(hconin, &cmode);
-	if (!SetConsoleMode(hconin, cmode & (~ENABLE_ECHO_INPUT))) {
-		CloseHandle(hconin);
-		hconin = INVALID_HANDLE_VALUE;
-	}
-}
-
-static void restore_echo(void)
-{
-	if (hconin == INVALID_HANDLE_VALUE)
-		return;
-
-	SetConsoleMode(hconin, cmode);
-	CloseHandle(hconin);
-	hconin = INVALID_HANDLE_VALUE;
-}
-#endif
 
 static void read_stdin(char **string, int hidden)
 {
@@ -451,24 +490,9 @@ static void read_stdin(char **string, int hidden)
 	}
 
 	if (hidden) {
-#ifdef _WIN32
 		disable_echo();
 		ret = fgets(c, 1025, stdin);
 		restore_echo();
-#else /* ! _WIN32 */
-		struct termios t;
-		int fd = fileno(stdin);
-
-		tcgetattr(fd, &t);
-		t.c_lflag &= ~ECHO;
-		tcsetattr(fd, TCSANOW, &t);
-
-		ret = fgets(c, 1025, stdin);
-
-		t.c_lflag |= ECHO;
-		tcsetattr(fd, TCSANOW, &t);
-		fprintf(stderr, "\n");
-#endif
 	} else
 		ret = fgets(c, 1025, stdin);
 
@@ -483,34 +507,6 @@ static void read_stdin(char **string, int hidden)
 	if (c)
 		*c = 0;
 }
-
-static int sig_cmd_fd;
-
-#ifndef _WIN32
-
-static void handle_signal(int sig)
-{
-	char cmd;
-
-	switch (sig) {
-	case SIGINT:
-		cmd = OC_CMD_CANCEL;
-		break;
-	case SIGHUP:
-		cmd = OC_CMD_DETACH;
-		break;
-	case SIGUSR2:
-	default:
-		cmd = OC_CMD_PAUSE;
-		break;
-	}
-
-	if (write(sig_cmd_fd, &cmd, 1) < 0) {
-		/* suppress warn_unused_result */
-	}
-}
-
-#endif
 
 static FILE *config_file = NULL;
 static int config_line_num = 0;
@@ -701,6 +697,49 @@ int main(int argc, char **argv)
 			break;
 
 		switch (opt) {
+#ifndef _WIN32
+		case 'b':
+			background = 1;
+			break;
+		case 'l':
+			use_syslog = 1;
+			break;
+		case 'S':
+			script_tun = 1;
+			break;
+		case 'U': {
+			char *strend;
+			uid = strtol(config_arg, &strend, 0);
+			if (strend[0]) {
+				struct passwd *pw = getpwnam(config_arg);
+				if (!pw) {
+					fprintf(stderr, _("Invalid user \"%s\"\n"),
+						config_arg);
+					exit(1);
+				}
+				uid = pw->pw_uid;
+			}
+			break;
+		}
+		case OPT_CSD_USER: {
+			char *strend;
+			vpninfo->uid_csd = strtol(config_arg, &strend, 0);
+			if (strend[0]) {
+				struct passwd *pw = getpwnam(config_arg);
+				if (!pw) {
+					fprintf(stderr, _("Invalid user \"%s\"\n"),
+						config_arg);
+					exit(1);
+				}
+				vpninfo->uid_csd = pw->pw_uid;
+			}
+			vpninfo->uid_csd_given = 1;
+			break;
+		}
+		case OPT_CSD_WRAPPER:
+			vpninfo->csd_wrapper = keep_config_arg();
+			break;
+#endif /* !_WIN32 */
 		case OPT_CONFIGFILE:
 			if (config_file) {
 				fprintf(stderr, _("Cannot use 'config' option inside config file\n"));
@@ -766,11 +805,6 @@ int main(int argc, char **argv)
 		case OPT_AUTHGROUP:
 			authgroup = keep_config_arg();
 			break;
-#ifndef _WIN32
-		case 'b':
-			background = 1;
-			break;
-#endif
 		case 'C':
 			vpninfo->cookie = strdup(config_arg);
 			break;
@@ -798,11 +832,6 @@ int main(int argc, char **argv)
 		case 'i':
 			ifname = xstrdup(config_arg);
 			break;
-#ifndef _WIN32
-		case 'l':
-			use_syslog = 1;
-			break;
-#endif
 		case 'm': {
 			int mtu = atol(config_arg);
 			if (mtu < 576) {
@@ -849,49 +878,10 @@ int main(int argc, char **argv)
 		case 's':
 			vpnc_script = xstrdup(config_arg);
 			break;
-#ifndef _WIN32
-		case 'S':
-			script_tun = 1;
-			break;
-#endif
 		case 'u':
 			free(username);
 			username = strdup(config_arg);
 			break;
-#ifndef _WIN32
-		case 'U': {
-			char *strend;
-			uid = strtol(config_arg, &strend, 0);
-			if (strend[0]) {
-				struct passwd *pw = getpwnam(config_arg);
-				if (!pw) {
-					fprintf(stderr, _("Invalid user \"%s\"\n"),
-						config_arg);
-					exit(1);
-				}
-				uid = pw->pw_uid;
-			}
-			break;
-		}
-		case OPT_CSD_USER: {
-			char *strend;
-			vpninfo->uid_csd = strtol(config_arg, &strend, 0);
-			if (strend[0]) {
-				struct passwd *pw = getpwnam(config_arg);
-				if (!pw) {
-					fprintf(stderr, _("Invalid user \"%s\"\n"),
-						config_arg);
-					exit(1);
-				}
-				vpninfo->uid_csd = pw->pw_uid;
-			}
-			vpninfo->uid_csd_given = 1;
-			break;
-		}
-		case OPT_CSD_WRAPPER:
-			vpninfo->csd_wrapper = keep_config_arg();
-			break;
-#endif
 		case OPT_DISABLE_IPV6:
 			vpninfo->disable_ipv6 = 1;
 			break;
@@ -1003,20 +993,10 @@ int main(int argc, char **argv)
 
 #ifndef _WIN32
 	if (use_syslog) {
-#ifndef __ANDROID__
 		openlog("openconnect", LOG_PID, LOG_DAEMON);
-#endif
 		vpninfo->progress = syslog_progress;
 	}
-#endif /* !_WIN32 */
 
-	sig_cmd_fd = openconnect_setup_cmd_pipe(vpninfo);
-	if (sig_cmd_fd < 0) {
-		fprintf(stderr, _("Error opening cmd pipe\n"));
-		exit(1);
-	}
-
-#ifndef _WIN32
 	memset(&sa, 0, sizeof(sa));
 
 	sa.sa_handler = handle_signal;
@@ -1024,6 +1004,12 @@ int main(int argc, char **argv)
 	sigaction(SIGHUP, &sa, NULL);
 	sigaction(SIGUSR2, &sa, NULL);
 #endif /* !_WIN32 */
+
+	sig_cmd_fd = openconnect_setup_cmd_pipe(vpninfo);
+	if (sig_cmd_fd < 0) {
+		fprintf(stderr, _("Error opening cmd pipe\n"));
+		exit(1);
+	}
 
 	if (vpninfo->sslkey && do_passphrase_from_fsid)
 		openconnect_passphrase_from_fsid(vpninfo);
