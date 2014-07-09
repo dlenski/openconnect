@@ -15,7 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li><i>No changelog entries yet</i></li>
+       <li>Fix crash on invocation with <tt>--token-mode</tt> but no <tt>--token-secret</tt></li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-6.00.tar.gz">OpenConnect v6.00</a></b>

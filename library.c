@@ -504,6 +504,9 @@ static int set_totp_mode(struct openconnect_info *vpninfo,
 	if (ret != OATH_OK)
 		return -EIO;
 
+	if (!token_str)
+		return -EINVAL;
+
 	if (strncasecmp(token_str, "base32:", strlen("base32:")) == 0) {
 		ret = oath_base32_decode(token_str + strlen("base32:"),
 					 strlen(token_str) - strlen("base32:"),
@@ -533,6 +536,9 @@ static int set_hotp_mode(struct openconnect_info *vpninfo,
 	ret = oath_init();
 	if (ret != OATH_OK)
 		return -EIO;
+
+	if (!token_str)
+		return -EINVAL;
 
 	toklen = strlen(token_str);
 	p = strrchr(token_str, ',');
