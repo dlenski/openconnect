@@ -1826,19 +1826,20 @@ static int proxy_authorization(struct openconnect_info *vpninfo, struct oc_text_
 	return -ENOENT;
 }
 
-static void handle_auth_proto(struct openconnect_info *vpninfo,
+/* Returns non-zero if it matched */
+static int handle_auth_proto(struct openconnect_info *vpninfo,
 			      struct auth_method *method, char *hdr)
 {
 	struct proxy_auth_state *auth = &vpninfo->auth[method->state_index];
 	int l = strlen(method->name);
 
 	if (auth->state <= AUTH_FAILED)
-		return;
+		return 0;
 
 	if (strncmp(method->name, hdr, l))
-		return;
+		return 0;
 	if (hdr[l] != ' ' && hdr[l] != 0)
-		return;
+		return 0;
 
 	if (auth->state == AUTH_UNSEEN)
 		auth->state = AUTH_AVAILABLE;
@@ -1848,6 +1849,8 @@ static void handle_auth_proto(struct openconnect_info *vpninfo,
 		auth->challenge = strdup(hdr + l + 1);
 	else
 		auth->challenge = NULL;
+
+	return 1;
 }
 
 static int proxy_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val)
@@ -1857,8 +1860,11 @@ static int proxy_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val)
 	if (strcasecmp(hdr, "Proxy-Authenticate"))
 		return 0;
 
-	for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++)
-		handle_auth_proto(vpninfo, &auth_methods[i], val);
+	for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++) {
+		/* Return once we've found a match */
+		if (handle_auth_proto(vpninfo, &auth_methods[i], val))
+			return 0;
+	}
 
 	return 0;
 }
