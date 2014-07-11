@@ -1562,6 +1562,8 @@ static int process_socks_proxy(struct openconnect_info *vpninfo)
 	case SOCKS_AUTH_NO_ACCEPTABLE:
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("SOCKS server requires authentication\n"));
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("This version of OpenConnect was built without GSSAPI support\n"));
 		return -EIO;
 
 	default:
@@ -1794,6 +1796,17 @@ static int basic_authorization(struct openconnect_info *vpninfo, struct oc_text_
 	return 0;
 }
 
+#if !defined(HAVE_GSSAPI) && !defined(_WIN32)
+static int no_gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *hdrbuf)
+{
+	/* This comes last so just complain. We're about to bail. */
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("This version of OpenConnect was built without GSSAPI support\n"));
+	vpninfo->auth[AUTH_TYPE_GSSAPI].state = AUTH_FAILED;
+	return -ENOENT;
+}
+#endif
+
 struct auth_method {
 	int state_index;
 	const char *name;
@@ -1805,7 +1818,10 @@ struct auth_method {
 #endif
 	{ AUTH_TYPE_NTLM, "NTLM", ntlm_authorization, cleanup_ntlm_auth },
 	{ AUTH_TYPE_DIGEST, "Digest", digest_authorization, NULL },
-	{ AUTH_TYPE_BASIC, "Basic", basic_authorization, NULL }
+	{ AUTH_TYPE_BASIC, "Basic", basic_authorization, NULL },
+#if !defined(HAVE_GSSAPI) && !defined(_WIN32)
+	{ AUTH_TYPE_GSSAPI, "Negotiate", no_gssapi_authorization, NULL }
+#endif
 };
 
 /* Generate Proxy-Authorization: header for request if appropriate */
