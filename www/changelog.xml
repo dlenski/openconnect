@@ -15,6 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Fix off-by-one in parameter substitution in error messages.</li>
        <li>Improve reporting when GSSAPI auth requested but not compiled in.</li>
        <li>Fix parsing of split include routes on Windows.</li>
        <li>Fix crash on invocation with <tt>--token-mode</tt> but no <tt>--token-secret</tt>.</li>
