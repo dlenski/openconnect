@@ -606,7 +606,7 @@ if test "$with_gssapi" != "no"; then
 	if test "$KRB5_CONFIG" != ""; then
             have_gssapi=yes
 	    gssapi_ver="`${KRB5_CONFIG} --version`"
-	    if echo "$gssapi_ver" | grep -q Solaris; then
+	    if echo "$gssapi_ver" | grep Solaris > /dev/null; then
 		GSSAPI_LIBS=-lgss
 		GSSAPI_CFLAGS=-I/usr/include/gssapi
 	    else
@@ -759,7 +759,7 @@ build_www=yes
 AC_PATH_PROGS(PYTHON, [python2 python], [], $PATH:/bin:/usr/bin)
 if (test -n "${ac_cv_path_PYTHON}"); then
    AC_MSG_CHECKING([that python is version 2.x])
-   if $PYTHON --version 2>&1 | grep -q "Python 2\."; then
+   if $PYTHON --version 2>&1 | grep "Python 2\." > /dev/null; then
       AC_MSG_RESULT([yes])
       AC_SUBST(PYTHON, ${ac_cv_path_PYTHON})
    else
