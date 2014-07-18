@@ -960,7 +960,11 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 				     _("Failed to open HTTPS connection to %s\n"),
 				     vpninfo->hostname);
 			buf_free(buf);
-			return result;
+			/* We really don't want to return -EINVAL if we have
+			   failed to even connect to the server, because if
+			   we do that openconnect_obtain_cookie() might try
+			   again without XMLPOST... with the same result. */
+			return -EIO;
 		}
 	}
 
