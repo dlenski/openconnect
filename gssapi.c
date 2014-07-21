@@ -89,9 +89,10 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	}
 
 	if (vpninfo->auth[AUTH_TYPE_GSSAPI].challenge && *vpninfo->auth[AUTH_TYPE_GSSAPI].challenge) {
-		int len = openconnect_base64_decode(&in.value, vpninfo->auth[AUTH_TYPE_GSSAPI].challenge);
-		if (len < 0)
-			return -EINVAL;
+		int len = -EINVAL;
+		in.value = openconnect_base64_decode(&len, vpninfo->auth[AUTH_TYPE_GSSAPI].challenge);
+		if (!in.value)
+			return len;
 		in.length = len;
 	} else if (vpninfo->auth[AUTH_TYPE_GSSAPI].state > AUTH_AVAILABLE) {
 		/* This indicates failure. We were trying, but got an empty

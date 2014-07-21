@@ -51,15 +51,15 @@ static int ntlm_sspi(struct openconnect_info *vpninfo, struct oc_text_buf *buf, 
         ULONG ret_flags;
 
 	if (challenge) {
-		int token_len;
+		int token_len = -EINVAL;
 
 		input_desc.cBuffers = 1;
 		input_desc.pBuffers = &in_token;
 		input_desc.ulVersion = SECBUFFER_VERSION;
 
 		in_token.BufferType = SECBUFFER_TOKEN;
-		token_len = openconnect_base64_decode(&in_token.pvBuffer, challenge);
-		if (token_len < 0)
+		in_token.pvBuffer = openconnect_base64_decode(&token_len, challenge);
+		if (!in_token.pvBuffer)
 			return token_len;
 		in_token.cbBuffer = token_len;
 	}
@@ -954,7 +954,7 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	char *user;
 	unsigned char nonce[8], hash[21], lm_resp[24], nt_resp[24];
 	unsigned char *token;
-	int token_len;
+	int token_len = -EINVAL;
 	int ntlmver;
 
 	if (!vpninfo->auth[AUTH_TYPE_NTLM].challenge)
@@ -963,9 +963,9 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	if (ntlm_nt_hash (vpninfo->proxy_pass, (char *) hash))
 		return -EINVAL;
 
-	token_len = openconnect_base64_decode((void **)&token,
-					      vpninfo->auth[AUTH_TYPE_NTLM].challenge);
-	if (token_len < 0)
+	token = openconnect_base64_decode(&token_len,
+					  vpninfo->auth[AUTH_TYPE_NTLM].challenge);
+	if (!token)
 		return token_len;
 
 	if (token_len < NTLM_CHALLENGE_NONCE_OFFSET + 8 || token[0] != 'N' ||

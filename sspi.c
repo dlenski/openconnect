@@ -57,16 +57,16 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	}
 
 	if (vpninfo->auth[AUTH_TYPE_GSSAPI].challenge && *vpninfo->auth[AUTH_TYPE_GSSAPI].challenge) {
-		int token_len;
+		int token_len = -EINVAL;
 
 		input_desc.cBuffers = 1;
 		input_desc.pBuffers = &in_token;
 		input_desc.ulVersion = SECBUFFER_VERSION;
 
 		in_token.BufferType = SECBUFFER_TOKEN;
-		token_len = openconnect_base64_decode(&in_token.pvBuffer,
-						      vpninfo->auth[AUTH_TYPE_GSSAPI].challenge);
-		if (token_len < 0)
+		in_token.pvBuffer = openconnect_base64_decode(&token_len,
+							      vpninfo->auth[AUTH_TYPE_GSSAPI].challenge);
+		if (!in_token.pvBuffer)
 			return token_len;
 		in_token.cbBuffer = token_len;
 
