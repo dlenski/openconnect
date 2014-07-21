@@ -139,7 +139,8 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 			}
 			if (ssl_sock >= 0)
 				closesocket(ssl_sock);
-			return -EINVAL;
+			ssl_sock = -EINVAL;
+			goto out;
 		}
 	} else {
 		struct addrinfo hints, *result, *rp;
@@ -176,8 +177,10 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 			else
 				i = asprintf(&url, "https://%s:%d/%s", vpninfo->hostname,
 					     vpninfo->port, vpninfo->urlpath?:"");
-			if (i == -1)
-				return -ENOMEM;
+			if (i == -1) {
+				ssl_sock = -ENOMEM;
+				goto out;
+			}
 
 			proxies = px_proxy_factory_get_proxies(vpninfo->proxy_factory,
 							       url);
@@ -211,8 +214,10 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 
 		if (hostname[0] == '[' && hostname[strlen(hostname)-1] == ']') {
 			hostname = strndup(hostname + 1, strlen(hostname) - 2);
-			if (!hostname)
-				return -ENOMEM;
+			if (!hostname) {
+				ssl_sock = -ENOMEM;
+				goto out;
+			}
 			hints.ai_flags |= AI_NUMERICHOST;
 		}
 
@@ -224,7 +229,8 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 				     hostname, gai_strerror(err));
 			if (hints.ai_flags & AI_NUMERICHOST)
 				free(hostname);
-			return -EINVAL;
+			ssl_sock = -EINVAL;
+			goto out;
 		}
 		if (hints.ai_flags & AI_NUMERICHOST)
 			free(hostname);
@@ -256,7 +262,8 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 					vpn_progress(vpninfo, PRG_ERR,
 						     _("Failed to allocate sockaddr storage\n"));
 					closesocket(ssl_sock);
-					return -ENOMEM;
+					ssl_sock = -ENOMEM;
+					goto out;
 				}
 				vpninfo->peer_addrlen = rp->ai_addrlen;
 				memcpy(vpninfo->peer_addr, rp->ai_addr, rp->ai_addrlen);
@@ -288,7 +295,8 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to connect to host %s\n"),
 				     vpninfo->proxy?:vpninfo->hostname);
-			return -EINVAL;
+			ssl_sock = -EINVAL;
+			goto out;
 		}
 	}
 
@@ -302,10 +310,13 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 					     _("Reconnecting to proxy %s\n"), vpninfo->proxy);
 				goto reconnect;
 			}
-			return err;
+			ssl_sock = err;
 		}
 	}
-
+ out:
+	/* If proxy processing returned -EAGAIN to reconnect before attempting
+	   further auth, and we failed to reconnect, we have to clean up here. */
+	cleanup_proxy_auth(vpninfo);
 	return ssl_sock;
 }
 

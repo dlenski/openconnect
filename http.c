@@ -1879,6 +1879,12 @@ static int proxy_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val)
 {
 	int i;
 
+	if (!strcasecmp(hdr, "Proxy-Connection")) {
+		if (!strcasecmp(val, "close"))
+			vpninfo->proxy_close_during_auth = 1;
+		return 0;
+	}
+
 	if (strcasecmp(hdr, "Proxy-Authenticate"))
 		return 0;
 
@@ -1919,7 +1925,9 @@ static int process_http_proxy(struct openconnect_info *vpninfo)
 	int resplen;
 	struct oc_text_buf *reqbuf;
 	int result;
-	int auth = 0;
+	int auth = vpninfo->proxy_close_during_auth;
+
+	vpninfo->proxy_close_during_auth = 0;
 
 	vpn_progress(vpninfo, PRG_INFO,
 		     _("Requesting HTTP proxy connection to %s:%d\n"),
@@ -1973,6 +1981,10 @@ static int process_http_proxy(struct openconnect_info *vpninfo)
 	}
 
 	if (result == 407) {
+		/* If the proxy asked us to close the connection, do so */
+		if (vpninfo->proxy_close_during_auth)
+			return -EAGAIN;
+
 		auth = 1;
 		goto retry;
 	}
@@ -1985,9 +1997,17 @@ static int process_http_proxy(struct openconnect_info *vpninfo)
 	return -EIO;
 }
 
+void cleanup_proxy_auth(struct openconnect_info *vpninfo)
+{
+	int i;
+
+	for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++)
+		clear_auth_state(vpninfo, &auth_methods[i], 1);
+}
+
 int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 {
-	int ret, i;
+	int ret;
 
 	vpninfo->proxy_fd = ssl_sock;
 	vpninfo->ssl_read = proxy_read;
@@ -2006,8 +2026,9 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 	}
 
 	vpninfo->proxy_fd = -1;
-	for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++)
-		clear_auth_state(vpninfo, &auth_methods[i], 1);
+	if (!vpninfo->proxy_close_during_auth)
+		cleanup_proxy_auth(vpninfo);
+
 	return ret;
 }
 

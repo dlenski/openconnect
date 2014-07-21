@@ -206,6 +206,7 @@ struct openconnect_info {
 	int proxy_fd;
 	char *proxy_user;
 	char *proxy_pass;
+	int proxy_close_during_auth;
 	struct proxy_auth_state auth[MAX_AUTH_TYPES];
 #ifdef HAVE_GSSAPI
 	gss_name_t gss_target_name;
@@ -610,6 +611,7 @@ void *openconnect_base64_decode(int *len, const char *in);
 int buf_error(struct oc_text_buf *buf);
 int buf_free(struct oc_text_buf *buf);
 char *openconnect_create_useragent(const char *base);
+void cleanup_proxy_auth(struct openconnect_info *vpninfo);
 int process_proxy(struct openconnect_info *vpninfo, int ssl_sock);
 int internal_parse_url(char *url, char **res_proto, char **res_host,
 		       int *res_port, char **res_path, int default_port);
