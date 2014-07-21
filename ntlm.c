@@ -246,7 +246,8 @@ void cleanup_ntlm_auth(struct openconnect_info *vpninfo)
 {
 	if (vpninfo->auth[AUTH_TYPE_NTLM].state == NTLM_SSO_REQ) {
 		close(vpninfo->ntlm_helper_fd);
-		vpninfo->ntlm_helper_fd = -1;}
+		vpninfo->ntlm_helper_fd = -1;
+	}
 }
 #endif /* !_WIN32 */
 
