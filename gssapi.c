@@ -105,6 +105,9 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 				     vpninfo->gss_target_name, (gss_OID)&gss_mech_spnego, GSS_C_MUTUAL_FLAG,
 				     GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS, &in, NULL,
 				     &out, NULL, NULL);
+	if (in.value)
+		free(in.value);
+
 	if (major == GSS_S_COMPLETE)
 		vpninfo->auth[AUTH_TYPE_GSSAPI].state = GSSAPI_COMPLETE;
 	else if (major == GSS_S_CONTINUE_NEEDED)
@@ -121,8 +124,7 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	buf_append(hdrbuf, "Proxy-Authorization: Negotiate ");
 	buf_append_base64(hdrbuf, out.value, out.length);
 	buf_append(hdrbuf, "\r\n");
-	if (in.value)
-		free(in.value);
+
 	gss_release_buffer(&minor, &out);
 	if (!vpninfo->auth[AUTH_TYPE_GSSAPI].challenge)
 		vpn_progress(vpninfo, PRG_INFO,
