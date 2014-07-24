@@ -204,7 +204,7 @@ upload-pot: po/$(PACKAGE).pot
 po/$(PACKAGE).pot: $(POTFILES) version.sh
 	@echo "Regenerating $@" ; rm -f $@ && \
 	xgettext --directory=$(top_srcdir) --from-code=UTF-8 \
-	  --add-comments --keyword=_ --keyword=N_ \
+	  --sort-by-file --add-comments --keyword=_ --keyword=N_ \
 	  --package-name="@PACKAGE@" --package-version="@VERSION@" \
 	  --msgid-bugs-address=openconnect-devel@lists.infradead.org \
 	  -o $@ $(POTFILES)
