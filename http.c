@@ -206,16 +206,17 @@ static int http_add_cookie(struct openconnect_info *vpninfo,
 #define BODY_HTTP10 -1
 #define BODY_CHUNKED -2
 
-static int process_http_response(struct openconnect_info *vpninfo, int *result, int connect,
+static int process_http_response(struct openconnect_info *vpninfo, int connect,
 				 int (*header_cb)(struct openconnect_info *, char *, char *),
-				 char **body_ret)
+				 struct oc_text_buf *body)
 {
 	char buf[MAX_BUF_LEN];
-	char *body = NULL;
 	int bodylen = BODY_HTTP10;
-	int done = 0;
 	int closeconn = 0;
+	int result;
 	int i;
+
+	buf_truncate(body);
 
  cont:
 	if (vpninfo->ssl_gets(vpninfo, buf, sizeof(buf)) < 0) {
@@ -228,14 +229,14 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result, 
 	if (!strncmp(buf, "HTTP/1.0 ", 9))
 		closeconn = 1;
 
-	if ((!closeconn && strncmp(buf, "HTTP/1.1 ", 9)) || !(*result = atoi(buf+9))) {
+	if ((!closeconn && strncmp(buf, "HTTP/1.1 ", 9)) || !(result = atoi(buf+9))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to parse HTTP response '%s'\n"), buf);
 		openconnect_close_https(vpninfo, 0);
 		return -EINVAL;
 	}
 
-	vpn_progress(vpninfo, (*result == 200 || *result == 407) ? PRG_DEBUG : PRG_INFO,
+	vpn_progress(vpninfo, (result == 200 || result == 407) ? PRG_DEBUG : PRG_INFO,
 		     _("Got HTTP response: %s\n"), buf);
 
 	/* Eat headers... */
@@ -343,12 +344,12 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result, 
 	}
 
 	/* Handle 'HTTP/1.1 100 Continue'. Not that we should ever see it */
-	if (*result == 100)
+	if (result == 100)
 		goto cont;
 
 	/* On successful CONNECT, there is no body. Return success */
-	if (connect && *result == 200)
-		return 0;
+	if (connect && result == 200)
+		return result;
 
 	/* Now the body, if there is one */
 	vpn_progress(vpninfo, PRG_DEBUG, _("HTTP body %s (%d)\n"),
@@ -358,19 +359,18 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result, 
 
 	/* If we were given Content-Length, it's nice and easy... */
 	if (bodylen > 0) {
-		body = malloc(bodylen + 1);
-		if (!body)
-			return -ENOMEM;
-		while (done < bodylen) {
-			i = vpninfo->ssl_read(vpninfo, body + done, bodylen - done);
+		if (buf_ensure_space(body, bodylen + 1))
+			return buf_error(body);
+
+		while (body->pos < bodylen) {
+			i = vpninfo->ssl_read(vpninfo, body->data + body->pos, bodylen - body->pos);
 			if (i < 0) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Error reading HTTP response body\n"));
 				openconnect_close_https(vpninfo, 0);
-				free(body);
 				return -EINVAL;
 			}
-			done += i;
+			body->pos += i;
 		}
 	} else if (bodylen == BODY_CHUNKED) {
 		/* ... else, chunked */
@@ -387,19 +387,17 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result, 
 				lastchunk = 1;
 				goto skip;
 			}
-			realloc_inplace(body, done + chunklen + 1);
-			if (!body)
-				return -ENOMEM;
+			if (buf_ensure_space(body, chunklen + 1))
+				return buf_error(body);
 			while (chunklen) {
-				i = vpninfo->ssl_read(vpninfo, body + done, chunklen);
+				i = vpninfo->ssl_read(vpninfo, body->data + body->pos, chunklen);
 				if (i < 0) {
 					vpn_progress(vpninfo, PRG_ERR,
 						     _("Error reading HTTP response body\n"));
-					free(body);
 					return -EINVAL;
 				}
 				chunklen -= i;
-				done += i;
+				body->pos += i;
 			}
 		skip:
 			if ((i = vpninfo->ssl_gets(vpninfo, buf, sizeof(buf)))) {
@@ -411,7 +409,6 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result, 
 						     _("Error in chunked decoding. Expected '', got: '%s'"),
 						     buf);
 				}
-				free(body);
 				return -EINVAL;
 			}
 
@@ -426,37 +423,28 @@ static int process_http_response(struct openconnect_info *vpninfo, int *result, 
 			return -EINVAL;
 		}
 
-		/* HTTP 1.0 response. Just eat all we can in 16KiB chunks */
+		/* HTTP 1.0 response. Just eat all we can in 4KiB chunks */
 		while (1) {
-			realloc_inplace(body, done + 16384);
-			if (!body)
-				return -ENOMEM;
-			i = vpninfo->ssl_read(vpninfo, body + done, 16384);
-			if (i > 0) {
-				/* Got more data */
-				done += i;
-			} else if (i < 0) {
+			if (buf_ensure_space(body, 4096 + 1))
+				return buf_error(body);
+			i = vpninfo->ssl_read(vpninfo, body->data + body->pos, 4096);
+			if (i < 0) {
 				/* Error */
-				free(body);
 				openconnect_close_https(vpninfo, 0);
 				return i;
-			} else {
-				/* Connection closed. Reduce allocation to just what we need */
-				realloc_inplace(body, done + 1);
-				if (!body)
-					return -ENOMEM;
+			} else if (!i)
 				break;
-			}
+
+			/* Got more data */
+			body->pos += i;
 		}
 	}
 
 	if (closeconn || vpninfo->no_http_keepalive)
 		openconnect_close_https(vpninfo, 0);
 
-	if (body)
-		body[done] = 0;
-	*body_ret = body;
-	return done;
+	body->data[body->pos] = 0;
+	return result;
 }
 
 static void add_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
@@ -497,8 +485,7 @@ static void add_common_headers(struct openconnect_info *vpninfo, struct oc_text_
 static int fetch_config(struct openconnect_info *vpninfo)
 {
 	struct oc_text_buf *buf;
-	char *config_buf = NULL;
-	int result, buflen;
+	int result;
 	unsigned char local_sha1_bin[SHA1_SIZE];
 	char local_sha1_ascii[(SHA1_SIZE * 2)+1];
 	int i;
@@ -535,20 +522,20 @@ static int fetch_config(struct openconnect_info *vpninfo)
 		buf_free(buf);
 		return -EIO;
 	}
-	buf_free(buf);
 
-	buflen = process_http_response(vpninfo, &result, 0, NULL, &config_buf);
-	if (buflen < 0) {
+	result = process_http_response(vpninfo, 0, NULL, buf);
+	if (result < 0) {
 		/* We'll already have complained about whatever offended us */
+		buf_free(buf);
 		return -EINVAL;
 	}
 
 	if (result != 200) {
-		free(config_buf);
+		buf_free(buf);
 		return -EINVAL;
 	}
 
-	openconnect_sha1(local_sha1_bin, config_buf, buflen);
+	openconnect_sha1(local_sha1_bin, buf->data, buf->pos);
 
 	for (i = 0; i < SHA1_SIZE; i++)
 		sprintf(&local_sha1_ascii[i*2], "%02x", local_sha1_bin[i]);
@@ -556,14 +543,14 @@ static int fetch_config(struct openconnect_info *vpninfo)
 	if (strcasecmp(vpninfo->profile_sha1, local_sha1_ascii)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Downloaded config file did not match intended SHA1\n"));
-		free(config_buf);
+		buf_free(buf);
 		return -EINVAL;
 	}
 
 	vpn_progress(vpninfo, PRG_DEBUG, _("Downloaded new XML profile\n"));
 
-	result = vpninfo->write_new_config(vpninfo->cbdata, config_buf, buflen);
-	free(config_buf);
+	result = vpninfo->write_new_config(vpninfo->cbdata, buf->data, buf->pos);
+	buf_free(buf);
 	return result;
 }
 
@@ -915,7 +902,7 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 			    char **form_buf, int fetch_redirect)
 {
 	struct oc_text_buf *buf;
-	int result, buflen;
+	int result;
 	int rq_retry;
 	int rlen, pad;
 
@@ -1000,17 +987,16 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 		openconnect_close_https(vpninfo, 0);
 		goto retry;
 	}
-	buf_free(buf);
 	if (result < 0)
-		return result;
+		goto out;
 
-	buflen = process_http_response(vpninfo, &result, 0, NULL, form_buf);
-	if (buflen < 0) {
+	result = process_http_response(vpninfo, 0, NULL, buf);
+	if (result < 0) {
 		/* We'll already have complained about whatever offended us */
-		return buflen;
+		goto out;
 	}
-	if (vpninfo->dump_http_traffic && *form_buf)
-		dump_buf(vpninfo, '<', *form_buf);
+	if (vpninfo->dump_http_traffic && buf->pos)
+		dump_buf(vpninfo, '<', buf->data);
 
 	if (result != 200 && vpninfo->redirect_url) {
 		result = handle_redirect(vpninfo);
@@ -1021,7 +1007,7 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 		}
 		goto out;
 	}
-	if (!*form_buf || result != 200) {
+	if (!buf->pos || result != 200) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unexpected %d result from server\n"),
 			     result);
@@ -1029,11 +1015,12 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 		goto out;
 	}
 
-	return buflen;
+	*form_buf = buf->data;
+	buf->data = NULL;
+	result = buf->pos;
 
  out:
-	free(*form_buf);
-	*form_buf = NULL;
+	buf_free(buf);
 	return result;
 }
 
@@ -1947,8 +1934,6 @@ static void clear_auth_state(struct openconnect_info *vpninfo,
 
 static int process_http_proxy(struct openconnect_info *vpninfo)
 {
-	char *resp = NULL;
-	int resplen;
 	struct oc_text_buf *reqbuf;
 	int result;
 	int auth = vpninfo->proxy_close_during_auth;
@@ -1988,23 +1973,18 @@ static int process_http_proxy(struct openconnect_info *vpninfo)
 		dump_buf(vpninfo, '>', reqbuf->data);
 
 	result = proxy_write(vpninfo, reqbuf->data, reqbuf->pos);
-	buf_free(reqbuf);
-
 	if (result < 0) {
+		buf_free(reqbuf);
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Sending proxy request failed: %s\n"),
 			     strerror(-result));
 		return result;
 	}
 
-	resplen = process_http_response(vpninfo, &result, 1, proxy_hdrs, &resp);
-	if (resplen < 0)
+	result = process_http_response(vpninfo, 1, proxy_hdrs, reqbuf);
+	buf_free(reqbuf);
+	if (result < 0)
 		return -EINVAL;
-
-	if (resp) {
-		free(resp);
-		resp = NULL;
-	}
 
 	if (result == 407) {
 		/* If the proxy asked us to close the connection, do so */
