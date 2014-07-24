@@ -123,7 +123,9 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	fail_gssapi:
 		vpninfo->auth[AUTH_TYPE_GSSAPI].state = AUTH_FAILED;
 		cleanup_gssapi_auth(vpninfo);
-		return -EAGAIN;
+		/* If we were *trying*, then -EAGAIN. Else -ENOENT to let another
+		   auth method try without having to reconnect first. */
+		return in.value ? -EAGAIN : -ENOENT;
 	}
 	buf_append(hdrbuf, "Proxy-Authorization: Negotiate ");
 	buf_append_base64(hdrbuf, out.value, out.length);
