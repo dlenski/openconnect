@@ -23,21 +23,24 @@
 #include "openconnect-internal.h"
 
 static void print_gss_err(struct openconnect_info *vpninfo, const char *where,
-			  OM_uint32 err_maj, OM_uint32 err_min)
+			  gss_OID mech, OM_uint32 err_maj, OM_uint32 err_min)
 {
 	OM_uint32 major, minor, msg_ctx = 0;
 	gss_buffer_desc status;
 
 	do {
 		major = gss_display_status(&minor, err_maj, GSS_C_GSS_CODE,
-					   GSS_C_NO_OID, &msg_ctx, &status);
+					   mech, &msg_ctx, &status);
 		if (GSS_ERROR(major))
 			break;
 		vpn_progress(vpninfo, PRG_ERR, "%s: %s\n", where, (char *)status.value);
 		gss_release_buffer(&minor, &status);
+	} while (msg_ctx);
 
+	msg_ctx = 0;
+	do {
 		major = gss_display_status(&minor, err_min, GSS_C_MECH_CODE,
-					   GSS_C_NO_OID, &msg_ctx, &status);
+					   mech, &msg_ctx, &status);
 		if (GSS_ERROR(major))
 			break;
 		vpn_progress(vpninfo, PRG_ERR, "%s: %s\n", where, (char *)status.value);
@@ -68,7 +71,7 @@ static int gssapi_setup(struct openconnect_info *vpninfo, const char *service)
 	if (GSS_ERROR(major)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error importing GSSAPI name for authentication:\n"));
-		print_gss_err(vpninfo, "gss_import_name()", major, minor);
+		print_gss_err(vpninfo, "gss_import_name()", GSS_C_NO_OID, major, minor);
 		return -EIO;
 	}
 	return 0;
@@ -82,6 +85,7 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	OM_uint32 major, minor;
 	gss_buffer_desc in = GSS_C_EMPTY_BUFFER;
 	gss_buffer_desc out = GSS_C_EMPTY_BUFFER;
+	gss_OID mech = GSS_C_NO_OID;
 
 	if (vpninfo->auth[AUTH_TYPE_GSSAPI].state == AUTH_AVAILABLE && gssapi_setup(vpninfo, "HTTP")) {
 		vpninfo->auth[AUTH_TYPE_GSSAPI].state = AUTH_FAILED;
@@ -103,7 +107,7 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 
 	major = gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL, &vpninfo->gss_context,
 				     vpninfo->gss_target_name, (gss_OID)&gss_mech_spnego, GSS_C_MUTUAL_FLAG,
-				     GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS, &in, NULL,
+				     GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS, &in, &mech,
 				     &out, NULL, NULL);
 	if (in.value)
 		free(in.value);
@@ -115,7 +119,7 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	else {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error generating GSSAPI response:\n"));
-		print_gss_err(vpninfo, "gss_init_sec_context()", major, minor);
+		print_gss_err(vpninfo, "gss_init_sec_context()", mech, major, minor);
 	fail_gssapi:
 		vpninfo->auth[AUTH_TYPE_GSSAPI].state = AUTH_FAILED;
 		cleanup_gssapi_auth(vpninfo);
@@ -151,6 +155,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 {
 	gss_buffer_desc in = GSS_C_EMPTY_BUFFER;
 	gss_buffer_desc out = GSS_C_EMPTY_BUFFER;
+	gss_OID mech = GSS_C_NO_OID;
 	OM_uint32 major, minor;
 	unsigned char *pktbuf;
 	int i;
@@ -166,7 +171,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 		major = gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL, &vpninfo->gss_context,
 					     vpninfo->gss_target_name, (gss_OID)&gss_mech_spnego,
 					     GSS_C_MUTUAL_FLAG | GSS_C_REPLAY_FLAG | GSS_C_DELEG_FLAG | GSS_C_SEQUENCE_FLAG,
-					     GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS, &in, NULL,
+					     GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS, &in, &mech,
 					     &out, NULL, NULL);
 		in.value = NULL;
 		if (major == GSS_S_COMPLETE) {
@@ -177,7 +182,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 			break;
 		}
 		if (major != GSS_S_CONTINUE_NEEDED) {
-			print_gss_err(vpninfo, "gss_init_sec_context()", major, minor);
+			print_gss_err(vpninfo, "gss_init_sec_context()", mech, major, minor);
 			break;
 		}
 		if (out.length > 65535) {
@@ -247,7 +252,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 		major = gss_wrap(&minor, vpninfo->gss_context, 0,
 				 GSS_C_QOP_DEFAULT, &in, NULL, &out);
 		if (major != GSS_S_COMPLETE) {
-			print_gss_err(vpninfo, "gss_wrap()", major, minor);
+			print_gss_err(vpninfo, "gss_wrap()", mech, major, minor);
 			goto err;
 		}
 
@@ -293,7 +298,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 
 		major = gss_unwrap(&minor, vpninfo->gss_context, &in, &out, NULL, GSS_C_QOP_DEFAULT);
 		if (major != GSS_S_COMPLETE) {
-			print_gss_err(vpninfo, "gss_unwrap()", major, minor);
+			print_gss_err(vpninfo, "gss_unwrap()", mech, major, minor);
 			goto err;
 		}
 		if (out.length != 1) {
