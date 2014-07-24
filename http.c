@@ -1071,7 +1071,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 newgroup:
 	result = xmlpost_initial_req(vpninfo, request_body, sizeof(request_body), 0);
 	if (result < 0)
-		return result;
+		goto out;
 
 	orig_host = strdup(vpninfo->hostname);
 	orig_path = vpninfo->urlpath ? strdup(vpninfo->urlpath) : NULL;
@@ -1098,21 +1098,21 @@ newgroup:
 				}
 				openconnect_close_https(vpninfo, 0);
 			} else {
-				free(orig_host);
-				return -EIO;
+				result = -EIO;
+				goto out;
 			}
 		}
 
-		buflen = do_https_request(vpninfo, method, request_body_type, request_body,
+		result = do_https_request(vpninfo, method, request_body_type, request_body,
 					  &form_buf, 0);
-		if (vpninfo->got_cancel_cmd)
-			return 1;
-		if (buflen == -EINVAL)
-			goto fail;
-		if (buflen < 0) {
-			free(orig_host);
-			return buflen;
+		if (vpninfo->got_cancel_cmd) {
+			result = 1;
+			goto out;
 		}
+		if (result == -EINVAL)
+			goto fail;
+		if (result < 0)
+			goto out;
 
 		/* Some ASAs forget to send the TLS cert request on the initial connection.
 		 * If we have a client cert, disable HTTP keepalive until we get a real
@@ -1163,9 +1163,6 @@ newgroup:
 	}
 	if (vpninfo->xmlpost)
 		vpn_progress(vpninfo, PRG_INFO, _("XML POST enabled\n"));
-
-	free (orig_host);
-	free (orig_path);
 
 	/* Step 4: Run the CSD trojan, if applicable */
 	if (vpninfo->csd_starturl && vpninfo->csd_waiturl) {
@@ -1300,6 +1297,9 @@ newgroup:
 	fetch_config(vpninfo);
 
 out:
+	free (orig_host);
+	free (orig_path);
+
 	free(form_path);
 	free(form_buf);
 	free_auth_form(form);
