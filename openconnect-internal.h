@@ -593,11 +593,13 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		       struct oc_auth_form **form, int *cert_rq);
 int process_auth_form(struct openconnect_info *vpninfo,
 		      struct oc_auth_form *form);
-int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
-		     char *request_body, int req_len, const char **method,
+int handle_auth_form(struct openconnect_info *vpninfo,
+		     struct oc_auth_form *form,
+		     struct oc_text_buf *request_body, const char **method,
 		     const char **request_body_type);
 void free_auth_form(struct oc_auth_form *form);
-int xmlpost_initial_req(struct openconnect_info *vpninfo, char *request_body, int req_len, int cert_fail);
+int xmlpost_initial_req(struct openconnect_info *vpninfo,
+			struct oc_text_buf *request_body, int cert_fail);
 int prepare_stoken(struct openconnect_info *vpninfo);
 
 /* http.c */
@@ -608,6 +610,8 @@ void  __attribute__ ((format (printf, 2, 3)))
 void buf_append_bytes(struct oc_text_buf *buf, const void *bytes, int len);
 void buf_append_base64(struct oc_text_buf *buf, const void *bytes, int len);
 void *openconnect_base64_decode(int *len, const char *in);
+void buf_truncate(struct oc_text_buf *buf);
+void buf_append_urlencoded(struct oc_text_buf *buf, char *str);
 int buf_error(struct oc_text_buf *buf);
 int buf_free(struct oc_text_buf *buf);
 char *openconnect_create_useragent(const char *base);

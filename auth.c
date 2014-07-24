@@ -41,65 +41,34 @@
 #include "openconnect-internal.h"
 
 static int xmlpost_append_form_opts(struct openconnect_info *vpninfo,
-				    struct oc_auth_form *form, char *body, int bodylen);
+				    struct oc_auth_form *form, struct oc_text_buf *body);
 static int can_gen_tokencode(struct openconnect_info *vpninfo,
 			     struct oc_auth_form *form, struct oc_form_opt *opt);
 static int do_gen_tokencode(struct openconnect_info *vpninfo, struct oc_auth_form *form);
 
-static int append_opt(char *body, int bodylen, char *opt, char *name)
+static int append_opt(struct oc_text_buf *body, char *opt, char *name)
 {
-	int len = strlen(body);
+	if (buf_error(body))
+		return buf_error(body);
 
-	if (len) {
-		if (len >= bodylen - 1)
-			return -ENOSPC;
-		body[len++] = '&';
-	}
+	if (body->pos)
+		buf_append(body, "&");
 
-	while (*opt) {
-		if (isalnum((int)(unsigned char)*opt)) {
-			if (len >= bodylen - 1)
-				return -ENOSPC;
-			body[len++] = *opt;
-		} else {
-			if (len >= bodylen - 3)
-				return -ENOSPC;
-			sprintf(body+len, "%%%02x", (unsigned char)*opt);
-			len += 3;
-		}
-		opt++;
-	}
-
-	if (len >= bodylen - 1)
-		return -ENOSPC;
-	body[len++] = '=';
-
-	while (name && *name) {
-		if (isalnum((int)(unsigned char)*name)) {
-			if (len >= bodylen - 1)
-				return -ENOSPC;
-			body[len++] = *name;
-		} else {
-			if (len >= bodylen - 3)
-				return -ENOSPC;
-			sprintf(body+len, "%%%02x", (unsigned char)*name);
-			len += 3;
-		}
-		name++;
-	}
-	body[len] = 0;
+	buf_append_urlencoded(body, opt);
+	buf_append(body, "=");
+	buf_append_urlencoded(body, name);
 
 	return 0;
 }
 
 static int append_form_opts(struct openconnect_info *vpninfo,
-			    struct oc_auth_form *form, char *body, int bodylen)
+			    struct oc_auth_form *form, struct oc_text_buf *body)
 {
 	struct oc_form_opt *opt;
 	int ret;
 
 	for (opt = form->opts; opt; opt = opt->next) {
-		ret = append_opt(body, bodylen, opt->name, opt->value);
+		ret = append_opt(body, opt->name, opt->value);
 		if (ret)
 			return ret;
 	}
@@ -790,7 +759,7 @@ retry:
  *  = OC_FORM_RESULT_LOGGEDIN, when form indicates that login was already successful
  */
 int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
-		     char *request_body, int req_len, const char **method,
+		     struct oc_text_buf *request_body, const char **method,
 		     const char **request_body_type)
 {
 	int ret;
@@ -835,8 +804,8 @@ int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form
 		return ret;
 
 	ret = vpninfo->xmlpost ?
-	      xmlpost_append_form_opts(vpninfo, form, request_body, req_len) :
-	      append_form_opts(vpninfo, form, request_body, req_len);
+	      xmlpost_append_form_opts(vpninfo, form, request_body) :
+	      append_form_opts(vpninfo, form, request_body);
 	if (!ret) {
 		*method = "POST";
 		*request_body_type = "application/x-www-form-urlencoded";
@@ -932,7 +901,7 @@ bad:
 	return NULL;
 }
 
-static int xmlpost_complete(xmlDocPtr doc, char *body, int bodylen)
+static int xmlpost_complete(xmlDocPtr doc, struct oc_text_buf *body)
 {
 	xmlChar *mem = NULL;
 	int len, ret = 0;
@@ -948,12 +917,7 @@ static int xmlpost_complete(xmlDocPtr doc, char *body, int bodylen)
 		return -ENOMEM;
 	}
 
-	if (len > bodylen)
-		ret = -E2BIG;
-	else {
-		memcpy(body, mem, len);
-		body[len] = 0;
-	}
+	buf_append_bytes(body, mem, len);
 
 	xmlFreeDoc(doc);
 	xmlFree(mem);
@@ -961,7 +925,7 @@ static int xmlpost_complete(xmlDocPtr doc, char *body, int bodylen)
 	return ret;
 }
 
-int xmlpost_initial_req(struct openconnect_info *vpninfo, char *request_body, int req_len, int cert_fail)
+int xmlpost_initial_req(struct openconnect_info *vpninfo, struct oc_text_buf *request_body, int cert_fail)
 {
 	xmlNodePtr root, node;
 	xmlDocPtr doc = xmlpost_new_query(vpninfo, "init", &root);
@@ -992,15 +956,15 @@ int xmlpost_initial_req(struct openconnect_info *vpninfo, char *request_body, in
 		if (!node)
 			goto bad;
 	}
-	return xmlpost_complete(doc, request_body, req_len);
+	return xmlpost_complete(doc, request_body);
 
 bad:
-	xmlpost_complete(doc, NULL, 0);
+	xmlpost_complete(doc, NULL);
 	return -ENOMEM;
 }
 
 static int xmlpost_append_form_opts(struct openconnect_info *vpninfo,
-				    struct oc_auth_form *form, char *body, int bodylen)
+				    struct oc_auth_form *form, struct oc_text_buf *body)
 {
 	xmlNodePtr root, node;
 	xmlDocPtr doc = xmlpost_new_query(vpninfo, "auth-reply", &root);
@@ -1053,10 +1017,10 @@ static int xmlpost_append_form_opts(struct openconnect_info *vpninfo,
 	    !xmlNewTextChild(root, NULL, XCAST("host-scan-token"), XCAST(vpninfo->csd_token)))
 		goto bad;
 
-	return xmlpost_complete(doc, body, bodylen);
+	return xmlpost_complete(doc, body);
 
 bad:
-	xmlpost_complete(doc, NULL, 0);
+	xmlpost_complete(doc, NULL);
 	return -ENOMEM;
 }
 

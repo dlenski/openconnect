@@ -46,6 +46,27 @@ struct oc_text_buf *buf_alloc(void)
 	return calloc(1, sizeof(struct oc_text_buf));
 }
 
+void buf_append_urlencoded(struct oc_text_buf *buf, char *str)
+{
+	while (str && *str) {
+		if (isalnum((int)(unsigned char)*str))
+			buf_append_bytes(buf, str, 1);
+		else
+			buf_append(buf, "%%%02x", (unsigned char)*str);
+		str++;
+	}
+}
+
+void buf_truncate(struct oc_text_buf *buf)
+{
+	if (!buf)
+		return;
+
+	buf->pos = 0;
+	if (buf->data)
+		buf->data[0] = 0;
+}
+
 int buf_ensure_space(struct oc_text_buf *buf, int len)
 {
 	int new_buf_len;
@@ -890,13 +911,16 @@ static void dump_buf(struct openconnect_info *vpninfo, char prefix, char *buf)
  *  >=0, on success, indicating the length of the data in *form_buf
  */
 static int do_https_request(struct openconnect_info *vpninfo, const char *method,
-			    const char *request_body_type, const char *request_body,
+			    const char *request_body_type, struct oc_text_buf *request_body,
 			    char **form_buf, int fetch_redirect)
 {
 	struct oc_text_buf *buf;
 	int result, buflen;
 	int rq_retry;
 	int rlen, pad;
+
+	if (buf_error(request_body))
+		return buf_error(request_body);
 
  redirected:
 	vpninfo->redirect_type = REDIR_TYPE_NONE;
@@ -920,7 +944,7 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 	add_common_headers(vpninfo, buf);
 
 	if (request_body_type) {
-		rlen = strlen(request_body);
+		rlen = request_body->pos;
 
 		/* force body length to be a multiple of 64, to avoid leaking
 		 * password length. */
@@ -933,7 +957,7 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 	buf_append(buf, "\r\n");
 
 	if (request_body_type)
-		buf_append(buf, "%s", request_body);
+		buf_append_bytes(buf, request_body->data, request_body->pos);
 
 	if (vpninfo->port == 443)
 		vpn_progress(vpninfo, PRG_INFO, "%s https://%s/%s\n",
@@ -1042,7 +1066,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	char *form_buf = NULL;
 	struct oc_auth_form *form = NULL;
 	int result, buflen, tries;
-	char request_body[2048];
+	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
 	char *orig_host = NULL, *orig_path = NULL, *form_path = NULL;
@@ -1069,7 +1093,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	 * c) Three redirects without seeing a plausible login form
 	 */
 newgroup:
-	result = xmlpost_initial_req(vpninfo, request_body, sizeof(request_body), 0);
+	result = xmlpost_initial_req(vpninfo, request_body, 0);
 	if (result < 0)
 		goto out;
 
@@ -1086,7 +1110,7 @@ newgroup:
 				tries = 0;
 				vpninfo->xmlpost = 0;
 				request_body_type = NULL;
-				request_body[0] = 0;
+				buf_truncate(request_body);
 				method = "GET";
 				if (orig_host) {
 					openconnect_set_hostname(vpninfo, orig_host);
@@ -1150,7 +1174,7 @@ newgroup:
 					     _("Server requested SSL client certificate; none was configured\n"));
 				cert_failed = 1;
 			}
-			result = xmlpost_initial_req(vpninfo, request_body, sizeof(request_body), cert_failed);
+			result = xmlpost_initial_req(vpninfo, request_body, cert_failed);
 			if (result < 0)
 				goto fail;
 			continue;
@@ -1230,8 +1254,8 @@ newgroup:
 
 	/* Step 5: Ask the user to fill in the auth form; repeat as necessary */
 	while (1) {
-		request_body[0] = 0;
-		result = handle_auth_form(vpninfo, form, request_body, sizeof(request_body),
+		buf_truncate(request_body);
+		result = handle_auth_form(vpninfo, form, request_body,
 					  &method, &request_body_type);
 		if (result < 0 || result == OC_FORM_RESULT_CANCELLED)
 			goto out;
@@ -1297,6 +1321,8 @@ newgroup:
 	fetch_config(vpninfo);
 
 out:
+	buf_free(request_body);
+
 	free (orig_host);
 	free (orig_path);
 
