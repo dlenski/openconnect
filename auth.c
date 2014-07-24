@@ -64,7 +64,7 @@ static int append_opt(char *body, int bodylen, char *opt, char *name)
 		} else {
 			if (len >= bodylen - 3)
 				return -ENOSPC;
-			sprintf(body+len, "%%%02x", *opt);
+			sprintf(body+len, "%%%02x", (unsigned char)*opt);
 			len += 3;
 		}
 		opt++;
@@ -82,7 +82,7 @@ static int append_opt(char *body, int bodylen, char *opt, char *name)
 		} else {
 			if (len >= bodylen - 3)
 				return -ENOSPC;
-			sprintf(body+len, "%%%02X", *name);
+			sprintf(body+len, "%%%02x", (unsigned char)*name);
 			len += 3;
 		}
 		name++;
