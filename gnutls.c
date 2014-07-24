@@ -2017,6 +2017,10 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	vpn_progress(vpninfo, PRG_INFO, _("SSL negotiation with %s\n"),
 		     vpninfo->hostname);
 
+#ifdef GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT
+	gnutls_handshake_set_timeout(vpninfo->https_sess,
+				     GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
+#endif
 
 	err = cstp_handshake(vpninfo, 1);
 	if (err)
