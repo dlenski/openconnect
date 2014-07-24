@@ -59,8 +59,8 @@ typedef intptr_t (tap_callback)(struct openconnect_info *vpninfo, char *idx, cha
 static intptr_t search_taps(struct openconnect_info *vpninfo, tap_callback *cb, int all)
 {
 	LONG status;
-	HKEY adapters_key;
-	DWORD len;
+	HKEY adapters_key, hkey;
+	DWORD len, type;
 	char buf[40], name[40];
 	char keyname[strlen(CONNECTIONS_KEY) + sizeof(buf) + 1 + strlen("\\Connection")];
 	int i = 0, found = 0;
@@ -86,27 +86,39 @@ static intptr_t search_taps(struct openconnect_info *vpninfo, tap_callback *cb, 
 		snprintf(keyname, sizeof(keyname), "%s\\%s",
 			 ADAPTERS_KEY, buf);
 
-		len = sizeof(buf);
-		status = RegGetValue(HKEY_LOCAL_MACHINE, keyname,
-				     "ComponentId", RRF_RT_REG_SZ,
-				     NULL, buf, &len);
-		if (status || strcmp(buf, TAP_COMPONENT_ID))
+		status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyname, 0,
+				      KEY_QUERY_VALUE, &hkey);
+		if (status)
 			continue;
 
 		len = sizeof(buf);
-		status = RegGetValue(HKEY_LOCAL_MACHINE, keyname,
-				     "NetCfgInstanceId", RRF_RT_REG_SZ,
-				     NULL, buf, &len);
-		if (status)
+		status = RegQueryValueEx(hkey, "ComponentId", NULL, &type,
+					 (unsigned char *)buf, &len);
+		if (status || type != REG_SZ || strcmp(buf, TAP_COMPONENT_ID)) {
+			RegCloseKey(hkey);
+			continue;
+		}
+
+		len = sizeof(buf);
+		status = RegQueryValueEx(hkey, "NetCfgInstanceId", NULL,
+					 &type, (unsigned char *)buf, &len);
+		RegCloseKey(hkey);
+		if (status || type != REG_SZ)
 			continue;
 
 		snprintf(keyname, sizeof(keyname), "%s\\%s\\Connection",
 			 CONNECTIONS_KEY, buf);
 
-		len = sizeof(name);
-		status = RegGetValue(HKEY_LOCAL_MACHINE, keyname, "Name",
-				     RRF_RT_REG_SZ, NULL, name, &len);
+		status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyname, 0,
+				      KEY_QUERY_VALUE, &hkey);
 		if (status)
+			continue;
+
+		len = sizeof(name);
+		status = RegQueryValueEx(hkey, "Name", NULL, &type,
+					 (unsigned char *)name, &len);
+		RegCloseKey(hkey);
+		if (status || type != REG_SZ)
 			continue;
 
 		found++;
