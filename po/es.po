@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2014-07-08 15:48+0100\n"
+"POT-Creation-Date: 2014-07-24 16:09+0100\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Spanish (Castilian) (http://www.transifex.net/projects/p/"
 "meego/language/es/)\n"
@@ -1136,93 +1136,93 @@ msgstr "Introduzca el PIN de la clave TPM:"
 msgid "Failed to set key PIN: %s\n"
 msgstr "Falló al establecer el PIN de la clave: %s\n"
 
-#: gssapi.c:70
+#: gssapi.c:73
 msgid "Error importing GSSAPI name for authentication:\n"
 msgstr "Error al importar el nombre GSSAPI para la autenticación:\n"
 
-#: gssapi.c:113
+#: gssapi.c:121
 msgid "Error generating GSSAPI response:\n"
 msgstr "Error al generar la respuesta GSSAPI\n"
 
-#: gssapi.c:128
+#: gssapi.c:137
 msgid "Attempting GSSAPI authentication to proxy\n"
 msgstr "Intentando la autenticación GSSAPI en el proxy\n"
 
-#: gssapi.c:171 sspi.c:168
+#: gssapi.c:181 sspi.c:168
 msgid "GSSAPI authentication completed\n"
 msgstr "Autenticación GSSAPI completada\n"
 
-#: gssapi.c:182
+#: gssapi.c:192
 #, c-format
 msgid "GSSAPI token too large (%zd bytes)\n"
 msgstr "Testigo GSSAPI demasiado largo (%zd bytes)\n"
 
-#: gssapi.c:196
+#: gssapi.c:206
 #, c-format
 msgid "Sending GSSAPI token of %zu bytes\n"
 msgstr "Enviando testigo GSSAPI de %zu bytes\n"
 
-#: gssapi.c:201
+#: gssapi.c:211
 #, c-format
 msgid "Failed to send GSSAPI authentication token to proxy: %s\n"
 msgstr "Falló al enviar el testigo de autenticación GSSAPI al proxy: %s\n"
 
-#: gssapi.c:209 gssapi.c:229
+#: gssapi.c:219 gssapi.c:239
 #, c-format
 msgid "Failed to receive GSSAPI authentication token from proxy: %s\n"
 msgstr "Falló al recibir el testigo de autenticación GSSAPI del proxy: %s\n"
 
-#: gssapi.c:215
+#: gssapi.c:225
 msgid "SOCKS server reported GSSAPI context failure\n"
 msgstr "El servidor SOCKS ha informado de un fallo de contexto de GSSAPI\n"
 
-#: gssapi.c:219
+#: gssapi.c:229
 #, c-format
 msgid "Unknown GSSAPI status response (0x%02x) from SOCKS server\n"
 msgstr "Respuesta de estado GSSAPI desconocida (0x%02x) del servidor SOCKS\n"
 
-#: gssapi.c:233
+#: gssapi.c:243
 #, c-format
 msgid "Got GSSAPI token of %zu bytes: %02x %02x %02x %02x\n"
 msgstr "Obtenido el testigo GSSAPI de %zu bytes:  %02x %02x %02x %02x\n"
 
-#: gssapi.c:260
+#: gssapi.c:270
 #, c-format
 msgid "Sending GSSAPI protection negotiation of %zu bytes\n"
 msgstr "Enviando negociación de protección GSSAPI de %zu bytes\n"
 
-#: gssapi.c:265
+#: gssapi.c:275
 #, c-format
 msgid "Failed to send GSSAPI protection response to proxy: %s\n"
 msgstr "Falló al enviar la respuesta de protección GSSAPI al proxy %s\n"
 
-#: gssapi.c:273 gssapi.c:283
+#: gssapi.c:283 gssapi.c:293
 #, c-format
 msgid "Failed to receive GSSAPI protection response from proxy: %s\n"
 msgstr "Falló al recibir la respuesta de protección GSSAPI al proxy %s\n"
 
-#: gssapi.c:288
+#: gssapi.c:298
 #, c-format
 msgid "Got GSSAPI protection response of %zu bytes: %02x %02x %02x %02x\n"
 msgstr ""
 "Obtenida la espuesta de protección GSSAPI de %zu bytes: %02x %02x %02x %02x\n"
 
-#: gssapi.c:298
+#: gssapi.c:308
 #, c-format
 msgid "Invalid GSSAPI protection response from proxy (%zu bytes)\n"
 msgstr "Respuesta de protección GSSAPI no válida del proxy (%zu bytes)\n"
 
-#: gssapi.c:307 sspi.c:377
+#: gssapi.c:317 sspi.c:377
 msgid "SOCKS proxy demands message integrity, which is not supported\n"
 msgstr ""
 "El proxy SOCKS solicita integridad del mensaje, que no está soportada\n"
 
-#: gssapi.c:311 sspi.c:381
+#: gssapi.c:321 sspi.c:381
 msgid "SOCKS proxy demands message confidentiality, which is not supported\n"
 msgstr ""
 "El proxy SOCKS solicita confidencialidad del mensaje, que no está soportada\n"
 
-#: gssapi.c:315 sspi.c:385
+#: gssapi.c:325 sspi.c:385
 #, c-format
 msgid "SOCKS proxy demands protection unknown type 0x%02x\n"
 msgstr "El servidor SOCKS solicita un tipo de protección 0x%02x desconocido\n"
@@ -1401,194 +1401,198 @@ msgid "Allocating new path for relative redirect failed: %s\n"
 msgstr ""
 "Asignando una nueva ruta para el redireccionamiento relativo fallido: %s\n"
 
-#: http.c:998
+#: http.c:1002
 #, c-format
 msgid "Unexpected %d result from server\n"
 msgstr "Resultado %d del servidor inesperado\n"
 
-#: http.c:1024
+#: http.c:1028
 msgid "Unknown response from server\n"
 msgstr "Respuesta desconocida del servidor\n"
 
-#: http.c:1142
+#: http.c:1146
 msgid "Server requested SSL client certificate after one was provided\n"
 msgstr ""
 "El servidor solicitó el certificado SSL del cliente tras proporcionarle uno\n"
 
-#: http.c:1146
+#: http.c:1150
 msgid "Server requested SSL client certificate; none was configured\n"
 msgstr ""
 "El servidor solicitó el certificado SSL del cliente; no se ha configurado "
 "ninguno\n"
 
-#: http.c:1161
+#: http.c:1165
 msgid "XML POST enabled\n"
 msgstr "POST XML activado\n"
 
-#: http.c:1207
+#: http.c:1211
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
 msgstr "Actualizando %s tras 1 segundo…\n"
 
-#: http.c:1422
+#: http.c:1426
 msgid "request granted"
 msgstr "petición concedida"
 
-#: http.c:1423
+#: http.c:1427
 msgid "general failure"
 msgstr "fallo general"
 
-#: http.c:1424
+#: http.c:1428
 msgid "connection not allowed by ruleset"
 msgstr "conexión no permitida por el conjunto de reglas"
 
-#: http.c:1425
+#: http.c:1429
 msgid "network unreachable"
 msgstr "red inaccesible"
 
-#: http.c:1426
+#: http.c:1430
 msgid "host unreachable"
 msgstr "servidor inaccesible"
 
-#: http.c:1427
+#: http.c:1431
 msgid "connection refused by destination host"
 msgstr "conexión rechazada por el servidor de destino"
 
-#: http.c:1428
+#: http.c:1432
 msgid "TTL expired"
 msgstr "TTL caducado"
 
-#: http.c:1429
+#: http.c:1433
 msgid "command not supported / protocol error"
 msgstr "comando no soportado / error de protocolo"
 
-#: http.c:1430
+#: http.c:1434
 msgid "address type not supported"
 msgstr "tipo de dirección no soportada"
 
-#: http.c:1440
+#: http.c:1444
 msgid "SOCKS server requested username/password but we have none\n"
 msgstr ""
 "El servidor SOCKS requiere un nombre de usuario y una contraseña, pero no "
 "hay ninguno\n"
 
-#: http.c:1448
+#: http.c:1452
 msgid "Username and password for SOCKS authentication must be < 255 bytes\n"
 msgstr ""
 "El nombre de usuario y la contraseña para la autenticación SOCKS deben ser < "
 "255 bytes\n"
 
-#: http.c:1463 http.c:1519
+#: http.c:1467 http.c:1523
 #, c-format
 msgid "Error writing auth request to SOCKS proxy: %s\n"
 msgstr "Error al escribir petición auth al proxy SOCKS: %s\n"
 
-#: http.c:1471 http.c:1526
+#: http.c:1475 http.c:1530
 #, c-format
 msgid "Error reading auth response from SOCKS proxy: %s\n"
 msgstr "Error al leer respuesta auth desde el proxy SOCKS: %s\n"
 
-#: http.c:1478 http.c:1532
+#: http.c:1482 http.c:1536
 #, c-format
 msgid "Unexpected auth response from SOCKS proxy: %02x %02x\n"
 msgstr "Respuesta auth inesperada desde el proxy SOCKS: %02x %02x\n"
 
-#: http.c:1484
+#: http.c:1488
 msgid "Authenticated to SOCKS server using password\n"
 msgstr "Autenticado en el servidor SOCKS usando una contraseña\n"
 
-#: http.c:1488
+#: http.c:1492
 msgid "Password authentication to SOCKS server failed\n"
 msgstr "Falló la autenticación con contraseña en el servidor SOCKS\n"
 
-#: http.c:1544 http.c:1551
+#: http.c:1548 http.c:1555
 msgid "SOCKS server requested GSSAPI authentication\n"
 msgstr "El servidor SOCKS ha solicitado autenticación GSSAPI\n"
 
-#: http.c:1557
+#: http.c:1561
 msgid "SOCKS server requested password authentication\n"
 msgstr "El servidor SOCKS solicita autenticación por contraseña\n"
 
-#: http.c:1564
+#: http.c:1568
 msgid "SOCKS server requires authentication\n"
 msgstr "El servidor SOCKS requiere autenticación\n"
 
-#: http.c:1569
+#: http.c:1570 http.c:1810
+msgid "This version of OpenConnect was built without GSSAPI support\n"
+msgstr "Esta versión de OpenConnect se compiló sin soporte GSSAPI\n"
+
+#: http.c:1575
 #, c-format
 msgid "SOCKS server requested unknown authentication type %02x\n"
 msgstr ""
 "El servidor SOCKS ha solicitado una autenticación de tipo %02x desconocida\n"
 
-#: http.c:1575
+#: http.c:1581
 #, c-format
 msgid "Requesting SOCKS proxy connection to %s:%d\n"
 msgstr "Solicitando conexión al proxy SOCKS a %s:%d\n"
 
-#: http.c:1590
+#: http.c:1596
 #, c-format
 msgid "Error writing connect request to SOCKS proxy: %s\n"
 msgstr "Error al escribir la petición de conectar al proxy SOCKS: %s\n"
 
-#: http.c:1598 http.c:1640
+#: http.c:1604 http.c:1646
 #, c-format
 msgid "Error reading connect response from SOCKS proxy: %s\n"
 msgstr "Error al leer la respuesta de conexión desde el proxy SOCKS: %s\n"
 
-#: http.c:1604
+#: http.c:1610
 #, c-format
 msgid "Unexpected connect response from SOCKS proxy: %02x %02x...\n"
 msgstr "Respuesta de conexión inesperada desde el proxy SOCKS: %02x %02x…\n"
 
-#: http.c:1612
+#: http.c:1618
 #, c-format
 msgid "SOCKS proxy error %02x: %s\n"
 msgstr "Error del proxy SOCKS %02x: %s\n"
 
-#: http.c:1616
+#: http.c:1622
 #, c-format
 msgid "SOCKS proxy error %02x\n"
 msgstr "Error del proxy SOCKS %02x\n"
 
-#: http.c:1633
+#: http.c:1639
 #, c-format
 msgid "Unexpected address type %02x in SOCKS connect response\n"
 msgstr "Tipo de dirección inesperado %02x en la respuesta de conexión SOCKS\n"
 
-#: http.c:1770
+#: http.c:1778
 msgid "Proxy requested Basic authentication which is disabled by default\n"
 msgstr ""
 "El proxy ha solicitado autenticación básica, que está desactivada de manera "
 "predeterminada\n"
 
-#: http.c:1792
+#: http.c:1800
 msgid "Attempting HTTP Basic authentication to proxy\n"
 msgstr "Intentando la autenticación HTTP Bacis en el proxy\n"
 
-#: http.c:1825
+#: http.c:1857
 msgid "No more authentication methods to try\n"
 msgstr "No hay más métodos de autenticación que usar\n"
 
-#: http.c:1897
+#: http.c:1943
 #, c-format
 msgid "Requesting HTTP proxy connection to %s:%d\n"
 msgstr "Solicitando conexión HTTP proxy a %s:%d\n"
 
-#: http.c:1933
+#: http.c:1979
 #, c-format
 msgid "Sending proxy request failed: %s\n"
 msgstr "Falló al enviar petición de proxy: %s\n"
 
-#: http.c:1956
+#: http.c:2006
 #, c-format
 msgid "Proxy CONNECT request failed: %d\n"
 msgstr "Falló la petición CONNECT del proxy: %d\n"
 
-#: http.c:1975
+#: http.c:2033
 #, c-format
 msgid "Unknown proxy type '%s'\n"
 msgstr "Tipo de proxy desconocido '%s'\n"
 
-#: http.c:2050
+#: http.c:2109
 msgid "Only http or socks(5) proxies supported\n"
 msgstr "Sólo se soportan proxies HTTP o socks(5)\n"
 
@@ -2216,7 +2220,7 @@ msgid "Attempting HTTP NTLM authentication to proxy (single-sign-on)\n"
 msgstr ""
 "Intentando la autenticación HTTP NTLM en el proxy (inicio de sesión único)\n"
 
-#: ntlm.c:1061
+#: ntlm.c:1062
 #, c-format
 msgid "Attempting HTTP NTLMv%d authentication to proxy\n"
 msgstr "Intentando la autenticación HTTP NTLM %d en el proxy\n"
@@ -2453,250 +2457,251 @@ msgstr "Falló al reconectar al proxy %s\n"
 msgid "Failed to reconnect to host %s\n"
 msgstr "Falló al reconectar al servidor %s\n"
 
-#: ssl.c:200
+#: ssl.c:203
 #, c-format
 msgid "Proxy from libproxy: %s://%s:%d/\n"
 msgstr "Proxy de libproxy: %s://%s:%d/\n"
 
-#: ssl.c:223
+#: ssl.c:228
 #, c-format
 msgid "getaddrinfo failed for host '%s': %s\n"
 msgstr "getaddrinfo falló para el servidor '%s':%s\n"
 
-#: ssl.c:239
+#: ssl.c:245
 #, c-format
 msgid "Attempting to connect to proxy %s%s%s:%s\n"
 msgstr "Intentando conectar al proxy %s%s%s:%s\n"
 
-#: ssl.c:240
+#: ssl.c:246
 #, c-format
 msgid "Attempting to connect to server %s%s%s:%s\n"
 msgstr "Intentando conectar al servidor %s%s%s:%s\n"
 
-#: ssl.c:257
+#: ssl.c:263
 msgid "Failed to allocate sockaddr storage\n"
 msgstr "Falló al asignar la dirección del socket del almacenamiento\n"
 
-#: ssl.c:289
+#: ssl.c:296
 #, c-format
 msgid "Failed to connect to host %s\n"
 msgstr "Falló al conectar al servidor %s\n"
 
-#: ssl.c:302
+#: ssl.c:310
 #, c-format
 msgid "Reconnecting to proxy %s\n"
 msgstr "Reconectando al proxy %s\n"
 
-#: ssl.c:367
+#: ssl.c:378
 #, c-format
 msgid "statvfs: %s\n"
 msgstr "statvfs: %s\n"
 
-#: ssl.c:409
+#: ssl.c:420
 #, c-format
 msgid "statfs: %s\n"
 msgstr "statfs: %s\n"
 
-#: ssl.c:490
+#: ssl.c:501
 msgid "No error"
 msgstr "Sin errores"
 
-#: ssl.c:491
+#: ssl.c:502
 msgid "Keystore locked"
 msgstr "Almacén de claves bloqueado"
 
-#: ssl.c:492
+#: ssl.c:503
 msgid "Keystore uninitialized"
 msgstr "Almacén de claves no inicializado"
 
-#: ssl.c:493
+#: ssl.c:504
 msgid "System error"
 msgstr "Error del sistema"
 
-#: ssl.c:494
+#: ssl.c:505
 msgid "Protocol error"
 msgstr "Error de protocolo"
 
-#: ssl.c:495
+#: ssl.c:506
 msgid "Permission denied"
 msgstr "Permiso denegado"
 
-#: ssl.c:496
+#: ssl.c:507
 msgid "Key not found"
 msgstr "Clave no encontrada"
 
-#: ssl.c:497
+#: ssl.c:508
 msgid "Value corrupted"
 msgstr "Valor corrupto"
 
-#: ssl.c:498
+#: ssl.c:509
 msgid "Undefined action"
 msgstr "Acción no definida"
 
-#: ssl.c:502
+#: ssl.c:513
 msgid "Wrong password"
 msgstr "Contraseña errónea"
 
-#: ssl.c:503
+#: ssl.c:514
 msgid "Unknown error"
 msgstr "Error desconocido"
 
 #: sspi.c:180
 #, c-format
 msgid "SSPI token too large (%ld bytes)\n"
-msgstr ""
+msgstr "Testigo SSPI demasiado largo (%ld bytes)\n"
 
 #: sspi.c:194
 #, c-format
 msgid "Sending SSPI token of %lu bytes\n"
-msgstr ""
+msgstr "Enviando testigo SSPI de %lu bytes\n"
 
 #: sspi.c:199
 #, c-format
 msgid "Failed to send SSPI authentication token to proxy: %s\n"
-msgstr ""
+msgstr "Falló al enviar el testigo de autenticación SSPI al proxy: %s\n"
 
 #: sspi.c:207 sspi.c:228
 #, c-format
 msgid "Failed to receive SSPI authentication token from proxy: %s\n"
-msgstr ""
+msgstr "Falló al recibir el testigo de autenticación SSPI del proxy: %s\n"
 
 #: sspi.c:213
 msgid "SOCKS server reported SSPI context failure\n"
-msgstr ""
+msgstr "El servidor SOCKS ha informado de un fallo de contexto de SSPI\n"
 
 #: sspi.c:217
 #, c-format
 msgid "Unknown SSPI status response (0x%02x) from SOCKS server\n"
-msgstr ""
+msgstr "Respuesta de estado SSPI desconocida (0x%02x) del servidor SOCKS\n"
 
 #: sspi.c:232
 #, c-format
 msgid "Got SSPI token of %lu bytes: %02x %02x %02x %02x\n"
-msgstr ""
+msgstr "Obtenido el testigo SSPI de %lu bytes:  %02x %02x %02x %02x\n"
 
 #: sspi.c:248
 #, c-format
 msgid "QueryContextAttributes() failed: %lx\n"
-msgstr ""
+msgstr "Falló QueryContextAttributes(): %lx\n"
 
 #: sspi.c:284
 #, c-format
 msgid "EncryptMessage() failed: %lx\n"
-msgstr ""
+msgstr "Falló EncryptMessage(): %lx\n"
 
 #: sspi.c:296
 #, c-format
 msgid "EncryptMessage() result too large (%lu + %lu + %lu)\n"
-msgstr ""
+msgstr "Resultado de EncryptMessage() demasiado largo (%lu + %lu + %lu)\n"
 
 #: sspi.c:318
 #, c-format
 msgid "Sending SSPI protection negotiation of %u bytes\n"
-msgstr ""
+msgstr "Enviando negociación de protección SSPI de %u bytes\n"
 
 #: sspi.c:323
 #, c-format
 msgid "Failed to send SSPI protection response to proxy: %s\n"
-msgstr ""
+msgstr "Falló al enviar la respuesta de protección SSPI al proxy %s\n"
 
 #: sspi.c:331 sspi.c:341
 #, c-format
 msgid "Failed to receive SSPI protection response from proxy: %s\n"
-msgstr ""
+msgstr "Falló al recibir la respuesta de protección SSPI al proxy %s\n"
 
 #: sspi.c:346
 #, c-format
 msgid "Got SSPI protection response of %d bytes: %02x %02x %02x %02x\n"
 msgstr ""
+"Obtenida la respuesta de protección SSPI de %d bytes: %02x %02x %02x %02x\n"
 
 #: sspi.c:362
 #, c-format
 msgid "DecryptMessage failed: %lx\n"
-msgstr ""
+msgstr "Falló DecryptMessage: %lx\n"
 
 #: sspi.c:367
 #, c-format
 msgid "Invalid SSPI protection response from proxy (%lu bytes)\n"
-msgstr ""
+msgstr "Respuesta de protección SSPI no válida del proxy (%lu bytes)\n"
 
 #: tun-win32.c:73
 msgid "Error accessing registry key for network adapters\n"
 msgstr "Error al acceder a la clave del registro para adaptadores de red\n"
 
-#: tun-win32.c:116
+#: tun-win32.c:128
 #, c-format
 msgid "Ignoring non-matching TAP interface \"%s\""
 msgstr "Ignorando la interfaz TAP que no coincide «%s»"
 
-#: tun-win32.c:130
+#: tun-win32.c:142
 msgid "No Windows-TAP adapters found. Is the driver installed?\n"
 msgstr ""
 "No se han encontrado adaptadores TAP de Windows. ¿Está instalado el "
 "controlador?\n"
 
-#: tun-win32.c:148
+#: tun-win32.c:160
 #, c-format
 msgid "Failed to open %s\n"
 msgstr "Falló al abrir: %s\n"
 
-#: tun-win32.c:153
+#: tun-win32.c:165
 #, c-format
 msgid "Opened tun device %s\n"
 msgstr "Dispositivo TUN %s abierto\n"
 
-#: tun-win32.c:160
+#: tun-win32.c:172
 #, c-format
 msgid "Failed to obtain TAP driver version: %lx\n"
 msgstr "Falló al obtener la versión del driver TAP: %lx\n"
 
-#: tun-win32.c:165
+#: tun-win32.c:177
 #, c-format
 msgid "Error: TAP-Windows driver v9.9 or greater is required (found %ld.%ld)\n"
 msgstr ""
 "Error: se necesita la versión 9.9 o superior del controlador TAP de Windows "
 "(encontrada la %ld.%ld)\n"
 
-#: tun-win32.c:181
+#: tun-win32.c:193
 #, c-format
 msgid "Failed to set TAP IP addresses: %lx\n"
 msgstr "Falló al establecer las direcciones IP TAP: %lx\n"
 
-#: tun-win32.c:191
+#: tun-win32.c:203
 #, c-format
 msgid "Failed to set TAP media status: %lx\n"
 msgstr "Falló al establecer el estado del medio TAP: %lx\n"
 
-#: tun-win32.c:219
+#: tun-win32.c:231
 #, c-format
 msgid "Failed to read from TAP device: %lx\n"
 msgstr "Falló al leer del dispositivo TAP: %lx\n"
 
-#: tun-win32.c:230
+#: tun-win32.c:242
 #, c-format
 msgid "Failed to complete read from TAP device: %lx\n"
 msgstr "Falló al completar la lectura del dispositivo TAP: %lx\n"
 
-#: tun-win32.c:251
+#: tun-win32.c:263
 #, c-format
 msgid "Wrote %ld bytes to tun\n"
 msgstr "Escritos %ld bytes en tun\n"
 
-#: tun-win32.c:261
+#: tun-win32.c:273
 msgid "Waiting for tun write...\n"
 msgstr "Esperando la escritura de TUN...\n"
 
-#: tun-win32.c:264
+#: tun-win32.c:276
 #, c-format
 msgid "Wrote %ld bytes to tun after waiting\n"
 msgstr "Escritos %ld bytes en TUN después de esperar\n"
 
-#: tun-win32.c:270
+#: tun-win32.c:282
 #, c-format
 msgid "Failed to write to TAP device: %lx\n"
 msgstr "Falló al escribir en el dispositivo TAP: %lx\n"
 
-#: tun-win32.c:295
+#: tun-win32.c:307
 msgid "Spawning tunnel scripts is not yet supported on Windows\n"
 msgstr "Windows todavía no soporta la generación de scripts del túnel\n"
 
