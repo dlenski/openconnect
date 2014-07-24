@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2014-07-21 18:54+0100\n"
+"POT-Creation-Date: 2014-07-24 16:09+0100\n"
 "PO-Revision-Date: 2013-01-18 22:04+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Portuguese (Brazil) <l10n-pt-br@meego.org.br>\n"
@@ -1130,93 +1130,93 @@ msgstr "Digite o PIN da chave TPM:"
 msgid "Failed to set key PIN: %s\n"
 msgstr "Falhou ao definir o PIN de chave: %s\n"
 
-#: gssapi.c:70
+#: gssapi.c:73
 msgid "Error importing GSSAPI name for authentication:\n"
 msgstr "Erro ao importar nome GSSAPI para autenticação:\n"
 
-#: gssapi.c:114
+#: gssapi.c:121
 msgid "Error generating GSSAPI response:\n"
 msgstr "Erro ao gerar resposta GSSAPI:\n"
 
-#: gssapi.c:129
+#: gssapi.c:137
 msgid "Attempting GSSAPI authentication to proxy\n"
 msgstr "Tentando autenticação GSSAPI ao proxy\n"
 
-#: gssapi.c:172 sspi.c:168
+#: gssapi.c:181 sspi.c:168
 msgid "GSSAPI authentication completed\n"
 msgstr "Autenticação GSSAPI concluída\n"
 
-#: gssapi.c:183
+#: gssapi.c:192
 #, c-format
 msgid "GSSAPI token too large (%zd bytes)\n"
 msgstr "Token GSSAPI muito grande (%zd bytes)\n"
 
-#: gssapi.c:197
+#: gssapi.c:206
 #, c-format
 msgid "Sending GSSAPI token of %zu bytes\n"
 msgstr "Enviando token GSSPAI de %zu bytes\n"
 
-#: gssapi.c:202
+#: gssapi.c:211
 #, c-format
 msgid "Failed to send GSSAPI authentication token to proxy: %s\n"
 msgstr "Falhou ao enviar autenticação GSSAPI para o proxy: %s\n"
 
-#: gssapi.c:210 gssapi.c:230
+#: gssapi.c:219 gssapi.c:239
 #, c-format
 msgid "Failed to receive GSSAPI authentication token from proxy: %s\n"
 msgstr "Falhou ao receber o token de autenticação GSSAPI do proxy %s\n"
 
-#: gssapi.c:216
+#: gssapi.c:225
 msgid "SOCKS server reported GSSAPI context failure\n"
 msgstr "O servidor SOCKS relatou falha de contexto GSSAPI\n"
 
-#: gssapi.c:220
+#: gssapi.c:229
 #, c-format
 msgid "Unknown GSSAPI status response (0x%02x) from SOCKS server\n"
 msgstr "Resposta de status GSSPI desconhecido (0x%02x) do servidor SOCKS\n"
 
-#: gssapi.c:234
+#: gssapi.c:243
 #, c-format
 msgid "Got GSSAPI token of %zu bytes: %02x %02x %02x %02x\n"
 msgstr "Obteve token GSSAPI de %zu bytes: %02x %02x %02x %02x\n"
 
-#: gssapi.c:261
+#: gssapi.c:270
 #, c-format
 msgid "Sending GSSAPI protection negotiation of %zu bytes\n"
 msgstr "Enviando negociação de proteção GSSAPI de %zu bytes\n"
 
-#: gssapi.c:266
+#: gssapi.c:275
 #, c-format
 msgid "Failed to send GSSAPI protection response to proxy: %s\n"
 msgstr "Falhou ao enviar resposta de proteção GSSAPI ao proxy %s\n"
 
-#: gssapi.c:274 gssapi.c:284
+#: gssapi.c:283 gssapi.c:293
 #, c-format
 msgid "Failed to receive GSSAPI protection response from proxy: %s\n"
 msgstr "Falhou ao receber resposta de proteção GSSAPI do proxy %s\n"
 
-#: gssapi.c:289
+#: gssapi.c:298
 #, c-format
 msgid "Got GSSAPI protection response of %zu bytes: %02x %02x %02x %02x\n"
 msgstr "Obteve resposta de proteção GSSAPI de %zu bytes: %02x %02x %02x %02x\n"
 
-#: gssapi.c:299
+#: gssapi.c:308
 #, c-format
 msgid "Invalid GSSAPI protection response from proxy (%zu bytes)\n"
 msgstr "Resposta de proteção GSSAPI inválida do proxy (%zu bytes)\n"
 
-#: gssapi.c:308 sspi.c:377
+#: gssapi.c:317 sspi.c:377
 msgid "SOCKS proxy demands message integrity, which is not supported\n"
 msgstr ""
 "O proxy SOCKS demanda uma integridade de mensagem, o que não é suportado\n"
 
-#: gssapi.c:312 sspi.c:381
+#: gssapi.c:321 sspi.c:381
 msgid "SOCKS proxy demands message confidentiality, which is not supported\n"
 msgstr ""
 "O proxy SOCKS demanda uma confidencialidade de mensagem, o que não é "
 "suportado\n"
 
-#: gssapi.c:316 sspi.c:385
+#: gssapi.c:325 sspi.c:385
 #, c-format
 msgid "SOCKS proxy demands protection unknown type 0x%02x\n"
 msgstr "O proxy SOCKS demanda um tipo de proteção desconhecida 0x%02x\n"
@@ -1555,31 +1555,31 @@ msgstr ""
 msgid "Attempting HTTP Basic authentication to proxy\n"
 msgstr "Tentando autenticação Básica de HTTP para o proxy\n"
 
-#: http.c:1847
+#: http.c:1857
 msgid "No more authentication methods to try\n"
 msgstr "Sem mais métodos de autenticação para tentar\n"
 
-#: http.c:1933
+#: http.c:1943
 #, c-format
 msgid "Requesting HTTP proxy connection to %s:%d\n"
 msgstr "Requisitando conexão proxy HTTP para %s:%d\n"
 
-#: http.c:1969
+#: http.c:1979
 #, c-format
 msgid "Sending proxy request failed: %s\n"
 msgstr "Envio de requisição proxy falhou: %s\n"
 
-#: http.c:1996
+#: http.c:2006
 #, c-format
 msgid "Proxy CONNECT request failed: %d\n"
 msgstr "Requisição de proxy CONNECT falhou: %d\n"
 
-#: http.c:2023
+#: http.c:2033
 #, c-format
 msgid "Unknown proxy type '%s'\n"
 msgstr "Tipo de proxy desconhecido \"%s\"\n"
 
-#: http.c:2099
+#: http.c:2109
 msgid "Only http or socks(5) proxies supported\n"
 msgstr "Somente proxy http ou socks(5) são suportados\n"
 
@@ -2611,77 +2611,77 @@ msgstr "Resposta de proteção SSPI inválida do proxy (%lu bytes)\n"
 msgid "Error accessing registry key for network adapters\n"
 msgstr "Erro ao acessar chave de registro de adaptadores de rede\n"
 
-#: tun-win32.c:116
+#: tun-win32.c:128
 #, c-format
 msgid "Ignoring non-matching TAP interface \"%s\""
 msgstr "Ignorando interface TAP não correspondente \"%s\""
 
-#: tun-win32.c:130
+#: tun-win32.c:142
 msgid "No Windows-TAP adapters found. Is the driver installed?\n"
 msgstr "Nenhum adaptador TAP do Windows encontrado. O driver está instalado?\n"
 
-#: tun-win32.c:148
+#: tun-win32.c:160
 #, c-format
 msgid "Failed to open %s\n"
 msgstr "Falha ao abrir %s\n"
 
-#: tun-win32.c:153
+#: tun-win32.c:165
 #, c-format
 msgid "Opened tun device %s\n"
 msgstr "Abriu dispositivo tun %s\n"
 
-#: tun-win32.c:160
+#: tun-win32.c:172
 #, c-format
 msgid "Failed to obtain TAP driver version: %lx\n"
 msgstr "Falha ao obter versão do driver TAP: %lx\n"
 
-#: tun-win32.c:165
+#: tun-win32.c:177
 #, c-format
 msgid "Error: TAP-Windows driver v9.9 or greater is required (found %ld.%ld)\n"
 msgstr ""
 "Erro: Driver de TAP do Windows versão v9.9 ou mais recente é necessário "
 "(encontrou %ld.%ld)\n"
 
-#: tun-win32.c:181
+#: tun-win32.c:193
 #, c-format
 msgid "Failed to set TAP IP addresses: %lx\n"
 msgstr "Falha ao definir endereços IP TAP: %lx\n"
 
-#: tun-win32.c:191
+#: tun-win32.c:203
 #, c-format
 msgid "Failed to set TAP media status: %lx\n"
 msgstr "Falha ao definir status de mídia TAP: %lx\n"
 
-#: tun-win32.c:219
+#: tun-win32.c:231
 #, c-format
 msgid "Failed to read from TAP device: %lx\n"
 msgstr "Falha ao ler do dispositivo TAP: %lx\n"
 
-#: tun-win32.c:230
+#: tun-win32.c:242
 #, c-format
 msgid "Failed to complete read from TAP device: %lx\n"
 msgstr "Falha ao completar leitura do dispositivo TAP: %lx\n"
 
-#: tun-win32.c:251
+#: tun-win32.c:263
 #, c-format
 msgid "Wrote %ld bytes to tun\n"
 msgstr "Escreveu %ld bytes para tun\n"
 
-#: tun-win32.c:261
+#: tun-win32.c:273
 msgid "Waiting for tun write...\n"
 msgstr "Esperando o tun escrever...\n"
 
-#: tun-win32.c:264
+#: tun-win32.c:276
 #, c-format
 msgid "Wrote %ld bytes to tun after waiting\n"
 msgstr "Escreveu %ld bytes para tun após espera\n"
 
-#: tun-win32.c:270
+#: tun-win32.c:282
 #, c-format
 msgid "Failed to write to TAP device: %lx\n"
 msgstr "Falha ao escrever no dispositivo TAP: %lx\n"
 
-#: tun-win32.c:295
+#: tun-win32.c:307
 msgid "Spawning tunnel scripts is not yet supported on Windows\n"
 msgstr "Scripts de criação de túnel não têm suporte no Windows\n"
 

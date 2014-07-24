@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2014-07-08 15:48+0100\n"
+"POT-Creation-Date: 2014-07-24 16:09+0100\n"
 "PO-Revision-Date: 2014-02-19 09:05+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Macedonian (http://www.transifex.com/projects/p/meego/"
@@ -1114,90 +1114,90 @@ msgstr ""
 msgid "Failed to set key PIN: %s\n"
 msgstr ""
 
-#: gssapi.c:70
+#: gssapi.c:73
 msgid "Error importing GSSAPI name for authentication:\n"
 msgstr ""
 
-#: gssapi.c:113
+#: gssapi.c:121
 msgid "Error generating GSSAPI response:\n"
 msgstr ""
 
-#: gssapi.c:128
+#: gssapi.c:137
 msgid "Attempting GSSAPI authentication to proxy\n"
 msgstr ""
 
-#: gssapi.c:171 sspi.c:168
+#: gssapi.c:181 sspi.c:168
 msgid "GSSAPI authentication completed\n"
 msgstr ""
 
-#: gssapi.c:182
+#: gssapi.c:192
 #, c-format
 msgid "GSSAPI token too large (%zd bytes)\n"
 msgstr ""
 
-#: gssapi.c:196
+#: gssapi.c:206
 #, c-format
 msgid "Sending GSSAPI token of %zu bytes\n"
 msgstr ""
 
-#: gssapi.c:201
+#: gssapi.c:211
 #, c-format
 msgid "Failed to send GSSAPI authentication token to proxy: %s\n"
 msgstr ""
 
-#: gssapi.c:209 gssapi.c:229
+#: gssapi.c:219 gssapi.c:239
 #, c-format
 msgid "Failed to receive GSSAPI authentication token from proxy: %s\n"
 msgstr ""
 
-#: gssapi.c:215
+#: gssapi.c:225
 msgid "SOCKS server reported GSSAPI context failure\n"
 msgstr ""
 
-#: gssapi.c:219
+#: gssapi.c:229
 #, c-format
 msgid "Unknown GSSAPI status response (0x%02x) from SOCKS server\n"
 msgstr ""
 
-#: gssapi.c:233
+#: gssapi.c:243
 #, c-format
 msgid "Got GSSAPI token of %zu bytes: %02x %02x %02x %02x\n"
 msgstr ""
 
-#: gssapi.c:260
+#: gssapi.c:270
 #, c-format
 msgid "Sending GSSAPI protection negotiation of %zu bytes\n"
 msgstr ""
 
-#: gssapi.c:265
+#: gssapi.c:275
 #, c-format
 msgid "Failed to send GSSAPI protection response to proxy: %s\n"
 msgstr ""
 
-#: gssapi.c:273 gssapi.c:283
+#: gssapi.c:283 gssapi.c:293
 #, c-format
 msgid "Failed to receive GSSAPI protection response from proxy: %s\n"
 msgstr ""
 
-#: gssapi.c:288
+#: gssapi.c:298
 #, c-format
 msgid "Got GSSAPI protection response of %zu bytes: %02x %02x %02x %02x\n"
 msgstr ""
 
-#: gssapi.c:298
+#: gssapi.c:308
 #, c-format
 msgid "Invalid GSSAPI protection response from proxy (%zu bytes)\n"
 msgstr ""
 
-#: gssapi.c:307 sspi.c:377
+#: gssapi.c:317 sspi.c:377
 msgid "SOCKS proxy demands message integrity, which is not supported\n"
 msgstr ""
 
-#: gssapi.c:311 sspi.c:381
+#: gssapi.c:321 sspi.c:381
 msgid "SOCKS proxy demands message confidentiality, which is not supported\n"
 msgstr ""
 
-#: gssapi.c:315 sspi.c:385
+#: gssapi.c:325 sspi.c:385
 #, c-format
 msgid "SOCKS proxy demands protection unknown type 0x%02x\n"
 msgstr ""
@@ -1362,184 +1362,188 @@ msgstr ""
 msgid "Allocating new path for relative redirect failed: %s\n"
 msgstr ""
 
-#: http.c:998
+#: http.c:1002
 #, c-format
 msgid "Unexpected %d result from server\n"
 msgstr ""
 
-#: http.c:1024
+#: http.c:1028
 msgid "Unknown response from server\n"
 msgstr ""
 
-#: http.c:1142
+#: http.c:1146
 msgid "Server requested SSL client certificate after one was provided\n"
 msgstr ""
 
-#: http.c:1146
+#: http.c:1150
 msgid "Server requested SSL client certificate; none was configured\n"
 msgstr ""
 
-#: http.c:1161
+#: http.c:1165
 msgid "XML POST enabled\n"
 msgstr ""
 
-#: http.c:1207
+#: http.c:1211
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
 msgstr ""
 
-#: http.c:1422
+#: http.c:1426
 msgid "request granted"
 msgstr ""
 
-#: http.c:1423
+#: http.c:1427
 msgid "general failure"
 msgstr ""
 
-#: http.c:1424
+#: http.c:1428
 msgid "connection not allowed by ruleset"
 msgstr ""
 
-#: http.c:1425
+#: http.c:1429
 msgid "network unreachable"
 msgstr ""
 
-#: http.c:1426
+#: http.c:1430
 msgid "host unreachable"
 msgstr ""
 
-#: http.c:1427
+#: http.c:1431
 msgid "connection refused by destination host"
 msgstr ""
 
-#: http.c:1428
+#: http.c:1432
 msgid "TTL expired"
 msgstr ""
 
-#: http.c:1429
+#: http.c:1433
 msgid "command not supported / protocol error"
 msgstr ""
 
-#: http.c:1430
+#: http.c:1434
 msgid "address type not supported"
 msgstr ""
 
-#: http.c:1440
+#: http.c:1444
 msgid "SOCKS server requested username/password but we have none\n"
 msgstr ""
 
-#: http.c:1448
+#: http.c:1452
 msgid "Username and password for SOCKS authentication must be < 255 bytes\n"
 msgstr ""
 
-#: http.c:1463 http.c:1519
+#: http.c:1467 http.c:1523
 #, c-format
 msgid "Error writing auth request to SOCKS proxy: %s\n"
 msgstr ""
 
-#: http.c:1471 http.c:1526
+#: http.c:1475 http.c:1530
 #, c-format
 msgid "Error reading auth response from SOCKS proxy: %s\n"
 msgstr ""
 
-#: http.c:1478 http.c:1532
+#: http.c:1482 http.c:1536
 #, c-format
 msgid "Unexpected auth response from SOCKS proxy: %02x %02x\n"
 msgstr ""
 
-#: http.c:1484
+#: http.c:1488
 msgid "Authenticated to SOCKS server using password\n"
 msgstr ""
 
-#: http.c:1488
+#: http.c:1492
 msgid "Password authentication to SOCKS server failed\n"
 msgstr ""
 
-#: http.c:1544 http.c:1551
+#: http.c:1548 http.c:1555
 msgid "SOCKS server requested GSSAPI authentication\n"
 msgstr ""
 
-#: http.c:1557
+#: http.c:1561
 msgid "SOCKS server requested password authentication\n"
 msgstr ""
 
-#: http.c:1564
+#: http.c:1568
 msgid "SOCKS server requires authentication\n"
 msgstr ""
 
-#: http.c:1569
-#, c-format
-msgid "SOCKS server requested unknown authentication type %02x\n"
+#: http.c:1570 http.c:1810
+msgid "This version of OpenConnect was built without GSSAPI support\n"
 msgstr ""
 
 #: http.c:1575
 #, c-format
+msgid "SOCKS server requested unknown authentication type %02x\n"
+msgstr ""
+
+#: http.c:1581
+#, c-format
 msgid "Requesting SOCKS proxy connection to %s:%d\n"
 msgstr ""
 
-#: http.c:1590
+#: http.c:1596
 #, c-format
 msgid "Error writing connect request to SOCKS proxy: %s\n"
 msgstr ""
 
-#: http.c:1598 http.c:1640
+#: http.c:1604 http.c:1646
 #, c-format
 msgid "Error reading connect response from SOCKS proxy: %s\n"
 msgstr ""
 
-#: http.c:1604
+#: http.c:1610
 #, c-format
 msgid "Unexpected connect response from SOCKS proxy: %02x %02x...\n"
 msgstr ""
 
-#: http.c:1612
+#: http.c:1618
 #, c-format
 msgid "SOCKS proxy error %02x: %s\n"
 msgstr ""
 
-#: http.c:1616
+#: http.c:1622
 #, c-format
 msgid "SOCKS proxy error %02x\n"
 msgstr ""
 
-#: http.c:1633
+#: http.c:1639
 #, c-format
 msgid "Unexpected address type %02x in SOCKS connect response\n"
 msgstr ""
 
-#: http.c:1770
+#: http.c:1778
 msgid "Proxy requested Basic authentication which is disabled by default\n"
 msgstr ""
 
-#: http.c:1792
+#: http.c:1800
 msgid "Attempting HTTP Basic authentication to proxy\n"
 msgstr ""
 
-#: http.c:1825
+#: http.c:1857
 msgid "No more authentication methods to try\n"
 msgstr ""
 
-#: http.c:1897
+#: http.c:1943
 #, c-format
 msgid "Requesting HTTP proxy connection to %s:%d\n"
 msgstr ""
 
-#: http.c:1933
+#: http.c:1979
 #, c-format
 msgid "Sending proxy request failed: %s\n"
 msgstr ""
 
-#: http.c:1956
+#: http.c:2006
 #, c-format
 msgid "Proxy CONNECT request failed: %d\n"
 msgstr ""
 
-#: http.c:1975
+#: http.c:2033
 #, c-format
 msgid "Unknown proxy type '%s'\n"
 msgstr ""
 
-#: http.c:2050
+#: http.c:2109
 msgid "Only http or socks(5) proxies supported\n"
 msgstr ""
 
@@ -2147,7 +2151,7 @@ msgstr ""
 msgid "Attempting HTTP NTLM authentication to proxy (single-sign-on)\n"
 msgstr ""
 
-#: ntlm.c:1061
+#: ntlm.c:1062
 #, c-format
 msgid "Attempting HTTP NTLMv%d authentication to proxy\n"
 msgstr ""
@@ -2383,91 +2387,91 @@ msgstr ""
 msgid "Failed to reconnect to host %s\n"
 msgstr ""
 
-#: ssl.c:200
+#: ssl.c:203
 #, c-format
 msgid "Proxy from libproxy: %s://%s:%d/\n"
 msgstr ""
 
-#: ssl.c:223
+#: ssl.c:228
 #, c-format
 msgid "getaddrinfo failed for host '%s': %s\n"
 msgstr ""
 
-#: ssl.c:239
+#: ssl.c:245
 #, c-format
 msgid "Attempting to connect to proxy %s%s%s:%s\n"
 msgstr ""
 
-#: ssl.c:240
+#: ssl.c:246
 #, c-format
 msgid "Attempting to connect to server %s%s%s:%s\n"
 msgstr ""
 
-#: ssl.c:257
+#: ssl.c:263
 msgid "Failed to allocate sockaddr storage\n"
 msgstr ""
 
-#: ssl.c:289
+#: ssl.c:296
 #, c-format
 msgid "Failed to connect to host %s\n"
 msgstr ""
 
-#: ssl.c:302
+#: ssl.c:310
 #, c-format
 msgid "Reconnecting to proxy %s\n"
 msgstr ""
 
-#: ssl.c:367
+#: ssl.c:378
 #, c-format
 msgid "statvfs: %s\n"
 msgstr ""
 
-#: ssl.c:409
+#: ssl.c:420
 #, c-format
 msgid "statfs: %s\n"
 msgstr ""
 
-#: ssl.c:490
+#: ssl.c:501
 msgid "No error"
 msgstr ""
 
-#: ssl.c:491
+#: ssl.c:502
 msgid "Keystore locked"
 msgstr ""
 
-#: ssl.c:492
+#: ssl.c:503
 msgid "Keystore uninitialized"
 msgstr ""
 
-#: ssl.c:493
+#: ssl.c:504
 msgid "System error"
 msgstr ""
 
-#: ssl.c:494
+#: ssl.c:505
 msgid "Protocol error"
 msgstr ""
 
-#: ssl.c:495
+#: ssl.c:506
 msgid "Permission denied"
 msgstr ""
 
-#: ssl.c:496
+#: ssl.c:507
 msgid "Key not found"
 msgstr ""
 
-#: ssl.c:497
+#: ssl.c:508
 msgid "Value corrupted"
 msgstr ""
 
-#: ssl.c:498
+#: ssl.c:509
 msgid "Undefined action"
 msgstr ""
 
-#: ssl.c:502
+#: ssl.c:513
 msgid "Wrong password"
 msgstr ""
 
-#: ssl.c:503
+#: ssl.c:514
 msgid "Unknown error"
 msgstr ""
 
@@ -2554,75 +2558,75 @@ msgstr ""
 msgid "Error accessing registry key for network adapters\n"
 msgstr ""
 
-#: tun-win32.c:116
+#: tun-win32.c:128
 #, c-format
 msgid "Ignoring non-matching TAP interface \"%s\""
 msgstr ""
 
-#: tun-win32.c:130
+#: tun-win32.c:142
 msgid "No Windows-TAP adapters found. Is the driver installed?\n"
-msgstr ""
-
-#: tun-win32.c:148
-#, c-format
-msgid "Failed to open %s\n"
-msgstr ""
-
-#: tun-win32.c:153
-#, c-format
-msgid "Opened tun device %s\n"
 msgstr ""
 
 #: tun-win32.c:160
 #, c-format
-msgid "Failed to obtain TAP driver version: %lx\n"
+msgid "Failed to open %s\n"
 msgstr ""
 
 #: tun-win32.c:165
 #, c-format
+msgid "Opened tun device %s\n"
+msgstr ""
+
+#: tun-win32.c:172
+#, c-format
+msgid "Failed to obtain TAP driver version: %lx\n"
+msgstr ""
+
+#: tun-win32.c:177
+#, c-format
 msgid "Error: TAP-Windows driver v9.9 or greater is required (found %ld.%ld)\n"
 msgstr ""
 
-#: tun-win32.c:181
+#: tun-win32.c:193
 #, c-format
 msgid "Failed to set TAP IP addresses: %lx\n"
 msgstr ""
 
-#: tun-win32.c:191
+#: tun-win32.c:203
 #, c-format
 msgid "Failed to set TAP media status: %lx\n"
 msgstr ""
 
-#: tun-win32.c:219
+#: tun-win32.c:231
 #, c-format
 msgid "Failed to read from TAP device: %lx\n"
 msgstr ""
 
-#: tun-win32.c:230
+#: tun-win32.c:242
 #, c-format
 msgid "Failed to complete read from TAP device: %lx\n"
 msgstr ""
 
-#: tun-win32.c:251
+#: tun-win32.c:263
 #, c-format
 msgid "Wrote %ld bytes to tun\n"
 msgstr ""
 
-#: tun-win32.c:261
+#: tun-win32.c:273
 msgid "Waiting for tun write...\n"
 msgstr ""
 
-#: tun-win32.c:264
+#: tun-win32.c:276
 #, c-format
 msgid "Wrote %ld bytes to tun after waiting\n"
 msgstr ""
 
-#: tun-win32.c:270
+#: tun-win32.c:282
 #, c-format
 msgid "Failed to write to TAP device: %lx\n"
 msgstr ""
 
-#: tun-win32.c:295
+#: tun-win32.c:307
 msgid "Spawning tunnel scripts is not yet supported on Windows\n"
 msgstr ""
 
