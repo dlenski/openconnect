@@ -132,6 +132,50 @@ void buf_append_bytes(struct oc_text_buf *buf, const void *bytes, int len)
 	buf->data[buf->pos] = 0;
 }
 
+void buf_append_from_utf16le(struct oc_text_buf *buf, const void *_utf16)
+{
+	const unsigned char *utf16 = _utf16;
+	unsigned char utf8[4];
+	int c;
+
+	if (!utf16)
+		return;
+
+	while (utf16[0] || utf16[1]) {
+		if ((utf16[1] & 0xfc) == 0xd8 && (utf16[3] & 0xfc) == 0xdc) {
+			c = utf16[3] | ((utf16[4] & 3) << 8) |
+				(utf16[0] << 10) | ((utf16[1] & 3) << 18);
+			c += 0x10000;
+			utf16 += 4;
+		} else {
+			c = utf16[0] | (utf16[1] << 8);
+			utf16 += 2;
+		}
+
+		if (c < 0x80) {
+			utf8[0] = c;
+			buf_append_bytes(buf, utf8, 1);
+		} else if (c < 0x800) {
+			utf8[0] = 0xc0 | (c >> 6);
+			utf8[1] = 0x80 | (c & 0x3f);
+			buf_append_bytes(buf, utf8, 2);
+		} else if (c < 0x10000) {
+			utf8[0] = 0xe0 | (c >> 12);
+			utf8[1] = 0x80 | ((c >> 6) & 0x3f);
+			utf8[2] = 0x80 | (c & 0x3f);
+			buf_append_bytes(buf, utf8, 3);
+		} else {
+			utf8[0] = 0xf0 | (c >> 18);
+			utf8[1] = 0x80 | ((c >> 12) & 0x3f);
+			utf8[2] = 0x80 | ((c >> 6) & 0x3f);
+			utf8[3] = 0x80 | (c & 0x3f);
+			buf_append_bytes(buf, utf8, 4);
+		}
+	}
+	utf8[0] = 0;
+	buf_append_bytes(buf, utf8, 1);
+}
+
 int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8)
 {
 	int len = 0;
