@@ -72,10 +72,15 @@ static int ntlm_sspi(struct openconnect_info *vpninfo, struct oc_text_buf *buf, 
         out_token.cbBuffer = 0;
         out_token.pvBuffer = NULL;
 
-	status = InitializeSecurityContext(&vpninfo->ntlm_sspi_cred, challenge ? &vpninfo->ntlm_sspi_ctx : NULL, (SEC_CHAR *)"",
-					   ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
-					   0, SECURITY_NETWORK_DREP, challenge ? &input_desc : NULL, 0, &vpninfo->ntlm_sspi_ctx,
-					   &output_desc, &ret_flags, NULL);
+	status = InitializeSecurityContextW(&vpninfo->ntlm_sspi_cred,
+					    challenge ? &vpninfo->ntlm_sspi_ctx : NULL,
+					    (SEC_WCHAR *)L"",
+					    ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
+					    0, SECURITY_NETWORK_DREP,
+					    challenge ? &input_desc : NULL,
+					    0, &vpninfo->ntlm_sspi_ctx,
+					    &output_desc, &ret_flags, NULL);
+
 	if (status != SEC_E_OK && status != SEC_I_CONTINUE_NEEDED) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("InitializeSecurityContext() failed: %lx\n"), status);
@@ -96,8 +101,10 @@ static int ntlm_helper_spawn(struct openconnect_info *vpninfo, struct oc_text_bu
         SECURITY_STATUS status;
 	int ret;
 
-	status = AcquireCredentialsHandle(NULL, (SEC_CHAR *)"NTLM", SECPKG_CRED_OUTBOUND,
-					  NULL, NULL, NULL, NULL, &vpninfo->ntlm_sspi_cred, NULL);
+	status = AcquireCredentialsHandleW(NULL, (SEC_WCHAR *)L"NTLM",
+					   SECPKG_CRED_OUTBOUND, NULL, NULL,
+					   NULL, NULL,
+					   &vpninfo->ntlm_sspi_cred, NULL);
 	if (status != SEC_E_OK) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("AcquireCredentialsHandle() failed: %lx\n"), status);

@@ -217,7 +217,7 @@ struct openconnect_info {
 	CtxtHandle ntlm_sspi_ctx;
 	CredHandle sspi_cred;
 	CtxtHandle sspi_ctx;
-	char *sspi_target_name;
+	SEC_WCHAR *sspi_target_name;
 #else
 	int ntlm_helper_fd;
 #endif

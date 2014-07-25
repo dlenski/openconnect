@@ -26,12 +26,23 @@
 static int sspi_setup(struct openconnect_info *vpninfo, const char *service)
 {
 	SECURITY_STATUS status;
+	struct oc_text_buf *buf = buf_alloc();
 
-	if (asprintf(&vpninfo->sspi_target_name, "%s/%s", service, vpninfo->proxy) == -1)
-		return -ENOMEM;
+	buf_append_utf16le(buf, service);
+	buf_append_utf16le(buf, "/");
+	buf_append_utf16le(buf, vpninfo->proxy);
 
-	status = AcquireCredentialsHandle(NULL, (SEC_CHAR *)"Negotiate", SECPKG_CRED_OUTBOUND,
-					  NULL, NULL, NULL, NULL, &vpninfo->sspi_cred, NULL);
+	if (buf_error(buf))
+		return buf_free(buf);
+
+	vpninfo->sspi_target_name = (wchar_t *)buf->data;
+	buf->data = NULL;
+	buf_free(buf);
+
+	status = AcquireCredentialsHandleW(NULL, (SEC_WCHAR *)L"Negotiate",
+					   SECPKG_CRED_OUTBOUND, NULL, NULL,
+					   NULL, NULL, &vpninfo->sspi_cred,
+					   NULL);
 	if (status != SEC_E_OK) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("AcquireCredentialsHandle() failed: %lx\n"), status);
@@ -89,11 +100,14 @@ int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	out_token.cbBuffer = 0;
 	out_token.pvBuffer = NULL;
 
-	status = InitializeSecurityContext(&vpninfo->sspi_cred, first ? NULL : &vpninfo->sspi_ctx,
-					   (SEC_CHAR *)vpninfo->sspi_target_name,
-					   ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
-					   0, SECURITY_NETWORK_DREP, first ? NULL : &input_desc, 0, &vpninfo->sspi_ctx,
-					   &output_desc, &ret_flags, NULL);
+	status = InitializeSecurityContextW(&vpninfo->sspi_cred,
+					    first ? NULL : &vpninfo->sspi_ctx,
+					    vpninfo->sspi_target_name,
+					    ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
+					    0, SECURITY_NETWORK_DREP,
+					    first ? NULL : &input_desc,
+					    0, &vpninfo->sspi_ctx,
+					    &output_desc, &ret_flags, NULL);
 	if (status != SEC_E_OK && status != SEC_I_CONTINUE_NEEDED) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("InitializeSecurityContext() failed: %lx\n"), status);
@@ -158,11 +172,13 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 	out_token.pvBuffer = NULL;
 
 	while (1) {
-		status = InitializeSecurityContext(&vpninfo->sspi_cred, first ? NULL : &vpninfo->sspi_ctx,
-						   (SEC_CHAR *)vpninfo->sspi_target_name,
-						   ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
-						   0, SECURITY_NETWORK_DREP, first ? NULL : &input_desc, 0, &vpninfo->sspi_ctx,
-						   &output_desc, &ret_flags, NULL);
+		status = InitializeSecurityContextW(&vpninfo->sspi_cred, first ? NULL : &vpninfo->sspi_ctx,
+						    vpninfo->sspi_target_name,
+						    ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
+						    0, SECURITY_NETWORK_DREP,
+						    first ? NULL : &input_desc,
+						    0, &vpninfo->sspi_ctx,
+						    &output_desc, &ret_flags, NULL);
 		if (status == SEC_E_OK) {
 			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("GSSAPI authentication completed\n"));
