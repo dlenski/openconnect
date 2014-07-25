@@ -385,19 +385,36 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 }
 #elif defined(_WIN32)
 #include <fileapi.h>
+typedef BOOL WINAPI (*GVIBH)(HANDLE, LPWSTR, DWORD, LPDWORD, LPDWORD, LPDWORD, LPWSTR, DWORD);
+
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 {
 	HANDLE h;
 	DWORD serial;
+	HINSTANCE kernlib;
+	GVIBH func = NULL;
 	int success;
 
-	h = CreateFile(vpninfo->sslkey, 0, 0, NULL, OPEN_EXISTING,
+	/* Some versions of Windows don't have this so don't use standard
+	   load-time linking or it'll cause failures. */
+	kernlib = LoadLibraryA("Kernel32.dll");
+	if (!kernlib) {
+	notsupp:
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Could not obtain file system ID for passphrase\n"));
+		return -EOPNOTSUPP;
+	}
+	func = (GVIBH)GetProcAddress(kernlib, "GetVolumeInformationByHandleW");
+	FreeLibrary(kernlib);
+	if (!func)
+		goto notsupp;
+
+	h = CreateFileA(vpninfo->sslkey, 0, 0, NULL, OPEN_EXISTING,
 		       FILE_ATTRIBUTE_NORMAL, NULL);
 	if (h == INVALID_HANDLE_VALUE)
 		return -EIO;
 
-	success = GetVolumeInformationByHandleW(h, NULL, 0, &serial, NULL,
-						NULL, NULL, 0);
+	success = func(h, NULL, 0, &serial, NULL, NULL, NULL, 0);
 	CloseHandle(h);
 
 	if (!success)
