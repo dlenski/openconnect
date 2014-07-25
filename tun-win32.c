@@ -61,13 +61,15 @@ static intptr_t search_taps(struct openconnect_info *vpninfo, tap_callback *cb, 
 	LONG status;
 	HKEY adapters_key, hkey;
 	DWORD len, type;
-	char buf[40], name[40];
+	char buf[40];
+	wchar_t name[40];
 	char keyname[strlen(CONNECTIONS_KEY) + sizeof(buf) + 1 + strlen("\\Connection")];
 	int i = 0, found = 0;
-	intptr_t ret;
+	intptr_t ret = 0;
+	struct oc_text_buf *namebuf = buf_alloc();
 
-	status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, ADAPTERS_KEY, 0,
-			      KEY_READ, &adapters_key);
+	status = RegOpenKeyExA(HKEY_LOCAL_MACHINE, ADAPTERS_KEY, 0,
+			       KEY_READ, &adapters_key);
 	if (status) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error accessing registry key for network adapters\n"));
@@ -75,7 +77,7 @@ static intptr_t search_taps(struct openconnect_info *vpninfo, tap_callback *cb, 
 	}
 	while (1) {
 		len = sizeof(buf);
-		status = RegEnumKeyEx(adapters_key, i++, buf, &len,
+		status = RegEnumKeyExA(adapters_key, i++, buf, &len,
 				       NULL, NULL, NULL, NULL);
 		if (status) {
 			if (status != ERROR_NO_MORE_ITEMS)
@@ -86,22 +88,22 @@ static intptr_t search_taps(struct openconnect_info *vpninfo, tap_callback *cb, 
 		snprintf(keyname, sizeof(keyname), "%s\\%s",
 			 ADAPTERS_KEY, buf);
 
-		status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyname, 0,
-				      KEY_QUERY_VALUE, &hkey);
+		status = RegOpenKeyExA(HKEY_LOCAL_MACHINE, keyname, 0,
+				       KEY_QUERY_VALUE, &hkey);
 		if (status)
 			continue;
 
 		len = sizeof(buf);
-		status = RegQueryValueEx(hkey, "ComponentId", NULL, &type,
-					 (unsigned char *)buf, &len);
+		status = RegQueryValueExA(hkey, "ComponentId", NULL, &type,
+					  (unsigned char *)buf, &len);
 		if (status || type != REG_SZ || strcmp(buf, TAP_COMPONENT_ID)) {
 			RegCloseKey(hkey);
 			continue;
 		}
 
 		len = sizeof(buf);
-		status = RegQueryValueEx(hkey, "NetCfgInstanceId", NULL,
-					 &type, (unsigned char *)buf, &len);
+		status = RegQueryValueExA(hkey, "NetCfgInstanceId", NULL,
+					  &type, (unsigned char *)buf, &len);
 		RegCloseKey(hkey);
 		if (status || type != REG_SZ)
 			continue;
@@ -109,33 +111,42 @@ static intptr_t search_taps(struct openconnect_info *vpninfo, tap_callback *cb, 
 		snprintf(keyname, sizeof(keyname), "%s\\%s\\Connection",
 			 CONNECTIONS_KEY, buf);
 
-		status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyname, 0,
-				      KEY_QUERY_VALUE, &hkey);
+		status = RegOpenKeyExA(HKEY_LOCAL_MACHINE, keyname, 0,
+				       KEY_QUERY_VALUE, &hkey);
 		if (status)
 			continue;
 
 		len = sizeof(name);
-		status = RegQueryValueEx(hkey, "Name", NULL, &type,
+		status = RegQueryValueExW(hkey, L"Name", NULL, &type,
 					 (unsigned char *)name, &len);
 		RegCloseKey(hkey);
 		if (status || type != REG_SZ)
 			continue;
 
+		buf_truncate(namebuf);
+		buf_append_from_utf16le(namebuf, name);
+		if (buf_error(namebuf)) {
+			ret = buf_free(namebuf);
+			namebuf = NULL;
+			break;
+		}
+
 		found++;
 
-		if (vpninfo->ifname && strcmp(name, vpninfo->ifname)) {
+		if (vpninfo->ifname && strcmp(namebuf->data, vpninfo->ifname)) {
 			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Ignoring non-matching TAP interface \"%s\""),
-				     name);
+				     namebuf->data);
 			continue;
 		}
 
-		ret = cb(vpninfo, buf, name);
+		ret = cb(vpninfo, buf, namebuf->data);
 		if (!all)
 			break;
 	}
 
 	RegCloseKey(adapters_key);
+	buf_free(namebuf);
 
 	if (!found)
 		vpn_progress(vpninfo, PRG_ERR,
@@ -152,10 +163,10 @@ static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *nam
 	DWORD len;
 
 	snprintf(devname, sizeof(devname), DEVTEMPLATE, guid);
-	tun_fh = CreateFile(devname, GENERIC_WRITE|GENERIC_READ, 0, 0,
-			    OPEN_EXISTING,
-			    FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED,
-			    0);
+	tun_fh = CreateFileA(devname, GENERIC_WRITE|GENERIC_READ, 0, 0,
+			     OPEN_EXISTING,
+			     FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED,
+			     0);
 	if (tun_fh == INVALID_HANDLE_VALUE) {
 		vpn_progress(vpninfo, PRG_ERR, _("Failed to open %s\n"),
 			     devname);
