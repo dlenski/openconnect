@@ -612,6 +612,7 @@ void  __attribute__ ((format (printf, 2, 3)))
 	buf_append(struct oc_text_buf *buf, const char *fmt, ...);
 void buf_append_bytes(struct oc_text_buf *buf, const void *bytes, int len);
 void buf_append_base64(struct oc_text_buf *buf, const void *bytes, int len);
+int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8);
 void *openconnect_base64_decode(int *len, const char *in);
 void buf_truncate(struct oc_text_buf *buf);
 void buf_append_urlencoded(struct oc_text_buf *buf, char *str);
