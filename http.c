@@ -49,10 +49,12 @@ struct oc_text_buf *buf_alloc(void)
 void buf_append_urlencoded(struct oc_text_buf *buf, char *str)
 {
 	while (str && *str) {
-		if (isalnum((int)(unsigned char)*str))
+		unsigned char c = *str;
+		if (c < 0x80 && isalnum((int)(c)))
 			buf_append_bytes(buf, str, 1);
 		else
-			buf_append(buf, "%%%02x", (unsigned char)*str);
+			buf_append(buf, "%%%02x", c);
+
 		str++;
 	}
 }
