@@ -906,7 +906,7 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 	int rq_retry;
 	int rlen, pad;
 
-	if (buf_error(request_body))
+	if (request_body_type && buf_error(request_body))
 		return buf_error(request_body);
 
  redirected:
