@@ -1085,6 +1085,8 @@ newgroup:
 	if (result < 0)
 		goto out;
 
+	free(orig_host);
+	free(orig_path);
 	orig_host = strdup(vpninfo->hostname);
 	orig_path = vpninfo->urlpath ? strdup(vpninfo->urlpath) : NULL;
 	orig_port = vpninfo->port;
