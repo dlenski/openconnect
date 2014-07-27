@@ -1080,6 +1080,7 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo)
 	 * c) Three redirects without seeing a plausible login form
 	 */
 newgroup:
+	buf_truncate(request_body);
 	result = xmlpost_initial_req(vpninfo, request_body, 0);
 	if (result < 0)
 		goto out;
@@ -1161,6 +1162,7 @@ newgroup:
 					     _("Server requested SSL client certificate; none was configured\n"));
 				cert_failed = 1;
 			}
+			buf_truncate(request_body);
 			result = xmlpost_initial_req(vpninfo, request_body, cert_failed);
 			if (result < 0)
 				goto fail;
