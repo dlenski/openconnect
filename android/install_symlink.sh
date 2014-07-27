@@ -24,5 +24,5 @@ done
 if [ ! -z $MAKEDIR ]; then
     mkdir -p $1
 fi
-ln -sf $SRCS "$1"
+cp -f $SRCS "$1"
 
