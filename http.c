@@ -1002,7 +1002,7 @@ static int do_https_request(struct openconnect_info *vpninfo, const char *method
 		result = handle_redirect(vpninfo);
 		if (result == 0) {
 			if (!fetch_redirect)
-				return 0;
+				goto out;
 			goto redirected;
 		}
 		goto out;
