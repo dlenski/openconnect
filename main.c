@@ -1266,9 +1266,8 @@ static int validate_peer_cert(void *_vpninfo, OPENCONNECT_X509 *peer_cert,
 	}
 
 	while (1) {
-		char buf[80];
 		char *details;
-		char *p;
+		char *response = NULL;
 
 		fprintf(stderr, _("\nCertificate from VPN server \"%s\" failed verification.\n"
 			 "Reason: %s\n"), vpninfo->hostname, reason);
@@ -1278,13 +1277,12 @@ static int validate_peer_cert(void *_vpninfo, OPENCONNECT_X509 *peer_cert,
 
 		fprintf(stderr, _("Enter '%s' to accept, '%s' to abort; anything else to view: "),
 		       _("yes"), _("no"));
-		if (!fgets(buf, sizeof(buf), stdin))
-			return -EINVAL;
-		p = strchr(buf, '\n');
-		if (p)
-			*p = 0;
 
-		if (!strcasecmp(buf, _("yes"))) {
+		read_stdin(&response, 0);
+		if (!response)
+			return -EINVAL;
+
+		if (!strcasecmp(response, _("yes"))) {
 			struct accepted_cert *newcert = malloc(sizeof(*newcert) +
 							       strlen(vpninfo->hostname) + 1);
 			if (newcert) {
@@ -1293,10 +1291,14 @@ static int validate_peer_cert(void *_vpninfo, OPENCONNECT_X509 *peer_cert,
 				strcpy(newcert->fingerprint, fingerprint);
 				strcpy(newcert->host, vpninfo->hostname);
 			}
+			free(response);
 			return 0;
 		}
-		if (!strcasecmp(buf, _("no")))
+		if (!strcasecmp(response, _("no"))) {
+			free(response);
 			return -EINVAL;
+		}
+		free(response);
 
 		details = openconnect_get_cert_details(vpninfo, peer_cert);
 		fputs(details, stderr);
