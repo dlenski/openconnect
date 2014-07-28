@@ -551,6 +551,36 @@ out:
 		fprintf(stderr, "\n");
 	}
 }
+
+static int vfprintf_utf8(FILE *f, const char *fmt, va_list args)
+{
+	HANDLE h = GetStdHandle(f == stdout ? STD_OUTPUT_HANDLE : STD_ERROR_HANDLE);
+	wchar_t wbuf[1024];
+	char buf[1024];
+	int chars, wchars;
+
+	buf[sizeof(buf) - 1] = 0;
+	chars = _vsnprintf(buf, sizeof(buf) - 1, fmt, args);
+	wchars = MultiByteToWideChar(CP_UTF8, 0, buf, -1, wbuf, sizeof(wbuf)/2);
+	WriteConsoleW(h, wbuf, wchars, NULL, NULL);
+
+	return chars;
+}
+static int fprintf_utf8(FILE *f, const char *fmt, ...)
+{
+	va_list args;
+	int ret;
+
+	va_start(args, fmt);
+	ret = vfprintf_utf8(f, fmt, args);
+	va_end(args);
+
+	return ret;
+}
+#undef fprintf
+#undef vfprintf
+#define fprintf fprintf_utf8
+#define vfprintf vfprintf_utf8
 #endif
 
 static void usage(void)
