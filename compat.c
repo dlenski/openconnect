@@ -237,6 +237,47 @@ void openconnect__win32_sock_init()
 	}
 }
 
+int openconnect__win32_inet_pton(int af, const char *src, void *dst)
+{
+	union {
+		struct sockaddr_in s4;
+		struct sockaddr_in6 s6;
+	} sa;
+	int salen = sizeof(sa);
+
+	if (af != AF_INET && af != AF_INET6) {
+		errno = EAFNOSUPPORT;
+		return -1;
+	}
+
+	memset(&sa, 0, sizeof(sa));
+	sa.s4.sin_family = af;
+
+	if (WSAStringToAddressA((char *)src, af, NULL, (void *)&sa, &salen))
+		return 0;
+
+	/* For Legacy IP we need to filter out a lot of crap that
+	 * inet_aton() (and WSAStringToAddress()) will support, but
+	 * which inet_pton() should not. Not to mention the fact that
+	 * Wine's implementation will even succeed for strings like
+	 * "2001::1" (http://bugs.winehq.org/show_bug.cgi?id=36991) */
+	if (af == AF_INET) {
+		char canon[16];
+		unsigned char *a = (unsigned char *)&sa.s4.sin_addr;
+
+		snprintf(canon, sizeof(canon), "%d.%d.%d.%d",
+			 a[0], a[1], a[2], a[3]);
+
+		if (strcmp(canon, src))
+			return 0;
+
+		memcpy(dst, &sa.s4.sin_addr, sizeof(sa.s4.sin_addr));
+		return 1;
+	} else {
+		memcpy(dst, &sa.s6.sin6_addr, sizeof(sa.s6.sin6_addr));
+		return 1;
+	}
+}
 
 /* https://github.com/ncm/selectable-socketpair
 

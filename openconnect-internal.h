@@ -497,6 +497,9 @@ static inline int set_fd_cloexec(int fd)
 #ifdef _WIN32
 #define pipe(fds) _pipe(fds, 4096, O_BINARY)
 void openconnect__win32_sock_init();
+#undef inet_pton
+#define inet_pton openconnect__win32_inet_pton
+int openconnect__win32_inet_pton(int af, const char *src, void *dst);
 int dumb_socketpair(int socks[2], int make_overlapped);
 #else
 #define closesocket close
