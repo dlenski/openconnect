@@ -314,8 +314,58 @@ static int fprintf_utf8(FILE *f, const char *fmt, ...)
 	return ret;
 }
 
+static char *convert_to_utf8(char *legacy)
+{
+	char *utf8_str;
+	iconv_t ic;
+	char *ic_in, *ic_out;
+	size_t insize, outsize;
+
+	if (!legacy_charset)
+		return legacy;
+
+	ic = iconv_open("UTF-8", legacy_charset);
+	if (ic == (iconv_t) -1)
+		return legacy;
+
+	insize = strlen(legacy) + 1;
+	ic_in = legacy;
+
+	outsize = insize;
+	ic_out = utf8_str = malloc(outsize);
+	if (!utf8_str) {
+	enomem:
+		iconv_close(ic);
+		return legacy;
+	}
+
+	while (insize) {
+		if (iconv(ic, &ic_in, &insize, &ic_out, &outsize) == (size_t)-1) {
+			if (errno == E2BIG) {
+				int outlen = ic_out - utf8_str;
+				realloc_inplace(utf8_str, outlen + 10);
+				if (!utf8_str)
+					goto enomem;
+				ic_out = utf8_str + outlen;
+				outsize = 10;
+			} else {
+				/* Should never happen */
+				perror("iconv");
+				free(utf8_str);
+				goto enomem;
+			}
+		}
+	}
+
+	iconv_close(ic);
+	free(legacy);
+	return utf8_str;
+}
+
 #define fprintf fprintf_utf8
 #define vfprintf vfprintf_utf8
+#else
+#define convert_to_utf8(l) (l)
 #endif
 
 static void helpmessage(void)
@@ -578,7 +628,7 @@ static void read_stdin(char **string, int hidden)
 	if (c)
 		*c = 0;
 
-	*string = buf;
+	*string = convert_to_utf8(buf);
 }
 
 static FILE *config_file = NULL;
