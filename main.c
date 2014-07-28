@@ -481,31 +481,31 @@ static void usage(void)
 
 static void read_stdin(char **string, int hidden)
 {
-	char *c = malloc(1025), *ret;
+	char *c, *buf = malloc(1025);
 
-	if (!c) {
+	if (!buf) {
 		fprintf(stderr, _("Allocation failure for string from stdin\n"));
 		exit(1);
 	}
 
-	if (hidden) {
+	if (hidden)
 		disable_echo();
-		ret = fgets(c, 1025, stdin);
-		restore_echo();
-		fprintf(stderr, "\n");
-	} else
-		ret = fgets(c, 1025, stdin);
 
-	if (!ret) {
+	if (!fgets(buf, 1025, stdin)) {
 		perror(_("fgets (stdin)"));
 		exit(1);
 	}
 
-	*string = c;
+	if (hidden) {
+		restore_echo();
+		fprintf(stderr, "\n");
+	}
 
-	c = strchr(*string, '\n');
+	c = strchr(buf, '\n');
 	if (c)
 		*c = 0;
+
+	*string = buf;
 }
 
 static FILE *config_file = NULL;
