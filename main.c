@@ -424,24 +424,39 @@ static void print_build_opts(void)
 
 #ifndef _WIN32
 static const char default_vpncscript[] = DEFAULT_VPNCSCRIPT;
-static void disable_echo(void)
+static void read_stdin(char **string, int hidden)
 {
-	struct termios t;
+	char *c, *buf = malloc(1025);
 	int fd = fileno(stdin);
-
-	tcgetattr(fd, &t);
-	t.c_lflag &= ~ECHO;
-	tcsetattr(fd, TCSANOW, &t);
-}
-
-static void restore_echo(void)
-{
 	struct termios t;
-	int fd = fileno(stdin);
 
-	tcgetattr(fd, &t);
-	t.c_lflag |= ECHO;
-	tcsetattr(fd, TCSANOW, &t);
+	if (!buf) {
+		fprintf(stderr, _("Allocation failure for string from stdin\n"));
+		exit(1);
+	}
+
+	if (hidden) {
+		tcgetattr(fd, &t);
+		t.c_lflag &= ~ECHO;
+		tcsetattr(fd, TCSANOW, &t);
+	}
+
+	if (!fgets(buf, 1025, stdin)) {
+		perror(_("fgets (stdin)"));
+		exit(1);
+	}
+
+	if (hidden) {
+		t.c_lflag |= ECHO;
+		tcsetattr(fd, TCSANOW, &t);
+		fprintf(stderr, "\n");
+	}
+
+	c = strchr(buf, '\n');
+	if (c)
+		*c = 0;
+
+	*string = convert_to_utf8(buf);
 }
 
 static void handle_signal(int sig)
@@ -486,31 +501,37 @@ static void set_default_vpncscript(void)
 	}
 }
 
-static HANDLE hconin = INVALID_HANDLE_VALUE;
-static DWORD cmode;
-
-static void disable_echo(void)
+static void read_stdin(char **string, int hidden)
 {
-	hconin = CreateFile("CONIN$", GENERIC_READ | GENERIC_WRITE,
-			    FILE_SHARE_READ, NULL, OPEN_EXISTING,
-			    FILE_ATTRIBUTE_NORMAL, NULL);
-	if (hconin == INVALID_HANDLE_VALUE)
-		return;
-	GetConsoleMode(hconin, &cmode);
-	if (!SetConsoleMode(hconin, cmode & (~ENABLE_ECHO_INPUT))) {
-		CloseHandle(hconin);
-		hconin = INVALID_HANDLE_VALUE;
+	char *c, *buf = malloc(1025);
+	HANDLE stdinh = GetStdHandle(STD_INPUT_HANDLE);
+	DWORD cmode;
+
+	if (!buf) {
+		fprintf(stderr, _("Allocation failure for string from stdin\n"));
+		exit(1);
 	}
-}
 
-static void restore_echo(void)
-{
-	if (hconin == INVALID_HANDLE_VALUE)
-		return;
+	if (hidden) {
+		GetConsoleMode(stdinh, &cmode);
+		SetConsoleMode(stdinh, cmode & (~ENABLE_ECHO_INPUT));
+	}
 
-	SetConsoleMode(hconin, cmode);
-	CloseHandle(hconin);
-	hconin = INVALID_HANDLE_VALUE;
+	if (!fgets(buf, 1025, stdin)) {
+		perror(_("fgets (stdin)"));
+		exit(1);
+	}
+
+	if (hidden) {
+		SetConsoleMode(stdinh, cmode);
+		fprintf(stderr, "\n");
+	}
+
+	c = strchr(buf, '\n');
+	if (c)
+		*c = 0;
+
+	*string = convert_to_utf8(buf);
 }
 #endif
 
@@ -601,35 +622,6 @@ static void usage(void)
 	exit(1);
 }
 
-
-static void read_stdin(char **string, int hidden)
-{
-	char *c, *buf = malloc(1025);
-
-	if (!buf) {
-		fprintf(stderr, _("Allocation failure for string from stdin\n"));
-		exit(1);
-	}
-
-	if (hidden)
-		disable_echo();
-
-	if (!fgets(buf, 1025, stdin)) {
-		perror(_("fgets (stdin)"));
-		exit(1);
-	}
-
-	if (hidden) {
-		restore_echo();
-		fprintf(stderr, "\n");
-	}
-
-	c = strchr(buf, '\n');
-	if (c)
-		*c = 0;
-
-	*string = convert_to_utf8(buf);
-}
 
 static FILE *config_file = NULL;
 static int config_line_num = 0;
