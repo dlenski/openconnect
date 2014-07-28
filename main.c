@@ -503,35 +503,53 @@ static void set_default_vpncscript(void)
 
 static void read_stdin(char **string, int hidden)
 {
-	char *c, *buf = malloc(1025);
+	CONSOLE_READCONSOLE_CONTROL rcc = { sizeof(rcc), 0, 13, 0 };
 	HANDLE stdinh = GetStdHandle(STD_INPUT_HANDLE);
-	DWORD cmode;
-
-	if (!buf) {
-		fprintf(stderr, _("Allocation failure for string from stdin\n"));
-		exit(1);
-	}
+	DWORD cmode, nr_read;
+	wchar_t wbuf[1024];
+	char *buf;
 
 	if (hidden) {
 		GetConsoleMode(stdinh, &cmode);
 		SetConsoleMode(stdinh, cmode & (~ENABLE_ECHO_INPUT));
 	}
 
-	if (!fgets(buf, 1025, stdin)) {
-		perror(_("fgets (stdin)"));
+	if (!ReadConsoleW(stdinh, wbuf, sizeof(wbuf)/2, &nr_read, &rcc)) {
+		fprintf(stderr, _("ReadConsole() error %lx\n"), GetLastError());
+		goto out;
+	}
+
+	if (nr_read >= 2 && wbuf[nr_read - 1] == 10 && wbuf[nr_read - 2] == 13) {
+		wbuf[nr_read - 2] = 0;
+		nr_read -= 2;
+	}
+
+	nr_read = WideCharToMultiByte(CP_UTF8, 0, wbuf, -1, NULL, 0, NULL, NULL);
+	if (!nr_read) {
+		fprintf(stderr, _("Error converting console input: %lx\n"),
+			GetLastError());
+		goto out;
+	}
+	buf = malloc(nr_read);
+	if (!buf) {
+		fprintf(stderr, _("Allocation failure for string from stdin\n"));
 		exit(1);
 	}
 
+	if (!WideCharToMultiByte(CP_UTF8, 0, wbuf, -1, buf, nr_read, NULL, NULL)) {
+		free(buf);
+		fprintf(stderr, _("Error converting console input: %lx\n"),
+			GetLastError());
+		goto out;
+	}
+
+	*string = buf;
+
+out:
 	if (hidden) {
 		SetConsoleMode(stdinh, cmode);
 		fprintf(stderr, "\n");
 	}
-
-	c = strchr(buf, '\n');
-	if (c)
-		*c = 0;
-
-	*string = convert_to_utf8(buf);
 }
 #endif
 
