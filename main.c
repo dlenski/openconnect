@@ -245,6 +245,79 @@ static struct option long_options[] = {
 	OPTION(NULL, 0, 0)
 };
 
+#if defined(HAVE_NL_LANGINFO) && defined(HAVE_ICONV)
+#include <iconv.h>
+#include <langinfo.h>
+
+static const char *legacy_charset;
+
+static int vfprintf_utf8(FILE *f, const char *fmt, va_list args)
+{
+	char *utf8_str;
+	iconv_t ic;
+	int ret;
+	char outbuf[80];
+	char *ic_in, *ic_out;
+	size_t insize, outsize;
+
+	if (!legacy_charset)
+		return vfprintf(f, fmt, args);
+
+	ret = vasprintf(&utf8_str, fmt, args);
+	if (ret < 0)
+		return -1;
+
+	ic = iconv_open(legacy_charset, "UTF-8");
+	if (ic == (iconv_t) -1) {
+		/* Better than nothing... */
+		ret = fprintf(f, "%s", utf8_str);
+		free(utf8_str);
+		return ret;
+	}
+
+	ic_in = utf8_str;
+	insize = strlen(utf8_str);
+	ret = 0;
+
+	while (insize) {
+		ic_out = outbuf;
+		outsize = sizeof(outbuf) - 1;
+
+		if (iconv(ic, &ic_in, &insize, &ic_out, &outsize) == (size_t)-1) {
+			if (errno == EILSEQ) {
+				do {
+					ic_in++;
+					insize--;
+				} while (insize && (ic_in[0] & 0xc0) == 0x80);
+				ic_out[0] = '?';
+				outsize--;
+			} else if (errno != E2BIG)
+				break;
+		}
+		ret += fwrite(outbuf, 1, sizeof(outbuf) - 1 - outsize, f);
+	}
+
+	iconv_close(ic);
+
+	return ret;
+}
+
+static int fprintf_utf8(FILE *f, const char *fmt, ...)
+{
+	va_list args;
+	int ret;
+
+	va_start(args, fmt);
+	ret = vfprintf_utf8(f, fmt, args);
+	va_end(args);
+
+	return ret;
+}
+
+#define fprintf fprintf_utf8
+#define vfprintf vfprintf_utf8
+#endif
+
 static void helpmessage(void)
 {
 	printf(_("For assistance with OpenConnect, please see the web page at\n"
@@ -664,6 +737,11 @@ int main(int argc, char **argv)
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
 	setlocale(LC_ALL, "");
+#endif
+#if defined(HAVE_NL_LANGINFO) && defined(HAVE_ICONV)
+	legacy_charset = nl_langinfo(CODESET);
+	if (legacy_charset && !strcmp(legacy_charset, "UTF-8"))
+		legacy_charset = NULL;
 #endif
 
 	if (strcmp(openconnect_version_str, openconnect_binary_version)) {
