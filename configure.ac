@@ -23,6 +23,8 @@ m4_ifdef([PKG_INSTALLDIR], [PKG_INSTALLDIR],
 use_openbsd_libtool=
 symver_time=
 symver_getline=
+symver_asprintf=
+symver_vasprintf=
 
 case $host_os in
  *linux* | *gnu*)
@@ -106,8 +108,12 @@ AC_CHECK_FUNC(getline, [AC_DEFINE(HAVE_GETLINE, 1, [Have getline() function])],
     [symver_getline="openconnect__getline;"])
 AC_CHECK_FUNC(strcasestr, [AC_DEFINE(HAVE_STRCASESTR, 1, [Have strcasestr() function])], [])
 AC_CHECK_FUNC(strndup, [AC_DEFINE(HAVE_STRNDUP, 1, [Have strndup() function])], [])
-AC_CHECK_FUNC(asprintf, [AC_DEFINE(HAVE_ASPRINTF, 1, [Have asprintf() function])], [])
-if test -n "$symver_asprintf"; then
+AC_CHECK_FUNC(asprintf, [AC_DEFINE(HAVE_ASPRINTF, 1, [Have asprintf() function])],
+    [symver_asprintf="openconnect__asprintf;"])
+AC_CHECK_FUNC(vasprintf, [AC_DEFINE(HAVE_VASPRINTF, 1, [Have vasprintf() function])],
+    [symver_vasprintf="openconnect__vasprintf;"])
+
+if test -n "$symver_vasprintf"; then
   AC_MSG_CHECKING([for va_copy])
   AC_LINK_IFELSE([AC_LANG_PROGRAM([
 	#include <stdarg.h>
@@ -126,11 +132,13 @@ if test -n "$symver_asprintf"; then
 		[AC_DEFINE(HAVE___VA_COPY, 1, [Have __va_copy()])
 		AC_MSG_RESULT(__va_copy)],
 		[AC_MSG_RESULT(no)
-		AC_MSG_ERROR([Your system lacks asprintf() and va_copy()])])
+		AC_MSG_ERROR([Your system lacks vasprintf() and va_copy()])])
 	])
 fi
 AC_SUBST(SYMVER_TIME, $symver_time)
 AC_SUBST(SYMVER_GETLINE, $symver_getline)
+AC_SUBST(SYMVER_ASPRINTF, $symver_asprintf)
+AC_SUBST(SYMVER_VASPRINTF, $symver_vasprintf)
 
 AS_COMPILER_FLAGS(WFLAGS,
         "-Wall

@@ -42,9 +42,8 @@ time_t openconnect__time(time_t *t)
 }
 #endif
 
-#ifndef HAVE_ASPRINTF
-
-static int oc_vasprintf(char **strp, const char *fmt, va_list ap)
+#ifndef HAVE_VASPRINTF
+int openconnect__vasprintf(char **strp, const char *fmt, va_list ap)
 {
 	va_list ap2;
 	char *res = NULL;
@@ -102,14 +101,16 @@ static int oc_vasprintf(char **strp, const char *fmt, va_list ap)
 	*strp = res;
 	return ret;
 }
+#endif
 
+#ifndef HAVE_ASPRINTF
 int openconnect__asprintf(char **strp, const char *fmt, ...)
 {
 	va_list ap;
 	int ret;
 
 	va_start(ap, fmt);
-	ret = oc_vasprintf(strp, fmt, ap);
+	ret = vasprintf(strp, fmt, ap);
 	va_end(ap);
 	return ret;
 }

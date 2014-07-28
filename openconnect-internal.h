@@ -445,6 +445,10 @@ struct openconnect_info {
 #define time(x) openconnect__time(x)
 time_t openconnect__time(time_t *t);
 #endif
+#ifndef HAVE_VASPRINTF
+#define vasprintf openconnect__vasprintf
+int openconnect__vasprintf(char **strp, const char *fmt, va_list ap);
+#endif
 #ifndef HAVE_ASPRINTF
 #define asprintf openconnect__asprintf
 int openconnect__asprintf(char **strp, const char *fmt, ...);
