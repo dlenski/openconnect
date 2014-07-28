@@ -173,7 +173,7 @@ static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *nam
 		return -1;
 
 	}
-	vpn_progress(vpninfo, PRG_DEBUG, _("Opened tun device %s\n"), devname);
+	vpn_progress(vpninfo, PRG_DEBUG, _("Opened tun device %s\n"), name);
 
 	if (!DeviceIoControl(tun_fh, TAP_IOCTL_GET_VERSION,
 			     NULL, 0, data, sizeof(data), &len, NULL)) {
