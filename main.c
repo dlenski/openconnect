@@ -676,20 +676,6 @@ static void usage(void)
 static FILE *config_file = NULL;
 static int config_line_num = 0;
 
-/* There are three ways to handle config_arg:
- *
- * 1. We only care about it transiently and it can be lost entirely
- *    (e.g. vpninfo->reconnect_timeout = atoi(config_arg);
- * 2. We need to keep it, but it's a static string and will never be freed
- *    so when it's part of argv[] we can use it in place, but when it comes
- *    from a file we have to strdup() because otherwise it'll be overwritten.
- *    For this we use the keep_config_arg() macro below.
- * 3. It may be freed during normal operation, so we have to use strdup()
- *    even when it's an option from argv[]. (e.g. vpninfo->cert_password).
- *    For this we use the xstrdup() function below.
- */
-#define keep_config_arg() (config_file && config_arg ? strdup(config_arg) : config_arg)
-
 static char *xstrdup(const char *arg)
 {
 	char *ret = strdup(arg);
@@ -700,6 +686,22 @@ static char *xstrdup(const char *arg)
 	}
 	return ret;
 }
+
+/* There are three ways to handle config_arg:
+ *
+ * 1. We only care about it transiently and it can be lost entirely
+ *    (e.g. vpninfo->reconnect_timeout = atoi(config_arg);
+ * 2. We need to keep it, but it's a static string and will never be freed
+ *    so when it's part of argv[] we can use it in place, but when it comes
+ *    from a file we have to strdup() because otherwise it'll be overwritten.
+ *    For this we use the keep_config_arg() macro below.
+ * 3. It may be freed during normal operation, so we have to use strdup()
+ *    even when it's an option from argv[]. (e.g. vpninfo->cert_password).
+ *    For this we use the dup_config_arg() macro function below.
+ */
+#define keep_config_arg() (config_file && config_arg ? xstrdup(config_arg) : config_arg)
+
+#define dup_config_arg() xstrdup(config_arg)
 
 static int next_option(int argc, char **argv, char **config_arg)
 {
@@ -925,7 +927,7 @@ int main(int argc, char **argv)
 			/* The next option will come from the file... */
 			break;
 		case OPT_CAFILE:
-			openconnect_set_cafile(vpninfo, xstrdup(config_arg));
+			openconnect_set_cafile(vpninfo, dup_config_arg());
 			break;
 		case OPT_PIDFILE:
 			pidfile = keep_config_arg();
@@ -934,7 +936,7 @@ int main(int argc, char **argv)
 			openconnect_set_pfs(vpninfo, 1);
 			break;
 		case OPT_SERVERCERT:
-			openconnect_set_server_cert_sha1(vpninfo, xstrdup(config_arg));
+			openconnect_set_server_cert_sha1(vpninfo, dup_config_arg());
 			break;
 		case OPT_NO_DTLS:
 			use_dtls = 0;
@@ -995,12 +997,12 @@ int main(int argc, char **argv)
 			break;
 		case 'g':
 			free(urlpath);
-			urlpath = strdup(config_arg);
+			urlpath = dup_config_arg();
 			break;
 		case 'h':
 			usage();
 		case 'i':
-			ifname = xstrdup(config_arg);
+			ifname = dup_config_arg();
 			break;
 		case 'm': {
 			int mtu = atol(config_arg);
@@ -1026,7 +1028,7 @@ int main(int argc, char **argv)
 			autoproxy = 0;
 			break;
 		case OPT_PROXY_AUTH:
-			openconnect_set_proxy_auth(vpninfo, xstrdup(config_arg));
+			openconnect_set_proxy_auth(vpninfo, dup_config_arg());
 			break;
 		case OPT_NO_PROXY:
 			autoproxy = 0;
@@ -1046,7 +1048,7 @@ int main(int argc, char **argv)
 			nocertcheck = 1;
 			break;
 		case 's':
-			vpnc_script = xstrdup(config_arg);
+			vpnc_script = dup_config_arg();
 			break;
 		case 'u':
 			free(username);
@@ -1118,7 +1120,7 @@ int main(int argc, char **argv)
 				/* generic defaults */
 				openconnect_set_mobile_info(vpninfo,
 					xstrdup("1.0"),
-					xstrdup(config_arg),
+					dup_config_arg(),
 					xstrdup("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
 			}
 			break;
