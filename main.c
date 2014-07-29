@@ -38,6 +38,7 @@
 #include <sys/types.h>
 #include <getopt.h>
 #include <time.h>
+#include <locale.h>
 
 #ifdef LIBPROXY_HDR
 #include LIBPROXY_HDR
@@ -53,6 +54,12 @@
 #include <sys/utsname.h>
 #include <pwd.h>
 #include <termios.h>
+#endif
+
+#ifdef HAVE_NL_LANGINFO
+#include <langinfo.h>
+
+static const char *legacy_charset;
 #endif
 
 static int write_new_config(void *_vpninfo,
@@ -374,11 +381,8 @@ out:
 	}
 }
 
-#elif defined(HAVE_NL_LANGINFO) && defined(HAVE_ICONV)
+#elif defined(HAVE_ICONV)
 #include <iconv.h>
-#include <langinfo.h>
-
-static const char *legacy_charset;
 
 static int is_ascii(char *str)
 {
@@ -906,12 +910,22 @@ int main(int argc, char **argv)
 
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
-	setlocale(LC_ALL, "");
 #endif
-#if defined(HAVE_NL_LANGINFO) && defined(HAVE_ICONV)
+
+	setlocale(LC_ALL, "");
+
+#ifdef HAVE_NL_LANGINFO
 	legacy_charset = nl_langinfo(CODESET);
 	if (legacy_charset && !strcmp(legacy_charset, "UTF-8"))
 		legacy_charset = NULL;
+
+#ifndef HAVE_ICONV
+	if (legacy_charset)
+		fprintf(stderr,
+			_("WARNING: This version of openconnect was built without iconv\n"
+			  "         support but you appear to be using the legacy character\n"
+			  "         set \"%s\". Expect strangeness.\n"), legacy_charset);
+#endif
 #endif
 
 	if (strcmp(openconnect_version_str, openconnect_binary_version)) {

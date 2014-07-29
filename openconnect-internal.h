@@ -81,7 +81,6 @@
 #endif
 
 #ifdef ENABLE_NLS
-#include <locale.h>
 #include <libintl.h>
 #define _(s) dgettext("openconnect", s)
 #else

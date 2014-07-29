@@ -179,31 +179,32 @@ AC_CHECK_FUNCS(setenv unsetenv)
 AC_ENABLE_SHARED
 AC_DISABLE_STATIC
 
-have_iconv=no
-LIBICONV=
-AC_MSG_CHECKING([for iconv support])
-AC_LINK_IFELSE([AC_LANG_PROGRAM([
-    #include <iconv.h>],[
-    iconv_t ic = iconv_open("","");])],
-    [AC_MSG_RESULT(yes)
-     have_iconv=yes],
-    [oldLIBS="$LIBS"
-     LIBS="$LIBS -liconv"
-    AC_LINK_IFELSE([AC_LANG_PROGRAM([
-      #include <iconv.h>],[
-      iconv_t ic = iconv_open("","");])],
-      [AC_MSG_RESULT(yes (with -liconv))
-       have_iconv=yes
-       LIBICONV=-liconv],
-      [AC_MSG_RESULT(no)])
-       LIBS="$oldLIBS"])
-
-if test "$have_iconv" = "yes"; then
-   AC_SUBST(LIBICONV)
-   AC_DEFINE(HAVE_ICONV, 1, [Have iconv() function])
-fi
-
 AC_CHECK_FUNC(nl_langinfo, [AC_DEFINE(HAVE_NL_LANGINFO, 1, [Have nl_langinfo() function])], [])
+
+if test "$ac_cv_func_nl_langinfo" = "yes"; then
+    have_iconv=no
+    LIBICONV=
+    AC_MSG_CHECKING([for iconv support])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([
+        #include <iconv.h>],[
+        iconv_t ic = iconv_open("","");])],
+        [AC_MSG_RESULT(yes)
+         have_iconv=yes],
+        [oldLIBS="$LIBS"
+         LIBS="$LIBS -liconv"
+        AC_LINK_IFELSE([AC_LANG_PROGRAM([
+          #include <iconv.h>],[
+          iconv_t ic = iconv_open("","");])],
+          [AC_MSG_RESULT(yes (with -liconv))
+           have_iconv=yes
+           LIBICONV=-liconv],
+          [AC_MSG_RESULT(no)])
+           LIBS="$oldLIBS"])
+    if test "$have_iconv" = "yes"; then
+        AC_SUBST(LIBICONV)
+        AC_DEFINE(HAVE_ICONV, 1, [Have iconv() function])
+    fi
+fi
 
 AC_ARG_ENABLE([nls],
 	[  --disable-nls           do not use Native Language Support],
