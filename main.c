@@ -272,10 +272,56 @@ static int fprintf_utf8(FILE *f, const char *fmt, ...)
 
 	return ret;
 }
+
+static wchar_t **argv_w;
+
+/* This isn't so much "convert" the arg to UTF-8, as go grubbing
+ * around in the real UTF-16 command line and find the corresponding
+ * argument *there*, and convert *that* to UTF-8. Ick. But the
+ * alternative is to implement wgetopt(), and that's even more horrid. */
+static char *convert_arg_to_utf8(char **argv, char *arg)
+{
+	char *utf8;
+	int chars;
+	int offset;
+
+	if (!argv_w) {
+		int argc_w;
+
+		argv_w = CommandLineToArgvW(GetCommandLineW(), &argc_w);
+		if (!argv_w) {
+			fprintf(stderr, _("CommandLineToArgvW() failed: %lx\n"),
+				GetLastError());
+			exit(1);
+		}
+	}
+
+	offset = arg - argv[optind - 1];
+
+	/* Sanity check */
+	if (offset < 0 || offset >= strlen(argv[optind - 1]) ||
+	    (offset && (argv[optind - 1][offset-1] != '=' ||
+			argv_w[optind - 1][offset - 1] != '='))) {
+		fprintf(stderr, _("Fatal error in command line handling\n"));
+		exit(1);
+	}
+
+	chars = WideCharToMultiByte(CP_UTF8, 0, argv_w[optind-1] + offset, -1,
+				    NULL, 0, NULL, NULL);
+	utf8 = malloc(chars);
+	if (!utf8)
+		return arg;
+
+	WideCharToMultiByte(CP_UTF8, 0, argv_w[optind-1] + offset, -1, utf8,
+			    chars, NULL, NULL);
+	return utf8;
+}
+
 #undef fprintf
 #undef vfprintf
 #define fprintf fprintf_utf8
 #define vfprintf vfprintf_utf8
+#define is_arg_utf8(str) (!strchr(str, '?'))
 
 static void read_stdin(char **string, int hidden)
 {
@@ -334,6 +380,17 @@ out:
 
 static const char *legacy_charset;
 
+static int is_ascii(char *str)
+{
+	while (str && *str) {
+		if ((unsigned char)*str > 0x7f)
+			return 0;
+		str++;
+	}
+
+	return 1;
+}
+
 static int vfprintf_utf8(FILE *f, const char *fmt, va_list args)
 {
 	char *utf8_str;
@@ -349,6 +406,9 @@ static int vfprintf_utf8(FILE *f, const char *fmt, va_list args)
 	ret = vasprintf(&utf8_str, fmt, args);
 	if (ret < 0)
 		return -1;
+
+	if (is_ascii(utf8_str))
+		return fwrite(utf8_str, 1, strlen(utf8_str), f);
 
 	ic = iconv_open(legacy_charset, "UTF-8");
 	if (ic == (iconv_t) -1) {
@@ -397,14 +457,14 @@ static int fprintf_utf8(FILE *f, const char *fmt, ...)
 	return ret;
 }
 
-static char *convert_to_utf8(char *legacy)
+static char *convert_to_utf8(char *legacy, int free_it)
 {
 	char *utf8_str;
 	iconv_t ic;
 	char *ic_in, *ic_out;
 	size_t insize, outsize;
 
-	if (!legacy_charset)
+	if (!legacy_charset || is_ascii(legacy))
 		return legacy;
 
 	ic = iconv_open("UTF-8", legacy_charset);
@@ -441,14 +501,19 @@ static char *convert_to_utf8(char *legacy)
 	}
 
 	iconv_close(ic);
-	free(legacy);
+	if (free_it)
+		free(legacy);
 	return utf8_str;
 }
 
 #define fprintf fprintf_utf8
 #define vfprintf vfprintf_utf8
+#define convert_arg_to_utf8(av, l) convert_to_utf8((l), 0)
+#define is_arg_utf8(a) (!legacy_charset || is_ascii(a))
 #else
-#define convert_to_utf8(l) (l)
+#define convert_to_utf8(l,f) (l)
+#define convert_arg_to_utf8(av, l) (l)
+#define is_arg_utf8(a) (1)
 #endif
 
 static void helpmessage(void)
@@ -539,7 +604,7 @@ static void read_stdin(char **string, int hidden)
 	if (c)
 		*c = 0;
 
-	*string = convert_to_utf8(buf);
+	*string = convert_to_utf8(buf, 1);
 }
 
 static void handle_signal(int sig)
@@ -678,7 +743,12 @@ static int config_line_num = 0;
 
 static char *xstrdup(const char *arg)
 {
-	char *ret = strdup(arg);
+	char *ret;
+
+	if (!arg)
+		return NULL;
+
+	ret = strdup(arg);
 
 	if (!ret) {
 		fprintf(stderr, _("Failed to allocate string\n"));
@@ -692,16 +762,22 @@ static char *xstrdup(const char *arg)
  * 1. We only care about it transiently and it can be lost entirely
  *    (e.g. vpninfo->reconnect_timeout = atoi(config_arg);
  * 2. We need to keep it, but it's a static string and will never be freed
- *    so when it's part of argv[] we can use it in place, but when it comes
- *    from a file we have to strdup() because otherwise it'll be overwritten.
+ *    so when it's part of argv[] we can use it in place (unless it needs
+ *    converting to UTF-8), but when it comes from a file we have to strdup()
+ *    because otherwise it'll be overwritten.
  *    For this we use the keep_config_arg() macro below.
  * 3. It may be freed during normal operation, so we have to use strdup()
- *    even when it's an option from argv[]. (e.g. vpninfo->cert_password).
- *    For this we use the dup_config_arg() macro function below.
+ *    or convert_arg_to_utf8() even when it's an option from argv[].
+ *    (e.g. vpninfo->cert_password).
+ *    For this we use the dup_config_arg() macro below.
  */
-#define keep_config_arg() (config_file && config_arg ? xstrdup(config_arg) : config_arg)
 
-#define dup_config_arg() xstrdup(config_arg)
+#define keep_config_arg() \
+	(config_file ? xstrdup(config_arg) : convert_arg_to_utf8(argv, config_arg))
+
+#define dup_config_arg() \
+	((config_file || is_arg_utf8(config_arg)) ? xstrdup(config_arg) : \
+	 convert_arg_to_utf8(argv, config_arg))
 
 static int next_option(int argc, char **argv, char **config_arg)
 {
