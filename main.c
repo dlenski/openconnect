@@ -245,7 +245,90 @@ static struct option long_options[] = {
 	OPTION(NULL, 0, 0)
 };
 
-#if defined(HAVE_NL_LANGINFO) && defined(HAVE_ICONV)
+#ifdef _WIN32
+static int vfprintf_utf8(FILE *f, const char *fmt, va_list args)
+{
+	HANDLE h = GetStdHandle(f == stdout ? STD_OUTPUT_HANDLE : STD_ERROR_HANDLE);
+	wchar_t wbuf[1024];
+	char buf[1024];
+	int chars, wchars;
+
+	buf[sizeof(buf) - 1] = 0;
+	chars = _vsnprintf(buf, sizeof(buf) - 1, fmt, args);
+	wchars = MultiByteToWideChar(CP_UTF8, 0, buf, -1, wbuf, sizeof(wbuf)/2);
+	WriteConsoleW(h, wbuf, wchars, NULL, NULL);
+
+	return chars;
+}
+
+static int fprintf_utf8(FILE *f, const char *fmt, ...)
+{
+	va_list args;
+	int ret;
+
+	va_start(args, fmt);
+	ret = vfprintf_utf8(f, fmt, args);
+	va_end(args);
+
+	return ret;
+}
+#undef fprintf
+#undef vfprintf
+#define fprintf fprintf_utf8
+#define vfprintf vfprintf_utf8
+
+static void read_stdin(char **string, int hidden)
+{
+	CONSOLE_READCONSOLE_CONTROL rcc = { sizeof(rcc), 0, 13, 0 };
+	HANDLE stdinh = GetStdHandle(STD_INPUT_HANDLE);
+	DWORD cmode, nr_read;
+	wchar_t wbuf[1024];
+	char *buf;
+
+	if (hidden) {
+		GetConsoleMode(stdinh, &cmode);
+		SetConsoleMode(stdinh, cmode & (~ENABLE_ECHO_INPUT));
+	}
+
+	if (!ReadConsoleW(stdinh, wbuf, sizeof(wbuf)/2, &nr_read, &rcc)) {
+		fprintf(stderr, _("ReadConsole() error %lx\n"), GetLastError());
+		goto out;
+	}
+
+	if (nr_read >= 2 && wbuf[nr_read - 1] == 10 && wbuf[nr_read - 2] == 13) {
+		wbuf[nr_read - 2] = 0;
+		nr_read -= 2;
+	}
+
+	nr_read = WideCharToMultiByte(CP_UTF8, 0, wbuf, -1, NULL, 0, NULL, NULL);
+	if (!nr_read) {
+		fprintf(stderr, _("Error converting console input: %lx\n"),
+			GetLastError());
+		goto out;
+	}
+	buf = malloc(nr_read);
+	if (!buf) {
+		fprintf(stderr, _("Allocation failure for string from stdin\n"));
+		exit(1);
+	}
+
+	if (!WideCharToMultiByte(CP_UTF8, 0, wbuf, -1, buf, nr_read, NULL, NULL)) {
+		free(buf);
+		fprintf(stderr, _("Error converting console input: %lx\n"),
+			GetLastError());
+		goto out;
+	}
+
+	*string = buf;
+
+out:
+	if (hidden) {
+		SetConsoleMode(stdinh, cmode);
+		fprintf(stderr, "\n");
+	}
+}
+
+#elif defined(HAVE_NL_LANGINFO) && defined(HAVE_ICONV)
 #include <iconv.h>
 #include <langinfo.h>
 
@@ -500,87 +583,6 @@ static void set_default_vpncscript(void)
 		default_vpncscript = "cscript " DEFAULT_VPNCSCRIPT;
 	}
 }
-
-static void read_stdin(char **string, int hidden)
-{
-	CONSOLE_READCONSOLE_CONTROL rcc = { sizeof(rcc), 0, 13, 0 };
-	HANDLE stdinh = GetStdHandle(STD_INPUT_HANDLE);
-	DWORD cmode, nr_read;
-	wchar_t wbuf[1024];
-	char *buf;
-
-	if (hidden) {
-		GetConsoleMode(stdinh, &cmode);
-		SetConsoleMode(stdinh, cmode & (~ENABLE_ECHO_INPUT));
-	}
-
-	if (!ReadConsoleW(stdinh, wbuf, sizeof(wbuf)/2, &nr_read, &rcc)) {
-		fprintf(stderr, _("ReadConsole() error %lx\n"), GetLastError());
-		goto out;
-	}
-
-	if (nr_read >= 2 && wbuf[nr_read - 1] == 10 && wbuf[nr_read - 2] == 13) {
-		wbuf[nr_read - 2] = 0;
-		nr_read -= 2;
-	}
-
-	nr_read = WideCharToMultiByte(CP_UTF8, 0, wbuf, -1, NULL, 0, NULL, NULL);
-	if (!nr_read) {
-		fprintf(stderr, _("Error converting console input: %lx\n"),
-			GetLastError());
-		goto out;
-	}
-	buf = malloc(nr_read);
-	if (!buf) {
-		fprintf(stderr, _("Allocation failure for string from stdin\n"));
-		exit(1);
-	}
-
-	if (!WideCharToMultiByte(CP_UTF8, 0, wbuf, -1, buf, nr_read, NULL, NULL)) {
-		free(buf);
-		fprintf(stderr, _("Error converting console input: %lx\n"),
-			GetLastError());
-		goto out;
-	}
-
-	*string = buf;
-
-out:
-	if (hidden) {
-		SetConsoleMode(stdinh, cmode);
-		fprintf(stderr, "\n");
-	}
-}
-
-static int vfprintf_utf8(FILE *f, const char *fmt, va_list args)
-{
-	HANDLE h = GetStdHandle(f == stdout ? STD_OUTPUT_HANDLE : STD_ERROR_HANDLE);
-	wchar_t wbuf[1024];
-	char buf[1024];
-	int chars, wchars;
-
-	buf[sizeof(buf) - 1] = 0;
-	chars = _vsnprintf(buf, sizeof(buf) - 1, fmt, args);
-	wchars = MultiByteToWideChar(CP_UTF8, 0, buf, -1, wbuf, sizeof(wbuf)/2);
-	WriteConsoleW(h, wbuf, wchars, NULL, NULL);
-
-	return chars;
-}
-static int fprintf_utf8(FILE *f, const char *fmt, ...)
-{
-	va_list args;
-	int ret;
-
-	va_start(args, fmt);
-	ret = vfprintf_utf8(f, fmt, args);
-	va_end(args);
-
-	return ret;
-}
-#undef fprintf
-#undef vfprintf
-#define fprintf fprintf_utf8
-#define vfprintf vfprintf_utf8
 #endif
 
 static void usage(void)
