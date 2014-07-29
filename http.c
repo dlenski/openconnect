@@ -205,13 +205,16 @@ int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8)
 			nr_extra = 3;
 			min = 0x10000;
 		} else {
+			buf->error = -EINVAL;
 			return -EINVAL;
 		}
 
 		while (nr_extra--) {
 			c = *(utf8++);
-			if ((c & 0xc0) != 0x80)
+			if ((c & 0xc0) != 0x80) {
+				buf->error = -EINVAL;
 				return -EINVAL;
+			}
 			utfchar <<= 6;
 			utfchar |= (c & 0x3f);
 		}
@@ -221,7 +224,7 @@ int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8)
 		if (utfchar >= 0x10000) {
 			utfchar -= 0x10000;
 			if (buf_ensure_space(buf, 4))
-				return -ENOMEM;
+				return buf_error(buf);
 			buf->data[buf->pos++] = (utfchar >> 10) & 0xff;
 			buf->data[buf->pos++] = 0xd8 | ((utfchar >> 18) & 3);
 			buf->data[buf->pos++] = utfchar & 0xff;
@@ -229,12 +232,18 @@ int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8)
 			len += 4;
 		} else {
 			if (buf_ensure_space(buf, 2))
-				return -ENOMEM;
+				return buf_error(buf);
 			buf->data[buf->pos++] = utfchar & 0xff;
 			buf->data[buf->pos++] = utfchar >> 8;
 			len += 2;
 		}
 	}
+
+	/* Ensure UTF16 is NUL-terminated */
+	if (buf_ensure_space(buf, 2))
+		buf_error(buf);
+	buf->data[buf->pos] = buf->data[buf->pos + 1] = 0;
+
 	return len;
 }
 
