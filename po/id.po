@@ -2595,8 +2595,8 @@ msgstr "Galat saat mengakses kunci registri bagi adaptor jaringan\n"
 
 #: tun-win32.c:128
 #, c-format
-msgid "Ignoring non-matching TAP interface \"%s\""
-msgstr "Mengabaikan antar muka TAP \"%s\" yang tak cocok"
+msgid "Ignoring non-matching TAP interface \"%s\"\n"
+msgstr "Mengabaikan antar muka TAP \"%s\" yang tak cocok\n"
 
 #: tun-win32.c:142
 msgid "No Windows-TAP adapters found. Is the driver installed?\n"

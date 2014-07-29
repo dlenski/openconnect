@@ -2593,8 +2593,8 @@ msgstr "Klaida prieinant prie registro rakto tinklo adapteriams\n"
 
 #: tun-win32.c:128
 #, c-format
-msgid "Ignoring non-matching TAP interface \"%s\""
-msgstr "Nepaisoma neatitinkančios TAP sąsajos „%s“"
+msgid "Ignoring non-matching TAP interface \"%s\"\n"
+msgstr "Nepaisoma neatitinkančios TAP sąsajos „%s“\n"
 
 #: tun-win32.c:142
 msgid "No Windows-TAP adapters found. Is the driver installed?\n"

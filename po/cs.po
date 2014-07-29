@@ -2602,8 +2602,8 @@ msgstr "Chyba přístupu ke klíči registru pro síťové adaptéry\n"
 
 #: tun-win32.c:128
 #, c-format
-msgid "Ignoring non-matching TAP interface \"%s\""
-msgstr "Neodpovídající rozhraní TAP „%s“ je ignorováno"
+msgid "Ignoring non-matching TAP interface \"%s\"\n"
+msgstr "Neodpovídající rozhraní TAP „%s“ je ignorováno\n"
 
 #: tun-win32.c:142
 msgid "No Windows-TAP adapters found. Is the driver installed?\n"

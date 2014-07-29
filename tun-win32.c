@@ -65,7 +65,7 @@ static intptr_t search_taps(struct openconnect_info *vpninfo, tap_callback *cb, 
 	wchar_t name[40];
 	char keyname[strlen(CONNECTIONS_KEY) + sizeof(buf) + 1 + strlen("\\Connection")];
 	int i = 0, found = 0;
-	intptr_t ret = 0;
+	intptr_t ret = -1;
 	struct oc_text_buf *namebuf = buf_alloc();
 
 	status = RegOpenKeyExA(HKEY_LOCAL_MACHINE, ADAPTERS_KEY, 0,
@@ -135,7 +135,7 @@ static intptr_t search_taps(struct openconnect_info *vpninfo, tap_callback *cb, 
 
 		if (vpninfo->ifname && strcmp(namebuf->data, vpninfo->ifname)) {
 			vpn_progress(vpninfo, PRG_DEBUG,
-				     _("Ignoring non-matching TAP interface \"%s\""),
+				     _("Ignoring non-matching TAP interface \"%s\"\n"),
 				     namebuf->data);
 			continue;
 		}

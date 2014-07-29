@@ -2631,8 +2631,8 @@ msgstr "Error al acceder a la clave del registro para adaptadores de red\n"
 
 #: tun-win32.c:128
 #, c-format
-msgid "Ignoring non-matching TAP interface \"%s\""
-msgstr "Ignorando la interfaz TAP que no coincide «%s»"
+msgid "Ignoring non-matching TAP interface \"%s\"\n"
+msgstr "Ignorando la interfaz TAP que no coincide «%s»\n"
 
 #: tun-win32.c:142
 msgid "No Windows-TAP adapters found. Is the driver installed?\n"
