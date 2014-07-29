@@ -186,17 +186,26 @@ char *openconnect__strndup(const char *s, size_t n)
 #ifndef HAVE_SETENV
 int openconnect__setenv(const char *name, const char *value, int overwrite)
 {
-	char *buf;
+	struct oc_text_buf *buf;
 
 	if (!value) {
 		openconnect__unsetenv(name);
 		return 0;
 	}
-	/* Windows putenv() takes a copy of the string */
-	buf = alloca(strlen(name) + strlen(value) + 2);
 
-	sprintf(buf, "%s=%s", name, value);
-	putenv(buf);
+	buf = buf_alloc();
+	buf_append_utf16le(buf, name);
+	buf_append_utf16le(buf, "=");
+	buf_append_utf16le(buf, value);
+	if (buf_error(buf)) {
+		errno = -buf_free(buf);
+		return -1;
+	}
+
+	/* Windows putenv() takes a copy of the string */
+	_wputenv((wchar_t *)buf->data);
+	buf_free(buf);
+
 	return 0;
 }
 #endif
