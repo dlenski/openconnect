@@ -900,6 +900,9 @@ int main(int argc, char **argv)
 	oc_token_mode_t token_mode = OC_TOKEN_MODE_NONE;
 	int reconnect_timeout = 300;
 	int ret;
+#ifdef HAVE_NL_LANGINFO
+	char *charset;
+#endif
 #ifndef _WIN32
 	struct sigaction sa;
 	struct utsname utsbuf;
@@ -915,9 +918,9 @@ int main(int argc, char **argv)
 	setlocale(LC_ALL, "");
 
 #ifdef HAVE_NL_LANGINFO
-	legacy_charset = nl_langinfo(CODESET);
-	if (legacy_charset && !strcmp(legacy_charset, "UTF-8"))
-		legacy_charset = NULL;
+	charset = nl_langinfo(CODESET);
+	if (charset && strcmp(charset, "UTF-8"))
+		legacy_charset = strdup(charset);
 
 #ifndef HAVE_ICONV
 	if (legacy_charset)
@@ -925,8 +928,8 @@ int main(int argc, char **argv)
 			_("WARNING: This version of openconnect was built without iconv\n"
 			  "         support but you appear to be using the legacy character\n"
 			  "         set \"%s\". Expect strangeness.\n"), legacy_charset);
-#endif
-#endif
+#endif /* !HAVE_ICONV */
+#endif /* HAVE_NL_LANGINFO */
 
 	if (strcmp(openconnect_version_str, openconnect_binary_version)) {
 		fprintf(stderr, _("WARNING: This version of openconnect is %s but\n"
