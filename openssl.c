@@ -860,16 +860,36 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 	if (vpninfo->cert_type == CERT_TYPE_TPM)
 		return load_tpm_certificate(vpninfo);
+	else {
+		RSA *key;
+		FILE *f = fopen_utf8(vpninfo, vpninfo->sslkey, "rb");
+		BIO *b;
 
-	/* Standard PEM certificate */
-	SSL_CTX_set_default_passwd_cb(vpninfo->https_ctx, pem_pw_cb);
-	SSL_CTX_set_default_passwd_cb_userdata(vpninfo->https_ctx, vpninfo);
- again:
-	if (!SSL_CTX_use_RSAPrivateKey_file(vpninfo->https_ctx, vpninfo->sslkey,
-					    SSL_FILETYPE_PEM)) {
-		if (is_pem_password_error(vpninfo))
-			goto again;
-		return -EINVAL;
+		if (!f) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to open private key file %s: %s\n"),
+				     vpninfo->cert, strerror(errno));
+			return -ENOENT;
+		}
+		b = BIO_new_fp(f, 0);
+		if (!b) {
+			fclose(f);
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Loading private key failed\n"));
+			openconnect_report_ssl_errors(vpninfo);
+		}
+	again:
+		fseek(f, 0, SEEK_SET);
+		key = PEM_read_bio_RSAPrivateKey(b, NULL, pem_pw_cb, vpninfo);
+		if (!key) {
+			if (is_pem_password_error(vpninfo))
+				goto again;
+			BIO_free(b);
+			return -EINVAL;
+		}
+		SSL_CTX_use_RSAPrivateKey(vpninfo->https_ctx, key);
+		RSA_free(key);
+		BIO_free(b);
 	}
 	return 0;
 }
