@@ -379,7 +379,7 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 		err = -errno;
 		vpn_progress(vpninfo, PRG_ERR, _("statvfs: %s\n"),
 			     strerror(errno));
-	} else if (asprintf(&vpninfo->cert_password, "%lx", buf.f_fsid))
+	} else if (asprintf(&vpninfo->cert_password, "%lx", buf.f_fsid) == -1)
 		err = -ENOMEM;
 
 	if (sslkey != vpninfo->sslkey)
@@ -428,7 +428,7 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 	if (!success)
 		return -EIO;
 
-	if (asprintf(&vpninfo->cert_password, "%lx", serial))
+	if (asprintf(&vpninfo->cert_password, "%lx", serial) == -1)
 		return -ENOMEM;
 
 	return 0;
@@ -450,7 +450,7 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 	} else {
 		fsid64 = ((unsigned long long)fsid[0] << 32) | fsid[1];
 
-		if (asprintf(&vpninfo->cert_password, "%llx", fsid64))
+		if (asprintf(&vpninfo->cert_password, "%llx", fsid64) == -1)
 			err = -ENOMEM;
 	}
 
