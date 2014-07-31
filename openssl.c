@@ -572,30 +572,99 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 }
 #endif
 
-static int reload_pem_cert(struct openconnect_info *vpninfo)
+/* This is a reimplementation of SSL_CTX_use_certificate_chain_file().
+ * We do this for three reasons:
+ *
+ * - Firstly, we have no way to obtain the primary X509 certificate
+ *   after SSL_CTX_use_certificate_chain_file() has loaded it, and we
+ *   need to inspect it to check for expiry and report its name etc.
+ *   So in the past we've opened the cert file again and read the cert
+ *   again in a reload_pem_cert() function which was a partial
+ *   reimplementation anyway.
+ *
+ * - Secondly, on Windows, OpenSSL only partially handles UTF-8 filenames.
+ *   Specifically, BIO_new_file() will convert UTF-8 to UTF-16 and attempt
+ *   to use _wfopen() to open the file, but BIO_read_filename() will not.
+ *   It is BIO_read_filename() which the SSL_CTX_*_file functions use, and
+ *   thus they don't work with UTF-8 file names. This is filed as RT#3479:
+ *   http://rt.openssl.org/Ticket/Display.html?id=3479
+ *
+ * - Finally, and least importantly, it does actually matter which supporting
+ *   certs we offer on the wire because of RT#1942. Doing this for ourselves
+ *   allows us to explicitly print the supporting certs that we're using,
+ *   which may assist in diagnosing problems.
+ */
+static int load_cert_chain_file(struct openconnect_info *vpninfo)
 {
-	BIO *b = BIO_new(BIO_s_file_internal());
+	BIO *b;
+	FILE *f = fopen_utf8(vpninfo, vpninfo->cert, "rb");
+	STACK_OF(X509) *extra_certs = NULL;
 	char buf[200];
 
-	if (!b)
-		return -ENOMEM;
-
-	if (BIO_read_filename(b, vpninfo->cert) <= 0) {
-	err:
-		BIO_free(b);
+	if (!f) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to reload X509 cert for expiry check\n"));
+			     _("Failed to open certificate file %s: %s\n"),
+			     vpninfo->cert, strerror(errno));
+		return -ENOENT;
+	}
+
+	b = BIO_new_fp(f, 1);
+	if (!b) {
+		fclose(f);
+	err:
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Loading certificate failed\n"));
 		openconnect_report_ssl_errors(vpninfo);
 		return -EIO;
 	}
 	vpninfo->cert_x509 = PEM_read_bio_X509_AUX(b, NULL, NULL, NULL);
-	BIO_free(b);
-	if (!vpninfo->cert_x509)
+	if (!vpninfo->cert_x509) {
+		BIO_free(b);
 		goto err;
+	}
 
 	X509_NAME_oneline(X509_get_subject_name(vpninfo->cert_x509), buf, sizeof(buf));
 	vpn_progress(vpninfo, PRG_INFO,
 			     _("Using client certificate '%s'\n"), buf);
+
+	if (!SSL_CTX_use_certificate(vpninfo->https_ctx, vpninfo->cert_x509)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to install certificate in OpenSSL context\n"));
+		openconnect_report_ssl_errors(vpninfo);
+		BIO_free(b);
+		return -EIO;
+	}
+
+	while (1) {
+		X509 *x = PEM_read_bio_X509(b, NULL, NULL, NULL);
+		if (!x) {
+			unsigned long err = ERR_peek_last_error();
+			if (ERR_GET_LIB(err) == ERR_LIB_PEM &&
+			    ERR_GET_REASON(err) == PEM_R_NO_START_LINE)
+				ERR_clear_error();
+			else
+				goto err_extra;
+			break;
+		}
+		if (!extra_certs)
+			extra_certs = sk_X509_new_null();
+		if (!extra_certs) {
+		err_extra:
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to process all supporting certs. Trying anyway...\n"));
+			openconnect_report_ssl_errors(vpninfo);
+			X509_free(x);
+			/* It might work without... */
+			break;
+		}
+		if (!sk_X509_push(extra_certs, x))
+			goto err_extra;
+	}
+
+	BIO_free(b);
+
+	if (extra_certs)
+		install_extra_certs(vpninfo, _("PEM file"), extra_certs);
 
 	return 0;
 }
@@ -724,18 +793,10 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	} else
 #endif /* ANDROID_KEYSTORE */
 	{
-		if (!SSL_CTX_use_certificate_chain_file(vpninfo->https_ctx,
-							vpninfo->cert)) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Loading certificate failed\n"));
-			openconnect_report_ssl_errors(vpninfo);
-			return -EINVAL;
-		}
-
-		/* Ew, we can't get it back from the OpenSSL CTX in any sane fashion */
-		reload_pem_cert(vpninfo);
+		int ret = load_cert_chain_file(vpninfo);
+		if (ret)
+			return ret;
 	}
-
 #ifdef ANDROID_KEYSTORE
 	if (!strncmp(vpninfo->sslkey, "keystore:", 9)) {
 		EVP_PKEY *key;
