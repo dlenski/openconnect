@@ -1071,16 +1071,16 @@ int main(int argc, char **argv)
 			authgroup = keep_config_arg();
 			break;
 		case 'C':
-			vpninfo->cookie = strdup(config_arg);
+			vpninfo->cookie = dup_config_arg();
 			break;
 		case 'c':
-			vpninfo->cert = strdup(config_arg);
+			vpninfo->cert = dup_config_arg();
 			break;
 		case 'e':
 			vpninfo->cert_expire_warning = 86400 * atoi(config_arg);
 			break;
 		case 'k':
-			vpninfo->sslkey = strdup(config_arg);
+			vpninfo->sslkey = dup_config_arg();
 			break;
 		case 'd':
 			vpninfo->deflate = 1;
@@ -1145,7 +1145,7 @@ int main(int argc, char **argv)
 			break;
 		case 'u':
 			free(username);
-			username = strdup(config_arg);
+			username = dup_config_arg();
 			break;
 		case OPT_DISABLE_IPV6:
 			vpninfo->disable_ipv6 = 1;
@@ -1179,7 +1179,7 @@ int main(int argc, char **argv)
 			break;
 		case OPT_USERAGENT:
 			free(vpninfo->useragent);
-			vpninfo->useragent = strdup(config_arg);
+			vpninfo->useragent = dup_config_arg();
 			break;
 		case OPT_FORCE_DPD:
 			openconnect_set_dpd(vpninfo, atoi(config_arg));
