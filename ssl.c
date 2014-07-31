@@ -656,3 +656,61 @@ void poll_cmd_fd(struct openconnect_info *vpninfo, int timeout)
 		check_cmd_fd(vpninfo, &rd_set);
 	}
 }
+
+#ifdef _WIN32
+int open_utf8(struct openconnect_info *vpninfo, const char *fname, int mode)
+{
+	wchar_t *fname_w;
+	int nr_chars = MultiByteToWideChar(CP_UTF8, 0, fname, -1, NULL, 0);
+	int fd;
+
+	if (!nr_chars) {
+		errno = EINVAL;
+		return -1;
+	}
+	fname_w = malloc(nr_chars * sizeof(wchar_t));
+	if (!fname_w) {
+		errno = ENOMEM;
+		return -1;
+	}
+	MultiByteToWideChar(CP_UTF8, 0, fname, -1, fname_w, nr_chars);
+
+	fd = _wopen(fname_w, mode);
+	free(fname_w);
+
+	return fd;
+}
+#else
+int open_utf8(struct openconnect_info *vpninfo, const char *fname, int mode)
+{
+	char *legacy_fname = openconnect_utf8_to_legacy(vpninfo, fname);
+	int fd;
+
+	fd = open(legacy_fname, mode);
+	if (legacy_fname != fname)
+		free(legacy_fname);
+
+	return fd;
+}
+#endif
+
+FILE *fopen_utf8(struct openconnect_info *vpninfo, const char *fname,
+		 const char *mode)
+{
+	int fd;
+
+	/* This should never happen, but if we forget and start using other
+	   modes without implementing proper mode->flags conversion, complain! */
+	if (strcmp(mode, "rb")) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("fopen_utf8() used with unsupported mode '%s'\n"),
+			     mode);
+		return NULL;
+	}
+
+	fd = open_utf8(vpninfo, fname, O_RDONLY|O_CLOEXEC|O_BINARY);
+	if (fd == -1)
+		return NULL;
+
+	return fdopen(fd, mode);
+}

@@ -520,6 +520,12 @@ int dumb_socketpair(int socks[2], int make_overlapped);
 #endif
 #endif
 
+/* For systems that don't support O_CLOEXEC, just don't bother.
+   We don't keep files open for long anyway. */
+#ifndef O_CLOEXEC
+#define O_CLOEXEC 0
+#endif
+
 /* I always coded as if it worked like this. Now it does. */
 #define realloc_inplace(p, size) do {			\
 	void *__realloc_old = p;			\
@@ -584,6 +590,8 @@ void cmd_fd_set(struct openconnect_info *vpninfo, fd_set *fds, int *maxfd);
 void check_cmd_fd(struct openconnect_info *vpninfo, fd_set *fds);
 int is_cancel_pending(struct openconnect_info *vpninfo, fd_set *fds);
 void poll_cmd_fd(struct openconnect_info *vpninfo, int timeout);
+int open_utf8(struct openconnect_info *vpninfo, const char *fname, int mode);
+FILE *fopen_utf8(struct openconnect_info *vpninfo, const char *fname, const char *mode);
 
 /* {gnutls,openssl}.c */
 int openconnect_open_https(struct openconnect_info *vpninfo);

@@ -236,17 +236,12 @@ static int check_certificate_expiry(struct openconnect_info *vpninfo, gnutls_x50
 	return 0;
 }
 
-/* For systems that don't support O_CLOEXEC, just don't bother.
-   It's not open for long anyway. */
-#ifndef O_CLOEXEC
-#define O_CLOEXEC 0
-#endif
-
 static int load_datum(struct openconnect_info *vpninfo,
 		      gnutls_datum_t *datum, const char *fname)
 {
 	struct stat st;
 	int fd, err;
+
 #ifdef ANDROID_KEYSTORE
 	if (!strncmp(fname, "keystore:", 9)) {
 		int len;
