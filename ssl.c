@@ -397,6 +397,7 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 	HINSTANCE kernlib;
 	GVIBH func = NULL;
 	int success;
+	int fd;
 
 	/* Some versions of Windows don't have this so don't use standard
 	   load-time linking or it'll cause failures. */
@@ -412,13 +413,17 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 	if (!func)
 		goto notsupp;
 
-	h = CreateFileA(vpninfo->sslkey, 0, 0, NULL, OPEN_EXISTING,
-		       FILE_ATTRIBUTE_NORMAL, NULL);
-	if (h == INVALID_HANDLE_VALUE)
-		return -EIO;
+	fd = open_utf8(vpninfo, vpninfo->sslkey, O_RDONLY);
+	if (fd == -1) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to open private key file '%s': %s\n"),
+			     vpninfo->sslkey, strerror(errno));
+		return -ENOENT;
+	}
 
+	h = (HANDLE)_get_osfhandle(fd);
 	success = func(h, NULL, 0, &serial, NULL, NULL, NULL, 0);
-	CloseHandle(h);
+	close(fd);
 
 	if (!success)
 		return -EIO;
