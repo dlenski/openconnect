@@ -205,14 +205,16 @@ int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8)
 			nr_extra = 3;
 			min = 0x10000;
 		} else {
-			buf->error = -EINVAL;
+			if (buf)
+				buf->error = -EINVAL;
 			return -EINVAL;
 		}
 
 		while (nr_extra--) {
 			c = *(utf8++);
 			if ((c & 0xc0) != 0x80) {
-				buf->error = -EINVAL;
+				if (buf)
+					buf->error = -EINVAL;
 				return -EINVAL;
 			}
 			utfchar <<= 6;
@@ -241,7 +243,7 @@ int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8)
 
 	/* Ensure UTF16 is NUL-terminated */
 	if (buf_ensure_space(buf, 2))
-		buf_error(buf);
+		return buf_error(buf);
 	buf->data[buf->pos] = buf->data[buf->pos + 1] = 0;
 
 	return len;
