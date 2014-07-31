@@ -206,22 +206,28 @@ int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8)
 			min = 0x10000;
 		} else {
 			if (buf)
-				buf->error = -EINVAL;
-			return -EINVAL;
+				buf->error = -EILSEQ;
+			return -EILSEQ;
 		}
 
 		while (nr_extra--) {
 			c = *(utf8++);
 			if ((c & 0xc0) != 0x80) {
 				if (buf)
-					buf->error = -EINVAL;
-				return -EINVAL;
+					buf->error = -EILSEQ;
+				return -EILSEQ;
 			}
 			utfchar <<= 6;
 			utfchar |= (c & 0x3f);
 		}
-		if (utfchar > 0x10ffff || utfchar < min)
-			return -EINVAL;
+		if (utfchar > 0x10ffff || utfchar < min) {
+			if (buf)
+				buf->error = -EILSEQ;
+			return -EILSEQ;
+		}
+
+		if (!buf)
+			continue;
 
 		if (utfchar >= 0x10000) {
 			utfchar -= 0x10000;
@@ -240,6 +246,10 @@ int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8)
 			len += 2;
 		}
 	}
+
+	/* We were only being used for validation */
+	if (!buf)
+		return 0;
 
 	/* Ensure UTF16 is NUL-terminated */
 	if (buf_ensure_space(buf, 2))
