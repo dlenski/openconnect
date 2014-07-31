@@ -257,6 +257,13 @@ typedef enum {
 	OC_TOKEN_MODE_HOTP,
 } oc_token_mode_t;
 
+/* All strings are UTF-8. If operating in a legacy environment where
+   nl_langinfo(CODESET) returns anything other than UTF-8, or on Windows,
+   the library will take appropriate steps to convert back to the legacy
+   character set (or UTF-16) for file handling and wherever else it is
+   appropriate to do so. Library functions may (but probably don't yet)
+   return -EILSEQ if passed invalid UTF-8 strings. */
+
 /* Unless otherwise specified, all functions which set strings will take
    ownership of those strings and the library will free them later in
    openconnect_vpninfo_free() */
