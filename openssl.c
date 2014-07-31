@@ -1445,7 +1445,16 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		} else
 #endif
 		if (vpninfo->cafile) {
-			if (!SSL_CTX_load_verify_locations(vpninfo->https_ctx, vpninfo->cafile, NULL)) {
+			/* OpenSSL does actually manage to cope with UTF-8 for
+			   this one, under Windows. So only convert for legacy
+			   UNIX. */
+			char *cafile = openconnect_utf8_to_legacy(vpninfo,
+								  vpninfo->cafile);
+			err = SSL_CTX_load_verify_locations(vpninfo->https_ctx,
+							    cafile, NULL);
+			if (cafile != vpninfo->cafile)
+				free(cafile);
+			if (!err) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to open CA file '%s'\n"),
 					     vpninfo->cafile);
