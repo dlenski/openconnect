@@ -28,7 +28,8 @@ lib_srcs_gssapi = gssapi.c
 lib_srcs_iconv = iconv.c
 
 POTFILES = $(openconnect_SOURCES) $(lib_srcs_openssl) $(lib_srcs_gnutls) \
-	   $(library_srcs) $(lib_srcs_win32) $(lib_srcs_posix) $(lib_srcs_gssapi)
+	   $(library_srcs) $(lib_srcs_win32) $(lib_srcs_posix) $(lib_srcs_gssapi) \
+	   $(lib_srcs_iconv) openconnect-internal.h
 
 if OPENCONNECT_GSSAPI
 library_srcs += $(lib_srcs_gssapi)

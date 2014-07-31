@@ -248,6 +248,8 @@ char *openconnect_get_hostname(struct openconnect_info *vpninfo)
 
 void openconnect_set_hostname(struct openconnect_info *vpninfo, char *hostname)
 {
+	UTF8CHECK_VOID(hostname);
+
 	free(vpninfo->hostname);
 	vpninfo->hostname = hostname;
 	free(vpninfo->unique_hostname);
@@ -263,6 +265,8 @@ char *openconnect_get_urlpath(struct openconnect_info *vpninfo)
 
 void openconnect_set_urlpath(struct openconnect_info *vpninfo, char *urlpath)
 {
+	UTF8CHECK_VOID(urlpath);
+
 	vpninfo->urlpath = urlpath;
 }
 
@@ -276,6 +280,8 @@ void openconnect_set_xmlsha1(struct openconnect_info *vpninfo, const char *xmlsh
 
 void openconnect_set_cafile(struct openconnect_info *vpninfo, char *cafile)
 {
+	UTF8CHECK_VOID(cafile);
+
 	vpninfo->cafile = cafile;
 }
 
@@ -331,6 +337,9 @@ void openconnect_set_xmlpost(struct openconnect_info *vpninfo, int enable)
 
 void openconnect_set_client_cert(struct openconnect_info *vpninfo, char *cert, char *sslkey)
 {
+	UTF8CHECK_VOID(cert);
+	UTF8CHECK_VOID(sslkey);
+
 	vpninfo->cert = cert;
 	if (sslkey)
 		vpninfo->sslkey = sslkey;
@@ -373,6 +382,8 @@ int openconnect_parse_url(struct openconnect_info *vpninfo, char *url)
 {
 	char *scheme = NULL;
 	int ret;
+
+	UTF8CHECK(url);
 
 	openconnect_set_hostname(vpninfo, NULL);
 	free(vpninfo->urlpath);
@@ -596,6 +607,7 @@ static int set_hotp_mode(struct openconnect_info *vpninfo,
  * read the token data from ~/.stokenrc.
  *
  * Return value:
+ *  = -EILSEQ, if token_str is not valid UTF-8
  *  = -EOPNOTSUPP, if the underlying library (libstoken, liboath) is not
  *                 available or an invalid token_mode was provided
  *  = -EINVAL, if the token string is invalid (token_str was provided)
@@ -609,6 +621,8 @@ int openconnect_set_token_mode(struct openconnect_info *vpninfo,
 			       const char *token_str)
 {
 	vpninfo->token_mode = OC_TOKEN_MODE_NONE;
+
+	UTF8CHECK(token_str);
 
 	switch (token_mode) {
 	case OC_TOKEN_MODE_NONE:
@@ -637,6 +651,7 @@ int openconnect_set_token_mode(struct openconnect_info *vpninfo,
  * DEPRECATED: use openconnect_set_stoken_mode() instead.
  *
  * Return value:
+ *  = -EILSEQ, if token_str is not valid UTF-8
  *  = -EOPNOTSUPP, if libstoken is not available
  *  = -EINVAL, if the token string is invalid (token_str was provided)
  *  = -ENOENT, if ~/.stokenrc is missing (token_str was NULL)
@@ -671,6 +686,9 @@ int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_sc
 {
 	intptr_t tun_fd;
 	char *legacy_ifname;
+
+	UTF8CHECK(vpnc_script);
+	UTF8CHECK(ifname);
 
 	vpninfo->vpnc_script = vpnc_script;
 	vpninfo->ifname = ifname;

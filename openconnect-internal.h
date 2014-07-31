@@ -671,4 +671,20 @@ int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *b
 /* version.c */
 extern const char *openconnect_version_str;
 
+#define UTF8CHECK(arg) \
+	if ((arg) && buf_append_utf16le(NULL, (arg))) { \
+		vpn_progress(vpninfo, PRG_ERR,				\
+			     _("ERROR: %s() called with invalid UTF-8 for '%s' argument\n"),\
+			     __func__, #arg);				\
+		return -EILSEQ;						\
+	}
+
+#define UTF8CHECK_VOID(arg) \
+	if ((arg) && buf_append_utf16le(NULL, (arg))) { \
+		vpn_progress(vpninfo, PRG_ERR,				\
+			     _("ERROR: %s() called with invalid UTF-8 for '%s' argument\n"),\
+			     __func__, #arg);				\
+		return;							\
+	}
+
 #endif /* __OPENCONNECT_INTERNAL_H__ */
