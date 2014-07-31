@@ -15,8 +15,9 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li>Fix legacy <i>(i.e. not XML POST)</i> submission of non-ASCII form entries.</li>
-       <li>Add support for Windows without <tt>RegGetValue()</tt> <i>(e.g. 32-bit Windows XP)</i>.</li>
+       <li>Add full <a href="charset.html">character set handling</a> for legacy non-UTF8 systems <i>(including Windows)</i>.</li>
+       <li>Fix legacy <i>(i.e. not XML POST)</i> submission of non-ASCII form entries <i>(even in UTF-8 locales)</i>.</li>
+       <li>Add support for 32-bit Windows XP.</li>
        <li>Avoid retrying without XML POST, when we failed to even reach the server.</li>
        <li>Fix off-by-one in parameter substitution in error messages.</li>
        <li>Improve reporting when GSSAPI auth requested but not compiled in.</li>
