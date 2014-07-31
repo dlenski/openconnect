@@ -307,6 +307,8 @@ struct openconnect_info {
 	struct pkt *current_ssl_pkt;
 	struct pkt *pending_deflated_pkt;
 
+	struct pkt *tun_pkt;
+
 	z_stream inflate_strm;
 	uint32_t inflate_adler32;
 	z_stream deflate_strm;

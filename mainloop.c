@@ -47,8 +47,6 @@ int queue_new_packet(struct pkt **q, void *buf, int len)
 	return 0;
 }
 
-static struct pkt *out_pkt;
-
 /* This is here because it's generic and hence can't live in either of the
    tun*.c files for specific platforms */
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
@@ -56,6 +54,7 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	int work_done = 0;
 
 	if (read_fd_monitored(vpninfo, tun)) {
+		struct pkt *out_pkt = vpninfo->tun_pkt;
 		while (1) {
 			int len = vpninfo->ip_info.mtu;
 
@@ -84,6 +83,7 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				break;
 			}
 		}
+		vpninfo->tun_pkt = out_pkt;
 	} else if (vpninfo->outgoing_qlen < vpninfo->max_qlen) {
 		monitor_read_fd(vpninfo, tun);
 	}
