@@ -25,6 +25,7 @@ lib_srcs_openssl = openssl.c
 lib_srcs_win32 = tun-win32.c sspi.c
 lib_srcs_posix = tun.c
 lib_srcs_gssapi = gssapi.c
+lib_srcs_iconv = iconv.c
 
 POTFILES = $(openconnect_SOURCES) $(lib_srcs_openssl) $(lib_srcs_gnutls) \
 	   $(library_srcs) $(lib_srcs_win32) $(lib_srcs_posix) $(lib_srcs_gssapi)
@@ -38,6 +39,9 @@ endif
 if OPENCONNECT_OPENSSL
 library_srcs += $(lib_srcs_openssl)
 endif
+if OPENCONNECT_ICONV
+library_srcs += $(lib_srcs_iconv)
+endif
 if OPENCONNECT_WIN32
 library_srcs += $(lib_srcs_win32)
 else
@@ -46,7 +50,7 @@ endif
 
 libopenconnect_la_SOURCES = version.c $(library_srcs)
 libopenconnect_la_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(P11KIT_CFLAGS) $(TSS_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBOATH_CFLAGS) $(GSSAPI_CFLAGS)
-libopenconnect_la_LIBADD = $(SSL_LIBS) $(DTLS_SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(LIBINTL) $(P11KIT_LIBS) $(TSS_LIBS) $(LIBSTOKEN_LIBS) $(LIBOATH_LIBS) $(GSSAPI_LIBS)
+libopenconnect_la_LIBADD = $(SSL_LIBS) $(DTLS_SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(LIBINTL) $(P11KIT_LIBS) $(TSS_LIBS) $(LIBSTOKEN_LIBS) $(LIBOATH_LIBS) $(GSSAPI_LIBS) $(LIBICONV)
 if OPENBSD_LIBTOOL
 # OpenBSD's libtool doesn't have -version-number, but its -version-info arg
 # does what GNU libtool's -version-number does. Which arguably is what the

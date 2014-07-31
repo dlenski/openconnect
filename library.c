@@ -45,10 +45,22 @@ struct openconnect_info *openconnect_vpninfo_new(char *useragent,
 						 void *privdata)
 {
 	struct openconnect_info *vpninfo = calloc(sizeof(*vpninfo), 1);
+#ifdef HAVE_ICONV
+	char *charset = nl_langinfo(CODESET);
+#endif
 
 	if (!vpninfo)
 		return NULL;
 
+#ifdef HAVE_ICONV
+	if (charset && strcmp(charset, "UTF-8")) {
+		vpninfo->ic_utf8_to_legacy = iconv_open(charset, "UTF-8");
+		vpninfo->ic_legacy_to_utf8 = iconv_open("UTF-8", charset);
+	} else {
+		vpninfo->ic_utf8_to_legacy = (iconv_t)-1;
+		vpninfo->ic_legacy_to_utf8 = (iconv_t)-1;
+	}
+#endif
 #ifndef _WIN32
 	vpninfo->tun_fd = -1;
 #endif
@@ -141,6 +153,11 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		close(vpninfo->cmd_fd);
 		close(vpninfo->cmd_fd_write);
 	}
+
+#ifdef HAVE_ICONV
+	iconv_close(vpninfo->ic_utf8_to_legacy);
+	iconv_close(vpninfo->ic_legacy_to_utf8);
+#endif
 #ifdef _WIN32
 	if (vpninfo->cmd_event)
 		CloseHandle(vpninfo->cmd_event);

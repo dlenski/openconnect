@@ -62,6 +62,11 @@
 #endif
 #endif
 
+#ifdef HAVE_ICONV
+#include <langinfo.h>
+#include <iconv.h>
+#endif
+
 #include <zlib.h>
 #include <stdint.h>
 #include <sys/time.h>
@@ -174,6 +179,10 @@ struct proxy_auth_state {
 };
 
 struct openconnect_info {
+#ifdef HAVE_ICONV
+	iconv_t ic_legacy_to_utf8;
+	iconv_t ic_utf8_to_legacy;
+#endif
 	char *redirect_url;
 	int redirect_type;
 
@@ -520,6 +529,15 @@ int dumb_socketpair(int socks[2], int make_overlapped);
     } while (0)
 
 /****************************************************************************/
+
+/* iconv.c */
+#ifdef HAVE_ICONV
+char *openconnect_utf8_to_legacy(struct openconnect_info *vpninfo, const char *utf8);
+char *openconnect_legacy_to_utf8(struct openconnect_info *vpninfo, const char *legacy);
+#else
+#define openconnect_utf8_to_legacy(v, str) ((char *)str)
+#define openconnect_legacy_to_utf8(v, str) ((char *)str)
+#endif
 
 /* script.c */
 int setenv_int(const char *opt, int value);
