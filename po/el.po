@@ -2240,8 +2240,8 @@ msgstr "Το PKCS#12 δεν περιείχε κανένα ιδιωτικό κλ�
 
 #: openssl.c:486
 #, c-format
-msgid "Extra cert from PKCS#12: '%s'\n"
-msgstr "Πρόσθετο πιστοποιητικό από το PKCS#12: '%s'\n"
+msgid "Extra cert from %s: '%s'\n"
+msgstr "Πρόσθετο πιστοποιητικό από το %s: '%s'\n"
 
 #: openssl.c:512
 msgid "Can't load TPM engine.\n"

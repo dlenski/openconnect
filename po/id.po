@@ -2248,8 +2248,8 @@ msgstr "PKCS#12 tak memuat kunci privat!"
 
 #: openssl.c:486
 #, c-format
-msgid "Extra cert from PKCS#12: '%s'\n"
-msgstr "Sertifikat ekstra dari PKCS#12: '%s'\n"
+msgid "Extra cert from %s: '%s'\n"
+msgstr "Sertifikat ekstra dari %s: '%s'\n"
 
 #: openssl.c:512
 msgid "Can't load TPM engine.\n"

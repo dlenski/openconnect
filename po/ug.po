@@ -2254,8 +2254,8 @@ msgstr "PKCS#12 دا شەخسىي ئاچقۇچ يوق!"
 
 #: openssl.c:486
 #, c-format
-msgid "Extra cert from PKCS#12: '%s'\n"
-msgstr "PKCS#12 نىڭ زىيادە گۇۋاھنامىسى: '%s'\n"
+msgid "Extra cert from %s: '%s'\n"
+msgstr "%s نىڭ زىيادە گۇۋاھنامىسى: '%s'\n"
 
 #: openssl.c:512
 msgid "Can't load TPM engine.\n"

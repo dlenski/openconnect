@@ -400,6 +400,38 @@ static int pem_pw_cb(char *buf, int len, int w, void *v)
 	return plen;
 }
 
+static int install_extra_certs(struct openconnect_info *vpninfo, const char *source,
+			       STACK_OF(X509) *ca)
+{
+	X509 *cert = vpninfo->cert_x509;
+	int i;
+
+ next:
+	for (i = 0; i < sk_X509_num(ca); i++) {
+		X509 *cert2 = sk_X509_value(ca, i);
+		if (X509_check_issued(cert2, cert) == X509_V_OK) {
+			char buf[200];
+
+			if (cert2 == cert)
+				break;
+			if (X509_check_issued(cert2, cert2) == X509_V_OK)
+				break;
+
+			X509_NAME_oneline(X509_get_subject_name(cert2),
+					  buf, sizeof(buf));
+			vpn_progress(vpninfo, PRG_DEBUG,
+				     _("Extra cert from %s: '%s'\n"), source, buf);
+			CRYPTO_add(&cert2->references, 1, CRYPTO_LOCK_X509);
+			SSL_CTX_add_extra_chain_cert(vpninfo->https_ctx, cert2);
+			cert = cert2;
+			goto next;
+		}
+	}
+	sk_X509_pop_free(ca, X509_free);
+
+	return 0;
+}
+
 static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12)
 {
 	EVP_PKEY *pkey = NULL;
@@ -466,32 +498,8 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 		ret = -EINVAL;
 	}
 
-	/* Only include supporting certificates which are actually necessary */
-	if (ca) {
-		int i;
-	next:
-		for (i = 0; i < sk_X509_num(ca); i++) {
-			X509 *cert2 = sk_X509_value(ca, i);
-			if (X509_check_issued(cert2, cert) == X509_V_OK) {
-				char buf[200];
-
-				if (cert2 == cert)
-					break;
-				if (X509_check_issued(cert2, cert2) == X509_V_OK)
-					break;
-
-				X509_NAME_oneline(X509_get_subject_name(cert2),
-						  buf, sizeof(buf));
-				vpn_progress(vpninfo, PRG_DEBUG,
-					     _("Extra cert from PKCS#12: '%s'\n"), buf);
-				CRYPTO_add(&cert2->references, 1, CRYPTO_LOCK_X509);
-				SSL_CTX_add_extra_chain_cert(vpninfo->https_ctx, cert2);
-				cert = cert2;
-				goto next;
-			}
-		}
-		sk_X509_pop_free(ca, X509_free);
-	}
+	if (ca)
+		install_extra_certs(vpninfo, _("PKCS#12"), ca);
 
 	PKCS12_free(p12);
 	return ret;

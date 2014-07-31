@@ -2236,8 +2236,8 @@ msgstr "PKCS#12 continha nenhuma chave privada!"
 
 #: openssl.c:486
 #, c-format
-msgid "Extra cert from PKCS#12: '%s'\n"
-msgstr "Certificado extra de PKCS#12: '%s'\n"
+msgid "Extra cert from %s: '%s'\n"
+msgstr "Certificado extra de %s: '%s'\n"
 
 #: openssl.c:512
 msgid "Can't load TPM engine.\n"

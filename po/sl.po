@@ -2244,8 +2244,8 @@ msgstr "PKCS#12 ne vsebuje osebnega ključa!"
 
 #: openssl.c:486
 #, c-format
-msgid "Extra cert from PKCS#12: '%s'\n"
-msgstr "Dodatno potrdilo PKCS#12: '%s'\n"
+msgid "Extra cert from %s: '%s'\n"
+msgstr "Dodatno potrdilo %s: '%s'\n"
 
 #: openssl.c:512
 msgid "Can't load TPM engine.\n"
