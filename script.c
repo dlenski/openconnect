@@ -153,7 +153,7 @@ static void setenv_cstp_opts(struct openconnect_info *vpninfo)
 
 static void set_banner(struct openconnect_info *vpninfo)
 {
-	char *banner, *q;
+	char *banner, *legacy_banner, *q;
 	const char *p;
 
 	if (!vpninfo->banner || !(banner = malloc(strlen(vpninfo->banner)+1))) {
@@ -172,7 +172,10 @@ static void set_banner(struct openconnect_info *vpninfo)
 			*(q++) = *(p++);
 	}
 	*q = 0;
-	setenv("CISCO_BANNER", banner, 1);
+	legacy_banner = openconnect_utf8_to_legacy(vpninfo, banner);
+	setenv("CISCO_BANNER", legacy_banner, 1);
+	if (legacy_banner != banner)
+		free(legacy_banner);
 
 	free(banner);
 }
