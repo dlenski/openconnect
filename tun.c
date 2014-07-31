@@ -72,6 +72,7 @@
 #define TUN_HAS_AF_PREFIX 1
 #endif
 
+#ifndef __sun__
 static void ifreq_set_ifname(struct openconnect_info *vpninfo, struct ifreq *ifr)
 {
 	char *ifname = openconnect_utf8_to_legacy(vpninfo, vpninfo->ifname);
@@ -79,6 +80,7 @@ static void ifreq_set_ifname(struct openconnect_info *vpninfo, struct ifreq *ifr
 	if (ifname != vpninfo->ifname)
 		free(ifname);
 }
+#endif
 
 static int set_tun_mtu(struct openconnect_info *vpninfo)
 {
