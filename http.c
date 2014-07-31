@@ -772,7 +772,8 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 		   the NM tool and the various cookieonly modes. */
 		dup2(2, 1);
 		if (vpninfo->csd_wrapper)
-			csd_argv[i++] = vpninfo->csd_wrapper;
+			csd_argv[i++] = openconnect_utf8_to_legacy(vpninfo,
+								   vpninfo->csd_wrapper);
 		csd_argv[i++] = fname;
 		csd_argv[i++] = (char *)"-ticket";
 		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->csd_ticket) == -1)
