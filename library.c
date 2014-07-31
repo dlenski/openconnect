@@ -669,6 +669,7 @@ void openconnect_set_stats_handler(struct openconnect_info *vpninfo,
 int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_script, char *ifname)
 {
 	intptr_t tun_fd;
+	char *legacy_ifname;
 
 	vpninfo->vpnc_script = vpnc_script;
 	vpninfo->ifname = ifname;
@@ -680,7 +681,10 @@ int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_sc
 	if (tun_fd < 0)
 		return tun_fd;
 
-	setenv("TUNDEV", vpninfo->ifname, 1);
+	legacy_ifname = openconnect_utf8_to_legacy(vpninfo, vpninfo->ifname);
+	setenv("TUNDEV", legacy_ifname, 1);
+	if (legacy_ifname != vpninfo->ifname)
+		free(legacy_ifname);
 	script_config_tun(vpninfo, "connect");
 
 	return openconnect_setup_tun_fd(vpninfo, tun_fd);

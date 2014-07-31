@@ -72,6 +72,14 @@
 #define TUN_HAS_AF_PREFIX 1
 #endif
 
+static void ifreq_set_ifname(struct openconnect_info *vpninfo, struct ifreq *ifr)
+{
+	char *ifname = openconnect_utf8_to_legacy(vpninfo, vpninfo->ifname);
+	strncpy(ifr->ifr_name, ifname, sizeof(ifr->ifr_name) - 1);
+	if (ifname != vpninfo->ifname)
+		free(ifname);
+}
+
 static int set_tun_mtu(struct openconnect_info *vpninfo)
 {
 #ifndef __sun__ /* We don't know how to do this on Solaris */
@@ -85,7 +93,7 @@ static int set_tun_mtu(struct openconnect_info *vpninfo)
 	}
 
 	memset(&ifr, 0, sizeof(ifr));
-	strncpy(ifr.ifr_name, vpninfo->ifname, sizeof(ifr.ifr_name) - 1);
+	ifreq_set_ifname(vpninfo, &ifr);
 	ifr.ifr_mtu = vpninfo->ip_info.mtu;
 
 	if (ioctl(net_fd, SIOCSIFMTU, &ifr) < 0)
@@ -204,8 +212,7 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
 	if (vpninfo->ifname)
-		strncpy(ifr.ifr_name, vpninfo->ifname,
-			sizeof(ifr.ifr_name) - 1);
+		ifreq_set_ifname(vpninfo, &ifr);
 	if (ioctl(tun_fd, TUNSETIFF, (void *) &ifr) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("TUNSETIFF failed: %s\n"),
