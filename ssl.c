@@ -431,21 +431,28 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 #else
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 {
+	char *sslkey = openconnect_utf8_to_legacy(vpninfo, vpninfo->sslkey);
 	struct statfs buf;
 	unsigned *fsid = (unsigned *)&buf.f_fsid;
 	unsigned long long fsid64;
+	int err = 0;
 
-	if (statfs(vpninfo->sslkey, &buf)) {
-		int err = errno;
+	if (statfs(sslkey, &buf)) {
+		err = -errno;
 		vpn_progress(vpninfo, PRG_ERR, _("statfs: %s\n"),
 			     strerror(errno));
 		return -err;
-	}
-	fsid64 = ((unsigned long long)fsid[0] << 32) | fsid[1];
+	} else {
+		fsid64 = ((unsigned long long)fsid[0] << 32) | fsid[1];
 
-	if (asprintf(&vpninfo->cert_password, "%llx", fsid64))
-		return -ENOMEM;
-	return 0;
+		if (asprintf(&vpninfo->cert_password, "%llx", fsid64))
+			err = -ENOMEM;
+	}
+
+	if (sslkey != vpninfo->sslkey)
+		free(sslkey);
+
+	return err;
 }
 #endif
 
