@@ -312,16 +312,27 @@ void set_script_env(struct openconnect_info *vpninfo)
 	}
 	setenv_cstp_opts(vpninfo);
 }
-
+#ifdef _WIN32
 int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
 {
+	wchar_t *script_w;
+	int nr_chars;
 	int ret;
 
 	if (!vpninfo->vpnc_script || vpninfo->script_tun)
 		return 0;
 
 	setenv("reason", reason, 1);
-	ret = system(vpninfo->vpnc_script);
+
+	nr_chars = MultiByteToWideChar(CP_UTF8, 0, vpninfo->vpnc_script, -1, NULL, 0);
+	script_w = malloc(nr_chars * sizeof(wchar_t));
+	if (!script_w)
+		return -ENOMEM;
+
+	MultiByteToWideChar(CP_UTF8, 0, vpninfo->vpnc_script, -1, script_w, nr_chars);
+	ret = _wsystem(script_w);
+	free(script_w);
+
 	if (ret == -1) {
 		int e = errno;
 		vpn_progress(vpninfo, PRG_ERR,
@@ -329,7 +340,6 @@ int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
 			     vpninfo->vpnc_script, reason, strerror(e));
 		return -e;
 	}
-#ifdef _WIN32
 	if (ret == 0x2331) {
 		/* This is what cmd.exe returns for unrecognised commands */
 		vpn_progress(vpninfo, PRG_ERR,
@@ -337,16 +347,6 @@ int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
 			     vpninfo->vpnc_script, reason, strerror(ENOENT));
 		return -ENOENT;
 	}
-#else
-	if (!WIFEXITED(ret)) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Script '%s' exited abnormally (%x)\n"),
-			       vpninfo->vpnc_script, ret);
-		return -EIO;
-	}
-
-	ret = WEXITSTATUS(ret);
-#endif
 	if (ret) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Script '%s' returned error %d\n"),
@@ -355,3 +355,43 @@ int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
 	}
 	return 0;
 }
+#else
+int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
+{
+	int ret;
+	char *script;
+
+	if (!vpninfo->vpnc_script || vpninfo->script_tun)
+		return 0;
+
+	setenv("reason", reason, 1);
+
+	script = openconnect_utf8_to_legacy(vpninfo, vpninfo->vpnc_script);
+	ret = system(script);
+	if (script != vpninfo->vpnc_script)
+		free(script);
+
+	if (ret == -1) {
+		int e = errno;
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to spawn script '%s' for %s: %s\n"),
+			     vpninfo->vpnc_script, reason, strerror(e));
+		return -e;
+	}
+	if (!WIFEXITED(ret)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Script '%s' exited abnormally (%x)\n"),
+			       vpninfo->vpnc_script, ret);
+		return -EIO;
+	}
+
+	ret = WEXITSTATUS(ret);
+	if (ret) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Script '%s' returned error %d\n"),
+			     vpninfo->vpnc_script, ret);
+		return -EIO;
+	}
+	return 0;
+}
+#endif
