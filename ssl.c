@@ -372,16 +372,19 @@ int request_passphrase(struct openconnect_info *vpninfo, const char *label,
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 {
 	struct statvfs buf;
+	char *sslkey = openconnect_utf8_to_legacy(vpninfo, vpninfo->sslkey);
+	int err = 0;
 
-	if (statvfs(vpninfo->sslkey, &buf)) {
-		int err = errno;
+	if (statvfs(sslkey, &buf)) {
+		err = -errno;
 		vpn_progress(vpninfo, PRG_ERR, _("statvfs: %s\n"),
 			     strerror(errno));
-		return -err;
-	}
-	if (asprintf(&vpninfo->cert_password, "%lx", buf.f_fsid))
-		return -ENOMEM;
-	return 0;
+	} else if (asprintf(&vpninfo->cert_password, "%lx", buf.f_fsid))
+		err = -ENOMEM;
+
+	if (sslkey != vpninfo->sslkey)
+		free(sslkey);
+	return err;
 }
 #elif defined(_WIN32)
 #include <fileapi.h>
