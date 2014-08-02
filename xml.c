@@ -27,6 +27,7 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <string.h>
+#include <ctype.h>
 #include <errno.h>
 
 #include "openconnect-internal.h"
@@ -78,6 +79,33 @@ ssize_t read_file_into_string(struct openconnect_info *vpninfo, const char *fnam
 	close(fd);
 	*ptr = buf;
 	return len;
+}
+
+static char *fetch_and_trim(xmlNode *node)
+{
+	char *str = (char *)xmlNodeGetContent(node), *p;
+	int i, len;
+
+	if (!str)
+		return NULL;
+
+	len = strlen(str);
+	for (i = len-1; i >= 0; i--) {
+		if (isspace(str[i]))
+			str[i] = 0;
+		else
+			break;
+	}
+
+	for (p = str; isspace(*p); p++)
+		;
+
+	if (p == str)
+		return str;
+
+	p = strdup(p);
+	free(str);
+	return p;
 }
 
 int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
@@ -142,7 +170,7 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 							continue;
 
 						if (!match && !strcmp((char *)xml_node2->name, "HostName")) {
-							char *content = (char *)xmlNodeGetContent(xml_node2);
+							char *content = fetch_and_trim(xml_node2);
 							if (content && !strcmp(content, host))
 								match = 1;
 							else
@@ -150,7 +178,7 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 							free(content);
 						} else if (match &&
 							   !strcmp((char *)xml_node2->name, "HostAddress")) {
-							char *content = (char *)xmlNodeGetContent(xml_node2);
+							char *content = fetch_and_trim(xml_node2);
 							if (content) {
 								vpninfo->hostname = content;
 								printf(_("Host \"%s\" has address \"%s\"\n"),
@@ -158,7 +186,7 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 							}
 						} else if (match &&
 							   !strcmp((char *)xml_node2->name, "UserGroup")) {
-							char *content = (char *)xmlNodeGetContent(xml_node2);
+							char *content = fetch_and_trim(xml_node2);
 							if (content) {
 								free(vpninfo->urlpath);
 								vpninfo->urlpath = content;
