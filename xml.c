@@ -179,11 +179,12 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 						} else if (match &&
 							   !strcmp((char *)xml_node2->name, "HostAddress")) {
 							char *content = fetch_and_trim(xml_node2);
-							if (content) {
-								vpninfo->hostname = content;
+							if (content &&
+							    !openconnect_parse_url(vpninfo, content)) {
 								printf(_("Host \"%s\" has address \"%s\"\n"),
 								       host, content);
 							}
+							free(content);
 						} else if (match &&
 							   !strcmp((char *)xml_node2->name, "UserGroup")) {
 							char *content = fetch_and_trim(xml_node2);
