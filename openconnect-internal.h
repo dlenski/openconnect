@@ -262,6 +262,8 @@ struct openconnect_info {
 #ifdef HAVE_LIBSTOKEN
 	struct stoken_ctx *stoken_ctx;
 	char *stoken_pin;
+	int stoken_concat_pin;
+	int stoken_interval;
 #endif
 #ifdef HAVE_LIBOATH
 	char *oath_secret;

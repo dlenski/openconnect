@@ -1026,23 +1026,26 @@ bad:
 
 #ifdef HAVE_LIBSTOKEN
 
+#ifndef STOKEN_CHECK_VER
+#define STOKEN_CHECK_VER(x,y) 0
+#endif
+
 /*
- * If the user clicks OK without entering any data, we will continue
- * connecting but bypass soft token generation for the duration of
- * this "obtain_cookie" session.
- *
- * If the user clicks Cancel, we will abort the connection.
+ * A SecurID token can be encrypted with a device ID, a password, both,
+ * or neither.  Gather the required information, decrypt the token, and
+ * check the hash to make sure it is sane.
  *
  * Return value:
  *  < 0, on error
- *  = 0, on success (or if the user bypassed soft token init)
+ *  = 0, on success
  *  = 1, if the user cancelled the form submission
+ *  = 2, if the user left the entire form blank and clicked OK
  */
-int prepare_stoken(struct openconnect_info *vpninfo)
+static int decrypt_stoken(struct openconnect_info *vpninfo)
 {
 	struct oc_auth_form form;
-	struct oc_form_opt opts[3], *opt = opts;
-	char **devid = NULL, **pass = NULL, **pin = NULL;
+	struct oc_form_opt opts[2], *opt = opts;
+	char **devid = NULL, **pass = NULL;
 	int ret = 0;
 
 	memset(&form, 0, sizeof(form));
@@ -1050,9 +1053,6 @@ int prepare_stoken(struct openconnect_info *vpninfo)
 
 	form.opts = opts;
 	form.message = _("Enter credentials to unlock software token.");
-
-	vpninfo->token_tries = 0;
-	vpninfo->token_bypassed = 0;
 
 	if (stoken_devid_required(vpninfo->stoken_ctx)) {
 		opt->type = OC_FORM_OPT_TEXT;
@@ -1068,17 +1068,8 @@ int prepare_stoken(struct openconnect_info *vpninfo)
 		pass = &opt->value;
 		opt++;
 	}
-	if (stoken_pin_required(vpninfo->stoken_ctx)) {
-		opt->type = OC_FORM_OPT_PASSWORD;
-		opt->name = (char *)"password";
-		opt->label = _("PIN:");
-		opt->flags = OC_FORM_OPT_NUMERIC;
-		pin = &opt->value;
-		opt++;
-	}
 
 	opts[0].next = opts[1].type ? &opts[1] : NULL;
-	opts[1].next = opts[2].type ? &opts[2] : NULL;
 
 	while (1) {
 		nuke_opt_values(opts);
@@ -1103,8 +1094,7 @@ int prepare_stoken(struct openconnect_info *vpninfo)
 			if (all_empty) {
 				vpn_progress(vpninfo, PRG_INFO,
 					     _("User bypassed soft token.\n"));
-				vpninfo->token_bypassed = 1;
-				ret = 0;
+				ret = 2;
 				break;
 			}
 			if (some_empty) {
@@ -1127,19 +1117,6 @@ int prepare_stoken(struct openconnect_info *vpninfo)
 			continue;
 		}
 
-		if (pin) {
-			if (stoken_check_pin(vpninfo->stoken_ctx, *pin) != 0) {
-				vpn_progress(vpninfo, PRG_INFO,
-					     _("Invalid PIN format; try again.\n"));
-				continue;
-			}
-			free(vpninfo->stoken_pin);
-			vpninfo->stoken_pin = strdup(*pin);
-			if (!vpninfo->stoken_pin) {
-				ret = -ENOMEM;
-				break;
-			}
-		}
 		vpn_progress(vpninfo, PRG_DEBUG, _("Soft token init was successful.\n"));
 		ret = 0;
 		break;
@@ -1147,6 +1124,117 @@ int prepare_stoken(struct openconnect_info *vpninfo)
 
 	nuke_opt_values(opts);
 	return ret;
+}
+
+static void get_stoken_details(struct openconnect_info *vpninfo)
+{
+#if STOKEN_CHECK_VER(1,3)
+	struct stoken_info *info = stoken_get_info(vpninfo->stoken_ctx);
+
+	if (info) {
+		vpninfo->stoken_concat_pin = !info->uses_pin;
+		vpninfo->stoken_interval = info->interval;
+		return;
+	}
+#endif
+	vpninfo->stoken_concat_pin = 0;
+	vpninfo->stoken_interval = 60;
+}
+
+/*
+ * Return value:
+ *  < 0, on error
+ *  = 0, on success
+ *  = 1, if the user cancelled the form submission
+ */
+static int request_stoken_pin(struct openconnect_info *vpninfo)
+{
+	struct oc_auth_form form;
+	struct oc_form_opt opts[1], *opt = opts;
+	int ret = 0;
+
+	if (!vpninfo->stoken_concat_pin && !stoken_pin_required(vpninfo->stoken_ctx))
+		return 0;
+
+	memset(&form, 0, sizeof(form));
+	memset(&opts, 0, sizeof(opts));
+
+	form.opts = opts;
+	form.message = _("Enter software token PIN.");
+
+	opt->type = OC_FORM_OPT_PASSWORD;
+	opt->name = (char *)"password";
+	opt->label = _("PIN:");
+	opt->flags = OC_FORM_OPT_NUMERIC;
+
+	while (1) {
+		char *pin;
+
+		nuke_opt_values(opts);
+
+		/* < 0 for error; 1 if cancelled */
+		ret = process_auth_form(vpninfo, &form);
+		if (ret)
+			break;
+
+		pin = opt->value;
+		if (!pin || !strlen(pin)) {
+			/* in some cases there really is no PIN */
+			if (vpninfo->stoken_concat_pin)
+				return 0;
+
+			vpn_progress(vpninfo, PRG_INFO,
+				     _("All fields are required; try again.\n"));
+			continue;
+		}
+
+		if (!vpninfo->stoken_concat_pin &&
+		    stoken_check_pin(vpninfo->stoken_ctx, pin) != 0) {
+			vpn_progress(vpninfo, PRG_INFO,
+				     _("Invalid PIN format; try again.\n"));
+			continue;
+		}
+
+		free(vpninfo->stoken_pin);
+		vpninfo->stoken_pin = strdup(pin);
+		if (!vpninfo->stoken_pin)
+			ret = -ENOMEM;
+		break;
+	}
+
+	nuke_opt_values(opts);
+	return ret;
+}
+
+/*
+ * If the user clicks OK on the devid/password prompt without entering
+ * any data, we will continue connecting but bypass soft token generation
+ * for the duration of this "obtain_cookie" session.  (They might not even
+ * have the credentials that we're prompting for.)
+ *
+ * If the user clicks Cancel, we will abort the connection.
+ *
+ * Return value:
+ *  < 0, on error
+ *  = 0, on success (or if the user bypassed soft token init)
+ *  = 1, if the user cancelled the form submission
+ */
+int prepare_stoken(struct openconnect_info *vpninfo)
+{
+	int ret;
+
+	vpninfo->token_tries = 0;
+	vpninfo->token_bypassed = 0;
+
+	ret = decrypt_stoken(vpninfo);
+	if (ret == 2) {
+		vpninfo->token_bypassed = 1;
+		return 0;
+	} else if (ret != 0)
+		return ret;
+
+	get_stoken_details(vpninfo);
+	return request_stoken_pin(vpninfo);
 }
 
 /* Return value:
@@ -1168,7 +1256,7 @@ static int can_gen_stoken_code(struct openconnect_info *vpninfo,
 		   strcasestr(form->message, "next tokencode")) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("OK to generate NEXT tokencode\n"));
-		vpninfo->token_time += 60;
+		vpninfo->token_time += vpninfo->stoken_interval;
 	} else {
 		/* limit the number of retries, to avoid account lockouts */
 		vpn_progress(vpninfo, PRG_INFO,
@@ -1196,8 +1284,12 @@ static int do_gen_stoken_code(struct openconnect_info *vpninfo,
 	}
 
 	vpninfo->token_tries++;
-	opt->value = strdup(tokencode);
-	return opt->value ? 0 : -ENOMEM;
+
+	if (asprintf(&opt->value, "%s%s",
+	    (vpninfo->stoken_concat_pin && vpninfo->stoken_pin) ? vpninfo->stoken_pin : "",
+	    tokencode) < 0)
+		return -ENOMEM;
+	return 0;
 }
 
 #else
