@@ -1769,8 +1769,17 @@ static void init_token(struct openconnect_info *vpninfo,
 		       oc_token_mode_t token_mode, const char *token_str)
 {
 	int ret;
+	char *file_token = NULL;
 
-	ret = openconnect_set_token_mode(vpninfo, token_mode, token_str);
+	if (token_str) {
+		if (token_str[0] == '@')
+			read_file_into_string(vpninfo, &token_str[1], &file_token);
+		else if (token_str[0] == '/')
+			read_file_into_string(vpninfo, token_str, &file_token);
+	}
+
+	ret = openconnect_set_token_mode(vpninfo, token_mode, file_token ? : token_str);
+	free(file_token);
 
 	switch (token_mode) {
 	case OC_TOKEN_MODE_STOKEN:

@@ -54,8 +54,8 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-\-no\-xmlpost
 .OP \-\-non\-inter
 .OP \-\-passwd\-on\-stdin
-.OP \-\-token-mode mode
-.OP \-\-token-secret secret\fR[\fI,counter\fR]
+.OP \-\-token\-mode mode
+.OP \-\-token\-secret {secret\fR[\fI,counter\fR]|@\fIfile\fR}
 .OP \-\-reconnect\-timeout
 .OP \-\-servercert sha1
 .OP \-\-useragent string
@@ -394,11 +394,18 @@ will call liboath to generate an RFC 6238 time-based password, and
 .B \-\-token\-mode=hotp
 will call liboath to generate an RFC 4226 HMAC-based password.
 .TP
-.B \-\-token\-secret=SECRET[,COUNTER]
+.B \-\-token\-secret={ SECRET[,COUNTER] | @FILENAME }
 The secret to use when generating one-time passwords/verification codes.
 Base 32-encoded TOTP/HOTP secrets can be used by specifying "base32:" at the
 beginning of the secret, and for HOTP secrets the token counter can be
 specified following a comma.
+
+RSA SecurID secrets can be specified as an Android/iPhone URI or a raw numeric
+CTF string (with or without dashes).
+
+.IR FILENAME ,
+if specified, can contain any of the above strings.  Or, it can contain a
+SecurID XML (SDTID) seed.
 
 If this option is omitted, and \-\-token\-mode is
 "rsa", libstoken will try to use the software token seed saved in
