@@ -31,60 +31,59 @@
 
 #include "openconnect-internal.h"
 
-static int load_xml_conf_file(struct openconnect_info *vpninfo, char **ptr,
-			      size_t *size)
+ssize_t read_file_into_string(struct openconnect_info *vpninfo, const char *fname,
+			      char **ptr)
 {
+	int fd, len;
 	struct stat st;
-	int fd;
-	char *xmlfile = NULL;
+	char *buf;
 
-	fd = open(vpninfo->xmlconfig, O_RDONLY);
+	/* FIXME: UTF-8 fname may need conversion */
+	fd = open(fname, O_RDONLY);
 	if (fd < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to open XML config file: %s\n"),
-			     strerror(errno));
-		return 0;
+			     _("Failed to open %s: %s\n"),
+			     fname, strerror(errno));
+		return -ENOENT;
 	}
 
 	if (fstat(fd, &st)) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to fstat() XML config file: %s\n"),
-			     strerror(errno));
-		goto err;
+			     _("Failed to fstat() %s: %s\n"),
+			     fname, strerror(errno));
+		close(fd);
+		return -EIO;
 	}
 
-	xmlfile = malloc(st.st_size);
-	if (!xmlfile) {
+	len = st.st_size;
+	buf = malloc(len + 1);
+	if (!buf) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to allocate %lu bytes for XML config file\n"),
-			     (unsigned long)st.st_size);
-		goto err;
+			     _("Failed to allocate %d bytes for %s\n"),
+			     len + 1, fname);
+		close(fd);
+		return -ENOMEM;
 	}
 
-	if (read(fd, xmlfile, st.st_size) != st.st_size) {
+	if (read(fd, buf, len) != len) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to read XML config file: %s\n"),
-			     strerror(errno));
-		goto err;
+			     _("Failed to read %s: %s\n"),
+			     fname, strerror(errno));
+		free(buf);
+		close(fd);
+		return -EIO;
 	}
 
-	*ptr = xmlfile;
-	*size = st.st_size;
-
+	buf[len] = 0;
 	close(fd);
-
-	return 1;
-
-err:
-	close(fd);
-	free(xmlfile);
-	return -1;
+	*ptr = buf;
+	return len;
 }
 
 int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 {
-	int i, ret;
-	size_t size;
+	int i;
+	ssize_t size;
 	char *xmlfile;
 	unsigned char sha1[SHA1_SIZE];
 	xmlDocPtr xml_doc;
@@ -93,12 +92,12 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 	if (!vpninfo->xmlconfig)
 		return 0;
 
-	ret = load_xml_conf_file(vpninfo, &xmlfile, &size);
-	if (ret <= 0) {
-		if (ret == 0)
-			fprintf(stderr, _("Treating host \"%s\" as a raw hostname\n"),
-				host);
-		return ret;
+	size = read_file_into_string(vpninfo, vpninfo->xmlconfig, &xmlfile);
+	if (size == -ENOENT) {
+		fprintf(stderr, _("Treating host \"%s\" as a raw hostname\n"), host);
+		return 0;
+	} else if (size <= 0) {
+		return size;
 	}
 
 	if (openconnect_sha1(sha1, xmlfile, size)) {

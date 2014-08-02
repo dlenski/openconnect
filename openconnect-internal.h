@@ -620,6 +620,8 @@ int keepalive_action(struct keepalive_info *ka, int *timeout);
 int ka_stalled_action(struct keepalive_info *ka, int *timeout);
 
 /* xml.c */
+ssize_t read_file_into_string(struct openconnect_info *vpninfo, const char *fname,
+			      char **ptr);
 int config_lookup_host(struct openconnect_info *vpninfo, const char *host);
 
 /* auth.c */
