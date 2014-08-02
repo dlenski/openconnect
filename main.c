@@ -593,15 +593,17 @@ static void read_stdin(char **string, int hidden)
 		tcsetattr(fd, TCSANOW, &t);
 	}
 
-	if (!fgets(buf, 1025, stdin)) {
-		perror(_("fgets (stdin)"));
-		exit(1);
-	}
+	buf = fgets(buf, 1025, stdin);
 
 	if (hidden) {
 		t.c_lflag |= ECHO;
 		tcsetattr(fd, TCSANOW, &t);
 		fprintf(stderr, "\n");
+	}
+
+	if (!buf) {
+		perror(_("fgets (stdin)"));
+		exit(1);
 	}
 
 	c = strchr(buf, '\n');
