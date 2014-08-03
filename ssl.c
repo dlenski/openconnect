@@ -413,7 +413,7 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 	if (!func)
 		goto notsupp;
 
-	fd = open_utf8(vpninfo, vpninfo->sslkey, O_RDONLY);
+	fd = openconnect_open_utf8(vpninfo, vpninfo->sslkey, O_RDONLY);
 	if (fd == -1) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to open private key file '%s': %s\n"),
@@ -673,7 +673,7 @@ void poll_cmd_fd(struct openconnect_info *vpninfo, int timeout)
 }
 
 #ifdef _WIN32
-int open_utf8(struct openconnect_info *vpninfo, const char *fname, int mode)
+int openconnect_open_utf8(struct openconnect_info *vpninfo, const char *fname, int mode)
 {
 	wchar_t *fname_w;
 	int nr_chars = MultiByteToWideChar(CP_UTF8, 0, fname, -1, NULL, 0);
@@ -696,7 +696,7 @@ int open_utf8(struct openconnect_info *vpninfo, const char *fname, int mode)
 	return fd;
 }
 #else
-int open_utf8(struct openconnect_info *vpninfo, const char *fname, int mode)
+int openconnect_open_utf8(struct openconnect_info *vpninfo, const char *fname, int mode)
 {
 	char *legacy_fname = openconnect_utf8_to_legacy(vpninfo, fname);
 	int fd;
@@ -709,8 +709,8 @@ int open_utf8(struct openconnect_info *vpninfo, const char *fname, int mode)
 }
 #endif
 
-FILE *fopen_utf8(struct openconnect_info *vpninfo, const char *fname,
-		 const char *mode)
+FILE *openconnect_fopen_utf8(struct openconnect_info *vpninfo, const char *fname,
+			     const char *mode)
 {
 	int fd;
 
@@ -718,12 +718,12 @@ FILE *fopen_utf8(struct openconnect_info *vpninfo, const char *fname,
 	   modes without implementing proper mode->flags conversion, complain! */
 	if (strcmp(mode, "rb")) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("fopen_utf8() used with unsupported mode '%s'\n"),
+			     _("openconnect_fopen_utf8() used with unsupported mode '%s'\n"),
 			     mode);
 		return NULL;
 	}
 
-	fd = open_utf8(vpninfo, fname, O_RDONLY|O_CLOEXEC|O_BINARY);
+	fd = openconnect_open_utf8(vpninfo, fname, O_RDONLY|O_CLOEXEC|O_BINARY);
 	if (fd == -1)
 		return NULL;
 

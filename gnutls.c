@@ -265,7 +265,7 @@ static int load_datum(struct openconnect_info *vpninfo,
 	}
 #endif /* ANDROID_KEYSTORE */
 
-	fd = open_utf8(vpninfo, fname, O_RDONLY|O_CLOEXEC|O_BINARY);
+	fd = openconnect_open_utf8(vpninfo, fname, O_RDONLY|O_CLOEXEC|O_BINARY);
 	if (fd == -1) {
 		err = errno;
 		vpn_progress(vpninfo, PRG_ERR,

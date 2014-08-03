@@ -597,7 +597,7 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 static int load_cert_chain_file(struct openconnect_info *vpninfo)
 {
 	BIO *b;
-	FILE *f = fopen_utf8(vpninfo, vpninfo->cert, "rb");
+	FILE *f = openconnect_fopen_utf8(vpninfo, vpninfo->cert, "rb");
 	STACK_OF(X509) *extra_certs = NULL;
 	char buf[200];
 
@@ -746,7 +746,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		FILE *f;
 		PKCS12 *p12;
 
-		f = fopen_utf8(vpninfo, vpninfo->cert, "rb");
+		f = openconnect_fopen_utf8(vpninfo, vpninfo->cert, "rb");
 		if (!f) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to open certificate file %s: %s\n"),
@@ -826,7 +826,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 #endif /* ANDROID_KEYSTORE */
 
 	if (vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
-		FILE *f = fopen_utf8(vpninfo, vpninfo->sslkey, "rb");
+		FILE *f = openconnect_fopen_utf8(vpninfo, vpninfo->sslkey, "rb");
 		char buf[256];
 
 		if (!f) {
@@ -862,7 +862,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		return load_tpm_certificate(vpninfo);
 	else {
 		RSA *key;
-		FILE *f = fopen_utf8(vpninfo, vpninfo->sslkey, "rb");
+		FILE *f = openconnect_fopen_utf8(vpninfo, vpninfo->sslkey, "rb");
 		BIO *b;
 
 		if (!f) {

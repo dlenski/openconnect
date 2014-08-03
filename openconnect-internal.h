@@ -594,8 +594,10 @@ void cmd_fd_set(struct openconnect_info *vpninfo, fd_set *fds, int *maxfd);
 void check_cmd_fd(struct openconnect_info *vpninfo, fd_set *fds);
 int is_cancel_pending(struct openconnect_info *vpninfo, fd_set *fds);
 void poll_cmd_fd(struct openconnect_info *vpninfo, int timeout);
-int open_utf8(struct openconnect_info *vpninfo, const char *fname, int mode);
-FILE *fopen_utf8(struct openconnect_info *vpninfo, const char *fname, const char *mode);
+int openconnect_open_utf8(struct openconnect_info *vpninfo,
+			  const char *fname, int mode);
+FILE *openconnect_fopen_utf8(struct openconnect_info *vpninfo,
+			     const char *fname, const char *mode);
 
 /* {gnutls,openssl}.c */
 int openconnect_open_https(struct openconnect_info *vpninfo);
