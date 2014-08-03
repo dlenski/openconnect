@@ -1012,7 +1012,7 @@ int main(int argc, char **argv)
 				fprintf(stderr, _("Cannot use 'config' option inside config file\n"));
 				exit(1);
 			}
-			config_file = fopen(config_arg, "r");
+			config_file = openconnect_fopen_utf8(vpninfo, config_arg, "r");
 			if (!config_file) {
 				fprintf(stderr, _("Cannot open config file '%s': %s\n"),
 					config_arg, strerror(errno));
@@ -1392,7 +1392,7 @@ int main(int argc, char **argv)
 		   more sanely. It's *possible* that we'll fail to write to
 		   it, but very unlikely. */
 		if (pidfile != NULL) {
-			fp = fopen(pidfile, "w");
+			fp = openconnect_fopen_utf8(vpninfo, pidfile, "w");
 			if (!fp) {
 				fprintf(stderr, _("Failed to open '%s' for write: %s\n"),
 					pidfile, strerror(errno));
@@ -1460,7 +1460,8 @@ static int write_new_config(void *_vpninfo, char *buf, int buflen)
 	int config_fd;
 	int err;
 
-	config_fd = open(vpninfo->xmlconfig, O_WRONLY|O_TRUNC|O_CREAT, 0644);
+	config_fd = openconnect_open_utf8(vpninfo, vpninfo->xmlconfig,
+					  O_WRONLY|O_TRUNC|O_CREAT);
 	if (config_fd < 0) {
 		err = errno;
 		fprintf(stderr, _("Failed to open %s for write: %s\n"),
