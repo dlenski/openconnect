@@ -673,6 +673,8 @@ void poll_cmd_fd(struct openconnect_info *vpninfo, int timeout)
 }
 
 #ifdef _WIN32
+#include <io.h>
+#include <sys/stat.h>
 int openconnect_open_utf8(struct openconnect_info *vpninfo, const char *fname, int mode)
 {
 	wchar_t *fname_w;
@@ -690,7 +692,7 @@ int openconnect_open_utf8(struct openconnect_info *vpninfo, const char *fname, i
 	}
 	MultiByteToWideChar(CP_UTF8, 0, fname, -1, fname_w, nr_chars);
 
-	fd = _wopen(fname_w, mode);
+	fd = _wopen(fname_w, mode, _S_IREAD | _S_IWRITE);
 	free(fname_w);
 
 	return fd;
@@ -701,7 +703,7 @@ int openconnect_open_utf8(struct openconnect_info *vpninfo, const char *fname, i
 	char *legacy_fname = openconnect_utf8_to_legacy(vpninfo, fname);
 	int fd;
 
-	fd = open(legacy_fname, mode);
+	fd = open(legacy_fname, mode, 0644);
 	if (legacy_fname != fname)
 		free(legacy_fname);
 
