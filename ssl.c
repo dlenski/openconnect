@@ -715,17 +715,26 @@ FILE *openconnect_fopen_utf8(struct openconnect_info *vpninfo, const char *fname
 			     const char *mode)
 {
 	int fd;
+	int flags;
 
-	/* This should never happen, but if we forget and start using other
-	   modes without implementing proper mode->flags conversion, complain! */
-	if (strcmp(mode, "rb")) {
+	if (!strcmp(mode, "r"))
+		flags = O_RDONLY|O_CLOEXEC;
+	else if (!strcmp(mode, "rb"))
+		flags = O_RDONLY|O_CLOEXEC|O_BINARY;
+	else if (!strcmp(mode, "w"))
+		flags = O_WRONLY|O_CLOEXEC|O_CREAT|O_TRUNC;
+	else if (!strcmp(mode, "wb"))
+		flags = O_WRONLY|O_CLOEXEC|O_CREAT|O_TRUNC|O_BINARY;
+	else {
+		/* This should never happen, but if we forget and start using other
+		   modes without implementing proper mode->flags conversion, complain! */
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("openconnect_fopen_utf8() used with unsupported mode '%s'\n"),
 			     mode);
 		return NULL;
 	}
 
-	fd = openconnect_open_utf8(vpninfo, fname, O_RDONLY|O_CLOEXEC|O_BINARY);
+	fd = openconnect_open_utf8(vpninfo, fname, flags);
 	if (fd == -1)
 		return NULL;
 
