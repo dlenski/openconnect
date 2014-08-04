@@ -39,7 +39,7 @@ ssize_t read_file_into_string(struct openconnect_info *vpninfo, const char *fnam
 	struct stat st;
 	char *buf;
 
-	fd = openconnect_open_utf8(vpninfo, fname, O_RDONLY);
+	fd = openconnect_open_utf8(vpninfo, fname, O_RDONLY|O_BINARY);
 	if (fd < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to open %s: %s\n"),

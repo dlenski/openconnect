@@ -1465,7 +1465,7 @@ static int write_new_config(void *_vpninfo, char *buf, int buflen)
 	int err;
 
 	config_fd = openconnect_open_utf8(vpninfo, vpninfo->xmlconfig,
-					  O_WRONLY|O_TRUNC|O_CREAT);
+					  O_WRONLY|O_TRUNC|O_CREAT|O_BINARY);
 	if (config_fd < 0) {
 		err = errno;
 		fprintf(stderr, _("Failed to open %s for write: %s\n"),
