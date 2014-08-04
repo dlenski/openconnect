@@ -90,13 +90,13 @@ static char *fetch_and_trim(xmlNode *node)
 
 	len = strlen(str);
 	for (i = len-1; i >= 0; i--) {
-		if (isspace(str[i]))
+		if (isspace((int)(unsigned char)str[i]))
 			str[i] = 0;
 		else
 			break;
 	}
 
-	for (p = str; isspace(*p); p++)
+	for (p = str; isspace((int)(unsigned char)*p); p++)
 		;
 
 	if (p == str)
