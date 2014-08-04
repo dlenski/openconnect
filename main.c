@@ -898,6 +898,7 @@ int main(int argc, char **argv)
 	int use_dtls = 1;
 	FILE *fp = NULL;
 	char *config_arg;
+	char *config_filename;
 	char *token_str = NULL;
 	oc_token_mode_t token_mode = OC_TOKEN_MODE_NONE;
 	int reconnect_timeout = 300;
@@ -1012,7 +1013,10 @@ int main(int argc, char **argv)
 				fprintf(stderr, _("Cannot use 'config' option inside config file\n"));
 				exit(1);
 			}
-			config_file = openconnect_fopen_utf8(vpninfo, config_arg, "r");
+			config_filename = keep_config_arg(); /* Convert to UTF-8 */
+			config_file = openconnect_fopen_utf8(vpninfo, config_filename, "r");
+			if (config_filename != config_arg)
+				free(config_filename);
 			if (!config_file) {
 				fprintf(stderr, _("Cannot open config file '%s': %s\n"),
 					config_arg, strerror(errno));
