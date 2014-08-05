@@ -417,6 +417,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 
  err:
 	cleanup_gssapi_auth(vpninfo);
+	vpninfo->auth[AUTH_TYPE_GSSAPI].state = AUTH_UNSEEN;
 	free(pktbuf);
 
 	return ret;
