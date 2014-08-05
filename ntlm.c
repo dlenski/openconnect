@@ -232,12 +232,16 @@ static int ntlm_helper_challenge(struct openconnect_info *vpninfo, struct oc_tex
 		  strlen(vpninfo->auth[AUTH_TYPE_NTLM].challenge)) != strlen(vpninfo->auth[AUTH_TYPE_NTLM].challenge) ||
 	    write(vpninfo->ntlm_helper_fd, "\n", 1) != 1) {
 	err:
+		vpn_progress(vpninfo, PRG_ERR, _("Error communicating with ntlm_auth helper\n"));
 		close(vpninfo->ntlm_helper_fd);
 		vpninfo->ntlm_helper_fd = -1;
 		return -EAGAIN;
 	}
 	len = read(vpninfo->ntlm_helper_fd, helperbuf, sizeof(helperbuf));
-	if (len < 4 || helperbuf[0] != 'K' || helperbuf[1] != 'K' ||
+	/* Accept both 'KK' and 'AF'. It should be the latter but see
+	   https://bugzilla.samba.org/show_bug.cgi?id=10691 */
+	if (len < 4 || (!(helperbuf[0] == 'K' && helperbuf[1] == 'K') &&
+			!(helperbuf[0] == 'A' && helperbuf[1] == 'F')) ||
 	    helperbuf[2] != ' ' || helperbuf[len - 1] != '\n') {
 		goto err;
 	}
