@@ -177,13 +177,15 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 					     &out, NULL, NULL);
 		in.value = NULL;
 		if (major == GSS_S_COMPLETE) {
-			vpn_progress(vpninfo, PRG_DEBUG,
-				     _("GSSAPI authentication completed\n"));
-			gss_release_buffer(&minor, &out);
-			ret = 0;
-			break;
-		}
-		if (major != GSS_S_CONTINUE_NEEDED) {
+			/* If we still have a token to send, send it. */
+			if (!out.length) {
+				vpn_progress(vpninfo, PRG_DEBUG,
+					     _("GSSAPI authentication completed\n"));
+				gss_release_buffer(&minor, &out);
+				ret = 0;
+				break;
+			}
+		} else if (major != GSS_S_CONTINUE_NEEDED) {
 			print_gss_err(vpninfo, "gss_init_sec_context()", mech, major, minor);
 			break;
 		}
@@ -232,6 +234,13 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 		}
 		in.length = (pktbuf[2] << 8) | pktbuf[3];
 		in.value = pktbuf;
+
+		if (!in.length) {
+			vpn_progress(vpninfo, PRG_DEBUG,
+				     _("GSSAPI authentication completed\n"));
+			ret = 0;
+			break;
+		}
 
 		i = vpninfo->ssl_read(vpninfo, (void *)pktbuf, in.length);
 		if (i < 0) {
