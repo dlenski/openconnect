@@ -1025,7 +1025,12 @@ int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf
 		/* Clean up after it. We're done here, whether it worked or not */
 		cleanup_ntlm_auth(vpninfo);
 		vpninfo->auth[AUTH_TYPE_NTLM].state = NTLM_MANUAL;
-		if (!ret || ret == -EAGAIN)
+		if (ret == -EAGAIN) {
+			/* Don't let it reset our state when it reconnects */
+			vpninfo->proxy_close_during_auth = 1;
+			return ret;
+		}
+		if (!ret)
 			return ret;
 	}
 	if (vpninfo->auth[AUTH_TYPE_NTLM].state == NTLM_MANUAL && vpninfo->proxy_user &&
