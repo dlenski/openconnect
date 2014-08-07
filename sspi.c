@@ -325,6 +325,10 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 			goto err;
 		}
 
+		/* Our single byte of payload was *supposed* to be unencrypted but
+		   Windows doesn't always manage to do as it's told... */
+		pktbuf[4 + enc_bufs[0].cbBuffer] = pktbuf[0];
+
 		pktbuf[0] = 1;
 		pktbuf[1] = 2;
 		pktbuf[2] = (len >> 8) & 0xff;
@@ -332,7 +336,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 
 		if (enc_bufs[0].cbBuffer)
 			memcpy(pktbuf + 4, enc_bufs[0].pvBuffer, enc_bufs[0].cbBuffer);
-		pktbuf[4 + enc_bufs[0].cbBuffer] = 0; /* Our single byte of payload was unencrypted */
+
 		if (enc_bufs[2].cbBuffer)
 			memcpy(pktbuf + 5 + enc_bufs[0].cbBuffer, enc_bufs[2].pvBuffer, enc_bufs[2].cbBuffer);
 
@@ -396,7 +400,6 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 		}
 
 		i = *(char *)enc_bufs[1].pvBuffer;
-		FreeContextBuffer(enc_bufs[1].pvBuffer);
 		if (i == 1) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("SOCKS proxy demands message integrity, which is not supported\n"));
