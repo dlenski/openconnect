@@ -328,7 +328,7 @@ static char *convert_arg_to_utf8(char **argv, char *arg)
 #undef vfprintf
 #define fprintf fprintf_utf8
 #define vfprintf vfprintf_utf8
-#define is_arg_utf8(str) (!strchr(str, '?'))
+#define is_arg_utf8(str) (0)
 
 static void read_stdin(char **string, int hidden)
 {
