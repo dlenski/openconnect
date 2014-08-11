@@ -15,6 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Support for reading OTP token data from a file.</li>
        <li>Add full <a href="charset.html">character set handling</a> for legacy non-UTF8 systems <i>(including Windows)</i>.</li>
        <li>Fix legacy <i>(i.e. not XML POST)</i> submission of non-ASCII form entries <i>(even in UTF-8 locales)</i>.</li>
        <li>Add support for 32-bit Windows XP.</li>
