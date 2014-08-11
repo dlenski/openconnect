@@ -598,7 +598,7 @@ msgstr ""
 
 #: gnutls.c:85 openssl.c:123
 msgid "SSL write cancelled\n"
-msgstr ""
+msgstr "SSL write canceled\n"
 
 #: gnutls.c:89
 #, c-format
@@ -607,7 +607,7 @@ msgstr ""
 
 #: gnutls.c:118 gnutls.c:180 openssl.c:155 openssl.c:208
 msgid "SSL read cancelled\n"
-msgstr ""
+msgstr "SSL read canceled\n"
 
 #. We've seen this with HTTP 1.0 responses followed by abrupt
 #. socket closure and no clean SSL shutdown.
@@ -990,7 +990,7 @@ msgstr "SSL negotiation with %s\n"
 
 #: gnutls.c:2057 openssl.c:1413
 msgid "SSL connection cancelled\n"
-msgstr ""
+msgstr "SSL connection canceled\n"
 
 #: gnutls.c:2064
 #, c-format
@@ -2051,8 +2051,8 @@ msgid "Session terminated by server; exiting.\n"
 msgstr ""
 
 #: main.c:1173
-msgid "User canceled (SIGINT); exiting.\n"
-msgstr ""
+msgid "User cancelled (SIGINT); exiting.\n"
+msgstr "USer canceled (SIGINT); exiting;\n"
 
 #: main.c:1177
 msgid "User detached from session (SIGHUP); exiting.\n"
@@ -2397,7 +2397,7 @@ msgstr ""
 
 #: ssl.c:83
 msgid "Socket connect cancelled\n"
-msgstr ""
+msgstr "Socket connect canceled\n"
 
 #: ssl.c:133
 #, c-format

@@ -1441,7 +1441,7 @@ int main(int argc, char **argv)
 		ret = 1;
 		break;
 	case -EINTR:
-		vpn_progress(vpninfo, PRG_INFO, _("User canceled (SIGINT); exiting.\n"));
+		vpn_progress(vpninfo, PRG_INFO, _("User cancelled (SIGINT); exiting.\n"));
 		ret = 0;
 		break;
 	case -ECONNABORTED:

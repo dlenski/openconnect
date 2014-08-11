@@ -2135,7 +2135,7 @@ msgid "Session terminated by server; exiting.\n"
 msgstr "Sesión terminada por el servidor; saliendo.\n"
 
 #: main.c:1444
-msgid "User canceled (SIGINT); exiting.\n"
+msgid "User cancelled (SIGINT); exiting.\n"
 msgstr "Cancelado por el usuario (SIGINT); saliendo.\n"
 
 #: main.c:1448
