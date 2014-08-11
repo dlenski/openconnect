@@ -1365,7 +1365,6 @@ static int can_gen_hotp_code(struct openconnect_info *vpninfo,
 	} else if (vpninfo->token_tries == 1) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("OK to generate NEXT tokencode\n"));
-		vpninfo->token_time++;
 	} else {
 		/* limit the number of retries, to avoid account lockouts */
 		vpn_progress(vpninfo, PRG_INFO,
@@ -1456,7 +1455,7 @@ static int do_gen_hotp_code(struct openconnect_info *vpninfo,
 			     oath_strerror(oath_err));
 		return -EIO;
 	}
-
+	vpninfo->token_time++;
 	vpninfo->token_tries++;
 	opt->value = strdup(tokencode);
 	return opt->value ? 0 : -ENOMEM;
