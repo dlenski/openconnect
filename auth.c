@@ -1434,6 +1434,61 @@ static int do_gen_totp_code(struct openconnect_info *vpninfo,
 #endif
 }
 
+#ifdef HAVE_LIBOATH
+
+static void buf_append_base32(struct oc_text_buf *buf, void *data, int len)
+{
+	size_t b32_len;
+	char *b32 = NULL;
+
+	if (oath_base32_encode(data, len, &b32, &b32_len)) {
+		buf->error = ENOMEM;
+		return;
+	}
+	buf_append_bytes(buf, b32, b32_len);
+	free(b32);
+}
+
+static char *regen_hotp_secret(struct openconnect_info *vpninfo)
+{
+	char *new_secret = NULL;
+	struct oc_text_buf *buf = buf_alloc();
+	int i;
+
+	switch (vpninfo->hotp_secret_format) {
+	case HOTP_SECRET_BASE32:
+		buf_append(buf, "base32:");
+		buf_append_base32(buf, vpninfo->oath_secret,
+				  vpninfo->oath_secret_len);
+		break;
+
+	case HOTP_SECRET_HEX:
+		buf_append(buf, "0x");
+		for (i=0; i < vpninfo->oath_secret_len; i++)
+			buf_append(buf, "%02x",
+				   (unsigned char)vpninfo->oath_secret[i]);
+		break;
+
+	case HOTP_SECRET_RAW:
+		buf_append_bytes(buf, vpninfo->oath_secret,
+				 vpninfo->oath_secret_len);
+		break;
+
+	case HOTP_SECRET_PSKC:
+		/* Not implemented yet */
+		return NULL;
+	}
+
+	buf_append(buf,",%ld", (long)vpninfo->token_time);
+	if (!buf_error(buf)) {
+		new_secret = buf->data;
+		buf->data = NULL;
+	}
+	buf_free(buf);
+	return new_secret;
+}
+#endif
+
 static int do_gen_hotp_code(struct openconnect_info *vpninfo,
 			    struct oc_auth_form *form,
 			    struct oc_form_opt *opt)
@@ -1441,8 +1496,17 @@ static int do_gen_hotp_code(struct openconnect_info *vpninfo,
 #ifdef HAVE_LIBOATH
 	int oath_err;
 	char tokencode[7];
+	int ret;
 
 	vpn_progress(vpninfo, PRG_INFO, _("Generating OATH HOTP token code\n"));
+
+	if (vpninfo->lock_token) {
+		/* This may call openconnect_set_token_mode() again to update
+		 * the token if it's changed. */
+		ret = vpninfo->lock_token(vpninfo->tok_cbdata);
+		if (ret)
+			return ret;
+	}
 
 	oath_err = oath_hotp_generate(vpninfo->oath_secret,
 				      vpninfo->oath_secret_len,
@@ -1453,11 +1517,18 @@ static int do_gen_hotp_code(struct openconnect_info *vpninfo,
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unable to generate OATH HOTP token code: %s\n"),
 			     oath_strerror(oath_err));
+		if (vpninfo->unlock_token)
+			vpninfo->unlock_token(vpninfo->tok_cbdata, NULL);
 		return -EIO;
 	}
 	vpninfo->token_time++;
 	vpninfo->token_tries++;
 	opt->value = strdup(tokencode);
+	if (vpninfo->unlock_token) {
+		char *new_tok = regen_hotp_secret(vpninfo);
+		vpninfo->unlock_token(vpninfo->tok_cbdata, new_tok);
+		free(new_tok);
+	}
 	return opt->value ? 0 : -ENOMEM;
 #else
 	return 0;
