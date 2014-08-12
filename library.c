@@ -665,6 +665,18 @@ static int set_hotp_mode(struct openconnect_info *vpninfo,
 #endif
 }
 
+int openconnect_set_token_callbacks(struct openconnect_info *vpninfo,
+				    void *tokdata,
+				    openconnect_lock_token_vfn lock,
+				    openconnect_unlock_token_vfn unlock)
+{
+	vpninfo->lock_token = lock;
+	vpninfo->unlock_token = unlock;
+	vpninfo->tok_cbdata = tokdata;
+
+	return 0;
+}
+
 /*
  * Enable software token generation.
  *

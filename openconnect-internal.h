@@ -275,6 +275,9 @@ struct openconnect_info {
 		HOTP_SECRET_PSKC,
 	} hotp_secret_format; /* We need to give it back in the same form */
 #endif
+	openconnect_lock_token_vfn lock_token;
+	openconnect_unlock_token_vfn unlock_token;
+	void *tok_cbdata;
 
 	OPENCONNECT_X509 *peer_cert;
 

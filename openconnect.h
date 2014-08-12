@@ -29,9 +29,12 @@
 #endif
 
 #define OPENCONNECT_API_VERSION_MAJOR 3
-#define OPENCONNECT_API_VERSION_MINOR 3
+#define OPENCONNECT_API_VERSION_MINOR 4
 
 /*
+ * API version 3.4:
+ *  - Add openconnect_set_token_callbacks()
+ *
  * API version 3.3:
  *  - Add openconnect_set_pfs(), openconnect_set_dpd(),
  *    openconnect_set_proxy_auth()
@@ -292,6 +295,28 @@ char *openconnect_get_hostname(struct openconnect_info *);
 void openconnect_set_hostname(struct openconnect_info *, char *);
 char *openconnect_get_urlpath(struct openconnect_info *);
 void openconnect_set_urlpath(struct openconnect_info *, char *);
+
+/* Some software tokens, such as HOTP tokens, include a counter which
+ * needs to be stored in persistent storage.
+ *
+ * For such tokens, the lock function is first invoked to obtain a lock
+ * on the storage because we're about to generate a new code. It is
+ * permitted to call openconnect_set_token_mode() from the lock function,
+ * if the token storage has been updated since it was first loaded. The
+ * token mode must not change; only the token secret.
+ *
+ * The unlock function is called when a token code has been generated,
+ * with a new token secret to be written to the persistent storage. The
+ * secret will be in the same format as it was originally received by
+ * openconnect_set_token_mode(). The new token may be NULL if an error
+ * was encountered generating the code, in which case it is only
+ * necessary for the callback function to unlock the storage.
+ */
+typedef int (*openconnect_lock_token_vfn)(void *tokdata);
+typedef int (*openconnect_unlock_token_vfn)(void *tokdata, const char *new_tok);
+int openconnect_set_token_callbacks(struct openconnect_info *, void *tokdata,
+				    openconnect_lock_token_vfn,
+				    openconnect_unlock_token_vfn);
 
 /* These functions do *not* take ownership of the string; it is parsed
    and then discarded. */
