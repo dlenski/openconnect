@@ -524,6 +524,43 @@ static int set_libstoken_mode(struct openconnect_info *vpninfo,
 #endif
 }
 
+#ifdef HAVE_LIBOATH
+static char *parse_hex(const char *tok, int len)
+{
+	unsigned char *data, *p;
+
+	data = malloc((len + 1) / 2);
+	if (!data)
+		return NULL;
+
+	p = data;
+
+	if (len & 1) {
+		char b[2] = { '0', tok[0] };
+		if (!isxdigit((int)(unsigned char)tok[0])) {
+			free(data);
+			return NULL;
+		}
+		*(p++) = unhex(b);
+		tok++;
+		len--;
+	}
+
+	while (len) {
+		if (!isxdigit((int)(unsigned char)tok[0]) ||
+		    !isxdigit((int)(unsigned char)tok[1])) {
+			free(data);
+			return NULL;
+		}
+		*(p++) = unhex(tok);
+		tok += 2;
+		len -= 2;
+	}
+
+	return (char *)data;
+}
+#endif
+
 static int set_totp_mode(struct openconnect_info *vpninfo,
 			 const char *token_str)
 {
@@ -547,6 +584,11 @@ static int set_totp_mode(struct openconnect_info *vpninfo,
 					 &vpninfo->oath_secret,
 					 &vpninfo->oath_secret_len);
 		if (ret != OATH_OK)
+			return -EINVAL;
+	} else if (strncmp(token_str, "0x", 2) == 0) {
+		vpninfo->oath_secret_len = (toklen - 2) / 2;
+		vpninfo->oath_secret = parse_hex(token_str + 2, toklen - 2);
+		if (!vpninfo->oath_secret)
 			return -EINVAL;
 	} else {
 		vpninfo->oath_secret = strdup(token_str);
@@ -602,6 +644,11 @@ static int set_hotp_mode(struct openconnect_info *vpninfo,
 					 &vpninfo->oath_secret,
 					 &vpninfo->oath_secret_len);
 		if (ret != OATH_OK)
+			return -EINVAL;
+	} else if (strncmp(token_str, "0x", 2) == 0) {
+		vpninfo->oath_secret_len = (toklen - 2) / 2;
+		vpninfo->oath_secret = parse_hex(token_str + 2, toklen - 2);
+		if (!vpninfo->oath_secret)
 			return -EINVAL;
 	} else {
 		vpninfo->oath_secret = strdup(token_str);
