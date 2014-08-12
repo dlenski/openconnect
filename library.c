@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #ifdef HAVE_LIBSTOKEN
 #include <stoken.h>
@@ -527,7 +528,7 @@ static int set_totp_mode(struct openconnect_info *vpninfo,
 			 const char *token_str)
 {
 #ifdef HAVE_LIBOATH
-	int ret;
+	int ret, toklen;
 
 	ret = oath_init();
 	if (ret != OATH_OK)
@@ -536,16 +537,20 @@ static int set_totp_mode(struct openconnect_info *vpninfo,
 	if (!token_str)
 		return -EINVAL;
 
+	toklen = strlen(token_str);
+	while (toklen && isspace((int)(unsigned char)token_str[toklen-1]))
+		toklen--;
+
 	if (strncasecmp(token_str, "base32:", strlen("base32:")) == 0) {
 		ret = oath_base32_decode(token_str + strlen("base32:"),
-					 strlen(token_str) - strlen("base32:"),
+					 toklen - strlen("base32:"),
 					 &vpninfo->oath_secret,
 					 &vpninfo->oath_secret_len);
 		if (ret != OATH_OK)
 			return -EINVAL;
 	} else {
 		vpninfo->oath_secret = strdup(token_str);
-		vpninfo->oath_secret_len = strlen(token_str);
+		vpninfo->oath_secret_len = toklen;
 	}
 
 	vpninfo->token_mode = OC_TOKEN_MODE_TOTP;
@@ -576,9 +581,19 @@ static int set_hotp_mode(struct openconnect_info *vpninfo,
 		toklen = p - token_str;
 		p++;
 		counter = strtol(p, &p, 0);
-		if (counter < 0 || *p)
+		if (counter < 0)
 			return -EINVAL;
+		while (*p) {
+			if (isspace((int)(unsigned char)*p))
+				p++;
+			else
+				return -EINVAL;
+		}
 		vpninfo->token_time = counter;
+	} else {
+		while (toklen &&
+		       isspace((int)(unsigned char)token_str[toklen-1]))
+			toklen--;
 	}
 
 	if (strncasecmp(token_str, "base32:", strlen("base32:")) == 0) {
