@@ -639,6 +639,7 @@ static int set_hotp_mode(struct openconnect_info *vpninfo,
 	}
 
 	if (strncasecmp(token_str, "base32:", strlen("base32:")) == 0) {
+		vpninfo->hotp_secret_format = HOTP_SECRET_BASE32;
 		ret = oath_base32_decode(token_str + strlen("base32:"),
 					 toklen - strlen("base32:"),
 					 &vpninfo->oath_secret,
@@ -646,11 +647,13 @@ static int set_hotp_mode(struct openconnect_info *vpninfo,
 		if (ret != OATH_OK)
 			return -EINVAL;
 	} else if (strncmp(token_str, "0x", 2) == 0) {
+		vpninfo->hotp_secret_format = HOTP_SECRET_HEX;
 		vpninfo->oath_secret_len = (toklen - 2) / 2;
 		vpninfo->oath_secret = parse_hex(token_str + 2, toklen - 2);
 		if (!vpninfo->oath_secret)
 			return -EINVAL;
 	} else {
+		vpninfo->hotp_secret_format = HOTP_SECRET_RAW;
 		vpninfo->oath_secret = strdup(token_str);
 		vpninfo->oath_secret_len = toklen;
 	}

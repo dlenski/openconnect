@@ -268,6 +268,12 @@ struct openconnect_info {
 #ifdef HAVE_LIBOATH
 	char *oath_secret;
 	size_t oath_secret_len;
+	enum {
+		HOTP_SECRET_BASE32 = 1,
+		HOTP_SECRET_RAW,
+		HOTP_SECRET_HEX,
+		HOTP_SECRET_PSKC,
+	} hotp_secret_format; /* We need to give it back in the same form */
 #endif
 
 	OPENCONNECT_X509 *peer_cert;
