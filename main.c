@@ -88,6 +88,8 @@ static int nocertcheck;
 static int non_inter;
 static int cookieonly;
 
+static char *token_filename;
+
 static char *username;
 static char *password;
 static char *authgroup;
@@ -1770,6 +1772,45 @@ static int process_auth_form_cb(void *_vpninfo,
 	return OC_FORM_RESULT_ERR;
 }
 
+static int lock_token(void *tokdata)
+{
+	/* FIXME: actually do file locking? Is there anything defined for
+	   PSKC files? And call openconnect_set_token_mode() again if the
+	   contents of the file have changed. */
+	return 0;
+}
+
+static int unlock_token(void *tokdata, const char *new_tok)
+{
+	struct openconnect_info *vpninfo = tokdata;
+	int tok_fd;
+	int err;
+
+	if (!new_tok)
+		return 0;
+
+	tok_fd = openconnect_open_utf8(vpninfo, token_filename,
+				       O_WRONLY|O_TRUNC|O_CREAT|O_BINARY);
+	if (tok_fd < 0) {
+		err = errno;
+		fprintf(stderr, _("Failed to open token file for write: %s\n"),
+			strerror(err));
+		return -err;
+	}
+
+	/* FIXME: We should actually write to a new tempfile, then rename */
+	if (write(tok_fd, new_tok, strlen(new_tok)) != strlen(new_tok)) {
+		err = errno;
+		fprintf(stderr, _("Failed to write token: %s\n"),
+			strerror(err));
+		close(tok_fd);
+		return -err;
+	}
+
+	close(tok_fd);
+	return 0;
+}
+
 static void init_token(struct openconnect_info *vpninfo,
 		       oc_token_mode_t token_mode, const char *token_str)
 {
@@ -1777,15 +1818,28 @@ static void init_token(struct openconnect_info *vpninfo,
 	char *file_token = NULL;
 
 	if (token_str) {
-		if (token_str[0] == '@')
-			read_file_into_string(vpninfo, &token_str[1], &file_token);
-		else if (token_str[0] == '/')
-			read_file_into_string(vpninfo, token_str, &file_token);
+		switch(token_str[0]) {
+		case '@':
+			token_str++;
+		case '/':
+			if (read_file_into_string(vpninfo, token_str,
+						  &file_token) < 0)
+				exit(1);
+			break;
+		default:
+			/* Use token_str as raw data */
+			break;
+		}
 	}
 
-	ret = openconnect_set_token_mode(vpninfo, token_mode, file_token ? : token_str);
-	free(file_token);
-
+	ret = openconnect_set_token_mode(vpninfo, token_mode,
+					 file_token ? : token_str);
+	if (file_token) {
+		token_filename = strdup(token_str);
+		openconnect_set_token_callbacks(vpninfo, vpninfo,
+						lock_token, unlock_token);
+		free(file_token);
+	}
 	switch (token_mode) {
 	case OC_TOKEN_MODE_STOKEN:
 		switch (ret) {
