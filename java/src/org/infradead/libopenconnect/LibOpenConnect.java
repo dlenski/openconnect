@@ -59,6 +59,8 @@ public abstract class LibOpenConnect {
 	public int onWriteNewConfig(byte[] buf) { return 0; }
 	public void onProtectSocket(int fd) { }
 	public void onStatsUpdate(VPNStats stats) { }
+	public int onTokenLock() { return 0; }
+	public int onTokenUnlock(String newToken) { return 0; }
 
 	/* create/destroy library instances */
 

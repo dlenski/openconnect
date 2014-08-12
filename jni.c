@@ -525,6 +525,49 @@ out:
 	(*ctx->jenv)->PopLocalFrame(ctx->jenv, NULL);
 }
 
+static int lock_token_cb(void *privdata)
+{
+	struct libctx *ctx = privdata;
+	jmethodID mid;
+	int ret = -1;
+
+	if ((*ctx->jenv)->PushLocalFrame(ctx->jenv, 256) < 0)
+		return -1;
+
+	mid = get_obj_mid(ctx, ctx->jobj, "onTokenLock", "(V)I");
+	if (!mid)
+		goto out;
+
+	(*ctx->jenv)->CallIntMethod(ctx->jenv, ctx->jobj, mid);
+
+out:
+	(*ctx->jenv)->PopLocalFrame(ctx->jenv, NULL);
+	return ret;
+}
+
+static int unlock_token_cb(void *privdata, const char *new_token)
+{
+	struct libctx *ctx = privdata;
+	jstring jtoken;
+	int ret = -1;
+	jmethodID mid;
+
+	if ((*ctx->jenv)->PushLocalFrame(ctx->jenv, 256) < 0)
+		return -1;
+
+	jtoken = dup_to_jstring(ctx->jenv, new_token);
+	if (!jtoken)
+		goto out;
+
+	mid = get_obj_mid(ctx, ctx->jobj, "onTokenUnlock", "(Ljava/lang/String;)I");
+	if (mid)
+		ret = (*ctx->jenv)->CallIntMethod(ctx->jenv, ctx->jobj, mid, jtoken);
+
+out:
+	(*ctx->jenv)->PopLocalFrame(ctx->jenv, NULL);
+	return ret;
+}
+
 /* Library init/uninit */
 
 static jobject init_async_lock(struct libctx *ctx)
@@ -566,6 +609,8 @@ JNIEXPORT jlong JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_init(
 	if (!ctx->vpninfo)
 		goto bad_delete_ref;
 
+	openconnect_set_token_callbacks(ctx->vpninfo, ctx, lock_token_cb,
+					unlock_token_cb);
 	openconnect_set_protect_socket_handler(ctx->vpninfo, protect_socket_cb);
 	openconnect_set_stats_handler(ctx->vpninfo, stats_cb);
 
