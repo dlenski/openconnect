@@ -661,7 +661,18 @@ int do_gen_hotp_code(struct openconnect_info *vpninfo,
 		     struct oc_auth_form *form,
 		     struct oc_form_opt *opt);
 
+/* stoken.c */
+int prepare_stoken(struct openconnect_info *vpninfo);
+int set_libstoken_mode(struct openconnect_info *vpninfo, const char *token_str);
+int can_gen_stoken_code(struct openconnect_info *vpninfo,
+			struct oc_auth_form *form,
+			struct oc_form_opt *opt);
+int do_gen_stoken_code(struct openconnect_info *vpninfo,
+		       struct oc_auth_form *form,
+		       struct oc_form_opt *opt);
+
 /* auth.c */
+void nuke_opt_values(struct oc_form_opt *opt);
 int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		       struct oc_auth_form **form, int *cert_rq);
 int process_auth_form(struct openconnect_info *vpninfo,
@@ -673,7 +684,6 @@ int handle_auth_form(struct openconnect_info *vpninfo,
 void free_auth_form(struct oc_auth_form *form);
 int xmlpost_initial_req(struct openconnect_info *vpninfo,
 			struct oc_text_buf *request_body, int cert_fail);
-int prepare_stoken(struct openconnect_info *vpninfo);
 
 /* http.c */
 struct oc_text_buf *buf_alloc(void);

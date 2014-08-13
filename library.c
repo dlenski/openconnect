@@ -506,31 +506,6 @@ int openconnect_has_oath_support(void)
 #endif
 }
 
-static int set_libstoken_mode(struct openconnect_info *vpninfo,
-			      const char *token_str)
-{
-#ifdef HAVE_LIBSTOKEN
-	int ret;
-
-	if (!vpninfo->stoken_ctx) {
-		vpninfo->stoken_ctx = stoken_new();
-		if (!vpninfo->stoken_ctx)
-			return -EIO;
-	}
-
-	ret = token_str ?
-	      stoken_import_string(vpninfo->stoken_ctx, token_str) :
-	      stoken_import_rcfile(vpninfo->stoken_ctx, NULL);
-	if (ret)
-		return ret;
-
-	vpninfo->token_mode = OC_TOKEN_MODE_STOKEN;
-	return 0;
-#else
-	return -EOPNOTSUPP;
-#endif
-}
-
 int openconnect_set_token_callbacks(struct openconnect_info *vpninfo,
 				    void *tokdata,
 				    openconnect_lock_token_vfn lock,
@@ -571,9 +546,10 @@ int openconnect_set_token_mode(struct openconnect_info *vpninfo,
 	case OC_TOKEN_MODE_NONE:
 		return 0;
 
+#ifdef HAVE_LIBSTOKEN
 	case OC_TOKEN_MODE_STOKEN:
 		return set_libstoken_mode(vpninfo, token_str);
-
+#endif
 #ifdef HAVE_LIBOATH
 	case OC_TOKEN_MODE_TOTP:
 		return set_totp_mode(vpninfo, token_str);

@@ -612,6 +612,7 @@ AS_IF([test "x$with_stoken" != "xno"], [
 			 libstoken_pkg=yes],
 			 libstoken_pkg=no)
 ], [libstoken_pkg=disabled])
+AM_CONDITIONAL(OPENCONNECT_STOKEN, [test "$libstoken_pkg" = "yes"])
 
 AC_ARG_WITH([liboath],
 	AS_HELP_STRING([--without-liboath],
