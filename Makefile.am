@@ -15,7 +15,7 @@ AM_CFLAGS = @WFLAGS@
 AM_CPPFLAGS = -DLOCALEDIR="\"$(localedir)\""
 
 openconnect_SOURCES = xml.c main.c
-openconnect_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBOATH_CFLAGS) $(GSSAPI_CFLAGS)
+openconnect_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBOATH_CFLAGS) $(LIBPSKC_CFLAGS) $(GSSAPI_CFLAGS)
 openconnect_LDADD = libopenconnect.la $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(LIBINTL) $(LIBICONV)
 
 library_srcs = ssl.c http.c auth.c library.c compat.c dtls.c cstp.c \
@@ -50,8 +50,8 @@ library_srcs += $(lib_srcs_posix)
 endif
 
 libopenconnect_la_SOURCES = version.c $(library_srcs)
-libopenconnect_la_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(P11KIT_CFLAGS) $(TSS_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBOATH_CFLAGS) $(GSSAPI_CFLAGS)
-libopenconnect_la_LIBADD = $(SSL_LIBS) $(DTLS_SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(LIBINTL) $(P11KIT_LIBS) $(TSS_LIBS) $(LIBSTOKEN_LIBS) $(LIBOATH_LIBS) $(GSSAPI_LIBS) $(LIBICONV)
+libopenconnect_la_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(P11KIT_CFLAGS) $(TSS_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBOATH_CFLAGS) $(LIBPSKC_CFLAGS) $(GSSAPI_CFLAGS)
+libopenconnect_la_LIBADD = $(SSL_LIBS) $(DTLS_SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(LIBINTL) $(P11KIT_LIBS) $(TSS_LIBS) $(LIBSTOKEN_LIBS) $(LIBOATH_LIBS) $(LIBPSKC_LIBS) $(GSSAPI_LIBS) $(LIBICONV)
 if OPENBSD_LIBTOOL
 # OpenBSD's libtool doesn't have -version-number, but its -version-info arg
 # does what GNU libtool's -version-number does. Which arguably is what the

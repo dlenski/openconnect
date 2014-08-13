@@ -622,6 +622,13 @@ AS_IF([test "x$with_liboath" != "xno"], [
 		 AC_DEFINE([HAVE_LIBOATH], 1, [Have liboath])
 		 liboath_pkg=yes],
 		 liboath_pkg=no)
+	if test "$liboath_pkg" = "yes"; then
+	    PKG_CHECK_MODULES(LIBPSKC, [libpskc >= 2.2.0],
+		[AC_SUBST(LIBPSKC_PC, libpskc)
+		 AC_DEFINE([HAVE_LIBPSKC], 1, [Have libpskc])
+		 libpskc_pkg=yes],
+		 libpskc_pkg=no)
+	fi
 ])
 
 linked_gssapi=no

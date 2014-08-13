@@ -229,9 +229,16 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		stoken_destroy(vpninfo->stoken_ctx);
 #endif
 #ifdef HAVE_LIBOATH
-	if (vpninfo->oath_secret)
+	if (vpninfo->oath_secret) {
+#ifdef HAVE_LIBPSKC
+		if (vpninfo->pskc)
+			pskc_done(vpninfo->pskc);
+		else
+#endif /* HAVE_LIBPSKC */
+		free(vpninfo->oath_secret);
 		oath_done();
-#endif
+	}
+#endif /* HAVE_LIBOATH */
 
 	/* These check strm->state so they are safe to call multiple times */
 	inflateEnd(&vpninfo->inflate_strm);
@@ -561,6 +568,62 @@ static char *parse_hex(const char *tok, int len)
 }
 #endif
 
+#ifdef HAVE_LIBOATH
+static int pskc_decode(struct openconnect_info *vpninfo, const char *token_str,
+		       int toklen, int mode)
+{
+#ifdef HAVE_LIBPSKC
+	pskc_t *container;
+	pskc_key_t *key;
+	const char *key_algo;
+	const char *want_algo;
+	size_t klen;
+
+	if (pskc_global_init())
+		return -EIO;
+
+	if (pskc_init(&container))
+		return -ENOMEM;
+
+	if (pskc_parse_from_memory(container, toklen, token_str))
+		return -EINVAL;
+
+	key = pskc_get_keypackage(container, 0);
+	if (!key) {
+		pskc_done(container);
+		return -EINVAL;
+	}
+	if (mode == OC_TOKEN_MODE_HOTP)
+		want_algo = "urn:ietf:params:xml:ns:keyprov:pskc:hotp";
+	else
+		want_algo = "urn:ietf:params:xml:ns:keyprov:pskc:totp";
+	key_algo = pskc_get_key_algorithm(key);
+
+	if (!key_algo || strcmp(key_algo, want_algo)) {
+		pskc_done(container);
+		return -EINVAL;
+	}
+
+	vpninfo->oath_secret = (char *)pskc_get_key_data_secret(key, &klen);
+	vpninfo->oath_secret_len = klen;
+	if (!vpninfo->oath_secret) {
+		pskc_done(container);
+		return -EINVAL;
+	}
+	vpninfo->token_time = pskc_get_key_data_counter(key, NULL);
+
+	vpninfo->pskc = container;
+	vpninfo->pskc_key = key;
+
+	return 0;
+#else /* !HAVE_LIBPSKC */
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("This version of OpenConnect was built without PSKC support\n"));
+	return -EINVAL;
+#endif /* HAVE_LIBPSKC */
+}
+#endif /* HAVE_LIBOATH */
+
 static int set_totp_mode(struct openconnect_info *vpninfo,
 			 const char *token_str)
 {
@@ -578,7 +641,12 @@ static int set_totp_mode(struct openconnect_info *vpninfo,
 	while (toklen && isspace((int)(unsigned char)token_str[toklen-1]))
 		toklen--;
 
-	if (strncasecmp(token_str, "base32:", strlen("base32:")) == 0) {
+	if (strncmp(token_str, "<?xml", 5) == 0) {
+		vpninfo->hotp_secret_format = HOTP_SECRET_PSKC;
+		ret = pskc_decode(vpninfo, token_str, toklen, OC_TOKEN_MODE_TOTP);
+		if (ret)
+			return -EINVAL;
+	} else if (strncasecmp(token_str, "base32:", strlen("base32:")) == 0) {
 		ret = oath_base32_decode(token_str + strlen("base32:"),
 					 toklen - strlen("base32:"),
 					 &vpninfo->oath_secret,
@@ -617,6 +685,15 @@ static int set_hotp_mode(struct openconnect_info *vpninfo,
 		return -EINVAL;
 
 	toklen = strlen(token_str);
+
+	if (strncmp(token_str, "<?xml", 5) == 0) {
+		vpninfo->hotp_secret_format = HOTP_SECRET_PSKC;
+		ret = pskc_decode(vpninfo, token_str, toklen, OC_TOKEN_MODE_HOTP);
+		if (ret)
+			return -EINVAL;
+		vpninfo->token_mode = OC_TOKEN_MODE_HOTP;
+		return 0;
+	}
 	p = strrchr(token_str, ',');
 	if (p) {
 		long counter;

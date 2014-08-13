@@ -85,6 +85,10 @@
 #include GSSAPI_HDR
 #endif
 
+#ifdef HAVE_LIBPSKC
+#include <pskc/pskc.h>
+#endif
+
 #ifdef ENABLE_NLS
 #include <libintl.h>
 #define _(s) dgettext("openconnect", s)
@@ -264,6 +268,10 @@ struct openconnect_info {
 	char *stoken_pin;
 	int stoken_concat_pin;
 	int stoken_interval;
+#endif
+#ifdef HAVE_LIBPSKC
+	pskc_t *pskc;
+	pskc_key_t *pskc_key;
 #endif
 #ifdef HAVE_LIBOATH
 	char *oath_secret;

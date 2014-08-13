@@ -1452,17 +1452,19 @@ static void buf_append_base32(struct oc_text_buf *buf, void *data, int len)
 static char *regen_hotp_secret(struct openconnect_info *vpninfo)
 {
 	char *new_secret = NULL;
-	struct oc_text_buf *buf = buf_alloc();
+	struct oc_text_buf *buf;
 	int i;
 
 	switch (vpninfo->hotp_secret_format) {
 	case HOTP_SECRET_BASE32:
+		buf = buf_alloc();
 		buf_append(buf, "base32:");
 		buf_append_base32(buf, vpninfo->oath_secret,
 				  vpninfo->oath_secret_len);
 		break;
 
 	case HOTP_SECRET_HEX:
+		buf = buf_alloc();
 		buf_append(buf, "0x");
 		for (i=0; i < vpninfo->oath_secret_len; i++)
 			buf_append(buf, "%02x",
@@ -1470,12 +1472,44 @@ static char *regen_hotp_secret(struct openconnect_info *vpninfo)
 		break;
 
 	case HOTP_SECRET_RAW:
+		buf = buf_alloc();
 		buf_append_bytes(buf, vpninfo->oath_secret,
 				 vpninfo->oath_secret_len);
 		break;
 
 	case HOTP_SECRET_PSKC:
-		/* Not implemented yet */
+#ifdef HAVE_LIBPSKC
+	{
+		size_t len;
+		if (!vpninfo->pskc_key || !vpninfo->pskc)
+			return NULL;
+		pskc_set_key_data_counter(vpninfo->pskc_key, vpninfo->token_time);
+		pskc_build_xml(vpninfo->pskc, &new_secret, &len);
+		/* FFS #1: libpskc craps all over itself on pskc_build_xml().
+		   https://bugzilla.redhat.com/show_bug.cgi?id=1129491
+		   Hopefully this will be fixed by 2.4.2 but make it
+		   unconditional for now... */
+		if (1 || !pskc_check_version("2.4.2")) {
+			pskc_done(vpninfo->pskc);
+			vpninfo->pskc = NULL;
+			vpninfo->pskc_key = NULL;
+			if (pskc_init(&vpninfo->pskc) ||
+			    pskc_parse_from_memory(vpninfo->pskc, len, new_secret)) {
+				pskc_done(vpninfo->pskc);
+				vpninfo->pskc = NULL;
+			} else {
+				vpninfo->pskc_key = pskc_get_keypackage(vpninfo->pskc, 0);
+				vpninfo->oath_secret = (char *)pskc_get_key_data_secret(vpninfo->pskc_key, NULL);
+			}
+		}
+		/* FFS #2: No terminating NUL byte */
+		realloc_inplace(new_secret, len + 1);
+		if (new_secret)
+			new_secret[len] = 0;
+		return new_secret;
+	}
+#endif
+	default:
 		return NULL;
 	}
 
