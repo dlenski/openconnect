@@ -1315,6 +1315,7 @@ static int do_gen_stoken_code(struct openconnect_info *vpninfo,
 
 #endif
 
+#ifdef HAVE_LIBOATH
 /* Return value:
  *  < 0, if unable to generate a tokencode
  *  = 0, on success
@@ -1323,7 +1324,6 @@ static int can_gen_totp_code(struct openconnect_info *vpninfo,
 			     struct oc_auth_form *form,
 			     struct oc_form_opt *opt)
 {
-#ifdef HAVE_LIBOATH
 	if ((strcmp(opt->name, "secondary_password") != 0) ||
 	    vpninfo->token_bypassed)
 		return -EINVAL;
@@ -1342,9 +1342,6 @@ static int can_gen_totp_code(struct openconnect_info *vpninfo,
 		return -ENOENT;
 	}
 	return 0;
-#else
-	return -EOPNOTSUPP;
-#endif
 }
 
 /* Return value:
@@ -1355,7 +1352,6 @@ static int can_gen_hotp_code(struct openconnect_info *vpninfo,
 			     struct oc_auth_form *form,
 			     struct oc_form_opt *opt)
 {
-#ifdef HAVE_LIBOATH
 	if ((strcmp(opt->name, "secondary_password") != 0) ||
 	    vpninfo->token_bypassed)
 		return -EINVAL;
@@ -1372,11 +1368,8 @@ static int can_gen_hotp_code(struct openconnect_info *vpninfo,
 		return -ENOENT;
 	}
 	return 0;
-#else
-	return -EOPNOTSUPP;
-#endif
 }
-
+#endif
 /* Return value:
  *  < 0, if unable to generate a tokencode
  *  = 0, on success
@@ -1389,22 +1382,23 @@ static int can_gen_tokencode(struct openconnect_info *vpninfo,
 	case OC_TOKEN_MODE_STOKEN:
 		return can_gen_stoken_code(vpninfo, form, opt);
 
+#ifdef HAVE_LIBOATH
 	case OC_TOKEN_MODE_TOTP:
 		return can_gen_totp_code(vpninfo, form, opt);
 
 	case OC_TOKEN_MODE_HOTP:
 		return can_gen_hotp_code(vpninfo, form, opt);
-
+#endif
 	default:
 		return -EINVAL;
 	}
 }
 
+#ifdef HAVE_LIBOATH
 static int do_gen_totp_code(struct openconnect_info *vpninfo,
 			    struct oc_auth_form *form,
 			    struct oc_form_opt *opt)
 {
-#ifdef HAVE_LIBOATH
 	int oath_err;
 	char tokencode[7];
 
@@ -1429,12 +1423,7 @@ static int do_gen_totp_code(struct openconnect_info *vpninfo,
 	vpninfo->token_tries++;
 	opt->value = strdup(tokencode);
 	return opt->value ? 0 : -ENOMEM;
-#else
-	return 0;
-#endif
 }
-
-#ifdef HAVE_LIBOATH
 
 static void buf_append_base32(struct oc_text_buf *buf, void *data, int len)
 {
@@ -1521,13 +1510,11 @@ static char *regen_hotp_secret(struct openconnect_info *vpninfo)
 	buf_free(buf);
 	return new_secret;
 }
-#endif
 
 static int do_gen_hotp_code(struct openconnect_info *vpninfo,
 			    struct oc_auth_form *form,
 			    struct oc_form_opt *opt)
 {
-#ifdef HAVE_LIBOATH
 	int oath_err;
 	char tokencode[7];
 	int ret;
@@ -1564,10 +1551,8 @@ static int do_gen_hotp_code(struct openconnect_info *vpninfo,
 		free(new_tok);
 	}
 	return opt->value ? 0 : -ENOMEM;
-#else
-	return 0;
-#endif
 }
+#endif /* HAVE_LIBOATH */
 
 /* Return value:
  *  < 0, if unable to generate a tokencode
@@ -1590,11 +1575,13 @@ static int do_gen_tokencode(struct openconnect_info *vpninfo,
 	case OC_TOKEN_MODE_STOKEN:
 		return do_gen_stoken_code(vpninfo, form, opt);
 
+#ifdef HAVE_LIBOATH
 	case OC_TOKEN_MODE_TOTP:
 		return do_gen_totp_code(vpninfo, form, opt);
 
 	case OC_TOKEN_MODE_HOTP:
 		return do_gen_hotp_code(vpninfo, form, opt);
+#endif
 
 	default:
 		return -EINVAL;
