@@ -566,9 +566,7 @@ static char *parse_hex(const char *tok, int len)
 
 	return (char *)data;
 }
-#endif
 
-#ifdef HAVE_LIBOATH
 static int pskc_decode(struct openconnect_info *vpninfo, const char *token_str,
 		       int toklen, int mode)
 {
@@ -622,12 +620,10 @@ static int pskc_decode(struct openconnect_info *vpninfo, const char *token_str,
 	return -EINVAL;
 #endif /* HAVE_LIBPSKC */
 }
-#endif /* HAVE_LIBOATH */
 
 static int set_totp_mode(struct openconnect_info *vpninfo,
 			 const char *token_str)
 {
-#ifdef HAVE_LIBOATH
 	int ret, toklen;
 
 	ret = oath_init();
@@ -665,15 +661,11 @@ static int set_totp_mode(struct openconnect_info *vpninfo,
 
 	vpninfo->token_mode = OC_TOKEN_MODE_TOTP;
 	return 0;
-#else
-	return -EOPNOTSUPP;
-#endif
 }
 
 static int set_hotp_mode(struct openconnect_info *vpninfo,
 			 const char *token_str)
 {
-#ifdef HAVE_LIBOATH
 	int ret, toklen;
 	char *p;
 
@@ -737,10 +729,8 @@ static int set_hotp_mode(struct openconnect_info *vpninfo,
 
 	vpninfo->token_mode = OC_TOKEN_MODE_HOTP;
 	return 0;
-#else
-	return -EOPNOTSUPP;
-#endif
 }
+#endif /* HAVE_LIBOATH */
 
 int openconnect_set_token_callbacks(struct openconnect_info *vpninfo,
 				    void *tokdata,
@@ -785,12 +775,13 @@ int openconnect_set_token_mode(struct openconnect_info *vpninfo,
 	case OC_TOKEN_MODE_STOKEN:
 		return set_libstoken_mode(vpninfo, token_str);
 
+#ifdef HAVE_LIBOATH
 	case OC_TOKEN_MODE_TOTP:
 		return set_totp_mode(vpninfo, token_str);
 
 	case OC_TOKEN_MODE_HOTP:
 		return set_hotp_mode(vpninfo, token_str);
-
+#endif
 	default:
 		return -EOPNOTSUPP;
 	}
