@@ -630,6 +630,7 @@ AS_IF([test "x$with_liboath" != "xno"], [
 		 libpskc_pkg=no)
 	fi
 ])
+AM_CONDITIONAL(OPENCONNECT_OATH, [test "$liboath_pkg" = "yes"])
 
 linked_gssapi=no
 AC_ARG_WITH([gssapi],

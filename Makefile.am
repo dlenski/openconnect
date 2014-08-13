@@ -26,11 +26,15 @@ lib_srcs_win32 = tun-win32.c sspi.c
 lib_srcs_posix = tun.c
 lib_srcs_gssapi = gssapi.c
 lib_srcs_iconv = iconv.c
+lib_srcs_oath = oath.c
 
 POTFILES = $(openconnect_SOURCES) $(lib_srcs_openssl) $(lib_srcs_gnutls) \
 	   $(library_srcs) $(lib_srcs_win32) $(lib_srcs_posix) $(lib_srcs_gssapi) \
-	   $(lib_srcs_iconv) openconnect-internal.h
+	   $(lib_srcs_iconv) $(lib_srcs_oath) openconnect-internal.h
 
+if OPENCONNECT_OATH
+library_srcs += $(lib_srcs_oath)
+endif
 if OPENCONNECT_GSSAPI
 library_srcs += $(lib_srcs_gssapi)
 endif

@@ -645,6 +645,22 @@ ssize_t read_file_into_string(struct openconnect_info *vpninfo, const char *fnam
 			      char **ptr);
 int config_lookup_host(struct openconnect_info *vpninfo, const char *host);
 
+/* oath.c */
+int set_totp_mode(struct openconnect_info *vpninfo, const char *token_str);
+int set_hotp_mode(struct openconnect_info *vpninfo, const char *token_str);
+int can_gen_totp_code(struct openconnect_info *vpninfo,
+		      struct oc_auth_form *form,
+		      struct oc_form_opt *opt);
+int can_gen_hotp_code(struct openconnect_info *vpninfo,
+		      struct oc_auth_form *form,
+		      struct oc_form_opt *opt);
+int do_gen_totp_code(struct openconnect_info *vpninfo,
+		     struct oc_auth_form *form,
+		     struct oc_form_opt *opt);
+int do_gen_hotp_code(struct openconnect_info *vpninfo,
+		     struct oc_auth_form *form,
+		     struct oc_form_opt *opt);
+
 /* auth.c */
 int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		       struct oc_auth_form **form, int *cert_rq);
