@@ -1,0 +1,132 @@
+<PAGE>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_FEATURES" replace="selected" />
+	<VAR match="VAR_SEL_FEATURE_TOKEN" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2-features.xml" />
+
+	<INCLUDE file="inc/content.tmpl" />
+
+<h1>Software token support</h1>
+
+<p>OpenConnect supports three types of software tokens for automatically
+generating one-time passwords:</p>
+<ul>
+  <li><a href="http://en.wikipedia.org/wiki/SecurID">RSA SecurID</a> tokens using
+      <a href="http://stoken.sourceforge.net/">libstoken</a></li>
+  <li>OATH TOTP <i>(<a href="http://tools.ietf.org/html/rfc6238">RFC6238</a>)</i> tokens using
+      <a href="http://www.nongnu.org/oath-toolkit/">liboath</a></li>
+  <li>OATH HOTP <i>(<a href="http://tools.ietf.org/html/rfc4226">RFC4226</a>)</i> tokens using
+      <a href="http://www.nongnu.org/oath-toolkit/">liboath</a></li>
+</ul>
+<p>On the command line, the token mode is specified with the <tt>--token-mode</tt>
+argument, which can be one of <tt>rsa</tt>, <tt>totp</tt> or <tt>hotp</tt>.</p>
+<p>The token secret is provided with the <tt>--token-secret</tt>
+argument, and the precise form it takes is dependent on the type of
+token as described below.</p>
+<p>For the <tt>openconnect</tt> command line program, if the first character of
+the <tt>--token-secret</tt> value is / or @, the argument is interpreted as a
+filename. The secret data will be loaded from <i>(and potentially saved back 
+to, in the case of HOTP tokens)</i> the specifed file.</p>
+
+<p>In each case, the automatic token generation will be tried twice before it
+is automatically disabled and the user asked to enter tokencodes manually.</p>
+<p>SecurID token codes will automatically fill in the primary password field in the
+authentication form presented by the server, while OATH token codes will
+fill in the secondary password field. This behaviour is empirically determined by
+the requirements of the servers that we have tested with; if you find a configuration
+in which it is not appropriate, please <a href="mail.html">let us know</a>.</p>
+
+<h2>SecurID</h2>
+
+<p>If no <tt>--token-secret</tt> argument is provided in SecurID mode, the
+default <tt>.stokenrc</tt> file from the user's home directory will be used.
+For the NetworkManager integration, this is a separate choice for the token
+type — the UI has separate choices for <i>"RSA SecurID - read from ~/.stokenrc"</i> vs. 
+<i>"RSA SecurID - manually entered"</i>.</p>
+
+<p>If a token is provided — either directly on the command line, as the contents
+of a referenced file, or entered into the NetworkManager configuration dialog —
+it may take one of the many forms accepted by the <tt>stoken import</tt> command:</p>
+<ul>
+  <li><b>286510182209303756117707012447003320623006...</b></li>
+  <li><b>29658-21098-45467-64675-65731-01441-11337...</b><br/>
+  Pure numeric (81-digit) "ctf" (compressed token format) strings,
+  with or without dashes. These may have been furnished as-is, or
+  they could have been derived from an sdtid file by the RSA
+  TokenConverter program.</li>
+   <li><b>com.rsa.securid.iphone://ctf?ctfData=229639330774927764401...</b><br/>
+   iPhone-compatible token strings.</li>
+
+   <li><b>http://127.0.0.1/securid/ctf?ctfData=250494932146245277466...</b></li>
+   <li><b>http://127.0.0.1/securid/ctf?ctfData=AwAAfBc3QSopPxxjLGnxf...</b><br/>
+   Android-compatible token strings.</li>
+
+   <li><b>&amp;lt;?xml version=...</b><br/>
+   RSA sdtid-formatted XML files. These should be generally be imported from a
+   file: '<tt>--token-secret @<i>FILE.SDTID</i></tt>'</li>
+</ul>
+
+<h2>TOTP (Time-Based One-Time Password)</h2>
+
+<p>As with SecurID tokens, OATH TOTP tokens may be provided either directly on the command line, as the contents
+of a referenced file, or entered into the NetworkManager configuration dialog.
+They may be specified in one of the following forms:</p>
+
+<ul>
+  <li><b>SecretSecret!</b><br/>
+  For secrets which are actually UTF-8 strings instead of entirely randomly generated
+  data, they may be specified directly in this form.</li>
+  <li><b>0x53656372657453656372657421</b><br/>
+  This is the hexadecimal form which <i>(without the leading <tt>0x</tt>)</i> is
+  accepted by default by the 
+  <tt><a href="http://www.nongnu.org/oath-toolkit/oathtool.1.html">oathtool</a></tt>
+  program.</li>
+  <li><b>base32:KNSWG4TFORJWKY3SMV2CC===</b><br/>
+  This is the base32 form which is accepted by the 
+  <tt><a href="http://www.nongnu.org/oath-toolkit/oathtool.1.html">oathtool</a></tt>
+  program with its <tt>-b</tt> option..</li>
+  <li><b>&amp;lt;?xml version=...</b><br/>
+  PSKC XML files conforming to <a href="http://tools.ietf.org/html/rfc6030">RFC6030</a>.
+  These should be generally be imported from a file: '<tt>--token-secret @<i>FILE.PSKC</i></tt>'</li>
+</ul>
+
+<h2>HOTP (HMAC-Based One-Time Password)</h2>
+
+<p>HOTP tokens are very similar to TOTP tokens except that they are event-based, and
+contain an additional <i>counter</i> which is incremented each time a token is
+generated.</p>
+<p>For HOTP tokens, the secret and counter may be provided in one of the following forms:</p>
+
+<ul>
+  <li><b>SecretSecret!,99</b></li>
+  <li><b>0x53656372657453656372657421,99</b></li>
+  <li><b>base32:KNSWG4TFORJWKY3SMV2CC===,99</b><br/>
+  These correspond to the raw forms of the TOTP tokens given above, with the <i>counter</i>
+  value appended in decimal form after a comma.</li>
+  <li><b>&amp;lt;?xml version=...</b><br/>
+  PSKC XML files conforming to <a href="http://tools.ietf.org/html/rfc6030">RFC6030</a> will
+  contain the <i>counter</i> value.</li>
+</ul>
+
+<p>Although it is possible to specify HOTP tokens in their raw form
+on the command line, that's not very useful because any updates to the <i>counter</i> field
+will be discarded. Therefore it is advisable to use the <i>@filename</i> form of the
+<tt>--token-secret</tt> argument, and the updated secret with incremented <i>counter</i>
+value will be stored back to the file each time a token is generated.</p>
+<p>The token will be stored back to the file in the same form that it was originally
+provided.</p>
+
+<p>Although NetworkManager-openconnect only supports direct token
+entry <i>(you can't enter <tt>@filename</tt> into its GUI
+configuration and expect that to work)</i>, versions which are new enough
+to support HOTP will also have support for reading the updated counter values
+back from <tt>libopenconnect</tt> and storing them to the NetworkManager VPN
+configuration. So if you configure a VPN connection with a HOTP token secret of <tt>"0x1234,1"</tt>
+and authenticate once, you should be able to go back into the configuration and see
+that the token secret has been updated to <tt>"0x1234,2"</tt>.</p>
+
+
+<INCLUDE file="inc/footer.tmpl" />
+</PAGE>

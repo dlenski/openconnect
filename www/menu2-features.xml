@@ -5,5 +5,6 @@
 	<MENU topic="Cisco Secure Desktop" link="csd.html" mode="VAR_SEL_FEATURE_CSD" />
 	<MENU topic="GUI" link="gui.html" mode="VAR_SEL_FEATURE_GUI" />
 	<MENU topic="Character sets" link="charset.html" mode="VAR_SEL_FEATURE_CHARSET" />
+	<MENU topic="Software token" link="token.html" mode="VAR_SEL_FEATURE_TOKEN" />
 	<ENDMENU />
 </PAGE>
