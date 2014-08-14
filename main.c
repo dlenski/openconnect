@@ -1774,9 +1774,18 @@ static int process_auth_form_cb(void *_vpninfo,
 
 static int lock_token(void *tokdata)
 {
-	/* FIXME: actually do file locking? Is there anything defined for
-	   PSKC files? And call openconnect_set_token_mode() again if the
-	   contents of the file have changed. */
+	struct openconnect_info *vpninfo = tokdata;
+	char *file_token;
+	int err;
+
+	/* FIXME: Actually lock the file */
+	err = read_file_into_string(vpninfo, token_filename, &file_token);
+	if (err < 0)
+	    return err;
+
+	err = openconnect_set_token_mode(vpninfo, vpninfo->token_mode, file_token);
+	free(file_token);
+
 	return 0;
 }
 
