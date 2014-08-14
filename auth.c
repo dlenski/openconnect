@@ -796,8 +796,11 @@ int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form
 
 	/* tokencode generation is deferred until after username prompts and CSD */
 	ret = do_gen_tokencode(vpninfo, form);
-	if (ret)
+	if (ret) {
+		vpn_progress(vpninfo, PRG_ERR, _("Failed to generate OTP tokencode; disabling token\n"));
+		vpninfo->token_bypassed = 1;
 		return ret;
+	}
 
 	ret = vpninfo->xmlpost ?
 	      xmlpost_append_form_opts(vpninfo, form, request_body) :
