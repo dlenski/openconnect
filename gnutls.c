@@ -332,12 +332,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 	err = gnutls_pkcs12_import(p12, datum, GNUTLS_X509_FMT_DER, 0);
 	if (err) {
 		gnutls_pkcs12_deinit(p12);
-		if (vpninfo->cert_type == CERT_TYPE_UNKNOWN)
-			return NOT_PKCS12;
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to import PKCS#12 file: %s\n"),
-			     gnutls_strerror(err));
-		return -EINVAL;
+		return NOT_PKCS12;
 	}
 
 	pass = vpninfo->cert_password;
@@ -372,8 +367,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
 
 		/* If the first attempt, and we didn't know for sure it was PKCS#12
 		   anyway, bail out and try loading it as something different. */
-		if (pass == vpninfo->cert_password &&
-		    vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
+		if (pass == vpninfo->cert_password) {
 			/* Make it non-fatal... */
 			level = PRG_DEBUG;
 			ret = NOT_PKCS12;
@@ -992,8 +986,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		return ret;
 
 	/* Is it PKCS#12? */
-	if (!key_is_p11 && (vpninfo->cert_type == CERT_TYPE_PKCS12 ||
-			    vpninfo->cert_type == CERT_TYPE_UNKNOWN)) {
+	if (!key_is_p11) {
 		/* PKCS#12 should actually contain certificates *and* private key */
 		ret = load_pkcs12_certificate(vpninfo, &fdata, &key,
 					      &supporting_certs, &nr_supporting_certs,
@@ -1210,9 +1203,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	}
 
 	/* Is it a PEM file with a TPM key blob? */
-	if (vpninfo->cert_type == CERT_TYPE_TPM ||
-	    (vpninfo->cert_type == CERT_TYPE_UNKNOWN &&
-	     strstr((char *)fdata.data, "-----BEGIN TSS KEY BLOB-----"))) {
+	if (strstr((char *)fdata.data, "-----BEGIN TSS KEY BLOB-----")) {
 #ifndef HAVE_TROUSERS
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("This version of OpenConnect was built without TPM support\n"));
