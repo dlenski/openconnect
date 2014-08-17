@@ -740,9 +740,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	vpn_progress(vpninfo, PRG_DEBUG,
 		     _("Using certificate file %s\n"), vpninfo->cert);
 
-	if (strncmp(vpninfo->cert, "keystore:", 9) &&
-	    (vpninfo->cert_type == CERT_TYPE_PKCS12 ||
-	     vpninfo->cert_type == CERT_TYPE_UNKNOWN)) {
+	if (strncmp(vpninfo->cert, "keystore:", 9)) {
 		FILE *f;
 		PKCS12 *p12;
 
@@ -758,13 +756,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		if (p12)
 			return load_pkcs12_certificate(vpninfo, p12);
 
-		/* Not PKCS#12 */
-		if (vpninfo->cert_type == CERT_TYPE_PKCS12) {
-			vpn_progress(vpninfo, PRG_ERR, _("Read PKCS#12 failed\n"));
-			openconnect_report_ssl_errors(vpninfo);
-			return -EINVAL;
-		}
-		/* Clear error and fall through to see if it's a PEM file... */
+		/* Not PKCS#12. Clear error and fall through to see if it's a PEM file... */
 		ERR_clear_error();
 	}
 
@@ -825,7 +817,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	}
 #endif /* ANDROID_KEYSTORE */
 
-	if (vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
+	{
 		FILE *f = openconnect_fopen_utf8(vpninfo, vpninfo->sslkey, "rb");
 		char buf[256];
 
@@ -839,28 +831,24 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		buf[255] = 0;
 		while (fgets(buf, 255, f)) {
 			if (!strcmp(buf, "-----BEGIN TSS KEY BLOB-----\n")) {
-				vpninfo->cert_type = CERT_TYPE_TPM;
-				break;
+				fclose(f);
+				return load_tpm_certificate(vpninfo);
 			} else if (!strcmp(buf, "-----BEGIN RSA PRIVATE KEY-----\n") ||
 				   !strcmp(buf, "-----BEGIN DSA PRIVATE KEY-----\n") ||
 				   !strcmp(buf, "-----BEGIN ENCRYPTED PRIVATE KEY-----\n") ||
 				   !strcmp(buf, "-----BEGIN PRIVATE KEY-----\n")) {
-				vpninfo->cert_type = CERT_TYPE_PEM;
-				break;
+				goto pem_key;
 			}
 		}
 		fclose(f);
-		if (vpninfo->cert_type == CERT_TYPE_UNKNOWN) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Failed to identify private key type in '%s'\n"),
-				     vpninfo->sslkey);
-			return -EINVAL;
-		}
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to identify private key type in '%s'\n"),
+			     vpninfo->sslkey);
+		return -EINVAL;
 	}
 
-	if (vpninfo->cert_type == CERT_TYPE_TPM)
-		return load_tpm_certificate(vpninfo);
-	else {
+pem_key:
+	{
 		RSA *key;
 		FILE *f = openconnect_fopen_utf8(vpninfo, vpninfo->sslkey, "rb");
 		BIO *b;
