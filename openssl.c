@@ -871,7 +871,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 				     vpninfo->cert, strerror(errno));
 			return -ENOENT;
 		}
-		b = BIO_new_fp(f, 0);
+		b = BIO_new_fp(f, BIO_CLOSE);
 		if (!b) {
 			fclose(f);
 			vpn_progress(vpninfo, PRG_ERR,
