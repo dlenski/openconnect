@@ -34,6 +34,7 @@ public abstract class LibOpenConnect {
 	public static final int OC_TOKEN_MODE_NONE = 0;
 	public static final int OC_TOKEN_MODE_STOKEN = 1;
 	public static final int OC_TOKEN_MODE_TOTP = 2;
+	public static final int OC_TOKEN_MODE_HOTP = 3;
 
 	public static final int OC_FORM_RESULT_ERR = -1;
 	public static final int OC_FORM_RESULT_OK = 0;
