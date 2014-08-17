@@ -730,6 +730,9 @@ static int is_pem_password_error(struct openconnect_info *vpninfo)
 
 static int load_certificate(struct openconnect_info *vpninfo)
 {
+	FILE *f;
+	char buf[256];
+
 	if (!strncmp(vpninfo->sslkey, "pkcs11:", 7) ||
 	    !strncmp(vpninfo->cert, "pkcs11:", 7)) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -741,7 +744,6 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		     _("Using certificate file %s\n"), vpninfo->cert);
 
 	if (strncmp(vpninfo->cert, "keystore:", 9)) {
-		FILE *f;
 		PKCS12 *p12;
 
 		f = openconnect_fopen_utf8(vpninfo, vpninfo->cert, "rb");
@@ -817,69 +819,53 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	}
 #endif /* ANDROID_KEYSTORE */
 
-	{
-		FILE *f = openconnect_fopen_utf8(vpninfo, vpninfo->sslkey, "rb");
-		char buf[256];
-
-		if (!f) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Failed to open private key file %s: %s\n"),
-				     vpninfo->cert, strerror(errno));
-			return -ENOENT;
-		}
-
-		buf[255] = 0;
-		while (fgets(buf, 255, f)) {
-			if (!strcmp(buf, "-----BEGIN TSS KEY BLOB-----\n")) {
-				fclose(f);
-				return load_tpm_certificate(vpninfo);
-			} else if (!strcmp(buf, "-----BEGIN RSA PRIVATE KEY-----\n") ||
-				   !strcmp(buf, "-----BEGIN DSA PRIVATE KEY-----\n") ||
-				   !strcmp(buf, "-----BEGIN ENCRYPTED PRIVATE KEY-----\n") ||
-				   !strcmp(buf, "-----BEGIN PRIVATE KEY-----\n")) {
-				goto pem_key;
-			}
-		}
-		fclose(f);
+	f = openconnect_fopen_utf8(vpninfo, vpninfo->sslkey, "rb");
+	if (!f) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to identify private key type in '%s'\n"),
-			     vpninfo->sslkey);
-		return -EINVAL;
+			     _("Failed to open private key file %s: %s\n"),
+			     vpninfo->cert, strerror(errno));
+		return -ENOENT;
 	}
 
-pem_key:
-	{
-		RSA *key;
-		FILE *f = openconnect_fopen_utf8(vpninfo, vpninfo->sslkey, "rb");
-		BIO *b;
-
-		if (!f) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Failed to open private key file %s: %s\n"),
-				     vpninfo->cert, strerror(errno));
-			return -ENOENT;
-		}
-		b = BIO_new_fp(f, BIO_CLOSE);
-		if (!b) {
+	buf[255] = 0;
+	while (fgets(buf, 255, f)) {
+		if (!strcmp(buf, "-----BEGIN TSS KEY BLOB-----\n")) {
 			fclose(f);
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Loading private key failed\n"));
-			openconnect_report_ssl_errors(vpninfo);
-		}
-	again:
-		fseek(f, 0, SEEK_SET);
-		key = PEM_read_bio_RSAPrivateKey(b, NULL, pem_pw_cb, vpninfo);
-		if (!key) {
-			if (is_pem_password_error(vpninfo))
-				goto again;
+			return load_tpm_certificate(vpninfo);
+		} else if (!strcmp(buf, "-----BEGIN RSA PRIVATE KEY-----\n") ||
+			   !strcmp(buf, "-----BEGIN DSA PRIVATE KEY-----\n") ||
+			   !strcmp(buf, "-----BEGIN ENCRYPTED PRIVATE KEY-----\n") ||
+			   !strcmp(buf, "-----BEGIN PRIVATE KEY-----\n")) {
+			RSA *key;
+			BIO *b = BIO_new_fp(f, BIO_CLOSE);
+
+			if (!b) {
+				fclose(f);
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Loading private key failed\n"));
+				openconnect_report_ssl_errors(vpninfo);
+			}
+		again:
+			fseek(f, 0, SEEK_SET);
+			key = PEM_read_bio_RSAPrivateKey(b, NULL, pem_pw_cb, vpninfo);
+			if (!key) {
+				if (is_pem_password_error(vpninfo))
+					goto again;
+				BIO_free(b);
+				return -EINVAL;
+			}
+			SSL_CTX_use_RSAPrivateKey(vpninfo->https_ctx, key);
+			RSA_free(key);
 			BIO_free(b);
-			return -EINVAL;
+			return 0;
 		}
-		SSL_CTX_use_RSAPrivateKey(vpninfo->https_ctx, key);
-		RSA_free(key);
-		BIO_free(b);
 	}
-	return 0;
+	fclose(f);
+
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Failed to identify private key type in '%s'\n"),
+		     vpninfo->sslkey);
+	return -EINVAL;
 }
 
 static int get_cert_fingerprint(struct openconnect_info *vpninfo,
