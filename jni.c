@@ -534,13 +534,10 @@ static int lock_token_cb(void *privdata)
 	if ((*ctx->jenv)->PushLocalFrame(ctx->jenv, 256) < 0)
 		return -1;
 
-	mid = get_obj_mid(ctx, ctx->jobj, "onTokenLock", "(V)I");
-	if (!mid)
-		goto out;
+	mid = get_obj_mid(ctx, ctx->jobj, "onTokenLock", "()I");
+	if (mid)
+		ret = (*ctx->jenv)->CallIntMethod(ctx->jenv, ctx->jobj, mid);
 
-	(*ctx->jenv)->CallIntMethod(ctx->jenv, ctx->jobj, mid);
-
-out:
 	(*ctx->jenv)->PopLocalFrame(ctx->jenv, NULL);
 	return ret;
 }
