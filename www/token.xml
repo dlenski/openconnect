@@ -68,6 +68,39 @@ it may take one of the many forms accepted by the <tt>stoken import</tt> command
    file: '<tt>--token-secret @<i>FILE.SDTID</i></tt>'</li>
 </ul>
 
+<p>SecurID two-factor authentication is based on something you have (a
+hardware or software token) and something you know (a 4-8 digit PIN code).
+SecurID administrators can provision software tokens in three different
+ways:</p>
+
+<ul>
+  <li><b>PIN included in tokencode computation</b><br/>
+  In most deployments, the software token application will prompt the user for
+  a PIN, and then use the PIN to help calculate an 8-digit tokencode by summing
+  each of the lower digits (modulo 10).  The tokencode displayed by the app is
+  then entered verbatim into the password field.</li>
+  <li><b>PIN manually prepended to tokencode</b><br/>
+  In other cases, the software token application will not prompt for a PIN; it
+  will simply display a "bare" tokencode, often 6 digits long, similar to a
+  SecurID hardware token (SID700 or equivalent).  In response to the
+  <i>Password:</i> prompt, the user concatenates his PIN and the tokencode:
+  <i>PIN &amp; Tokencode = Passcode</i>.</li>
+  <li><b>No PIN</b><br/>
+  In rare cases, the server is configured such that a PIN is not required at
+  all.  In this case, the software token application does not prompt for a
+  PIN and the user simply enters the tokencode into the password field.</li>
+</ul>
+
+<p>For the first case, OpenConnect will prompt for a PIN if the PIN has not
+been saved in <tt>~/.stokenrc</tt> using the <tt>stoken setpin</tt> command.
+Otherwise the saved PIN will automatically be used, permitting unattended
+operation.  This works with all versions of libstoken.</p>
+
+<p>For the second and third cases, OpenConnect will unconditionally prompt
+for a PIN and concatenate the PIN with the generated tokencode.  If
+appropriate, an empty PIN may be entered.  This requires libstoken v0.8 or
+higher.</p>
+
 <h2>TOTP (Time-Based One-Time Password)</h2>
 
 <p>As with SecurID tokens, OATH TOTP tokens may be provided either directly on the command line, as the contents
