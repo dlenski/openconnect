@@ -176,7 +176,8 @@ static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *nam
 	vpn_progress(vpninfo, PRG_DEBUG, _("Opened tun device %s\n"), name);
 
 	if (!DeviceIoControl(tun_fh, TAP_IOCTL_GET_VERSION,
-			     NULL, 0, data, sizeof(data), &len, NULL)) {
+			     data, sizeof(&data), data, sizeof(data),
+			     &len, NULL)) {
 		DWORD err = GetLastError();
 
 		vpn_progress(vpninfo, PRG_ERR,
@@ -197,7 +198,8 @@ static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *nam
 	data[1] = data[0] & data[2];
 
 	if (!DeviceIoControl(tun_fh, TAP_IOCTL_CONFIG_TUN,
-			     data, sizeof(data), NULL, 0, &len, NULL)) {
+			     data, sizeof(data), data, sizeof(data),
+			     &len, NULL)) {
 		DWORD err = GetLastError();
 
 		vpn_progress(vpninfo, PRG_ERR,
@@ -207,7 +209,8 @@ static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *nam
 
 	data[0] = 1;
 	if (!DeviceIoControl(tun_fh, TAP_IOCTL_SET_MEDIA_STATUS,
-			     data, sizeof(data[0]), NULL, 0, &len, NULL)) {
+			     data, sizeof(data[0]), data, sizeof(data[0]),
+			     &len, NULL)) {
 		DWORD err = GetLastError();
 
 		vpn_progress(vpninfo, PRG_ERR,

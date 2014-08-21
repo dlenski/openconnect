@@ -15,6 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Support new NDIS6 TAP-Windows driver shipped with OpenVPN 2.3.4.</li>
        <li>Support using PSKC <i>(<a href="http://tools.ietf.org/html/rfc6030">RFC6030</a>)</i> token files for HOTP/TOTP tokens.</li>
        <li>Support for updating HOTP token storage when token is used.</li>
        <li>Support for reading OTP token data from a file.</li>
