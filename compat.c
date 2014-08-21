@@ -338,13 +338,13 @@ WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH 
  *   sockets must be closed with closesocket() regardless.
  */
 
-int dumb_socketpair(int socks[2], int make_overlapped)
+OPENCONNECT_CMD_SOCKET dumb_socketpair(OPENCONNECT_CMD_SOCKET socks[2], int make_overlapped)
 {
     union {
        struct sockaddr_in inaddr;
        struct sockaddr addr;
     } a;
-    SOCKET listener;
+    OPENCONNECT_CMD_SOCKET listener;
     int e;
     socklen_t addrlen = sizeof(a.inaddr);
     DWORD flags = (make_overlapped ? WSA_FLAG_OVERLAPPED : 0);

@@ -527,9 +527,11 @@ void openconnect__win32_sock_init();
 #undef inet_pton
 #define inet_pton openconnect__win32_inet_pton
 int openconnect__win32_inet_pton(int af, const char *src, void *dst);
-int dumb_socketpair(int socks[2], int make_overlapped);
+#define OPENCONNECT_CMD_SOCKET SOCKET
+OPENCONNECT_CMD_SOCKET dumb_socketpair(OPENCONNECT_CMD_SOCKET socks[2], int make_overlapped);
 #else
 #define closesocket close
+#define OPENCONNECT_CMD_SOCKET int
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif

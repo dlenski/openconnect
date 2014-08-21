@@ -435,21 +435,28 @@ void openconnect_set_cancel_fd(struct openconnect_info *vpninfo, int fd)
 	vpninfo->cmd_fd = fd;
 }
 
-int openconnect_setup_cmd_pipe(struct openconnect_info *vpninfo)
+#ifdef _WIN32
+# define CMD_PIPE_ERR INVALID_SOCKET
+#else
+# define CMD_PIPE_ERR -EIO
+#endif
+
+OPENCONNECT_CMD_SOCKET openconnect_setup_cmd_pipe(struct openconnect_info *vpninfo)
 {
-	int pipefd[2];
+	OPENCONNECT_CMD_SOCKET pipefd[2];
 
 #ifdef _WIN32
 	if (dumb_socketpair(pipefd, 0))
-		return -EIO;
+		return CMD_PIPE_ERR;
 #else
 	if (pipe(pipefd) < 0)
-		return -EIO;
+		return CMD_PIPE_ERR;
 #endif
+
 	if (set_sock_nonblock(pipefd[0]) || set_sock_nonblock(pipefd[1])) {
 		close(pipefd[0]);
 		close(pipefd[1]);
-		return -EIO;
+		return CMD_PIPE_ERR;
 	}
 	vpninfo->cmd_fd = pipefd[0];
 	vpninfo->cmd_fd_write = pipefd[1];

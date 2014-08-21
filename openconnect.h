@@ -390,7 +390,12 @@ void openconnect_set_cancel_fd(struct openconnect_info *vpninfo, int fd);
    to the library. This returns a file descriptor to the write side of
    the pipe. Both sides will be closed by openconnect_vpninfo_free().
    This replaces openconnect_set_cancel_fd(). */
-int openconnect_setup_cmd_pipe(struct openconnect_info *vpninfo);
+#ifdef _WIN32
+SOCKET
+#else
+int
+#endif
+openconnect_setup_cmd_pipe(struct openconnect_info *vpninfo);
 
 const char *openconnect_get_version(void);
 
