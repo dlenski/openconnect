@@ -647,7 +647,7 @@ static void set_default_vpncscript(void)
 				_pgmptr);
 			exit(1);
 		}
-		if (asprintf((char **)&default_vpncscript, "cscript %.*s%s",
+		if (asprintf((char **)&default_vpncscript, "%.*s%s",
 			     (c - _pgmptr + 1), _pgmptr, DEFAULT_VPNCSCRIPT) < 0) {
 			fprintf(stderr, _("Allocation for vpnc-script path failed\n"));
 			exit(1);

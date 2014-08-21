@@ -318,42 +318,60 @@ int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
 	wchar_t *script_w;
 	int nr_chars;
 	int ret;
+	char *cmd;
+	PROCESS_INFORMATION pi;
+	STARTUPINFOW si;
 
 	if (!vpninfo->vpnc_script || vpninfo->script_tun)
 		return 0;
 
+	memset(&si, 0, sizeof(si));
+	si.cb = sizeof(si);
+	/* probably superfluous */
+	si.dwFlags = STARTF_USESHOWWINDOW;
+	si.wShowWindow = SW_HIDE;
+
 	setenv("reason", reason, 1);
 
-	nr_chars = MultiByteToWideChar(CP_UTF8, 0, vpninfo->vpnc_script, -1, NULL, 0);
+	if (asprintf(&cmd, "cscript.exe \"%s\"", vpninfo->vpnc_script) == -1)
+		return 0;
+
+	nr_chars = MultiByteToWideChar(CP_UTF8, 0, cmd, -1, NULL, 0);
 	script_w = malloc(nr_chars * sizeof(wchar_t));
-	if (!script_w)
+
+	if (!script_w) {
+		free(cmd);
 		return -ENOMEM;
+	}
 
-	MultiByteToWideChar(CP_UTF8, 0, vpninfo->vpnc_script, -1, script_w, nr_chars);
-	ret = _wsystem(script_w);
+	MultiByteToWideChar(CP_UTF8, 0, cmd, -1, script_w, nr_chars);
+
+	free(cmd);
+
+	if(CreateProcessW(NULL, script_w,
+			  NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL,
+			  NULL, &si, &pi)) {
+		ret = WaitForSingleObject(pi.hProcess,10000);
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+		if (ret == WAIT_TIMEOUT)
+			ret = -ETIMEDOUT;
+		else
+			ret = 0;
+	} else {
+		ret = -EIO;
+	}
+
+	if (ret < 0) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to spawn script '%s' for %s: %d\n"),
+			     vpninfo->vpnc_script, reason, (int)GetLastError());
+		goto cleanup;
+	}
+
+ cleanup:
 	free(script_w);
-
-	if (ret == -1) {
-		int e = errno;
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to spawn script '%s' for %s: %s\n"),
-			     vpninfo->vpnc_script, reason, strerror(e));
-		return -e;
-	}
-	if (ret == 0x2331) {
-		/* This is what cmd.exe returns for unrecognised commands */
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to spawn script '%s' for %s: %s\n"),
-			     vpninfo->vpnc_script, reason, strerror(ENOENT));
-		return -ENOENT;
-	}
-	if (ret) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Script '%s' returned error %d\n"),
-			     vpninfo->vpnc_script, ret);
-		return -EIO;
-	}
-	return 0;
+	return ret;
 }
 #else
 int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
