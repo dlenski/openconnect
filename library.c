@@ -151,8 +151,8 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	openconnect_close_https(vpninfo, 1);
 	dtls_shutdown(vpninfo);
 	if (vpninfo->cmd_fd_write != -1) {
-		close(vpninfo->cmd_fd);
-		close(vpninfo->cmd_fd_write);
+		closesocket(vpninfo->cmd_fd);
+		closesocket(vpninfo->cmd_fd_write);
 	}
 
 #ifdef HAVE_ICONV
@@ -454,8 +454,8 @@ OPENCONNECT_CMD_SOCKET openconnect_setup_cmd_pipe(struct openconnect_info *vpnin
 #endif
 
 	if (set_sock_nonblock(pipefd[0]) || set_sock_nonblock(pipefd[1])) {
-		close(pipefd[0]);
-		close(pipefd[1]);
+		closesocket(pipefd[0]);
+		closesocket(pipefd[1]);
 		return CMD_PIPE_ERR;
 	}
 	vpninfo->cmd_fd = pipefd[0];

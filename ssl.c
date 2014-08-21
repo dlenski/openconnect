@@ -628,7 +628,7 @@ void check_cmd_fd(struct openconnect_info *vpninfo, fd_set *fds)
 		return;
 	}
 
-	if (read(vpninfo->cmd_fd, &cmd, 1) != 1)
+	if (recv(vpninfo->cmd_fd, &cmd, 1, 0) != 1)
 		return;
 
 	switch (cmd) {
