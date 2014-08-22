@@ -223,17 +223,7 @@ void openconnect__unsetenv(const char *name)
 #ifndef HAVE_INET_ATON
 int openconnect__inet_aton(const char *cp, struct in_addr *addr)
 {
-  addr->s_addr = inet_addr(cp);
-#if INADDR_NONE == 0xffffffff
-  if (addr->s_addr != 0xffffffff)
-	  return 1;
-  /* Is it an error, or was it really 255.255.255.255? */
-  if (!strcmp(cp, "255.255.255.255"))
-	  return 1;
-#else
-#error What is your INADDR_NONE?
-#endif
-  return 0;
+	return inet_pton(AF_INET, cp, addr);
 }
 #endif
 
