@@ -54,6 +54,8 @@ case $host_os in
     # For GetVolumeInformationByHandleW() which is Vista+
     AC_DEFINE(_WIN32_WINNT, 0x600, [Windows API version])
     have_win=yes
+    # For asprintf()
+    AC_DEFINE(_GNU_SOURCE, 1, [_GNU_SOURCE])
     ;;
  *)
     # On FreeBSD the only way to get vsyslog() visible is to define
