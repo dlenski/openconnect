@@ -267,9 +267,8 @@ typedef enum {
    appropriate to do so. Library functions may (but probably don't yet)
    return -EILSEQ if passed invalid UTF-8 strings. */
 
-/* Unless otherwise specified, all functions which set strings will take
-   ownership of those strings and the library will free them later in
-   openconnect_vpninfo_free() */
+/* Unlike previous versions of openconnect, no functions will take ownership
+   of the provided strings. */
 
 
 /* The buffer 'buf' must be at least 41 bytes. It will receive a hex string
@@ -292,9 +291,9 @@ int openconnect_obtain_cookie(struct openconnect_info *vpninfo);
 void openconnect_init_ssl(void);
 
 char *openconnect_get_hostname(struct openconnect_info *);
-void openconnect_set_hostname(struct openconnect_info *, char *);
+int openconnect_set_hostname(struct openconnect_info *, char *);
 char *openconnect_get_urlpath(struct openconnect_info *);
-void openconnect_set_urlpath(struct openconnect_info *, char *);
+int openconnect_set_urlpath(struct openconnect_info *, char *);
 
 /* Some software tokens, such as HOTP tokens, include a counter which
  * needs to be stored in persistent storage.
@@ -318,21 +317,17 @@ int openconnect_set_token_callbacks(struct openconnect_info *, void *tokdata,
 				    openconnect_lock_token_vfn,
 				    openconnect_unlock_token_vfn);
 
-/* These functions do *not* take ownership of the string; it is parsed
-   and then discarded. */
 int openconnect_set_token_mode(struct openconnect_info *,
 			       oc_token_mode_t, const char *token_str);
 /* Legacy stoken-only function; do not use */
 int openconnect_set_stoken_mode(struct openconnect_info *, int, const char *);
 
-/* This function does *not* take ownership of the string; it's copied
-   into a static buffer in the vpninfo. The size must be 41 bytes,
-   since that's the size of a 20-byte SHA1 represented as hex with
-   a trailing NUL. */
+/* The size must be 41 bytes, since that's the size of a 20-byte SHA1
+   represented as hex with a trailing NUL. */
 void openconnect_set_xmlsha1(struct openconnect_info *, const char *, int size);
 
-void openconnect_set_cafile(struct openconnect_info *, char *);
-void openconnect_setup_csd(struct openconnect_info *, uid_t, int silent, char *wrapper);
+int openconnect_set_cafile(struct openconnect_info *, char *);
+int openconnect_setup_csd(struct openconnect_info *, uid_t, int silent, char *wrapper);
 void openconnect_set_xmlpost(struct openconnect_info *, int enable);
 
 /* Valid choices are: "linux", "linux-64", "win", "mac-intel",
@@ -340,12 +335,12 @@ void openconnect_set_xmlpost(struct openconnect_info *, int enable);
    trojan binary. */
 int openconnect_set_reported_os(struct openconnect_info *, const char *os);
 
-void openconnect_set_mobile_info(struct openconnect_info *vpninfo,
+int openconnect_set_mobile_info(struct openconnect_info *vpninfo,
 				 char *mobile_platform_version,
 				 char *mobile_device_type,
 				 char *mobile_device_uniqueid);
-void openconnect_set_client_cert(struct openconnect_info *, char *cert, char *sslkey);
-void openconnect_set_server_cert_sha1(struct openconnect_info *, char *);
+int openconnect_set_client_cert(struct openconnect_info *, char *cert, char *sslkey);
+int openconnect_set_server_cert_sha1(struct openconnect_info *, char *);
 const char *openconnect_get_ifname(struct openconnect_info *);
 void openconnect_set_reqmtu(struct openconnect_info *, int reqmtu);
 void openconnect_set_dpd(struct openconnect_info *, int min_seconds);

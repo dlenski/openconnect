@@ -361,7 +361,7 @@ int openconnect_setup_tun_script(struct openconnect_info *vpninfo, char *tun_scr
 	pid_t child;
 	int fds[2];
 
-	vpninfo->vpnc_script = tun_script;
+	STRDUP(vpninfo->vpnc_script, tun_script);
 	vpninfo->script_tun = 1;
 
 	set_script_env(vpninfo);

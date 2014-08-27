@@ -2184,7 +2184,7 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 int openconnect_set_proxy_auth(struct openconnect_info *vpninfo, char *methods)
 {
 	int i, len;
-	char *p, *start = methods;
+	char *p;
 
 	for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++)
 		vpninfo->auth[auth_methods[i].state_index].state = AUTH_DISABLED;
@@ -2208,13 +2208,12 @@ int openconnect_set_proxy_auth(struct openconnect_info *vpninfo, char *methods)
 		methods = p;
 	}
 	vpninfo->authmethods_set = 1;
-	free(start);
 	return 0;
 }
 
 int openconnect_set_http_proxy(struct openconnect_info *vpninfo, char *proxy)
 {
-	char *url = proxy, *p;
+	char *url = strdup(proxy), *p;
 	int ret;
 
 	if (!url)

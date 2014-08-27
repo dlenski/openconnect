@@ -716,6 +716,12 @@ int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *b
 /* version.c */
 extern const char *openconnect_version_str;
 
+#define STRDUP(res, arg) \
+	if (arg) { \
+		res = strdup(arg); \
+		if (res == NULL) return -ENOMEM; \
+	} else res = NULL
+
 #define UTF8CHECK(arg) \
 	if ((arg) && buf_append_utf16le(NULL, (arg))) { \
 		vpn_progress(vpninfo, PRG_ERR,				\
