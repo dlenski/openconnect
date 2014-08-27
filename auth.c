@@ -42,6 +42,28 @@ static int can_gen_tokencode(struct openconnect_info *vpninfo,
 			     struct oc_auth_form *form, struct oc_form_opt *opt);
 static int do_gen_tokencode(struct openconnect_info *vpninfo, struct oc_auth_form *form);
 
+int openconnect_set_option_value(struct oc_form_opt *opt, const char *value)
+{
+	if (opt->type == OC_FORM_OPT_SELECT) {
+		struct oc_form_opt_select *sopt = (void *)opt;
+		int i;
+
+		for (i=0; i<sopt->nr_choices; i++) {
+			if (value == sopt->choices[i]->name) {
+				opt->value = sopt->choices[i]->name;
+				return 0;
+			}
+		}
+		return -EINVAL;
+	}
+
+	opt->value = strdup(value);
+	if (!opt->value)
+		return -ENOMEM;
+
+	return 0;
+}
+
 static int append_opt(struct oc_text_buf *body, char *opt, char *name)
 {
 	if (buf_error(body))

@@ -34,6 +34,7 @@
 /*
  * API version 4.0:
  *  - Change string handling to never transfer ownership of allocations.
+ *  - Add openconnect_set_option_value()
  *
  * API version 3.4:
  *  - Add openconnect_set_token_callbacks()
@@ -144,18 +145,21 @@
 #define OC_FORM_OPT_NUMERIC		0x0002
 
 /* char * fields are static (owned by XML parser) and don't need to be
-   freed by the form handling code -- except for value, which for TEXT
-   and PASSWORD options is allocated by process_form() when
-   interacting with the user and must be freed. */
+   freed by the form handling code — except for value, which for TEXT
+   and PASSWORD options is allocated by openconnect_set_option_value()
+   when process_form() interacts with the user and must be freed. */
 struct oc_form_opt {
 	struct oc_form_opt *next;
 	int type;
 	char *name;
 	char *label;
-	char *value;
+	char *value; /* Use openconnect_set_option_value() to set this */
 	unsigned int flags;
 	void *reserved;
 };
+
+/* To set the value to a form use the following function */
+int openconnect_set_option_value(struct oc_form_opt *opt, const char *value);
 
 /* All fields are static, owned by the XML parser */
 struct oc_choice {

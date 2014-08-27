@@ -1,5 +1,6 @@
 OPENCONNECT_4.0 {
  global:
+	openconnect_set_option_value;
 	openconnect_clear_cookie;
 	openconnect_get_cert_sha1;
 	openconnect_get_cookie;
