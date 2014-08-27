@@ -156,8 +156,11 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	}
 
 #ifdef HAVE_ICONV
-	iconv_close(vpninfo->ic_utf8_to_legacy);
-	iconv_close(vpninfo->ic_legacy_to_utf8);
+	if (vpninfo->ic_utf8_to_legacy != (iconv_t)-1)
+		iconv_close(vpninfo->ic_utf8_to_legacy);
+
+	if (vpninfo->ic_legacy_to_utf8 != (iconv_t)-1)
+		iconv_close(vpninfo->ic_legacy_to_utf8);
 #endif
 #ifdef _WIN32
 	if (vpninfo->cmd_event)
