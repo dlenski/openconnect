@@ -153,7 +153,7 @@ struct oc_form_opt {
 	int type;
 	char *name;
 	char *label;
-	char *value; /* Use openconnect_set_option_value() to set this */
+	char *_value; /* Use openconnect_set_option_value() to set this */
 	unsigned int flags;
 	void *reserved;
 };

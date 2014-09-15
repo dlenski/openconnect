@@ -357,11 +357,11 @@ int request_passphrase(struct openconnect_info *vpninfo, const char *label,
 	o.type = OC_FORM_OPT_PASSWORD;
 	o.name = (char *)label;
 	o.label = buf;
-	o.value = NULL;
+	o._value = NULL;
 
 	ret = process_auth_form(vpninfo, &f);
 	if (!ret) {
-		*response = o.value;
+		*response = o._value;
 		return 0;
 	}
 

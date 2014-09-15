@@ -1597,7 +1597,7 @@ static int match_choice_label(struct openconnect_info *vpninfo,
 
 		if (!strncasecmp(label, choice->label, input_len)) {
 			if (strlen(choice->label) == input_len) {
-				select_opt->form.value = choice->name;
+				select_opt->form._value = choice->name;
 				return 0;
 			} else {
 				match = choice->name;
@@ -1607,7 +1607,7 @@ static int match_choice_label(struct openconnect_info *vpninfo,
 	}
 
 	if (partial_matches == 1) {
-		select_opt->form.value = match;
+		select_opt->form._value = match;
 		return 0;
 	} else if (partial_matches > 1) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -1736,26 +1736,26 @@ static int process_auth_form_cb(void *_vpninfo,
 		} else if (opt->type == OC_FORM_OPT_TEXT) {
 			if (username &&
 			    !strcmp(opt->name, "username")) {
-				opt->value = username;
+				opt->_value = username;
 				username = NULL;
 			} else {
-				opt->value = prompt_for_input(opt->label, vpninfo, 0);
+				opt->_value = prompt_for_input(opt->label, vpninfo, 0);
 			}
 
-			if (!opt->value)
+			if (!opt->_value)
 				goto err;
 			empty = 0;
 
 		} else if (opt->type == OC_FORM_OPT_PASSWORD) {
 			if (password &&
 			    !strcmp(opt->name, "password")) {
-				opt->value = password;
+				opt->_value = password;
 				password = NULL;
 			} else {
-				opt->value = prompt_for_input(opt->label, vpninfo, 1);
+				opt->_value = prompt_for_input(opt->label, vpninfo, 1);
 			}
 
-			if (!opt->value)
+			if (!opt->_value)
 				goto err;
 			empty = 0;
 		}

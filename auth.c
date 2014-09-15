@@ -50,15 +50,15 @@ int openconnect_set_option_value(struct oc_form_opt *opt, const char *value)
 
 		for (i=0; i<sopt->nr_choices; i++) {
 			if (value == sopt->choices[i]->name) {
-				opt->value = sopt->choices[i]->name;
+				opt->_value = sopt->choices[i]->name;
 				return 0;
 			}
 		}
 		return -EINVAL;
 	}
 
-	opt->value = strdup(value);
-	if (!opt->value)
+	opt->_value = strdup(value);
+	if (!opt->_value)
 		return -ENOMEM;
 
 	return 0;
@@ -86,7 +86,7 @@ static int append_form_opts(struct openconnect_info *vpninfo,
 	int ret;
 
 	for (opt = form->opts; opt; opt = opt->next) {
-		ret = append_opt(body, opt->name, opt->value);
+		ret = append_opt(body, opt->name, opt->_value);
 		if (ret)
 			return ret;
 	}
@@ -97,7 +97,7 @@ static void free_opt(struct oc_form_opt *opt)
 {
 	/* for SELECT options, opt->value is a pointer to oc_choice->name */
 	if (opt->type != OC_FORM_OPT_SELECT)
-		free(opt->value);
+		free(opt->_value);
 	else {
 		struct oc_form_opt_select *sel = (void *)opt;
 		int i;
@@ -269,7 +269,7 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 
 		if (!strcmp(input_type, "hidden")) {
 			opt->type = OC_FORM_OPT_HIDDEN;
-			opt->value = (char *)xmlGetProp(xml_node, (unsigned char *)"value");
+			opt->_value = (char *)xmlGetProp(xml_node, (unsigned char *)"value");
 		} else if (!strcmp(input_type, "text")) {
 			opt->type = OC_FORM_OPT_TEXT;
 		} else if (!strcmp(input_type, "password")) {
@@ -700,8 +700,8 @@ void nuke_opt_values(struct oc_form_opt *opt)
 	for (; opt; opt = opt->next) {
 		if (opt->type == OC_FORM_OPT_TEXT ||
 		    opt->type == OC_FORM_OPT_PASSWORD) {
-			free(opt->value);
-			opt->value = NULL;
+			free(opt->_value);
+			opt->_value = NULL;
 		}
 	}
 }
@@ -744,8 +744,8 @@ retry:
 			opt->flags |= OC_FORM_OPT_IGNORE;
 		else if (!strcmp(opt->name, "secondary_username") && second_auth) {
 			if (auth_choice->secondary_username) {
-				free(opt->value);
-				opt->value = strdup(auth_choice->secondary_username);
+				free(opt->_value);
+				opt->_value = strdup(auth_choice->secondary_username);
 			}
 			if (!auth_choice->secondary_username_editable)
 				opt->flags |= OC_FORM_OPT_IGNORE;
@@ -756,9 +756,9 @@ retry:
 
 	if (ret == OC_FORM_RESULT_NEWGROUP &&
 	    form->authgroup_opt &&
-	    form->authgroup_opt->form.value) {
+	    form->authgroup_opt->form._value) {
 		free(vpninfo->authgroup);
-		vpninfo->authgroup = strdup(form->authgroup_opt->form.value);
+		vpninfo->authgroup = strdup(form->authgroup_opt->form._value);
 
 		if (!vpninfo->xmlpost)
 			goto retry;
@@ -1009,7 +1009,7 @@ static int xmlpost_append_form_opts(struct openconnect_info *vpninfo,
 	for (opt = form->opts; opt; opt = opt->next) {
 		/* group_list: create a new <group-select> node under <config-auth> */
 		if (!strcmp(opt->name, "group_list")) {
-			if (!xmlNewTextChild(root, NULL, XCAST("group-select"), XCAST(opt->value)))
+			if (!xmlNewTextChild(root, NULL, XCAST("group-select"), XCAST(opt->_value)))
 				goto bad;
 			continue;
 		}
@@ -1018,7 +1018,7 @@ static int xmlpost_append_form_opts(struct openconnect_info *vpninfo,
 		if (!strcmp(opt->name, "answer") ||
 		    !strcmp(opt->name, "whichpin") ||
 		    !strcmp(opt->name, "new_password")) {
-			if (!xmlNewTextChild(node, NULL, XCAST("password"), XCAST(opt->value)))
+			if (!xmlNewTextChild(node, NULL, XCAST("password"), XCAST(opt->_value)))
 				goto bad;
 			continue;
 		}
@@ -1030,7 +1030,7 @@ static int xmlpost_append_form_opts(struct openconnect_info *vpninfo,
 		}
 
 		/* everything else: create <foo>user_input</foo> under <auth> */
-		if (!xmlNewTextChild(node, NULL, XCAST(opt->name), XCAST(opt->value)))
+		if (!xmlNewTextChild(node, NULL, XCAST(opt->name), XCAST(opt->_value)))
 			goto bad;
 	}
 

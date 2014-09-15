@@ -80,14 +80,14 @@ static int decrypt_stoken(struct openconnect_info *vpninfo)
 		opt->type = OC_FORM_OPT_TEXT;
 		opt->name = (char *)"devid";
 		opt->label = _("Device ID:");
-		devid = &opt->value;
+		devid = &opt->_value;
 		opt++;
 	}
 	if (stoken_pass_required(vpninfo->stoken_ctx)) {
 		opt->type = OC_FORM_OPT_PASSWORD;
 		opt->name = (char *)"password";
 		opt->label = _("Password:");
-		pass = &opt->value;
+		pass = &opt->_value;
 		opt++;
 	}
 
@@ -108,7 +108,7 @@ static int decrypt_stoken(struct openconnect_info *vpninfo)
 				break;
 
 			for (opt = opts; opt; opt = opt->next) {
-				if (!opt->value || !strlen(opt->value))
+				if (!opt->_value || !strlen(opt->_value))
 					some_empty = 1;
 				else
 					all_empty = 0;
@@ -199,7 +199,7 @@ static int request_stoken_pin(struct openconnect_info *vpninfo)
 		if (ret)
 			break;
 
-		pin = opt->value;
+		pin = opt->_value;
 		if (!pin || !strlen(pin)) {
 			/* in some cases there really is no PIN */
 			if (vpninfo->stoken_concat_pin)
@@ -307,7 +307,7 @@ int do_gen_stoken_code(struct openconnect_info *vpninfo,
 
 	vpninfo->token_tries++;
 
-	if (asprintf(&opt->value, "%s%s",
+	if (asprintf(&opt->_value, "%s%s",
 	    (vpninfo->stoken_concat_pin && vpninfo->stoken_pin) ? vpninfo->stoken_pin : "",
 	    tokencode) < 0)
 		return -ENOMEM;

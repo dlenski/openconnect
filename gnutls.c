@@ -2287,14 +2287,14 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 	o.type = OC_FORM_OPT_PASSWORD;
 	o.name = (char *)"pkcs11_pin";
 	o.label = (char *)_("Enter PIN:");
-	o.value = NULL;
+	o._value = NULL;
 
 	ret = process_auth_form(vpninfo, &f);
-	if (ret || !o.value)
+	if (ret || !o._value)
 		return NULL;
 
-	pin = p11_kit_pin_new_for_string(o.value);
-	(*cache)->pin = o.value;
+	pin = p11_kit_pin_new_for_string(o._value);
+	(*cache)->pin = o._value;
 
 	return pin;
 }

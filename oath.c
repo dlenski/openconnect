@@ -304,8 +304,8 @@ int do_gen_totp_code(struct openconnect_info *vpninfo,
 	}
 
 	vpninfo->token_tries++;
-	opt->value = strdup(tokencode);
-	return opt->value ? 0 : -ENOMEM;
+	opt->_value = strdup(tokencode);
+	return opt->_value ? 0 : -ENOMEM;
 }
 
 static void buf_append_base32(struct oc_text_buf *buf, void *data, int len)
@@ -427,11 +427,11 @@ int do_gen_hotp_code(struct openconnect_info *vpninfo,
 	}
 	vpninfo->token_time++;
 	vpninfo->token_tries++;
-	opt->value = strdup(tokencode);
+	opt->_value = strdup(tokencode);
 	if (vpninfo->unlock_token) {
 		char *new_tok = regen_hotp_secret(vpninfo);
 		vpninfo->unlock_token(vpninfo->tok_cbdata, new_tok);
 		free(new_tok);
 	}
-	return opt->value ? 0 : -ENOMEM;
+	return opt->_value ? 0 : -ENOMEM;
 }

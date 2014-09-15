@@ -391,7 +391,7 @@ static int add_form_option(struct libctx *ctx, jobject jform, struct oc_form_opt
 	if (set_int(ctx, jopt, "type", opt->type) ||
 	    set_string(ctx, jopt, "name", opt->name) ||
 	    set_string(ctx, jopt, "label", opt->label) ||
-	    set_string(ctx, jopt, "value", opt->value) ||
+	    set_string(ctx, jopt, "value", opt->_value) ||
 	    set_long(ctx, jopt, "flags", opt->flags))
 		return -1;
 
@@ -406,7 +406,7 @@ static char *lookup_choice_name(struct oc_form_opt_select *opt, const char *name
 {
 	int i;
 
-	/* opt->value is NOT a caller-allocated string for OC_FORM_OPT_SELECT */
+	/* opt->_value is NOT a caller-allocated string for OC_FORM_OPT_SELECT */
 	for (i = 0; i < opt->nr_choices; i++)
 		if (!strcmp(opt->choices[i]->name, name))
 			return opt->choices[i]->name;
@@ -465,11 +465,11 @@ static int process_auth_form_cb(void *privdata, struct oc_auth_form *form)
 				goto err;
 
 			if (opt->type == OC_FORM_OPT_SELECT)
-				opt->value = lookup_choice_name((void *)opt, tmp);
+				opt->_value = lookup_choice_name((void *)opt, tmp);
 			else {
-				free(opt->value);
-				opt->value = strdup(tmp);
-				if (!opt->value)
+				free(opt->_value);
+				opt->_value = strdup(tmp);
+				if (!opt->_value)
 					OOM(ctx->jenv);
 			}
 			(*ctx->jenv)->ReleaseStringUTFChars(ctx->jenv, jvalue, tmp);
