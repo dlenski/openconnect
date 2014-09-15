@@ -38,7 +38,7 @@
 
 #include "openconnect-internal.h"
 
-struct openconnect_info *openconnect_vpninfo_new(char *useragent,
+struct openconnect_info *openconnect_vpninfo_new(const char *useragent,
 						 openconnect_validate_peer_cert_vfn validate_peer_cert,
 						 openconnect_write_new_config_vfn write_new_config,
 						 openconnect_process_auth_form_vfn process_auth_form,
@@ -96,7 +96,8 @@ err:
 	return NULL;
 }
 
-int openconnect_set_reported_os(struct openconnect_info *vpninfo, const char *os)
+int openconnect_set_reported_os(struct openconnect_info *vpninfo,
+				const char *os)
 {
 	if (!os) {
 #if defined(__APPLE__)
@@ -125,9 +126,9 @@ int openconnect_set_reported_os(struct openconnect_info *vpninfo, const char *os
 }
 
 int openconnect_set_mobile_info(struct openconnect_info *vpninfo,
-				 char *mobile_platform_version,
-				 char *mobile_device_type,
-				 char *mobile_device_uniqueid)
+				const char *mobile_platform_version,
+				const char *mobile_device_type,
+				const char *mobile_device_uniqueid)
 {
 	STRDUP(vpninfo->mobile_platform_version, mobile_platform_version);
 	STRDUP(vpninfo->mobile_device_type, mobile_device_type);
@@ -254,12 +255,13 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free(vpninfo);
 }
 
-char *openconnect_get_hostname(struct openconnect_info *vpninfo)
+const char *openconnect_get_hostname(struct openconnect_info *vpninfo)
 {
 	return vpninfo->unique_hostname?:vpninfo->hostname;
 }
 
-int openconnect_set_hostname(struct openconnect_info *vpninfo, char *hostname)
+int openconnect_set_hostname(struct openconnect_info *vpninfo,
+			     const char *hostname)
 {
 	UTF8CHECK(hostname);
 
@@ -278,7 +280,8 @@ char *openconnect_get_urlpath(struct openconnect_info *vpninfo)
 	return vpninfo->urlpath;
 }
 
-int openconnect_set_urlpath(struct openconnect_info *vpninfo, char *urlpath)
+int openconnect_set_urlpath(struct openconnect_info *vpninfo,
+			    const char *urlpath)
 {
 	UTF8CHECK(urlpath);
 
@@ -286,7 +289,8 @@ int openconnect_set_urlpath(struct openconnect_info *vpninfo, char *urlpath)
 	return 0;
 }
 
-void openconnect_set_xmlsha1(struct openconnect_info *vpninfo, const char *xmlsha1, int size)
+void openconnect_set_xmlsha1(struct openconnect_info *vpninfo,
+			     const char *xmlsha1, int size)
 {
 	if (size != sizeof(vpninfo->xmlsha1))
 		return;
@@ -294,7 +298,7 @@ void openconnect_set_xmlsha1(struct openconnect_info *vpninfo, const char *xmlsh
 	memcpy(&vpninfo->xmlsha1, xmlsha1, size);
 }
 
-int openconnect_set_cafile(struct openconnect_info *vpninfo, char *cafile)
+int openconnect_set_cafile(struct openconnect_info *vpninfo, const char *cafile)
 {
 	UTF8CHECK(cafile);
 
@@ -302,7 +306,8 @@ int openconnect_set_cafile(struct openconnect_info *vpninfo, char *cafile)
 	return 0;
 }
 
-int openconnect_set_server_cert_sha1(struct openconnect_info *vpninfo, char *servercert)
+int openconnect_set_server_cert_sha1(struct openconnect_info *vpninfo,
+				     const char *servercert)
 {
 	STRDUP(vpninfo->servercert, servercert);
 	return 0;
@@ -341,7 +346,8 @@ int openconnect_get_ip_info(struct openconnect_info *vpninfo,
 	return 0;
 }
 
-int openconnect_setup_csd(struct openconnect_info *vpninfo, uid_t uid, int silent, char *wrapper)
+int openconnect_setup_csd(struct openconnect_info *vpninfo, uid_t uid,
+			  int silent, const char *wrapper)
 {
 	vpninfo->uid_csd = uid;
 	vpninfo->uid_csd_given = silent ? 2 : 1;
@@ -355,7 +361,8 @@ void openconnect_set_xmlpost(struct openconnect_info *vpninfo, int enable)
 	vpninfo->xmlpost = enable;
 }
 
-int openconnect_set_client_cert(struct openconnect_info *vpninfo, char *cert, char *sslkey)
+int openconnect_set_client_cert(struct openconnect_info *vpninfo,
+				const char *cert, const char *sslkey)
 {
 	UTF8CHECK(cert);
 	UTF8CHECK(sslkey);
@@ -381,7 +388,7 @@ int openconnect_get_port(struct openconnect_info *vpninfo)
 	return vpninfo->port;
 }
 
-char *openconnect_get_cookie(struct openconnect_info *vpninfo)
+const char *openconnect_get_cookie(struct openconnect_info *vpninfo)
 {
 	return vpninfo->cookie;
 }
@@ -402,7 +409,7 @@ void openconnect_reset_ssl(struct openconnect_info *vpninfo)
 	}
 }
 
-int openconnect_parse_url(struct openconnect_info *vpninfo, char *url)
+int openconnect_parse_url(struct openconnect_info *vpninfo, const char *url)
 {
 	char *scheme = NULL;
 	int ret;
@@ -432,13 +439,12 @@ int openconnect_parse_url(struct openconnect_info *vpninfo, char *url)
 }
 
 void openconnect_set_cert_expiry_warning(struct openconnect_info *vpninfo,
-					  int seconds)
+					 int seconds)
 {
 	vpninfo->cert_expire_warning = seconds;
 }
 
-void openconnect_set_pfs(struct openconnect_info *vpninfo,
-					  	unsigned val)
+void openconnect_set_pfs(struct openconnect_info *vpninfo, unsigned val)
 {
 	vpninfo->pfs = val;
 }
@@ -625,7 +631,8 @@ void openconnect_set_stats_handler(struct openconnect_info *vpninfo,
 }
 
 /* Set up a traditional OS-based tunnel device, optionally specified in 'ifname'. */
-int openconnect_setup_tun_device(struct openconnect_info *vpninfo, char *vpnc_script, char *ifname)
+int openconnect_setup_tun_device(struct openconnect_info *vpninfo,
+				 const char *vpnc_script, const char *ifname)
 {
 	intptr_t tun_fd;
 	char *legacy_ifname;

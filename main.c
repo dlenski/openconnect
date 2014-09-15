@@ -63,7 +63,7 @@ static const char *legacy_charset;
 #endif
 
 static int write_new_config(void *_vpninfo,
-			    char *buf, int buflen);
+			    const char *buf, int buflen);
 static void write_progress(void *_vpninfo,
 			   int level, const char *fmt, ...);
 static int validate_peer_cert(void *_vpninfo,
@@ -1460,7 +1460,7 @@ int main(int argc, char **argv)
 	exit(ret);
 }
 
-static int write_new_config(void *_vpninfo, char *buf, int buflen)
+static int write_new_config(void *_vpninfo, const char *buf, int buflen)
 {
 	struct openconnect_info *vpninfo = _vpninfo;
 	int config_fd;

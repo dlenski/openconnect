@@ -219,7 +219,7 @@ out:
 	return ret;
 }
 
-static int write_new_config_cb(void *privdata, char *buf, int buflen)
+static int write_new_config_cb(void *privdata, const char *buf, int buflen)
 {
 	struct libctx *ctx = privdata;
 	jmethodID mid;

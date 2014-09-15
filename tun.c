@@ -356,7 +356,8 @@ int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
 	return 0;
 }
 
-int openconnect_setup_tun_script(struct openconnect_info *vpninfo, char *tun_script)
+int openconnect_setup_tun_script(struct openconnect_info *vpninfo,
+				 const char *tun_script)
 {
 	pid_t child;
 	int fds[2];
