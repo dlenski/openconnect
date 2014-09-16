@@ -81,7 +81,7 @@ static jstring dup_to_jstring(JNIEnv *jenv, const char *in)
 	return in ? (*jenv)->NewStringUTF(jenv, in) : NULL;
 }
 
-static int dup_to_cstring(JNIEnv *jenv, jstring in, char **out)
+static int get_cstring(JNIEnv *jenv, jstring in, const char **out)
 {
 	const char *tmp;
 
@@ -96,14 +96,14 @@ static int dup_to_cstring(JNIEnv *jenv, jstring in, char **out)
 		return -1;
 	}
 
-	*out = strdup(tmp);
-	(*jenv)->ReleaseStringUTFChars(jenv, in, tmp);
-
-	if (!*out) {
-		OOM(jenv);
-		return -1;
-	}
+	*out = tmp;
 	return 0;
+}
+
+static void release_cstring(JNIEnv *jenv, jstring jstr, const char *cstr)
+{
+	if (cstr)
+		(*jenv)->ReleaseStringUTFChars(jenv, jstr, cstr);
 }
 
 static int set_int(struct libctx *ctx, jobject jobj, const char *name, int value)
@@ -763,17 +763,15 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setClien
 	JNIEnv *jenv, jobject jobj, jstring jcert, jstring jsslkey)
 {
 	struct libctx *ctx = getctx(jenv, jobj);
-	char *cert = NULL, *sslkey = NULL;
+	const char *cert = NULL, *sslkey = NULL;
 
-	if (!ctx ||
-	    dup_to_cstring(ctx->jenv, jcert, &cert) ||
-	    dup_to_cstring(ctx->jenv, jsslkey, &sslkey)) {
-		free(cert);
-		free(sslkey);
-		return;
-	}
+	if (ctx && !get_cstring(ctx->jenv, jcert, &cert) &&
+	    !get_cstring(ctx->jenv, jsslkey, &sslkey))
+		openconnect_set_client_cert(ctx->vpninfo, cert, sslkey);
 
-	openconnect_set_client_cert(ctx->vpninfo, cert, sslkey);
+	release_cstring(ctx->jenv, jcert, cert);
+	release_cstring(ctx->jenv, jsslkey, sslkey);
+	return;
 }
 
 /* special handling: multiple string arguments */
@@ -781,60 +779,57 @@ JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setupTun
 	JNIEnv *jenv, jobject jobj, jstring jarg0, jstring jarg1)
 {
 	struct libctx *ctx = getctx(jenv, jobj);
-	char *arg0 = NULL, *arg1 = NULL;
+	const char *arg0 = NULL, *arg1 = NULL;
+	int ret = -ENOMEM;
 
-	if (!ctx ||
-	    dup_to_cstring(ctx->jenv, jarg0, &arg0) ||
-	    dup_to_cstring(ctx->jenv, jarg1, &arg1)) {
-		free(arg0);
-		free(arg1);
-		return -ENOMEM;
-	}
-	return openconnect_setup_tun_device(ctx->vpninfo, arg0, arg1);
+	if (ctx && !get_cstring(ctx->jenv, jarg0, &arg0) &&
+	    !get_cstring(ctx->jenv, jarg1, &arg1))
+		ret = openconnect_setup_tun_device(ctx->vpninfo, arg0, arg1);
+
+	release_cstring(ctx->jenv, jarg0, arg0);
+	release_cstring(ctx->jenv, jarg1, arg1);
+	return ret;
 }
 
 JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setCSDWrapper(
 	JNIEnv *jenv, jobject jobj, jstring jarg0, jstring jarg1, jstring jarg2)
 {
 	struct libctx *ctx = getctx(jenv, jobj);
-	char *arg0 = NULL, *arg1 = NULL, *arg2 = NULL;
+	const char *arg0 = NULL, *arg1 = NULL, *arg2 = NULL;
 
-	if (!ctx ||
-	    dup_to_cstring(ctx->jenv, jarg0, &arg0) ||
-	    dup_to_cstring(ctx->jenv, jarg1, &arg1) ||
-	    dup_to_cstring(ctx->jenv, jarg2, &arg2)) {
-		free(arg0);
-		free(arg1);
-		free(arg2);
-		return;
+	if (ctx &&
+	    !get_cstring(ctx->jenv, jarg0, &arg0) &&
+	    !get_cstring(ctx->jenv, jarg1, &arg1) &&
+	    !get_cstring(ctx->jenv, jarg2, &arg2)) {
+		openconnect_setup_csd(ctx->vpninfo, getuid(), 1, arg0);
+
+		if (arg1)
+			setenv("TMPDIR", arg1, 1);
+
+		if (arg2)
+			setenv("PATH", arg2, 1);
 	}
-	openconnect_setup_csd(ctx->vpninfo, getuid(), 1, arg0);
 
-	if (arg1)
-		setenv("TMPDIR", arg1, 1);
-	free(arg1);
-
-	if (arg2)
-		setenv("PATH", arg2, 1);
-	free(arg2);
+	release_cstring(ctx->jenv, jarg0, arg0);
+	release_cstring(ctx->jenv, jarg1, arg1);
+	release_cstring(ctx->jenv, jarg2, arg2);
 }
 
 JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setMobileInfo(
 	JNIEnv *jenv, jobject jobj, jstring jarg0, jstring jarg1, jstring jarg2)
 {
 	struct libctx *ctx = getctx(jenv, jobj);
-	char *arg0 = NULL, *arg1 = NULL, *arg2 = NULL;
+	const char *arg0 = NULL, *arg1 = NULL, *arg2 = NULL;
 
-	if (!ctx ||
-	    dup_to_cstring(ctx->jenv, jarg0, &arg0) ||
-	    dup_to_cstring(ctx->jenv, jarg1, &arg1) ||
-	    dup_to_cstring(ctx->jenv, jarg2, &arg2)) {
-		free(arg0);
-		free(arg1);
-		free(arg2);
-		return;
-	}
-	openconnect_set_mobile_info(ctx->vpninfo, arg0, arg1, arg2);
+	if (ctx &&
+	    !get_cstring(ctx->jenv, jarg0, &arg0) &&
+	    !get_cstring(ctx->jenv, jarg1, &arg1) &&
+	    !get_cstring(ctx->jenv, jarg2, &arg2))
+		openconnect_set_mobile_info(ctx->vpninfo, arg0, arg1, arg2);
+
+	release_cstring(ctx->jenv, jarg0, arg0);
+	release_cstring(ctx->jenv, jarg1, arg1);
+	release_cstring(ctx->jenv, jarg2, arg2);
 }
 
 /* class methods (general library info) */
@@ -1065,9 +1060,12 @@ JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getIF
 
 #define SET_STRING_START(ret) \
 	struct libctx *ctx = getctx(jenv, jobj); \
-	char *arg; \
-	if (dup_to_cstring(ctx->jenv, jarg, &arg)) \
+	const char *arg = NULL;			 \
+	if (get_cstring(ctx->jenv, jarg, &arg)) \
 		return ret;
+
+#define SET_STRING_END() \
+	release_cstring(ctx->jenv, jarg, arg)
 
 JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_parseURL(
 	JNIEnv *jenv, jobject jobj, jstring jarg)
@@ -1075,6 +1073,7 @@ JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_parseURL
 	int ret;
 	SET_STRING_START(-ENOMEM)
 	ret = openconnect_parse_url(ctx->vpninfo, arg);
+	SET_STRING_END();
 	return ret;
 }
 
@@ -1084,6 +1083,7 @@ JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setProxy
 	int ret;
 	SET_STRING_START(-ENOMEM)
 	ret = openconnect_set_proxy_auth(ctx->vpninfo, arg);
+	SET_STRING_END();
 	return ret;
 }
 
@@ -1093,6 +1093,7 @@ JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setHTTPP
 	int ret;
 	SET_STRING_START(-ENOMEM)
 	ret = openconnect_set_http_proxy(ctx->vpninfo, arg);
+	SET_STRING_END();
 	return ret;
 }
 
@@ -1101,7 +1102,7 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setXMLSH
 {
 	SET_STRING_START()
 	openconnect_set_xmlsha1(ctx->vpninfo, arg, strlen(arg) + 1);
-	free(arg);
+	SET_STRING_END();
 }
 
 JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setHostname(
@@ -1109,6 +1110,7 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setHostn
 {
 	SET_STRING_START()
 	openconnect_set_hostname(ctx->vpninfo, arg);
+	SET_STRING_END();
 }
 
 JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setUrlpath(
@@ -1116,6 +1118,7 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setUrlpa
 {
 	SET_STRING_START()
 	openconnect_set_urlpath(ctx->vpninfo, arg);
+	SET_STRING_END();
 }
 
 JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setCAFile(
@@ -1123,6 +1126,7 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setCAFil
 {
 	SET_STRING_START()
 	openconnect_set_cafile(ctx->vpninfo, arg);
+	SET_STRING_END();
 }
 
 JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setReportedOS(
@@ -1130,6 +1134,7 @@ JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setRepor
 {
 	SET_STRING_START(-ENOMEM)
 	return openconnect_set_reported_os(ctx->vpninfo, arg);
+	SET_STRING_END();
 }
 
 JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setTokenMode(
@@ -1138,7 +1143,7 @@ JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setToken
 	int ret;
 	SET_STRING_START(-ENOMEM)
 	ret = openconnect_set_token_mode(ctx->vpninfo, mode, arg);
-	free(arg);
+	SET_STRING_END();
 	return ret;
 }
 
@@ -1148,6 +1153,7 @@ JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setupTun
 	int ret;
 	SET_STRING_START(-ENOMEM)
 	ret = openconnect_setup_tun_script(ctx->vpninfo, arg);
+	SET_STRING_END();
 	return ret;
 }
 
@@ -1156,6 +1162,7 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setServe
 {
 	SET_STRING_START()
 	openconnect_set_server_cert_sha1(ctx->vpninfo, arg);
+	SET_STRING_END();
 }
 
 JNIEXPORT jobject JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getIPInfo(
