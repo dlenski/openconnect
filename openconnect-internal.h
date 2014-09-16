@@ -698,7 +698,7 @@ int buf_free(struct oc_text_buf *buf);
 char *openconnect_create_useragent(const char *base);
 void cleanup_proxy_auth(struct openconnect_info *vpninfo);
 int process_proxy(struct openconnect_info *vpninfo, int ssl_sock);
-int internal_parse_url(char *url, char **res_proto, char **res_host,
+int internal_parse_url(const char *url, char **res_proto, char **res_host,
 		       int *res_port, char **res_path, int default_port);
 
 /* ntlm.c */

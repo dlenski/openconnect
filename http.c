@@ -825,40 +825,52 @@ out:
 #endif /* !_WIN32 */
 }
 
-int internal_parse_url(char *url, char **res_proto, char **res_host,
+/* strncasecmp() just checks that the first n characters match. This
+   function ensures that the first n characters of the left-hand side
+   are a *precise* match for the right-hand side. */
+static inline int strprefix_match(const char *str, int len, const char *match)
+{
+	return len == strlen(match) && !strncasecmp(str, match, len);
+}
+
+int internal_parse_url(const char *url, char **res_proto, char **res_host,
 		       int *res_port, char **res_path, int default_port)
 {
-	char *proto = url;
-	char *host, *path, *port_str;
-	int port;
+	const char *orig_host, *orig_path;
+	char *host, *port_str;
+	int port, proto_len = 0;
 
-	host = strstr(url, "://");
-	if (host) {
-		*host = 0;
-		host += 3;
+	orig_host = strstr(url, "://");
+	if (orig_host) {
+		proto_len = orig_host - url;
+		orig_host += 3;
 
-		if (!strcasecmp(proto, "https"))
+		if (strprefix_match(url, proto_len, "https"))
 			port = 443;
-		else if (!strcasecmp(proto, "http"))
+		else if (strprefix_match(url, proto_len, "http"))
 			port = 80;
-		else if (!strcasecmp(proto, "socks") ||
-			 !strcasecmp(proto, "socks4") ||
-			 !strcasecmp(proto, "socks5"))
+		else if (strprefix_match(url, proto_len, "socks") ||
+			 strprefix_match(url, proto_len, "socks4") ||
+			 strprefix_match(url, proto_len, "socks5"))
 			port = 1080;
 		else
 			return -EPROTONOSUPPORT;
 	} else {
 		if (default_port) {
-			proto = NULL;
 			port = default_port;
-			host = url;
+			orig_host = url;
 		} else
 			return -EINVAL;
 	}
 
-	path = strchr(host, '/');
-	if (path)
-		*(path++) = 0;
+	orig_path = strchr(orig_host, '/');
+	if (orig_path) {
+		host = strndup(orig_host, orig_path - orig_host);
+		orig_path++;
+	} else
+		host = strdup(orig_host);
+	if (!host)
+		return -ENOMEM;
 
 	port_str = strrchr(host, ':');
 	if (port_str) {
@@ -872,21 +884,16 @@ int internal_parse_url(char *url, char **res_proto, char **res_host,
 	}
 
 	if (res_proto)
-		*res_proto = proto ? strdup(proto) : NULL;
+		*res_proto = proto_len ? strndup(url, proto_len) : NULL;
 	if (res_host)
-		*res_host = strdup(host);
+		*res_host = host;
+	else
+		free(host);
 	if (res_port)
 		*res_port = port;
 	if (res_path)
-		*res_path = (path && *path) ? strdup(path) : NULL;
+		*res_path = (orig_path && *orig_path) ? strdup(orig_path) : NULL;
 
-	/* Undo the damage we did to the original string */
-	if (port_str)
-		*(port_str) = ':';
-	if (path)
-		*(path - 1) = '/';
-	if (proto)
-		*(host - 3) = ':';
 	return 0;
 }
 
