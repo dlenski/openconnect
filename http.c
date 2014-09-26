@@ -2183,7 +2183,7 @@ int process_proxy(struct openconnect_info *vpninfo, int ssl_sock)
 
 int openconnect_set_proxy_auth(struct openconnect_info *vpninfo, char *methods)
 {
-	int i;
+	int i, len;
 	char *p, *start = methods;
 
 	for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++)
@@ -2191,13 +2191,16 @@ int openconnect_set_proxy_auth(struct openconnect_info *vpninfo, char *methods)
 
 	while (methods) {
 		p = strchr(methods, ',');
-		if (p)
-			*(p++) = 0;
+		if (p) {
+			len = p - methods;
+			p++;
+		} else
+			len = strlen(methods);
 
 		for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++) {
-			if (!strcasecmp(methods, auth_methods[i].name) ||
+			if (strprefix_match(methods, len, auth_methods[i].name) ||
 			    (auth_methods[i].state_index == AUTH_TYPE_GSSAPI &&
-			     !strcasecmp(methods, "gssapi"))) {
+			     strprefix_match(methods, len, "gssapi"))) {
 				vpninfo->auth[auth_methods[i].state_index].state = AUTH_UNSEEN;
 				break;
 			}
