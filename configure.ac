@@ -30,8 +30,6 @@ case $host_os in
  *linux* | *gnu*)
     AC_MSG_NOTICE([Applying feature macros for GNU build])
     AC_DEFINE(_POSIX_C_SOURCE, 200112L, [_POSIX_C_SOURCE])
-    # For strcasecmp() 
-    AC_DEFINE(_BSD_SOURCE, 1, [_BSD_SOURCE])
     # For asprintf()
     AC_DEFINE(_GNU_SOURCE, 1, [_GNU_SOURCE])
     ;;
