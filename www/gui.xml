@@ -27,5 +27,10 @@ as from version 0.48, and the corresponding support is also in the
 <a href="http://meego.gitorious.org/meego-netbook-ux/meego-panel-networks">meego-panel-networks</a>
 user interface. Other ConnMan UI front ends may lack VPN support.</p>
 
+<h2>OpenConnect-gui</h2>
+
+<p><a href="https://github.com/openconnect/openconnect-gui/wiki">OpenConnect-gui</a>
+is a Windows port of OpenConnect.</p>
+
 <INCLUDE file="inc/footer.tmpl" />
 </PAGE>
