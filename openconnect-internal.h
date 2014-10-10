@@ -612,6 +612,8 @@ int openconnect_open_utf8(struct openconnect_info *vpninfo,
 FILE *openconnect_fopen_utf8(struct openconnect_info *vpninfo,
 			     const char *fname, const char *mode);
 
+void openconnect_clear_cookies(struct openconnect_info *vpninfo);
+
 /* {gnutls,openssl}.c */
 int openconnect_open_https(struct openconnect_info *vpninfo);
 void openconnect_close_https(struct openconnect_info *vpninfo, int final);

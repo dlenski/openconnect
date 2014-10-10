@@ -407,6 +407,7 @@ void openconnect_reset_ssl(struct openconnect_info *vpninfo)
 		free(vpninfo->peer_addr);
 		vpninfo->peer_addr = NULL;
 	}
+	openconnect_clear_cookies(vpninfo);
 }
 
 int openconnect_parse_url(struct openconnect_info *vpninfo, const char *url)

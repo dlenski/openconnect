@@ -897,7 +897,7 @@ int internal_parse_url(const char *url, char **res_proto, char **res_host,
 	return 0;
 }
 
-static void clear_cookies(struct openconnect_info *vpninfo)
+void openconnect_clear_cookies(struct openconnect_info *vpninfo)
 {
 	struct oc_vpn_option *opt, *next;
 
@@ -944,7 +944,7 @@ static int handle_redirect(struct openconnect_info *vpninfo)
 
 			/* Kill the existing connection, and a new one will happen */
 			openconnect_close_https(vpninfo, 0);
-			clear_cookies(vpninfo);
+			openconnect_clear_cookies(vpninfo);
 			vpninfo->redirect_type = REDIR_TYPE_NEWHOST;
 		} else
 			free(host);
