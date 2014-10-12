@@ -34,7 +34,7 @@
 /*
  * API version 4.0:
  *  - Change string handling to never transfer ownership of allocations.
- *  - Add openconnect_set_option_value()
+ *  - Add openconnect_set_option_value(), openconnect_free_cert_info().
  *
  * API version 3.4:
  *  - Add openconnect_set_token_callbacks()
@@ -282,13 +282,17 @@ typedef enum {
    with trailing NUL, representing the SHA1 fingerprint of the certificate. */
 int openconnect_get_cert_sha1(struct openconnect_info *vpninfo,
 			      OPENCONNECT_X509 *cert, char *buf);
+
+/* The buffers returned by these two functions must be freed with
+   openconnect_free_cert_info(), especially on Windows. */
 char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
 				   OPENCONNECT_X509 *cert);
 /* Returns the length of the created DER output, in a newly-allocated buffer
-   that will need to be freed by the caller. */
+   that will need to be freed by openconnect_free_cert_info(). */
 int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
 			     OPENCONNECT_X509 *cert, unsigned char **buf);
-
+void openconnect_free_cert_info(struct openconnect_info *vpninfo,
+				void *buf);
 /* Contains a comma-separated list of authentication methods to enabled.
    Currently supported: Negotiate,NTLM,Digest,Basic */
 int openconnect_set_proxy_auth(struct openconnect_info *vpninfo,

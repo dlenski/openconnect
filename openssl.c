@@ -1574,6 +1574,11 @@ char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
 	return ret;
 }
 
+void openconnect_free_cert_info(struct openconnect_info *vpninfo,
+				void *buf)
+{
+	free(buf);
+}
 
 int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 			       char *buf)

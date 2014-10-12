@@ -1662,16 +1662,11 @@ char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
 				   OPENCONNECT_X509 *cert)
 {
 	gnutls_datum_t buf;
-	char *ret;
 
 	if (gnutls_x509_crt_print(cert, GNUTLS_CRT_PRINT_FULL, &buf))
 		return NULL;
 
-	/* Just in case gnutls_free() isn't free(), we can't steal it. */
-	ret = strdup((char *)buf.data);
-	gnutls_free(buf.data);
-
-	return ret;
+	return (char *)buf.data;
 }
 
 int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
@@ -1684,16 +1679,22 @@ int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
 	    GNUTLS_E_SHORT_MEMORY_BUFFER)
 		return -EIO;
 
-	ret = malloc(l);
+	ret = gnutls_malloc(l);
 	if (!ret)
 		return -ENOMEM;
 
 	if (gnutls_x509_crt_export(cert, GNUTLS_X509_FMT_DER, ret, &l)) {
-		free(ret);
+		gnutls_free(ret);
 		return -EIO;
 	}
 	*buf = ret;
 	return l;
+}
+
+void openconnect_free_cert_info(struct openconnect_info *vpninfo,
+				void *buf)
+{
+	gnutls_free(buf);
 }
 
 static int verify_peer(gnutls_session_t session)
