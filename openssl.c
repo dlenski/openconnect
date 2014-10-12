@@ -302,8 +302,8 @@ static int ui_flush(UI *ui)
 
 	for (opt = (struct ui_form_opt *)ui_data->form.opts; opt;
 	     opt = (struct ui_form_opt *)opt->opt.next) {
-		if (opt->opt.value && opt->uis)
-			UI_set_result(ui, opt->uis, opt->opt.value);
+		if (opt->opt._value && opt->uis)
+			UI_set_result(ui, opt->uis, opt->opt._value);
 	}
 	return 1;
 }
@@ -316,8 +316,8 @@ static int ui_close(UI *ui)
 	opt = (struct ui_form_opt *)ui_data->form.opts;
 	while (opt) {
 		next_opt = (struct ui_form_opt *)opt->opt.next;
-		if (opt->opt.value)
-			free(opt->opt.value);
+		if (opt->opt._value)
+			free(opt->opt._value);
 		free(opt);
 		opt = next_opt;
 	}
