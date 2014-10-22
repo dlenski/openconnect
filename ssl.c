@@ -628,9 +628,13 @@ void check_cmd_fd(struct openconnect_info *vpninfo, fd_set *fds)
 		return;
 	}
 
+#ifdef _WIN32
 	if (recv(vpninfo->cmd_fd, &cmd, 1, 0) != 1)
 		return;
-
+#else
+	if (read(vpninfo->cmd_fd, &cmd, 1) != 1)
+		return;
+#endif
 	switch (cmd) {
 	case OC_CMD_CANCEL:
 	case OC_CMD_DETACH:
