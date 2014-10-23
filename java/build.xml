@@ -11,7 +11,7 @@
 	</target>
 
 	<target name="compile" depends="init">
-		<javac srcdir="${src}" destdir="${build}"
+		<javac srcdir="${src}" destdir="${build}" encoding="utf-8"
 		       source="1.5" target="1.5" includeantruntime="false"/>
 	</target>
 
