@@ -1492,7 +1492,10 @@ static int load_certificate(struct openconnect_info *vpninfo)
 						err = gnutls_x509_crt_import(issuer, &t, GNUTLS_X509_FMT_DER);
 						if (err)
 							gnutls_x509_crt_deinit(issuer);
+						else
+							free_issuer = 1;
 					}
+					gnutls_free(t.data);
 				}
 				if (err) {
 					vpn_progress(vpninfo, PRG_ERR,
@@ -1503,8 +1506,6 @@ static int load_certificate(struct openconnect_info *vpninfo)
 					vpn_progress(vpninfo, PRG_ERR,
 						     _("Got next CA '%s' from PKCS11\n"), name);
 				}
-				free_issuer = 1;
-				gnutls_free(t.data);
 			}
 #endif
 			if (err)
