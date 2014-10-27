@@ -38,6 +38,10 @@
 
 #include "openconnect-internal.h"
 
+#if defined(OPENCONNECT_GNUTLS)
+#include "gnutls.h"
+#endif
+
 struct openconnect_info *openconnect_vpninfo_new(const char *useragent,
 						 openconnect_validate_peer_cert_vfn validate_peer_cert,
 						 openconnect_write_new_config_vfn write_new_config,
@@ -193,6 +197,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free(vpninfo->dtls_cipher);
 #if defined(OPENCONNECT_GNUTLS)
 	gnutls_free(vpninfo->cstp_cipher);
+	gnutls_free(vpninfo->gnutls_dtls_cipher);
 #else
 	free(vpninfo->cstp_cipher);
 #endif
@@ -667,5 +672,13 @@ int openconnect_setup_tun_device(struct openconnect_info *vpninfo,
 
 const char *openconnect_get_dtls_cipher(struct openconnect_info *vpninfo)
 {
+#if defined(DTLS_GNUTLS)
+	/* in DTLS rehandshakes don't switch the ciphersuite as only
+	 * one is enabled. */
+	if (vpninfo->gnutls_dtls_cipher == NULL)
+		vpninfo->gnutls_dtls_cipher = get_gnutls_cipher(vpninfo->dtls_ssl);
+	return vpninfo->gnutls_dtls_cipher;
+#else
 	return vpninfo->dtls_cipher;
+#endif
 }

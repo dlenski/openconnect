@@ -342,6 +342,7 @@ struct openconnect_info {
 	   NULL or not or pass it to DTLS_SEND/DTLS_RECV. This way we
 	   have fewer ifdefs and accessor macros for it. */
 	gnutls_session_t dtls_ssl;
+	char *gnutls_dtls_cipher; /* cached for openconnect_get_dtls_cipher() */
 #endif
 	int dtls_state;
 	struct keepalive_info dtls_times;

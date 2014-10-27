@@ -69,4 +69,6 @@ static inline int sign_dummy_data(struct openconnect_info *vpninfo,
 int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata,
 		 gnutls_privkey_t *pkey, gnutls_datum_t *pkey_sig);
 
+char *get_gnutls_cipher(gnutls_session_t session);
+
 #endif /* __OPENCONNECT_GNUTLS_H__ */

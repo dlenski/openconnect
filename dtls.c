@@ -316,6 +316,7 @@ void dtls_shutdown(struct openconnect_info *vpninfo)
 
 #elif defined(DTLS_GNUTLS)
 #include <gnutls/dtls.h>
+#include "gnutls.h"
 
 struct {
 	const char *name;
@@ -400,6 +401,7 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 int dtls_try_handshake(struct openconnect_info *vpninfo)
 {
 	int err = gnutls_handshake(vpninfo->dtls_ssl);
+	char *str;
 
 	if (!err) {
 #ifdef HAVE_GNUTLS_DTLS_SET_DATA_MTU
@@ -426,9 +428,13 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 #endif
 
 		vpninfo->dtls_state = DTLS_CONNECTED;
-		vpn_progress(vpninfo, PRG_INFO,
-			     _("Established DTLS connection (using GnuTLS). Ciphersuite %s.\n"),
-			     vpninfo->dtls_cipher);
+		str = get_gnutls_cipher(vpninfo->dtls_ssl);
+		if (str) {
+			vpn_progress(vpninfo, PRG_INFO,
+				     _("Established DTLS connection (using GnuTLS). Ciphersuite %s.\n"),
+				     str);
+			gnutls_free(str);
+		}
 
 		vpninfo->dtls_times.last_rekey = vpninfo->dtls_times.last_rx = 
 			vpninfo->dtls_times.last_tx = time(NULL);

@@ -306,8 +306,7 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo);
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo);
 void openconnect_init_ssl(void);
 
-/* These are strictly cosmetic. The strings differ for the same cipher
- * suite between DTLS and CSTP, and for CSTP they change depending on
+/* These are strictly cosmetic. The strings differ depending on
  * whether OpenSSL or GnuTLS is being used. And even depending on the
  * version of GnuTLS. Do *not* attempt to do anything meaningful based
  * on matching these strings; if you want to do something like that then
