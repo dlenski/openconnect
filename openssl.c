@@ -1593,3 +1593,8 @@ int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 
 	return 0;
 }
+
+const char *openconnect_get_cstp_cipher(struct openconnect_info *vpninfo)
+{
+	return SSL_get_cipher_name(vpninfo->https_ssl);
+}

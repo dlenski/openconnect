@@ -2167,6 +2167,20 @@ void openconnect_init_ssl(void)
 	gnutls_global_init();
 }
 
+const char *openconnect_get_cstp_cipher(struct openconnect_info *vpninfo)
+{
+	if (vpninfo->cstp_cipher == NULL) {
+#if GNUTLS_VERSION_NUMBER > 0x03010a
+		vpninfo->cstp_cipher = gnutls_session_get_desc(vpninfo->https_sess);
+#else
+		vpninfo->cstp_cipher = gnutls_strdup(gnutls_cipher_suite_get_name(
+			gnutls_kx_get(vpninfo->https_sess), gnutls_cipher_get(vpninfo->https_sess),
+			gnutls_mac_get(vpninfo->https_sess)));
+#endif
+	}
+	return vpninfo->cstp_cipher;
+}
+
 int openconnect_sha1(unsigned char *result, void *data, int datalen)
 {
 	gnutls_datum_t d;

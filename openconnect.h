@@ -29,9 +29,12 @@
 #endif
 
 #define OPENCONNECT_API_VERSION_MAJOR 4
-#define OPENCONNECT_API_VERSION_MINOR 0
+#define OPENCONNECT_API_VERSION_MINOR 1
 
 /*
+ * API version 4.1:
+ *  - Add openconnect_get_cstp_cipher(), openconnect_get_dtls_cipher().
+ *
  * API version 4.0:
  *  - Change string handling to never transfer ownership of allocations.
  *  - Add openconnect_set_option_value(), openconnect_free_cert_info().
@@ -302,6 +305,15 @@ int openconnect_set_http_proxy(struct openconnect_info *vpninfo,
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo);
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo);
 void openconnect_init_ssl(void);
+
+/* These are strictly cosmetic. The strings differ for the same cipher
+ * suite between DTLS and CSTP, and for CSTP they change depending on
+ * whether OpenSSL or GnuTLS is being used. And even depending on the
+ * version of GnuTLS. Do *not* attempt to do anything meaningful based
+ * on matching these strings; if you want to do something like that then
+ * ask for an API that *does* offer you what you need. */
+const char *openconnect_get_cstp_cipher(struct openconnect_info *);
+const char *openconnect_get_dtls_cipher(struct openconnect_info *);
 
 const char *openconnect_get_hostname(struct openconnect_info *);
 int openconnect_set_hostname(struct openconnect_info *, const char *);

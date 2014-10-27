@@ -191,6 +191,11 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free(vpninfo->servercert);
 	free(vpninfo->ifname);
 	free(vpninfo->dtls_cipher);
+#if defined(OPENCONNECT_GNUTLS)
+	gnutls_free(vpninfo->cstp_cipher);
+#else
+	free(vpninfo->cstp_cipher);
+#endif
 	free(vpninfo->dtls_addr);
 
 	if (vpninfo->csd_scriptname) {
@@ -658,4 +663,9 @@ int openconnect_setup_tun_device(struct openconnect_info *vpninfo,
 	script_config_tun(vpninfo, "connect");
 
 	return openconnect_setup_tun_fd(vpninfo, tun_fd);
+}
+
+const char *openconnect_get_dtls_cipher(struct openconnect_info *vpninfo)
+{
+	return vpninfo->dtls_cipher;
 }

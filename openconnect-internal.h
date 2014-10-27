@@ -349,6 +349,7 @@ struct openconnect_info {
 	unsigned char dtls_secret[48];
 
 	char *dtls_cipher;
+	char *cstp_cipher;
 	char *vpnc_script;
 	int script_tun;
 	char *ifname;

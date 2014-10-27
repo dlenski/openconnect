@@ -1,5 +1,7 @@
 OPENCONNECT_4.0 {
  global:
+	openconnect_get_dtls_cipher;
+	openconnect_get_cstp_cipher;
 	openconnect_free_cert_info;
 	openconnect_set_option_value;
 	openconnect_clear_cookie;

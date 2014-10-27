@@ -489,7 +489,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	}
 	vpn_progress(vpninfo, PRG_INFO, _("CSTP connected. DPD %d, Keepalive %d\n"),
 		     vpninfo->ssl_times.dpd, vpninfo->ssl_times.keepalive);
-
+	vpn_progress(vpninfo, PRG_DEBUG, _("CSTP Ciphersuite: %s\n"),
+		     openconnect_get_cstp_cipher(vpninfo));
 
 	monitor_fd_new(vpninfo, ssl);
 
