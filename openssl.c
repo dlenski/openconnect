@@ -1373,8 +1373,9 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		SSL_CTX_set_cert_verify_callback(vpninfo->https_ctx,
 						 ssl_app_verify_callback, NULL);
 #endif
-		SSL_CTX_set_default_verify_paths(vpninfo->https_ctx);
-		
+		if (!vpninfo->no_system_trust)
+			SSL_CTX_set_default_verify_paths(vpninfo->https_ctx);
+
 		if (vpninfo->pfs)
 			SSL_CTX_set_cipher_list(vpninfo->https_ctx, "HIGH:!aNULL:!eNULL:-RSA");
 

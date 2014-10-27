@@ -351,6 +351,14 @@ int openconnect_set_stoken_mode(struct openconnect_info *, int, const char *);
 void openconnect_set_xmlsha1(struct openconnect_info *, const char *, int size);
 
 int openconnect_set_cafile(struct openconnect_info *, const char *);
+
+/* call this function to disable the system trust from being used to
+ * verify the server certificate. @val is a boolean value.
+ *
+ * For backwards compatibility reasons this is enabled by default.
+ */
+void openconnect_set_system_trust(struct openconnect_info *vpninfo, unsigned val);
+
 int openconnect_setup_csd(struct openconnect_info *, uid_t, int silent, const char *wrapper);
 void openconnect_set_xmlpost(struct openconnect_info *, int enable);
 

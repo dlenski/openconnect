@@ -314,6 +314,11 @@ int openconnect_set_cafile(struct openconnect_info *vpninfo, const char *cafile)
 	return 0;
 }
 
+void openconnect_set_system_trust(struct openconnect_info *vpninfo, unsigned val)
+{
+	vpninfo->no_system_trust = !val;
+}
+
 int openconnect_set_server_cert_sha1(struct openconnect_info *vpninfo,
 				     const char *servercert)
 {
