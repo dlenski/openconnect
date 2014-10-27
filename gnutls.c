@@ -398,7 +398,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo,
    reference (c1ef7efb in master, 5196786c in gnutls_3_0_x-2)? */
 static int check_issuer_sanity(gnutls_x509_crt_t cert, gnutls_x509_crt_t issuer)
 {
-#if GNUTLS_VERSION_NUMBER > 0x300014
+#if GNUTLS_VERSION_NUMBER > 0x030014
 	return 0;
 #else
 	unsigned char id1[512], id2[512];
