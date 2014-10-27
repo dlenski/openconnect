@@ -731,7 +731,7 @@ JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getCe
 	if (!jresult)
 		OOM(ctx->jenv);
 
-	free(buf);
+	openconnect_free_cert_info(ctx->vpninfo, buf);
 	return jresult;
 }
 
@@ -754,7 +754,7 @@ JNIEXPORT jbyteArray JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_ge
 	if (jresult)
 		(*ctx->jenv)->SetByteArrayRegion(ctx->jenv, jresult, 0, ret, (jbyte *) buf);
 
-	free(buf);
+	openconnect_free_cert_info(ctx->vpninfo, buf);
 	return jresult;
 }
 
