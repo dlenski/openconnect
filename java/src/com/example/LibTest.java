@@ -85,6 +85,7 @@ public final class LibTest {
 		public int onProcessAuthForm(LibOpenConnect.AuthForm authForm) {
 			boolean empty = true;
 
+			System.out.println("\nCSTP Cipher: " + getCSTPCipher());
 			System.out.println("\nAuthForm:");
 			System.out.println("+-banner: " + authForm.banner);
 			System.out.println("+-message: " + authForm.message);

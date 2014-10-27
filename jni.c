@@ -1058,6 +1058,22 @@ JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getIF
 	RETURN_STRING_END
 }
 
+JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getDTLSCipher(
+	JNIEnv *jenv, jobject jobj)
+{
+	RETURN_STRING_START
+	buf = openconnect_get_dtls_cipher(ctx->vpninfo);
+	RETURN_STRING_END
+}
+
+JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getCSTPCipher(
+	JNIEnv *jenv, jobject jobj)
+{
+	RETURN_STRING_START
+	buf = openconnect_get_cstp_cipher(ctx->vpninfo);
+	RETURN_STRING_END
+}
+
 #define SET_STRING_START(ret) \
 	struct libctx *ctx = getctx(jenv, jobj); \
 	const char *arg = NULL;			 \

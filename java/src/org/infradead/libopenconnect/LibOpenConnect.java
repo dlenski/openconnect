@@ -141,6 +141,8 @@ public abstract class LibOpenConnect {
 	public synchronized native String getCookie();
 	public synchronized native String getIFName();
 	public synchronized native IPInfo getIPInfo();
+	public synchronized native String getCSTPCipher();
+	public synchronized native String getDTLSCipher();
 
 	/* certificate info */
 
