@@ -178,10 +178,11 @@ static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *nam
 	if (!DeviceIoControl(tun_fh, TAP_IOCTL_GET_VERSION,
 			     data, sizeof(&data), data, sizeof(data),
 			     &len, NULL)) {
-		DWORD err = GetLastError();
+		char *errstr = openconnect__win32_strerror(GetLastError());
 
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to obtain TAP driver version: %lx\n"), err);
+			     _("Failed to obtain TAP driver version: %s\n"), errstr);
+		free(errstr);
 		return -1;
 	}
 	if (data[0] < 9 || (data[0] == 9 && data[1] < 9)) {
@@ -200,10 +201,11 @@ static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *nam
 	if (!DeviceIoControl(tun_fh, TAP_IOCTL_CONFIG_TUN,
 			     data, sizeof(data), data, sizeof(data),
 			     &len, NULL)) {
-		DWORD err = GetLastError();
+		char *errstr = openconnect__win32_strerror(GetLastError());
 
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to set TAP IP addresses: %lx\n"), err);
+			     _("Failed to set TAP IP addresses: %s\n"), errstr);
+		free(errstr);
 		return -1;
 	}
 
@@ -211,10 +213,11 @@ static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *nam
 	if (!DeviceIoControl(tun_fh, TAP_IOCTL_SET_MEDIA_STATUS,
 			     data, sizeof(data[0]), data, sizeof(data[0]),
 			     &len, NULL)) {
-		DWORD err = GetLastError();
+		char *errstr = openconnect__win32_strerror(GetLastError());
 
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to set TAP media status: %lx\n"), err);
+			     _("Failed to set TAP media status: %s\n"), errstr);
+		free(errstr);
 		return -1;
 	}
 	if (!vpninfo->ifname)
@@ -240,10 +243,13 @@ int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt)
 
 		if (err == ERROR_IO_PENDING)
 			vpninfo->tun_rd_pending = 1;
-		else
+		else {
+			char *errstr = openconnect__win32_strerror(err);
 			vpn_progress(vpninfo, PRG_ERR,
-				     _("Failed to read from TAP device: %lx\n"),
-				     err);
+				     _("Failed to read from TAP device: %s\n"),
+				     errstr);
+			free(errstr);
+		}
 		return -1;
 	} else if (!GetOverlappedResult(vpninfo->tun_fh,
 					&vpninfo->tun_rd_overlap, &pkt_size,
@@ -251,10 +257,12 @@ int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt)
 		DWORD err = GetLastError();
 
 		if (err != ERROR_IO_INCOMPLETE) {
+			char *errstr = openconnect__win32_strerror(err);
 			vpninfo->tun_rd_pending = 0;
 			vpn_progress(vpninfo, PRG_ERR,
-				     _("Failed to complete read from TAP device: %lx\n"),
-				     err);
+				     _("Failed to complete read from TAP device: %s\n"),
+				     errstr);
+			free(errstr);
 			goto reread;
 		}
 		return -1;
@@ -271,6 +279,7 @@ int os_write_tun(struct openconnect_info *vpninfo, struct pkt *pkt)
 {
 	DWORD pkt_size = 0;
 	DWORD err;
+	char *errstr;
 
 	if (WriteFile(vpninfo->tun_fh, pkt->data, pkt->len, &pkt_size, &vpninfo->tun_wr_overlap)) {
 		vpn_progress(vpninfo, PRG_TRACE,
@@ -292,8 +301,10 @@ int os_write_tun(struct openconnect_info *vpninfo, struct pkt *pkt)
 		}
 		err = GetLastError();
 	}
+	errstr = openconnect__win32_strerror(err);
 	vpn_progress(vpninfo, PRG_ERR,
-		     _("Failed to write to TAP device: %lx\n"), err);
+		     _("Failed to write to TAP device: %s\n"), errstr);
+	free(errstr);
 	return -1;
 }
 

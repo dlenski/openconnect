@@ -363,9 +363,11 @@ int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
 	}
 
 	if (ret < 0) {
+		char *errstr = openconnect__win32_strerror(GetLastError());
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to spawn script '%s' for %s: %d\n"),
-			     vpninfo->vpnc_script, reason, (int)GetLastError());
+			     _("Failed to spawn script '%s' for %s: %s\n"),
+			     vpninfo->vpnc_script, reason, errstr);
+		free(errstr);
 		goto cleanup;
 	}
 

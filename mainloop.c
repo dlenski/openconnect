@@ -206,9 +206,11 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 			events[nr_events++] = vpninfo->tun_rd_overlap.hEvent;
 		}
 		if (WaitForMultipleObjects(nr_events, events, FALSE, timeout) == WAIT_FAILED) {
+			char *errstr = openconnect__win32_strerror(GetLastError());
 			vpn_progress(vpninfo, PRG_ERR,
-				     _("WaitForMultipleObjects failed: %lx\n"),
-				     GetLastError());
+				     _("WaitForMultipleObjects failed: %s\n"),
+				     errstr);
+			free(errstr);
 		}
 #else
 		memcpy(&rfds, &vpninfo->_select_rfds, sizeof(rfds));

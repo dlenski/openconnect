@@ -228,6 +228,35 @@ int openconnect__inet_aton(const char *cp, struct in_addr *addr)
 #endif
 
 #ifdef _WIN32
+char *openconnect__win32_strerror(DWORD err)
+{
+	wchar_t *msgw;
+	char *msgutf8;
+	int nr_chars;
+
+	if (!FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM |
+			    FORMAT_MESSAGE_IGNORE_INSERTS |
+			    FORMAT_MESSAGE_ALLOCATE_BUFFER,
+			    NULL, err,
+			    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			    (LPWSTR)&msgw, 0, NULL)) {
+		if (asprintf(&msgutf8, _("(error 0x%x)"), err) != -1)
+			return msgutf8;
+	fail:
+		return strdup(_("(Error while describing error!)"));
+	}
+
+	nr_chars = WideCharToMultiByte(CP_UTF8, 0, msgw, -1, NULL, 0, NULL, NULL);
+
+	msgutf8 = malloc(nr_chars);
+	if (!msgutf8)
+		goto fail;
+
+	WideCharToMultiByte(CP_UTF8, 0, msgw, -1, msgutf8, nr_chars, NULL, NULL);
+	LocalFree(msgw);
+	return msgutf8;
+}
+
 void openconnect__win32_sock_init()
 {
 	WSADATA data;

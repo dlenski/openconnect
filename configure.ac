@@ -25,6 +25,7 @@ symver_time=
 symver_getline=
 symver_asprintf=
 symver_vasprintf=
+symver_win32_strerror=
 
 case $host_os in
  *linux* | *gnu*)
@@ -54,6 +55,7 @@ case $host_os in
     have_win=yes
     # For asprintf()
     AC_DEFINE(_GNU_SOURCE, 1, [_GNU_SOURCE])
+    symver_win32_strerror="openconnect__win32_strerror;"
     ;;
  *)
     # On FreeBSD the only way to get vsyslog() visible is to define
@@ -139,6 +141,7 @@ AC_SUBST(SYMVER_TIME, $symver_time)
 AC_SUBST(SYMVER_GETLINE, $symver_getline)
 AC_SUBST(SYMVER_ASPRINTF, $symver_asprintf)
 AC_SUBST(SYMVER_VASPRINTF, $symver_vasprintf)
+AC_SUBST(SYMVER_WIN32_STRERROR, $symver_win32_strerror)
 
 AS_COMPILER_FLAGS(WFLAGS,
         "-Wall

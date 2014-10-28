@@ -299,8 +299,10 @@ static char *convert_arg_to_utf8(char **argv, char *arg)
 
 		argv_w = CommandLineToArgvW(GetCommandLineW(), &argc_w);
 		if (!argv_w) {
-			fprintf(stderr, _("CommandLineToArgvW() failed: %lx\n"),
-				GetLastError());
+			char *errstr = openconnect__win32_strerror(GetLastError());
+			fprintf(stderr, _("CommandLineToArgvW() failed: %s\n"),
+				errstr);
+			free(errstr);
 			exit(1);
 		}
 	}
@@ -346,7 +348,9 @@ static void read_stdin(char **string, int hidden)
 	}
 
 	if (!ReadConsoleW(stdinh, wbuf, sizeof(wbuf)/2, &nr_read, &rcc)) {
-		fprintf(stderr, _("ReadConsole() error %lx\n"), GetLastError());
+		char *errstr = openconnect__win32_strerror(GetLastError());
+		fprintf(stderr, _("ReadConsole() failed: %s\n"), errstr);
+		free(errstr);
 		goto out;
 	}
 
@@ -357,8 +361,10 @@ static void read_stdin(char **string, int hidden)
 
 	nr_read = WideCharToMultiByte(CP_UTF8, 0, wbuf, -1, NULL, 0, NULL, NULL);
 	if (!nr_read) {
+		char *errstr = openconnect__win32_strerror(GetLastError());
 		fprintf(stderr, _("Error converting console input: %lx\n"),
-			GetLastError());
+			errstr);
+		free(errstr);
 		goto out;
 	}
 	buf = malloc(nr_read);
@@ -368,9 +374,11 @@ static void read_stdin(char **string, int hidden)
 	}
 
 	if (!WideCharToMultiByte(CP_UTF8, 0, wbuf, -1, buf, nr_read, NULL, NULL)) {
+		char *errstr = openconnect__win32_strerror(GetLastError());
+		fprintf(stderr, _("Error converting console input: %s\n"),
+			errstr);
+		free(errstr);
 		free(buf);
-		fprintf(stderr, _("Error converting console input: %lx\n"),
-			GetLastError());
 		goto out;
 	}
 

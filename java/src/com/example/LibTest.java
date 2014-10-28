@@ -209,7 +209,7 @@ public final class LibTest {
 			lib.setCSDWrapper("csd.sh", null, null);
 		}
 		lib.parseURL(argv[0]);
-
+		lib.setSystemTrust(true);
 		int ret = lib.obtainCookie();
 		if (ret < 0)
 			die("obtainCookie() returned error");
