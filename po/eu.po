@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2014-08-16 23:48+0100\n"
+"POT-Creation-Date: 2014-10-28 15:34+0000\n"
 "PO-Revision-Date: 2012-06-20 08:43+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Basque (http://www.transifex.net/projects/p/meego/language/"
@@ -18,67 +18,67 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
-#: auth.c:126
+#: auth.c:148
 msgid "Form choice has no name\n"
 msgstr "Inprimakiaren aukerak ez dauka izenik\n"
 
-#: auth.c:211
+#: auth.c:233
 #, c-format
 msgid "name %s not input\n"
 msgstr "'%s izena ez da sarrera\n"
 
-#: auth.c:218
+#: auth.c:240
 msgid "No input type in form\n"
 msgstr "Ez dago sarrera motarik inprimakian\n"
 
-#: auth.c:230
+#: auth.c:252
 msgid "No input name in form\n"
 msgstr "Ez dago sarreraren izenik inprimakian\n"
 
-#: auth.c:262
+#: auth.c:284
 #, c-format
 msgid "Unknown input type %s in form\n"
 msgstr "'%s' sarrera mota ezezaguna inprimakian\n"
 
-#: auth.c:472
+#: auth.c:494
 #, c-format
 msgid "Cannot handle form method='%s', action='%s'\n"
 msgstr "Ezin da inprimakiaren metodoa='%s', ekintza='%s' kudeatu\n"
 
-#: auth.c:598
+#: auth.c:620
 msgid "Empty response from server\n"
 msgstr "Erantzun hutsa zerbitzaritik\n"
 
-#: auth.c:609
+#: auth.c:631
 msgid "Failed to parse server response\n"
 msgstr "Huts egin du zerbitzariaren erantzuna analizatzean\n"
 
-#: auth.c:611
+#: auth.c:633
 #, c-format
 msgid "Response was:%s\n"
 msgstr "Erantzuna: %s\n"
 
-#: auth.c:633
+#: auth.c:655
 msgid "Received <client-cert-request> when not expected.\n"
 msgstr "Espero ez zen <client-cert-request> jasota.\n"
 
-#: auth.c:661
+#: auth.c:683
 msgid "XML response has no \"auth\" node\n"
 msgstr "XML erantzunak ez du 'auth' nodorik\n"
 
-#: auth.c:695
+#: auth.c:717
 msgid "No form handler; cannot authenticate.\n"
 msgstr "Ez dago inprimakiaren kudeatzailerik: ezin da autentifikatu.\n"
 
-#: auth.c:769
+#: auth.c:791
 msgid "Asked for password but '--no-passwd' set\n"
 msgstr "Pasahitza eskatu da baina '--no-passwd' ezarri da\n"
 
-#: auth.c:800
+#: auth.c:822
 msgid "Failed to generate OTP tokencode; disabling token\n"
 msgstr ""
 
-#: compat.c:245
+#: compat.c:235
 #, c-format
 msgid "ERROR: Cannot initialize sockets\n"
 msgstr "Errorea: ezin dira socket-ak hasieratu\n"
@@ -106,7 +106,7 @@ msgstr ""
 msgid "Error fetching HTTPS response\n"
 msgstr "Errorea HTTPS erantzuna jasotzean\n"
 
-#: cstp.c:235 http.c:633 http.c:1101
+#: cstp.c:235 http.c:633 http.c:1108
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "Huts egin du '%s'(r)ekin HTTPS konexioa irekitzean\n"
@@ -178,144 +178,149 @@ msgstr "Birkonektatzeak  IPv6 sareko maskara desberdina eman du (%s != %s)\n"
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr "CSTP konektatuta. %d DPD, %d Keepalive\n"
 
-#: cstp.c:536
+#: cstp.c:492
+#, c-format
+msgid "CSTP Ciphersuite: %s\n"
+msgstr ""
+
+#: cstp.c:537
 msgid "Compression setup failed\n"
 msgstr "Huts egin du konpresioa konfiguratzean\n"
 
-#: cstp.c:544
+#: cstp.c:545
 msgid "Allocation of deflate buffer failed\n"
 msgstr "Huts egin du bufferraren hustuketa esleitzean\n"
 
-#: cstp.c:588
+#: cstp.c:589
 msgid "Cookie is no longer valid, ending session\n"
 msgstr "Cookie-a ez da gehiago baliozkoa izango, saioa amaitzen\n"
 
-#: cstp.c:592
+#: cstp.c:593
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
 msgstr "lo: %ds; iraungitze-denbora: %ds\n"
 
-#: cstp.c:627
+#: cstp.c:628
 msgid "inflate failed\n"
 msgstr "huts egin du puztean\n"
 
-#: cstp.c:644
+#: cstp.c:645
 #, c-format
 msgid "Received compressed data packet of %ld bytes\n"
 msgstr "Konprimitutako datuen paketea (%ld byte) jasota\n"
 
-#: cstp.c:663
+#: cstp.c:664
 #, c-format
 msgid "SSL read error %d (server probably closed connection); reconnecting.\n"
 msgstr ""
 "SSL irakurketaren %d errorea (baliteke zerbitzariak konexioa ixtea). "
 "Birkonektatzen.\n"
 
-#: cstp.c:688
+#: cstp.c:689
 #, c-format
 msgid "SSL_write failed: %d\n"
 msgstr "'SSL_write'-k huts egin du: %d\n"
 
-#: cstp.c:704
+#: cstp.c:705
 #, c-format
 msgid "SSL read error: %s; reconnecting.\n"
 msgstr "Errorea SSL irakurketan: %s. Birkonektatzen.\n"
 
-#: cstp.c:727
+#: cstp.c:728
 #, c-format
 msgid "SSL send failed: %s\n"
 msgstr "Huts egin du SSL bidaltzean: %s\n"
 
-#: cstp.c:758
+#: cstp.c:759
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
 msgstr ""
 "Paketearen ustekabeko luzera. 'SSL_read'-ek %d itzuli du, baina paketea hau "
 "da:\n"
 
-#: cstp.c:770
+#: cstp.c:771
 msgid "Got CSTP DPD request\n"
 msgstr "CSTP DPD eskaera jasota\n"
 
-#: cstp.c:776
+#: cstp.c:777
 msgid "Got CSTP DPD response\n"
 msgstr "CSTP DPD erantzuna jasota\n"
 
-#: cstp.c:781
+#: cstp.c:782
 msgid "Got CSTP Keepalive\n"
 msgstr "CSTP Keepalive jasota\n"
 
-#: cstp.c:786
+#: cstp.c:787
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr "Konprimitu gabeko datuen paketea (%d byte) jasota\n"
 
-#: cstp.c:801
+#: cstp.c:802
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
 msgstr "Zerbitzariaren deskonexioa jasota:  %02x '%s'\n"
 
-#: cstp.c:809
+#: cstp.c:810
 msgid "Compressed packet received in !deflate mode\n"
 msgstr "Konprimitutako paketea !hustu (!deflate) moduan jasota\n"
 
-#: cstp.c:817
+#: cstp.c:818
 msgid "received server terminate packet\n"
 msgstr "zerbitzariaren amaierako paketea jasota\n"
 
-#: cstp.c:824
+#: cstp.c:825
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr "Pakete ezezaguna: %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
-#: cstp.c:867
+#: cstp.c:868
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr "SSL-ek byte gutxiegi idatzita. %d eskatu ziren, %d bidalita\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:894
+#: cstp.c:895
 msgid "CSTP rekey due\n"
 msgstr "CSTP gakoa birnegoziatzeko zain\n"
 
 #. if we failed rehandshake try establishing a new-tunnel instead of failing
-#: cstp.c:901
+#: cstp.c:902
 msgid "Rehandshake failed; attempting new-tunnel\n"
 msgstr "Huts egin du berriro negoziatzean. Tunel berriarekin saiatzen\n"
 
-#: cstp.c:912
+#: cstp.c:913
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr "CSTPren DPDak hildako parekoa atzeman du\n"
 
-#: cstp.c:916
+#: cstp.c:917
 msgid "Reconnect failed\n"
 msgstr "Huts egin du birkonektatzean\n"
 
-#: cstp.c:932
+#: cstp.c:933
 msgid "Send CSTP DPD\n"
 msgstr "Bidali CSTP DPD\n"
 
-#: cstp.c:943
+#: cstp.c:944
 msgid "Send CSTP Keepalive\n"
 msgstr "Bidali CSTP Keepalive\n"
 
-#: cstp.c:970
+#: cstp.c:971
 #, c-format
 msgid "deflate failed %d\n"
 msgstr "Huts egin du %d hustean\n"
 
-#: cstp.c:990
+#: cstp.c:991
 #, c-format
 msgid "Sending compressed data packet of %d bytes\n"
 msgstr "Konprimitutako datuen paketea (%d byte) bidaltzen\n"
 
-#: cstp.c:1002
+#: cstp.c:1003
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr "Konprimitu gabeko datuen paketea (%d byte) bidaltzen\n"
 
-#: cstp.c:1042
+#: cstp.c:1043
 #, c-format
 msgid "Send BYE packet: %s\n"
 msgstr "Bidali BYE paketea: %s\n"
@@ -365,7 +370,7 @@ msgstr ""
 "Sistemako OpenSSL konpilatzean erabilitakoa baino zaharragoa da, DTLS-ek "
 "huts egin dezake."
 
-#: dtls.c:292 dtls.c:296 dtls.c:443
+#: dtls.c:292 dtls.c:296 dtls.c:449
 msgid "DTLS handshake timed out\n"
 msgstr "DTLS negoziazioaren denbora iraungituta\n"
 
@@ -382,155 +387,155 @@ msgstr ""
 msgid "DTLS handshake failed: %d\n"
 msgstr "Huts egin du DTLS negoziatzean: %d\n"
 
-#: dtls.c:355
+#: dtls.c:356
 #, c-format
 msgid "Unknown DTLS parameters for requested CipherSuite '%s'\n"
 msgstr "'%s' CipherSuite eskaeraren DTLS parametro ezezagunak\n"
 
-#: dtls.c:368
+#: dtls.c:369
 #, c-format
 msgid "Failed to set DTLS priority: %s\n"
 msgstr "Huts egin du DTLSren lehentasuna ezartzean: %s\n"
 
-#: dtls.c:389
+#: dtls.c:390
 #, c-format
 msgid "Failed to set DTLS session parameters: %s\n"
 msgstr "Huts egin du DTLS saioaren parametroak ezartzean: %s\n"
 
-#: dtls.c:411
+#: dtls.c:413
 #, c-format
 msgid "Failed to set DTLS MTU: %s\n"
 msgstr "Huts egin du DTLS MUT ezartzean: %s\n"
 
-#: dtls.c:430
+#: dtls.c:434
 #, c-format
 msgid "Established DTLS connection (using GnuTLS). Ciphersuite %s.\n"
 msgstr "DTLS konexioa ezarrita (GnuTLS erabiliz). '%s' Ciphersuite\n"
 
-#: dtls.c:446
+#: dtls.c:452
 #, c-format
 msgid "DTLS handshake failed: %s\n"
 msgstr "Huts egin du DTLS negoziatzean: %s\n"
 
-#: dtls.c:469
+#: dtls.c:475
 msgid "DTLS connection attempted with an existing fd\n"
 msgstr "DTLS konexioaren saiakera existitzen den deskriptore batekin\n"
 
-#: dtls.c:475
+#: dtls.c:481
 msgid "No DTLS address\n"
 msgstr "DTLS helbiderik gabe\n"
 
 #. We probably didn't offer it any ciphers it liked
-#: dtls.c:482
+#: dtls.c:488
 msgid "Server offered no DTLS cipher option\n"
 msgstr "Zerbitzariak ez du DTLS zifraketaren aukerarik eskaini\n"
 
 #. XXX: Theoretically, SOCKS5 proxies can do UDP too
-#: dtls.c:489
+#: dtls.c:495
 msgid "No DTLS when connected via proxy\n"
 msgstr "DTLSrik gabe proxy bidez konektatzean\n"
 
-#: dtls.c:496
+#: dtls.c:502
 msgid "Open UDP socket for DTLS:"
 msgstr "Ireki UDP socket-a DTLSrentzako:"
 
-#: dtls.c:527 dtls.c:656
+#: dtls.c:533 dtls.c:662
 #, c-format
 msgid "Unknown protocol family %d. Cannot do DTLS\n"
 msgstr "%d protokolo-familia ezezaguna. Ezin da DTLS egin\n"
 
-#: dtls.c:535
+#: dtls.c:541
 msgid "Bind UDP socket for DTLS"
 msgstr "Esleitu UDP socket-a DTLSrentzako"
 
-#: dtls.c:542
+#: dtls.c:548
 msgid "UDP (DTLS) connect:\n"
 msgstr "Konektatu UDP (DTLS):\n"
 
-#: dtls.c:608
+#: dtls.c:614
 #, c-format
 msgid "DTLS option %s : %s\n"
 msgstr "DTLSren '%s : %s'  aukera\n"
 
-#: dtls.c:666
+#: dtls.c:672
 #, c-format
 msgid "DTLS initialised. DPD %d, Keepalive %d\n"
 msgstr "DTLS hasieratuta. %d DPD, %d Keepalive\n"
 
-#: dtls.c:689
+#: dtls.c:695
 msgid "Attempt new DTLS connection\n"
 msgstr "DTLS konexio berriaren saiakera\n"
 
-#: dtls.c:716
+#: dtls.c:722
 #, c-format
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
 msgstr "DTLSren 0x%02x paketea (%d byte) jasota\n"
 
-#: dtls.c:730
+#: dtls.c:736
 msgid "Got DTLS DPD request\n"
 msgstr "DTLS DPD eskaera lortuta\n"
 
-#: dtls.c:736
+#: dtls.c:742
 msgid "Failed to send DPD response. Expect disconnect\n"
 msgstr "Huts egin du DPD erantzuna bidaltzean. Deskonektatzea espero da\n"
 
-#: dtls.c:740
+#: dtls.c:746
 msgid "Got DTLS DPD response\n"
 msgstr "DTLS DPD erantzuna jasota\n"
 
-#: dtls.c:744
+#: dtls.c:750
 msgid "Got DTLS Keepalive\n"
 msgstr "DTLS Keepalive jasota\n"
 
-#: dtls.c:749
+#: dtls.c:755
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
 msgstr "%02x DTLS pakete mota ezezaguna, %d luzera\n"
 
-#: dtls.c:770
+#: dtls.c:776
 msgid "DTLS rekey due\n"
 msgstr "DTLSren gakoa birnegoziatzeko zain\n"
 
-#: dtls.c:777
+#: dtls.c:783
 msgid "DTLS Rehandshake failed; reconnecting.\n"
 msgstr "Huts egin du DTLS berriro negoziatzean. Birkonektatzen.\n"
 
-#: dtls.c:786
+#: dtls.c:792
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
 msgstr "DTLSren DPDak hildako parekoa atzeman du\n"
 
-#: dtls.c:792
+#: dtls.c:798
 msgid "Send DTLS DPD\n"
 msgstr "Bidali DTLS DPD\n"
 
-#: dtls.c:797
+#: dtls.c:803
 msgid "Failed to send DPD request. Expect disconnect\n"
 msgstr "Huts egin du DPD eskaera bidaltzean. Deskonektatzea espero da\n"
 
-#: dtls.c:810
+#: dtls.c:816
 msgid "Send DTLS Keepalive\n"
 msgstr "Bidali DTLS Keepalive\n"
 
-#: dtls.c:815
+#: dtls.c:821
 msgid "Failed to send keepalive request. Expect disconnect\n"
 msgstr "Huts egin du Keepalive eskaera bidaltzean. Deskonektatzea espero da\n"
 
-#: dtls.c:850
+#: dtls.c:856
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
 msgstr "DTLSek idazketaren %d errorea jaso du. SSLra itzultzen\n"
 
-#: dtls.c:865
+#: dtls.c:871
 #, c-format
 msgid "DTLS got write error: %s. Falling back to SSL\n"
 msgstr "DTLSek idazketaren errorea jaso du: %s. SSLra itzultzen\n"
 
-#: dtls.c:882
+#: dtls.c:888
 #, c-format
 msgid "Sent DTLS packet of %d bytes; DTLS send returned %d\n"
 msgstr "DTLS paketea bidalita (%d byte). DTLSren bidalketak %d itzuli du\n"
 
-#: dtls.c:894
+#: dtls.c:900
 msgid "Built against SSL library with no Cisco DTLS support\n"
 msgstr "SSL liburutegiarekin eraikita, Cisco-ren DTLS euskarririk gabe.\n"
 
@@ -563,11 +568,11 @@ msgstr "Huts egin du SSL socket-etik irakurtzean: %s\n"
 msgid "Could not extract expiration time of certificate\n"
 msgstr "Ezin izan da ziurtagiritik iraungitze-data erauzi\n"
 
-#: gnutls.c:208 openssl.c:1322
+#: gnutls.c:208 openssl.c:1296
 msgid "Client certificate has expired at"
 msgstr "Bezeroaren ziurtagiria iraungituta: "
 
-#: gnutls.c:210 openssl.c:1327
+#: gnutls.c:210 openssl.c:1301
 msgid "Client certificate expires soon at"
 msgstr "Bezeroaren ziurtagiria iraungitze-data laster: "
 
@@ -601,377 +606,372 @@ msgstr "Huts egin du ziurtagiria memorian irakurtzean: %s\n"
 msgid "Failed to setup PKCS#12 data structure: %s\n"
 msgstr "Huts egin du PKCS#12 datuen egitura konfiguratzean: %s\n"
 
-#: gnutls.c:338
-#, c-format
-msgid "Failed to import PKCS#12 file: %s\n"
-msgstr "Huts egin du PKCS#12 fitxategia inportatzean: %s\n"
-
-#: gnutls.c:355 openssl.c:459
+#: gnutls.c:350 openssl.c:459
 msgid "Failed to decrypt PKCS#12 certificate file\n"
 msgstr "Huts egin du PKCS#12 ziurtagiri-fitxategia desenkriptatzean\n"
 
-#: gnutls.c:359 openssl.c:462
+#: gnutls.c:354 openssl.c:462
 msgid "Enter PKCS#12 pass phrase:"
 msgstr "Sartu PKCS#12 pasaesaldia:"
 
-#: gnutls.c:383
+#: gnutls.c:377
 #, c-format
 msgid "Failed to process PKCS#12 file: %s\n"
 msgstr "Huts egin du PKCS#12 fitxategia prozesatzean: %s\n"
 
-#: gnutls.c:395
+#: gnutls.c:389
 #, c-format
 msgid "Failed to load PKCS#12 certificate: %s\n"
 msgstr "Huts egin du PKCS#12 ziurtagiria kargatzean: %s\n"
 
-#: gnutls.c:555
+#: gnutls.c:549
 #, c-format
 msgid "Importing X509 certificate failed: %s\n"
 msgstr "Huts egin du X509 ziurtagiria inportatzean: %s\n"
 
-#: gnutls.c:565
+#: gnutls.c:559
 #, c-format
 msgid "Setting PKCS#11 certificate failed: %s\n"
 msgstr "Huts egin du PKCS#11 ziurtagiria ezartzean: %s\n"
 
-#: gnutls.c:605
+#: gnutls.c:599
 #, c-format
 msgid "Could not initialise MD5 hash: %s\n"
 msgstr "Ezin izan da MD5 hash-a hasieratu: %s\n"
 
-#: gnutls.c:615
+#: gnutls.c:609
 #, c-format
 msgid "MD5 hash error: %s\n"
 msgstr "MD5 hash-aren errorea: %s\n"
 
-#: gnutls.c:673
+#: gnutls.c:667
 msgid "Missing DEK-Info: header from OpenSSL encrypted key\n"
 msgstr "Enkriptatutako gakoaren OpenSSL 'DEK-Info:' goiburua  falta da\n"
 
-#: gnutls.c:680
+#: gnutls.c:674
 msgid "Cannot determine PEM encryption type\n"
 msgstr "Ezin da PEM enkriptatze mota zehaztu\n"
 
-#: gnutls.c:693
+#: gnutls.c:687
 #, c-format
 msgid "Unsupported PEM encryption type: %s\n"
 msgstr "Onartu gabeko PEM enkriptatze mota: %s\n"
 
-#: gnutls.c:718 gnutls.c:731
+#: gnutls.c:712 gnutls.c:725
 msgid "Invalid salt in encrypted PEM file\n"
 msgstr "Baliogabeko hazia enkriptatutako PEM fitxategian\n"
 
-#: gnutls.c:755
+#: gnutls.c:749
 #, c-format
 msgid "Error base64-decoding encrypted PEM file: %s\n"
 msgstr "Errorea enkriptatutako PEM fitxategia base64 moduan deskodetzean: %s\n"
 
-#: gnutls.c:763
+#: gnutls.c:757
 msgid "Encrypted PEM file too short\n"
 msgstr "Enkriptatutako PEM fitxategia laburregia\n"
 
-#: gnutls.c:791
+#: gnutls.c:785
 #, c-format
 msgid "Failed to initialise cipher for decrypting PEM file: %s\n"
 msgstr ""
 "Huts egin du desenkriptatutako PEM fitxategia zifratzeko hasieratzean: %s\n"
 
-#: gnutls.c:802
+#: gnutls.c:796
 #, c-format
 msgid "Failed to decrypt PEM key: %s\n"
 msgstr "Huts egin du PEM gakoa desenkriptatzean: %s\n"
 
-#: gnutls.c:854
+#: gnutls.c:848
 msgid "Decrypting PEM key failed\n"
 msgstr "Huts egin du PEM gakoa desenkriptatzean\n"
 
-#: gnutls.c:859 gnutls.c:1297 openssl.c:385
+#: gnutls.c:853 gnutls.c:1288 openssl.c:385
 msgid "Enter PEM pass phrase:"
 msgstr "Sartu PEM pasaesaldia:"
 
-#: gnutls.c:913 openssl.c:736
+#: gnutls.c:907 openssl.c:739
 msgid "This binary built without PKCS#11 support\n"
 msgstr "Bitar hau PKCS#11 euskarririk gabe eraikita dago\n"
 
-#: gnutls.c:963
+#: gnutls.c:957
 #, c-format
 msgid "Using PKCS#11 certificate %s\n"
 msgstr "'%s' PKCS#11 ziurtagiria erabiltzen\n"
 
-#: gnutls.c:976
+#: gnutls.c:970
 #, c-format
 msgid "Error loading certificate from PKCS#11: %s\n"
 msgstr "Errorea PKCS#11-tik ziurtagiria kargatzean: %s\n"
 
-#: gnutls.c:987 openssl.c:741
+#: gnutls.c:981 openssl.c:744
 #, c-format
 msgid "Using certificate file %s\n"
 msgstr "'%s' ziurtagiri-fitxategia erabiltzen\n"
 
-#: gnutls.c:1016
+#: gnutls.c:1009
 msgid "PKCS#11 file contained no certificate\n"
 msgstr "PKCS#11 fitxategiak ez dauka ziurtagiririk\n"
 
-#: gnutls.c:1042
+#: gnutls.c:1035
 msgid "No certificate found in file"
 msgstr "Ez da ziurtagiririk aurkitu fitxategian"
 
-#: gnutls.c:1047
+#: gnutls.c:1040
 #, c-format
 msgid "Loading certificate failed: %s\n"
 msgstr "Huts egin du ziurtagiria kargatzean: %s\n"
 
-#: gnutls.c:1062
+#: gnutls.c:1055
 #, c-format
 msgid "Using PKCS#11 key %s\n"
 msgstr "'%s' PKCS#11 gakoa erabiltzen\n"
 
-#: gnutls.c:1067
+#: gnutls.c:1060
 #, c-format
 msgid "Error initialising PKCS#11 key structure: %s\n"
 msgstr "Errorea PKCS#12 gako-egitura hasieratzean: %s\n"
 
-#: gnutls.c:1157
+#: gnutls.c:1150
 #, c-format
 msgid "Error importing PKCS#11 URL %s: %s\n"
 msgstr "Errorea '%s' PKCS#11 URLa inportatzean: %s\n"
 
-#: gnutls.c:1167
+#: gnutls.c:1160
 #, c-format
 msgid "Error initialising private key structure: %s\n"
 msgstr "Errorea gako pribatuaren egitura hasieratzean: %s\n"
 
-#: gnutls.c:1177
+#: gnutls.c:1170
 #, c-format
 msgid "Error importing PKCS#11 key into private key structure: %s\n"
 msgstr "Errorea PKCS#11 gakoa gako pribatuaren egiturara inportatzean: %s\n"
 
-#: gnutls.c:1205
+#: gnutls.c:1198
 #, c-format
 msgid "Using private key file %s\n"
 msgstr "'%s' gako pribatuaren fitxategia erabiltzen\n"
 
-#: gnutls.c:1218 openssl.c:570
+#: gnutls.c:1209 openssl.c:570
 msgid "This version of OpenConnect was built without TPM support\n"
 msgstr "Openconnect-en bertsio hau 'TPM' euskarririk gabe konpilatuta\n"
 
-#: gnutls.c:1239
+#: gnutls.c:1230
 msgid "Failed to interpret PEM file\n"
 msgstr "Huts egin du PEM fitxategia interpretatzean\n"
 
-#: gnutls.c:1258
+#: gnutls.c:1249
 #, c-format
 msgid "Failed to load PKCS#1 private key: %s\n"
 msgstr "Huts egin du PKCS#1 gako pribatua kargatzean: %s\n"
 
-#: gnutls.c:1271 gnutls.c:1285
+#: gnutls.c:1262 gnutls.c:1276
 #, c-format
 msgid "Failed to load private key as PKCS#8: %s\n"
 msgstr "Huts egin du gako pribatua PKCS#8 gisa kargatzean: %s\n"
 
-#: gnutls.c:1293
+#: gnutls.c:1284
 msgid "Failed to decrypt PKCS#8 certificate file\n"
 msgstr "Huts egin du PKCS#8 ziurtagiriaren fitxategia desenkriptatzean\n"
 
-#: gnutls.c:1307
+#: gnutls.c:1298
 #, c-format
 msgid "Failed to determine type of private key %s\n"
 msgstr "Huts egin du '%s' gako pribatuaren mota zehaztean\n"
 
-#: gnutls.c:1319
+#: gnutls.c:1310
 #, c-format
 msgid "Failed to get key ID: %s\n"
 msgstr "Huts egin du ID gakoa eskuratzean: %s\n"
 
-#: gnutls.c:1364
+#: gnutls.c:1355
 #, c-format
 msgid "Error signing test data with private key: %s\n"
 msgstr "Errorea probako datuak gako pribatuarekin sinatzean: %s\n"
 
-#: gnutls.c:1379
+#: gnutls.c:1370
 #, c-format
 msgid "Error validating signature against certificate: %s\n"
 msgstr "Errorea ziurtagiriaren aurka sinadura egiaztatzean: %s\n"
 
-#: gnutls.c:1403
+#: gnutls.c:1394
 msgid "No SSL certificate found to match private key\n"
 msgstr "Ez da gako pribatuarekin bat datorren SSL ziurtagiririk aurkitu\n"
 
-#: gnutls.c:1414 openssl.c:485 openssl.c:628
+#: gnutls.c:1405 openssl.c:485 openssl.c:628
 #, c-format
 msgid "Using client certificate '%s'\n"
 msgstr "'%s' ziurtagiriaren bezeroa erabiltzen\n"
 
-#: gnutls.c:1421
+#: gnutls.c:1412
 #, c-format
 msgid "Setting certificate recovation list failed: %s\n"
 msgstr "Huts egin du ziurtagiriaren errebokazio-zerrenda ezartzean: %s\n"
 
-#: gnutls.c:1442 gnutls.c:1452
+#: gnutls.c:1433 gnutls.c:1443
 msgid "Failed to allocate memory for certificate\n"
 msgstr "Huts egin du memoria esleitzean ziurtagiriarentzako\n"
 
-#: gnutls.c:1488
+#: gnutls.c:1479
 msgid ""
 "WARNING: GnuTLS returned incorrect issuer certs; authentication may fail!\n"
 msgstr ""
 "Abisua: GNUTLS-ek ziurtagirien okerreko jaulkitzailea itzuli du. "
 "Autentifikazioak huts egin lezake\n"
 
-#: gnutls.c:1513
+#: gnutls.c:1507
 #, c-format
 msgid "Got next CA '%s' from PKCS11\n"
 msgstr "'%s' ZE hau lortu da PKCS#11-tik\n"
 
-#: gnutls.c:1541
+#: gnutls.c:1533
 msgid "Failed to allocate memory for supporting certificates\n"
 msgstr "Huts egin du ziurtagiriak onartzeko memoria esleitzean\n"
 
-#: gnutls.c:1564
+#: gnutls.c:1556
 #, c-format
 msgid "Adding supporting CA '%s'\n"
 msgstr "'%s' ZE euskarria gehitzen\n"
 
-#: gnutls.c:1592
+#: gnutls.c:1584
 #, c-format
 msgid "Setting certificate failed: %s\n"
 msgstr "Huts egin du ziurtagiriaren ezarpenak: %s\n"
 
-#: gnutls.c:1724
+#: gnutls.c:1717
 msgid "Server presented no certificate\n"
 msgstr "Zerbitzariak ez du ziurtagiririk aurkeztu\n"
 
-#: gnutls.c:1736
+#: gnutls.c:1729
 msgid "Could not calculate SHA1 of server's certificate\n"
 msgstr "Ezin izan da zerbitzariaren ziurtagiriaren SHA1 kalkulatu\n"
 
-#: gnutls.c:1744 openssl.c:936
+#: gnutls.c:1737 openssl.c:910
 #, c-format
 msgid "Server SSL certificate didn't match: %s\n"
 msgstr "SSL zerbitzariaren ziurtagiria ez dator bat: %s\n"
 
-#: gnutls.c:1752
+#: gnutls.c:1745
 msgid "Error checking server cert status\n"
 msgstr "Errorea zerbitzariaren ziurtagiriaren egoera aztertzean\n"
 
-#: gnutls.c:1757
+#: gnutls.c:1750
 msgid "certificate revoked"
 msgstr "ziurtagiria errebokatuta"
 
-#: gnutls.c:1759
+#: gnutls.c:1752
 msgid "signer not found"
 msgstr "ez da sinatzailerik aurkitu"
 
-#: gnutls.c:1761
+#: gnutls.c:1754
 msgid "signer not a CA certificate"
 msgstr "sinatzailea ez da ZE-ren ziurtagiri bat"
 
-#: gnutls.c:1763
+#: gnutls.c:1756
 msgid "insecure algorithm"
 msgstr "algoritmo ez-segurua"
 
-#: gnutls.c:1765
+#: gnutls.c:1758
 msgid "certificate not yet activated"
 msgstr "ziurtagiria ez da oraindik aktibatu"
 
-#: gnutls.c:1767
+#: gnutls.c:1760
 msgid "certificate expired"
 msgstr "ziurtagiria iraungituta"
 
 #. If this is set and no other reason, it apparently means
 #. that signature verification failed. Not entirely sure
 #. why we don't just set a bit for that too.
-#: gnutls.c:1772
+#: gnutls.c:1765
 msgid "signature verification failed"
 msgstr "huts egin du sinadura egiaztatzean"
 
-#: gnutls.c:1776
+#: gnutls.c:1769
 msgid "Error initialising X509 cert structure\n"
 msgstr "Errorea X509 ziurtagiriaren egitura hasieratzean\n"
 
-#: gnutls.c:1782
+#: gnutls.c:1775
 msgid "Error importing server's cert\n"
 msgstr "Errorea zerbitzariaren ziurtagiria inportatzean\n"
 
-#: gnutls.c:1833 openssl.c:1234
+#: gnutls.c:1826 openssl.c:1208
 msgid "certificate does not match hostname"
 msgstr "ziurtagiria ez dator bat ostalari-izenarekin"
 
-#: gnutls.c:1838 openssl.c:1238
+#: gnutls.c:1831 openssl.c:1212
 #, c-format
 msgid "Server certificate verify failed: %s\n"
 msgstr "Huts egin du zerbitzariaren ziurtagiria egiaztatzean: %s\n"
 
-#: gnutls.c:1918
+#: gnutls.c:1913
 msgid "Failed to allocate memory for cafile certs\n"
 msgstr "Huts egin du cafile ziurtagirientzako memoria esleitzean\n"
 
-#: gnutls.c:1939
+#: gnutls.c:1934
 #, c-format
 msgid "Failed to read certs from cafile: %s\n"
 msgstr "Huts egin du cafile-tik ziurtagiriak irakurtzean: %s\n"
 
-#: gnutls.c:1955
+#: gnutls.c:1950
 #, c-format
 msgid "Failed to open CA file '%s': %s\n"
 msgstr "Huts egin du '%s' ZE fitxategia irekitzean: %s\n"
 
-#: gnutls.c:1968 openssl.c:1381
+#: gnutls.c:1963 openssl.c:1355
 msgid "Loading certificate failed. Aborting.\n"
 msgstr "Huts egin du ziurtagiria kargatzean. Bertan behera uzten.\n"
 
-#: gnutls.c:2000
+#: gnutls.c:1995
 #, c-format
 msgid "Failed to set TLS priority string: %s\n"
 msgstr "Huts egin du TLS--ren lehentasunaren katea ezartzean: %s\n"
 
-#: gnutls.c:2012 openssl.c:1485
+#: gnutls.c:2007 openssl.c:1460
 #, c-format
 msgid "SSL negotiation with %s\n"
 msgstr "SSL '%s'(r)ekin negoziatzen\n"
 
-#: gnutls.c:2056 openssl.c:1511
+#: gnutls.c:2051 openssl.c:1486
 msgid "SSL connection cancelled\n"
 msgstr "SSL konexioa bertan behera utzita\n"
 
-#: gnutls.c:2063
+#: gnutls.c:2058
 #, c-format
 msgid "SSL connection failure: %s\n"
 msgstr "SSL konexioaren hutsegitea: %s\n"
 
-#: gnutls.c:2072
+#: gnutls.c:2067
 #, c-format
 msgid "GnuTLS non-fatal return during handshake: %s\n"
 msgstr "GnuTLS-ren itzulera ez-larria negoziazioan: %s\n"
 
-#: gnutls.c:2078 openssl.c:1535
+#: gnutls.c:2073 openssl.c:1510
 #, c-format
 msgid "Connected to HTTPS on %s\n"
 msgstr "HTTPSra konektatuta '%s'(e)n\n"
 
-#: gnutls.c:2081
+#: gnutls.c:2076
 #, c-format
 msgid "Renegotiated SSL on %s\n"
 msgstr "SSL berriro negoziatuta %s(e)n\n"
 
-#: gnutls.c:2278
+#: gnutls.c:2295
 #, c-format
 msgid "PIN required for %s"
 msgstr "'%s'(r)en PINa behar da"
 
-#: gnutls.c:2288
+#: gnutls.c:2305
 msgid "Wrong PIN"
 msgstr "Okerreko PINa"
 
-#: gnutls.c:2291
+#: gnutls.c:2308
 msgid "This is the final try before locking!"
 msgstr "Azken saiakera da blokeatu aurretik."
 
-#: gnutls.c:2293
+#: gnutls.c:2310
 msgid "Only a few tries left before locking!"
 msgstr "Saiakera gutxi batzuk falta dira blokeatu aurretik."
 
-#: gnutls.c:2298
+#: gnutls.c:2315
 msgid "Enter PIN:"
 msgstr "Sartu PINa:"
 
@@ -1306,215 +1306,215 @@ msgstr ""
 msgid "Failed to exec CSD script %s\n"
 msgstr "Huts gin du '%s' CSD script-a exekutatzean\n"
 
-#: http.c:927
+#: http.c:934
 #, c-format
 msgid "Failed to parse redirected URL '%s': %s\n"
 msgstr "Huts egin du birbideratutako '%s' URLa analizatzean: %s\n"
 
-#: http.c:951
+#: http.c:958
 #, c-format
 msgid "Cannot follow redirection to non-https URL '%s'\n"
 msgstr "Ezin da https ez den '%s' URLaren birbideraketara jarraipenik egin\n"
 
-#: http.c:979
+#: http.c:986
 #, c-format
 msgid "Allocating new path for relative redirect failed: %s\n"
 msgstr ""
 "Huts egin du birbideraketa erlatiboaren bide-izen berria esleitzean: %s\n"
 
-#: http.c:1142
+#: http.c:1149
 #, c-format
 msgid "Unexpected %d result from server\n"
 msgstr "Ustekabeko %d emaitz zerbitzaritik\n"
 
-#: http.c:1169
+#: http.c:1176
 msgid "Unknown response from server\n"
 msgstr "Zerbitzariaren erantzuna ezezaguna\n"
 
-#: http.c:1292
+#: http.c:1299
 msgid "Server requested SSL client certificate after one was provided\n"
 msgstr "Zerbitzariak SSL bezeroaren ziurtagiria eskatu du bat eman ondoren\n"
 
-#: http.c:1296
+#: http.c:1303
 msgid "Server requested SSL client certificate; none was configured\n"
 msgstr ""
 "Zerbitzariak SSL bezeroaren ziurtagiria eskatu du: bat ere ez dago "
 "konfiguratuta\n"
 
-#: http.c:1312
+#: http.c:1319
 msgid "XML POST enabled\n"
 msgstr "XML POST gaituta\n"
 
-#: http.c:1355
+#: http.c:1362
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
 msgstr "'%s' freskatzen segundo 1en ondoren...\n"
 
-#: http.c:1575
+#: http.c:1582
 msgid "request granted"
 msgstr "eskaera baimenduta"
 
-#: http.c:1576
+#: http.c:1583
 msgid "general failure"
 msgstr "hutsegite orokorra"
 
-#: http.c:1577
+#: http.c:1584
 msgid "connection not allowed by ruleset"
 msgstr "arau-multzoak ez du konexioa baimendu"
 
-#: http.c:1578
+#: http.c:1585
 msgid "network unreachable"
 msgstr "sarea atziezina"
 
-#: http.c:1579
+#: http.c:1586
 msgid "host unreachable"
 msgstr "ostalaria atziezina"
 
-#: http.c:1580
+#: http.c:1587
 msgid "connection refused by destination host"
 msgstr "helburuko ostalariak konexioa ukatu du"
 
-#: http.c:1581
+#: http.c:1588
 msgid "TTL expired"
 msgstr "TTL iraungituta"
 
-#: http.c:1582
+#: http.c:1589
 msgid "command not supported / protocol error"
 msgstr "komandoa ez dago onartuta / protokoloaren errorea"
 
-#: http.c:1583
+#: http.c:1590
 msgid "address type not supported"
 msgstr "helbide mota ez dago onartuta"
 
-#: http.c:1593
+#: http.c:1600
 msgid "SOCKS server requested username/password but we have none\n"
 msgstr ""
 
-#: http.c:1601
+#: http.c:1608
 msgid "Username and password for SOCKS authentication must be < 255 bytes\n"
 msgstr ""
 
-#: http.c:1616 http.c:1672
+#: http.c:1623 http.c:1679
 #, c-format
 msgid "Error writing auth request to SOCKS proxy: %s\n"
 msgstr "Errorea autentifikazioaren eskaera SOCKS proxy-an idaztean: %s\n"
 
-#: http.c:1624 http.c:1679
+#: http.c:1631 http.c:1686
 #, c-format
 msgid "Error reading auth response from SOCKS proxy: %s\n"
 msgstr "Errorea autentifikazioaren erantzuna SOCKS proxy-tik irakurtzean: %s\n"
 
-#: http.c:1631 http.c:1685
+#: http.c:1638 http.c:1692
 #, c-format
 msgid "Unexpected auth response from SOCKS proxy: %02x %02x\n"
 msgstr "Ustekabeko autentifikazioaren eskaera SOCKS proxy-tik: %02x %02x\n"
 
-#: http.c:1637
+#: http.c:1644
 msgid "Authenticated to SOCKS server using password\n"
 msgstr ""
 
-#: http.c:1641
+#: http.c:1648
 msgid "Password authentication to SOCKS server failed\n"
 msgstr ""
 
-#: http.c:1697 http.c:1704
+#: http.c:1704 http.c:1711
 msgid "SOCKS server requested GSSAPI authentication\n"
 msgstr ""
 
-#: http.c:1710
+#: http.c:1717
 msgid "SOCKS server requested password authentication\n"
 msgstr ""
 
-#: http.c:1717
+#: http.c:1724
 msgid "SOCKS server requires authentication\n"
 msgstr ""
 
-#: http.c:1719 http.c:1959
+#: http.c:1726 http.c:1966
 msgid "This version of OpenConnect was built without GSSAPI support\n"
 msgstr ""
 
-#: http.c:1724
+#: http.c:1731
 #, c-format
 msgid "SOCKS server requested unknown authentication type %02x\n"
 msgstr ""
 
-#: http.c:1730
+#: http.c:1737
 #, c-format
 msgid "Requesting SOCKS proxy connection to %s:%d\n"
 msgstr "SOCKS proxy-aren '%s:%d'(r)ekiko konexioa eskatzen\n"
 
-#: http.c:1745
+#: http.c:1752
 #, c-format
 msgid "Error writing connect request to SOCKS proxy: %s\n"
 msgstr "Errorea konexioaren eskaera SOCKS proxyan idaztean: %s\n"
 
-#: http.c:1753 http.c:1795
+#: http.c:1760 http.c:1802
 #, c-format
 msgid "Error reading connect response from SOCKS proxy: %s\n"
 msgstr "Errorea SOCKS proxytik konexioaren erantzuna irakurtzean: %s\n"
 
-#: http.c:1759
+#: http.c:1766
 #, c-format
 msgid "Unexpected connect response from SOCKS proxy: %02x %02x...\n"
 msgstr "Ustekabeko SOCKS proxyaren konexioaren erantzuna: %02x %02x...\n"
 
-#: http.c:1767
+#: http.c:1774
 #, c-format
 msgid "SOCKS proxy error %02x: %s\n"
 msgstr "SOCKS proxy-aren '%02x' errorea: %s\n"
 
-#: http.c:1771
+#: http.c:1778
 #, c-format
 msgid "SOCKS proxy error %02x\n"
 msgstr "SOCKS proxy-aren '%02x' errorea\n"
 
-#: http.c:1788
+#: http.c:1795
 #, c-format
 msgid "Unexpected address type %02x in SOCKS connect response\n"
 msgstr "Ustekabeko %02x helbide mota SOCKS konexioaren erantzunean\n"
 
-#: http.c:1927
+#: http.c:1934
 msgid "Proxy requested Basic authentication which is disabled by default\n"
 msgstr ""
 
-#: http.c:1949
+#: http.c:1956
 msgid "Attempting HTTP Basic authentication to proxy\n"
 msgstr ""
 
-#: http.c:1996
+#: http.c:2003
 msgid "No more authentication methods to try\n"
 msgstr ""
 
-#: http.c:2080
+#: http.c:2087
 #, c-format
 msgid "Requesting HTTP proxy connection to %s:%d\n"
 msgstr "HTTP proxy konexioa '%s:%d'(r)i eskatzen\n"
 
-#: http.c:2115
+#: http.c:2122
 #, c-format
 msgid "Sending proxy request failed: %s\n"
 msgstr "Huts egin du proxy eskaera bidaltzean: %s\n"
 
-#: http.c:2138
+#: http.c:2145
 #, c-format
 msgid "Proxy CONNECT request failed: %d\n"
 msgstr ""
 
-#: http.c:2165
+#: http.c:2172
 #, c-format
 msgid "Unknown proxy type '%s'\n"
 msgstr "'%s' proxy mota ezezaguna\n"
 
-#: http.c:2241
+#: http.c:2251
 msgid "Only http or socks(5) proxies supported\n"
 msgstr "Soilik HTTP edo socks(5) proxyak onartzen dira\n"
 
-#: library.c:405
+#: library.c:442
 #, c-format
 msgid "Failed to parse server URL '%s'\n"
 msgstr "Huts egin du '%s' zerbitzariaren URLa analizatzean\n"
 
-#: library.c:411
+#: library.c:448
 msgid "Only https:// permitted for server URL\n"
 msgstr "Soilik 'https://' baimentzen da zerbitzariaren URLan\n"
 
@@ -2211,7 +2211,7 @@ msgstr "OATH HOTP tokenaren kodea sortzen\n"
 msgid "Unable to generate OATH HOTP token code: %s\n"
 msgstr "Ezin da OATH HOTP tokenaren kodea sortu: %s\n"
 
-#: openconnect-internal.h:726 openconnect-internal.h:734
+#: openconnect-internal.h:733 openconnect-internal.h:741
 #, c-format
 msgid "ERROR: %s() called with invalid UTF-8 for '%s' argument\n"
 msgstr ""
@@ -2304,124 +2304,120 @@ msgstr "Huts egin du gako pribatua kargatzean (okerreko pasaesaldia?)\n"
 msgid "Loading private key failed (see above errors)\n"
 msgstr "Huts egin du gako pribatua kargatzean (ikus goiko erroreak)\n"
 
-#: openssl.c:763
-msgid "Read PKCS#12 failed\n"
-msgstr "Huts egin du PKCS#12 irakurtzean\n"
-
-#: openssl.c:781
+#: openssl.c:775
 msgid "Failed to load X509 certificate from keystore\n"
 msgstr "Huts egin du X509 ziurtagiria gakoen biltegitik kargatzean\n"
 
-#: openssl.c:787
+#: openssl.c:781
 msgid "Failed to use X509 certificate from keystore\n"
 msgstr "Huts egin du X509 ziurtagiria gakoen biltegitik erabiltzean\n"
 
-#: openssl.c:818
+#: openssl.c:812
 msgid "Failed to use private key from keystore\n"
 msgstr "Huts egin du gako pribatua gakoen biltegitik erabiltzean\n"
 
-#: openssl.c:834 openssl.c:870
+#: openssl.c:825
 #, c-format
 msgid "Failed to open private key file %s: %s\n"
 msgstr "Huts egin du gako pribatuaren '%s' fitxategia irekitzean: %s\n"
 
-#: openssl.c:855
+#: openssl.c:845
+msgid "Loading private key failed\n"
+msgstr ""
+
+#: openssl.c:866
 #, c-format
 msgid "Failed to identify private key type in '%s'\n"
 msgstr "Huts egin du gako pribatuaren mota identifikatzean '%s'(e)n\n"
 
-#: openssl.c:878
-msgid "Loading private key failed\n"
-msgstr ""
-
-#: openssl.c:1056
+#: openssl.c:1030
 #, c-format
 msgid "Matched DNS altname '%s'\n"
 msgstr "'%s' DNS ordezko izenarekin bat dator\n"
 
-#: openssl.c:1063
+#: openssl.c:1037
 #, c-format
 msgid "No match for altname '%s'\n"
 msgstr "Ez dago '%s' DNS ordezko izenarekin bat datorrenik\n"
 
-#: openssl.c:1077
+#: openssl.c:1051
 #, c-format
 msgid "Certificate has GEN_IPADD altname with bogus length %d\n"
 msgstr "Ziurtagiriak ordezko GEN_IPADD izena du okerreko %d luzerarekin\n"
 
-#: openssl.c:1088
+#: openssl.c:1062
 #, c-format
 msgid "Matched %s address '%s'\n"
 msgstr "%s helbide bat datoz '%s'(r)ekin\n"
 
-#: openssl.c:1095
+#: openssl.c:1069
 #, c-format
 msgid "No match for %s address '%s'\n"
 msgstr "Ez dago bat datorrenik %s '%s' helbideekin\n"
 
-#: openssl.c:1137
+#: openssl.c:1111
 #, c-format
 msgid "URI '%s' has non-empty path; ignoring\n"
 msgstr "'%s' URIak ez du hutsak ez diren bide-izenik. Ez ikusi egiten\n"
 
-#: openssl.c:1142
+#: openssl.c:1116
 #, c-format
 msgid "Matched URI '%s'\n"
 msgstr "'%s' URIarekin bat dator\n"
 
-#: openssl.c:1153
+#: openssl.c:1127
 #, c-format
 msgid "No match for URI '%s'\n"
 msgstr "Ez dago '%s' URIarekin bat datorrenik\n"
 
-#: openssl.c:1168
+#: openssl.c:1142
 #, c-format
 msgid "No altname in peer cert matched '%s'\n"
 msgstr ""
 "Ez dago '%s'(r)ekin bat datorren ordezko izenik parekoaren ziurtagirian\n"
 
-#: openssl.c:1176
+#: openssl.c:1150
 msgid "No subject name in peer cert!\n"
 msgstr "Parekoaren ziurtagiriak ez du subjektuaren izenik\n"
 
-#: openssl.c:1196
+#: openssl.c:1170
 msgid "Failed to parse subject name in peer cert\n"
 msgstr "Huts egin du parekoaren ziurtagirian subjektuaren izena analizatzean\n"
 
-#: openssl.c:1203
+#: openssl.c:1177
 #, c-format
 msgid "Peer cert subject mismatch ('%s' != '%s')\n"
 msgstr "Parekoaren ziurtagiriaren subjektua falta da ('%s' != '%s')\n"
 
-#: openssl.c:1208
+#: openssl.c:1182
 #, c-format
 msgid "Matched peer certificate subject name '%s'\n"
 msgstr "Parekoaren ziurtagiriaren '%s' subjektuaren izena bat dator\n"
 
-#: openssl.c:1288
+#: openssl.c:1262
 #, c-format
 msgid "Extra cert from cafile: '%s'\n"
 msgstr "cafile-ren ziurtagiri gehigarria: '%s'\n"
 
-#: openssl.c:1319
+#: openssl.c:1293
 msgid "Error in client cert notAfter field\n"
 msgstr "Errorea bezeroaren ziurtagiriko 'notAfter' eremuan\n"
 
-#: openssl.c:1332
+#: openssl.c:1306
 msgid "<error>"
 msgstr "<errorea>"
 
-#: openssl.c:1426
+#: openssl.c:1401
 #, c-format
 msgid "Failed to read certs from CA file '%s'\n"
 msgstr "Huts egin du '%s' ZE fitxategitik ziurtagiriak irakurtzean\n"
 
-#: openssl.c:1459
+#: openssl.c:1434
 #, c-format
 msgid "Failed to open CA file '%s'\n"
 msgstr "Huts egin du '%s' ZE fitxategia irekitzean\n"
 
-#: openssl.c:1501
+#: openssl.c:1476
 msgid "SSL connection failure\n"
 msgstr "SSL konexioaren hutsegitea\n"
 
@@ -2435,20 +2431,25 @@ msgstr "Okerreko zatitzea baztertzeak hau dauka: '%s'\n"
 msgid "Discard bad split exclude: \"%s\"\n"
 msgstr "Okerreko zatitzea baztertzeak ez dauka hau: '%s'\n"
 
-#: script.c:339 script.c:346 script.c:377
+#: script.c:367
+#, c-format
+msgid "Failed to spawn script '%s' for %s: %d\n"
+msgstr ""
+
+#: script.c:395
 #, c-format
 msgid "Failed to spawn script '%s' for %s: %s\n"
 msgstr "Huts egin du '%2$s'(r)en '%1$s' scripta sortzean: %3$s\n"
 
-#: script.c:352 script.c:391
-#, c-format
-msgid "Script '%s' returned error %d\n"
-msgstr "'%s' script-ak %d errorea itzuli du\n"
-
-#: script.c:383
+#: script.c:401
 #, c-format
 msgid "Script '%s' exited abnormally (%x)\n"
 msgstr "'%s' scripta ustekabean amaitu da (%x)\n"
+
+#: script.c:409
+#, c-format
+msgid "Script '%s' returned error %d\n"
+msgstr "'%s' script-ak %d errorea itzuli du\n"
 
 #: ssl.c:83
 msgid "Socket connect cancelled\n"
@@ -2561,7 +2562,7 @@ msgstr "Okerreko pasahitza"
 msgid "Unknown error"
 msgstr "Errore ezezaguna"
 
-#: ssl.c:732
+#: ssl.c:736
 #, c-format
 msgid "openconnect_fopen_utf8() used with unsupported mode '%s'\n"
 msgstr ""
@@ -2717,58 +2718,58 @@ msgstr "Huts egin du '%s' irekitzean\n"
 msgid "Opened tun device %s\n"
 msgstr "'%s' tun gailua irekita\n"
 
-#: tun-win32.c:183
+#: tun-win32.c:184
 #, c-format
 msgid "Failed to obtain TAP driver version: %lx\n"
 msgstr "Huts egin du TAP kontrolatzailearen bertsioa eskuratzean: %lx\n"
 
-#: tun-win32.c:188
+#: tun-win32.c:189
 #, c-format
 msgid "Error: TAP-Windows driver v9.9 or greater is required (found %ld.%ld)\n"
 msgstr ""
 "Errorea: TAP-Windows v9.9 or handiagoa den kontrolatzailea behar da. "
 "Aurkitutakoa: %ld.%ld\n"
 
-#: tun-win32.c:204
+#: tun-win32.c:206
 #, c-format
 msgid "Failed to set TAP IP addresses: %lx\n"
 msgstr "Huts egin du TAP IP helbideak ezartzean: %lx\n"
 
-#: tun-win32.c:214
+#: tun-win32.c:217
 #, c-format
 msgid "Failed to set TAP media status: %lx\n"
 msgstr "Huts egin du TAP euskarriaren egoera ezartzean: %lx\n"
 
-#: tun-win32.c:242
+#: tun-win32.c:245
 #, c-format
 msgid "Failed to read from TAP device: %lx\n"
 msgstr "Huts egin du TAP gailutik irakurtzean: %lx\n"
 
-#: tun-win32.c:253
+#: tun-win32.c:256
 #, c-format
 msgid "Failed to complete read from TAP device: %lx\n"
 msgstr "Huts egin du TAP gailutik erabat irakurtzean: %lx\n"
 
-#: tun-win32.c:274
+#: tun-win32.c:277
 #, c-format
 msgid "Wrote %ld bytes to tun\n"
 msgstr "%ld byte 'tun'-en idatzita\n"
 
-#: tun-win32.c:284
+#: tun-win32.c:287
 msgid "Waiting for tun write...\n"
 msgstr "'tun'-ek idatzi zain...\n"
 
-#: tun-win32.c:287
+#: tun-win32.c:290
 #, c-format
 msgid "Wrote %ld bytes to tun after waiting\n"
 msgstr "'tun'-en %ld byte idatzita zain egon ondoren\n"
 
-#: tun-win32.c:293
+#: tun-win32.c:296
 #, c-format
 msgid "Failed to write to TAP device: %lx\n"
 msgstr "Huts gin du TAP gailuan idaztean: %lx\n"
 
-#: tun-win32.c:318
+#: tun-win32.c:322
 msgid "Spawning tunnel scripts is not yet supported on Windows\n"
 msgstr "Tunelaren script-ak sortzea ez dago oraindik onartuta Windows-en\n"
 
@@ -2841,34 +2842,34 @@ msgstr "Ezin da '%s' ireki: %s\n"
 msgid "TUNSIFHEAD"
 msgstr "TUNSIFHEAD"
 
-#: tun.c:369
+#: tun.c:370
 #, c-format
 msgid "socketpair failed: %s\n"
 msgstr "'socketpair'-ek huts egin du: %s\n"
 
-#: tun.c:374
+#: tun.c:375
 #, c-format
 msgid "fork failed: %s\n"
 msgstr "huts egin du sardetzean: %s\n"
 
-#: tun.c:378
+#: tun.c:379
 msgid "setpgid"
 msgstr "setpgid"
 
-#: tun.c:382
+#: tun.c:383
 msgid "execl"
 msgstr "execl"
 
-#: tun.c:387
+#: tun.c:388
 msgid "(script)"
 msgstr "(script-a)"
 
-#: tun.c:430
+#: tun.c:431
 #, c-format
 msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
 msgstr "Pakete ezezaguna (%d luzerakoa) jasota: %02x %02x %02x %02x...\n"
 
-#: tun.c:447
+#: tun.c:448
 #, c-format
 msgid "Failed to write incoming packet: %s\n"
 msgstr "Huts egin du sarrerako paketea idaztean: %s\n"
