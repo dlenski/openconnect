@@ -245,6 +245,11 @@ char *openconnect__win32_strerror(DWORD err)
 	fail:
 		return strdup(_("(Error while describing error!)"));
 	}
+	nr_chars = wcslen(msgw);
+	if (nr_chars && msgw[nr_chars - 1] == 10)
+		msgw[--nr_chars] = 0;
+	if (nr_chars && msgw[nr_chars - 1] == 13)
+		msgw[--nr_chars] = 0;
 
 	nr_chars = WideCharToMultiByte(CP_UTF8, 0, msgw, -1, NULL, 0, NULL, NULL);
 
