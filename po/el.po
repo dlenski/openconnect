@@ -2946,15 +2946,3 @@ msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""
 "Ο οικοδεσπότης \"%s\" δεν αναφέρεται στις ρυθμίσεις· αντιμετωπίζεται ως "
 "ακατέργαστο όνομα οικοδεσπότη\n"
-
-#~ msgid "Failed to write to TAP device: %lx\n"
-#~ msgstr "Αποτυχία εγγραφής στην συσκευή TAP: %lx\n"
-
-#~ msgid "Failed to complete read from TAP device: %lx\n"
-#~ msgstr "Αποτυχία ολοκλήρωσης της ανάγνωσης από την συσκευή TAP: %lx\n"
-
-#~ msgid "Failed to read from TAP device: %lx\n"
-#~ msgstr "Αποτυχία ανάγνωσης από την συσκευή TAP: %lx\n"
-
-#~ msgid "Failed to set TAP IP addresses: %lx\n"
-#~ msgstr "Αποτυχία ορισμού διεύθυνσης IP για το TAP : %lx\n"

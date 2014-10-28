@@ -2927,30 +2927,3 @@ msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""
 "Host \"%s\" tidak terdaftar dalam konfig; memperlakukan sebagai nama host "
 "mentah\n"
-
-#~ msgid "Failed to write to TAP device: %lx\n"
-#~ msgstr "Gagal menulis ke perangkat TAP: %lx\n"
-
-#~ msgid "Failed to complete read from TAP device: %lx\n"
-#~ msgstr "Gagal melengkapi baca dari perangkat TAP: %lx\n"
-
-#~ msgid "Failed to read from TAP device: %lx\n"
-#~ msgstr "Gagal membaca dari perangkat TAP: %lx\n"
-
-#~ msgid "Failed to set TAP media status: %lx\n"
-#~ msgstr "Gagal menata status media TAP: %lx\n"
-
-#~ msgid "Failed to set TAP IP addresses: %lx\n"
-#~ msgstr "Gagal menata alamat IP TAP: %lx\n"
-
-#~ msgid "Failed to obtain TAP driver version: %lx\n"
-#~ msgstr "Gagal memperoleh versi driver TAP: %lx\n"
-
-#~ msgid "WaitForMultipleObjects failed: %lx\n"
-#~ msgstr "WaitForMultipleObjects gagal: %lx\n"
-
-#~ msgid "ReadConsole() error %lx\n"
-#~ msgstr "Galat ReadConsole() %lx\n"
-
-#~ msgid "CommandLineToArgvW() failed: %lx\n"
-#~ msgstr "CommandLineToArgvW() gagal: %lx\n"

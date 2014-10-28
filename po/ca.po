@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2014-10-28 15:34+0000\n"
+"POT-Creation-Date: 2014-10-28 15:50+0000\n"
 "PO-Revision-Date: 2011-09-22 22:31+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Catalan (http://www.transifex.net/projects/p/meego/team/ca/)\n"
@@ -77,7 +77,16 @@ msgstr ""
 msgid "Failed to generate OTP tokencode; disabling token\n"
 msgstr ""
 
-#: compat.c:235
+#: compat.c:243
+#, c-format
+msgid "(error 0x%x)"
+msgstr ""
+
+#: compat.c:246
+msgid "(Error while describing error!)"
+msgstr ""
+
+#: compat.c:264
 #, c-format
 msgid "ERROR: Cannot initialize sockets\n"
 msgstr ""
@@ -1249,7 +1258,7 @@ msgstr ""
 msgid "Failed to write temporary CSD script file: %s\n"
 msgstr ""
 
-#: http.c:750 main.c:1365
+#: http.c:750 main.c:1373
 #, c-format
 msgid "Failed to set uid %ld\n"
 msgstr ""
@@ -1485,363 +1494,368 @@ msgstr ""
 msgid "Only https:// permitted for server URL\n"
 msgstr ""
 
-#: main.c:302
+#: main.c:303
 #, c-format
-msgid "CommandLineToArgvW() failed: %lx\n"
+msgid "CommandLineToArgvW() failed: %s\n"
 msgstr ""
 
-#: main.c:314
+#: main.c:316
 #, c-format
 msgid "Fatal error in command line handling\n"
 msgstr ""
 
-#: main.c:349
+#: main.c:352
 #, c-format
-msgid "ReadConsole() error %lx\n"
+msgid "ReadConsole() failed: %s\n"
 msgstr ""
 
-#: main.c:360 main.c:372
+#: main.c:365
 #, c-format
 msgid "Error converting console input: %lx\n"
 msgstr ""
 
-#: main.c:366 main.c:588
+#: main.c:372 main.c:596
 #, c-format
 msgid "Allocation failure for string from stdin\n"
 msgstr ""
 
-#: main.c:527
+#: main.c:378
+#, c-format
+msgid "Error converting console input: %s\n"
+msgstr ""
+
+#: main.c:535
 #, c-format
 msgid ""
 "For assistance with OpenConnect, please see the web page at\n"
 "  http://www.infradead.org/openconnect/mail.html\n"
 msgstr ""
 
-#: main.c:536
+#: main.c:544
 #, c-format
 msgid "Using OpenSSL. Features present:"
 msgstr ""
 
-#: main.c:538
+#: main.c:546
 #, c-format
 msgid "Using GnuTLS. Features present:"
 msgstr ""
 
-#: main.c:547
+#: main.c:555
 msgid "OpenSSL ENGINE not present"
 msgstr ""
 
-#: main.c:571
+#: main.c:579
 msgid "using OpenSSL"
 msgstr ""
 
-#: main.c:575
+#: main.c:583
 #, c-format
 msgid ""
 "\n"
 "WARNING: No DTLS support in this binary. Performance will be impaired.\n"
 msgstr ""
 
-#: main.c:607
+#: main.c:615
 msgid "fgets (stdin)"
 msgstr ""
 
-#: main.c:646
+#: main.c:654
 #, c-format
 msgid "Cannot process this executable path \"%s\""
 msgstr ""
 
-#: main.c:652
+#: main.c:660
 #, c-format
 msgid "Allocation for vpnc-script path failed\n"
 msgstr ""
 
-#: main.c:663
+#: main.c:671
 #, c-format
 msgid "Usage:  openconnect [options] <server>\n"
 msgstr ""
 
-#: main.c:664
+#: main.c:672
 #, c-format
 msgid ""
 "Open client for Cisco AnyConnect VPN, version %s\n"
 "\n"
 msgstr ""
 
-#: main.c:666
+#: main.c:674
 msgid "Read options from config file"
 msgstr ""
 
-#: main.c:668
+#: main.c:676
 msgid "Continue in background after startup"
 msgstr ""
 
-#: main.c:669
+#: main.c:677
 msgid "Write the daemon's PID to this file"
 msgstr ""
 
-#: main.c:671
+#: main.c:679
 msgid "Use SSL client certificate CERT"
 msgstr ""
 
-#: main.c:672
+#: main.c:680
 msgid "Warn when certificate lifetime < DAYS"
 msgstr ""
 
-#: main.c:673
+#: main.c:681
 msgid "Use SSL private key file KEY"
 msgstr ""
 
-#: main.c:674
+#: main.c:682
 msgid "Use WebVPN cookie COOKIE"
 msgstr ""
 
-#: main.c:675
+#: main.c:683
 msgid "Read cookie from standard input"
 msgstr ""
 
-#: main.c:676
+#: main.c:684
 msgid "Enable compression (default)"
 msgstr ""
 
-#: main.c:677
+#: main.c:685
 msgid "Disable compression"
 msgstr ""
 
-#: main.c:678
+#: main.c:686
 msgid "Set minimum Dead Peer Detection interval"
 msgstr ""
 
-#: main.c:679
+#: main.c:687
 msgid "Set login usergroup"
 msgstr ""
 
-#: main.c:680
+#: main.c:688
 msgid "Display help text"
 msgstr ""
 
-#: main.c:681
+#: main.c:689
 msgid "Use IFNAME for tunnel interface"
 msgstr ""
 
-#: main.c:683
+#: main.c:691
 msgid "Use syslog for progress messages"
 msgstr ""
 
-#: main.c:685
+#: main.c:693
 msgid "Prepend timestamp to progress messages"
 msgstr ""
 
-#: main.c:687
+#: main.c:695
 msgid "Drop privileges after connecting"
 msgstr ""
 
-#: main.c:688
+#: main.c:696
 msgid "Drop privileges during CSD execution"
 msgstr ""
 
-#: main.c:689
+#: main.c:697
 msgid "Run SCRIPT instead of CSD binary"
 msgstr ""
 
-#: main.c:691
+#: main.c:699
 msgid "Request MTU from server"
 msgstr ""
 
-#: main.c:692
+#: main.c:700
 msgid "Indicate path MTU to/from server"
 msgstr ""
 
-#: main.c:693
+#: main.c:701
 msgid "Set key passphrase or TPM SRK PIN"
 msgstr ""
 
-#: main.c:694
+#: main.c:702
 msgid "Key passphrase is fsid of file system"
 msgstr ""
 
-#: main.c:695
+#: main.c:703
 msgid "Set proxy server"
 msgstr ""
 
-#: main.c:696
+#: main.c:704
 msgid "Set proxy authentication methods"
 msgstr ""
 
-#: main.c:697
+#: main.c:705
 msgid "Disable proxy"
 msgstr ""
 
-#: main.c:698
+#: main.c:706
 msgid "Use libproxy to automatically configure proxy"
 msgstr ""
 
-#: main.c:700
+#: main.c:708
 msgid "(NOTE: libproxy disabled in this build)"
 msgstr ""
 
-#: main.c:702
+#: main.c:710
 msgid "Require perfect forward secrecy"
 msgstr ""
 
-#: main.c:703
+#: main.c:711
 msgid "Less output"
 msgstr ""
 
-#: main.c:704
+#: main.c:712
 msgid "Set packet queue limit to LEN pkts"
 msgstr ""
 
-#: main.c:705
+#: main.c:713
 msgid "Shell command line for using a vpnc-compatible config script"
 msgstr ""
 
-#: main.c:706
+#: main.c:714
 msgid "default"
 msgstr ""
 
-#: main.c:708
+#: main.c:716
 msgid "Pass traffic to 'script' program, not tun"
 msgstr ""
 
-#: main.c:710
+#: main.c:718
 msgid "Set login username"
 msgstr ""
 
-#: main.c:711
+#: main.c:719
 msgid "Report version number"
 msgstr ""
 
-#: main.c:712
+#: main.c:720
 msgid "More output"
 msgstr ""
 
-#: main.c:713
+#: main.c:721
 msgid "Dump HTTP authentication traffic (implies --verbose"
 msgstr ""
 
-#: main.c:714
+#: main.c:722
 msgid "XML config file"
 msgstr ""
 
-#: main.c:715
+#: main.c:723
 msgid "Choose authentication login selection"
 msgstr ""
 
-#: main.c:716
+#: main.c:724
 msgid "Authenticate only and print login info"
 msgstr ""
 
-#: main.c:717
+#: main.c:725
 msgid "Fetch webvpn cookie only; don't connect"
 msgstr ""
 
-#: main.c:718
+#: main.c:726
 msgid "Print webvpn cookie before connecting"
 msgstr ""
 
-#: main.c:719
+#: main.c:727
 msgid "Cert file for server verification"
 msgstr ""
 
-#: main.c:720
+#: main.c:728
 msgid "Do not ask for IPv6 connectivity"
 msgstr ""
 
-#: main.c:721
+#: main.c:729
 msgid "OpenSSL ciphers to support for DTLS"
 msgstr ""
 
-#: main.c:722
+#: main.c:730
 msgid "Disable DTLS"
 msgstr ""
 
-#: main.c:723
+#: main.c:731
 msgid "Disable HTTP connection re-use"
 msgstr ""
 
-#: main.c:724
+#: main.c:732
 msgid "Disable password/SecurID authentication"
 msgstr ""
 
-#: main.c:725
+#: main.c:733
 msgid "Do not require server SSL cert to be valid"
 msgstr ""
 
-#: main.c:726
+#: main.c:734
 msgid "Do not attempt XML POST authentication"
 msgstr ""
 
-#: main.c:727
+#: main.c:735
 msgid "Do not expect user input; exit if it is required"
 msgstr ""
 
-#: main.c:728
+#: main.c:736
 msgid "Read password from standard input"
 msgstr ""
 
-#: main.c:729
+#: main.c:737
 msgid "Software token type: rsa, totp or hotp"
 msgstr ""
 
-#: main.c:730
+#: main.c:738
 msgid "Software token secret"
 msgstr ""
 
-#: main.c:732
+#: main.c:740
 msgid "(NOTE: libstoken (RSA SecurID) disabled in this build)"
 msgstr ""
 
-#: main.c:735
+#: main.c:743
 msgid "(NOTE: liboath (TOTP,HOTP) disabled in this build)"
 msgstr ""
 
-#: main.c:737
+#: main.c:745
 msgid "Connection retry timeout in seconds"
 msgstr ""
 
-#: main.c:738
+#: main.c:746
 msgid "Server's certificate SHA1 fingerprint"
 msgstr ""
 
-#: main.c:739
+#: main.c:747
 msgid "HTTP header User-Agent: field"
 msgstr ""
 
-#: main.c:740
+#: main.c:748
 msgid "OS type (linux,linux-64,win,...) to report"
 msgstr ""
 
-#: main.c:741
+#: main.c:749
 msgid "Set local port for DTLS datagrams"
 msgstr ""
 
-#: main.c:762
+#: main.c:770
 #, c-format
 msgid "Failed to allocate string\n"
 msgstr ""
 
-#: main.c:823
+#: main.c:831
 #, c-format
 msgid "Failed to get line from config file: %s\n"
 msgstr ""
 
-#: main.c:863
+#: main.c:871
 #, c-format
 msgid "Unrecognised option at line %d: '%s'\n"
 msgstr ""
 
-#: main.c:873
+#: main.c:881
 #, c-format
 msgid "Option '%s' does not take an argument at line %d\n"
 msgstr ""
 
-#: main.c:877
+#: main.c:885
 #, c-format
 msgid "Option '%s' requires an argument at line %d\n"
 msgstr ""
 
-#: main.c:933
+#: main.c:941
 #, c-format
 msgid ""
 "WARNING: This version of openconnect was built without iconv\n"
@@ -1849,168 +1863,168 @@ msgid ""
 "         set \"%s\". Expect strangeness.\n"
 msgstr ""
 
-#: main.c:940
+#: main.c:948
 #, c-format
 msgid ""
 "WARNING: This version of openconnect is %s but\n"
 "         the libopenconnect library is %s\n"
 msgstr ""
 
-#: main.c:950
+#: main.c:958
 #, c-format
 msgid "Failed to allocate vpninfo structure\n"
 msgstr ""
 
-#: main.c:986 main.c:1000
+#: main.c:994 main.c:1008
 #, c-format
 msgid "Invalid user \"%s\"\n"
 msgstr ""
 
-#: main.c:1015
+#: main.c:1023
 #, c-format
 msgid "Cannot use 'config' option inside config file\n"
 msgstr ""
 
-#: main.c:1023
+#: main.c:1031
 #, c-format
 msgid "Cannot open config file '%s': %s\n"
 msgstr ""
 
-#: main.c:1111 main.c:1120
+#: main.c:1119 main.c:1128
 #, c-format
 msgid "MTU %d too small\n"
 msgstr ""
 
-#: main.c:1144
+#: main.c:1152
 #, c-format
 msgid ""
 "Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
 "If this helps, please report to <openconnect-devel@lists.infradead.org>.\n"
 msgstr ""
 
-#: main.c:1164
+#: main.c:1172
 #, c-format
 msgid "Queue length zero not permitted; using 1\n"
 msgstr ""
 
-#: main.c:1178
+#: main.c:1186
 #, c-format
 msgid "OpenConnect version %s\n"
 msgstr ""
 
-#: main.c:1206
+#: main.c:1214
 #, c-format
 msgid "Invalid software token mode \"%s\"\n"
 msgstr ""
 
-#: main.c:1216
+#: main.c:1224
 #, c-format
 msgid "Invalid OS identity \"%s\"\n"
 msgstr ""
 
-#: main.c:1237
+#: main.c:1245
 #, c-format
 msgid "Too many arguments on command line\n"
 msgstr ""
 
-#: main.c:1240
+#: main.c:1248
 #, c-format
 msgid "No server specified\n"
 msgstr ""
 
-#: main.c:1256
+#: main.c:1264
 #, c-format
 msgid "This version of openconnect was built without libproxy support\n"
 msgstr ""
 
-#: main.c:1283
+#: main.c:1291
 #, c-format
 msgid "Error opening cmd pipe\n"
 msgstr ""
 
-#: main.c:1316
+#: main.c:1324
 #, c-format
 msgid "Failed to obtain WebVPN cookie\n"
 msgstr ""
 
-#: main.c:1340
+#: main.c:1348
 #, c-format
 msgid "Creating SSL connection failed\n"
 msgstr ""
 
-#: main.c:1350
+#: main.c:1358
 #, c-format
 msgid "Set up tun script failed\n"
 msgstr ""
 
-#: main.c:1357
+#: main.c:1365
 #, c-format
 msgid "Set up tun device failed\n"
 msgstr ""
 
-#: main.c:1374
+#: main.c:1382
 #, c-format
 msgid "Set up DTLS failed; using SSL instead\n"
 msgstr ""
 
-#: main.c:1378
+#: main.c:1386
 #, c-format
 msgid "Connected %s as %s%s%s, using %s\n"
 msgstr ""
 
-#: main.c:1388
+#: main.c:1396
 msgid "No --script argument provided; DNS and routing are not configured\n"
 msgstr ""
 
-#: main.c:1390
+#: main.c:1398
 msgid "See http://www.infradead.org/openconnect/vpnc-script.html\n"
 msgstr ""
 
-#: main.c:1403
+#: main.c:1411
 #, c-format
 msgid "Failed to open '%s' for write: %s\n"
 msgstr ""
 
-#: main.c:1415
+#: main.c:1423
 #, c-format
 msgid "Continuing in background; pid %d\n"
 msgstr ""
 
-#: main.c:1430
+#: main.c:1438
 msgid "User requested reconnect\n"
 msgstr ""
 
-#: main.c:1438
+#: main.c:1446
 msgid "Cookie was rejected on reconnection; exiting.\n"
 msgstr ""
 
-#: main.c:1442
+#: main.c:1450
 msgid "Session terminated by server; exiting.\n"
 msgstr ""
 
-#: main.c:1446
+#: main.c:1454
 msgid "User cancelled (SIGINT); exiting.\n"
 msgstr ""
 
-#: main.c:1450
+#: main.c:1458
 msgid "User detached from session (SIGHUP); exiting.\n"
 msgstr ""
 
-#: main.c:1454
+#: main.c:1462
 msgid "Unknown error; exiting.\n"
-msgstr ""
-
-#: main.c:1473
-#, c-format
-msgid "Failed to open %s for write: %s\n"
 msgstr ""
 
 #: main.c:1481
 #, c-format
+msgid "Failed to open %s for write: %s\n"
+msgstr ""
+
+#: main.c:1489
+#, c-format
 msgid "Failed to write config to %s: %s\n"
 msgstr ""
 
-#: main.c:1546
+#: main.c:1554
 #, c-format
 msgid ""
 "\n"
@@ -2018,74 +2032,74 @@ msgid ""
 "Reason: %s\n"
 msgstr ""
 
-#: main.c:1552
+#: main.c:1560
 #, c-format
 msgid "Enter '%s' to accept, '%s' to abort; anything else to view: "
 msgstr ""
 
-#: main.c:1553 main.c:1571
+#: main.c:1561 main.c:1579
 msgid "no"
 msgstr ""
 
-#: main.c:1553 main.c:1559
+#: main.c:1561 main.c:1567
 msgid "yes"
 msgstr ""
 
-#: main.c:1580
+#: main.c:1588
 #, c-format
 msgid "SHA1 fingerprint: %s\n"
 msgstr ""
 
-#: main.c:1614
+#: main.c:1622
 #, c-format
 msgid "Auth choice \"%s\" matches multiple options\n"
 msgstr ""
 
-#: main.c:1617
+#: main.c:1625
 #, c-format
 msgid "Auth choice \"%s\" not available\n"
 msgstr ""
 
-#: main.c:1634
+#: main.c:1642
 msgid "User input required in non-interactive mode\n"
-msgstr ""
-
-#: main.c:1805
-#, c-format
-msgid "Failed to open token file for write: %s\n"
 msgstr ""
 
 #: main.c:1813
 #, c-format
+msgid "Failed to open token file for write: %s\n"
+msgstr ""
+
+#: main.c:1821
+#, c-format
 msgid "Failed to write token: %s\n"
 msgstr ""
 
-#: main.c:1858 main.c:1879
+#: main.c:1866 main.c:1887
 #, c-format
 msgid "Soft token string is invalid\n"
 msgstr ""
 
-#: main.c:1861
+#: main.c:1869
 #, c-format
 msgid "Can't open ~/.stokenrc file\n"
 msgstr ""
 
-#: main.c:1864
+#: main.c:1872
 #, c-format
 msgid "OpenConnect was not built with libstoken support\n"
 msgstr ""
 
-#: main.c:1867
+#: main.c:1875
 #, c-format
 msgid "General failure in libstoken\n"
 msgstr ""
 
-#: main.c:1882
+#: main.c:1890
 #, c-format
 msgid "OpenConnect was not built with liboath support\n"
 msgstr ""
 
-#: main.c:1885
+#: main.c:1893
 #, c-format
 msgid "General failure in liboath\n"
 msgstr ""
@@ -2099,9 +2113,9 @@ msgstr ""
 msgid "No work to do; sleeping for %d ms...\n"
 msgstr ""
 
-#: mainloop.c:210
+#: mainloop.c:211
 #, c-format
-msgid "WaitForMultipleObjects failed: %lx\n"
+msgid "WaitForMultipleObjects failed: %s\n"
 msgstr ""
 
 #: ntlm.c:86 sspi.c:113 sspi.c:192
@@ -2161,7 +2175,7 @@ msgstr ""
 msgid "Unable to generate OATH HOTP token code: %s\n"
 msgstr ""
 
-#: openconnect-internal.h:733 openconnect-internal.h:741
+#: openconnect-internal.h:734 openconnect-internal.h:742
 #, c-format
 msgid "ERROR: %s() called with invalid UTF-8 for '%s' argument\n"
 msgstr ""
@@ -2380,22 +2394,17 @@ msgstr ""
 msgid "Discard bad split exclude: \"%s\"\n"
 msgstr ""
 
-#: script.c:367
-#, c-format
-msgid "Failed to spawn script '%s' for %s: %d\n"
-msgstr ""
-
-#: script.c:395
+#: script.c:368 script.c:397
 #, c-format
 msgid "Failed to spawn script '%s' for %s: %s\n"
 msgstr ""
 
-#: script.c:401
+#: script.c:403
 #, c-format
 msgid "Script '%s' exited abnormally (%x)\n"
 msgstr ""
 
-#: script.c:409
+#: script.c:411
 #, c-format
 msgid "Script '%s' returned error %d\n"
 msgstr ""
@@ -2668,54 +2677,54 @@ msgstr ""
 
 #: tun-win32.c:184
 #, c-format
-msgid "Failed to obtain TAP driver version: %lx\n"
+msgid "Failed to obtain TAP driver version: %s\n"
 msgstr ""
 
-#: tun-win32.c:189
+#: tun-win32.c:190
 #, c-format
 msgid "Error: TAP-Windows driver v9.9 or greater is required (found %ld.%ld)\n"
 msgstr ""
 
-#: tun-win32.c:206
+#: tun-win32.c:207
 #, c-format
-msgid "Failed to set TAP IP addresses: %lx\n"
+msgid "Failed to set TAP IP addresses: %s\n"
 msgstr ""
 
-#: tun-win32.c:217
+#: tun-win32.c:219
 #, c-format
-msgid "Failed to set TAP media status: %lx\n"
+msgid "Failed to set TAP media status: %s\n"
 msgstr ""
 
-#: tun-win32.c:245
+#: tun-win32.c:249
 #, c-format
-msgid "Failed to read from TAP device: %lx\n"
+msgid "Failed to read from TAP device: %s\n"
 msgstr ""
 
-#: tun-win32.c:256
+#: tun-win32.c:263
 #, c-format
-msgid "Failed to complete read from TAP device: %lx\n"
+msgid "Failed to complete read from TAP device: %s\n"
 msgstr ""
 
-#: tun-win32.c:277
+#: tun-win32.c:286
 #, c-format
 msgid "Wrote %ld bytes to tun\n"
 msgstr ""
 
-#: tun-win32.c:287
+#: tun-win32.c:296
 msgid "Waiting for tun write...\n"
 msgstr ""
 
-#: tun-win32.c:290
+#: tun-win32.c:299
 #, c-format
 msgid "Wrote %ld bytes to tun after waiting\n"
 msgstr ""
 
-#: tun-win32.c:296
+#: tun-win32.c:306
 #, c-format
-msgid "Failed to write to TAP device: %lx\n"
+msgid "Failed to write to TAP device: %s\n"
 msgstr ""
 
-#: tun-win32.c:322
+#: tun-win32.c:333
 msgid "Spawning tunnel scripts is not yet supported on Windows\n"
 msgstr ""
 

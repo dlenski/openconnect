@@ -2939,24 +2939,3 @@ msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""
 "'%s' ostalaria ez dago konfigurazioan zerrendatuta; ostalari-izen gordin "
 "gisa erabiltzen\n"
-
-#~ msgid "Failed to write to TAP device: %lx\n"
-#~ msgstr "Huts gin du TAP gailuan idaztean: %lx\n"
-
-#~ msgid "Failed to complete read from TAP device: %lx\n"
-#~ msgstr "Huts egin du TAP gailutik erabat irakurtzean: %lx\n"
-
-#~ msgid "Failed to read from TAP device: %lx\n"
-#~ msgstr "Huts egin du TAP gailutik irakurtzean: %lx\n"
-
-#~ msgid "Failed to set TAP media status: %lx\n"
-#~ msgstr "Huts egin du TAP euskarriaren egoera ezartzean: %lx\n"
-
-#~ msgid "Failed to set TAP IP addresses: %lx\n"
-#~ msgstr "Huts egin du TAP IP helbideak ezartzean: %lx\n"
-
-#~ msgid "Failed to obtain TAP driver version: %lx\n"
-#~ msgstr "Huts egin du TAP kontrolatzailearen bertsioa eskuratzean: %lx\n"
-
-#~ msgid "WaitForMultipleObjects failed: %lx\n"
-#~ msgstr "'WaitForMultipleObjects'-ek  huts egin du: %lx\n"

@@ -2929,24 +2929,3 @@ msgstr "Počítač \"%s\" má UserGroup \"%s\"\n"
 #, c-format
 msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr "Host \"%s\" není uveden v konfiguraci, brát jako surové jméno hosta\n"
-
-#~ msgid "Failed to write to TAP device: %lx\n"
-#~ msgstr "Nepodařilo se zapsat do zařízení TAP: %lx\n"
-
-#~ msgid "Failed to complete read from TAP device: %lx\n"
-#~ msgstr "Úplně selhalo čtení z TAP zařízení: %lx\n"
-
-#~ msgid "Failed to read from TAP device: %lx\n"
-#~ msgstr "Nepodařilo se číst ze zařízení TAP:  %lx\n"
-
-#~ msgid "Failed to set TAP media status: %lx\n"
-#~ msgstr "Selhalo nastavení stavu média TAP: %lx\n"
-
-#~ msgid "Failed to set TAP IP addresses: %lx\n"
-#~ msgstr "Selhalo nastavení IP adresy TAP: %lx\n"
-
-#~ msgid "Failed to obtain TAP driver version: %lx\n"
-#~ msgstr "Nepodařilo se získat verzi ovladače TAP: %lx\n"
-
-#~ msgid "WaitForMultipleObjects failed: %lx\n"
-#~ msgstr "Funkce WaitForMultipleObjects selhala: %lx\n"

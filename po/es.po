@@ -2970,30 +2970,3 @@ msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""
 "Servidor «%s» no listado en la configuración; se trata como nombre de "
 "servidor crudo\n"
-
-#~ msgid "Failed to write to TAP device: %lx\n"
-#~ msgstr "Falló al escribir en el dispositivo TAP: %lx\n"
-
-#~ msgid "Failed to complete read from TAP device: %lx\n"
-#~ msgstr "Falló al completar la lectura del dispositivo TAP: %lx\n"
-
-#~ msgid "Failed to read from TAP device: %lx\n"
-#~ msgstr "Falló al leer del dispositivo TAP: %lx\n"
-
-#~ msgid "Failed to set TAP media status: %lx\n"
-#~ msgstr "Falló al establecer el estado del medio TAP: %lx\n"
-
-#~ msgid "Failed to set TAP IP addresses: %lx\n"
-#~ msgstr "Falló al establecer las direcciones IP TAP: %lx\n"
-
-#~ msgid "Failed to obtain TAP driver version: %lx\n"
-#~ msgstr "Falló al obtener la versión del driver TAP: %lx\n"
-
-#~ msgid "WaitForMultipleObjects failed: %lx\n"
-#~ msgstr "Falló WaitForMultipleObjects: %lx\n"
-
-#~ msgid "ReadConsole() error %lx\n"
-#~ msgstr "Error %lx de ReadConsole()\n"
-
-#~ msgid "CommandLineToArgvW() failed: %lx\n"
-#~ msgstr "Falló CommandLineToArgvW(): %lx\n"

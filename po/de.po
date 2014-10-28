@@ -2980,30 +2980,3 @@ msgid "Host \"%s\" not listed in config; treating as raw hostname\n"
 msgstr ""
 "Rechner »%s« ist nicht in der Konfiguration aufgeführt. Er wird als nackter "
 "Rechnername angesehen\n"
-
-#~ msgid "Failed to write to TAP device: %lx\n"
-#~ msgstr "Schreiben auf das TAP-Gerät fehlgeschlagen: %lx\n"
-
-#~ msgid "Failed to complete read from TAP device: %lx\n"
-#~ msgstr "Abschließen des Lesens von TAP-Gerät fehlgeschlagen: %lx\n"
-
-#~ msgid "Failed to read from TAP device: %lx\n"
-#~ msgstr "Lesen vom TAP-Gerät fehlgeschlagen: %lx\n"
-
-#~ msgid "Failed to set TAP media status: %lx\n"
-#~ msgstr "Festlegen des TAP Medienstatus fehlgeschlagen: %lx\n"
-
-#~ msgid "Failed to set TAP IP addresses: %lx\n"
-#~ msgstr "Festlegen der TAP IP-Adressen fehlgeschlagen: %lx\n"
-
-#~ msgid "Failed to obtain TAP driver version: %lx\n"
-#~ msgstr "Ermitteln der TAP-Treiberversion schlug fehl: %lx\n"
-
-#~ msgid "WaitForMultipleObjects failed: %lx\n"
-#~ msgstr "WaitForMultipleObjects schlug fehl: %lx\n"
-
-#~ msgid "ReadConsole() error %lx\n"
-#~ msgstr "ReadConsole() Fehler %lx\n"
-
-#~ msgid "CommandLineToArgvW() failed: %lx\n"
-#~ msgstr "CommandLineToArgvW() schlug fehl: %lx\n"
