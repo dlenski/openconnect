@@ -33,7 +33,8 @@
 
 /*
  * API version 4.1:
- *  - Add openconnect_get_cstp_cipher(), openconnect_get_dtls_cipher().
+ *  - Add openconnect_get_cstp_cipher(), openconnect_get_dtls_cipher(),
+ *    openconnect_set_system_trust().
  *
  * API version 4.0:
  *  - Change string handling to never transfer ownership of allocations.
