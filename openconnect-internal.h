@@ -343,6 +343,7 @@ struct openconnect_info {
 	   have fewer ifdefs and accessor macros for it. */
 	gnutls_session_t dtls_ssl;
 	char *gnutls_dtls_cipher; /* cached for openconnect_get_dtls_cipher() */
+	char *gnutls_cstp_cipher;
 #endif
 	int dtls_state;
 	struct keepalive_info dtls_times;
@@ -350,7 +351,6 @@ struct openconnect_info {
 	unsigned char dtls_secret[48];
 
 	char *dtls_cipher;
-	char *cstp_cipher;
 	char *vpnc_script;
 	int script_tun;
 	char *ifname;

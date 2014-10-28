@@ -2182,12 +2182,11 @@ char *get_gnutls_cipher(gnutls_session_t session)
 
 const char *openconnect_get_cstp_cipher(struct openconnect_info *vpninfo)
 {
-	if (vpninfo->cstp_cipher != NULL) {
-		gnutls_free(vpninfo->cstp_cipher);
-	}
+	if (vpninfo->gnutls_cstp_cipher)
+		gnutls_free(vpninfo->gnutls_cstp_cipher);
 
-	vpninfo->cstp_cipher = get_gnutls_cipher(vpninfo->https_sess);
-	return vpninfo->cstp_cipher;
+	vpninfo->gnutls_cstp_cipher = get_gnutls_cipher(vpninfo->https_sess);
+	return vpninfo->gnutls_cstp_cipher;
 }
 
 int openconnect_sha1(unsigned char *result, void *data, int datalen)

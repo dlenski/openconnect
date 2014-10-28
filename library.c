@@ -196,10 +196,8 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free(vpninfo->ifname);
 	free(vpninfo->dtls_cipher);
 #if defined(OPENCONNECT_GNUTLS)
-	gnutls_free(vpninfo->cstp_cipher);
+	gnutls_free(vpninfo->gnutls_cstp_cipher);
 	gnutls_free(vpninfo->gnutls_dtls_cipher);
-#else
-	free(vpninfo->cstp_cipher);
 #endif
 	free(vpninfo->dtls_addr);
 
