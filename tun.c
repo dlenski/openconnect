@@ -287,8 +287,8 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 			goto do_bsdtun;
 
 		if (strncmp(vpninfo->ifname, "utun", 4) ||
-		    vpninfo->ifname[4] == '0' ||
 		    (unit_nr = strtol(vpninfo->ifname + 4, &endp, 10), !endp) ||
+		    (unit_nr && vpninfo->ifname[4] == '0') ||
 		    *endp) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Invalid interface name '%s'; must match 'utun%%d' or 'tun%%d'\n"),
