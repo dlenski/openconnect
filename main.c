@@ -413,7 +413,8 @@ static int vfprintf_utf8(FILE *f, const char *fmt, va_list args)
 	iconv_t ic;
 	int ret;
 	char outbuf[80];
-	char *ic_in, *ic_out;
+	ICONV_CONST char *ic_in;
+	char *ic_out;
 	size_t insize, outsize;
 
 	if (!legacy_charset)
@@ -442,7 +443,7 @@ static int vfprintf_utf8(FILE *f, const char *fmt, va_list args)
 		ic_out = outbuf;
 		outsize = sizeof(outbuf) - 1;
 
-		if (iconv(ic, (void *)&ic_in, &insize, &ic_out, &outsize) == (size_t)-1) {
+		if (iconv(ic, &ic_in, &insize, &ic_out, &outsize) == (size_t)-1) {
 			if (errno == EILSEQ) {
 				do {
 					ic_in++;
@@ -477,7 +478,8 @@ static char *convert_to_utf8(char *legacy, int free_it)
 {
 	char *utf8_str;
 	iconv_t ic;
-	char *ic_in, *ic_out;
+	ICONV_CONST char *ic_in;
+	char *ic_out;
 	size_t insize, outsize;
 
 	if (!legacy_charset || is_ascii(legacy))
@@ -499,7 +501,7 @@ static char *convert_to_utf8(char *legacy, int free_it)
 	}
 
 	while (insize) {
-		if (iconv(ic, (void *)&ic_in, &insize, &ic_out, &outsize) == (size_t)-1) {
+		if (iconv(ic, &ic_in, &insize, &ic_out, &outsize) == (size_t)-1) {
 			if (errno == E2BIG) {
 				int outlen = ic_out - utf8_str;
 				realloc_inplace(utf8_str, outlen + 10);

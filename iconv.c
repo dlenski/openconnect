@@ -27,7 +27,8 @@ static char *convert_str(struct openconnect_info *vpninfo, iconv_t ic,
 			 char *instr)
 
 {
-	char *ic_in, *ic_out, *outstr;
+	ICONV_CONST char *ic_in;
+	char *ic_out, *outstr;
 	size_t insize, outsize;
 	int addq = 0;
 
@@ -45,7 +46,7 @@ static char *convert_str(struct openconnect_info *vpninfo, iconv_t ic,
 		return instr;
 
 	while (insize) {
-		if (iconv(ic, (void *)&ic_in, &insize, &ic_out, &outsize) == (size_t)-1) {
+		if (iconv(ic, &ic_in, &insize, &ic_out, &outsize) == (size_t)-1) {
 			if (errno == EILSEQ) {
 				do {
 					ic_in++;
