@@ -2161,12 +2161,17 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 	}
 }
 
-void openconnect_init_ssl(void)
+int openconnect_init_ssl(void)
 {
 #ifdef _WIN32
-	openconnect__win32_sock_init();
+	int ret = openconnect__win32_sock_init();
+	if (ret)
+		return ret;
 #endif
-	gnutls_global_init();
+	if (gnutls_global_init())
+		return -EIO;
+	else
+		return 0;
 }
 
 char *get_gnutls_cipher(gnutls_session_t session)

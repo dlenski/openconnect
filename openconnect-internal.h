@@ -526,7 +526,7 @@ static inline int set_fd_cloexec(int fd)
 
 #ifdef _WIN32
 #define pipe(fds) _pipe(fds, 4096, O_BINARY)
-void openconnect__win32_sock_init();
+int openconnect__win32_sock_init();
 char *openconnect__win32_strerror(DWORD err);
 #undef inet_pton
 #define inet_pton openconnect__win32_inet_pton

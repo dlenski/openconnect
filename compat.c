@@ -262,13 +262,14 @@ char *openconnect__win32_strerror(DWORD err)
 	return msgutf8;
 }
 
-void openconnect__win32_sock_init()
+int openconnect__win32_sock_init()
 {
 	WSADATA data;
 	if (WSAStartup (MAKEWORD(1, 1), &data) != 0) {
 		fprintf(stderr, _("ERROR: Cannot initialize sockets\n"));
-		exit(1);
+		return -EIO;
 	}
+	return 0;
 }
 
 int openconnect__win32_inet_pton(int af, const char *src, void *dst)

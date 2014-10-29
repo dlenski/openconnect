@@ -1547,15 +1547,18 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 	}
 }
 
-void openconnect_init_ssl(void)
+int openconnect_init_ssl(void)
 {
 #ifdef _WIN32
-	openconnect__win32_sock_init();
+	int ret = openconnect__win32_sock_init();
+	if (ret)
+		return ret;
 #endif
 	SSL_library_init();
 	ERR_clear_error();
 	SSL_load_error_strings();
 	OpenSSL_add_all_algorithms();
+	return 0;
 }
 
 char *openconnect_get_cert_details(struct openconnect_info *vpninfo,

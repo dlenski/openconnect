@@ -35,6 +35,7 @@
  * API version 4.1:
  *  - Add openconnect_get_cstp_cipher(), openconnect_get_dtls_cipher(),
  *    openconnect_set_system_trust().
+ *  - Change openconnect_init_ssl() to return int.
  *
  * API version 4.0:
  *  - Change string handling to never transfer ownership of allocations.
@@ -305,7 +306,7 @@ int openconnect_set_http_proxy(struct openconnect_info *vpninfo,
 			       const char *proxy);
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo);
 int openconnect_obtain_cookie(struct openconnect_info *vpninfo);
-void openconnect_init_ssl(void);
+int openconnect_init_ssl(void);
 
 /* These are strictly cosmetic. The strings differ depending on
  * whether OpenSSL or GnuTLS is being used. And even depending on the
