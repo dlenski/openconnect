@@ -51,7 +51,7 @@ static void print_gss_err(struct openconnect_info *vpninfo, const char *where,
 static const char spnego_OID[] = "\x2b\x06\x01\x05\x05\x02";
 static const gss_OID_desc gss_mech_spnego = {
         6,
-	&spnego_OID
+	(void *)&spnego_OID
 };
 
 static int gssapi_setup(struct openconnect_info *vpninfo, const char *service)
