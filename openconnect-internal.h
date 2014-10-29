@@ -594,7 +594,8 @@ void cstp_free_splits(struct openconnect_info *vpninfo);
 /* ssl.c */
 unsigned string_is_hostname(const char* str);
 int connect_https_socket(struct openconnect_info *vpninfo);
-int request_passphrase(struct openconnect_info *vpninfo, const char *label,
+int __attribute__ ((format(printf, 4, 5)))
+    request_passphrase(struct openconnect_info *vpninfo, const char *label,
 		       char **response, const char *fmt, ...);
 int  __attribute__ ((format (printf, 2, 3)))
     openconnect_SSL_printf(struct openconnect_info *vpninfo, const char *fmt, ...);

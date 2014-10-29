@@ -484,7 +484,8 @@ err:
 	return -1;
 }
 
-static void progress_cb(void *privdata, int level, const char *fmt, ...)
+static void __attribute__ ((format(printf, 3, 4)))
+    progress_cb(void *privdata, int level, const char *fmt, ...)
 {
 	struct libctx *ctx = privdata;
 	va_list ap;

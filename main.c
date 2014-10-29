@@ -64,8 +64,8 @@ static const char *legacy_charset;
 
 static int write_new_config(void *_vpninfo,
 			    const char *buf, int buflen);
-static void write_progress(void *_vpninfo,
-			   int level, const char *fmt, ...);
+static void __attribute__ ((format(printf, 3, 4)))
+    write_progress(void *_vpninfo, int level, const char *fmt, ...);
 static int validate_peer_cert(void *_vpninfo,
 			      OPENCONNECT_X509 *peer_cert,
 			      const char *reason);
@@ -100,7 +100,8 @@ static int sig_cmd_fd;
 
 #ifdef __ANDROID__
 #include <android/log.h>
-static void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
+static void __attribute__ ((format(printf, 3, 4)))
+    syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
 {
 	static int l[4] = {
 		ANDROID_LOG_ERROR,	/* PRG_ERR   */
@@ -129,7 +130,8 @@ static void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
  */
 #else /* !__ANDROID__ && !_WIN32 */
 #include <syslog.h>
-static void syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
+static void  __attribute__ ((format(printf, 3, 4)))
+    syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
 {
 	int priority = level ? LOG_INFO : LOG_NOTICE;
 	va_list args;
@@ -1496,7 +1498,8 @@ static int write_new_config(void *_vpninfo, const char *buf, int buflen)
 	return 0;
 }
 
-void write_progress(void *_vpninfo, int level, const char *fmt, ...)
+static void __attribute__ ((format(printf, 3, 4)))
+    write_progress(void *_vpninfo, int level, const char *fmt, ...)
 {
 	FILE *outf = level ? stdout : stderr;
 	va_list args;

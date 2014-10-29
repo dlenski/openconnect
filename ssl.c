@@ -335,7 +335,8 @@ int  __attribute__ ((format (printf, 2, 3)))
 
 }
 
-int request_passphrase(struct openconnect_info *vpninfo, const char *label,
+int __attribute__ ((format(printf, 4, 5)))
+    request_passphrase(struct openconnect_info *vpninfo, const char *label,
 		       char **response, const char *fmt, ...)
 {
 	struct oc_auth_form f;
