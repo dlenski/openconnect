@@ -165,9 +165,7 @@ static int bsd_open_tun(char *tun_name)
 	struct ifreq ifr;
 
 	fd = open(tun_name, O_RDWR);
-	if (fd >= 0) {
-		return fd;
-
+	if (fd == -1) {
 		s = socket(AF_INET, SOCK_DGRAM, 0);
 		if (s < 0)
 			return -1;
