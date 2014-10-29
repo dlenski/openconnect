@@ -94,7 +94,7 @@ static int set_tun_mtu(struct openconnect_info *vpninfo)
 
 	net_fd = socket(PF_INET, SOCK_DGRAM, 0);
 	if (net_fd < 0) {
-		perror(_("open net"));
+		vpn_perror(vpninfo, _("open net"));
 		return -EINVAL;
 	}
 
@@ -103,7 +103,7 @@ static int set_tun_mtu(struct openconnect_info *vpninfo)
 	ifr.ifr_mtu = vpninfo->ip_info.mtu;
 
 	if (ioctl(net_fd, SIOCSIFMTU, &ifr) < 0)
-		perror(_("SIOCSIFMTU"));
+		vpn_perror(vpninfo, _("SIOCSIFMTU"));
 
 	close(net_fd);
 #endif
@@ -118,11 +118,11 @@ static int link_proto(int unit_nr, const char *devname, uint64_t flags)
 
 	tun2_fd = open("/dev/tun", O_RDWR);
 	if (tun2_fd < 0) {
-		perror(_("Could not open /dev/tun for plumbing"));
+		vpn_perror(vpninfo, _("Could not open /dev/tun for plumbing"));
 		return -EIO;
 	}
 	if (ioctl(tun2_fd, I_PUSH, "ip") < 0) {
-		perror(_("Can't push IP"));
+		vpn_perror(vpninfo, _("Can't push IP"));
 		close(tun2_fd);
 		return -EIO;
 	}
@@ -132,7 +132,7 @@ static int link_proto(int unit_nr, const char *devname, uint64_t flags)
 	ifr.lifr_flags = flags;
 
 	if (ioctl(tun2_fd, SIOCSLIFNAME, &ifr) < 0) {
-		perror(_("Can't set ifname"));
+		vpn_perror(vpninfo, _("Can't set ifname"));
 		close(tun2_fd);
 		return -1;
 	}
@@ -232,19 +232,19 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 
 	tun_fd = open("/dev/tun", O_RDWR);
 	if (tun_fd < 0) {
-		perror(_("open /dev/tun"));
+		vpn_perror(vpninfo, _("open /dev/tun"));
 		return -EIO;
 	}
 
 	unit_nr = ioctl(tun_fd, TUNNEWPPA, -1);
 	if (unit_nr < 0) {
-		perror(_("Failed to create new tun"));
+		vpn_perror(vpninfo, _("Failed to create new tun"));
 		close(tun_fd);
 		return -EIO;
 	}
 
 	if (ioctl(tun_fd, I_SRDOPT, RMSGD) < 0) {
-		perror(_("Failed to put tun file descriptor into message-discard mode"));
+		vpn_perror(vpninfo, _("Failed to put tun file descriptor into message-discard mode"));
 		close(tun_fd);
 		return -EIO;
 	}
@@ -408,7 +408,7 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 #ifdef TUNSIFHEAD
 	i = 1;
 	if (ioctl(tun_fd, TUNSIFHEAD, &i) < 0) {
-		perror(_("TUNSIFHEAD"));
+		vpn_perror(vpninfo, _("TUNSIFHEAD"));
 		close(tun_fd);
 		return -EIO;
 	}
@@ -458,11 +458,11 @@ int openconnect_setup_tun_script(struct openconnect_info *vpninfo,
 		return -EIO;
 	} else if (!child) {
 		if (setpgid(0, getpid()) < 0)
-			perror(_("setpgid"));
+			vpn_perror(vpninfo, _("setpgid"));
 		close(fds[0]);
 		setenv_int("VPNFD", fds[1]);
 		execl("/bin/sh", "/bin/sh", "-c", vpninfo->vpnc_script, NULL);
-		perror(_("execl"));
+		vpn_perror(vpninfo, _("execl"));
 		exit(1);
 	}
 	close(fds[1]);

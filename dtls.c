@@ -499,7 +499,7 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 
 	dtls_fd = socket(vpninfo->peer_addr->sa_family, SOCK_DGRAM, IPPROTO_UDP);
 	if (dtls_fd < 0) {
-		perror(_("Open UDP socket for DTLS:"));
+		vpn_perror(vpninfo, _("Open UDP socket for DTLS:"));
 		return -EINVAL;
 	}
 	if (vpninfo->protect_socket)
@@ -538,14 +538,14 @@ int connect_dtls_socket(struct openconnect_info *vpninfo)
 		}
 
 		if (bind(dtls_fd, (struct sockaddr *)&dtls_bind_addr, dtls_bind_addrlen)) {
-			perror(_("Bind UDP socket for DTLS"));
+			vpn_perror(vpninfo, _("Bind UDP socket for DTLS"));
 			closesocket(dtls_fd);
 			return -EINVAL;
 		}
 	}
 
 	if (connect(dtls_fd, vpninfo->dtls_addr, vpninfo->peer_addrlen)) {
-		perror(_("UDP (DTLS) connect:\n"));
+		vpn_perror(vpninfo, _("UDP (DTLS) connect:\n"));
 		closesocket(dtls_fd);
 		return -EINVAL;
 	}

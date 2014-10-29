@@ -464,6 +464,7 @@ struct openconnect_info {
 #define AC_PKT_TERM_SERVER	9	/* Server kick */
 
 #define vpn_progress(vpninfo, ...) (vpninfo)->progress((vpninfo)->cbdata, __VA_ARGS__)
+#define vpn_perror(vpninfo, msg) vpn_progress((vpninfo), PRG_ERR, "%s: %s", (msg), strerror(errno));
 
 /****************************************************************************/
 /* Oh Solaris how we hate thee! */
