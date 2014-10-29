@@ -451,7 +451,9 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 
 	vpn_progress(vpninfo, PRG_ERR, _("DTLS handshake failed: %s\n"),
 		     gnutls_strerror(err));
-
+	if (err == GNUTLS_E_PUSH_ERROR)
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("(Is a firewall preventing you from sending UDP packets?)\n"));
  error:
 	dtls_close(vpninfo);
 
