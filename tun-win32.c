@@ -243,7 +243,12 @@ int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt)
 
 		if (err == ERROR_IO_PENDING)
 			vpninfo->tun_rd_pending = 1;
-		else {
+		else if (err == ERROR_OPERATION_ABORTED) {
+			vpninfo->quit_reason = "TAP device aborted";
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("TAP device aborted connectivity. Disconnecting.\n"));
+			return -1;
+		} else {
 			char *errstr = openconnect__win32_strerror(err);
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to read from TAP device: %s\n"),
