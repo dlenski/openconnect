@@ -646,6 +646,7 @@ AC_DEFUN([GSSAPI_CHECK_BUILD],[
 	LIBS="$LIBS ${GSSAPI_LIBS}"
 	AC_MSG_CHECKING([GSSAPI compilation with "${GSSAPI_LIBS}"])
 	AC_LINK_IFELSE([AC_LANG_PROGRAM([
+			#include <stdlib.h>
 			#include GSSAPI_HDR],[
 			OM_uint32 major, minor;
 			gss_buffer_desc b = GSS_C_EMPTY_BUFFER;
