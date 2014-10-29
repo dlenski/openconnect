@@ -81,8 +81,12 @@ it still doesn't build, please send the full output in a plain-text mail to the
 
 <h2>TUN/TAP driver</h2>
 
-<p>Mac OS X users will also need to install the
-<a href="http://tuntaposx.sourceforge.net/">Mac OS X tun/tap driver</a>, and Solaris/OpenIndiana users will need the <a href="http://www.whiteboard.ne.jp/~admin2/tuntap/">Solaris one</a>. Note that for IPv6 support, the Solaris tun/tap driver from 16th Nov 2009 or newer is required.</p>
+<p>Mac OS X users with OS X 10.6 or older, or using OpenConnect 6.00 or older,
+will also need to install the <a href="http://tuntaposx.sourceforge.net/">Mac OS X tun/tap driver</a>.
+Newer versions of OpenConnect will use the <tt>utun</tt> device on OS X which does not
+require additional kernel modules to be installed.</p>
+<p>Solaris/OpenIndiana users will need the <a href="http://www.whiteboard.ne.jp/~admin2/tuntap/">Solaris TAP driver</a>.
+Note that for IPv6 support, the Solaris tun/tap driver from 16th Nov 2009 or newer is required.</p>
 
 <p>On Windows, version 9.9 or later of the <a href="https://community.openvpn.net/openvpn/wiki/ManagingWindowsTAPDrivers">TAP-Windows driver</a> from the <a href="http://www.openvpn.net/">OpenVPN project</a> is required. The easiest way to install the driver is to use the Windows installer from the <a href="http://openvpn.net/index.php/download/community-downloads.html">Community Downloads page</a>. The 64-bit installer contains signed drivers suitable for use on Windows 7 and later versions.</p>
 

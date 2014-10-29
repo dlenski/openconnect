@@ -42,6 +42,10 @@
 #ifndef TUNNEWPPA
 #error "Install TAP driver from http://www.whiteboard.ne.jp/~admin2/tuntap/"
 #endif
+#elif defined(__APPLE__) && defined(HAVE_NET_UTUN_H)
+#include <sys/kern_control.h>
+#include <sys/sys_domain.h>
+#include <net/if_utun.h>
 #endif
 
 #include "openconnect-internal.h"
@@ -268,6 +272,86 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 #else /* BSD et al have /dev/tun$x devices */
 	static char tun_name[80];
 	int i;
+
+#if defined(__APPLE__) && defined (HAVE_NET_UTUN_H)
+	/* OS X (since 10.6) can do this as well as the traditional
+	   BSD devices supported via tuntaposx. */
+	struct sockaddr_ctl sc;
+	struct ctl_info ci;
+	int unit_nr = -1;
+
+	if (vpninfo->ifname) {
+		char *endp = NULL;
+
+		if (!strncmp(vpninfo->ifname, "tun", 3))
+			goto do_bsdtun;
+
+		if (strncmp(vpninfo->ifname, "utun", 4) ||
+		    vpninfo->ifname[4] == '0' ||
+		    (unit_nr = strtol(vpninfo->ifname + 4, &endp, 10), !endp) ||
+		    *endp) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Invalid interface name '%s'; must match 'utun%%d' or 'tun%%d'\n"),
+				     vpninfo->ifname);
+			return -EINVAL;
+		}
+	}
+
+	tun_fd = socket(PF_SYSTEM, SOCK_DGRAM, SYSPROTO_CONTROL);
+	if (tun_fd < 0) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to open SYSPROTO_CONTROL socket: %s\n"),
+			     strerror(errno));
+		goto utun_fail;
+	}
+
+	snprintf(ci.ctl_name, sizeof(ci.ctl_name), UTUN_CONTROL_NAME);
+
+	if (ioctl(tun_fd, CTLIOCGINFO, &ci) == -1) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to query utun control id: %s\n"),
+			       strerror(errno));
+		close(tun_fd);
+		goto utun_fail;
+	}
+
+	sc.sc_id = ci.ctl_id;
+	sc.sc_len = sizeof(sc);
+	sc.sc_family = AF_SYSTEM;
+	sc.ss_sysaddr = AF_SYS_CONTROL;
+	sc.sc_unit = unit_nr + 1;
+
+	if (connect(tun_fd, (struct sockaddr * )&sc, sizeof(sc)) == -1) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to connect utun unit: %s\n"),
+			     strerror(errno));
+		close(tun_fd);
+		goto utun_fail;
+	}
+
+	if (!vpninfo->ifname) {
+		socklen_t namelen = sizeof(tun_name);
+		if (getsockopt(tun_fd, SYSPROTO_CONTROL, UTUN_OPT_IFNAME,
+			       tun_name, &namelen) == -1) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to query name for utun device: %s\n"),
+				     strerror(errno));
+			close(tun_fd);
+			goto utun_fail;
+		}
+		vpninfo->ifname = strdup(tun_name);
+	}
+
+	return tun_fd;
+
+ utun_fail:
+	/* If we were explicitly asked for a utun device, fail. Else try tuntaposx */
+	if (vpninfo->ifname)
+		return -EIO;
+
+	tun_fd = -1;
+ do_bsdtun:
+#endif /* __APPLE__ && HAVE_NET_UTUN_H */
 
 	if (vpninfo->ifname) {
 		char *endp = NULL;
