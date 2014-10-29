@@ -184,31 +184,15 @@ AC_DISABLE_STATIC
 
 AC_CHECK_FUNC(nl_langinfo, [AC_DEFINE(HAVE_NL_LANGINFO, 1, [Have nl_langinfo() function])], [])
 
-have_iconv=no
 if test "$ac_cv_func_nl_langinfo" = "yes"; then
-    LIBICONV=
-    AC_MSG_CHECKING([for iconv support])
-    AC_LINK_IFELSE([AC_LANG_PROGRAM([
-        #include <iconv.h>],[
-        iconv_t ic = iconv_open("","");])],
-        [AC_MSG_RESULT(yes)
-         have_iconv=yes],
-        [oldLIBS="$LIBS"
-         LIBS="$LIBS -liconv"
-        AC_LINK_IFELSE([AC_LANG_PROGRAM([
-          #include <iconv.h>],[
-          iconv_t ic = iconv_open("","");])],
-          [AC_MSG_RESULT(yes (with -liconv))
-           have_iconv=yes
-           LIBICONV=-liconv],
-          [AC_MSG_RESULT(no)])
-           LIBS="$oldLIBS"])
-    if test "$have_iconv" = "yes"; then
-        AC_SUBST(LIBICONV)
-        AC_DEFINE(HAVE_ICONV, 1, [Have iconv() function])
+    AM_ICONV
+    if test "$am_cv_func_iconv" = "yes"; then
+	AC_SUBST(ICONV_LIBS, [$LTLIBICONV])
+	AC_SUBST(ICONV_CFLAGS, [$INCICONV])
+	AC_DEFINE(HAVE_ICONV, 1, [Have iconv() function])
     fi
 fi
-AM_CONDITIONAL(OPENCONNECT_ICONV, [test "$have_iconv" = "yes"])
+AM_CONDITIONAL(OPENCONNECT_ICONV, [test "$am_cv_func_iconv" = "yes"])
 
 AC_ARG_ENABLE([nls],
 	[  --disable-nls           do not use Native Language Support],
