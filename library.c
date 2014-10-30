@@ -178,6 +178,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		CloseHandle(vpninfo->dtls_event);
 #endif
 	free(vpninfo->peer_addr);
+	free_optlist(vpninfo->script_env);
 	free_optlist(vpninfo->cookies);
 	free_optlist(vpninfo->cstp_options);
 	free_optlist(vpninfo->dtls_options);
@@ -657,7 +658,7 @@ int openconnect_setup_tun_device(struct openconnect_info *vpninfo,
 	STRDUP(vpninfo->vpnc_script, vpnc_script);
 	STRDUP(vpninfo->ifname, ifname);
 
-	set_script_env(vpninfo);
+	prepare_script_env(vpninfo);
 	script_config_tun(vpninfo, "pre-init");
 
 	tun_fd = os_setup_tun(vpninfo);
@@ -665,7 +666,7 @@ int openconnect_setup_tun_device(struct openconnect_info *vpninfo,
 		return tun_fd;
 
 	legacy_ifname = openconnect_utf8_to_legacy(vpninfo, vpninfo->ifname);
-	setenv("TUNDEV", legacy_ifname, 1);
+	script_setenv(vpninfo, "TUNDEV", legacy_ifname, 0);
 	if (legacy_ifname != vpninfo->ifname)
 		free(legacy_ifname);
 	script_config_tun(vpninfo, "connect");

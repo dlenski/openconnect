@@ -183,43 +183,6 @@ char *openconnect__strndup(const char *s, size_t n)
 }
 #endif
 
-#ifndef HAVE_SETENV
-int openconnect__setenv(const char *name, const char *value, int overwrite)
-{
-	struct oc_text_buf *buf;
-
-	if (!value) {
-		openconnect__unsetenv(name);
-		return 0;
-	}
-
-	buf = buf_alloc();
-	buf_append_utf16le(buf, name);
-	buf_append_utf16le(buf, "=");
-	buf_append_utf16le(buf, value);
-	if (buf_error(buf)) {
-		errno = -buf_free(buf);
-		return -1;
-	}
-
-	/* Windows putenv() takes a copy of the string */
-	_wputenv((wchar_t *)buf->data);
-	buf_free(buf);
-
-	return 0;
-}
-#endif
-
-#ifndef HAVE_UNSETENV
-void openconnect__unsetenv(const char *name)
-{
-	char *buf = alloca(strlen(name) + 2);
-
-	sprintf(buf, "%s=", name);
-	putenv(buf);
-}
-#endif
-
 #ifndef HAVE_INET_ATON
 int openconnect__inet_aton(const char *cp, struct in_addr *addr)
 {

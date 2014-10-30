@@ -461,7 +461,7 @@ int openconnect_setup_tun_script(struct openconnect_info *vpninfo,
 	STRDUP(vpninfo->vpnc_script, tun_script);
 	vpninfo->script_tun = 1;
 
-	set_script_env(vpninfo);
+	prepare_script_env(vpninfo);
 	if (socketpair(AF_UNIX, SOCK_DGRAM, 0, fds)) {
 		vpn_progress(vpninfo, PRG_ERR, _("socketpair failed: %s\n"), strerror(errno));
 		return -EIO;
@@ -474,7 +474,8 @@ int openconnect_setup_tun_script(struct openconnect_info *vpninfo,
 		if (setpgid(0, getpid()) < 0)
 			vpn_perror(vpninfo, _("setpgid"));
 		close(fds[0]);
-		setenv_int("VPNFD", fds[1]);
+		script_setenv_int(vpninfo, "VPNFD", fds[1]);
+		apply_script_env(vpninfo);
 		execl("/bin/sh", "/bin/sh", "-c", vpninfo->vpnc_script, NULL);
 		vpn_perror(vpninfo, _("execl"));
 		exit(1);

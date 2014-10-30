@@ -177,8 +177,6 @@ fi
 
 AC_CHECK_FUNC(__android_log_vprint, [], AC_CHECK_LIB(log, __android_log_vprint, [], []))
 
-AC_CHECK_FUNCS(setenv unsetenv)
-
 AC_ENABLE_SHARED
 AC_DISABLE_STATIC
 

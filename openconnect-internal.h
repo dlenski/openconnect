@@ -289,6 +289,8 @@ struct openconnect_info {
 	struct oc_vpn_option *cstp_options;
 	struct oc_vpn_option *dtls_options;
 
+	struct oc_vpn_option *script_env;
+
 	unsigned pfs;
 #if defined(OPENCONNECT_OPENSSL)
 	X509 *cert_x509;
@@ -493,14 +495,6 @@ char *openconnect__strcasestr(const char *haystack, const char *needle);
 #define strndup openconnect__strndup
 char *openconnect__strndup(const char *s, size_t n);
 #endif
-#ifndef HAVE_SETENV
-#define setenv openconnect__setenv
-int openconnect__setenv(const char *name, const char *value, int overwrite);
-#endif
-#ifndef HAVE_UNSETENV
-#define unsetenv openconnect__unsetenv
-void openconnect__unsetenv(const char *name);
-#endif
 
 #ifndef HAVE_INET_ATON
 #define inet_aton openconnect__inet_aton
@@ -568,9 +562,11 @@ char *openconnect_legacy_to_utf8(struct openconnect_info *vpninfo, const char *l
 #endif
 
 /* script.c */
-int setenv_int(const char *opt, int value);
-void set_script_env(struct openconnect_info *vpninfo);
+int script_setenv(struct openconnect_info *vpninfo, const char *opt, const char *val, int append);
+int script_setenv_int(struct openconnect_info *vpninfo, const char *opt, int value);
+void prepare_script_env(struct openconnect_info *vpninfo);
 int script_config_tun(struct openconnect_info *vpninfo, const char *reason);
+int apply_script_env(struct openconnect_info *vpninfo);
 
 /* tun.c / tun-win32.c */
 void os_shutdown_tun(struct openconnect_info *vpninfo);
