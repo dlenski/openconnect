@@ -502,6 +502,11 @@ Add --without-openssl-version-check to configure args to avoid this check, or
 perhaps consider building with GnuTLS instead.])])
 fi
 
+# For some bizarre reason now that we use AM_ICONV, the mingw32 build doesn't
+# manage to set EGREP properly in the created ./libtool script. Make sure it's
+# found.
+AC_PROG_EGREP
+
 # Needs to happen after we default to static/shared libraries based on OpenSSL
 AC_PROG_LIBTOOL
 if test "$use_openbsd_libtool" = "true" && test -x /usr/bin/libtool; then
