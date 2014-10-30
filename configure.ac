@@ -214,32 +214,26 @@ if test "$USE_NLS" = "yes"; then
     bindtextdomain("openconnect", "/tmp");
     (void)dgettext("openconnect", "foo");])],
     [AC_MSG_RESULT(yes)],
-    [oldLIBS="$LIBS"
-     LIBS="$LIBS -lintl"
+    [AC_LIB_LINKFLAGS_BODY([intl])
+     oldLIBS="$LIBS"
+     LIBS="$LIBS $LIBINTL"
+     oldCFLAGS="$LIBS"
+     CFLAGS="$CFLAGS $INCINTL"
      AC_LINK_IFELSE([AC_LANG_PROGRAM([
       #include <locale.h>
       #include <libintl.h>],[
       setlocale(LC_ALL, "");
       bindtextdomain("openconnect", "/tmp");
       (void)dgettext("openconnect", "foo");])],
-      [AC_MSG_RESULT(yes (with -lintl))]
-       LIBINTL="-lintl",
-      [LIBS="$LIBS -liconv"
-       AC_LINK_IFELSE([AC_LANG_PROGRAM([
-        #include <locale.h>
-        #include <libintl.h>],[
-        setlocale(LC_ALL, "");
-        bindtextdomain("openconnect", "/tmp");
-        (void)dgettext("openconnect", "foo");])],
-        [AC_MSG_RESULT(yes (with -lintl -liconv))]
-         LIBINTL="-lintl",
-        [AC_MSG_RESULT(no)
-         USE_NLS=no])
-     LIBS="$oldLIBS"])])
+      [AC_MSG_RESULT(yes (with $INCINTL $LIBINTL))],
+      [AC_MSG_RESULT(no)
+       USE_NLS=no])
+     LIBS="$oldLIBS"])
 fi
 
 if test "$USE_NLS" = "yes"; then
-   AC_SUBST(LIBINTL)
+   AC_SUBST(INTL_LIBS, [$LTLIBINTL])
+   AC_SUBST(INTL_CFLAGS, [$INCINTL])
    AC_DEFINE(ENABLE_NLS, 1, [Enable NLS support])
 fi
 AM_CONDITIONAL(USE_NLS, [test "$USE_NLS" = "yes"])
