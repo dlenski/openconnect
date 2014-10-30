@@ -111,7 +111,8 @@ static int set_tun_mtu(struct openconnect_info *vpninfo)
 }
 
 #ifdef __sun__
-static int link_proto(int unit_nr, const char *devname, uint64_t flags)
+static int link_proto(struct openconnect_info *vpninfo, int unit_nr,
+		      const char *devname, uint64_t flags)
 {
 	int ip_fd, mux_id, tun2_fd;
 	struct lifreq ifr;
@@ -252,14 +253,14 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 	sprintf(tun_name, "tun%d", unit_nr);
 	vpninfo->ifname = strdup(tun_name);
 
-	vpninfo->ip_fd = link_proto(unit_nr, "/dev/udp", IFF_IPV4);
+	vpninfo->ip_fd = link_proto(vpninfo, unit_nr, "/dev/udp", IFF_IPV4);
 	if (vpninfo->ip_fd < 0) {
 		close(tun_fd);
 		return -EIO;
 	}
 
 	if (vpninfo->ip_info.addr6) {
-		vpninfo->ip6_fd = link_proto(unit_nr, "/dev/udp6", IFF_IPV6);
+		vpninfo->ip6_fd = link_proto(vpninfo, unit_nr, "/dev/udp6", IFF_IPV6);
 		if (vpninfo->ip6_fd < 0) {
 			close(tun_fd);
 			close(vpninfo->ip_fd);
