@@ -140,17 +140,18 @@ static int link_proto(struct openconnect_info *vpninfo, int unit_nr,
 
 	ip_fd = open(devname, O_RDWR);
 	if (ip_fd < 0) {
-		fprintf(stderr, _("Can't open %s: %s"), devname,
-			strerror(errno));
+		vpn_progress(vpninfo, PRG_ERR, _("Can't open %s: %s"),
+			     devname, strerror(errno));
 		close(tun2_fd);
 		return -1;
 	}
 
 	mux_id = ioctl(ip_fd, I_LINK, tun2_fd);
 	if (mux_id < 0) {
-		fprintf(stderr, _("Can't plumb %s for IPv%d: %s\n"),
-			 ifr.lifr_name, (flags == IFF_IPV4) ? 4 : 6,
-			 strerror(errno));
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Can't plumb %s for IPv%d: %s\n"),
+			     ifr.lifr_name, (flags == IFF_IPV4) ? 4 : 6,
+			     strerror(errno));
 		close(tun2_fd);
 		close(ip_fd);
 		return -1;
