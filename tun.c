@@ -35,14 +35,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-#if defined(__sun__)
-#include <stropts.h>
-#include <sys/sockio.h>
-#include <net/if_tun.h>
-#ifndef TUNNEWPPA
-#error "Install TAP driver from http://www.whiteboard.ne.jp/~admin2/tuntap/"
-#endif
-#elif defined(__APPLE__) && defined(HAVE_NET_UTUN_H)
+#if defined(__APPLE__) && defined(HAVE_NET_UTUN_H)
 #include <sys/kern_control.h>
 #include <sys/sys_domain.h>
 #include <net/if_utun.h>
@@ -76,41 +69,14 @@
 #define TUN_HAS_AF_PREFIX 1
 #endif
 
-#ifndef __sun__
-static void ifreq_set_ifname(struct openconnect_info *vpninfo, struct ifreq *ifr)
-{
-	char *ifname = openconnect_utf8_to_legacy(vpninfo, vpninfo->ifname);
-	strncpy(ifr->ifr_name, ifname, sizeof(ifr->ifr_name) - 1);
-	if (ifname != vpninfo->ifname)
-		free(ifname);
-}
-#endif
-
-static int set_tun_mtu(struct openconnect_info *vpninfo)
-{
-#ifndef __sun__ /* We don't know how to do this on Solaris */
-	struct ifreq ifr;
-	int net_fd;
-
-	net_fd = socket(PF_INET, SOCK_DGRAM, 0);
-	if (net_fd < 0) {
-		vpn_perror(vpninfo, _("open net"));
-		return -EINVAL;
-	}
-
-	memset(&ifr, 0, sizeof(ifr));
-	ifreq_set_ifname(vpninfo, &ifr);
-	ifr.ifr_mtu = vpninfo->ip_info.mtu;
-
-	if (ioctl(net_fd, SIOCSIFMTU, &ifr) < 0)
-		vpn_perror(vpninfo, _("SIOCSIFMTU"));
-
-	close(net_fd);
-#endif
-	return 0;
-}
-
 #ifdef __sun__
+#include <stropts.h>
+#include <sys/sockio.h>
+
+#ifndef TUNNEWPPA
+#error "Install TAP driver from http://www.whiteboard.ne.jp/~admin2/tuntap/"
+#endif
+
 static int link_proto(struct openconnect_info *vpninfo, int unit_nr,
 		      const char *devname, uint64_t flags)
 {
@@ -161,7 +127,86 @@ static int link_proto(struct openconnect_info *vpninfo, int unit_nr,
 
 	return ip_fd;
 }
-#endif
+
+intptr_t os_setup_tun(struct openconnect_info *vpninfo)
+{
+	int tun_fd = -1;
+	static char tun_name[80];
+	int unit_nr;
+
+	tun_fd = open("/dev/tun", O_RDWR);
+	if (tun_fd < 0) {
+		vpn_perror(vpninfo, _("open /dev/tun"));
+		return -EIO;
+	}
+
+	unit_nr = ioctl(tun_fd, TUNNEWPPA, -1);
+	if (unit_nr < 0) {
+		vpn_perror(vpninfo, _("Failed to create new tun"));
+		close(tun_fd);
+		return -EIO;
+	}
+
+	if (ioctl(tun_fd, I_SRDOPT, RMSGD) < 0) {
+		vpn_perror(vpninfo, _("Failed to put tun file descriptor into message-discard mode"));
+		close(tun_fd);
+		return -EIO;
+	}
+
+	sprintf(tun_name, "tun%d", unit_nr);
+	vpninfo->ifname = strdup(tun_name);
+
+	vpninfo->ip_fd = link_proto(vpninfo, unit_nr, "/dev/udp", IFF_IPV4);
+	if (vpninfo->ip_fd < 0) {
+		close(tun_fd);
+		return -EIO;
+	}
+
+	if (vpninfo->ip_info.addr6) {
+		vpninfo->ip6_fd = link_proto(vpninfo, unit_nr, "/dev/udp6", IFF_IPV6);
+		if (vpninfo->ip6_fd < 0) {
+			close(tun_fd);
+			close(vpninfo->ip_fd);
+			vpninfo->ip_fd = -1;
+			return -EIO;
+		}
+	} else
+		vpninfo->ip6_fd = -1;
+
+	return tun_fd;
+}
+#else /* !__sun__ */
+
+static void ifreq_set_ifname(struct openconnect_info *vpninfo, struct ifreq *ifr)
+{
+	char *ifname = openconnect_utf8_to_legacy(vpninfo, vpninfo->ifname);
+	strncpy(ifr->ifr_name, ifname, sizeof(ifr->ifr_name) - 1);
+	if (ifname != vpninfo->ifname)
+		free(ifname);
+}
+
+static int set_tun_mtu(struct openconnect_info *vpninfo)
+{
+	struct ifreq ifr;
+	int net_fd;
+
+	net_fd = socket(PF_INET, SOCK_DGRAM, 0);
+	if (net_fd < 0) {
+		vpn_perror(vpninfo, _("open net"));
+		return -EINVAL;
+	}
+
+	memset(&ifr, 0, sizeof(ifr));
+	ifreq_set_ifname(vpninfo, &ifr);
+	ifr.ifr_mtu = vpninfo->ip_info.mtu;
+
+	if (ioctl(net_fd, SIOCSIFMTU, &ifr) < 0)
+		vpn_perror(vpninfo, _("SIOCSIFMTU"));
+
+	close(net_fd);
+	return 0;
+}
+
 
 #ifdef SIOCIFCREATE
 static int bsd_open_tun(char *tun_name)
@@ -228,49 +273,6 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 	}
 	if (!vpninfo->ifname)
 		vpninfo->ifname = strdup(ifr.ifr_name);
-#elif defined(__sun__)
-	static char tun_name[80];
-	int unit_nr;
-
-	tun_fd = open("/dev/tun", O_RDWR);
-	if (tun_fd < 0) {
-		vpn_perror(vpninfo, _("open /dev/tun"));
-		return -EIO;
-	}
-
-	unit_nr = ioctl(tun_fd, TUNNEWPPA, -1);
-	if (unit_nr < 0) {
-		vpn_perror(vpninfo, _("Failed to create new tun"));
-		close(tun_fd);
-		return -EIO;
-	}
-
-	if (ioctl(tun_fd, I_SRDOPT, RMSGD) < 0) {
-		vpn_perror(vpninfo, _("Failed to put tun file descriptor into message-discard mode"));
-		close(tun_fd);
-		return -EIO;
-	}
-
-	sprintf(tun_name, "tun%d", unit_nr);
-	vpninfo->ifname = strdup(tun_name);
-
-	vpninfo->ip_fd = link_proto(vpninfo, unit_nr, "/dev/udp", IFF_IPV4);
-	if (vpninfo->ip_fd < 0) {
-		close(tun_fd);
-		return -EIO;
-	}
-
-	if (vpninfo->ip_info.addr6) {
-		vpninfo->ip6_fd = link_proto(vpninfo, unit_nr, "/dev/udp6", IFF_IPV6);
-		if (vpninfo->ip6_fd < 0) {
-			close(tun_fd);
-			close(vpninfo->ip_fd);
-			vpninfo->ip_fd = -1;
-			return -EIO;
-		}
-	} else
-		vpninfo->ip6_fd = -1;
-
 #else /* BSD et al have /dev/tun$x devices */
 	static char tun_name[80];
 	int i;
@@ -422,6 +424,7 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 
 	return tun_fd;
 }
+#endif /* !__sun__ */
 
 int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
 {
