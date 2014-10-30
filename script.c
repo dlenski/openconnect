@@ -409,6 +409,7 @@ int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
 	char *cmd;
 	PROCESS_INFORMATION pi;
 	STARTUPINFOW si;
+	DWORD cpflags;
 
 	if (!vpninfo->vpnc_script || vpninfo->script_tun)
 		return 0;
@@ -438,8 +439,12 @@ int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
 
 	script_env = create_script_env(vpninfo);
 
-	if (CreateProcessW(NULL, script_w, NULL, NULL, FALSE,
-			   CREATE_NO_WINDOW | CREATE_UNICODE_ENVIRONMENT,
+	cpflags = CREATE_UNICODE_ENVIRONMENT;
+	/* If we're running from a console, let the script use it too. */
+	if (!GetConsoleWindow())
+		cpflags |= CREATE_NO_WINDOW;
+
+	if (CreateProcessW(NULL, script_w, NULL, NULL, FALSE, cpflags,
 			   script_env, NULL, &si, &pi)) {
 		ret = WaitForSingleObject(pi.hProcess,10000);
 		CloseHandle(pi.hThread);
