@@ -282,8 +282,9 @@ static int ui_write(UI *ui, UI_STRING *uis)
 		break;
 
 	default:
-		fprintf(stderr, "Unhandled SSL UI request type %d\n",
-			UI_get_string_type(uis));
+		vpn_progress(ui_data->vpninfo, PRG_ERR,
+			     _("Unhandled SSL UI request type %d\n"),
+			     UI_get_string_type(uis));
 		return 0;
 	}
 	return 1;
