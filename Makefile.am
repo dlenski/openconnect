@@ -221,3 +221,5 @@ po/$(PACKAGE).pot: $(POTFILES) version.sh
 	  --package-name="@PACKAGE@" --package-version="@VERSION@" \
 	  --msgid-bugs-address=openconnect-devel@lists.infradead.org \
 	  -o $@ $(POTFILES)
+
+ACLOCAL_AMFLAGS = -I m4
