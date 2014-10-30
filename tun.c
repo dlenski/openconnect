@@ -177,6 +177,7 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 }
 #else /* !__sun__ */
 
+/* MTU setting code for both Linux and BSD systems */
 static void ifreq_set_ifname(struct openconnect_info *vpninfo, struct ifreq *ifr)
 {
 	char *ifname = openconnect_utf8_to_legacy(vpninfo, vpninfo->ifname);
@@ -207,37 +208,10 @@ static int set_tun_mtu(struct openconnect_info *vpninfo)
 	return 0;
 }
 
-
-#ifdef SIOCIFCREATE
-static int bsd_open_tun(char *tun_name)
-{
-	int fd;
-	int s;
-	struct ifreq ifr;
-
-	fd = open(tun_name, O_RDWR);
-	if (fd == -1) {
-		s = socket(AF_INET, SOCK_DGRAM, 0);
-		if (s < 0)
-			return -1;
-
-		memset(&ifr, 0, sizeof(ifr));
-		strncpy(ifr.ifr_name, tun_name + 5, sizeof(ifr.ifr_name) - 1);
-		if (!ioctl(s, SIOCIFCREATE, &ifr))
-			fd = open(tun_name, O_RDWR);
-
-		close(s);
-	}
-	return fd;
-}
-#else
-#define bsd_open_tun(tun_name) open(tun_name, O_RDWR)
-#endif
-
+#ifdef IFF_TUN /* Linux */
 intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 {
 	int tun_fd = -1;
-#ifdef IFF_TUN /* Linux */
 	struct ifreq ifr;
 	int tunerr;
 
@@ -273,16 +247,51 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 	}
 	if (!vpninfo->ifname)
 		vpninfo->ifname = strdup(ifr.ifr_name);
-#else /* BSD et al have /dev/tun$x devices */
+
+	/* Ancient vpnc-scripts might not get this right */
+	set_tun_mtu(vpninfo);
+
+	return tun_fd;
+}
+#else /* BSD et al, including OS X */
+
+#ifdef SIOCIFCREATE
+static int bsd_open_tun(char *tun_name)
+{
+	int fd;
+	int s;
+	struct ifreq ifr;
+
+	fd = open(tun_name, O_RDWR);
+	if (fd == -1) {
+		s = socket(AF_INET, SOCK_DGRAM, 0);
+		if (s < 0)
+			return -1;
+
+		memset(&ifr, 0, sizeof(ifr));
+		strncpy(ifr.ifr_name, tun_name + 5, sizeof(ifr.ifr_name) - 1);
+		if (!ioctl(s, SIOCIFCREATE, &ifr))
+			fd = open(tun_name, O_RDWR);
+
+		close(s);
+	}
+	return fd;
+}
+#else
+#define bsd_open_tun(tun_name) open(tun_name, O_RDWR)
+#endif
+
+intptr_t os_setup_tun(struct openconnect_info *vpninfo)
+{
 	static char tun_name[80];
-	int i;
+	int unit_nr = -1;
+	int tun_fd = -1;
 
 #if defined(__APPLE__) && defined (HAVE_NET_UTUN_H)
 	/* OS X (since 10.6) can do this as well as the traditional
 	   BSD devices supported via tuntaposx. */
 	struct sockaddr_ctl sc;
 	struct ctl_info ci;
-	int unit_nr = -1;
 
 	if (vpninfo->ifname) {
 		char *endp = NULL;
@@ -395,8 +404,8 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 	}
 #endif
 	if (tun_fd < 0) {
-		for (i = 0; i < 255; i++) {
-			sprintf(tun_name, "/dev/tun%d", i);
+		for (unit_nr = 0; unit_nr < 255; unit_nr++) {
+			sprintf(tun_name, "/dev/tun%d", unit_nr);
 			tun_fd = bsd_open_tun(tun_name);
 			if (tun_fd >= 0)
 				break;
@@ -410,20 +419,20 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 		vpninfo->ifname = strdup(tun_name + 5);
 	}
 #ifdef TUNSIFHEAD
-	i = 1;
-	if (ioctl(tun_fd, TUNSIFHEAD, &i) < 0) {
+	unit_nr = 1;
+	if (ioctl(tun_fd, TUNSIFHEAD, &unit_nr) < 0) {
 		vpn_perror(vpninfo, _("TUNSIFHEAD"));
 		close(tun_fd);
 		return -EIO;
 	}
 #endif
-#endif /* BSD-style */
 
 	/* Ancient vpnc-scripts might not get this right */
 	set_tun_mtu(vpninfo);
 
 	return tun_fd;
 }
+#endif /* !IFF_TUN (i.e. BSD) */
 #endif /* !__sun__ */
 
 int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, int tun_fd)
