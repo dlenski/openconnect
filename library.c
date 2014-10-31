@@ -178,6 +178,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		CloseHandle(vpninfo->dtls_event);
 #endif
 	free(vpninfo->peer_addr);
+	free_optlist(vpninfo->csd_env);
 	free_optlist(vpninfo->script_env);
 	free_optlist(vpninfo->cookies);
 	free_optlist(vpninfo->cstp_options);
@@ -215,6 +216,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free(vpninfo->csd_starturl);
 	free(vpninfo->csd_waiturl);
 	free(vpninfo->csd_preurl);
+
 	if (vpninfo->opaque_srvdata)
 		xmlFreeNode(vpninfo->opaque_srvdata);
 	free(vpninfo->profile_url);
@@ -685,4 +687,43 @@ const char *openconnect_get_dtls_cipher(struct openconnect_info *vpninfo)
 #else
 	return vpninfo->dtls_cipher;
 #endif
+}
+
+int openconnect_set_csd_environ(struct openconnect_info *vpninfo,
+				const char *name, const char *value)
+{
+	struct oc_vpn_option *p;
+
+	if (!name) {
+		free_optlist(vpninfo->csd_env);
+		vpninfo->csd_env = NULL;
+		return 0;
+	}
+	for (p = vpninfo->csd_env; p; p = p->next) {
+		if (!strcmp(name, p->option)) {
+			char *valdup = strdup(value);
+			if (!valdup)
+				return -ENOMEM;
+			free(p->value);
+			p->value = valdup;
+			return 0;
+		}
+	}
+	p = malloc(sizeof(*p));
+	if (!p)
+		return -ENOMEM;
+	p->option = strdup(name);
+	if (!p->option) {
+		free(p);
+		return -ENOMEM;
+	}
+	p->value = strdup(value);
+	if (!p->value) {
+		free(p->option);
+		free(p);
+		return -ENOMEM;
+	}
+	p->next = vpninfo->csd_env;
+	vpninfo->csd_env = p;
+	return 0;
 }

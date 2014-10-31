@@ -474,11 +474,11 @@ int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
 }
 #else
 /* Must only be run after fork(). */
-int apply_script_env(struct openconnect_info *vpninfo)
+int apply_script_env(struct oc_vpn_option *envs)
 {
-	struct oc_vpn_option *p = vpninfo->script_env;
+	struct oc_vpn_option *p;
 
-	for (p = vpninfo->script_env; p; p = p->next) {
+	for (p = envs; p; p = p->next) {
 		if (p->value)
 			setenv(p->option, p->value, 1);
 		else
@@ -500,7 +500,7 @@ int script_config_tun(struct openconnect_info *vpninfo, const char *reason)
 		/* Child */
 		char *script = openconnect_utf8_to_legacy(vpninfo, vpninfo->vpnc_script);
 
-		apply_script_env(vpninfo);
+		apply_script_env(vpninfo->script_env);
 
 		setenv("reason", reason, 1);
 

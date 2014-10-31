@@ -61,6 +61,7 @@ OPENCONNECT_4.1 {
 	openconnect_set_system_trust;
 	openconnect_get_dtls_cipher;
 	openconnect_get_cstp_cipher;
+	openconnect_set_csd_environ;
 } OPENCONNECT_4.0;
 
 

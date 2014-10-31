@@ -804,11 +804,8 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setCSDWr
 	    !get_cstring(ctx->jenv, jarg2, &arg2)) {
 		openconnect_setup_csd(ctx->vpninfo, getuid(), 1, arg0);
 
-		if (arg1)
-			setenv("TMPDIR", arg1, 1);
-
-		if (arg2)
-			setenv("PATH", arg2, 1);
+		openconnect_set_csd_environ(ctx->vpninfo, "TMPDIR", arg1);
+		openconnect_set_csd_environ(ctx->vpninfo, "PATH", arg2);
 	}
 
 	release_cstring(ctx->jenv, jarg0, arg0);

@@ -714,8 +714,32 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 
 	fname[0] = 0;
 	if (buflen) {
-		char *tmpdir = getenv("TMPDIR");
-		snprintf(fname, 64, "%s/csdXXXXXX", tmpdir ? tmpdir : "/tmp");
+		struct oc_vpn_option *opt;
+		const char *tmpdir = NULL;
+
+		/* If the caller wanted $TMPDIR set for the CSD script, that
+		   means for us too; look through the csd_env for a TMPDIR
+		   override. */
+		for (opt = vpninfo->csd_env; opt; opt = opt->next) {
+			if (!strcmp(opt->option, "TMPDIR")) {
+				tmpdir = opt->value;
+				break;
+			}
+		}
+		if (!opt)
+			tmpdir = getenv("TMPDIR");
+
+		if (!tmpdir && !access("/var/tmp", W_OK))
+			tmpdir = "/var/tmp";
+		if (!tmpdir)
+			tmpdir = "/tmp";
+
+		if (access(tmpdir, W_OK))
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Temporary directory '%s' is not writable: %s\n"),
+				     tmpdir, strerror(errno));
+
+		snprintf(fname, 64, "%s/csdXXXXXX", tmpdir);
 		fd = mkstemp(fname);
 		if (fd < 0) {
 			int err = -errno;
@@ -802,6 +826,8 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 			goto out;
 		if (setenv("CSD_HOSTNAME", vpninfo->hostname, 1))
 			goto out;
+
+		apply_script_env(vpninfo->csd_env);
 
 		execv(csd_argv[0], csd_argv);
 

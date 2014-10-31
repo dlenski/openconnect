@@ -475,7 +475,7 @@ int openconnect_setup_tun_script(struct openconnect_info *vpninfo,
 			vpn_perror(vpninfo, _("setpgid"));
 		close(fds[0]);
 		script_setenv_int(vpninfo, "VPNFD", fds[1]);
-		apply_script_env(vpninfo);
+		apply_script_env(vpninfo->script_env);
 		execl("/bin/sh", "/bin/sh", "-c", vpninfo->vpnc_script, NULL);
 		vpn_perror(vpninfo, _("execl"));
 		exit(1);

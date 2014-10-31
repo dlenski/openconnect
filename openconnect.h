@@ -34,7 +34,7 @@
 /*
  * API version 4.1:
  *  - Add openconnect_get_cstp_cipher(), openconnect_get_dtls_cipher(),
- *    openconnect_set_system_trust().
+ *    openconnect_set_system_trust(), openconnect_set_csd_environ().
  *  - Change openconnect_init_ssl() to return int.
  *
  * API version 4.0:
@@ -60,7 +60,7 @@
  *    openconnect_get_ifname(), openconnect_set_reqmtu(),
  *    openconnect_get_ip_info(), openconnect_set_protect_socket_handler(),
  *    openconnect_set_mobile_info(), openconnect_set_xmlpost(),
- *    openconnect_set_stats_handler()
+7 *    openconnect_set_stats_handler()
  *
  * API version 3.0:
  *  - Change oc_form_opt_select->choices to an array of pointers
@@ -282,6 +282,16 @@ typedef enum {
 /* Unlike previous versions of openconnect, no functions will take ownership
    of the provided strings. */
 
+
+/* Provide environment variables to be set in the CSD trojan environment
+   before spawning it. Some callers may need to set $TMPDIR, $PATH and
+   other such things if not running from a standard UNIX-like environment.
+   To ensure that a variable is unset, pass its name with value==NULL.
+   To clear all settings and allow the CSD trojan to inherit an unmodified
+   environment, call with name==NULL. */
+
+int openconnect_set_csd_environ(struct openconnect_info *vpninfo,
+				const char *name, const char *value);
 
 /* The buffer 'buf' must be at least 41 bytes. It will receive a hex string
    with trailing NUL, representing the SHA1 fingerprint of the certificate. */

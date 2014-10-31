@@ -290,6 +290,7 @@ struct openconnect_info {
 	struct oc_vpn_option *dtls_options;
 
 	struct oc_vpn_option *script_env;
+	struct oc_vpn_option *csd_env;
 
 	unsigned pfs;
 #if defined(OPENCONNECT_OPENSSL)
@@ -566,7 +567,7 @@ int script_setenv(struct openconnect_info *vpninfo, const char *opt, const char 
 int script_setenv_int(struct openconnect_info *vpninfo, const char *opt, int value);
 void prepare_script_env(struct openconnect_info *vpninfo);
 int script_config_tun(struct openconnect_info *vpninfo, const char *reason);
-int apply_script_env(struct openconnect_info *vpninfo);
+int apply_script_env(struct oc_vpn_option *envs);
 
 /* tun.c / tun-win32.c */
 void os_shutdown_tun(struct openconnect_info *vpninfo);
