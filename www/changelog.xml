@@ -15,6 +15,8 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Improve <tt>libiconv</tt> and <tt>libintl</tt> detection.</li>
+       <li>Stop calling <tt>setenv()</tt> from library functions.</li>
        <li>Support <tt>utun</tt> driver on OS X.</li>
        <li>Change library API so string ownership is never transferred.</li>
        <li>Support new NDIS6 TAP-Windows driver shipped with OpenVPN 2.3.4.</li>
