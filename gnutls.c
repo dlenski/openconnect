@@ -1648,43 +1648,51 @@ static int get_cert_fingerprint(struct openconnect_info *vpninfo,
 }
 
 int get_cert_md5_fingerprint(struct openconnect_info *vpninfo,
-			     OPENCONNECT_X509 *cert, char *buf)
+			     void *cert, char *buf)
 {
 	return get_cert_fingerprint(vpninfo, cert, GNUTLS_DIG_MD5, buf);
 }
 
-int openconnect_get_cert_sha1(struct openconnect_info *vpninfo,
-			      OPENCONNECT_X509 *cert, char *buf)
+const char *openconnect_get_peer_cert_hash(struct openconnect_info *vpninfo)
 {
-	return get_cert_fingerprint(vpninfo, cert, GNUTLS_DIG_SHA1, buf);
+	if (!vpninfo->peer_cert_hash) {
+		char buf[41];
+
+		if (get_cert_fingerprint(vpninfo, vpninfo->peer_cert,
+					 GNUTLS_DIG_SHA1, buf))
+			return NULL;
+
+		vpninfo->peer_cert_hash = strdup(buf);
+	}
+	return vpninfo->peer_cert_hash;
 }
 
-char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
-				   OPENCONNECT_X509 *cert)
+char *openconnect_get_peer_cert_details(struct openconnect_info *vpninfo)
 {
 	gnutls_datum_t buf;
 
-	if (gnutls_x509_crt_print(cert, GNUTLS_CRT_PRINT_FULL, &buf))
+	if (gnutls_x509_crt_print(vpninfo->peer_cert, GNUTLS_CRT_PRINT_FULL, &buf))
 		return NULL;
 
 	return (char *)buf.data;
 }
 
-int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
-			     OPENCONNECT_X509 *cert, unsigned char **buf)
+int openconnect_get_peer_cert_DER(struct openconnect_info *vpninfo,
+				  unsigned char **buf)
 {
 	size_t l = 0;
 	unsigned char *ret = NULL;
 
-	if (gnutls_x509_crt_export(cert, GNUTLS_X509_FMT_DER, ret, &l) !=
-	    GNUTLS_E_SHORT_MEMORY_BUFFER)
+	if (gnutls_x509_crt_export(vpninfo->peer_cert, GNUTLS_X509_FMT_DER,
+				   ret, &l) != GNUTLS_E_SHORT_MEMORY_BUFFER)
 		return -EIO;
 
 	ret = gnutls_malloc(l);
 	if (!ret)
 		return -ENOMEM;
 
-	if (gnutls_x509_crt_export(cert, GNUTLS_X509_FMT_DER, ret, &l)) {
+	if (gnutls_x509_crt_export(vpninfo->peer_cert, GNUTLS_X509_FMT_DER,
+				   ret, &l)) {
 		gnutls_free(ret);
 		return -EIO;
 	}
@@ -1705,7 +1713,7 @@ static int verify_peer(gnutls_session_t session)
 	gnutls_x509_crt_t cert;
 	unsigned int status, cert_list_size;
 	const char *reason = NULL;
-	int err;
+	int err = 0;
 
 	if (vpninfo->peer_cert) {
 		gnutls_x509_crt_deinit(vpninfo->peer_cert);
@@ -1715,6 +1723,19 @@ static int verify_peer(gnutls_session_t session)
 	cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
 	if (!cert_list) {
 		vpn_progress(vpninfo, PRG_ERR, _("Server presented no certificate\n"));
+		return GNUTLS_E_CERTIFICATE_ERROR;
+	}
+
+	err = gnutls_x509_crt_init(&cert);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR, _("Error initialising X509 cert structure\n"));
+		return GNUTLS_E_CERTIFICATE_ERROR;
+	}
+
+	err = gnutls_x509_crt_import(cert, &cert_list[0], GNUTLS_X509_FMT_DER);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR, _("Error importing server's cert\n"));
+		gnutls_x509_crt_deinit(cert);
 		return GNUTLS_E_CERTIFICATE_ERROR;
 	}
 
@@ -1737,7 +1758,7 @@ static int verify_peer(gnutls_session_t session)
 				     _("Server SSL certificate didn't match: %s\n"), fingerprint);
 			return GNUTLS_E_CERTIFICATE_ERROR;
 		}
-		return 0;
+		goto done;
 	}
 
 	err = gnutls_certificate_verify_peers2(session, &status);
@@ -1763,19 +1784,6 @@ static int verify_peer(gnutls_session_t session)
 		   that signature verification failed. Not entirely sure
 		   why we don't just set a bit for that too. */
 		reason = _("signature verification failed");
-
-	err = gnutls_x509_crt_init(&cert);
-	if (err) {
-		vpn_progress(vpninfo, PRG_ERR, _("Error initialising X509 cert structure\n"));
-		return GNUTLS_E_CERTIFICATE_ERROR;
-	}
-
-	err = gnutls_x509_crt_import(cert, &cert_list[0], GNUTLS_X509_FMT_DER);
-	if (err) {
-		vpn_progress(vpninfo, PRG_ERR, _("Error importing server's cert\n"));
-		gnutls_x509_crt_deinit(cert);
-		return GNUTLS_E_CERTIFICATE_ERROR;
-	}
 
 	if (reason)
 		goto done;
@@ -1826,19 +1834,20 @@ static int verify_peer(gnutls_session_t session)
 		reason = _("certificate does not match hostname");
 	}
  done:
+	vpninfo->peer_cert = cert;
+	free(vpninfo->peer_cert_hash);
+	vpninfo->peer_cert_hash = 0;
+
 	if (reason) {
 		vpn_progress(vpninfo, PRG_INFO,
 			     _("Server certificate verify failed: %s\n"),
 			     reason);
 		if (vpninfo->validate_peer_cert)
 			err = vpninfo->validate_peer_cert(vpninfo->cbdata,
-							  cert,
 							  reason) ? GNUTLS_E_CERTIFICATE_ERROR : 0;
 		else
 			err = GNUTLS_E_CERTIFICATE_ERROR;
 	}
-
-	vpninfo->peer_cert = cert;
 
 	return err;
 }
@@ -2086,6 +2095,9 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 		gnutls_x509_crt_deinit(vpninfo->peer_cert);
 		vpninfo->peer_cert = NULL;
 	}
+	free(vpninfo->peer_cert_hash);
+	vpninfo->peer_cert_hash = NULL;
+
 	if (vpninfo->https_sess) {
 		gnutls_deinit(vpninfo->https_sess);
 		vpninfo->https_sess = NULL;

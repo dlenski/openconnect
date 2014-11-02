@@ -66,9 +66,7 @@ static int write_new_config(void *_vpninfo,
 			    const char *buf, int buflen);
 static void __attribute__ ((format(printf, 3, 4)))
     write_progress(void *_vpninfo, int level, const char *fmt, ...);
-static int validate_peer_cert(void *_vpninfo,
-			      OPENCONNECT_X509 *peer_cert,
-			      const char *reason);
+static int validate_peer_cert(void *_vpninfo, const char *reason);
 static int process_auth_form_cb(void *_vpninfo,
 				struct oc_auth_form *form);
 static void init_token(struct openconnect_info *vpninfo,
@@ -1333,11 +1331,8 @@ int main(int argc, char **argv)
 		/* --authenticate */
 		printf("COOKIE='%s'\n", vpninfo->cookie);
 		printf("HOST='%s'\n", openconnect_get_hostname(vpninfo));
-		if (vpninfo->peer_cert) {
-			char buf[41] = {0, };
-			openconnect_get_cert_sha1(vpninfo, vpninfo->peer_cert, buf);
-			printf("FINGERPRINT='%s'\n", buf);
-		}
+		printf("FINGERPRINT='%s'\n",
+		       openconnect_get_peer_cert_hash(vpninfo));
 		openconnect_vpninfo_free(vpninfo);
 		exit(0);
 	} else if (cookieonly) {
@@ -1531,20 +1526,16 @@ struct accepted_cert {
 	char host[0];
 } *accepted_certs;
 
-static int validate_peer_cert(void *_vpninfo, OPENCONNECT_X509 *peer_cert,
-			      const char *reason)
+static int validate_peer_cert(void *_vpninfo, const char *reason)
 {
 	struct openconnect_info *vpninfo = _vpninfo;
-	char fingerprint[SHA1_SIZE * 2 + 1];
+	const char *fingerprint;
 	struct accepted_cert *this;
-	int ret;
 
 	if (nocertcheck)
 		return 0;
 
-	ret = openconnect_get_cert_sha1(vpninfo, peer_cert, fingerprint);
-	if (ret)
-		return ret;
+	fingerprint = openconnect_get_peer_cert_hash(vpninfo);
 
 	for (this = accepted_certs; this; this = this->next) {
 		if (!strcasecmp(this->host, vpninfo->hostname) &&
@@ -1587,9 +1578,9 @@ static int validate_peer_cert(void *_vpninfo, OPENCONNECT_X509 *peer_cert,
 		}
 		free(response);
 
-		details = openconnect_get_cert_details(vpninfo, peer_cert);
+		details = openconnect_get_peer_cert_details(vpninfo);
 		fputs(details, stderr);
-		free(details);
+		openconnect_free_cert_info(vpninfo, details);
 		fprintf(stderr, _("SHA1 fingerprint: %s\n"), fingerprint);
 	}
 }

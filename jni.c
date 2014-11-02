@@ -32,7 +32,6 @@ struct libctx {
 	jobject jobj;
 	jobject async_lock;
 	struct openconnect_info *vpninfo;
-	OPENCONNECT_X509 *cert;
 	int cmd_fd;
 	int loglevel;
 };
@@ -195,7 +194,7 @@ static int add_string_pair(struct libctx *ctx, jclass jcls, jobject jobj,
 	return 0;
 }
 
-static int validate_peer_cert_cb(void *privdata, OPENCONNECT_X509 *cert, const char *reason)
+static int validate_peer_cert_cb(void *privdata, const char *reason)
 {
 	struct libctx *ctx = privdata;
 	jstring jreason;
@@ -209,7 +208,6 @@ static int validate_peer_cert_cb(void *privdata, OPENCONNECT_X509 *cert, const c
 	if (!jreason)
 		goto out;
 
-	ctx->cert = cert;
 	mid = get_obj_mid(ctx, ctx->jobj, "onValidatePeerCert", "(Ljava/lang/String;)I");
 	if (mid)
 		ret = (*ctx->jenv)->CallIntMethod(ctx->jenv, ctx->jobj, mid, jreason);
@@ -685,15 +683,10 @@ JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_obtainCo
 	JNIEnv *jenv, jobject jobj)
 {
 	struct libctx *ctx = getctx(jenv, jobj);
-	int ret;
 
 	if (!ctx)
 		return 0;
-	ctx->cert = NULL;
-	ret = openconnect_obtain_cookie(ctx->vpninfo);
-	if (ret == 0)
-		ctx->cert = openconnect_get_peer_cert(ctx->vpninfo);
-	return ret;
+	return openconnect_obtain_cookie(ctx->vpninfo);
 }
 
 /* special handling: caller-allocated buffer */
@@ -701,14 +694,15 @@ JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getCe
 	JNIEnv *jenv, jobject jobj)
 {
 	struct libctx *ctx = getctx(jenv, jobj);
-	char buf[41];
+	const char *hash;
 	jstring jresult = NULL;
 
-	if (!ctx || !ctx->cert)
+	if (!ctx)
 		return NULL;
-	if (openconnect_get_cert_sha1(ctx->vpninfo, ctx->cert, buf))
+	hash = openconnect_get_peer_cert_hash(ctx->vpninfo);
+	if (!hash)
 		return NULL;
-	jresult = dup_to_jstring(ctx->jenv, buf);
+	jresult = dup_to_jstring(ctx->jenv, hash);
 	if (!jresult)
 		OOM(ctx->jenv);
 	return jresult;
@@ -722,9 +716,9 @@ JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getCe
 	char *buf = NULL;
 	jstring jresult = NULL;
 
-	if (!ctx || !ctx->cert)
+	if (!ctx)
 		return NULL;
-	buf = openconnect_get_cert_details(ctx->vpninfo, ctx->cert);
+	buf = openconnect_get_peer_cert_details(ctx->vpninfo);
 	if (!buf)
 		return NULL;
 
@@ -745,9 +739,9 @@ JNIEXPORT jbyteArray JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_ge
 	int ret;
 	jbyteArray jresult = NULL;
 
-	if (!ctx || !ctx->cert)
+	if (!ctx)
 		return NULL;
-	ret = openconnect_get_cert_DER(ctx->vpninfo, ctx->cert, &buf);
+	ret = openconnect_get_peer_cert_DER(ctx->vpninfo, &buf);
 	if (ret < 0)
 		return NULL;
 

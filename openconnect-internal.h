@@ -282,7 +282,8 @@ struct openconnect_info {
 	openconnect_unlock_token_vfn unlock_token;
 	void *tok_cbdata;
 
-	OPENCONNECT_X509 *peer_cert;
+	void *peer_cert;
+	char *peer_cert_hash;
 
 	char *cookie; /* Pointer to within cookies list */
 	struct oc_vpn_option *cookies;
@@ -621,7 +622,7 @@ void openconnect_clear_cookies(struct openconnect_info *vpninfo);
 int openconnect_open_https(struct openconnect_info *vpninfo);
 void openconnect_close_https(struct openconnect_info *vpninfo, int final);
 int cstp_handshake(struct openconnect_info *vpninfo, unsigned init);
-int get_cert_md5_fingerprint(struct openconnect_info *vpninfo, OPENCONNECT_X509 *cert,
+int get_cert_md5_fingerprint(struct openconnect_info *vpninfo, void *cert,
 			     char *buf);
 int openconnect_sha1(unsigned char *result, void *data, int len);
 int openconnect_md5(unsigned char *result, void *data, int len);

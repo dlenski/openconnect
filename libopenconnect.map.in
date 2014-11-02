@@ -1,12 +1,11 @@
-OPENCONNECT_4.0 {
+OPENCONNECT_5.0 {
  global:
 	openconnect_free_cert_info;
 	openconnect_set_option_value;
 	openconnect_clear_cookie;
-	openconnect_get_cert_sha1;
+	openconnect_get_peer_cert_hash;
 	openconnect_get_cookie;
 	openconnect_get_hostname;
-	openconnect_get_peer_cert;
 	openconnect_get_port;
 	openconnect_get_urlpath;
 	openconnect_get_version;
@@ -25,8 +24,8 @@ OPENCONNECT_4.0 {
 	openconnect_vpninfo_free;
 	openconnect_set_cert_expiry_warning;
 	openconnect_set_cancel_fd;
-	openconnect_get_cert_details;
-	openconnect_get_cert_DER;
+	openconnect_get_peer_cert_details;
+	openconnect_get_peer_cert_DER;
 	openconnect_init_ssl;
 	openconnect_has_tss_blob_support;
 	openconnect_has_pkcs11_support;
@@ -54,15 +53,11 @@ OPENCONNECT_4.0 {
 	openconnect_set_dpd;
 	openconnect_set_proxy_auth;
 	openconnect_set_token_callbacks;
-};
-
-OPENCONNECT_4.1 {
- global:
 	openconnect_set_system_trust;
 	openconnect_get_dtls_cipher;
 	openconnect_get_cstp_cipher;
 	openconnect_set_csd_environ;
-} OPENCONNECT_4.0;
+};
 
 
 OPENCONNECT_PRIVATE {

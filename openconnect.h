@@ -28,10 +28,15 @@
 #define uid_t unsigned
 #endif
 
-#define OPENCONNECT_API_VERSION_MAJOR 4
-#define OPENCONNECT_API_VERSION_MINOR 1
+#define OPENCONNECT_API_VERSION_MAJOR 5
+#define OPENCONNECT_API_VERSION_MINOR 0
 
 /*
+ * API version 5.0:
+ *  - Remove OPENCONNECT_X509 and openconnect_get_peer_cert().
+ *  - Change openconnect_get_cert_der() to openconnect_get_peer_cert_DER() etc.
+ *  - Add openconnect_check_peer_cert_hash().
+ *
  * API version 4.1:
  *  - Add openconnect_get_cstp_cipher(), openconnect_get_dtls_cipher(),
  *    openconnect_set_system_trust(), openconnect_set_csd_environ().
@@ -263,8 +268,6 @@ struct oc_stats {
 
 struct openconnect_info;
 
-#define OPENCONNECT_X509 void
-
 typedef enum {
 	OC_TOKEN_MODE_NONE,
 	OC_TOKEN_MODE_STOKEN,
@@ -293,19 +296,20 @@ typedef enum {
 int openconnect_set_csd_environ(struct openconnect_info *vpninfo,
 				const char *name, const char *value);
 
-/* The buffer 'buf' must be at least 41 bytes. It will receive a hex string
-   with trailing NUL, representing the SHA1 fingerprint of the certificate. */
-int openconnect_get_cert_sha1(struct openconnect_info *vpninfo,
-			      OPENCONNECT_X509 *cert, char *buf);
+/* This string is static, valid only while the connection lasts. If you
+ * are going to cache this to remember which certs the user has accepted,
+ * make sure you also store the host/port for which it was accepted and
+ * don't just accept this cert from *anywhere*. */
+const char *openconnect_get_peer_cert_hash(struct openconnect_info *vpninfo);
 
 /* The buffers returned by these two functions must be freed with
    openconnect_free_cert_info(), especially on Windows. */
-char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
-				   OPENCONNECT_X509 *cert);
+char *openconnect_get_peer_cert_details(struct openconnect_info *vpninfo);
+
 /* Returns the length of the created DER output, in a newly-allocated buffer
    that will need to be freed by openconnect_free_cert_info(). */
-int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
-			     OPENCONNECT_X509 *cert, unsigned char **buf);
+int openconnect_get_peer_cert_DER(struct openconnect_info *vpninfo,
+				  unsigned char **buf);
 void openconnect_free_cert_info(struct openconnect_info *vpninfo,
 				void *buf);
 /* Contains a comma-separated list of authentication methods to enabled.
@@ -399,12 +403,6 @@ int openconnect_get_ip_info(struct openconnect_info *,
 			    const struct oc_vpn_option **cstp_options,
 			    const struct oc_vpn_option **dtls_options);
 
-/* This is *not* yours and must not be destroyed with X509_free(). It
-   will be valid when a cookie has been obtained successfully, and will
-   be valid until the connection is destroyed or another attempt it made
-   to use it. */
-OPENCONNECT_X509 *openconnect_get_peer_cert(struct openconnect_info *);
-
 int openconnect_get_port(struct openconnect_info *);
 const char *openconnect_get_cookie(struct openconnect_info *);
 void openconnect_clear_cookie(struct openconnect_info *);
@@ -480,7 +478,6 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
    if the certificate is (or has in the past been) explicitly accepted
    by the user, and non-zero to abort the connection. */
 typedef int (*openconnect_validate_peer_cert_vfn) (void *privdata,
-						   OPENCONNECT_X509 *cert,
 						   const char *reason);
 /* On a successful connection, the server may provide us with a new XML
    configuration file. This contains the list of servers that can be

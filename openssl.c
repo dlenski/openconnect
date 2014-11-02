@@ -57,14 +57,14 @@ int openconnect_md5(unsigned char *result, void *data, int len)
 	return 0;
 }
 
-int openconnect_get_cert_DER(struct openconnect_info *vpninfo,
-			     OPENCONNECT_X509 *cert, unsigned char **buf)
+int openconnect_get_peer_cert_DER(struct openconnect_info *vpninfo,
+				  unsigned char **buf)
 {
 	BIO *bp = BIO_new(BIO_s_mem());
 	BUF_MEM *certinfo;
 	size_t l;
 
-	if (!i2d_X509_bio(bp, cert)) {
+	if (!i2d_X509_bio(bp, vpninfo->peer_cert)) {
 		BIO_free(bp);
 		return -EIO;
 	}
@@ -870,7 +870,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 }
 
 static int get_cert_fingerprint(struct openconnect_info *vpninfo,
-				OPENCONNECT_X509 *cert, const EVP_MD *type,
+				X509 *cert, const EVP_MD *type,
 				char *buf)
 {
 	unsigned char md[EVP_MAX_MD_SIZE];
@@ -886,25 +886,30 @@ static int get_cert_fingerprint(struct openconnect_info *vpninfo,
 }
 
 int get_cert_md5_fingerprint(struct openconnect_info *vpninfo,
-			     OPENCONNECT_X509 *cert, char *buf)
+			     void *cert, char *buf)
 {
 	return get_cert_fingerprint(vpninfo, cert, EVP_md5(), buf);
 }
 
-int openconnect_get_cert_sha1(struct openconnect_info *vpninfo,
-			      OPENCONNECT_X509 *cert, char *buf)
+const char *openconnect_get_peer_cert_hash(struct openconnect_info *vpninfo)
 {
-	return get_cert_fingerprint(vpninfo, cert, EVP_sha1(), buf);
+	if (!vpninfo->peer_cert_hash) {
+		char buf[41];
+
+		if (get_cert_fingerprint(vpninfo, vpninfo->peer_cert,
+					 EVP_sha1(), buf))
+			return NULL;
+
+		vpninfo->peer_cert_hash = strdup(buf);
+	}
+	return vpninfo->peer_cert_hash;
 }
 
 static int check_server_cert(struct openconnect_info *vpninfo, X509 *cert)
 {
-	char fingerprint[EVP_MAX_MD_SIZE * 2 + 1];
-	int ret;
+	const char *fingerprint;
 
-	ret = openconnect_get_cert_sha1(vpninfo, cert, fingerprint);
-	if (ret)
-		return ret;
+	fingerprint = openconnect_get_peer_cert_hash(vpninfo);
 
 	if (strcasecmp(vpninfo->servercert, fingerprint)) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -1190,22 +1195,19 @@ static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert
 
 static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 {
-	X509 *peer_cert;
 	int ret;
-
-	peer_cert = SSL_get_peer_certificate(https_ssl);
 
 	if (vpninfo->servercert) {
 		/* If given a cert fingerprint on the command line, that's
 		   all we look for */
-		ret = check_server_cert(vpninfo, peer_cert);
+		ret = check_server_cert(vpninfo, vpninfo->peer_cert);
 	} else {
 		int vfy = SSL_get_verify_result(https_ssl);
 		const char *err_string = NULL;
 
 		if (vfy != X509_V_OK)
 			err_string = X509_verify_cert_error_string(vfy);
-		else if (match_cert_hostname(vpninfo, peer_cert))
+		else if (match_cert_hostname(vpninfo, vpninfo->peer_cert))
 			err_string = _("certificate does not match hostname");
 
 		if (err_string) {
@@ -1215,7 +1217,6 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 
 			if (vpninfo->validate_peer_cert)
 				ret = vpninfo->validate_peer_cert(vpninfo->cbdata,
-								  peer_cert,
 								  err_string);
 			else
 				ret = -EINVAL;
@@ -1223,7 +1224,6 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 			ret = 0;
 		}
 	}
-	X509_free(peer_cert);
 
 	return ret;
 }
@@ -1334,6 +1334,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		X509_free(vpninfo->peer_cert);
 		vpninfo->peer_cert = NULL;
 	}
+	free (vpninfo->peer_cert_hash);
+	vpninfo->peer_cert_hash = NULL;
 
 	ssl_sock = connect_https_socket(vpninfo);
 	if (ssl_sock < 0)
@@ -1491,6 +1493,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		}
 	}
 
+	vpninfo->peer_cert = SSL_get_peer_certificate(https_ssl);
+
 	if (verify_peer(vpninfo, https_ssl)) {
 		SSL_free(https_ssl);
 		closesocket(ssl_sock);
@@ -1504,9 +1508,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	vpninfo->ssl_write = openconnect_openssl_write;
 	vpninfo->ssl_gets = openconnect_openssl_gets;
 
-	/* Stash this now, because it might not be available later if the
-	   server has disconnected. */
-	vpninfo->peer_cert = SSL_get_peer_certificate(vpninfo->https_ssl);
 
 	vpn_progress(vpninfo, PRG_INFO, _("Connected to HTTPS on %s\n"),
 		     vpninfo->hostname);
@@ -1525,6 +1526,9 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 		X509_free(vpninfo->peer_cert);
 		vpninfo->peer_cert = NULL;
 	}
+	free (vpninfo->peer_cert_hash);
+	vpninfo->peer_cert_hash = NULL;
+
 	if (vpninfo->https_ssl) {
 		SSL_free(vpninfo->https_ssl);
 		vpninfo->https_ssl = NULL;
@@ -1562,15 +1566,14 @@ int openconnect_init_ssl(void)
 	return 0;
 }
 
-char *openconnect_get_cert_details(struct openconnect_info *vpninfo,
-				   OPENCONNECT_X509 *cert)
+char *openconnect_get_peer_cert_details(struct openconnect_info *vpninfo)
 {
 	BIO *bp = BIO_new(BIO_s_mem());
 	BUF_MEM *certinfo;
 	char zero = 0;
 	char *ret;
 
-	X509_print_ex(bp, cert, 0, 0);
+	X509_print_ex(bp, vpninfo->peer_cert, 0, 0);
 	BIO_write(bp, &zero, 1);
 	BIO_get_mem_ptr(bp, &certinfo);
 

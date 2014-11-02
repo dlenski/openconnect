@@ -236,6 +236,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 #endif
 		vpninfo->peer_cert = NULL;
 	}
+	free(vpninfo->peer_cert_hash);
 	free(vpninfo->localname);
 	free(vpninfo->useragent);
 	free(vpninfo->authgroup);
@@ -392,11 +393,6 @@ int openconnect_set_client_cert(struct openconnect_info *vpninfo,
 	}
 
 	return 0;
-}
-
-OPENCONNECT_X509 *openconnect_get_peer_cert(struct openconnect_info *vpninfo)
-{
-	return vpninfo->peer_cert;
 }
 
 int openconnect_get_port(struct openconnect_info *vpninfo)
