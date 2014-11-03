@@ -47,6 +47,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-\-dtls\-local\-port port
 .OP \-\-dump\-http\-traffic
 .OP \-\-no\-cert\-check
+.OP \-\-no\-system\-trust
 .OP \-\-pfs
 .OP \-\-no\-dtls
 .OP \-\-no\-http\-keepalive
@@ -325,6 +326,12 @@ certificates which are not signed by a trusted Certificate Authority, you can
 still add them (or your private CA) to a local file and use that file with the
 .B \-\-cafile
 option.
+.TP
+.B \-\-no\-system\-trust
+Do not trust the system default certificate authorities. If this option is
+given, only certificate authorities given with the
+.B \-\-cafile
+option, if any, will be trusted automatically.
 
 .TP
 .B \-\-pfs

@@ -161,6 +161,7 @@ enum {
 	OPT_NO_CERT_CHECK,
 	OPT_NO_DTLS,
 	OPT_NO_HTTP_KEEPALIVE,
+	OPT_NO_SYSTEM_TRUST,
 	OPT_NO_PASSWD,
 	OPT_NO_PROXY,
 	OPT_NO_XMLPOST,
@@ -251,6 +252,7 @@ static struct option long_options[] = {
 	OPTION("os", 1, OPT_OS),
 	OPTION("no-xmlpost", 0, OPT_NO_XMLPOST),
 	OPTION("dump-http-traffic", 0, OPT_DUMP_HTTP),
+	OPTION("no-system-trust", 0, OPT_NO_SYSTEM_TRUST),
 	OPTION(NULL, 0, 0)
 };
 
@@ -733,6 +735,7 @@ static void usage(void)
 	printf("      --no-http-keepalive         %s\n", _("Disable HTTP connection re-use"));
 	printf("      --no-passwd                 %s\n", _("Disable password/SecurID authentication"));
 	printf("      --no-cert-check             %s\n", _("Do not require server SSL cert to be valid"));
+	printf("      --no-system-trust           %s\n", _("Disable default system certificate authorities"));
 	printf("      --no-xmlpost                %s\n", _("Do not attempt XML POST authentication"));
 	printf("      --non-inter                 %s\n", _("Do not expect user input; exit if it is required"));
 	printf("      --passwd-on-stdin           %s\n", _("Read password from standard input"));
@@ -1144,6 +1147,9 @@ int main(int argc, char **argv)
 		case OPT_NO_PROXY:
 			autoproxy = 0;
 			proxy = NULL;
+			break;
+		case OPT_NO_SYSTEM_TRUST:
+			openconnect_set_system_trust(vpninfo, 0);
 			break;
 		case OPT_LIBPROXY:
 			autoproxy = 1;
