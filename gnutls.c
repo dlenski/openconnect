@@ -1739,24 +1739,20 @@ static int verify_peer(gnutls_session_t session)
 		return GNUTLS_E_CERTIFICATE_ERROR;
 	}
 
+	vpninfo->peer_cert = cert;
+	free(vpninfo->peer_cert_hash);
+	vpninfo->peer_cert_hash = 0;
+
 	if (vpninfo->servercert) {
-		unsigned char sha1bin[SHA1_SIZE];
-		char fingerprint[(SHA1_SIZE * 2) + 1];
-		int i;
-
-		err = openconnect_sha1(sha1bin, cert_list[0].data, cert_list[0].size);
-		if (err) {
+		err = openconnect_check_peer_cert_hash(vpninfo, vpninfo->servercert);
+		if (err < 0)
 			vpn_progress(vpninfo, PRG_ERR,
-				     _("Could not calculate SHA1 of server's certificate\n"));
-			return GNUTLS_E_CERTIFICATE_ERROR;
-		}
-		for (i = 0; i < SHA1_SIZE; i++)
-			sprintf(&fingerprint[i*2], "%02X", sha1bin[i]);
-
-		if (strcasecmp(vpninfo->servercert, fingerprint)) {
+				     _("Could not calculate hash of server's certificate\n"));
+		else if (err) {
+			err = -EINVAL;
 			vpn_progress(vpninfo, PRG_ERR,
-				     _("Server SSL certificate didn't match: %s\n"), fingerprint);
-			return GNUTLS_E_CERTIFICATE_ERROR;
+				     _("Server SSL certificate didn't match: %s\n"),
+				     vpninfo->peer_cert_hash);
 		}
 		goto done;
 	}
@@ -1834,10 +1830,6 @@ static int verify_peer(gnutls_session_t session)
 		reason = _("certificate does not match hostname");
 	}
  done:
-	vpninfo->peer_cert = cert;
-	free(vpninfo->peer_cert_hash);
-	vpninfo->peer_cert_hash = 0;
-
 	if (reason) {
 		vpn_progress(vpninfo, PRG_INFO,
 			     _("Server certificate verify failed: %s\n"),

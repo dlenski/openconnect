@@ -4,6 +4,7 @@ OPENCONNECT_5.0 {
 	openconnect_set_option_value;
 	openconnect_clear_cookie;
 	openconnect_get_peer_cert_hash;
+	openconnect_check_peer_cert_hash;
 	openconnect_get_cookie;
 	openconnect_get_hostname;
 	openconnect_get_port;

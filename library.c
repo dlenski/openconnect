@@ -723,3 +723,18 @@ int openconnect_set_csd_environ(struct openconnect_info *vpninfo,
 	vpninfo->csd_env = p;
 	return 0;
 }
+
+int openconnect_check_peer_cert_hash(struct openconnect_info *vpninfo,
+				     const char *old_hash)
+{
+	const char *fingerprint;
+
+	fingerprint = openconnect_get_peer_cert_hash(vpninfo);
+	if (!fingerprint)
+		return -EIO;
+
+	if (strcasecmp(old_hash, fingerprint))
+		return 1;
+
+	return 0;
+}

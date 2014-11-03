@@ -1522,8 +1522,9 @@ static void __attribute__ ((format(printf, 3, 4)))
 
 struct accepted_cert {
 	struct accepted_cert *next;
-	char fingerprint[SHA1_SIZE * 2 + 1];
-	char host[0];
+	char *fingerprint;
+	char *host;
+	int port;
 } *accepted_certs;
 
 static int validate_peer_cert(void *_vpninfo, const char *reason)
@@ -1539,7 +1540,8 @@ static int validate_peer_cert(void *_vpninfo, const char *reason)
 
 	for (this = accepted_certs; this; this = this->next) {
 		if (!strcasecmp(this->host, vpninfo->hostname) &&
-		    !strcasecmp(this->fingerprint, fingerprint))
+		    this->port == vpninfo->port &&
+		    !openconnect_check_peer_cert_hash(vpninfo, this->fingerprint))
 			return 0;
 	}
 
@@ -1561,13 +1563,13 @@ static int validate_peer_cert(void *_vpninfo, const char *reason)
 			return -EINVAL;
 
 		if (!strcasecmp(response, _("yes"))) {
-			struct accepted_cert *newcert = malloc(sizeof(*newcert) +
-							       strlen(vpninfo->hostname) + 1);
+			struct accepted_cert *newcert = malloc(sizeof(*newcert));
 			if (newcert) {
 				newcert->next = accepted_certs;
 				accepted_certs = newcert;
-				strcpy(newcert->fingerprint, fingerprint);
-				strcpy(newcert->host, vpninfo->hostname);
+				newcert->fingerprint = strdup(fingerprint);
+				newcert->host = strdup(vpninfo->hostname);
+				newcert->port = vpninfo->port;
 			}
 			free(response);
 			return 0;

@@ -905,20 +905,6 @@ const char *openconnect_get_peer_cert_hash(struct openconnect_info *vpninfo)
 	return vpninfo->peer_cert_hash;
 }
 
-static int check_server_cert(struct openconnect_info *vpninfo, X509 *cert)
-{
-	const char *fingerprint;
-
-	fingerprint = openconnect_get_peer_cert_hash(vpninfo);
-
-	if (strcasecmp(vpninfo->servercert, fingerprint)) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Server SSL certificate didn't match: %s\n"), fingerprint);
-		return -EINVAL;
-	}
-	return 0;
-}
-
 static int match_hostname_elem(const char *hostname, int helem_len,
 			       const char *match, int melem_len)
 {
@@ -1200,7 +1186,14 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 	if (vpninfo->servercert) {
 		/* If given a cert fingerprint on the command line, that's
 		   all we look for */
-		ret = check_server_cert(vpninfo, vpninfo->peer_cert);
+		ret = openconnect_check_peer_cert_hash(vpninfo, vpninfo->servercert);
+		if (ret < 0)
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Could not calculate hash of server's certificate\n"));
+		else if (ret)
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Server SSL certificate didn't match: %s\n"),
+				     vpninfo->peer_cert_hash);
 	} else {
 		int vfy = SSL_get_verify_result(https_ssl);
 		const char *err_string = NULL;

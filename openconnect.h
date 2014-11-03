@@ -299,8 +299,22 @@ int openconnect_set_csd_environ(struct openconnect_info *vpninfo,
 /* This string is static, valid only while the connection lasts. If you
  * are going to cache this to remember which certs the user has accepted,
  * make sure you also store the host/port for which it was accepted and
- * don't just accept this cert from *anywhere*. */
+ * don't just accept this cert from *anywhere*. Also use use the check
+ * function below instead of manually comparing. When this function
+ * returns a string which *doesn't* match the previously-stored hash
+ * matched with openconnect_check_peer_cert_hash(), you should store
+ * the new result from this function in place of the old. It means
+ * we have upgraded to a better hash function. */
 const char *openconnect_get_peer_cert_hash(struct openconnect_info *vpninfo);
+
+/* Check if the current peer certificate matches a hash previously
+ * obtained from openconect_get_peer_cert_hash(). Clients should not
+ * attempt to do this using strcmp() and the *current* result of
+ * openconnect_get_peer_cert_hash() because it might use
+ * a different hash function today. This function will get it right.
+ * Returns 0 on match; 1 on mismatch, -errno on failure. */
+int openconnect_check_peer_cert_hash(struct openconnect_info *vpninfo,
+				     const char *old_hash);
 
 /* The buffers returned by these two functions must be freed with
    openconnect_free_cert_info(), especially on Windows. */
