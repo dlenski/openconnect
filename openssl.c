@@ -893,14 +893,40 @@ int get_cert_md5_fingerprint(struct openconnect_info *vpninfo,
 
 const char *openconnect_get_peer_cert_hash(struct openconnect_info *vpninfo)
 {
+	if (!vpninfo->peer_cert)
+		return NULL;
+
 	if (!vpninfo->peer_cert_hash) {
-		char buf[41];
+		unsigned char sha1[SHA1_SIZE];
+		EVP_PKEY *pkey;
+		BIO *bp = BIO_new(BIO_s_mem());
+		BUF_MEM *keyinfo;
+		int i;
 
-		if (get_cert_fingerprint(vpninfo, vpninfo->peer_cert,
-					 EVP_sha1(), buf))
+		/* We can't use X509_pubkey_digest() because it only hashes the
+		   subjectPublicKey BIT STRING, and not the whole of the
+		   SubjectPublicKeyInfo SEQUENCE. */
+		pkey = X509_get_pubkey(vpninfo->peer_cert);
+
+		if (!i2d_PUBKEY_bio(bp, pkey)) {
+			EVP_PKEY_free(pkey);
+			BIO_free(bp);
 			return NULL;
+		}
+		EVP_PKEY_free(pkey);
 
-		vpninfo->peer_cert_hash = strdup(buf);
+		BIO_get_mem_ptr(bp, &keyinfo);
+
+		openconnect_sha1(sha1, keyinfo->data, keyinfo->length);
+
+		BIO_free(bp);
+
+		vpninfo->peer_cert_hash = malloc(SHA1_SIZE * 2 + 6);
+		if (vpninfo->peer_cert_hash) {
+			snprintf(vpninfo->peer_cert_hash, 6, "sha1:");
+			for (i = 0; i < sizeof(sha1); i++)
+				sprintf(&vpninfo->peer_cert_hash[i*2 + 5], "%02x", sha1[i]);
+		}
 	}
 	return vpninfo->peer_cert_hash;
 }

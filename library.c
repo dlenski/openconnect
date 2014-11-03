@@ -727,11 +727,30 @@ int openconnect_set_csd_environ(struct openconnect_info *vpninfo,
 int openconnect_check_peer_cert_hash(struct openconnect_info *vpninfo,
 				     const char *old_hash)
 {
+	char sha1_text[41];
 	const char *fingerprint;
 
-	fingerprint = openconnect_get_peer_cert_hash(vpninfo);
-	if (!fingerprint)
-		return -EIO;
+	if (strchr(old_hash, ':')) {
+		fingerprint = openconnect_get_peer_cert_hash(vpninfo);
+		if (!fingerprint)
+			return -EIO;
+	} else {
+		unsigned char *cert;
+		int len, i;
+		unsigned char sha1_bin[SHA1_SIZE];
+
+		len = openconnect_get_peer_cert_DER(vpninfo, &cert);
+		if (len < 0)
+			return len;
+
+		if (openconnect_sha1(sha1_bin, cert, len))
+			return -EIO;
+
+		for (i = 0; i < sizeof(sha1_bin); i++)
+			sprintf(&sha1_text[i*2], "%02x", sha1_bin[i]);
+
+		fingerprint = sha1_text;
+	}
 
 	if (strcasecmp(old_hash, fingerprint))
 		return 1;

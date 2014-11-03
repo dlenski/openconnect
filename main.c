@@ -1589,7 +1589,7 @@ static int validate_peer_cert(void *_vpninfo, const char *reason)
 		details = openconnect_get_peer_cert_details(vpninfo);
 		fputs(details, stderr);
 		openconnect_free_cert_info(vpninfo, details);
-		fprintf(stderr, _("SHA1 fingerprint: %s\n"), fingerprint);
+		fprintf(stderr, _("Server key hash: %s\n"), fingerprint);
 	}
 }
 

@@ -1655,15 +1655,46 @@ int get_cert_md5_fingerprint(struct openconnect_info *vpninfo,
 
 const char *openconnect_get_peer_cert_hash(struct openconnect_info *vpninfo)
 {
-	if (!vpninfo->peer_cert_hash) {
-		char buf[41];
+	if (!vpninfo->peer_cert)
+		return NULL;
 
-		if (get_cert_fingerprint(vpninfo, vpninfo->peer_cert,
-					 GNUTLS_DIG_SHA1, buf))
+	if (!vpninfo->peer_cert_hash) {
+		unsigned char sha1[SHA1_SIZE];
+		size_t shalen = SHA1_SIZE;
+		gnutls_pubkey_t pkey;
+		gnutls_datum_t d;
+		int i;
+
+		if (gnutls_pubkey_init(&pkey))
 			return NULL;
 
-		vpninfo->peer_cert_hash = strdup(buf);
+		if (gnutls_pubkey_import_x509(pkey, vpninfo->peer_cert, 0)) {
+			gnutls_pubkey_deinit(pkey);
+			return NULL;
+		}
+
+		if (gnutls_pubkey_export2(pkey, GNUTLS_X509_FMT_DER, &d)) {
+			gnutls_pubkey_deinit(pkey);
+			return NULL;
+		}
+
+		gnutls_pubkey_deinit(pkey);
+
+		if (gnutls_fingerprint(GNUTLS_DIG_SHA1, &d, sha1, &shalen)) {
+			gnutls_free(d.data);
+			return NULL;
+		}
+
+		gnutls_free(d.data);
+
+		vpninfo->peer_cert_hash = malloc(SHA1_SIZE * 2 + 6);
+		if (vpninfo->peer_cert_hash) {
+			snprintf(vpninfo->peer_cert_hash, 6, "sha1:");
+			for (i = 0; i < shalen; i++)
+				sprintf(&vpninfo->peer_cert_hash[i*2 + 5], "%02x", sha1[i]);
+		}
 	}
+
 	return vpninfo->peer_cert_hash;
 }
 
