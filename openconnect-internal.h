@@ -187,7 +187,7 @@ struct openconnect_info {
 
 	const char *csd_xmltag;
 	int csd_nostub;
-	const char *platname;
+	char *platname;
 	char *mobile_platform_version;
 	char *mobile_device_type;
 	char *mobile_device_uniqueid;

@@ -216,7 +216,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free(vpninfo->csd_starturl);
 	free(vpninfo->csd_waiturl);
 	free(vpninfo->csd_preurl);
-
+	free(vpninfo->platname);
 	if (vpninfo->opaque_srvdata)
 		xmlFreeNode(vpninfo->opaque_srvdata);
 	free(vpninfo->profile_url);
