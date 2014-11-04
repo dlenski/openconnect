@@ -1780,10 +1780,10 @@ static int verify_peer(gnutls_session_t session)
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Could not calculate hash of server's certificate\n"));
 		else if (err) {
-			err = -EINVAL;
+			err = GNUTLS_E_CERTIFICATE_ERROR;
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Server SSL certificate didn't match: %s\n"),
-				     vpninfo->peer_cert_hash);
+				     openconnect_get_peer_cert_hash(vpninfo));
 		}
 		goto done;
 	}

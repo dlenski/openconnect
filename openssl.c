@@ -1219,7 +1219,7 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 		else if (ret)
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Server SSL certificate didn't match: %s\n"),
-				     vpninfo->peer_cert_hash);
+				     openconnect_get_peer_cert_hash(vpninfo));
 	} else {
 		int vfy = SSL_get_verify_result(https_ssl);
 		const char *err_string = NULL;
