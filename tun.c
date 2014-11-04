@@ -284,7 +284,7 @@ static int bsd_open_tun(char *tun_name)
 intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 {
 	static char tun_name[80];
-	int unit_nr = -1;
+	int unit_nr = 0;
 	int tun_fd = -1;
 
 #if defined(__APPLE__) && defined (HAVE_NET_UTUN_H)
@@ -332,30 +332,28 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 	sc.sc_len = sizeof(sc);
 	sc.sc_family = AF_SYSTEM;
 	sc.ss_sysaddr = AF_SYS_CONTROL;
-	sc.sc_unit = unit_nr + 1;
 
-	if (connect(tun_fd, (struct sockaddr * )&sc, sizeof(sc)) == -1) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to connect utun unit: %s\n"),
-			     strerror(errno));
-		close(tun_fd);
-		goto utun_fail;
-	}
+	do {
+		sc.sc_unit = unit_nr + 1;
 
-	if (!vpninfo->ifname) {
-		socklen_t namelen = sizeof(tun_name);
-		if (getsockopt(tun_fd, SYSPROTO_CONTROL, UTUN_OPT_IFNAME,
-			       tun_name, &namelen) == -1) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Failed to query name for utun device: %s\n"),
-				     strerror(errno));
-			close(tun_fd);
-			goto utun_fail;
+		if (!connect(tun_fd, (struct sockaddr * )&sc, sizeof(sc))) {
+			if (!vpninfo->ifname &&
+			    asprintf(&vpninfo->ifname, "utun%d", unit_nr) == -1) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to allocate utun device name\n"));
+				close(tun_fd);
+				goto utun_fail;
+			}
+			return tun_fd;
 		}
-		vpninfo->ifname = strdup(tun_name);
-	}
+		unit_nr++;
 
-	return tun_fd;
+	} while (sc.sc_unit < 255 && !vpninfo->ifname);
+
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Failed to connect utun unit: %s\n"),
+		     strerror(errno));
+	close(tun_fd);
 
  utun_fail:
 	/* If we were explicitly asked for a utun device, fail. Else try tuntaposx */
