@@ -236,8 +236,8 @@ struct openconnect_info {
 	int port;
 	char *urlpath;
 	int cert_expire_warning;
-	const char *cert;
-	const char *sslkey;
+	char *cert;
+	char *sslkey;
 	char *cert_password;
 	char *cafile;
 	unsigned no_system_trust;
@@ -724,10 +724,13 @@ int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *b
 extern const char *openconnect_version_str;
 
 #define STRDUP(res, arg) \
-	if (arg) { \
-		res = strdup(arg); \
-		if (res == NULL) return -ENOMEM; \
-	} else res = NULL
+	do {							\
+		free(res);					\
+		if (arg) {					\
+			res = strdup(arg);			\
+			if (res == NULL) return -ENOMEM;	\
+		} else res = NULL;				\
+	} while(0)
 
 #define UTF8CHECK(arg) \
 	if ((arg) && buf_append_utf16le(NULL, (arg))) { \

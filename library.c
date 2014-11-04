@@ -185,6 +185,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free_optlist(vpninfo->dtls_options);
 	cstp_free_splits(vpninfo);
 	free(vpninfo->hostname);
+	free(vpninfo->unique_hostname);
 	free(vpninfo->urlpath);
 	free(vpninfo->redirect_url);
 	free(vpninfo->cookie);
@@ -277,7 +278,6 @@ int openconnect_set_hostname(struct openconnect_info *vpninfo,
 {
 	UTF8CHECK(hostname);
 
-	free(vpninfo->hostname);
 	STRDUP(vpninfo->hostname, hostname);
 	free(vpninfo->unique_hostname);
 	vpninfo->unique_hostname = NULL;
@@ -383,6 +383,10 @@ int openconnect_set_client_cert(struct openconnect_info *vpninfo,
 {
 	UTF8CHECK(cert);
 	UTF8CHECK(sslkey);
+
+	/* Avoid freeing it twice if it's the same */
+	if (vpninfo->sslkey == vpninfo->cert)
+		vpninfo->sslkey = NULL;
 
 	STRDUP(vpninfo->cert, cert);
 

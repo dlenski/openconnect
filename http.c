@@ -972,8 +972,8 @@ static int handle_redirect(struct openconnect_info *vpninfo)
 			openconnect_close_https(vpninfo, 0);
 			openconnect_clear_cookies(vpninfo);
 			vpninfo->redirect_type = REDIR_TYPE_NEWHOST;
-		} else
-			free(host);
+		}
+		free(host);
 
 		free(vpninfo->redirect_url);
 		vpninfo->redirect_url = NULL;
@@ -1269,6 +1269,7 @@ newgroup:
 				method = "GET";
 				if (orig_host) {
 					openconnect_set_hostname(vpninfo, orig_host);
+					free(orig_host);
 					orig_host = NULL;
 					free(vpninfo->urlpath);
 					vpninfo->urlpath = orig_path;
