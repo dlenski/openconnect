@@ -1653,7 +1653,7 @@ int get_cert_md5_fingerprint(struct openconnect_info *vpninfo,
 	return get_cert_fingerprint(vpninfo, cert, GNUTLS_DIG_MD5, buf);
 }
 
-int set_peer_cert_hash(struct openconnect_info *vpninfo)
+static int set_peer_cert_hash(struct openconnect_info *vpninfo)
 {
 	unsigned char sha1[SHA1_SIZE];
 	size_t shalen = SHA1_SIZE;
