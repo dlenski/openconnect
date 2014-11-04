@@ -198,7 +198,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free(vpninfo->ifname);
 	free(vpninfo->dtls_cipher);
 #if defined(OPENCONNECT_GNUTLS)
-	gnutls_free(vpninfo->gnutls_cstp_cipher);
+	gnutls_free(vpninfo->cstp_cipher); /* In OpenSSL this is const */
 	gnutls_free(vpninfo->gnutls_dtls_cipher);
 #endif
 	free(vpninfo->dtls_addr);
@@ -756,4 +756,14 @@ int openconnect_check_peer_cert_hash(struct openconnect_info *vpninfo,
 		return 1;
 
 	return 0;
+}
+
+const char *openconnect_get_cstp_cipher(struct openconnect_info *vpninfo)
+{
+	return vpninfo->cstp_cipher;
+}
+
+const char *openconnect_get_peer_cert_hash(struct openconnect_info *vpninfo)
+{
+	return vpninfo->peer_cert_hash;
 }

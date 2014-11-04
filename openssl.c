@@ -891,44 +891,40 @@ int get_cert_md5_fingerprint(struct openconnect_info *vpninfo,
 	return get_cert_fingerprint(vpninfo, cert, EVP_md5(), buf);
 }
 
-const char *openconnect_get_peer_cert_hash(struct openconnect_info *vpninfo)
+static int set_peer_cert_hash(struct openconnect_info *vpninfo)
 {
-	if (!vpninfo->peer_cert)
-		return NULL;
+	unsigned char sha1[SHA1_SIZE];
+	EVP_PKEY *pkey;
+	BIO *bp = BIO_new(BIO_s_mem());
+	BUF_MEM *keyinfo;
+	int i;
 
-	if (!vpninfo->peer_cert_hash) {
-		unsigned char sha1[SHA1_SIZE];
-		EVP_PKEY *pkey;
-		BIO *bp = BIO_new(BIO_s_mem());
-		BUF_MEM *keyinfo;
-		int i;
+	/* We can't use X509_pubkey_digest() because it only hashes the
+	   subjectPublicKey BIT STRING, and not the whole of the
+	   SubjectPublicKeyInfo SEQUENCE. */
+	pkey = X509_get_pubkey(vpninfo->peer_cert);
 
-		/* We can't use X509_pubkey_digest() because it only hashes the
-		   subjectPublicKey BIT STRING, and not the whole of the
-		   SubjectPublicKeyInfo SEQUENCE. */
-		pkey = X509_get_pubkey(vpninfo->peer_cert);
-
-		if (!i2d_PUBKEY_bio(bp, pkey)) {
-			EVP_PKEY_free(pkey);
-			BIO_free(bp);
-			return NULL;
-		}
+	if (!i2d_PUBKEY_bio(bp, pkey)) {
 		EVP_PKEY_free(pkey);
-
-		BIO_get_mem_ptr(bp, &keyinfo);
-
-		openconnect_sha1(sha1, keyinfo->data, keyinfo->length);
-
 		BIO_free(bp);
-
-		vpninfo->peer_cert_hash = malloc(SHA1_SIZE * 2 + 6);
-		if (vpninfo->peer_cert_hash) {
-			snprintf(vpninfo->peer_cert_hash, 6, "sha1:");
-			for (i = 0; i < sizeof(sha1); i++)
-				sprintf(&vpninfo->peer_cert_hash[i*2 + 5], "%02x", sha1[i]);
-		}
+		return -ENOMEM;
 	}
-	return vpninfo->peer_cert_hash;
+	EVP_PKEY_free(pkey);
+
+	BIO_get_mem_ptr(bp, &keyinfo);
+
+	openconnect_sha1(sha1, keyinfo->data, keyinfo->length);
+
+	BIO_free(bp);
+
+	vpninfo->peer_cert_hash = malloc(SHA1_SIZE * 2 + 6);
+	if (vpninfo->peer_cert_hash) {
+		snprintf(vpninfo->peer_cert_hash, 6, "sha1:");
+		for (i = 0; i < sizeof(sha1); i++)
+			sprintf(&vpninfo->peer_cert_hash[i*2 + 5], "%02x", sha1[i]);
+	}
+
+	return 0;
 }
 
 static int match_hostname_elem(const char *hostname, int helem_len,
@@ -1338,6 +1334,7 @@ static int check_certificate_expiry(struct openconnect_info *vpninfo)
 	}
 	return 0;
 }
+
 int openconnect_open_https(struct openconnect_info *vpninfo)
 {
 	method_const SSL_METHOD *ssl3_method;
@@ -1355,6 +1352,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	}
 	free (vpninfo->peer_cert_hash);
 	vpninfo->peer_cert_hash = NULL;
+	vpninfo->cstp_cipher = NULL;
 
 	ssl_sock = connect_https_socket(vpninfo);
 	if (ssl_sock < 0)
@@ -1512,7 +1510,9 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		}
 	}
 
+	vpninfo->cstp_cipher = (char *)SSL_get_cipher_name(https_ssl);
 	vpninfo->peer_cert = SSL_get_peer_certificate(https_ssl);
+	set_peer_cert_hash(vpninfo);
 
 	if (verify_peer(vpninfo, https_ssl)) {
 		SSL_free(https_ssl);
@@ -1541,13 +1541,6 @@ int cstp_handshake(struct openconnect_info *vpninfo, unsigned init)
 
 void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 {
-	if (vpninfo->peer_cert) {
-		X509_free(vpninfo->peer_cert);
-		vpninfo->peer_cert = NULL;
-	}
-	free (vpninfo->peer_cert_hash);
-	vpninfo->peer_cert_hash = NULL;
-
 	if (vpninfo->https_ssl) {
 		SSL_free(vpninfo->https_ssl);
 		vpninfo->https_ssl = NULL;
@@ -1619,9 +1612,4 @@ int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 		return -EIO;
 
 	return 0;
-}
-
-const char *openconnect_get_cstp_cipher(struct openconnect_info *vpninfo)
-{
-	return SSL_get_cipher_name(vpninfo->https_ssl);
 }

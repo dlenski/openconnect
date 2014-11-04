@@ -1653,49 +1653,48 @@ int get_cert_md5_fingerprint(struct openconnect_info *vpninfo,
 	return get_cert_fingerprint(vpninfo, cert, GNUTLS_DIG_MD5, buf);
 }
 
-const char *openconnect_get_peer_cert_hash(struct openconnect_info *vpninfo)
+int set_peer_cert_hash(struct openconnect_info *vpninfo)
 {
-	if (!vpninfo->peer_cert)
-		return NULL;
+	unsigned char sha1[SHA1_SIZE];
+	size_t shalen = SHA1_SIZE;
+	gnutls_pubkey_t pkey;
+	gnutls_datum_t d;
+	int i, err;
 
-	if (!vpninfo->peer_cert_hash) {
-		unsigned char sha1[SHA1_SIZE];
-		size_t shalen = SHA1_SIZE;
-		gnutls_pubkey_t pkey;
-		gnutls_datum_t d;
-		int i;
+	err = gnutls_pubkey_init(&pkey);
+	if (err)
+		return err;
 
-		if (gnutls_pubkey_init(&pkey))
-			return NULL;
-
-		if (gnutls_pubkey_import_x509(pkey, vpninfo->peer_cert, 0)) {
-			gnutls_pubkey_deinit(pkey);
-			return NULL;
-		}
-
-		if (gnutls_pubkey_export2(pkey, GNUTLS_X509_FMT_DER, &d)) {
-			gnutls_pubkey_deinit(pkey);
-			return NULL;
-		}
-
+	err = gnutls_pubkey_import_x509(pkey, vpninfo->peer_cert, 0);
+	if (err) {
 		gnutls_pubkey_deinit(pkey);
-
-		if (gnutls_fingerprint(GNUTLS_DIG_SHA1, &d, sha1, &shalen)) {
-			gnutls_free(d.data);
-			return NULL;
-		}
-
-		gnutls_free(d.data);
-
-		vpninfo->peer_cert_hash = malloc(SHA1_SIZE * 2 + 6);
-		if (vpninfo->peer_cert_hash) {
-			snprintf(vpninfo->peer_cert_hash, 6, "sha1:");
-			for (i = 0; i < shalen; i++)
-				sprintf(&vpninfo->peer_cert_hash[i*2 + 5], "%02x", sha1[i]);
-		}
+		return err;
 	}
 
-	return vpninfo->peer_cert_hash;
+	err = gnutls_pubkey_export2(pkey, GNUTLS_X509_FMT_DER, &d);
+	if (err) {
+		gnutls_pubkey_deinit(pkey);
+		return err;
+	}
+
+	gnutls_pubkey_deinit(pkey);
+
+	err = gnutls_fingerprint(GNUTLS_DIG_SHA1, &d, sha1, &shalen);
+	if (err) {
+		gnutls_free(d.data);
+		return err;
+	}
+
+	gnutls_free(d.data);
+
+	vpninfo->peer_cert_hash = malloc(SHA1_SIZE * 2 + 6);
+	if (vpninfo->peer_cert_hash) {
+		snprintf(vpninfo->peer_cert_hash, 6, "sha1:");
+		for (i = 0; i < shalen; i++)
+			sprintf(&vpninfo->peer_cert_hash[i*2 + 5], "%02x", sha1[i]);
+	}
+
+	return 0;
 }
 
 char *openconnect_get_peer_cert_details(struct openconnect_info *vpninfo)
@@ -1746,11 +1745,6 @@ static int verify_peer(gnutls_session_t session)
 	const char *reason = NULL;
 	int err = 0;
 
-	if (vpninfo->peer_cert) {
-		gnutls_x509_crt_deinit(vpninfo->peer_cert);
-		vpninfo->peer_cert = NULL;
-	}
-
 	cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
 	if (!cert_list) {
 		vpn_progress(vpninfo, PRG_ERR, _("Server presented no certificate\n"));
@@ -1771,8 +1765,11 @@ static int verify_peer(gnutls_session_t session)
 	}
 
 	vpninfo->peer_cert = cert;
-	free(vpninfo->peer_cert_hash);
-	vpninfo->peer_cert_hash = 0;
+	err = set_peer_cert_hash(vpninfo);
+	if (err < 0) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Could not calculate hash of server's certificate\n"));
+	}
 
 	if (vpninfo->servercert) {
 		err = openconnect_check_peer_cert_hash(vpninfo, vpninfo->servercert);
@@ -1902,6 +1899,15 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 	if (vpninfo->https_sess)
 		return 0;
+
+	if (vpninfo->peer_cert) {
+		gnutls_x509_crt_deinit(vpninfo->peer_cert);
+		vpninfo->peer_cert = NULL;
+	}
+	free(vpninfo->peer_cert_hash);
+	vpninfo->peer_cert_hash = 0;
+	gnutls_free(vpninfo->cstp_cipher);
+	vpninfo->cstp_cipher = NULL;
 
 	ssl_sock = connect_https_socket(vpninfo);
 	if (ssl_sock < 0)
@@ -2048,6 +2054,9 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	if (err)
 		return err;
 
+	gnutls_free(vpninfo->cstp_cipher);
+	vpninfo->cstp_cipher = get_gnutls_cipher(vpninfo->https_sess);
+
 	vpninfo->ssl_fd = ssl_sock;
 
 	vpninfo->ssl_read = openconnect_gnutls_read;
@@ -2114,13 +2123,6 @@ int cstp_handshake(struct openconnect_info *vpninfo, unsigned init)
 
 void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 {
-	if (vpninfo->peer_cert) {
-		gnutls_x509_crt_deinit(vpninfo->peer_cert);
-		vpninfo->peer_cert = NULL;
-	}
-	free(vpninfo->peer_cert_hash);
-	vpninfo->peer_cert_hash = NULL;
-
 	if (vpninfo->https_sess) {
 		gnutls_deinit(vpninfo->https_sess);
 		vpninfo->https_sess = NULL;
@@ -2220,15 +2222,6 @@ char *get_gnutls_cipher(gnutls_session_t session)
 		gnutls_mac_get(session)));
 #endif
 	return str;
-}
-
-const char *openconnect_get_cstp_cipher(struct openconnect_info *vpninfo)
-{
-	if (vpninfo->gnutls_cstp_cipher)
-		gnutls_free(vpninfo->gnutls_cstp_cipher);
-
-	vpninfo->gnutls_cstp_cipher = get_gnutls_cipher(vpninfo->https_sess);
-	return vpninfo->gnutls_cstp_cipher;
 }
 
 int openconnect_sha1(unsigned char *result, void *data, int datalen)
