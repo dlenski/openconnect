@@ -2261,7 +2261,9 @@ int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 			       char *buf)
 {
 	const gnutls_datum_t *d;
-	size_t md5len = 16;
+	unsigned char md5[MD5_SIZE];
+	size_t md5len = sizeof(md5);
+	int i;
 
 	buf[0] = 0;
 
@@ -2269,8 +2271,11 @@ int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 	if (!d)
 		return -EIO;
 
-	if (gnutls_fingerprint(GNUTLS_DIG_MD5, d, buf, &md5len))
+	if (gnutls_fingerprint(GNUTLS_DIG_MD5, d, md5, &md5len))
 		return -EIO;
+
+	for (i = 0; i < md5len; i++)
+		sprintf(&buf[i*2], "%02X", md5[i]);
 
 	return 0;
 }
