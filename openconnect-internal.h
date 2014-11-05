@@ -348,6 +348,7 @@ struct openconnect_info {
 	   have fewer ifdefs and accessor macros for it. */
 	gnutls_session_t dtls_ssl;
 	char *gnutls_dtls_cipher; /* cached for openconnect_get_dtls_cipher() */
+	char local_cert_md5[MD5_SIZE * 2 + 1]; /* For CSD */
 #endif
 	char *cstp_cipher;
 

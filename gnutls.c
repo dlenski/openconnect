@@ -1402,6 +1402,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	   a PKCS#12 file we may have a trust chain in 'supporting_certs[]' too. */
 	check_certificate_expiry(vpninfo, cert);
 	get_cert_name(cert, name, sizeof(name));
+	get_cert_md5_fingerprint(vpninfo, cert, vpninfo->local_cert_md5);
 	vpn_progress(vpninfo, PRG_INFO, _("Using client certificate '%s'\n"),
 		     name);
 
@@ -2260,22 +2261,7 @@ int openconnect_random(void *bytes, int len)
 int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 			       char *buf)
 {
-	const gnutls_datum_t *d;
-	unsigned char md5[MD5_SIZE];
-	size_t md5len = sizeof(md5);
-	int i;
-
-	buf[0] = 0;
-
-	d = gnutls_certificate_get_ours(vpninfo->https_sess);
-	if (!d)
-		return -EIO;
-
-	if (gnutls_fingerprint(GNUTLS_DIG_MD5, d, md5, &md5len))
-		return -EIO;
-
-	for (i = 0; i < md5len; i++)
-		sprintf(&buf[i*2], "%02X", md5[i]);
+	memcpy(buf, vpninfo->local_cert_md5, sizeof(vpninfo->local_cert_md5));
 
 	return 0;
 }
