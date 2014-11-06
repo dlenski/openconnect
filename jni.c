@@ -690,7 +690,7 @@ JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_obtainCo
 }
 
 /* special handling: caller-allocated buffer */
-JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getCertSHA1(
+JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getPeerCertHash(
 	JNIEnv *jenv, jobject jobj)
 {
 	struct libctx *ctx = getctx(jenv, jobj);
@@ -709,7 +709,7 @@ JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getCe
 }
 
 /* special handling: callee-allocated, caller-freed string */
-JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getCertDetails(
+JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getPeerCertDetails(
 	JNIEnv *jenv, jobject jobj)
 {
 	struct libctx *ctx = getctx(jenv, jobj);
@@ -731,7 +731,7 @@ JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getCe
 }
 
 /* special handling: callee-allocated, caller-freed binary buffer */
-JNIEXPORT jbyteArray JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getCertDER(
+JNIEXPORT jbyteArray JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getPeerCertDER(
 	JNIEnv *jenv, jobject jobj)
 {
 	struct libctx *ctx = getctx(jenv, jobj);
@@ -1084,6 +1084,17 @@ JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getCS
 
 #define SET_STRING_END() \
 	release_cstring(ctx->jenv, jarg, arg)
+
+JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_checkPeerCertHash(
+	JNIEnv *jenv, jobject jobj, jstring jarg)
+{
+	int ret;
+	SET_STRING_START(-ENOMEM)
+	ret = openconnect_check_peer_cert_hash(ctx->vpninfo, arg);
+	SET_STRING_END();
+
+	return ret;
+}
 
 JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_parseURL(
 	JNIEnv *jenv, jobject jobj, jstring jarg)

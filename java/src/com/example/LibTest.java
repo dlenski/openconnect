@@ -41,10 +41,13 @@ public final class LibTest {
 		@Override
 		public int onValidatePeerCert(String msg) {
 			System.out.println("cert warning: " + msg);
-			System.out.println("cert SHA1: " + getCertSHA1());
-			System.out.println("cert details: " + getCertDetails());
+			System.out.println("cert hash: " + getPeerCertHash());
+			System.out.println("cert details: " + getPeerCertDetails());
 
-			byte der[] = getCertDER();
+			System.out.println("Internal consistency check: " +
+					   (checkPeerCertHash(getPeerCertHash()) == 0 ? "OK" : "FAIL"));
+
+			byte der[] = getPeerCertDER();
 			System.out.println("DER is " + der.length + " bytes long");
 
 			System.out.print("\nAccept this certificate? [n] ");
