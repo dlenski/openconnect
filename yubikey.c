@@ -22,9 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <pcsclite.h>
-#include <winscard.h>
-
 #include "openconnect-internal.h"
 
 #define NAME_TAG	0x71
@@ -62,7 +59,7 @@ static int yubikey_cmd(struct openconnect_info *vpninfo, SCARDHANDLE card, int e
 	buf_truncate(buf);
 
 	do {
-		size_t respsize = 258;
+		DWORD respsize = 258;
 		
 		if (buf_ensure_space(buf, 258))
 			return -ENOMEM;
@@ -187,7 +184,7 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 		if (status != SCARD_S_SUCCESS) {
 			vpn_progress(vpninfo, PRG_ERR, _("Failed to obtain exclusive access to reader '%s'\n"),
 				     reader);
-			continue;
+			goto disconnect;
 		}
 		
 		ret = yubikey_cmd(vpninfo, pcsc_card, PRG_DEBUG, _("select applet command"),
@@ -254,7 +251,7 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 				if (!vpninfo->yubikey_objname) {
 					ret = -ENOMEM;
 					SCardEndTransaction(pcsc_card, SCARD_LEAVE_CARD);
-					SCardReleaseContext(pcsc_card);
+					SCardDisconnect(pcsc_card, SCARD_LEAVE_CARD);
 					goto out_ctx;
 				}
 				/* Translators: This is filled in with mode and hash type, and the key identifier.
@@ -282,7 +279,8 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 
 	next_reader:
 		SCardEndTransaction(pcsc_card, SCARD_LEAVE_CARD);
-		SCardReleaseContext(pcsc_card);
+	disconnect:
+		SCardDisconnect(pcsc_card, SCARD_LEAVE_CARD);
 	}
 	ret = -ENOENT;
  out_ctx:

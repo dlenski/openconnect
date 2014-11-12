@@ -260,7 +260,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 #endif /* HAVE_LIBOATH */
 #ifdef HAVE_LIBPCSCLITE
 	if (vpninfo->token_mode == OC_TOKEN_MODE_YUBIKEY) {
-		SCardReleaseContext(vpninfo->pcsc_card);
+		SCardDisconnect(vpninfo->pcsc_card, SCARD_LEAVE_CARD);
 		SCardReleaseContext(vpninfo->pcsc_ctx);
 	}
 #endif

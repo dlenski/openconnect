@@ -90,7 +90,6 @@
 #endif
 
 #ifdef HAVE_LIBPCSCLITE
-#include <pcsclite.h>
 #include <winscard.h>
 #endif
 
