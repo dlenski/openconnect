@@ -1218,6 +1218,8 @@ int main(int argc, char **argv)
 				token_mode = OC_TOKEN_MODE_TOTP;
 			} else if (strcasecmp(config_arg, "hotp") == 0) {
 				token_mode = OC_TOKEN_MODE_HOTP;
+			} else if (strcasecmp(config_arg, "yubikey") == 0) {
+				token_mode = OC_TOKEN_MODE_YUBIKEY;
 			} else {
 				fprintf(stderr, _("Invalid software token mode \"%s\"\n"),
 					config_arg);
@@ -1899,6 +1901,21 @@ static void init_token(struct openconnect_info *vpninfo,
 		}
 
 		break;
+
+	case OC_TOKEN_MODE_YUBIKEY:
+		switch(ret) {
+		case 0:
+			return;
+		case -ENOENT:
+			fprintf(stderr, _("Yubikey token not found\n"));
+			exit(1);
+		case -EOPNOTSUPP:
+			fprintf(stderr, _("OpenConnect was not built with Yubikey support\n"));
+			exit(1);
+		default:
+			fprintf(stderr, _("General Yubikey failure: %s\n"), strerror(-ret));
+			exit(1);
+		}
 
 	case OC_TOKEN_MODE_NONE:
 		/* No-op */

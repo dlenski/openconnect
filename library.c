@@ -603,6 +603,10 @@ int openconnect_set_token_mode(struct openconnect_info *vpninfo,
 	case OC_TOKEN_MODE_HOTP:
 		return set_hotp_mode(vpninfo, token_str);
 #endif
+#ifdef HAVE_LIBPCSCLITE
+	case OC_TOKEN_MODE_YUBIKEY:
+		return set_yubikey_mode(vpninfo, token_str);
+#endif
 	default:
 		return -EOPNOTSUPP;
 	}

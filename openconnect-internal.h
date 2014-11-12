@@ -89,6 +89,11 @@
 #include <pskc/pskc.h>
 #endif
 
+#ifdef HAVE_LIBPCSCLITE
+#include <pcsclite.h>
+#include <winscard.h>
+#endif
+
 #ifdef ENABLE_NLS
 #include <libintl.h>
 #define _(s) dgettext("openconnect", s)
@@ -277,6 +282,11 @@ struct openconnect_info {
 		HOTP_SECRET_HEX,
 		HOTP_SECRET_PSKC,
 	} hotp_secret_format; /* We need to give it back in the same form */
+#endif
+#ifdef HAVE_LIBPCSCLITE
+	SCARDHANDLE pcsc_ctx, pcsc_card;
+	char *yubikey_objname;
+	int yubikey_mode;
 #endif
 	openconnect_lock_token_vfn lock_token;
 	openconnect_unlock_token_vfn unlock_token;
@@ -674,6 +684,15 @@ int can_gen_stoken_code(struct openconnect_info *vpninfo,
 int do_gen_stoken_code(struct openconnect_info *vpninfo,
 		       struct oc_auth_form *form,
 		       struct oc_form_opt *opt);
+
+/* yubikey.c */
+int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str);
+int can_gen_yubikey_code(struct openconnect_info *vpninfo,
+			 struct oc_auth_form *form,
+			 struct oc_form_opt *opt);
+int do_gen_yubikey_code(struct openconnect_info *vpninfo,
+			struct oc_auth_form *form,
+			struct oc_form_opt *opt);
 
 /* auth.c */
 void nuke_opt_values(struct oc_form_opt *opt);

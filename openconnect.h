@@ -273,6 +273,7 @@ typedef enum {
 	OC_TOKEN_MODE_STOKEN,
 	OC_TOKEN_MODE_TOTP,
 	OC_TOKEN_MODE_HOTP,
+	OC_TOKEN_MODE_YUBIKEY,
 } oc_token_mode_t;
 
 /* All strings are UTF-8. If operating in a legacy environment where

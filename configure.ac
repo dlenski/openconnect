@@ -598,6 +598,18 @@ AS_IF([test "x$with_stoken" != "xno"], [
 ], [libstoken_pkg=disabled])
 AM_CONDITIONAL(OPENCONNECT_STOKEN, [test "$libstoken_pkg" = "yes"])
 
+AC_ARG_WITH([libpcsclite],
+	AS_HELP_STRING([--without-libpcsclite],
+	[Build without libpcsclite library (for Yubikey support) [default=auto]]))
+AS_IF([test "x$with_libpcsclite" != "xno"], [
+	PKG_CHECK_MODULES(LIBPCSCLITE, libpcsclite,
+			[AC_SUBST(LIBPCSCLITE_PC, libpcsclite)
+			 AC_DEFINE([HAVE_LIBPCSCLITE], 1, [Have libpcsclite])
+			 libpcsclite_pkg=yes],
+			 libpcsclite_pkg=no)
+], [libpcsclite_pkg=disabled])
+AM_CONDITIONAL(OPENCONNECT_LIBPCSCLITE, [test "$libpcsclite_pkg" = "yes"])
+
 AC_ARG_WITH([liboath],
 	AS_HELP_STRING([--without-liboath],
 	[Build without liboath library [default=auto]]))
