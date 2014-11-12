@@ -56,6 +56,9 @@ case $host_os in
     # For asprintf()
     AC_DEFINE(_GNU_SOURCE, 1, [_GNU_SOURCE])
     symver_win32_strerror="openconnect__win32_strerror;"
+    # Win32 does have the SCard API
+    LIBPCSCLITE_LIBS=-lwinscard
+    LIBPCSCLITE_CFLAGS=" "
     ;;
  *)
     # On FreeBSD the only way to get vsyslog() visible is to define

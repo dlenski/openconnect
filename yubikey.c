@@ -50,6 +50,14 @@ static const unsigned char appselect[] = { 0x00, 0xa4, 0x04, 0x00, 0x07,
 static const unsigned char list_keys[] = { 0x00, LIST_INS, 0x00, 0x00 };
 static const unsigned char send_remaining[] = { 0x00, SEND_REMAINING_INS, 0x00, 0x00 };
 
+#ifdef _WIN32
+#define scard_error(st) openconnect__win32_strerror(st)
+#define free_scard_error(str) free(str)
+#else
+#define scard_error(st) pcsc_stringify_error(st)
+#define free_scard_error(str) do { ; } while (0)
+
+#endif
 static int yubikey_cmd(struct openconnect_info *vpninfo, SCARDHANDLE card, int errlvl,
 		       const char *desc,
 		       const unsigned char *out, size_t outlen, struct oc_text_buf *buf)
@@ -67,9 +75,11 @@ static int yubikey_cmd(struct openconnect_info *vpninfo, SCARDHANDLE card, int e
 		status = SCardTransmit (card, SCARD_PCI_T1, out, outlen,
 					NULL, (unsigned char *)&buf->data[buf->pos], &respsize);
 		if (status != SCARD_S_SUCCESS) {
+			char *pcsc_err = scard_error(status);
 			vpn_progress(vpninfo, errlvl,
 				     _("Failed to send \"%s\" to ykneo-oath applet: %s\n"),
-				     desc, pcsc_stringify_error(status));
+				     desc, pcsc_err);
+			free_scard_error(pcsc_err);
 			return -EIO;
 		}
 		if (respsize < 2) {
@@ -140,8 +150,10 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 
 	status = SCardEstablishContext(SCARD_SCOPE_USER, NULL, NULL, &pcsc_ctx);
 	if (status != SCARD_S_SUCCESS) {
+		char *pcsc_err = scard_error(status);
 		vpn_progress(vpninfo, PRG_ERR, _("Failed to establish PC/SC context: %s\n"),
-			     pcsc_stringify_error(status));
+			     pcsc_err);
+		free_scard_error(pcsc_err);
 		return -EIO;
 	}
 	vpn_progress(vpninfo, PRG_TRACE, _("Established PC/SC context\n"));
@@ -149,8 +161,10 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 	ret = -ENOENT;
 	status = SCardListReaders(pcsc_ctx, NULL, NULL, &readers_size);
 	if (status != SCARD_S_SUCCESS) {
+		char *pcsc_err = scard_error(status);
 		vpn_progress(vpninfo, PRG_ERR, _("Failed to query reader list: %s\n"),
-			     pcsc_stringify_error(status));
+			     pcsc_err);
+		free_scard_error(pcsc_err);
 		goto out_ctx;
 	}
 	readers = malloc(readers_size);
@@ -159,8 +173,10 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 
 	status = SCardListReaders(pcsc_ctx, NULL, readers, &readers_size);
 	if (status != SCARD_S_SUCCESS) {
+		char *pcsc_err = scard_error(status);
 		vpn_progress(vpninfo, PRG_ERR, _("Failed to query reader list: %s\n"),
-			     pcsc_stringify_error(status));
+			     pcsc_err);
+		free_scard_error(pcsc_err);
 		goto out_ctx;
 	}
 
@@ -174,8 +190,10 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 				      SCARD_PROTOCOL_T1,
 				      &pcsc_card, &proto);
 		if (status != SCARD_S_SUCCESS) {
+			char *pcsc_err = scard_error(status);
 			vpn_progress(vpninfo, PRG_ERR, _("Failed to connect to PC/SC reader '%s': %s\n"),
-				     reader, pcsc_stringify_error(status));
+				     reader, pcsc_err);
+			free_scard_error(pcsc_err);
 			continue;
 		}
 		vpn_progress(vpninfo, PRG_TRACE, _("Connected PC/SC reader '%s'\n"), reader);
