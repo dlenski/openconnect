@@ -258,7 +258,12 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		oath_done();
 	}
 #endif /* HAVE_LIBOATH */
-
+#ifdef HAVE_LIBPCSCLITE
+	if (vpninfo->token_mode == OC_TOKEN_MODE_YUBIKEY) {
+		SCardReleaseContext(vpninfo->pcsc_card);
+		SCardReleaseContext(vpninfo->pcsc_ctx);
+	}
+#endif
 	/* These check strm->state so they are safe to call multiple times */
 	inflateEnd(&vpninfo->inflate_strm);
 	deflateEnd(&vpninfo->deflate_strm);
