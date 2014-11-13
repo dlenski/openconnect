@@ -90,7 +90,12 @@
 #endif
 
 #ifdef HAVE_LIBPCSCLITE
+#ifdef __APPLE__
+#include <PCSC/wintypes.h>
+#include <PCSC/winscard.h>
+#else
 #include <winscard.h>
+#endif
 #endif
 
 #ifdef ENABLE_NLS

@@ -60,6 +60,10 @@ case $host_os in
     LIBPCSCLITE_LIBS=-lwinscard
     LIBPCSCLITE_CFLAGS=" "
     ;;
+ *darwin*)
+    LIBPCSCLITE_LIBS="-Wl,-framework -Wl,PCSC"
+    LIBPCSCLITE_CFLAGS=" "
+    ;;
  *)
     # On FreeBSD the only way to get vsyslog() visible is to define
     #  *nothing*, which makes absolutely everything visible.
