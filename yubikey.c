@@ -100,8 +100,9 @@ static int yubikey_cmd(struct openconnect_info *vpninfo, SCARDHANDLE card, int e
 		return 0;
 
 	vpn_progress(vpninfo, errlvl,
-		     _("Failure from ykneo-oath applet after \"%s\": %02x %02x\n"),
-		     desc, buf->data[buf->pos], buf->data[buf->pos+1]);
+		     _("Failure response to \"%s\": %02x %02x\n"),
+		     desc, (unsigned char)buf->data[buf->pos],
+		     (unsigned char)buf->data[buf->pos+1]);
 	return -EIO;
 }
 
