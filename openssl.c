@@ -1613,3 +1613,20 @@ int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 
 	return 0;
 }
+
+#ifdef HAVE_LIBPCSCLITE
+int openconnect_yubikey_challenge(const char *password, const void *ident, int id_len,
+				  const void *challenge, int chall_len, void *result)
+{
+	unsigned char T[20];
+	unsigned int mdlen = SHA1_SIZE;
+
+	if (!PKCS5_PBKDF2_HMAC_SHA1(password, strlen(password), ident, id_len, 1000, 16, T))
+		return -EIO;
+
+	if (!HMAC(EVP_sha1(), T, 16, challenge, chall_len, result, &mdlen))
+		return -EIO;
+
+	return 0;
+}
+#endif

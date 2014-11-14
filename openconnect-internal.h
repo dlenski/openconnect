@@ -645,6 +645,8 @@ int openconnect_md5(unsigned char *result, void *data, int len);
 int openconnect_random(void *bytes, int len);
 int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 			       char *buf);
+int openconnect_yubikey_challenge(const char *password, const void *ident, int id_len,
+				  const void *challenge, int chall_len, void *result);
 #if defined(OPENCONNECT_OPENSSL)
 #define openconnect_https_connected(_v) ((_v)->https_ssl)
 #elif defined (OPENCONNECT_GNUTLS)
