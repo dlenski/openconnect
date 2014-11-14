@@ -99,11 +99,18 @@ static int yubikey_cmd(struct openconnect_info *vpninfo, SCARDHANDLE card, int e
 	if ((unsigned char)buf->data[buf->pos] == 0x90 && buf->data[buf->pos+1] == 0x00)
 		return 0;
 
+	status = (unsigned short)buf->data[buf->pos] << 8;
+	status |= (unsigned char)buf->data[buf->pos+1];
+
 	vpn_progress(vpninfo, errlvl,
-		     _("Failure response to \"%s\": %02x %02x\n"),
-		     desc, (unsigned char)buf->data[buf->pos],
-		     (unsigned char)buf->data[buf->pos+1]);
-	return -EIO;
+		     _("Failure response to \"%s\": %04x\n"),
+		     desc, (unsigned)status);
+	switch (status) {
+	case 0x6a80:
+		return -EINVAL;
+	default:
+		return -EIO;
+	}
 }
 
 static int buf_tlv(struct oc_text_buf *buf, int *loc, unsigned char *type)
@@ -143,9 +150,9 @@ static int buf_tlv(struct oc_text_buf *buf, int *loc, unsigned char *type)
 static int select_yubioath_applet(struct openconnect_info *vpninfo,
 				  SCARDHANDLE pcsc_card, struct oc_text_buf *buf)
 {
-	int ret, tlvlen, tlvpos, id_len;
+	int ret, tlvlen, tlvpos, id_len, chall_len;
 	unsigned char type;
-	void *applet_id;
+	unsigned char applet_id[16], challenge[16];
 	unsigned char *applet_ver;
 
 	ret = yubikey_cmd(vpninfo, pcsc_card, PRG_DEBUG, _("select applet command"),
@@ -167,11 +174,10 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 	tlvpos += tlvlen;
 	tlvlen = buf_tlv(buf, &tlvpos, &type);
 
-	if (tlvlen < 0 || type != NAME_TAG)
+	if (tlvlen < 0 || type != NAME_TAG || tlvlen > sizeof(applet_id))
 		goto bad_applet;
-	applet_id = &buf->data[tlvpos];
+	memcpy(applet_id, &buf->data[tlvpos], tlvlen);
 	id_len = tlvlen;
-
 	tlvpos += tlvlen;
 
 	/* Only print this during the first discovery loop */
@@ -183,11 +189,39 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 		unsigned char chalresp[7 + SHA1_SIZE + 10];
 
 		tlvlen = buf_tlv(buf, &tlvpos, &type);
-		if (tlvlen < 0 || type != CHALLENGE_TAG)
+		if (tlvlen < 0 || type != CHALLENGE_TAG || tlvlen > sizeof(challenge))
 			goto bad_applet;
 
-		if (openconnect_yubikey_challenge("foo", applet_id, id_len,
-						  &buf->data[tlvpos], tlvlen,
+		memcpy(challenge, &buf->data[tlvpos], tlvlen);
+		chall_len = tlvlen;
+
+	retry:
+		if (!vpninfo->yubikey_password) {
+			struct oc_auth_form f;
+			struct oc_form_opt o;
+
+			memset(&f, 0, sizeof(f));
+			f.auth_id = (char *)"yubikey_oath_pin";
+			f.opts = &o;
+			f.message = (char *)_("PIN required for Yubikey OATH applet");
+
+			o.next = NULL;
+			o.type = OC_FORM_OPT_PASSWORD;
+			o.name = (char *)"yubikey_pin";
+			o.label = (char *)_("Yubikey PIN:");
+			o._value = NULL;
+
+			ret = process_auth_form(vpninfo, &f);
+			if (ret)
+				return ret;
+			if (!o._value)
+				return -EPERM;
+
+			vpninfo->yubikey_password = o._value;
+		}
+		if (openconnect_yubikey_challenge(vpninfo->yubikey_password,
+						  applet_id, id_len,
+						  &challenge, chall_len,
 						  chalresp + 7)) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to calculate Yubikey unlock response\n"));
@@ -208,6 +242,11 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 
 		ret = yubikey_cmd(vpninfo, pcsc_card, PRG_ERR, _("unlock command"),
 				  chalresp, sizeof(chalresp), buf);
+		if (ret == -EINVAL) {
+			free(vpninfo->yubikey_password);
+			vpninfo->yubikey_password = NULL;
+			goto retry;
+		}
 		if (ret)
 			return ret;
 	}

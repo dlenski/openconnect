@@ -290,6 +290,7 @@ struct openconnect_info {
 #ifdef HAVE_LIBPCSCLITE
 	SCARDHANDLE pcsc_ctx, pcsc_card;
 	char *yubikey_objname;
+	char *yubikey_password;
 	int yubikey_mode;
 #endif
 	openconnect_lock_token_vfn lock_token;

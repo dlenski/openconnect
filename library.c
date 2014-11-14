@@ -263,6 +263,8 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		SCardDisconnect(vpninfo->pcsc_card, SCARD_LEAVE_CARD);
 		SCardReleaseContext(vpninfo->pcsc_ctx);
 	}
+	free(vpninfo->yubikey_password);
+	free(vpninfo->yubikey_objname);
 #endif
 	/* These check strm->state so they are safe to call multiple times */
 	inflateEnd(&vpninfo->inflate_strm);
