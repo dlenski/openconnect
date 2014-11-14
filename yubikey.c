@@ -140,6 +140,80 @@ static int buf_tlv(struct oc_text_buf *buf, int *loc, unsigned char *type)
 	return len;
 }
 
+static int select_yubioath_applet(struct openconnect_info *vpninfo,
+				  SCARDHANDLE pcsc_card, struct oc_text_buf *buf)
+{
+	int ret, tlvlen, tlvpos, id_len;
+	unsigned char type;
+	void *applet_id;
+	unsigned char *applet_ver;
+
+	ret = yubikey_cmd(vpninfo, pcsc_card, PRG_DEBUG, _("select applet command"),
+			  appselect, sizeof(appselect), buf);
+	if (ret)
+		return ret;
+
+	tlvpos = 0;
+	tlvlen = buf_tlv(buf, &tlvpos, &type);
+
+	if (tlvlen < 0 || type != VERSION_TAG || tlvlen != 3) {
+	bad_applet:
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Unrecognised response from ykneo-oath applet\n"));
+		return -EIO;
+	}
+	applet_ver = (void *)&buf->data[tlvpos];
+
+	tlvpos += tlvlen;
+	tlvlen = buf_tlv(buf, &tlvpos, &type);
+
+	if (tlvlen < 0 || type != NAME_TAG)
+		goto bad_applet;
+	applet_id = &buf->data[tlvpos];
+	id_len = tlvlen;
+
+	tlvpos += tlvlen;
+
+	/* Only print this during the first discovery loop */
+	if (!vpninfo->pcsc_card)
+		vpn_progress(vpninfo, PRG_INFO,  _("Found ykneo-oath applet v%d.%d.%d.\n"),
+			     applet_ver[0], applet_ver[1], applet_ver[2]);
+
+	if (tlvpos != buf->pos) {
+		unsigned char chalresp[7 + SHA1_SIZE + 10];
+
+		tlvlen = buf_tlv(buf, &tlvpos, &type);
+		if (tlvlen < 0 || type != CHALLENGE_TAG)
+			goto bad_applet;
+
+		if (openconnect_yubikey_challenge("foo", applet_id, id_len,
+						  &buf->data[tlvpos], tlvlen,
+						  chalresp + 7)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to calculate Yubikey unlock response\n"));
+			return -EIO;
+		}
+
+		chalresp[0] = 0;
+		chalresp[1] = VALIDATE_INS;
+		chalresp[2] = 0;
+		chalresp[3] = 0;
+		chalresp[4] = sizeof(chalresp) - 5;
+		chalresp[5] = RESPONSE_TAG;
+		chalresp[6] = SHA1_SIZE;
+		/* Response is already filled in */
+		chalresp[7 + SHA1_SIZE] = CHALLENGE_TAG;
+		chalresp[8 + SHA1_SIZE] = 8;
+		memset(chalresp + 9 + SHA1_SIZE, 0xff, 8);
+
+		ret = yubikey_cmd(vpninfo, pcsc_card, PRG_ERR, _("unlock command"),
+				  chalresp, sizeof(chalresp), buf);
+		if (ret)
+			return ret;
+	}
+	return 0;
+}
+
 int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 {
 	SCARDHANDLE pcsc_ctx, pcsc_card;
@@ -185,7 +259,6 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 	
 	for (reader = readers; reader[0]; reader += strlen(reader) + 1) {
 		unsigned char type;
-		unsigned char *applet_ver, *applet_id;
 
 		status = SCardConnect(pcsc_ctx, reader, SCARD_SHARE_SHARED,
 				      SCARD_PROTOCOL_T1,
@@ -206,57 +279,25 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 			goto disconnect;
 		}
 		
-		ret = yubikey_cmd(vpninfo, pcsc_card, PRG_DEBUG, _("select applet command"),
-				  appselect, sizeof(appselect), buf);
+		ret = select_yubioath_applet(vpninfo, pcsc_card, buf);
 		if (ret)
 			goto next_reader;
-
-		tlvpos = 0;
-		tlvlen = buf_tlv(buf, &tlvpos, &type);
-
-		if (tlvlen < 0 || type != VERSION_TAG || tlvlen != 3) {
-		bad_applet:
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Unrecognised response from ykneo-oath applet\n"));
-			goto next_reader;
-		}
-		applet_ver = (unsigned char *)&buf->data[tlvpos];
-		tlvpos += tlvlen;
-
-		tlvlen = buf_tlv(buf, &tlvpos, &type);
-
-		if (tlvlen < 0 || type != NAME_TAG || tlvlen != 8)
-			goto bad_applet;
-		applet_id = (unsigned char *)&buf->data[tlvpos];
-		tlvpos += tlvlen;
-
-		vpn_progress(vpninfo, PRG_INFO,
-			     _("Found ykneo-oath applet v%d.%d.%d, ID %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"),
-			     applet_ver[0], applet_ver[1], applet_ver[2],
-			     applet_id[0], applet_id[1], applet_id[2], applet_id[3],
-			     applet_id[4], applet_id[5], applet_id[6], applet_id[7]);
-
-		if (tlvpos != buf->pos) {
-			if ((unsigned char)buf->data[tlvpos] == CHALLENGE_TAG) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("Applet is locked. Unlocking is not yet implemented\n"));
-				goto next_reader;
-			}
-			goto bad_applet;
-		}
 
 		ret = yubikey_cmd(vpninfo, pcsc_card, PRG_ERR, _("list keys command"), list_keys, sizeof(list_keys), buf);
 		if (ret)
-			continue;
+			goto next_reader;
 
 		tlvpos = 0;
 		while (tlvpos < buf->pos) {
 			unsigned char mode, hash;
 
 			tlvlen = buf_tlv(buf, &tlvpos, &type);
-			if (type != NAME_LIST_TAG)
-				goto bad_applet;
-
+			if (type != NAME_LIST_TAG || tlvlen < 1) {
+			bad_applet:
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Unrecognised response from ykneo-oath applet\n"));
+				goto next_reader;
+			}
 			mode = buf->data[tlvpos] & 0xf0;
 			hash = buf->data[tlvpos] & 0x0f;
 			if (mode != 0x10 && mode != 0x20)
@@ -397,19 +438,9 @@ int do_gen_yubikey_code(struct openconnect_info *vpninfo,
 	}
 
 	respbuf = buf_alloc();
-	ret = yubikey_cmd(vpninfo, vpninfo->pcsc_card, PRG_DEBUG, _("select applet command"),
-			  appselect, sizeof(appselect), respbuf);
+	ret = select_yubioath_applet(vpninfo, vpninfo->pcsc_card, respbuf);
 	if (ret)
 		goto out;
-
-	if (respbuf->pos != 15 || (unsigned char)respbuf->data[0] != VERSION_TAG ||
-	    (unsigned char)respbuf->data[5] != NAME_TAG) {
-	bad_resp:
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Unrecognised response from Yubikey when generating tokencode\n"));
-		ret = -EIO;
-		goto out;
-	}
 
 	name_tlvlen = tlvlen_len(strlen(vpninfo->yubikey_objname));
 	calc_tlvlen = 1 /* NAME_TAG */ + name_tlvlen + name_len +
@@ -452,8 +483,12 @@ int do_gen_yubikey_code(struct openconnect_info *vpninfo,
 		goto out;
 
 	if (respbuf->pos != 7 || (unsigned char)respbuf->data[0] != T_RESPONSE_TAG ||
-	    respbuf->data[1] != 5 || respbuf->data[2] > 8 || respbuf->data[2] < 6)
-		goto bad_resp;
+	    respbuf->data[1] != 5 || respbuf->data[2] > 8 || respbuf->data[2] < 6) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Unrecognised response from Yubikey when generating tokencode\n"));
+		ret = -EIO;
+		goto out;
+	}
 
 	tokval = ((unsigned char)respbuf->data[3] << 24) +
 		((unsigned char)respbuf->data[4] << 16) +
