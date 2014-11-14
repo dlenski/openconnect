@@ -217,6 +217,8 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 			if (!o._value)
 				return -EPERM;
 
+			/* XXX: What charset is the password in? Assuming UTF-8 because that's
+			   the only sane option, but see http://forum.yubico.com/viewtopic.php?f=26&t=1601 */
 			ret = openconnect_hash_yubikey_password(vpninfo, o._value, applet_id, id_len);
 			if (ret)
 				return ret;
