@@ -8,7 +8,7 @@
 
 	<INCLUDE file="inc/content.tmpl" />
 
-<h1>Software token support</h1>
+<h1>One Time Password support</h1>
 
 <p>OpenConnect supports three types of software tokens for automatically
 generating one-time passwords:</p>
@@ -20,8 +20,13 @@ generating one-time passwords:</p>
   <li>OATH HOTP <i>(<a href="http://tools.ietf.org/html/rfc4226">RFC4226</a>)</i> tokens using
       <a href="http://www.nongnu.org/oath-toolkit/">liboath</a></li>
 </ul>
+ <p>OATH HOTP/TOTP tokens are also supported in hardware by:</p>
+ <ul><li><a href="https://developers.yubico.com/ykneo-oath/">ykneo-oath</a> applet on
+ the <a href="https://www.yubico.com/products/yubikey-hardware/yubikey-neo/">Yubikey NEO</a>
+ and similar devices</li></ul>
+
 <p>On the command line, the token mode is specified with the <tt>--token-mode</tt>
-argument, which can be one of <tt>rsa</tt>, <tt>totp</tt> or <tt>hotp</tt>.</p>
+argument, which can be one of <tt>rsa</tt>, <tt>totp</tt>, <tt>hotp</tt> or <tt>yubikey</tt>.</p>
 <p>The token secret is provided with the <tt>--token-secret</tt>
 argument, and the precise form it takes is dependent on the type of
 token as described below.</p>
@@ -160,6 +165,17 @@ configuration. So if you configure a VPN connection with a HOTP token secret of 
 and authenticate once, you should be able to go back into the configuration and see
 that the token secret has been updated to <tt>"0x1234,2"</tt>.</p>
 
+<h2>Yubikey HOTP/TOTP</h2>
+
+<p>The <a href="https://developers.yubico.com/ykneo-oath/">ykneo-oath</a> applet
+implements secure HOTP/TOTP support by storing the private key within the hardware
+device so that it cannot be recovered.</p>
+
+<p>The applet can store multiple credentials. If a <tt>--token-secret</tt> argument
+is provided, it specifies the name of the credential which is to be used. Otherwise
+OpenConnect will use the first credential found on the device.</p>
+
+<p>Yubikey support is not yet implemented in NetworkManager.</p>
 
 <INCLUDE file="inc/footer.tmpl" />
 </PAGE>
