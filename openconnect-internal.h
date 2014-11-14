@@ -290,7 +290,8 @@ struct openconnect_info {
 #ifdef HAVE_LIBPCSCLITE
 	SCARDHANDLE pcsc_ctx, pcsc_card;
 	char *yubikey_objname;
-	char *yubikey_password;
+	unsigned char yubikey_pwhash[16];
+	int yubikey_pw_set;
 	int yubikey_mode;
 #endif
 	openconnect_lock_token_vfn lock_token;
@@ -646,8 +647,10 @@ int openconnect_md5(unsigned char *result, void *data, int len);
 int openconnect_random(void *bytes, int len);
 int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 			       char *buf);
-int openconnect_yubikey_challenge(const char *password, const void *ident, int id_len,
-				  const void *challenge, int chall_len, void *result);
+int openconnect_yubikey_chalresp(struct openconnect_info *vpninfo,
+				 const void *challenge, int chall_len, void *result);
+int openconnect_hash_yubikey_password(struct openconnect_info *vpninfo,
+				      const char *password, const void *ident, int id_len);
 #if defined(OPENCONNECT_OPENSSL)
 #define openconnect_https_connected(_v) ((_v)->https_ssl)
 #elif defined (OPENCONNECT_GNUTLS)

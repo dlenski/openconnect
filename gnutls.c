@@ -2351,10 +2351,10 @@ static P11KitPin *pin_callback(const char *pin_source, P11KitUri *pin_uri,
 #endif
 
 #ifdef HAVE_LIBPCSCLITE
-int openconnect_yubikey_challenge(const char *password, const void *ident, int id_len,
-				  const void *challenge, int chall_len, void *result)
+int openconnect_hash_yubikey_password(struct openconnect_info *vpninfo,
+				      const char *password, const void *ident, int id_len)
 {
-	unsigned char U[SHA1_SIZE], T[SHA1_SIZE];
+	unsigned char U[SHA1_SIZE];
 	gnutls_hmac_hd_t dgst;
 	int ret = -EIO;
 	int i, j;
@@ -2371,23 +2371,30 @@ int openconnect_yubikey_challenge(const char *password, const void *ident, int i
 		goto out;
 	gnutls_hmac_output(dgst, U);
 
-	memcpy(T, U, SHA1_SIZE);
+	memcpy(vpninfo->yubikey_pwhash, U, 16);
+
 	for (i = 1; i < 1000; i++) {
 		if (gnutls_hmac(dgst, U, SHA1_SIZE))
 			goto out;
 
 		gnutls_hmac_output(dgst, U);
 
-		for (j = 0; j < SHA1_SIZE; j++)
-			T[j] ^= U[j];
+		for (j = 0; j < 16; j++)
+			vpninfo->yubikey_pwhash[j] ^= U[j];
 	}
-
-	if (gnutls_hmac_fast(GNUTLS_MAC_SHA1, T, 16, challenge, chall_len, result))
-		goto out;
 
 	ret = 0;
  out:
 	gnutls_hmac_deinit(dgst, NULL);
 	return ret;
+}
+
+int openconnect_yubikey_chalresp(struct openconnect_info *vpninfo,
+				 const void *challenge, int chall_len, void *result)
+{
+	if (gnutls_hmac_fast(GNUTLS_MAC_SHA1, vpninfo->yubikey_pwhash, 16, challenge, chall_len, result))
+		return -EIO;
+
+	return 0;
 }
 #endif

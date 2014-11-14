@@ -1615,16 +1615,22 @@ int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 }
 
 #ifdef HAVE_LIBPCSCLITE
-int openconnect_yubikey_challenge(const char *password, const void *ident, int id_len,
-				  const void *challenge, int chall_len, void *result)
+int openconnect_hash_yubikey_password(struct openconnect_info *vpninfo,
+				      const char *password, const void *ident, int id_len)
 {
-	unsigned char T[20];
-	unsigned int mdlen = SHA1_SIZE;
-
-	if (!PKCS5_PBKDF2_HMAC_SHA1(password, strlen(password), ident, id_len, 1000, 16, T))
+	if (!PKCS5_PBKDF2_HMAC_SHA1(password, strlen(password), ident, id_len, 1000, 16,
+				    vpninfo->yubikey_pwhash))
 		return -EIO;
 
-	if (!HMAC(EVP_sha1(), T, 16, challenge, chall_len, result, &mdlen))
+	return 0;
+}
+
+int openconnect_yubikey_chalresp(struct openconnect_info *vpninfo,
+				  const void *challenge, int chall_len, void *result)
+{
+	unsigned int mdlen = SHA1_SIZE;
+
+	if (!HMAC(EVP_sha1(), vpninfo->yubikey_pwhash, 16, challenge, chall_len, result, &mdlen))
 		return -EIO;
 
 	return 0;

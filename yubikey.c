@@ -196,7 +196,7 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 		chall_len = tlvlen;
 
 	retry:
-		if (!vpninfo->yubikey_password) {
+		if (!vpninfo->yubikey_pw_set) {
 			struct oc_auth_form f;
 			struct oc_form_opt o;
 
@@ -217,11 +217,15 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 			if (!o._value)
 				return -EPERM;
 
-			vpninfo->yubikey_password = o._value;
+			ret = openconnect_hash_yubikey_password(vpninfo, o._value, applet_id, id_len);
+			if (ret)
+				return ret;
+
+			vpninfo->yubikey_pw_set = 1;
+			memset(o._value, 0, strlen(o._value));
+			free(o._value);
 		}
-		if (openconnect_yubikey_challenge(vpninfo->yubikey_password,
-						  applet_id, id_len,
-						  &challenge, chall_len,
+		if (openconnect_yubikey_chalresp(vpninfo, &challenge, chall_len,
 						  chalresp + 7)) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to calculate Yubikey unlock response\n"));
@@ -243,8 +247,8 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 		ret = yubikey_cmd(vpninfo, pcsc_card, PRG_ERR, _("unlock command"),
 				  chalresp, sizeof(chalresp), buf);
 		if (ret == -EINVAL) {
-			free(vpninfo->yubikey_password);
-			vpninfo->yubikey_password = NULL;
+			memset(vpninfo->yubikey_pwhash, 0, sizeof(vpninfo->yubikey_pwhash));
+			vpninfo->yubikey_pw_set = 0;
 			goto retry;
 		}
 		if (ret)
