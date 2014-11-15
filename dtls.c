@@ -586,7 +586,7 @@ void dtls_close(struct openconnect_info *vpninfo)
 	}
 }
 
-int dtls_reconnect(struct openconnect_info *vpninfo)
+static int dtls_reconnect(struct openconnect_info *vpninfo)
 {
 	dtls_close(vpninfo);
 	vpninfo->dtls_state = DTLS_SLEEPING;
@@ -684,6 +684,12 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
 	int work_done = 0;
 	char magic_pkt;
+
+	if (vpninfo->dtls_need_reconnect) {
+		vpninfo->dtls_need_reconnect = 0;
+		dtls_reconnect(vpninfo);
+		return 1;
+	}
 
 	if (vpninfo->dtls_state == DTLS_CONNECTING) {
 		dtls_try_handshake(vpninfo);
@@ -900,11 +906,6 @@ int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_pe
 {
 	vpn_progress(vpninfo, PRG_ERR,
 		     _("Built against SSL library with no Cisco DTLS support\n"));
-	return -EINVAL;
-}
-
-int dtls_reconnect(struct openconnect_info *vpninfo)
-{
 	return -EINVAL;
 }
 

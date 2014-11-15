@@ -369,6 +369,7 @@ struct openconnect_info {
 	char *cstp_cipher;
 
 	int dtls_state;
+	int dtls_need_reconnect;
 	struct keepalive_info dtls_times;
 	unsigned char dtls_session_id[32];
 	unsigned char dtls_secret[48];
@@ -601,7 +602,6 @@ int dtls_try_handshake(struct openconnect_info *vpninfo);
 int connect_dtls_socket(struct openconnect_info *vpninfo);
 void dtls_close(struct openconnect_info *vpninfo);
 void dtls_shutdown(struct openconnect_info *vpninfo);
-int dtls_reconnect(struct openconnect_info *vpninfo);
 
 /* cstp.c */
 int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout);

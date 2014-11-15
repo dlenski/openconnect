@@ -322,6 +322,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 				if (dtlsmtu > mtu)
 					mtu = dtlsmtu;
 			} else if (!strcmp(buf + 7, "Session-ID")) {
+				int dtls_sessid_changed = 0;
+
 				if (strlen(colon) != 64) {
 					vpn_progress(vpninfo, PRG_ERR,
 						     _("X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"),
@@ -329,9 +331,17 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 					vpninfo->dtls_attempt_period = 0;
 					return -EINVAL;
 				}
-				for (i = 0; i < 64; i += 2)
-					vpninfo->dtls_session_id[i/2] = unhex(colon + i);
+				for (i = 0; i < 64; i += 2) {
+					unsigned char c = unhex(colon + i);
+					if (vpninfo->dtls_session_id[i/2] != c) {
+						vpninfo->dtls_session_id[i/2] = c;
+						dtls_sessid_changed = 1;
+					}
+				}
 				sessid_found = 1;
+
+				if (dtls_sessid_changed && vpninfo->dtls_state > DTLS_SLEEPING)
+					vpninfo->dtls_need_reconnect = 1;
 			}
 			continue;
 		}
@@ -922,9 +932,9 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	do_dtls_reconnect:
 		/* succeeded, let's rekey DTLS, if it is not rekeying
 		 * itself. */
-		if (vpninfo->dtls_state != DTLS_DISABLED &&
+		if (vpninfo->dtls_state > DTLS_SLEEPING &&
 		    vpninfo->dtls_times.rekey_method == REKEY_NONE) {
-			dtls_reconnect(vpninfo);
+			vpninfo->dtls_need_reconnect = 1;
 		}
 
 		return 1;
