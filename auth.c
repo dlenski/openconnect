@@ -1066,7 +1066,7 @@ static int can_gen_tokencode(struct openconnect_info *vpninfo,
 		return can_gen_hotp_code(vpninfo, form, opt);
 #endif
 #ifdef HAVE_LIBPCSCLITE
-	case OC_TOKEN_MODE_YUBIKEY:
+	case OC_TOKEN_MODE_YUBIOATH:
 		return can_gen_yubikey_code(vpninfo, form, opt);
 #endif
 	default:
@@ -1104,7 +1104,7 @@ static int do_gen_tokencode(struct openconnect_info *vpninfo,
 		return do_gen_hotp_code(vpninfo, form, opt);
 #endif
 #ifdef HAVE_LIBPCSCLITE
-	case OC_TOKEN_MODE_YUBIKEY:
+	case OC_TOKEN_MODE_YUBIOATH:
 		return do_gen_yubikey_code(vpninfo, form, opt);
 #endif
 	default:

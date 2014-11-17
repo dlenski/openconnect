@@ -31,6 +31,7 @@ OPENCONNECT_5.0 {
 	openconnect_has_tss_blob_support;
 	openconnect_has_pkcs11_support;
 	openconnect_has_stoken_support;
+	openconnect_has_yubioath_support;
 	openconnect_set_stoken_mode;
 	openconnect_set_reported_os;
 	openconnect_has_oath_support;

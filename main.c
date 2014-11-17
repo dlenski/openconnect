@@ -576,6 +576,10 @@ static void print_build_opts(void)
 		printf("%sTOTP software token", sep);
 		sep = comma;
 	}
+	if (openconnect_has_yubioath_support()) {
+		printf("%sYubikey OATH", sep);
+		sep = comma;
+	}
 
 #ifdef HAVE_DTLS
 	printf("%sDTLS", sep);
@@ -746,6 +750,9 @@ static void usage(void)
 #endif
 #ifndef HAVE_LIBOATH
 	printf("                                  %s\n", _("(NOTE: liboath (TOTP,HOTP) disabled in this build)"));
+#endif
+#ifndef HAVE_LIBPCSCLITE
+	printf("                                  %s\n", _("(NOTE: Yubikey OATH disabled in this build)"));
 #endif
 	printf("      --reconnect-timeout         %s\n", _("Connection retry timeout in seconds"));
 	printf("      --servercert=FINGERPRINT    %s\n", _("Server's certificate SHA1 fingerprint"));
@@ -1218,8 +1225,8 @@ int main(int argc, char **argv)
 				token_mode = OC_TOKEN_MODE_TOTP;
 			} else if (strcasecmp(config_arg, "hotp") == 0) {
 				token_mode = OC_TOKEN_MODE_HOTP;
-			} else if (strcasecmp(config_arg, "yubikey") == 0) {
-				token_mode = OC_TOKEN_MODE_YUBIKEY;
+			} else if (strcasecmp(config_arg, "yubioath") == 0) {
+				token_mode = OC_TOKEN_MODE_YUBIOATH;
 			} else {
 				fprintf(stderr, _("Invalid software token mode \"%s\"\n"),
 					config_arg);
@@ -1902,7 +1909,7 @@ static void init_token(struct openconnect_info *vpninfo,
 
 		break;
 
-	case OC_TOKEN_MODE_YUBIKEY:
+	case OC_TOKEN_MODE_YUBIOATH:
 		switch(ret) {
 		case 0:
 			return;

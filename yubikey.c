@@ -369,7 +369,7 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 				vpninfo->yubikey_mode = mode;
 				vpninfo->pcsc_ctx = pcsc_ctx;
 				vpninfo->pcsc_card = pcsc_card;
-				vpninfo->token_mode = OC_TOKEN_MODE_YUBIKEY;
+				vpninfo->token_mode = OC_TOKEN_MODE_YUBIOATH;
 				SCardEndTransaction(pcsc_card, SCARD_LEAVE_CARD);
 
 				goto success;

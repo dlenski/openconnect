@@ -259,7 +259,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	}
 #endif /* HAVE_LIBOATH */
 #ifdef HAVE_LIBPCSCLITE
-	if (vpninfo->token_mode == OC_TOKEN_MODE_YUBIKEY) {
+	if (vpninfo->token_mode == OC_TOKEN_MODE_YUBIOATH) {
 		SCardDisconnect(vpninfo->pcsc_card, SCARD_LEAVE_CARD);
 		SCardReleaseContext(vpninfo->pcsc_ctx);
 	}
@@ -559,6 +559,15 @@ int openconnect_has_oath_support(void)
 #endif
 }
 
+int openconnect_has_yubioath_support(void)
+{
+#ifdef HAVE_LIBPCSCLITE
+	return 1;
+#else
+	return 0;
+#endif
+}
+
 int openconnect_set_token_callbacks(struct openconnect_info *vpninfo,
 				    void *tokdata,
 				    openconnect_lock_token_vfn lock,
@@ -611,7 +620,7 @@ int openconnect_set_token_mode(struct openconnect_info *vpninfo,
 		return set_hotp_mode(vpninfo, token_str);
 #endif
 #ifdef HAVE_LIBPCSCLITE
-	case OC_TOKEN_MODE_YUBIKEY:
+	case OC_TOKEN_MODE_YUBIOATH:
 		return set_yubikey_mode(vpninfo, token_str);
 #endif
 	default:

@@ -26,7 +26,7 @@ generating one-time passwords:</p>
  and similar devices</li></ul>
 
 <p>On the command line, the token mode is specified with the <tt>--token-mode</tt>
-argument, which can be one of <tt>rsa</tt>, <tt>totp</tt>, <tt>hotp</tt> or <tt>yubikey</tt>.</p>
+argument, which can be one of <tt>rsa</tt>, <tt>totp</tt>, <tt>hotp</tt> or <tt>yubioath</tt>.</p>
 <p>The token secret is provided with the <tt>--token-secret</tt>
 argument, and the precise form it takes is dependent on the type of
 token as described below.</p>

@@ -159,6 +159,7 @@ public abstract class LibOpenConnect {
 	public static native boolean hasTSSBlobSupport();
 	public static native boolean hasStokenSupport();
 	public static native boolean hasOATHSupport();
+	public static native boolean hasYubiOATHSupport();
 
 	/* public data structures */
 

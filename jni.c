@@ -856,6 +856,12 @@ JNIEXPORT jboolean JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_hasO
 	return openconnect_has_oath_support();
 }
 
+JNIEXPORT jboolean JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_hasYubiOATHSupport(
+	JNIEnv *jenv, jclass jcls)
+{
+	return openconnect_has_yubioath_support();
+}
+
 /* simple cases: void or int params */
 
 JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getPort(

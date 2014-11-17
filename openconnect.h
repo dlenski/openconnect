@@ -273,7 +273,7 @@ typedef enum {
 	OC_TOKEN_MODE_STOKEN,
 	OC_TOKEN_MODE_TOTP,
 	OC_TOKEN_MODE_HOTP,
-	OC_TOKEN_MODE_YUBIKEY,
+	OC_TOKEN_MODE_YUBIOATH,
 } oc_token_mode_t;
 
 /* All strings are UTF-8. If operating in a legacy environment where
@@ -548,5 +548,6 @@ int openconnect_has_tss_blob_support(void);
 /* Software token capabilities. */
 int openconnect_has_stoken_support(void);
 int openconnect_has_oath_support(void);
+int openconnect_has_yubioath_support(void);
 
 #endif /* __OPENCONNECT_H__ */
