@@ -198,8 +198,10 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free(vpninfo->servercert);
 	free(vpninfo->ifname);
 	free(vpninfo->dtls_cipher);
-#if defined(OPENCONNECT_GNUTLS)
+#ifdef OPENCONNECT_GNUTLS
 	gnutls_free(vpninfo->cstp_cipher); /* In OpenSSL this is const */
+#endif
+#ifdef DTLS_GNUTLS
 	gnutls_free(vpninfo->gnutls_dtls_cipher);
 #endif
 	free(vpninfo->dtls_addr);

@@ -317,6 +317,7 @@ struct openconnect_info {
 #elif defined(OPENCONNECT_GNUTLS)
 	gnutls_session_t https_sess;
 	gnutls_certificate_credentials_t https_cred;
+	char local_cert_md5[MD5_SIZE * 2 + 1]; /* For CSD */
 	struct pin_cache *pin_cache;
 #ifdef HAVE_TROUSERS
 	TSS_HCONTEXT tpm_context;
@@ -364,7 +365,6 @@ struct openconnect_info {
 	   have fewer ifdefs and accessor macros for it. */
 	gnutls_session_t dtls_ssl;
 	char *gnutls_dtls_cipher; /* cached for openconnect_get_dtls_cipher() */
-	char local_cert_md5[MD5_SIZE * 2 + 1]; /* For CSD */
 #endif
 	char *cstp_cipher;
 

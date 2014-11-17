@@ -357,6 +357,8 @@ if test "$with_gnutls" = "yes"; then
 		 [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_KEY, 1, [stupid])], [])
     AC_CHECK_FUNC(gnutls_pk_to_sign,
 		 [AC_DEFINE(HAVE_GNUTLS_PK_TO_SIGN, 1, [autoheader])], [])
+    AC_CHECK_FUNC(gnutls_pubkey_export2,
+		 [AC_DEFINE(HAVE_GNUTLS_PUBKEY_EXPORT2, 1, [autoheader sucks donkey balls])], [])
     if test "$with_openssl" = "" || test "$with_openssl" = "no"; then
 	AC_CHECK_FUNC(gnutls_session_set_premaster,
 		 [have_gnutls_dtls=yes], [have_gnutls_dtls=no])
