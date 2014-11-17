@@ -259,11 +259,23 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 	return 0;
 }
 
+#ifdef _WIN32
+#define reader_len wcslen
+#else
+#define SCardListReadersW SCardListReaders
+#define SCardConnectW SCardConnect
+#define reader_len strlen
+#endif
+
 int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 {
 	SCARDHANDLE pcsc_ctx, pcsc_card;
 	LONG status;
+#ifdef _WIN32
+	wchar_t *readers = NULL, *reader;
+#else
 	char *readers = NULL, *reader;
+#endif
 	DWORD readers_size, proto;
 	int ret, tlvlen, tlvpos;
 	struct oc_text_buf *buf = NULL;
@@ -279,7 +291,7 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 	vpn_progress(vpninfo, PRG_TRACE, _("Established PC/SC context\n"));
 
 	ret = -ENOENT;
-	status = SCardListReaders(pcsc_ctx, NULL, NULL, &readers_size);
+	status = SCardListReadersW(pcsc_ctx, NULL, NULL, &readers_size);
 	if (status != SCARD_S_SUCCESS) {
 		char *pcsc_err = scard_error(status);
 		vpn_progress(vpninfo, PRG_ERR, _("Failed to query reader list: %s\n"),
@@ -287,11 +299,11 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 		free_scard_error(pcsc_err);
 		goto out_ctx;
 	}
-	readers = malloc(readers_size);
+	readers = calloc(readers_size, sizeof(readers[0]));
 	if (!readers)
 		goto out_ctx;
 
-	status = SCardListReaders(pcsc_ctx, NULL, readers, &readers_size);
+	status = SCardListReadersW(pcsc_ctx, NULL, readers, &readers_size);
 	if (status != SCARD_S_SUCCESS) {
 		char *pcsc_err = scard_error(status);
 		vpn_progress(vpninfo, PRG_ERR, _("Failed to query reader list: %s\n"),
@@ -301,36 +313,49 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 	}
 
 	buf = buf_alloc();
-	
-	for (reader = readers; reader[0]; reader += strlen(reader) + 1) {
-		unsigned char type;
 
-		status = SCardConnect(pcsc_ctx, reader, SCARD_SHARE_SHARED,
-				      SCARD_PROTOCOL_T1,
-				      &pcsc_card, &proto);
+	reader = readers;
+	while (reader[0]) {
+		unsigned char type;
+#ifdef _WIN32
+		char *reader_utf8;
+		int reader_len;
+		reader_len = WideCharToMultiByte(CP_UTF8, 0, reader, -1, NULL, 0, NULL, NULL);
+		reader_utf8 = malloc(reader_len);
+		if (!reader_utf8)
+			goto next_reader;
+		WideCharToMultiByte(CP_UTF8, 0, reader, -1, reader_utf8, reader_len, NULL, NULL);
+#else
+#define reader_utf8 reader
+#endif
+		status = SCardConnectW(pcsc_ctx, reader, SCARD_SHARE_SHARED,
+				       SCARD_PROTOCOL_T1,
+				       &pcsc_card, &proto);
 		if (status != SCARD_S_SUCCESS) {
 			char *pcsc_err = scard_error(status);
 			vpn_progress(vpninfo, PRG_ERR, _("Failed to connect to PC/SC reader '%s': %s\n"),
-				     reader, pcsc_err);
+				     reader_utf8, pcsc_err);
 			free_scard_error(pcsc_err);
-			continue;
+			goto free_reader_utf8;
 		}
-		vpn_progress(vpninfo, PRG_TRACE, _("Connected PC/SC reader '%s'\n"), reader);
+		vpn_progress(vpninfo, PRG_TRACE, _("Connected PC/SC reader '%s'\n"), reader_utf8);
 
 		status = SCardBeginTransaction(pcsc_card);
 		if (status != SCARD_S_SUCCESS) {
-			vpn_progress(vpninfo, PRG_ERR, _("Failed to obtain exclusive access to reader '%s'\n"),
-				     reader);
+			char *pcsc_err = scard_error(status);
+			vpn_progress(vpninfo, PRG_ERR, _("Failed to obtain exclusive access to reader '%s': %s\n"),
+				     reader_utf8, pcsc_err);
+			free_scard_error(pcsc_err);
 			goto disconnect;
 		}
 		
 		ret = select_yubioath_applet(vpninfo, pcsc_card, buf);
 		if (ret)
-			goto next_reader;
+			goto end_trans;
 
 		ret = yubikey_cmd(vpninfo, pcsc_card, PRG_ERR, _("list keys command"), list_keys, sizeof(list_keys), buf);
 		if (ret)
-			goto next_reader;
+			goto end_trans;
 
 		tlvpos = 0;
 		while (tlvpos < buf->pos) {
@@ -341,7 +366,7 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 			bad_applet:
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Unrecognised response from ykneo-oath applet\n"));
-				goto next_reader;
+				goto end_trans;
 			}
 			mode = buf->data[tlvpos] & 0xf0;
 			hash = buf->data[tlvpos] & 0x0f;
@@ -364,7 +389,7 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 				vpn_progress(vpninfo, PRG_INFO, _("Found %s/%s key '%s' on '%s'\n"),
 					     (mode == 0x20) ? "TOTP" : "HOTP",
 					     (hash == 0x2) ? "SHA256" : "SHA1",
-					     vpninfo->yubikey_objname, reader);
+					     vpninfo->yubikey_objname, reader_utf8);
 
 				vpninfo->yubikey_mode = mode;
 				vpninfo->pcsc_ctx = pcsc_ctx;
@@ -379,13 +404,21 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 		if (token_str) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Token '%s' not found on Yubikey '%s'. Searching for another Yubikey...\n"),
-				       token_str, reader);
+				       token_str, reader_utf8);
 		}
 
-	next_reader:
+	end_trans:
 		SCardEndTransaction(pcsc_card, SCARD_LEAVE_CARD);
 	disconnect:
 		SCardDisconnect(pcsc_card, SCARD_LEAVE_CARD);
+	free_reader_utf8:
+#ifdef _WIN32
+		free(reader_utf8);
+	next_reader:
+#endif
+		while (*reader)
+			reader++;
+		reader++;
 	}
 	ret = -ENOENT;
  out_ctx:
@@ -478,7 +511,10 @@ int do_gen_yubikey_code(struct openconnect_info *vpninfo,
 
 	status = SCardBeginTransaction(vpninfo->pcsc_card);
 	if (status != SCARD_S_SUCCESS) {
-		vpn_progress(vpninfo, PRG_ERR, _("Failed to obtain exclusive access to Yubicard\n"));
+		char *pcsc_err = scard_error(status);
+		vpn_progress(vpninfo, PRG_ERR, _("Failed to obtain exclusive access to Yubikey: %s\n"),
+			     pcsc_err);
+		free_scard_error(pcsc_err);
 		return -EIO;
 	}
 
