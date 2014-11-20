@@ -37,6 +37,7 @@
  *  - Change openconnect_get_cert_der() to openconnect_get_peer_cert_DER() etc.
  *  - Add openconnect_check_peer_cert_hash().
  *  - Remove openconnect_set_server_cert_sha1().
+ *  - Add openconnect_has_yubioath_support() and OC_TOKEN_MODE_YUBIOATH.
  *
  * API version 4.1:
  *  - Add openconnect_get_cstp_cipher(), openconnect_get_dtls_cipher(),
