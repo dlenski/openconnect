@@ -195,7 +195,6 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free(vpninfo->proxy_pass);
 	free(vpninfo->vpnc_script);
 	free(vpninfo->cafile);
-	free(vpninfo->servercert);
 	free(vpninfo->ifname);
 	free(vpninfo->dtls_cipher);
 #ifdef OPENCONNECT_GNUTLS
@@ -330,13 +329,6 @@ int openconnect_set_cafile(struct openconnect_info *vpninfo, const char *cafile)
 void openconnect_set_system_trust(struct openconnect_info *vpninfo, unsigned val)
 {
 	vpninfo->no_system_trust = !val;
-}
-
-int openconnect_set_server_cert_sha1(struct openconnect_info *vpninfo,
-				     const char *servercert)
-{
-	STRDUP(vpninfo->servercert, servercert);
-	return 0;
 }
 
 const char *openconnect_get_ifname(struct openconnect_info *vpninfo)

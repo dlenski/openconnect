@@ -250,7 +250,6 @@ struct openconnect_info {
 	char *cert_password;
 	char *cafile;
 	unsigned no_system_trust;
-	char *servercert;
 	const char *xmlconfig;
 	char xmlsha1[(SHA1_SIZE * 2) + 1];
 	char *authgroup;

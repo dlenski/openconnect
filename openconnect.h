@@ -36,6 +36,7 @@
  *  - Remove OPENCONNECT_X509 and openconnect_get_peer_cert().
  *  - Change openconnect_get_cert_der() to openconnect_get_peer_cert_DER() etc.
  *  - Add openconnect_check_peer_cert_hash().
+ *  - Remove openconnect_set_server_cert_sha1().
  *
  * API version 4.1:
  *  - Add openconnect_get_cstp_cipher(), openconnect_get_dtls_cipher(),
@@ -404,7 +405,6 @@ int openconnect_set_mobile_info(struct openconnect_info *vpninfo,
 				const char *mobile_device_uniqueid);
 int openconnect_set_client_cert(struct openconnect_info *, const char *cert,
 				const char *sslkey);
-int openconnect_set_server_cert_sha1(struct openconnect_info *, const char *);
 const char *openconnect_get_ifname(struct openconnect_info *);
 void openconnect_set_reqmtu(struct openconnect_info *, int reqmtu);
 void openconnect_set_dpd(struct openconnect_info *, int min_seconds);

@@ -1204,40 +1204,26 @@ static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert
 static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 {
 	int ret;
+	int vfy = SSL_get_verify_result(https_ssl);
+	const char *err_string = NULL;
 
-	if (vpninfo->servercert) {
-		/* If given a cert fingerprint on the command line, that's
-		   all we look for */
-		ret = openconnect_check_peer_cert_hash(vpninfo, vpninfo->servercert);
-		if (ret < 0)
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Could not calculate hash of server's certificate\n"));
-		else if (ret)
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Server SSL certificate didn't match: %s\n"),
-				     openconnect_get_peer_cert_hash(vpninfo));
+	if (vfy != X509_V_OK)
+		err_string = X509_verify_cert_error_string(vfy);
+	else if (match_cert_hostname(vpninfo, vpninfo->peer_cert))
+		err_string = _("certificate does not match hostname");
+
+	if (err_string) {
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("Server certificate verify failed: %s\n"),
+			     err_string);
+
+		if (vpninfo->validate_peer_cert)
+			ret = vpninfo->validate_peer_cert(vpninfo->cbdata,
+							  err_string);
+		else
+			ret = -EINVAL;
 	} else {
-		int vfy = SSL_get_verify_result(https_ssl);
-		const char *err_string = NULL;
-
-		if (vfy != X509_V_OK)
-			err_string = X509_verify_cert_error_string(vfy);
-		else if (match_cert_hostname(vpninfo, vpninfo->peer_cert))
-			err_string = _("certificate does not match hostname");
-
-		if (err_string) {
-			vpn_progress(vpninfo, PRG_INFO,
-				     _("Server certificate verify failed: %s\n"),
-				     err_string);
-
-			if (vpninfo->validate_peer_cert)
-				ret = vpninfo->validate_peer_cert(vpninfo->cbdata,
-								  err_string);
-			else
-				ret = -EINVAL;
-		} else {
-			ret = 0;
-		}
+		ret = 0;
 	}
 
 	return ret;

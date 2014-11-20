@@ -87,6 +87,7 @@ static int non_inter;
 static int cookieonly;
 
 static char *token_filename;
+static char *server_cert = NULL;
 
 static char *username;
 static char *password;
@@ -1057,7 +1058,8 @@ int main(int argc, char **argv)
 			openconnect_set_pfs(vpninfo, 1);
 			break;
 		case OPT_SERVERCERT:
-			openconnect_set_server_cert_sha1(vpninfo, dup_config_arg());
+			server_cert = keep_config_arg();
+			openconnect_set_system_trust(vpninfo, 0);
 			break;
 		case OPT_NO_DTLS:
 			use_dtls = 0;
@@ -1547,6 +1549,23 @@ static int validate_peer_cert(void *_vpninfo, const char *reason)
 	struct openconnect_info *vpninfo = _vpninfo;
 	const char *fingerprint;
 	struct accepted_cert *this;
+
+	if (server_cert) {
+		int err = openconnect_check_peer_cert_hash(vpninfo, server_cert);
+
+		if (!err)
+			return 0;
+
+		if (err < 0)
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Could not calculate hash of server's certificate\n"));
+		else
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Server SSL certificate didn't match: %s\n"),
+				     openconnect_get_peer_cert_hash(vpninfo));
+
+		return -EINVAL;
+	}
 
 	if (nocertcheck)
 		return 0;

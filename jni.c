@@ -1192,14 +1192,6 @@ JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setupTun
 	return ret;
 }
 
-JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setServerCertSHA1(
-	JNIEnv *jenv, jobject jobj, jstring jarg)
-{
-	SET_STRING_START()
-	openconnect_set_server_cert_sha1(ctx->vpninfo, arg);
-	SET_STRING_END();
-}
-
 JNIEXPORT jobject JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getIPInfo(
 	JNIEnv *jenv, jobject jobj)
 {
