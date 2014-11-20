@@ -204,7 +204,8 @@ public final class LibTest {
 		System.out.println("  PKCS=" + lib.hasPKCS11Support() +
 				   ", TSS=" + lib.hasTSSBlobSupport() +
 				   ", STOKEN=" + lib.hasStokenSupport() +
-				   ", OATH=" + lib.hasOATHSupport());
+				   ", OATH=" + lib.hasOATHSupport() +
+				   ", YUBIOATH=" + lib.hasYubiOATHSupport());
 		lib.setReportedOS("win");
 		lib.setLogLevel(lib.PRG_DEBUG);
 		//lib.setTokenMode(LibOpenConnect.OC_TOKEN_MODE_STOKEN, null);
