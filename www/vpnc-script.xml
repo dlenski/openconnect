@@ -61,11 +61,6 @@ configuring both IPv6 and Legacy IP, it does not fully tear down the
 configuration on exit so stale IP address might be left around on the
 interface.</p>
 
-<p>If the <tt>--script</tt> argument is used to override the default on Windows,
-then the initial <tt>"cscript "</tt> in the command will also need to be specified,
-unless of course the desired "script" is something which does not require a
-script interpreter.</p>
-
 	<INCLUDE file="inc/footer.tmpl" />
 </PAGE>
 
