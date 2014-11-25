@@ -43,11 +43,14 @@
 #include <trousers/tss.h>
 #include <trousers/trousers.h>
 #endif
+
 #ifdef HAVE_P11KIT
 #include <p11-kit/p11-kit.h>
 #include <p11-kit/pkcs11.h>
 #include <p11-kit/pin.h>
+#endif
 
+#if defined(HAVE_P11KIT) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
 static int gnutls_pin_callback(void *priv, int attempt, const char *uri,
 			       const char *token_label, unsigned int flags,
 			       char *pin, size_t pin_max);
@@ -56,8 +59,7 @@ static int gnutls_pin_callback(void *priv, int attempt, const char *uri,
 /* If we don't have this (3.1.0+) then we'll use p11-kit callbacks instead
  * because the old GnuTLS callback was global rather than context-specific,
  * which makes it basically unusable from libopenconnect. The p11-kit
- * callback function is basically a wrapper around the GnuTLS native
- * version. */
+ * callback function is a simple wrapper around the GnuTLS native version. */
 typedef enum {
         GNUTLS_PIN_USER = (1 << 0),
         GNUTLS_PIN_SO = (1 << 1),
@@ -72,7 +74,7 @@ static P11KitPin *p11kit_pin_callback(const char *pin_source, P11KitUri *pin_uri
 				      P11KitPinFlags flags,
 				      void *_vpninfo);
 #endif /* !HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION */
-#endif /* HAVE_P11KIT */
+#endif /* HAVE_P11KIT || HAVE_GNUTLS_SYSTEM_KEYS */
 
 #include "gnutls.h"
 #include "openconnect-internal.h"
@@ -469,7 +471,7 @@ static int get_cert_name(gnutls_x509_crt_t cert, char *name, size_t namelen)
 	return 0;
 }
 
-#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS)
+#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined (HAVE_GNUTLS_SYSTEM_KEYS)
 #ifndef HAVE_GNUTLS_CERTIFICATE_SET_KEY
 /* For GnuTLS 2.12 even if we *have* a privkey (as we do for PKCS#11), we
    can't register it. So we have to use the cert_callback function. This
@@ -602,7 +604,7 @@ static int verify_signed_data(gnutls_pubkey_t pubkey, gnutls_privkey_t privkey,
 	return gnutls_pubkey_verify_data(pubkey, 0, data, sig);
 #endif
 }
-#endif /* (P11KIT || TROUSERS) */
+#endif /* (P11KIT || TROUSERS || SYSTEM_KEYS) */
 
 static int openssl_hash_password(struct openconnect_info *vpninfo, char *pass,
 				 gnutls_datum_t *key, gnutls_datum_t *salt)
@@ -892,13 +894,15 @@ static int load_certificate(struct openconnect_info *vpninfo)
 {
 	gnutls_datum_t fdata;
 	gnutls_x509_privkey_t key = NULL;
-#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS)
+#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
 	gnutls_privkey_t pkey = NULL;
 	gnutls_datum_t pkey_sig = {NULL, 0};
 	void *dummy_hash_data = &load_certificate;
 #endif
-#ifdef HAVE_P11KIT
+#if defined(HAVE_P11KIT) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
 	char *cert_url = (char *)vpninfo->cert;
+#endif
+#ifdef HAVE_P11KIT
 	char *key_url = (char *)vpninfo->sslkey;
 	gnutls_pkcs11_privkey_t p11key = NULL;
 #endif
@@ -912,6 +916,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	int ret;
 	int i;
 	int cert_is_p11 = 0, key_is_p11 = 0;
+	int cert_is_sys = 0, key_is_sys = 0;
 	unsigned char key_id[20];
 	size_t key_id_size = sizeof(key_id);
 	char name[80];
@@ -920,7 +925,16 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 	key_is_p11 = !strncmp(vpninfo->sslkey, "pkcs11:", 7);
 	cert_is_p11 = !strncmp(vpninfo->cert, "pkcs11:", 7);
+	key_is_sys = !strncmp(vpninfo->sslkey, "system:", 7);
+	cert_is_sys = !strncmp(vpninfo->cert, "system:", 7);
 
+#ifndef HAVE_GNUTLS_SYSTEM_KEYS
+	if (key_is_sys || cert_is_sys) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("This binary built without system key support\n"));
+		return -EINVAL;
+	}
+#endif
 #ifndef HAVE_P11KIT
 	if (key_is_p11 || cert_is_p11) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -975,11 +989,14 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 		p11_kit_uri_free(uri);
 	}
+#endif /* HAVE_PKCS11 */
 
+#if defined (HAVE_P11KIT) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
 	/* Load certificate(s) first... */
-	if (cert_is_p11) {
+	if (cert_is_p11 || cert_is_sys) {
 		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("Using PKCS#11 certificate %s\n"), cert_url);
+			     cert_is_p11 ? _("Using PKCS#11 certificate %s\n") :
+			     _("Using system certificate %s\n"), cert_url);
 
 		err = gnutls_x509_crt_init(&cert);
 		if (err) {
@@ -989,20 +1006,23 @@ static int load_certificate(struct openconnect_info *vpninfo)
 #ifdef HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION
 		gnutls_x509_crt_set_pin_function(cert, gnutls_pin_callback, vpninfo);
 #endif
+		/* Yes, even for *system* URLs the only API GnuTLS offers us is
+		   ...import_pkcs11_url(). */
 		err = gnutls_x509_crt_import_pkcs11_url(cert, cert_url, 0);
 		if (err == GNUTLS_E_REQUESTED_DATA_NOT_AVAILABLE)
 			err = gnutls_x509_crt_import_pkcs11_url(cert, cert_url,
 								GNUTLS_PKCS11_OBJ_FLAG_LOGIN);
 		if (err) {
 			vpn_progress(vpninfo, PRG_ERR,
-				     _("Error loading certificate from PKCS#11: %s\n"),
+				     cert_is_p11 ? _("Error loading certificate from PKCS#11: %s\n") :
+				     _("Error loading system certificate: %s\n"),
 				     gnutls_strerror(err));
 			ret = -EIO;
 			goto out;
 		}
 		goto got_certs;
 	}
-#endif /* HAVE_P11KIT */
+#endif /* HAVE_P11KIT || HAVE_GNUTLS_SYSTEM_KEYS */
 
 	/* OK, not a PKCS#11 certificate so it must be coming from a file... */
 	vpn_progress(vpninfo, PRG_DEBUG,
@@ -1077,6 +1097,33 @@ static int load_certificate(struct openconnect_info *vpninfo)
  got_certs:
 	/* Now we have either a single certificate in 'cert', or an array of
 	   them in extra_certs[]. Next we look for the private key ... */
+#ifdef HAVE_GNUTLS_SYSTEM_KEYS
+	if (key_is_sys) {
+		vpn_progress(vpninfo, PRG_DEBUG,
+			     _("Using system key %s\n"), vpninfo->sslkey);
+
+		err = gnutls_privkey_init(&pkey);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Error initialising private key structure: %s\n"),
+				     gnutls_strerror(err));
+			ret = -EIO;
+			goto out;
+		}
+#ifdef HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION
+		gnutls_privkey_set_pin_function(pkey, gnutls_pin_callback, vpninfo);
+#endif
+		err = gnutls_privkey_import_url(pkey, vpninfo->sslkey, 0);
+		if (err) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Error importing system key %s: %s\n"),
+				     vpninfo->sslkey, gnutls_strerror(err));
+			ret = -EIO;
+			goto out;
+		}
+		goto match_cert;
+	}
+#endif /* HAVE_GNUTLS_SYSTEM_KEYS */
 #if defined(HAVE_P11KIT)
 	if (key_is_p11) {
 		vpn_progress(vpninfo, PRG_DEBUG,
@@ -1363,7 +1410,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	   enabled we'll fall straight through the bit at match_cert: below, and go
 	   directly to the bit where it prints the 'no match found' error and exits. */
 
-#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS)
+#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
  match_cert:
 	/* If we have a privkey from PKCS#11 or TPM, we can't do the simple comparison
 	   of key ID that we do for software keys to find which certificate is a
@@ -1417,7 +1464,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		}
 		gnutls_free(pkey_sig.data);
 	}
-#endif /* P11KIT || TROUSERS */
+#endif /* P11KIT || TROUSERS || SYSTEM_KEYS */
 
 	/* We shouldn't reach this. It means that we didn't find *any* matching cert */
 	vpn_progress(vpninfo, PRG_ERR,
@@ -1594,7 +1641,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	   key and certs. GnuTLS makes us do this differently for X509 privkeys
 	   vs. TPM/PKCS#11 "generic" privkeys, and the latter is particularly
 	   'fun' for GnuTLS 2.12... */
-#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS)
+#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
 	if (pkey) {
 		err = assign_privkey(vpninfo, pkey,
 				     supporting_certs,
@@ -1642,7 +1689,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	}
 	gnutls_free(extra_certs);
 
-#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS)
+#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
 	if (pkey && pkey != OPENCONNECT_TPM_PKEY)
 		gnutls_privkey_deinit(pkey);
 	/* If we support arbitrary privkeys, we might have abused fdata.data
@@ -1652,6 +1699,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		gnutls_free(fdata.data);
 
 #ifdef HAVE_P11KIT
+	/* This exists in the HAVE_GNUTLS_SYSTEM_KEYS case but will never
+	   change so it's OK not to add to the #ifdef mess here. */
 	if (cert_url != vpninfo->cert)
 		free(cert_url);
 	if (key_url != vpninfo->sslkey)
@@ -2302,7 +2351,7 @@ int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 	return 0;
 }
 
-#ifdef HAVE_P11KIT
+#if defined(HAVE_P11KIT) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
 static int gnutls_pin_callback(void *priv, int attempt, const char *uri,
 			       const char *token_label, unsigned int flags,
 			       char *pin, size_t pin_max)
@@ -2416,7 +2465,7 @@ static P11KitPin *p11kit_pin_callback(const char *pin_source, P11KitUri *pin_uri
 	return pin;
 }
 #endif /* !HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION */
-#endif /* HAVE_P11KIT */
+#endif /* HAVE_P11KIT || HAVE_GNUTLS_SYSTEM_KEYS */
 
 #ifdef HAVE_LIBPCSCLITE
 int openconnect_hash_yubikey_password(struct openconnect_info *vpninfo,
