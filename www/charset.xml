@@ -19,7 +19,7 @@ all of the time"</i>. This was the case up to and including the OpenConnect
 <p>Since its inception, however, OpenConnect has been ported to
 various less progressive POSIX-based systems and also to Windows,
 which has its own particular style of charset insanity. It was
-therefore necessary to implement some explcit handling for character
+therefore necessary to implement some explicit handling for character
 set conversion.</p>
 
 <p>The design of this character set handling is that the internal
