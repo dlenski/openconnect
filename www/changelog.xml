@@ -15,6 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Add support for GnuTLS 3.4 <tt>system:</tt> keys including Windows certificate store.</li>
        <li>Add support for HOTP/TOTP keys from Yubikey NEO devices.</li>
        <li>Add <tt>---no-system-trust</tt> option to disable default certificate authorities.</li>
        <li>Improve <tt>libiconv</tt> and <tt>libintl</tt> detection.</li>
