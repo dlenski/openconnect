@@ -18,6 +18,7 @@ OPENCONNECT_5.0 {
 	openconnect_has_oath_support;
 	openconnect_has_pkcs11_support;
 	openconnect_has_stoken_support;
+	openconnect_has_system_key_support;
 	openconnect_has_tss_blob_support;
 	openconnect_has_yubioath_support;
 	openconnect_init_ssl;

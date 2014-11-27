@@ -562,6 +562,15 @@ int openconnect_has_yubioath_support(void)
 #endif
 }
 
+int openconnect_has_system_key_support(void)
+{
+#ifdef HAVE_GNUTLS_SYSTEM_KEYS
+	return 1;
+#else
+	return 0;
+#endif
+}
+
 int openconnect_set_token_callbacks(struct openconnect_info *vpninfo,
 				    void *tokdata,
 				    openconnect_lock_token_vfn lock,

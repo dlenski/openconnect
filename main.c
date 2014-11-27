@@ -581,6 +581,10 @@ static void print_build_opts(void)
 		printf("%sYubikey OATH", sep);
 		sep = comma;
 	}
+	if (openconnect_has_system_key_support()) {
+		printf("%sSystem keys", sep);
+		sep = comma;
+	}
 
 #ifdef HAVE_DTLS
 	printf("%sDTLS", sep);

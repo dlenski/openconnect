@@ -38,6 +38,7 @@
  *  - Add openconnect_check_peer_cert_hash().
  *  - Remove openconnect_set_server_cert_sha1().
  *  - Add openconnect_has_yubioath_support() and OC_TOKEN_MODE_YUBIOATH.
+ *  - Add openconnect_has_system_key_support().
  *
  * API version 4.1:
  *  - Add openconnect_get_cstp_cipher(), openconnect_get_dtls_cipher(),
@@ -550,5 +551,6 @@ int openconnect_has_tss_blob_support(void);
 int openconnect_has_stoken_support(void);
 int openconnect_has_oath_support(void);
 int openconnect_has_yubioath_support(void);
+int openconnect_has_system_key_support(void);
 
 #endif /* __OPENCONNECT_H__ */
