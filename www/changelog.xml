@@ -15,6 +15,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.00.tar.gz">OpenConnect v7.00</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.00.tar.gz.asc">PGP signature</a>)</i> &#8212; 2014-11-27
+     <ul>
        <li>Add support for GnuTLS 3.4 <tt>system:</tt> keys including Windows certificate store.</li>
        <li>Add support for HOTP/TOTP keys from Yubikey NEO devices.</li>
        <li>Add <tt>---no-system-trust</tt> option to disable default certificate authorities.</li>

@@ -17,19 +17,29 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-6.00.tar.gz">OpenConnect v6.00</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-6.00.tar.gz.asc">PGP signature</a>)</i>,
-released on 2014-07-08 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.00.tar.gz">OpenConnect v7.00</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.00.tar.gz.asc">PGP signature</a>)</i>,
+released on 2014-11-27 with the following changelog:</p>
      <ul>
-       <li>Support SOCKS proxy authentication (password, GSSAPI).</li>
-       <li>Support HTTP proxy authentication (Basic, Digest, NTLM and GSSAPI).</li>
-       <li>Download XML profile in XML POST mode.</li>
-       <li>Fix a couple of bugs involving DTLS rekeying.</li>
-       <li>Fix problems seen when building or connecting without DTLS enabled.</li>
-       <li>Fix tun error handling on Windows hosts.</li>
-       <li>Skip password prompts when using PKCS#8 and PKCS#12 certificates with empty passwords.</li>
-       <li>Fix several minor memory leaks and error paths.</li>
-       <li>Update several Android dependencies, and make the download process more robust.</li>
+       <li>Add support for GnuTLS 3.4 <tt>system:</tt> keys including Windows certificate store.</li>
+       <li>Add support for HOTP/TOTP keys from Yubikey NEO devices.</li>
+       <li>Add <tt>---no-system-trust</tt> option to disable default certificate authorities.</li>
+       <li>Improve <tt>libiconv</tt> and <tt>libintl</tt> detection.</li>
+       <li>Stop calling <tt>setenv()</tt> from library functions.</li>
+       <li>Support <tt>utun</tt> driver on OS X.</li>
+       <li>Change library API so string ownership is never transferred.</li>
+       <li>Support new NDIS6 TAP-Windows driver shipped with OpenVPN 2.3.4.</li>
+       <li>Support using PSKC <i>(<a href="http://tools.ietf.org/html/rfc6030">RFC6030</a>)</i> token files for HOTP/TOTP tokens.</li>
+       <li>Support for updating HOTP token storage when token is used.</li>
+       <li>Support for reading OTP token data from a file.</li>
+       <li>Add full <a href="charset.html">character set handling</a> for legacy non-UTF8 systems <i>(including Windows)</i>.</li>
+       <li>Fix legacy <i>(i.e. not XML POST)</i> submission of non-ASCII form entries <i>(even in UTF-8 locales)</i>.</li>
+       <li>Add support for 32-bit Windows XP.</li>
+       <li>Avoid retrying without XML POST, when we failed to even reach the server.</li>
+       <li>Fix off-by-one in parameter substitution in error messages.</li>
+       <li>Improve reporting when GSSAPI auth requested but not compiled in.</li>
+       <li>Fix parsing of split include routes on Windows.</li>
+       <li>Fix crash on invocation with <tt>--token-mode</tt> but no <tt>--token-secret</tt>.</li>
      </ul>
 <!-- latest-release-end -->
 
