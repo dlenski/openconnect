@@ -702,6 +702,11 @@ int openconnect_setup_tun_device(struct openconnect_info *vpninfo,
 const char *openconnect_get_dtls_cipher(struct openconnect_info *vpninfo)
 {
 #if defined(DTLS_GNUTLS)
+	if (vpninfo->dtls_state != DTLS_CONNECTED) {
+		gnutls_free(vpninfo->gnutls_dtls_cipher);
+		vpninfo->gnutls_dtls_cipher = NULL;
+		return NULL;
+	}
 	/* in DTLS rehandshakes don't switch the ciphersuite as only
 	 * one is enabled. */
 	if (vpninfo->gnutls_dtls_cipher == NULL)
