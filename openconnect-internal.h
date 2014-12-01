@@ -427,6 +427,7 @@ struct openconnect_info {
 	int dtls_local_port;
 
 	int deflate;
+	int is_dyndns; /* Attempt to redo DNS lookup on each CSTP reconnect */
 	char *useragent;
 
 	const char *quit_reason;

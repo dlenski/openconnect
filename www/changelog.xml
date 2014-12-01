@@ -15,7 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li><i>No changelog entries yet</i></li>
+       <li>Add support for <tt>X-CSTP-DynDNS</tt>, to trigger DNS lookup on each reconnect.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.00.tar.gz">OpenConnect v7.00</a></b>

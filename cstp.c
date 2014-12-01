@@ -378,6 +378,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			int cstpmtu = atol(colon);
 			if (cstpmtu > mtu)
 				mtu = cstpmtu;
+		} else if (!strcmp(buf + 7, "DynDNS")) {
+			if (!strcmp(colon, "true"))
+				vpninfo->is_dyndns = 1;
 		} else if (!strcmp(buf + 7, "Address-IP6")) {
 			vpninfo->ip_info.netmask6 = new_option->value;
 		} else if (!strcmp(buf + 7, "Address")) {
