@@ -2062,7 +2062,8 @@ static int proxy_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val)
 {
 	int i;
 
-	if (!strcasecmp(hdr, "Proxy-Connection")) {
+	if (!strcasecmp(hdr, "Proxy-Connection") ||
+	    !strcasecmp(hdr, "Connection")) {
 		if (!strcasecmp(val, "close"))
 			vpninfo->proxy_close_during_auth = 1;
 		return 0;
