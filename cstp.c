@@ -450,6 +450,12 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			     _("No IP address received. Aborting\n"));
 		return -EINVAL;
 	}
+	if (mtu < 1280 &&
+	    (vpninfo->ip_info.addr6 || vpninfo->ip_info.netmask6)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("IPv6 configuration received but MTU %d is too small.\n"),
+			     mtu);
+	}
 	if (old_addr) {
 		if (strcmp(old_addr, vpninfo->ip_info.addr)) {
 			vpn_progress(vpninfo, PRG_ERR,
