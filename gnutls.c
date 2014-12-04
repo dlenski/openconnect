@@ -980,7 +980,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			if (!p11_kit_uri_get_pin_source(uri))
 				p11_kit_uri_set_pin_source(uri, pin_source);
 #endif
-			if (!p11_kit_uri_get_attribute(uri, CKA_CLASS)) {
+			if (vpninfo->sslkey == vpninfo->cert ||
+			    !p11_kit_uri_get_attribute(uri, CKA_CLASS)) {
 				class = CKO_PRIVATE_KEY;
 				p11_kit_uri_set_attribute(uri, &attr);
 			}
@@ -1126,8 +1127,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 #endif /* HAVE_GNUTLS_SYSTEM_KEYS */
 #if defined(HAVE_P11KIT)
 	if (key_is_p11) {
-		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("Using PKCS#11 key %s\n"), key_url);
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Trying PKCS#11 key URL %s\n"), key_url);
 
 		err = gnutls_pkcs11_privkey_init(&p11key);
 		if (err) {
@@ -1153,7 +1154,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			gnutls_pkcs11_obj_t crt;
 			P11KitUri *uri;
 			CK_TOKEN_INFO *token;
-			char buf[33];
+			char buf[65];
 			size_t s;
 
 			if (gnutls_pkcs11_obj_init(&crt))
@@ -1213,8 +1214,41 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 			free(key_url);
 			key_url = NULL;
-			if (!p11_kit_uri_format(uri, P11_KIT_URI_FOR_ANY, &key_url))
+			if (p11_kit_uri_format(uri, P11_KIT_URI_FOR_ANY, &key_url))
+				goto key_err_uri;
+
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("Trying PKCS#11 key URL %s\n"), key_url);
+			err = gnutls_pkcs11_privkey_import_url(p11key, key_url, 0);
+
+			/* If it still doesn't work then try dropping CKA_LABEL and adding the
+			   CKA_ID of the cert. */
+			if (err == GNUTLS_E_REQUESTED_DATA_NOT_AVAILABLE &&
+			    (p11_kit_uri_get_attribute(uri, CKA_LABEL) ||
+			     !p11_kit_uri_get_attribute(uri, CKA_ID))) {
+				CK_ATTRIBUTE attr;
+
+				s = sizeof(buf);
+				if (gnutls_pkcs11_obj_get_info(crt, GNUTLS_PKCS11_OBJ_ID,
+							       buf, &s))
+					goto key_err_uri;
+
+				attr.type = CKA_ID;
+				attr.pValue = buf;
+				attr.ulValueLen = s;
+
+				p11_kit_uri_set_attribute(uri, &attr);
+				p11_kit_uri_clear_attribute(uri, CKA_LABEL);
+
+				free(key_url);
+				key_url = NULL;
+				if (p11_kit_uri_format(uri, P11_KIT_URI_FOR_ANY, &key_url))
+					goto key_err_uri;
+
+				vpn_progress(vpninfo, PRG_TRACE,
+					     _("Trying PKCS#11 key URL %s\n"), key_url);
 				err = gnutls_pkcs11_privkey_import_url(p11key, key_url, 0);
+			}
 		key_err_uri:
 			p11_kit_uri_free(uri);
 		key_err_obj:
@@ -1230,6 +1264,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			ret = -EIO;
 			goto out;
 		}
+		vpn_progress(vpninfo, PRG_DEBUG,
+			     _("Using PKCS#11 key %s\n"), key_url);
 
 		err = gnutls_privkey_init(&pkey);
 		if (err) {
