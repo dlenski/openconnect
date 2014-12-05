@@ -15,6 +15,9 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Try harder to find a PKCS#11 key to match a given certificate.</li>
+       <li>Handle '<tt>Connection: close</tt>' from proxies correctly.</li>
+       <li>Warn when MTU is set too low <i>(&lt;1280)</i> to permit IPv6 connectivity.</li>
        <li>Add support for <tt>X-CSTP-DynDNS</tt>, to trigger DNS lookup on each reconnect.</li>
      </ul><br/>
   </li>
