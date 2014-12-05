@@ -6,5 +6,6 @@
 	<MENU topic="GUI" link="gui.html" mode="VAR_SEL_FEATURE_GUI" />
 	<MENU topic="Character sets" link="charset.html" mode="VAR_SEL_FEATURE_CHARSET" />
 	<MENU topic="One Time Passwords" link="token.html" mode="VAR_SEL_FEATURE_TOKEN" />
+	<MENU topic="Smart Cards / PKCS#11" link="pkcs11.html" mode="VAR_SEL_FEATURE_PKCS11" />
 	<ENDMENU />
 </PAGE>

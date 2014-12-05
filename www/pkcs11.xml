@@ -1,0 +1,207 @@
+<PAGE>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_FEATURES" replace="selected" />
+	<VAR match="VAR_SEL_FEATURE_PKCS11" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2-features.xml" />
+
+	<INCLUDE file="inc/content.tmpl" />
+
+<h1>Smart Card / PKCS#11 support</h1>
+
+<p>OpenConnect supports the use of X.509 certificates and keys from
+smart cards <i>(as well as software storage such as GNOME Keyring and
+SoftHSM)</i> by means of the PKCS#11 standard. Objects from PKCS#11 tokens
+are specified by a <a href="http://p11-glue.freedesktop.org/pkcs11-uris.html">PKCS#11 URI</a>.</p>
+
+<p>In order to use a certificate or key with OpenConnect, you must
+provide a PKCS#11 URI which identifies it sufficiently. That can be as simple
+as the following example:
+<ul><li> <tt>openconnect -c <i>pkcs11:id=%01</i> vpn.example.com</tt></li></ul>
+
+However, if you're now looking blankly at a USB crypto device and
+wondering what PKCS#11 URI to use, the following documentation should
+hopefully assist you in working it out.</p>
+
+<h2>Identifying the token</h2>
+<p>In order to use a PKCS#11 token with OpenConnect, first it must be installed
+appropriately in the system's
+<a href="http://p11-glue.freedesktop.org/doc/p11-kit/config.html">p11-kit configuration</a>.
+You shouldn't need to worry about this; it should automatically be the case for
+properly packaged software on any modern operating system.</p>
+
+<p>Typically, the smart card support is likely to be
+provided by <a href="https://github.com/OpenSC/OpenSC/wiki">OpenSC</a> and a
+distribution's packaging of OpenSC should automatically have registered
+the OpenSC module with p11-kit by creating a file such as
+<tt>/usr/share/p11-kit/modules/opensc.module</tt>.</p>
+
+<p>In order to query the available PKCS#11 modules, and the certificates
+stored therein, the best tool to use is the
+<a href="http://www.gnutls.org/manual/html_node/p11tool-Invocation.html">p11tool</a>
+distributed with GnuTLS. In Fedora it's in the <tt>gnutls-utils</tt> package.</p>
+
+<p>First identify the PKCS#11 modules which are available by using the <tt>--list-tokens</tt> option:</p>
+<ul><li><tt>p11tool --list-tokens</tt></li></ul>
+This should produce output including something like the following:
+<table border="1"><tr><td><pre>
+Token 7:
+	URL: pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29 
+	Label: PIV_II (PIV Card Holder pin)
+	Type: Hardware token
+	Manufacturer: piv_II
+	Model: PKCS#15 emulated
+	Serial: 108421384210c3f5
+</pre></td></tr></table>
+
+<p>This example shows the relatively common <a href="https://www.opensc-project.org/opensc/wiki/UnitedStatesPIV">PIV</a>
+SmartCard, in this case in a <a href="https://developers.yubico.com/yubico-piv-tool/YubiKey-NEO-PIV-Introduction.html">Yubikey NEO</a> device.</p>
+
+<h2>Locating the certificate</h2>
+
+<p>Having established that the token is present and registered correctly with p11-kit, the next
+step is to identify the URI of the certificate you wish to use. You will note that
+the above output of <tt>p11tool --list-tokens</tt> gave a PKCS#11 URI for each token.
+With that, we can now query the objects available <em>within</em> a specific token, using the <tt>--list-all-certs</tt>
+option. We can cut and paste the PKCS#11 URI for the token, but be careful to put it within
+quotes because it contains semicolons:</p>
+<ul><li><tt>p11tool --list-all-certs 'pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29'</tt></li></ul>
+
+<p>Note that the PKCS#11 URI specifies a list of attributes which must
+match. Some of these match criteria may be redundant — in this case
+ we've asked it to list the certificates in a token
+which has a model of <i>"PKCS#15 emulated"</i> <b>and</b> a
+manufacturer of <i>"piv_II"</i> <b>and</b> serial number
+<i>108421384210c3f5</i> <b>and</b> token label <i>"PIV_II (PIV Card
+Holder pin)"</i>. Since any <em>one</em> of those criteria would probably
+be sufficient to uniquely identify this token from the other configured tokens
+in our system, a simpler command line would also work. For example:</p>
+<ul><li><tt>p11tool --list-all-certs pkcs11:manufacturer=piv_II</tt></li></ul>
+
+The output of either such command should look something like this:
+<table border="1"><tr><td><pre>Object 0:
+	URL: pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29;id=%01;object=Certificate%20for%20PIV%20Authentication;object-type=cert
+	Type: X.509 Certificate
+	Label: Certificate for PIV Authentication
+	ID: 01
+
+Object 1:
+	URL: pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29;id=%02;object=Certificate%20for%20Digital%20Signature;object-type=cert
+	Type: X.509 Certificate
+	Label: Certificate for Digital Signature
+	ID: 02
+
+Object 2:
+	URL: pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29;id=%03;object=Certificate%20for%20Key%20Management;object-type=cert
+	Type: X.509 Certificate
+	Label: Certificate for Key Management
+	ID: 03
+
+Object 3:
+	URL: pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29;id=%04;object=Certificate%20for%20Card%20Authentication;object-type=cert
+	Type: X.509 Certificate
+	Label: Certificate for Card Authentication
+	ID: 04
+</pre></td></tr></table>
+
+
+
+<p>This device has four certificates installed; the URL for each one
+is given in the output. <i>(Choosing <em>between</em> the certificates on
+a given device, if there is more than one, is left as an exercise for
+the user. You may need to try each one.)</i></p>
+
+<p>Some devices may not even permit you to list the certificates
+without logging in. In that case add <tt>--login</tt> to the
+<tt>p11tool</tt> command line above, and provide the PIN when
+requested</p>
+
+<p>For OpenConnect 7.01 we should be able to use the URI seen here in
+its entirety, and the software will be cunning enough to
+find the corresponding key:
+
+<ul><li><tt>openconnect -c 'pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29;id=%01;object=Certificate%20for%20PIV%20Authentication;object-type=cert' vpn.example.com</tt></li></ul>
+
+Older versions, however, may require a little help...</p>
+
+<h2>Helping OpenConnect find the key</h2>
+
+<p>If no explicit <tt>-k</tt> argument is given to specify the key,
+OpenConnect will use the contents of the <tt>-c</tt> argument as the
+basis for finding <em>both</em> certificate and key.</p>
+
+<p>It will sensibly add <tt>object-type=cert</tt> or <tt>object-type=private</tt>
+for itself, according to which object it is trying to locate each time. But in
+version 7.00 and earlier, it would <em>not</em> do that if the URI you provide
+already contained any <tt>object-type=</tt> element. So the first thing you need to do with
+older versions of OpenConnect is trim that part of the URI. So the above example might now be:
+<ul><li><tt>openconnect -c 'pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29;id=%01;object=Certificate%20for%20PIV%20Authentication' vpn.example.com</tt></li></ul>
+</p>
+
+<p>Additionally, it can sometimes be the case that although the ID
+(<tt>id=</tt>) for a certificate should match the ID of its matching
+key, the label (<tt>object=</tt>) might <em>not</em> match. Newer versions
+of OpenConnect (7.01+), on failing to find a key, will <em>strip</em> the label
+from the search URI and add the ID of the certificate that was found (even if
+no ID was part of the original search terms provided with the <tt>-c</tt> option). But older versions don't.</p>
+
+<p>So it can be useful also to remove the <tt>object=</tt> part of the URI and leave only the <tt>id=</tt> attribute to specify the individual object, so that you're giving search criteria which are true for both the certificate <em>and</em> the key:
+<ul><li><tt>openconnect -c 'pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29;id=%01' vpn.example.com</tt></li></ul>
+</p>
+
+<p>And while we're at it, that's <em>still</em> a massively redundant way of specifying which token
+to look in, so we can cut that down as we did before just to make it less unwieldy:
+<ul><li><tt>openconnect -c 'pkcs11:manufacturer=piv_II;id=%01' vpn.example.com</tt></li></ul>
+
+<h2>Searching for the key manually</h2>
+
+<p>If the heuristics for finding the key don't work, you can always
+provide an explicit PKCS#11 URI for the key with the <tt>-k</tt>
+option. You can look for them by using the <tt>--list-privkeys</tt> option to <tt>p11tool</tt>. You will almost certainly want to use the <tt>--login</tt> option too:</p>
+<ul><li><tt>p11tool --list-privkeys --login pkcs11:manufacturer=piv_II</tt></li></ul>
+<table border="1"><tr><td><pre>Token 'PIV_II (PIV Card Holder pin)' with URL 'pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29' requires user PIN
+Enter PIN: 
+Object 0:
+	URL: pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29;id=%01;object=PIV%20AUTH%20key;object-type=private
+	Type: Private key
+	Label: PIV AUTH key
+	Flags: CKA_WRAP/UNWRAP; CKA_PRIVATE; CKA_SENSITIVE; 
+	ID: 01
+
+Object 1:
+	URL: pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29;id=%02;object=SIGN%20key;object-type=private
+	Type: Private key
+	Label: SIGN key
+	Flags: CKA_PRIVATE; CKA_SENSITIVE; 
+	ID: 02
+
+Object 2:
+	URL: pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29;id=%03;object=KEY%20MAN%20key;object-type=private
+	Type: Private key
+	Label: KEY MAN key
+	Flags: CKA_WRAP/UNWRAP; CKA_PRIVATE; CKA_SENSITIVE; 
+	ID: 03
+
+Object 3:
+	URL: pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29;id=%04;object=CARD%20AUTH%20key;object-type=private
+	Type: Private key
+	Label: CARD AUTH key
+	Flags: CKA_SENSITIVE; 
+	ID: 04
+</pre></td></tr></table>
+<p>
+Here's the full longhand specification of both certificate <em>and</em> key:
+<ul><li><tt>openconnect -c 'pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29;id=%01;object=Certificate%20for%20PIV%20Authentication;object-type=cert' -k 'pkcs11:model=PKCS%2315%20emulated;manufacturer=piv_II;serial=108421384210c3f5;token=PIV_II%20%28PIV%20Card%20Holder%20pin%29;id=%01;object=PIV%20AUTH%20key;object-type=private' vpn.example.com</tt></li></ul>
+
+
+OpenConnect doesn't care; you can use certificate and key from entirely
+<em>different</em> hardware tokens if you want to. Or one from a file. Or a key
+from a TPM and a certificate from a PKCS#11 hardware token. Or all kinds of bizarre combinations. But if it's a <em>sensible</em> combination on a sanely configured PKCS#11 token, and OpenConnect can't infer the key location from the certificate, then please <a href="mail.html">send us an email</a> and we'll try to fix it.</p>
+</p>
+
+
+
+
+<INCLUDE file="inc/footer.tmpl" />
+</PAGE>

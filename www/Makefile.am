@@ -3,7 +3,7 @@
 SUBDIRS = styles inc images
 CONV 	= "$(srcdir)/html.py"
 
-FTR_PAGES = csd.html charset.html token.html features.html gui.html nonroot.html
+FTR_PAGES = csd.html charset.html token.html pkcs11.html features.html gui.html nonroot.html
 START_PAGES = building.html connecting.html manual.html vpnc-script.html 
 INDEX_PAGES = changelog.html download.html index.html packages.html platforms.html
 TOPLEVEL_PAGES = contribute.html mail.html technical.html
