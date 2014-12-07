@@ -258,7 +258,8 @@ static struct option long_options[] = {
 };
 
 #ifdef _WIN32
-static int vfprintf_utf8(FILE *f, const char *fmt, va_list args)
+static int __attribute__ ((format(printf, 2, 0)))
+    vfprintf_utf8(FILE *f, const char *fmt, va_list args)
 {
 	HANDLE h = GetStdHandle(f == stdout ? STD_OUTPUT_HANDLE : STD_ERROR_HANDLE);
 	wchar_t wbuf[1024];
@@ -273,7 +274,8 @@ static int vfprintf_utf8(FILE *f, const char *fmt, va_list args)
 	return chars;
 }
 
-static int fprintf_utf8(FILE *f, const char *fmt, ...)
+static int __attribute__ ((format(printf, 2, 3)))
+    fprintf_utf8(FILE *f, const char *fmt, ...)
 {
 	va_list args;
 	int ret;
@@ -408,7 +410,8 @@ static int is_ascii(char *str)
 	return 1;
 }
 
-static int vfprintf_utf8(FILE *f, const char *fmt, va_list args)
+static int __attribute__ ((format(printf, 2, 0)))
+    vfprintf_utf8(FILE *f, const char *fmt, va_list args)
 {
 	char *utf8_str;
 	iconv_t ic;
@@ -463,7 +466,8 @@ static int vfprintf_utf8(FILE *f, const char *fmt, va_list args)
 	return ret;
 }
 
-static int fprintf_utf8(FILE *f, const char *fmt, ...)
+static int __attribute__ ((format(printf, 2, 3)))
+    fprintf_utf8(FILE *f, const char *fmt, ...)
 {
 	va_list args;
 	int ret;
