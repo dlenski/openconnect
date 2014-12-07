@@ -117,8 +117,8 @@ static int match_sockaddr(struct sockaddr *a, struct sockaddr *b)
 	} else if (a->sa_family == AF_INET6) {
 		struct sockaddr_in6 *a6 = (void *)a;
 		struct sockaddr_in6 *b6 = (void *)b;
-		return !memcmp(&a6->sin6_addr, &b6->sin6_addr, sizeof(a6->sin6_addr) &&
-			       a6->sin6_port == b6->sin6_port);
+		return !memcmp(&a6->sin6_addr, &b6->sin6_addr, sizeof(a6->sin6_addr)) &&
+		       a6->sin6_port == b6->sin6_port;
 	} else
 		return 0;
 }
