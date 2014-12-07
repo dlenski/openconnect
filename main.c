@@ -367,7 +367,7 @@ static void read_stdin(char **string, int hidden)
 	nr_read = WideCharToMultiByte(CP_UTF8, 0, wbuf, -1, NULL, 0, NULL, NULL);
 	if (!nr_read) {
 		char *errstr = openconnect__win32_strerror(GetLastError());
-		fprintf(stderr, _("Error converting console input: %lx\n"),
+		fprintf(stderr, _("Error converting console input: %s\n"),
 			errstr);
 		free(errstr);
 		goto out;
