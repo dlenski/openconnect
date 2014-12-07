@@ -75,8 +75,8 @@ endif
 libopenconnect_la_LDFLAGS = $(LT_VER_ARG) @APIMAJOR@:@APIMINOR@ -no-undefined
 noinst_HEADERS = openconnect-internal.h openconnect.h gnutls.h
 include_HEADERS = openconnect.h
-if HAVE_SYMBOL_VERSIONING
-libopenconnect_la_LDFLAGS += -Wl,@VERSION_SCRIPT_ARG@,libopenconnect.map
+if HAVE_VSCRIPT
+libopenconnect_la_LDFLAGS += @VSCRIPT_LDFLAGS@,libopenconnect.map
 libopenconnect_la_DEPENDENCIES = libopenconnect.map
 endif
 

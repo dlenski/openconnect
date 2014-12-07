@@ -520,35 +520,7 @@ if test "$use_openbsd_libtool" = "true" && test -x /usr/bin/libtool; then
 fi
 AM_CONDITIONAL(OPENBSD_LIBTOOL, [ test "$use_openbsd_libtool" = "true" ])
 
-# Ick. This seems like it's likely to be very fragile, but I can't see a better
-# way. I shall console myself with the observation that the failure mode isn't
-# particularly horrible — you just don't get symbol versioning if it fails.
-
-AC_ARG_ENABLE([symvers],
-	AS_HELP_STRING([--disable-symvers],
-		       [disable library symbol versioning [default=auto]]),
-	[want_symvers=$enableval],
-	[want_symvers=yes])
-
-symvers=no
-if test "$enable_shared" = "yes" -a "$want_symvers" != "no" ; then
-   AC_MSG_CHECKING([if library symbol versioning is available]);
-   echo 'FOO { global: foo; local: *; };' > conftest.map
-   echo 'int foo = 0;' > conftest.$ac_ext
-   if AC_TRY_EVAL(ac_compile); then
-      soname=conftest
-      libobjs=conftest.$ac_objext
-      if AC_TRY_EVAL(archive_cmds ${wl}--version-script ${wl}conftest.map); then
-         AC_SUBST(VERSION_SCRIPT_ARG, [--version-script])
-         symvers="yes (with --version-script)"
-      elif AC_TRY_EVAL(archive_cmds ${wl}-M ${wl}conftest.map); then
-         AC_SUBST(VERSION_SCRIPT_ARG, [-M])
-         symvers="yes (with -M)"
-      fi
-   fi
-   AC_MSG_RESULT(${symvers})
-fi
-AM_CONDITIONAL(HAVE_SYMBOL_VERSIONING, [test "${symvers}" != "no"])
+AX_CHECK_VSCRIPT
 
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0)
 
