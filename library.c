@@ -238,6 +238,16 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 #endif
 		vpninfo->peer_cert = NULL;
 	}
+	while (vpninfo->pin_cache) {
+		struct pin_cache *cache = vpninfo->pin_cache;
+
+		free(cache->token);
+		memset(cache->pin, 0x5a, strlen(cache->pin));
+		free(cache->pin);
+		vpninfo->pin_cache = cache->next;
+		free(cache);
+	}
+
 	free(vpninfo->peer_cert_hash);
 	free(vpninfo->localname);
 	free(vpninfo->useragent);

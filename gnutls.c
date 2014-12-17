@@ -2259,23 +2259,12 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 	if (final && vpninfo->https_cred) {
 		gnutls_certificate_free_credentials(vpninfo->https_cred);
 		vpninfo->https_cred = NULL;
-#ifdef HAVE_P11KIT
+#if defined(HAVE_P11KIT) && !defined(HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION)
 		if ((vpninfo->cert && !strncmp(vpninfo->cert, "pkcs11:", 7)) ||
 		    (vpninfo->sslkey && !strncmp(vpninfo->sslkey, "pkcs11:", 7))) {
-#ifndef HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION
 			char pin_source[40];
 			sprintf(pin_source, "openconnect:%p", vpninfo);
 			p11_kit_pin_unregister_callback(pin_source, p11kit_pin_callback, vpninfo);
-#endif
-			while (vpninfo->pin_cache) {
-				struct pin_cache *cache = vpninfo->pin_cache;
-
-				free(cache->token);
-				memset(cache->pin, 0x5a, strlen(cache->pin));
-				free(cache->pin);
-				vpninfo->pin_cache = cache->next;
-				free(cache);
-			}
 		}
 #endif
 #ifdef HAVE_TROUSERS
