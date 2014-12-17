@@ -14,7 +14,7 @@
   <li>Connection through SOCKS5 proxy.</li>
   <li>Automatic detection of IPv4 and IPv6 address, routes.</li>
   <li>Authentication via HTTP forms.</li>
-  <li>Authentication using SSL certificates &#8212; from local file, <a href="http://en.wikipedia.org/wiki/Trusted_Platform_Module">Trusted Platform Module</a> and <i>(when built with GnuTLS)</i> PKCS#11 smartcards.</li>
+  <li>Authentication using SSL certificates &#8212; from local file, <a href="http://en.wikipedia.org/wiki/Trusted_Platform_Module">Trusted Platform Module</a> and PKCS#11 smartcards.</li>
   <li>Authentication using SecurID software tokens <i>(when built with libstoken)</i></li>
   <li>Authentication using OATH TOTP or HOTP software tokens <i>(when built with liboath)</i></li>
   <li>Authentication using Yubikey OATH tokens <i>(when built with libpcsclite)</i></li>

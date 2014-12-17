@@ -734,11 +734,11 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	FILE *f;
 	char buf[256];
 
-	if (!strncmp(vpninfo->sslkey, "pkcs11:", 7) ||
-	    !strncmp(vpninfo->cert, "pkcs11:", 7)) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("This binary built without PKCS#11 support\n"));
-		return -EINVAL;
+	if (!strncmp(vpninfo->cert, "pkcs11:", 7)) {
+		int ret = load_pkcs11_certificate(vpninfo);
+		if (ret)
+			return ret;
+		goto got_cert;
 	}
 
 	vpn_progress(vpninfo, PRG_DEBUG,
@@ -792,6 +792,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		if (ret)
 			return ret;
 	}
+
+ got_cert:
 #ifdef ANDROID_KEYSTORE
 	if (!strncmp(vpninfo->sslkey, "keystore:", 9)) {
 		EVP_PKEY *key;
@@ -819,6 +821,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		return 0;
 	}
 #endif /* ANDROID_KEYSTORE */
+	if (!strncmp(vpninfo->sslkey, "pkcs11:", 7))
+		return load_pkcs11_key(vpninfo);
 
 	f = openconnect_fopen_utf8(vpninfo, vpninfo->sslkey, "rb");
 	if (!f) {

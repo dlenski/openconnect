@@ -458,6 +458,13 @@ case "$ssl_library" in
 	check_openssl_dtls=no
 	;;
     openssl)
+	PKG_CHECK_MODULES(P11KIT, p11-kit-1,
+		[PKG_CHECK_MODULES(LIBP11, libp11,
+			[AC_DEFINE(HAVE_LIBP11, 1, [Have libp11 and p11-kit for OpenSSL])
+			 AC_SUBST(P11KIT_PC, ["libp11 p11-kit-1"])
+			 proxy_module="`$PKG_CONFIG --variable=proxy_module p11-kit-1`"
+			 AC_DEFINE_UNQUOTED([DEFAULT_PKCS11_MODULE], "${proxy_module}", [p11-kit proxy])],
+			[:])], [:])
 	AC_DEFINE(OPENCONNECT_OPENSSL, 1, [Using OpenSSL])
 	AC_DEFINE(DTLS_OPENSSL, 1, [Using OpenSSL for DTLS])
 	AC_SUBST(SSL_DTLS_PC, [openssl])

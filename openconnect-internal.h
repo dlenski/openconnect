@@ -89,6 +89,10 @@
 #include <pskc/pskc.h>
 #endif
 
+#ifdef HAVE_LIBP11
+#include <libp11.h>
+#endif
+
 #ifdef HAVE_LIBPCSCLITE
 #ifdef __APPLE__
 #include <PCSC/wintypes.h>
@@ -310,6 +314,14 @@ struct openconnect_info {
 
 	unsigned pfs;
 #if defined(OPENCONNECT_OPENSSL)
+#ifdef HAVE_LIBP11
+	PKCS11_CTX *pkcs11_ctx;
+	PKCS11_SLOT *pkcs11_slot_list;
+	unsigned int pkcs11_slot_count;
+	PKCS11_SLOT *pkcs11_cert_slot;
+	unsigned char *pkcs11_cert_id;
+	size_t pkcs11_cert_id_len;
+ #endif
 	X509 *cert_x509;
 	SSL_CTX *https_ctx;
 	SSL *https_ssl;
@@ -635,6 +647,10 @@ FILE *openconnect_fopen_utf8(struct openconnect_info *vpninfo,
 			     const char *fname, const char *mode);
 
 void openconnect_clear_cookies(struct openconnect_info *vpninfo);
+
+/* openssl-pkcs11.c */
+int load_pkcs11_key(struct openconnect_info *vpninfo);
+int load_pkcs11_certificate(struct openconnect_info *vpninfo);
 
 /* {gnutls,openssl}.c */
 int openconnect_open_https(struct openconnect_info *vpninfo);

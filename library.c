@@ -277,6 +277,17 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	memset(vpninfo->yubikey_pwhash, 0, sizeof(vpninfo->yubikey_pwhash));
 	free(vpninfo->yubikey_objname);
 #endif
+#ifdef HAVE_LIBP11
+	if (vpninfo->pkcs11_ctx) {
+		if (vpninfo->pkcs11_slot_list)
+			PKCS11_release_all_slots(vpninfo->pkcs11_ctx,
+						 vpninfo->pkcs11_slot_list,
+						 vpninfo->pkcs11_slot_count);
+		PKCS11_CTX_unload(vpninfo->pkcs11_ctx);
+		PKCS11_CTX_free(vpninfo->pkcs11_ctx);
+	}
+	free(vpninfo->pkcs11_cert_id);
+#endif
 	/* These check strm->state so they are safe to call multiple times */
 	inflateEnd(&vpninfo->inflate_strm);
 	deflateEnd(&vpninfo->deflate_strm);
@@ -518,6 +529,8 @@ const char *openconnect_get_version(void)
 int openconnect_has_pkcs11_support(void)
 {
 #if defined(OPENCONNECT_GNUTLS) && defined(HAVE_P11KIT)
+	return 1;
+#elif defined(OPENCONNECT_OPENSSL) && defined(HAVE_LIBP11)
 	return 1;
 #else
 	return 0;

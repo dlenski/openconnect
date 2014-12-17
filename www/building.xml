@@ -28,6 +28,8 @@ libraries and tools installed:</p>
 </ul>
 And <em>optionally</em> also:
 <ul>
+  <li><b><tt><a href="http://p11-glue.freedesktop.org/p11-kit.html">p11-kit</a></tt></b> <i>(for PKCS#11 support)</i></li>
+  <li><b><tt><a href="https://github.com/OpenSC/libp11/wiki">libp11</a></tt></b> <i>(also needed for PKCS#11 support if using OpenSSL)</i></li>
   <li><b><tt><a href="http://code.google.com/p/libproxy/">libproxy</a></tt></b></li>
   <li><b><tt><a href="http://trousers.sourceforge.net/">trousers</a></tt></b> <i>(for TPM support if using GnuTLS)</i></li>
   <li><b><tt><a href="http://stoken.sourceforge.net/">libstoken</a></tt></b> <i>(for SecurID software token support)</i></li>
