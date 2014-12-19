@@ -17,14 +17,12 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.01.tar.gz">OpenConnect v7.01</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.01.tar.gz.asc">PGP signature</a>)</i>,
-released on 2014-12-07 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.02.tar.gz">OpenConnect v7.02</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.02.tar.gz.asc">PGP signature</a>)</i>,
+released on 2014-12-19 with the following changelog:</p>
      <ul>
-       <li>Try harder to find a PKCS#11 key to match a given certificate.</li>
-       <li>Handle '<tt>Connection: close</tt>' from proxies correctly.</li>
-       <li>Warn when MTU is set too low <i>(&lt;1280)</i> to permit IPv6 connectivity.</li>
-       <li>Add support for <tt>X-CSTP-DynDNS</tt>, to trigger DNS lookup on each reconnect.</li>
+       <li>Add PKCS#11 support for OpenSSL.</li>
+       <li>Fix handling of select options in <tt>openconnect_set_option_value().</tt></li>
      </ul>
 <!-- latest-release-end -->
 

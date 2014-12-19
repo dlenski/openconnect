@@ -15,6 +15,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.02.tar.gz">OpenConnect v7.02</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.02.tar.gz.asc">PGP signature</a>)</i> &#8212; 2014-12-19
+     <ul>
        <li>Add PKCS#11 support for OpenSSL.</li>
        <li>Fix handling of select options in <tt>openconnect_set_option_value().</tt></li>
      </ul><br/>
