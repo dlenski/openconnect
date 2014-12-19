@@ -16,6 +16,7 @@
    <li><b>OpenConnect HEAD</b>
      <ul>
        <li>Add PKCS#11 support for OpenSSL.</li>
+       <li>Fix handling of select options in <tt>openconnect_set_option_value().</tt></li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.01.tar.gz">OpenConnect v7.01</a></b>

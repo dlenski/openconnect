@@ -49,7 +49,7 @@ int openconnect_set_option_value(struct oc_form_opt *opt, const char *value)
 		int i;
 
 		for (i=0; i<sopt->nr_choices; i++) {
-			if (value == sopt->choices[i]->name) {
+			if (!strcmp(value, sopt->choices[i]->name)) {
 				opt->_value = sopt->choices[i]->name;
 				return 0;
 			}
