@@ -3248,6 +3248,3 @@ msgstr "comando calculate"
 #: yubikey.c:569
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr "Resposta não reconhecida do Yubikey ao gerar código de token\n"
-
-#~ msgid "Error converting console input: %lx\n"
-#~ msgstr "Erro ao converter a entrada de console: %lx\n"
