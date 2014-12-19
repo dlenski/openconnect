@@ -24,10 +24,10 @@
 
 #include "openconnect-internal.h"
 
+#ifdef HAVE_LIBP11 /* And p11-kit */
+
 #include <libp11.h>
 #include <p11-kit/pkcs11.h>
-
-#ifdef HAVE_LIBP11 /* And p11-kit */
 
 static PKCS11_CTX *pkcs11_ctx(struct openconnect_info *vpninfo)
 {
