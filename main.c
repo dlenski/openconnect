@@ -157,6 +157,7 @@ enum {
 	OPT_DTLS_CIPHERS,
 	OPT_DUMP_HTTP,
 	OPT_FORCE_DPD,
+	OPT_GNUTLS_DEBUG,
 	OPT_KEY_PASSWORD_FROM_FSID,
 	OPT_LIBPROXY,
 	OPT_NO_CERT_CHECK,
@@ -254,8 +255,18 @@ static struct option long_options[] = {
 	OPTION("no-xmlpost", 0, OPT_NO_XMLPOST),
 	OPTION("dump-http-traffic", 0, OPT_DUMP_HTTP),
 	OPTION("no-system-trust", 0, OPT_NO_SYSTEM_TRUST),
+#ifdef OPENCONNECT_GNUTLS
+	OPTION("gnutls-debug", 1, OPT_GNUTLS_DEBUG),
+#endif
 	OPTION(NULL, 0, 0)
 };
+
+#ifdef OPENCONNECT_GNUTLS
+static void oc_gnutls_log_func(int level, const char *str)
+{
+	fputs(str, stderr);
+}
+#endif
 
 #ifdef _WIN32
 static int __attribute__ ((format(printf, 2, 0)))
@@ -1263,6 +1274,12 @@ int main(int argc, char **argv)
 		case OPT_TIMESTAMP:
 			timestamp = 1;
 			break;
+#ifdef OPENCONNECT_GNUTLS
+		case OPT_GNUTLS_DEBUG:
+			gnutls_global_set_log_level(atoi(config_arg));
+			gnutls_global_set_log_function(oc_gnutls_log_func);
+			break;
+#endif
 		default:
 			usage();
 		}
