@@ -55,10 +55,9 @@ CONFIGURE_ARGS := --host=$(TRIPLET) --prefix=$(OC_SYSROOT) \
 
 SOURCE_LIST = $(LIBXML2_SRC)/configure $(GMP_SRC)/configure \
 	$(NETTLE_SRC)/configure $(GNUTLS_SRC)/configure \
-	$(TOMCRYPT_DIR)/makefile $(STOKEN_SRC)/configure \
-	$(OATH_SRC)/configure
+	$(STOKEN_SRC)/configure $(OATH_SRC)/configure
 
-PKG_LIST := LIBXML2 OPENSSL GMP NETTLE GNUTLS TOMCRYPT STOKEN OATH
+PKG_LIST := LIBXML2 OPENSSL GMP NETTLE GNUTLS STOKEN OATH
 
 MIRROR_TEST_TARGETS := $(addprefix mirror-test-,$(PKG_LIST))
 
@@ -281,42 +280,6 @@ gnutls: $(GNUTLS_DEPS)
 
 #####################################################################
 #
-# Build libtomcrypt
-#
-TOMCRYPT_VER := 1.17
-TOMCRYPT_TAR := crypt-$(TOMCRYPT_VER).tar.bz2
-TOMCRYPT_SHA1 := 9c746822c84e4276e432b64964f94d1d5ddd13ad
-TOMCRYPT_DIR := $(TRIPLET)/libtomcrypt-$(TOMCRYPT_VER)
-
-$(TOMCRYPT_TAR):
-	$(FETCH) $@ $(TOMCRYPT_SHA1)
-
-$(TOMCRYPT_DIR)/makefile: $(TOMCRYPT_TAR)
-	mkdir -p $(TRIPLET)
-	tar xfj $< -C $(TRIPLET)
-	touch $@
-
-$(TOMCRYPT_DIR)/libtomcrypt.a: $(TOOLCHAIN_BUILT) $(TOMCRYPT_DIR)/makefile
-	$(MAKE) -C $(TOMCRYPT_DIR) \
-		CC="$(TRIPLET)-gcc $(EXTRA_CFLAGS)" \
-		AR="$(TRIPLET)-ar" \
-		RANLIB="$(TRIPLET)-ranlib"
-
-$(OC_SYSROOT)/lib/libtomcrypt.a: $(TOMCRYPT_DIR)/libtomcrypt.a
-	$(MAKE) -C $(TOMCRYPT_DIR) \
-		DESTDIR=$(OC_SYSROOT) \
-		LIBPATH=/lib INCPATH=/include \
-		INSTALL_USER=$(shell id -u) \
-		INSTALL_GROUP=$(shell id -g) \
-		NODOCS=1 install
-
-TOMCRYPT_DEPS := $(OC_SYSROOT)/lib/libtomcrypt.a
-
-tomcrypt: $(TOMCRYPT_DEPS)
-
-
-#####################################################################
-#
 # Build libstoken
 #
 STOKEN_VER := 0.81
@@ -333,7 +296,7 @@ $(STOKEN_SRC)/configure: $(STOKEN_TAR)
 	tar xfz $< -C sources
 	touch $@
 
-$(STOKEN_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(STOKEN_SRC)/configure $(TOMCRYPT_DEPS)
+$(STOKEN_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(STOKEN_SRC)/configure $(NETTLE_DEPS)
 	mkdir -p $(STOKEN_BUILD)
 	cd $(STOKEN_BUILD) && ../../$(STOKEN_SRC)/configure $(CONFIGURE_ARGS) \
 		--without-gtk
@@ -401,6 +364,7 @@ $(OPENCONNECT_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_DEPS) $(LIBXML_DEPS) 
 	CFLAGS="$(EXTRA_CFLAGS)" \
 	LDFLAGS="$(EXTRA_LDFLAGS)" \
 	GNUTLS_LIBS="$(shell $(PKG_CONFIG) --static --libs gnutls)" \
+	LIBSTOKEN_LIBS="$(shell $(PKG_CONFIG) --static --libs stoken)" \
 	--enable-shared --with-vpnc-script=/etc/vpnc/vpnc-script \
 	--with-java=$(OC_SYSROOT)/include --enable-jni-standalone \
 	--disable-symvers

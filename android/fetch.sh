@@ -41,10 +41,6 @@ gnutls_MIRROR_1=http://ftp.heanet.ie/mirrors/ftp.gnupg.org/gcrypt/gnutls/v3.2
 gnutls_MIRROR_2=http://gd.tuwien.ac.at/pub/gnupg/gnutls/v3.2
 gnutls_MIRROR_3=http://thammuz.tchpc.tcd.ie/mirrors/gnupg/gnutls/v3.2
 
-crypt_MIRROR_0=http://libtom.org/files
-crypt_MIRROR_1=ftp://ftp.allbsd.org/pub/FreeBSD/ports/distfiles
-crypt_MIRROR_2=ftp://ftp.mirrorservice.org/sites/ftp.netbsd.org/pub/pkgsrc/distfiles
-
 stoken_MIRROR_0=http://sourceforge.net/projects/stoken/files
 stoken_SUFFIX_0=/download
 
