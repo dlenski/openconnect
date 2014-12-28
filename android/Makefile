@@ -61,7 +61,7 @@ PKG_LIST := LIBXML2 OPENSSL GMP NETTLE GNUTLS STOKEN OATH
 
 MIRROR_TEST_TARGETS := $(addprefix mirror-test-,$(PKG_LIST))
 
-all: openconnect
+all: openconnect run_pie
 
 #####################################################################
 #
@@ -372,6 +372,18 @@ $(OPENCONNECT_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_DEPS) $(LIBXML_DEPS) 
 openconnect: $(OPENCONNECT_BUILD)/Makefile
 	make -C $(OPENCONNECT_BUILD)
 	make -C $(OPENCONNECT_BUILD) install-strip DESTDIR=$(DESTDIR)
+
+
+#####################################################################
+#
+# Build run_pie helper program
+#
+$(DESTDIR)/sbin/run_pie: run_pie.c $(TOOLCHAIN_BUILT)
+	mkdir -p $(DESTDIR)/sbin
+	$(TRIPLET)-gcc $< -o $@ -ldl
+
+.PHONY: run_pie
+run_pie: $(DESTDIR)/sbin/run_pie
 
 
 #####################################################################
