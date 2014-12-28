@@ -198,9 +198,9 @@ gmp: $(GMP_DEPS)
 #
 # Build nettle
 #
-NETTLE_VER := 2.7
+NETTLE_VER := 2.7.1
 NETTLE_TAR := nettle-$(NETTLE_VER).tar.gz
-NETTLE_SHA1 := e17de3678b987841e88a724b7d2f6856d97ab139
+NETTLE_SHA1 := e7477df5f66e650c4c4738ec8e01c2efdb5d1211
 NETTLE_SRC := sources/nettle-$(NETTLE_VER)
 NETTLE_BUILD := $(TRIPLET)/nettle
 
@@ -231,9 +231,9 @@ nettle: $(NETTLE_DEPS)
 #
 # Build GnuTLS
 #
-GNUTLS_VER := 3.2.15
+GNUTLS_VER := 3.2.21
 GNUTLS_TAR := gnutls-$(GNUTLS_VER).tar.xz
-GNUTLS_SHA1 := 31f289b48b0bf054f5f8c16d3b878615d0ae06fc
+GNUTLS_SHA1 := fa12e643ad21bcaf450d534f262c813d75843966
 GNUTLS_SRC := sources/gnutls-$(GNUTLS_VER)
 GNUTLS_BUILD := $(TRIPLET)/gnutls
 
@@ -316,9 +316,9 @@ tomcrypt: $(TOMCRYPT_DEPS)
 #
 # Build libstoken
 #
-STOKEN_VER := 0.5
+STOKEN_VER := 0.81
 STOKEN_TAR := stoken-$(STOKEN_VER).tar.gz
-STOKEN_SHA1 := 1fcc026580a3cf28904212f34ae2cf2180586f86
+STOKEN_SHA1 := db36aec5a8bd3f5f92deaebdea08cb639b78da73
 STOKEN_SRC := sources/stoken-$(STOKEN_VER)
 STOKEN_BUILD := $(TRIPLET)/stoken
 
@@ -350,9 +350,9 @@ stoken: $(STOKEN_DEPS)
 #
 # Build liboath
 #
-OATH_VER := 2.4.0
+OATH_VER := 2.4.1
 OATH_TAR := oath-toolkit-$(OATH_VER).tar.gz
-OATH_SHA1 := 89d2cd30dd401a3f6973ec3c2b26f1cb737764a7
+OATH_SHA1 := b0ca4c5f89c12c550f7227123c2f21f45b2bf969
 OATH_SRC := sources/oath-toolkit-$(OATH_VER)
 OATH_BUILD := $(TRIPLET)/oath
 
