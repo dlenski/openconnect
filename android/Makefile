@@ -43,6 +43,9 @@ PKG_CONFIG_LIBDIR := $(OC_SYSROOT)/lib/pkgconfig
 
 export PATH PKG_CONFIG_LIBDIR
 
+# PKG_CONFIG_LIBDIR gets exported to sub-makes, but not to $(shell
+PKG_CONFIG := PKG_CONFIG_LIBDIR=$(PKG_CONFIG_LIBDIR) pkg-config
+
 MAKEINSTALL=$(MAKE) INSTALL=$(TOPDIR)/install_symlink.sh
 FETCH=$(TOPDIR)/fetch.sh
 
@@ -397,7 +400,7 @@ $(OPENCONNECT_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_DEPS) $(LIBXML_DEPS) 
 	--host=$(TRIPLET) --prefix=/ \
 	CFLAGS="$(EXTRA_CFLAGS)" \
 	LDFLAGS="$(EXTRA_LDFLAGS)" \
-	GNUTLS_LIBS="$(shell PKG_CONFIG_LIBDIR=$(OC_SYSROOT)/lib/pkgconfig pkg-config --static --libs gnutls)" \
+	GNUTLS_LIBS="$(shell $(PKG_CONFIG) --static --libs gnutls)" \
 	--enable-shared --with-vpnc-script=/etc/vpnc/vpnc-script \
 	--with-java=$(OC_SYSROOT)/include --enable-jni-standalone \
 	--disable-symvers
