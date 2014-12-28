@@ -336,10 +336,10 @@ $(OATH_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(OATH_SRC)/configure
 	cd $(OATH_BUILD) && ../../$(OATH_SRC)/configure $(CONFIGURE_ARGS) \
 		--disable-pskc --disable-pam
 
-$(OATH_BUILD)/liboath.la: $(OATH_BUILD)/Makefile
+$(OATH_BUILD)/liboath/liboath.la: $(OATH_BUILD)/Makefile
 	$(MAKE) -C $(OATH_BUILD)
 
-$(OC_SYSROOT)/lib/liboath.la: $(OATH_BUILD)/liboath.la
+$(OC_SYSROOT)/lib/liboath.la: $(OATH_BUILD)/liboath/liboath.la
 	$(MAKEINSTALL) -C $(OATH_BUILD) install
 
 OATH_DEPS := $(OC_SYSROOT)/lib/liboath.la
