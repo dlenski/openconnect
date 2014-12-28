@@ -361,8 +361,8 @@ $(OPENCONNECT_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_DEPS) $(LIBXML_DEPS) 
 	mkdir -p $(OPENCONNECT_BUILD)
 	cd $(OPENCONNECT_BUILD) && ../../../configure \
 	--host=$(TRIPLET) --prefix=/ \
-	CFLAGS="$(EXTRA_CFLAGS)" \
-	LDFLAGS="$(EXTRA_LDFLAGS)" \
+	CFLAGS="$(EXTRA_CFLAGS) -fvisibility=default -fPIE" \
+	LDFLAGS="$(EXTRA_LDFLAGS) -rdynamic -pie" \
 	GNUTLS_LIBS="$(shell $(PKG_CONFIG) --static --libs gnutls)" \
 	LIBSTOKEN_LIBS="$(shell $(PKG_CONFIG) --static --libs stoken)" \
 	--enable-shared --with-vpnc-script=/etc/vpnc/vpnc-script \
