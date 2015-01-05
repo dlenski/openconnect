@@ -188,8 +188,15 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	buf_append(reqbuf, "Cookie: webvpn=%s\r\n", vpninfo->cookie);
 	buf_append(reqbuf, "X-CSTP-Version: 1\r\n");
 	buf_append(reqbuf, "X-CSTP-Hostname: %s\r\n", vpninfo->localname);
-	if (vpninfo->deflate && i < sizeof(buf))
-		buf_append(reqbuf, "X-CSTP-Accept-Encoding: deflate;q=1.0\r\n");
+	if (vpninfo->req_compr) {
+		char sep = ' ';
+		buf_append(reqbuf, "X-CSTP-Accept-Encoding:");
+		if (vpninfo->req_compr & COMPR_DEFLATE) {
+			buf_append(reqbuf, "%cdeflate", sep);
+			sep = ',';
+		}
+		buf_append(reqbuf, "\r\n");
+	}
 	if (base_mtu)
 		buf_append(reqbuf, "X-CSTP-Base-MTU: %d\r\n", base_mtu);
 	buf_append(reqbuf, "X-CSTP-MTU: %d\r\n", mtu);
@@ -267,7 +274,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	vpn_progress(vpninfo, PRG_INFO, _("Got CONNECT response: %s\n"), buf);
 
 	/* We may have advertised it, but we only do it if the server agrees */
-	vpninfo->deflate = 0;
+	vpninfo->cstp_compr = vpninfo->dtls_compr = 0;
 	mtu = 0;
 
 	while ((i = vpninfo->ssl_gets(vpninfo, buf, sizeof(buf)))) {
@@ -367,7 +374,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 				vpninfo->ssl_times.rekey_method = REKEY_NONE;
 		} else if (!strcmp(buf + 7, "Content-Encoding")) {
 			if (!strcmp(colon, "deflate"))
-				vpninfo->deflate = 1;
+				vpninfo->cstp_compr = COMPR_DEFLATE;
 			else {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Unknown CSTP-Content-Encoding %s\n"),
@@ -546,7 +553,7 @@ int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 	if (ret)
 		return ret;
 
-	if (vpninfo->deflate) {
+	if (vpninfo->req_compr & COMPR_DEFLATE) {
 		vpninfo->deflate_adler32 = 1;
 		vpninfo->inflate_adler32 = 1;
 
@@ -554,7 +561,7 @@ int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 		    deflateInit2(&vpninfo->deflate_strm, Z_DEFAULT_COMPRESSION,
 				 Z_DEFLATED, -12, 9, Z_DEFAULT_STRATEGY)) {
 			vpn_progress(vpninfo, PRG_ERR, _("Compression setup failed\n"));
-			vpninfo->deflate = 0;
+			vpninfo->req_compr &= ~COMPR_DEFLATE;
 		}
 
 		if (!vpninfo->deflate_pkt) {
@@ -564,7 +571,7 @@ int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 					     _("Allocation of deflate buffer failed\n"));
 				inflateEnd(&vpninfo->inflate_strm);
 				deflateEnd(&vpninfo->deflate_strm);
-				vpninfo->deflate = 0;
+				vpninfo->req_compr &= ~COMPR_DEFLATE;
 			} else {
 				memset(vpninfo->deflate_pkt, 0, sizeof(struct pkt));
 				memcpy(vpninfo->deflate_pkt->hdr, data_hdr, 8);
@@ -587,7 +594,7 @@ static int cstp_reconnect(struct openconnect_info *vpninfo)
 
 	openconnect_close_https(vpninfo, 0);
 
-	if (vpninfo->deflate) {
+	if (vpninfo->cstp_compr == COMPR_DEFLATE) {
 		/* Requeue the original packet that was deflated */
 		if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt) {
 			vpninfo->current_ssl_pkt = NULL;
@@ -824,7 +831,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			return -EPIPE;
 		}
 		case AC_PKT_COMPRESSED:
-			if (!vpninfo->deflate) {
+			if (!vpninfo->cstp_compr) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Compressed packet received in !deflate mode\n"));
 				goto unknown_pkt;
@@ -975,7 +982,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpninfo->outgoing_queue = this->next;
 		vpninfo->outgoing_qlen--;
 
-		if (vpninfo->deflate) {
+		if (vpninfo->cstp_compr == COMPR_DEFLATE) {
 			unsigned char *adler;
 			int ret;
 

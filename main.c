@@ -1132,10 +1132,10 @@ int main(int argc, char **argv)
 			vpninfo->sslkey = dup_config_arg();
 			break;
 		case 'd':
-			vpninfo->deflate = 1;
+			vpninfo->req_compr = COMPR_ALL;
 			break;
 		case 'D':
-			vpninfo->deflate = 0;
+			vpninfo->req_compr = 0;
 			break;
 		case 'g':
 			free(urlpath);
@@ -1429,7 +1429,7 @@ int main(int argc, char **argv)
 		     (ip_info->netmask6 && ip_info->addr) ? " + " : "",
 		     ip_info->netmask6 ? : "",
 		     (vpninfo->dtls_state != DTLS_CONNECTED) ?
-		     (vpninfo->deflate ? "SSL + deflate" : "SSL")
+		     (vpninfo->cstp_compr == COMPR_DEFLATE) ? "SSL + deflate" : "SSL"
 		     : "DTLS");
 
 	if (!vpninfo->vpnc_script) {

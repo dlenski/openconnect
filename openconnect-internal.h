@@ -140,6 +140,9 @@ struct pkt {
 #define DTLS_CONNECTING	3
 #define DTLS_CONNECTED	4
 
+#define COMPR_DEFLATE	(1<<0)
+#define COMPR_ALL	(COMPR_DEFLATE)
+
 struct keepalive_info {
 	int dpd;
 	int keepalive;
@@ -438,7 +441,10 @@ struct openconnect_info {
 
 	int dtls_local_port;
 
-	int deflate;
+	int req_compr; /* What we requested */
+	int cstp_compr; /* Accepted for CSTP */
+	int dtls_compr; /* Accepted for DTLS */
+
 	int is_dyndns; /* Attempt to redo DNS lookup on each CSTP reconnect */
 	char *useragent;
 
