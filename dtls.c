@@ -754,6 +754,15 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpn_progress(vpninfo, PRG_DEBUG, _("Got DTLS Keepalive\n"));
 			break;
 
+		case AC_PKT_COMPRESSED:
+			if (!vpninfo->dtls_compr) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Compressed DTLS packet received when compression not enabled\n"));
+				goto unknown_pkt;
+			}
+			decompress_and_queue_packet(vpninfo, vpninfo->dtls_pkt->data,
+						    len - 1);
+			break;
 		default:
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Unknown DTLS packet type %02x, len %d\n"),
@@ -766,6 +775,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				 * the appropriate length of garbage. So don't abort... for now. */
 				break;
 			} else {
+			unknown_pkt:
 				vpninfo->quit_reason = "Unknown packet received";
 				return 1;
 			}

@@ -218,9 +218,11 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			     _("CRITICAL ERROR: DTLS master secret is uninitialised. Please report this.\n"));
 		return -EINVAL;
 	}
-
-	buf_append(reqbuf, "\r\nX-DTLS-CipherSuite: %s\r\n\r\n",
+	buf_append(reqbuf, "\r\nX-DTLS-CipherSuite: %s\r\n",
 			       vpninfo->dtls_ciphers ? : DEFAULT_CIPHER_LIST);
+	if (vpninfo->req_compr & COMPR_LZS)
+		buf_append(reqbuf, "X-DTLS-Accept-Encoding: lzs\r\n");
+	buf_append(reqbuf, "\r\n");
 
 	if (buf_error(reqbuf)) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -353,6 +355,15 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
 				if (dtls_sessid_changed && vpninfo->dtls_state > DTLS_SLEEPING)
 					vpninfo->dtls_need_reconnect = 1;
+			} else if (!strcmp(buf + 7, "Content-Encoding")) {
+				if (!strcmp(colon, "lzs"))
+					vpninfo->dtls_compr = COMPR_LZS;
+				else {
+					vpn_progress(vpninfo, PRG_ERR,
+						     _("Unknown DTLS-Content-Encoding %s\n"),
+						     colon);
+					return -EINVAL;
+				}
 			}
 			continue;
 		}
@@ -663,8 +674,8 @@ static int cstp_reconnect(struct openconnect_info *vpninfo)
 	return 0;
 }
 
-static int decompress_and_queue_packet(struct openconnect_info *vpninfo,
-				       unsigned char *buf, int len)
+int decompress_and_queue_packet(struct openconnect_info *vpninfo,
+				unsigned char *buf, int len)
 {
 	struct pkt *new = malloc(sizeof(struct pkt) + vpninfo->ip_info.mtu);
 	const char *comprtype;

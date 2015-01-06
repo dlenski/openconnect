@@ -631,6 +631,8 @@ void dtls_shutdown(struct openconnect_info *vpninfo);
 int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int cstp_bye(struct openconnect_info *vpninfo, const char *reason);
 void cstp_free_splits(struct openconnect_info *vpninfo);
+int decompress_and_queue_packet(struct openconnect_info *vpninfo,
+				unsigned char *buf, int len);
 
 /* lzs.c */
 int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
