@@ -1112,6 +1112,9 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpninfo->deflate_pkt->hdr[4] = (vpninfo->deflate_pkt->len) >> 8;
 			vpninfo->deflate_pkt->hdr[5] = (vpninfo->deflate_pkt->len) & 0xff;
 
+			/* DTLS compression may have screwed with this */
+			vpninfo->deflate_pkt->hdr[7] = 0;
+
 			vpn_progress(vpninfo, PRG_TRACE,
 				     _("Sending LZS compressed data packet of %d bytes (was %d)\n"),
 				     ret, this->len);

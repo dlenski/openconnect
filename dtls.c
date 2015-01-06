@@ -845,6 +845,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	unmonitor_write_fd(vpninfo, dtls);
 	while (vpninfo->outgoing_queue) {
 		struct pkt *this = vpninfo->outgoing_queue;
+		struct pkt *send_pkt = this;
 		int ret;
 
 		vpninfo->outgoing_queue = this->next;
@@ -853,8 +854,23 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		/* One byte of header */
 		this->hdr[7] = AC_PKT_DATA;
 
+		/* We can just use vpninfo->deflate_pkt unless CSTP currently
+		 * has a compressed packet pending — which it shouldn't if
+		 * DTLS is active. */
+		if (vpninfo->dtls_compr & COMPR_LZS && this->len > 0x40 &&
+		    vpninfo->current_ssl_pkt != vpninfo->deflate_pkt) {
+
+			ret = lzs_compress(vpninfo->deflate_pkt->data, this->len,
+					   this->data, this->len);
+			if (ret > 0) {
+				send_pkt = vpninfo->deflate_pkt;
+				send_pkt->hdr[7] = AC_PKT_COMPRESSED;
+				send_pkt->len = ret;
+			}
+		}
+
 #if defined(DTLS_OPENSSL)
-		ret = SSL_write(vpninfo->dtls_ssl, &this->hdr[7], this->len + 1);
+		ret = SSL_write(vpninfo->dtls_ssl, &send_pkt->hdr[7], send_pkt->len + 1);
 		if (ret <= 0) {
 			ret = SSL_get_error(vpninfo->dtls_ssl, ret);
 
@@ -862,7 +878,6 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				monitor_write_fd(vpninfo, dtls);
 				vpninfo->outgoing_queue = this;
 				vpninfo->outgoing_qlen++;
-
 			} else if (ret != SSL_ERROR_WANT_READ) {
 				/* If it's a real error, kill the DTLS connection and
 				   requeue the packet to be sent over SSL */
@@ -878,7 +893,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			return work_done;
 		}
 #elif defined(DTLS_GNUTLS)
-		ret = gnutls_record_send(vpninfo->dtls_ssl, &this->hdr[7], this->len + 1);
+		ret = gnutls_record_send(vpninfo->dtls_ssl, &send_pkt->hdr[7], send_pkt->len + 1);
 		if (ret <= 0) {
 			if (ret != GNUTLS_E_AGAIN) {
 				vpn_progress(vpninfo, PRG_ERR,
