@@ -176,8 +176,8 @@ struct lzs_state {
 	 * since we know IP packets are limited to 64KiB and we can never be
 	 * *starting* a match at the penultimate byte of the packet.
 	 */
-#define INVALID_OFS 0xffffffff
-	uint32_t hash_table[HASH_TABLE_SIZE]; /* Buffer offset for first match */
+#define INVALID_OFS 0xffff
+	uint16_t hash_table[HASH_TABLE_SIZE]; /* Buffer offset for first match */
 
 	/*
 	 * The second data structure allows us to find the previous occurrences
@@ -187,8 +187,7 @@ struct lzs_state {
 	 * value was found.
 	 */
 #define MAX_HISTORY (1ULL<<11) /* Highest offset LZS can represent is 11 bits */
-	uint32_t hash_chain[MAX_HISTORY];
-	uint32_t virt_ofs;
+	uint16_t hash_chain[MAX_HISTORY];
 
 };
 
@@ -198,7 +197,8 @@ struct lzs_state *alloc_lzs_state(void)
 	if (!lzs)
 		return NULL;
 
-	lzs->virt_ofs = 0;
+	memset(lzs->hash_table, 0xff, sizeof(lzs->hash_table));
+	memset(lzs->hash_chain, 0xff, sizeof(lzs->hash_chain));
 
 	return lzs;
 }
@@ -213,21 +213,11 @@ int lzs_compress(struct lzs_state *lzs, unsigned char *dst, int dstlen,
 	int outpos = 0;
 	uint32_t outbits = 0;
 	int nr_outbits = 0;
-	uint32_t pkt_ofs;
 
 	/* Just in case anyone tries to use this in a more general-purpose
 	 * scenario... */
 	if (srclen > 0x10000)
 		return -EFBIG;
-
-	if (!lzs->virt_ofs) {
-		memset(lzs->hash_table, 0xff, sizeof(lzs->hash_table));
-		memset(lzs->hash_chain, 0xff, sizeof(lzs->hash_chain));
-	}
-	pkt_ofs = lzs->virt_ofs;
-
-	/* Ensure the next packet cannot see any of our history. */
-	lzs->virt_ofs += (srclen + MAX_HISTORY + MAX_HISTORY - 1) & ~(MAX_HISTORY - 1);
 
 	while (inpos < srclen - 1) {
 		hash = HASH(src + inpos);
@@ -235,17 +225,26 @@ int lzs_compress(struct lzs_state *lzs, unsigned char *dst, int dstlen,
 
 		longest_match_len = 0;
 
-		/* For a given 32-bit virtual offset to be reasonable, it must
-		   actually fall within the range of the packet that we've seen so
-		   far (i.e. pkt_ofs to pkt_ofs + inpos - 1). It must also not be
-		   further behind pkt_ofs + inpos than MAX_HISTORY */
-		while (hofs != INVALID_OFS && hofs < pkt_ofs + inpos && hofs >= pkt_ofs &&
-		       hofs + MAX_HISTORY > pkt_ofs + inpos) {
-			match_len = find_match_len(src, hofs - pkt_ofs, inpos,
+		/* If there is a stale entry in the hash table from a previous
+		 * packet, then clear it. This is what makes it OK to re-use the
+		 * data structures without clearing them each time; the first time
+		 * we see any given hash value in the current packet, we'll reset
+		 * the chain.
+		 *
+		 * We don't have to worry about the contents of hash_chain because
+		 * we should only ever be following links to entries in that which
+		 * *have* been written this time around. */
+		if (hofs >= inpos || hash != HASH(src + hofs))
+			hofs = lzs->hash_table[hash] = INVALID_OFS;
+
+		/* inpos can never exceed INVALID_OFS-1 so there's no need for an
+		 * explicit check for hofs != INVALID_OFS. */
+		while (hofs < inpos && hofs + MAX_HISTORY > inpos) {
+			match_len = find_match_len(src, hofs, inpos,
 						   longest_match_len ? : 2, srclen - inpos);
 			if (match_len > longest_match_len) {
 				longest_match_len = match_len;
-				longest_match_ofs = hofs - pkt_ofs;
+				longest_match_ofs = hofs;
 			}
 			/* Sanity check to prevent looping — we should always be
 			 * working *backwards* */
@@ -291,8 +290,12 @@ int lzs_compress(struct lzs_state *lzs, unsigned char *dst, int dstlen,
 
 		while (longest_match_len--) {
 			hash = HASH(src + inpos);
-			lzs->hash_chain[inpos & (MAX_HISTORY - 1)] = lzs->hash_table[hash];
-			lzs->hash_table[hash] = pkt_ofs + inpos++;
+			/* Don't link to stale hash chains. */
+			if (hofs >= inpos || hash != HASH(src + hofs))
+				lzs->hash_chain[inpos & (MAX_HISTORY - 1)] = INVALID_OFS;
+			else
+				lzs->hash_chain[inpos & (MAX_HISTORY - 1)] = lzs->hash_table[hash];
+			lzs->hash_table[hash] = inpos++;
 		}
 	}
 	if (inpos < srclen)
