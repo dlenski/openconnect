@@ -15,7 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li>Add support for LZS decompression.</li>
+       <li>Add support for LZS compression.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.02.tar.gz">OpenConnect v7.02</a></b>

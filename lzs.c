@@ -19,6 +19,8 @@
 #include <config.h>
 
 #include <errno.h>
+#include <string.h>
+#include <stdint.h>
 
 #include "openconnect-internal.h"
 
@@ -126,4 +128,149 @@ int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int
 		}
 	}
 	return -EINVAL;
+}
+
+static inline int find_match_len(const unsigned char *buf, int potential, int pos, int min, int max)
+{
+	if (memcmp(buf + potential, buf + pos, min))
+		return 0;
+
+	while (min < max && buf[potential + min] == buf[pos + min])
+		min++;
+
+	return min;
+}
+
+#define PUT_BITS(nr, bits)					\
+do {								\
+	outbits <<= (nr);					\
+	outbits |= (bits);					\
+	nr_outbits += (nr);					\
+	while (nr_outbits >= 8) {				\
+		nr_outbits -= 8;				\
+		dst[outpos++] = outbits >> nr_outbits;		\
+		if (outpos >= dstlen)				\
+			return -EFBIG;				\
+	}							\
+} while (0)
+
+/*
+ * Much of the compression algorithm used here is based very loosely on ideas
+ * from isdn_lzscomp.c by Andre Beck: http://micky.ibh.de/~beck/stuff/lzs4i4l/
+ */
+int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen)
+{
+	int inpos = 0;
+	uint32_t match_len;
+	uint32_t hash;
+	uint16_t hofs, longest_match_len, longest_match_ofs;
+	int outpos = 0;
+	uint32_t outbits = 0;
+	int nr_outbits = 0;
+
+	/*
+	 * Each pair of bytes from the input is hashed into a hash value of
+	 * size HASH_BITS (currently 12 bits). We could use 16 bits and stop
+	 * calling it a hash, I suppose, since RAM is cheap these days.
+	 */
+#define HASH_BITS 12
+#define HASH_TABLE_SIZE (1ULL << HASH_BITS)
+#define HASH(p) ((p)[0] << (HASH_BITS - 8) ^ (p)[1])
+
+	/*
+	 * There are two data structures for tracking the history. The first
+	 * is the true hash table, an array indexed by the hash value described
+	 * above. It yields the offset in the input buffer at which the given
+	 * hash was most recently seen. We use INVALID_OFS (0xffff) for none
+	 * since we know IP packets are limited to 64KiB and we can never be
+	 * *starting* a match at the penultimate byte of the packet.
+	 */
+#define INVALID_OFS 0xffff
+	uint16_t hash_table[HASH_TABLE_SIZE]; /* Buffer offset for first match */
+
+	/*
+	 * The second data structure allows us to find the previous occurrences
+	 * of the same hash value. It is a ring buffer containing links only for
+	 * the latest MAX_HISTORY bytes of the input. The lookup for a given
+	 * offset will yield the previous offset at which the same data hash
+	 * value was found.
+	 */
+#define MAX_HISTORY (1<<11) /* Highest offset LZS can represent is 11 bits */
+	uint16_t hash_chain[MAX_HISTORY];
+
+	/* Just in case anyone tries to use this in a more general-purpose
+	 * scenario... */
+	if (srclen > INVALID_OFS + 1)
+		return -EFBIG;
+
+	/* There are ways we could probably avoid having to do this memset
+	 * each time... */
+	memset(hash_table, 0xff, sizeof(hash_table));
+	memset(hash_chain, 0xff, sizeof(hash_chain));
+
+	while (inpos < srclen - 1) {
+		hash = HASH(src + inpos);
+		hofs = hash_table[hash];
+
+		longest_match_len = 0;
+
+		while (hofs != INVALID_OFS && hofs + MAX_HISTORY > inpos) {
+			match_len = find_match_len(src, hofs, inpos, longest_match_len ? : 2, srclen - inpos);
+			if (match_len > longest_match_len) {
+				longest_match_len = match_len;
+				longest_match_ofs = hofs;
+			}
+			hofs = hash_chain[hofs & (MAX_HISTORY - 1)];
+		}
+		if (longest_match_len) {
+			/* Output offset, as 7-bit or 11-bit as appropriate */
+			int offset = inpos - longest_match_ofs;
+			int length = longest_match_len;
+
+			if (offset < 0x80) {
+				PUT_BITS(2, 3);
+				PUT_BITS(7, offset);
+			} else {
+				PUT_BITS(2, 2);
+				PUT_BITS(11, offset);
+			}
+			/* Output length */
+			if (length < 5)
+				PUT_BITS(2, length - 2);
+			else if (length < 8)
+				PUT_BITS(4, length + 7);
+			else {
+				length += 7;
+				while (length >= 15) {
+					PUT_BITS(4, 15);
+					length -= 15;
+				}
+				PUT_BITS(4, length);
+			}
+		} else {
+			PUT_BITS(9, src[inpos]);
+			longest_match_len = 1;
+		}
+
+		/* Add byte(s) to the hash tables unless we're done */
+		if (inpos + longest_match_len >= srclen - 1) {
+			inpos += longest_match_len;
+			break;
+		}
+
+		while (longest_match_len--) {
+			hash = HASH(src + inpos);
+			hash_chain[inpos & (MAX_HISTORY - 1)] = hash_table[hash];
+			hash_table[hash] = inpos++;
+		}
+	}
+	if (inpos < srclen)
+		PUT_BITS(9, src[inpos]);
+
+	/* End marker */
+	PUT_BITS(9, 0x180);
+	/* ... which must have its final bits flushed to the output. */
+	PUT_BITS(7, 0);
+
+	return outpos;
 }

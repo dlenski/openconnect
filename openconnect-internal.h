@@ -634,6 +634,7 @@ void cstp_free_splits(struct openconnect_info *vpninfo);
 
 /* lzs.c */
 int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
+int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
 
 /* ssl.c */
 unsigned string_is_hostname(const char* str);

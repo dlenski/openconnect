@@ -564,6 +564,10 @@ int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 	if (ret)
 		goto out;
 
+	/* This will definitely be smaller than zlib's */
+	if (vpninfo->cstp_compr == COMPR_LZS)
+		deflate_bufsize = vpninfo->ip_info.mtu;
+
 	/* If deflate compression is enabled (which is CSTP-only), it needs its
 	 * context to be allocated. */
 	if (vpninfo->cstp_compr == COMPR_DEFLATE) {
@@ -1052,7 +1056,6 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		if (vpninfo->cstp_compr == COMPR_DEFLATE) {
 			unsigned char *adler;
-			int ret;
 
 			vpninfo->deflate_strm.next_in = this->data;
 			vpninfo->deflate_strm.avail_in = this->len;
@@ -1066,9 +1069,6 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				goto uncompr;
 			}
 
-			vpninfo->deflate_pkt->hdr[4] = (vpninfo->deflate_strm.total_out + 4) >> 8;
-			vpninfo->deflate_pkt->hdr[5] = (vpninfo->deflate_strm.total_out + 4) & 0xff;
-
 			/* Add ongoing adler32 to tail of compressed packet */
 			vpninfo->deflate_adler32 = adler32(vpninfo->deflate_adler32,
 							   this->data, this->len);
@@ -1081,9 +1081,29 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 			vpninfo->deflate_pkt->len = vpninfo->deflate_strm.total_out + 4;
 
+			vpninfo->deflate_pkt->hdr[4] = (vpninfo->deflate_pkt->len) >> 8;
+			vpninfo->deflate_pkt->hdr[5] = (vpninfo->deflate_pkt->len) & 0xff;
+
 			vpn_progress(vpninfo, PRG_TRACE,
-				     _("Sending compressed data packet of %d bytes\n"),
-				     this->len);
+				     _("Sending deflate compressed data packet of %d bytes (was %d)\n"),
+				     vpninfo->deflate_pkt->len, this->len);
+
+			vpninfo->pending_deflated_pkt = this;
+			vpninfo->current_ssl_pkt = vpninfo->deflate_pkt;
+		} else if (vpninfo->cstp_compr == COMPR_LZS) {
+			ret = lzs_compress(vpninfo->deflate_pkt->data, this->len,
+					   this->data, this->len);
+			if (ret < 0)
+				goto uncompr; /* It only ever returns -EFBIG */
+
+			vpninfo->deflate_pkt->len = ret;
+
+			vpninfo->deflate_pkt->hdr[4] = (vpninfo->deflate_pkt->len) >> 8;
+			vpninfo->deflate_pkt->hdr[5] = (vpninfo->deflate_pkt->len) & 0xff;
+
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("Sending LZS compressed data packet of %d bytes (was %d)\n"),
+				     ret, this->len);
 
 			vpninfo->pending_deflated_pkt = this;
 			vpninfo->current_ssl_pkt = vpninfo->deflate_pkt;
