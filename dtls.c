@@ -677,9 +677,6 @@ int openconnect_setup_dtls(struct openconnect_info *vpninfo, int dtls_attempt_pe
 	return 0;
 }
 
-static struct pkt *dtls_pkt;
-static int dtls_pkt_max;
-
 int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
 	int work_done = 0;
@@ -712,16 +709,15 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		int len = vpninfo->ip_info.mtu;
 		unsigned char *buf;
 
-		if (!dtls_pkt || len > dtls_pkt_max) {
-			realloc_inplace(dtls_pkt, sizeof(struct pkt) + len);
-			if (!dtls_pkt) {
+		if (!vpninfo->dtls_pkt) {
+			vpninfo->dtls_pkt = malloc(sizeof(struct pkt) + len);
+			if (!vpninfo->dtls_pkt) {
 				vpn_progress(vpninfo, PRG_ERR, "Allocation failed\n");
 				break;
 			}
-			dtls_pkt_max = len;
 		}
 
-		buf = dtls_pkt->data - 1;
+		buf = vpninfo->dtls_pkt->data - 1;
 		len = DTLS_RECV(vpninfo->dtls_ssl, buf, len + 1);
 		if (len <= 0)
 			break;
@@ -734,9 +730,9 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		switch (buf[0]) {
 		case AC_PKT_DATA:
-			dtls_pkt->len = len - 1;
-			queue_packet(&vpninfo->incoming_queue, dtls_pkt);
-			dtls_pkt = NULL;
+			vpninfo->dtls_pkt->len = len - 1;
+			queue_packet(&vpninfo->incoming_queue, vpninfo->dtls_pkt);
+			vpninfo->dtls_pkt = NULL;
 			work_done = 1;
 			break;
 

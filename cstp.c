@@ -623,6 +623,11 @@ static int cstp_reconnect(struct openconnect_info *vpninfo)
 	timeout = vpninfo->reconnect_timeout;
 	interval = vpninfo->reconnect_interval;
 
+	free(vpninfo->dtls_pkt);
+	vpninfo->dtls_pkt = NULL;
+	free(vpninfo->tun_pkt);
+	vpninfo->tun_pkt = NULL;
+
 	while ((ret = openconnect_make_cstp_connection(vpninfo))) {
 		if (timeout <= 0)
 			return ret;

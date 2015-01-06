@@ -352,11 +352,14 @@ struct openconnect_info {
 	struct pin_cache *pin_cache;
 	struct keepalive_info ssl_times;
 	int owe_ssl_dpd_response;
-	int deflate_pkt_size;
-	struct pkt *deflate_pkt;
-	struct pkt *current_ssl_pkt;
-	struct pkt *pending_deflated_pkt;
 
+	int deflate_pkt_size;			/* It may need to be larger than MTU */
+	struct pkt *deflate_pkt;		/* For compressing outbound packets into */
+	struct pkt *pending_deflated_pkt;	/* The original packet associated with above */
+	struct pkt *current_ssl_pkt;		/* Partially sent SSL packet */
+
+	/* Packet buffers for receiving into */
+	struct pkt *dtls_pkt;
 	struct pkt *tun_pkt;
 
 	z_stream inflate_strm;

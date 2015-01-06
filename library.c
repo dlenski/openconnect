@@ -294,6 +294,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 
 	free(vpninfo->deflate_pkt);
 	free(vpninfo->tun_pkt);
+	free(vpninfo->dtls_pkt);
 	free(vpninfo);
 }
 
