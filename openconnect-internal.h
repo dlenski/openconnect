@@ -352,6 +352,7 @@ struct openconnect_info {
 	struct pin_cache *pin_cache;
 	struct keepalive_info ssl_times;
 	int owe_ssl_dpd_response;
+	int deflate_pkt_size;
 	struct pkt *deflate_pkt;
 	struct pkt *current_ssl_pkt;
 	struct pkt *pending_deflated_pkt;

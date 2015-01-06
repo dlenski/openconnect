@@ -538,6 +538,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 {
 	int ret;
+	int deflate_bufsize = 0;
 
 	/* This needs to be done before openconnect_setup_dtls() because it's
 	   sent with the CSTP CONNECT handshake. Even if we don't end up doing
@@ -553,7 +554,13 @@ int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 	if (ret)
 		return ret;
 
-	if (vpninfo->req_compr & COMPR_DEFLATE) {
+	ret = start_cstp_connection(vpninfo);
+	if (ret)
+		goto out;
+
+	/* If deflate compression is enabled (which is CSTP-only), it needs its
+	 * context to be allocated. */
+	if (vpninfo->cstp_compr == COMPR_DEFLATE) {
 		vpninfo->deflate_adler32 = 1;
 		vpninfo->inflate_adler32 = 1;
 
@@ -561,28 +568,35 @@ int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 		    deflateInit2(&vpninfo->deflate_strm, Z_DEFAULT_COMPRESSION,
 				 Z_DEFLATED, -12, 9, Z_DEFAULT_STRATEGY)) {
 			vpn_progress(vpninfo, PRG_ERR, _("Compression setup failed\n"));
-			vpninfo->req_compr &= ~COMPR_DEFLATE;
+			ret = -ENOMEM;
+			goto out;
 		}
 
-		if (!vpninfo->deflate_pkt) {
-			vpninfo->deflate_pkt = malloc(sizeof(struct pkt) + 2048);
-			if (!vpninfo->deflate_pkt) {
-				vpn_progress(vpninfo, PRG_ERR,
-					     _("Allocation of deflate buffer failed\n"));
-				inflateEnd(&vpninfo->inflate_strm);
-				deflateEnd(&vpninfo->deflate_strm);
-				vpninfo->req_compr &= ~COMPR_DEFLATE;
-			} else {
-				memset(vpninfo->deflate_pkt, 0, sizeof(struct pkt));
-				memcpy(vpninfo->deflate_pkt->hdr, data_hdr, 8);
-				vpninfo->deflate_pkt->hdr[6] = AC_PKT_COMPRESSED;
-			}
-		}
+		deflate_bufsize = 2048; /* XXX */
 	}
 
-	ret = start_cstp_connection(vpninfo);
+	/* If *any* compression is enabled, we'll need a deflate_pkt to compress into */
+	if (deflate_bufsize > vpninfo->deflate_pkt_size) {
+		free(vpninfo->deflate_pkt);
+		vpninfo->deflate_pkt = malloc(sizeof(struct pkt) + deflate_bufsize);
+		if (!vpninfo->deflate_pkt) {
+			vpninfo->deflate_pkt_size = 0;
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Allocation of deflate buffer failed\n"));
+			ret = -ENOMEM;
+			goto out;
+		}
+
+		vpninfo->deflate_pkt_size = deflate_bufsize;
+		memset(vpninfo->deflate_pkt, 0, sizeof(struct pkt));
+		memcpy(vpninfo->deflate_pkt->hdr, data_hdr, 8);
+		vpninfo->deflate_pkt->hdr[6] = AC_PKT_COMPRESSED;
+	}
+
+ out:
 	if (ret < 0)
 		openconnect_close_https(vpninfo, 0);
+
 	return ret;
 }
 
