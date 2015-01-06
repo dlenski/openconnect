@@ -18,8 +18,10 @@
 
 #define __OPENCONNECT_INTERNAL_H__
 
+struct lzs_state;
+struct lzs_state *alloc_lzs_state(void);
 int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
-int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
+int lzs_compress(struct lzs_state *lzs, unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
 
 #include "lzs.c"
 
@@ -38,6 +40,7 @@ int main(void)
 	unsigned char pktbuf[MAX_PKT + 3];
 	unsigned char comprbuf[MAX_PKT * 9 / 8 + 2];
 	unsigned char uncomprbuf[MAX_PKT];
+	struct lzs_state *lzs = alloc_lzs_state();
 
 	srand(0xdeadbeef);
 
@@ -61,7 +64,7 @@ int main(void)
 			*(int *)(pktbuf + j) = r;
 		}		
 
-		ret = lzs_compress(comprbuf, sizeof(comprbuf), pktbuf, pktlen);
+		ret = lzs_compress(lzs, comprbuf, sizeof(comprbuf), pktbuf, pktlen);
 		if (ret < 0) {
 			fprintf(stderr, "Compressing packet %d failed: %s\n", i, strerror(-ret));
 			exit(1);

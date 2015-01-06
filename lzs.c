@@ -158,16 +158,7 @@ do {								\
  * Much of the compression algorithm used here is based very loosely on ideas
  * from isdn_lzscomp.c by Andre Beck: http://micky.ibh.de/~beck/stuff/lzs4i4l/
  */
-int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen)
-{
-	int inpos = 0;
-	uint32_t match_len;
-	uint32_t hash;
-	uint16_t hofs, longest_match_len, longest_match_ofs;
-	int outpos = 0;
-	uint32_t outbits = 0;
-	int nr_outbits = 0;
-
+struct lzs_state {
 	/*
 	 * Each pair of bytes from the input is hashed into a hash value of
 	 * size HASH_BITS (currently 12 bits). We could use 16 bits and stop
@@ -185,8 +176,8 @@ int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int s
 	 * since we know IP packets are limited to 64KiB and we can never be
 	 * *starting* a match at the penultimate byte of the packet.
 	 */
-#define INVALID_OFS 0xffff
-	uint16_t hash_table[HASH_TABLE_SIZE]; /* Buffer offset for first match */
+#define INVALID_OFS 0xffffffff
+	uint32_t hash_table[HASH_TABLE_SIZE]; /* Buffer offset for first match */
 
 	/*
 	 * The second data structure allows us to find the previous occurrences
@@ -195,32 +186,72 @@ int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int s
 	 * offset will yield the previous offset at which the same data hash
 	 * value was found.
 	 */
-#define MAX_HISTORY (1<<11) /* Highest offset LZS can represent is 11 bits */
-	uint16_t hash_chain[MAX_HISTORY];
+#define MAX_HISTORY (1ULL<<11) /* Highest offset LZS can represent is 11 bits */
+	uint32_t hash_chain[MAX_HISTORY];
+	uint32_t virt_ofs;
+
+};
+
+struct lzs_state *alloc_lzs_state(void)
+{
+	struct lzs_state *lzs = malloc(sizeof(*lzs));
+	if (!lzs)
+		return NULL;
+
+	lzs->virt_ofs = 0;
+
+	return lzs;
+}
+
+int lzs_compress(struct lzs_state *lzs, unsigned char *dst, int dstlen,
+		 const unsigned char *src, int srclen)
+{
+	int inpos = 0;
+	uint32_t match_len;
+	uint32_t hash;
+	uint32_t hofs, longest_match_len, longest_match_ofs;
+	int outpos = 0;
+	uint32_t outbits = 0;
+	int nr_outbits = 0;
+	uint32_t pkt_ofs;
 
 	/* Just in case anyone tries to use this in a more general-purpose
 	 * scenario... */
-	if (srclen > INVALID_OFS + 1)
+	if (srclen > 0x10000)
 		return -EFBIG;
 
-	/* There are ways we could probably avoid having to do this memset
-	 * each time... */
-	memset(hash_table, 0xff, sizeof(hash_table));
-	memset(hash_chain, 0xff, sizeof(hash_chain));
+	if (!lzs->virt_ofs) {
+		memset(lzs->hash_table, 0xff, sizeof(lzs->hash_table));
+		memset(lzs->hash_chain, 0xff, sizeof(lzs->hash_chain));
+	}
+	pkt_ofs = lzs->virt_ofs;
+
+	/* Ensure the next packet cannot see any of our history. */
+	lzs->virt_ofs += (srclen + MAX_HISTORY + MAX_HISTORY - 1) & ~(MAX_HISTORY - 1);
 
 	while (inpos < srclen - 1) {
 		hash = HASH(src + inpos);
-		hofs = hash_table[hash];
+		hofs = lzs->hash_table[hash];
 
 		longest_match_len = 0;
 
-		while (hofs != INVALID_OFS && hofs + MAX_HISTORY > inpos) {
-			match_len = find_match_len(src, hofs, inpos, longest_match_len ? : 2, srclen - inpos);
+		/* For a given 32-bit virtual offset to be reasonable, it must
+		   actually fall within the range of the packet that we've seen so
+		   far (i.e. pkt_ofs to pkt_ofs + inpos - 1). It must also not be
+		   further behind pkt_ofs + inpos than MAX_HISTORY */
+		while (hofs != INVALID_OFS && hofs < pkt_ofs + inpos && hofs >= pkt_ofs &&
+		       hofs + MAX_HISTORY > pkt_ofs + inpos) {
+			match_len = find_match_len(src, hofs - pkt_ofs, inpos,
+						   longest_match_len ? : 2, srclen - inpos);
 			if (match_len > longest_match_len) {
 				longest_match_len = match_len;
-				longest_match_ofs = hofs;
+				longest_match_ofs = hofs - pkt_ofs;
 			}
-			hofs = hash_chain[hofs & (MAX_HISTORY - 1)];
+			/* Sanity check to prevent looping — we should always be
+			 * working *backwards* */
+			if (lzs->hash_chain[hofs & (MAX_HISTORY - 1)] >= hofs)
+				break;
+			hofs = lzs->hash_chain[hofs & (MAX_HISTORY - 1)];
 		}
 		if (longest_match_len) {
 			/* Output offset, as 7-bit or 11-bit as appropriate */
@@ -260,8 +291,8 @@ int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int s
 
 		while (longest_match_len--) {
 			hash = HASH(src + inpos);
-			hash_chain[inpos & (MAX_HISTORY - 1)] = hash_table[hash];
-			hash_table[hash] = inpos++;
+			lzs->hash_chain[inpos & (MAX_HISTORY - 1)] = lzs->hash_table[hash];
+			lzs->hash_table[hash] = pkt_ofs + inpos++;
 		}
 	}
 	if (inpos < srclen)
