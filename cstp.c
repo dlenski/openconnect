@@ -572,7 +572,9 @@ int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 			goto out;
 		}
 
-		deflate_bufsize = 2048; /* XXX */
+		/* Add four bytes for the adler32 */
+		deflate_bufsize = deflateBound(&vpninfo->deflate_strm,
+					       vpninfo->ip_info.mtu) + 4;
 	}
 
 	/* If *any* compression is enabled, we'll need a deflate_pkt to compress into */
@@ -1003,7 +1005,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpninfo->deflate_strm.next_in = this->data;
 			vpninfo->deflate_strm.avail_in = this->len;
 			vpninfo->deflate_strm.next_out = (void *)vpninfo->deflate_pkt->data;
-			vpninfo->deflate_strm.avail_out = 2040;
+			vpninfo->deflate_strm.avail_out = vpninfo->deflate_pkt_size - 4;
 			vpninfo->deflate_strm.total_out = 0;
 
 			ret = deflate(&vpninfo->deflate_strm, Z_SYNC_FLUSH);
