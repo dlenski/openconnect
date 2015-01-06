@@ -780,8 +780,7 @@ static int cstp_write(struct openconnect_info *vpninfo, void *buf, int buflen)
 
 int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
-	unsigned char buf[16384];
-	int len, ret;
+	int ret;
 	int work_done = 0;
 
 	if (vpninfo->ssl_fd == -1)
@@ -793,26 +792,49 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	   we should probably remove POLLIN from the events we're looking for,
 	   and add POLLOUT. As it is, though, it'll just chew CPU time in that
 	   fairly unlikely situation, until the write backlog clears. */
-	while ((len = cstp_read(vpninfo, buf, sizeof(buf))) > 0) {
+	while (1) {
+		int len = vpninfo->deflate_pkt_size ? : vpninfo->ip_info.mtu;
 		int payload_len;
 
-		if (buf[0] != 'S' || buf[1] != 'T' ||
-		    buf[2] != 'F' || buf[3] != 1 || buf[7])
+		if (!vpninfo->cstp_pkt) {
+			vpninfo->cstp_pkt = malloc(sizeof(struct pkt) + len);
+			if (!vpninfo->cstp_pkt) {
+				vpn_progress(vpninfo, PRG_ERR, _("Allocation failed\n"));
+				break;
+			}
+		}
+
+		len = cstp_read(vpninfo, vpninfo->cstp_pkt->hdr, len + 8);
+		if (!len)
+			break;
+		if (len < 0)
+			goto do_reconnect;
+		if (len < 8) {
+			vpn_progress(vpninfo, PRG_ERR, _("Short packet received (%d bytes)\n"), len);
+			vpninfo->quit_reason = "Short packet received";
+			return 1;
+		}
+
+		if (vpninfo->cstp_pkt->hdr[0] != 'S' || vpninfo->cstp_pkt->hdr[1] != 'T' ||
+		    vpninfo->cstp_pkt->hdr[2] != 'F' || vpninfo->cstp_pkt->hdr[3] != 1 ||
+		    vpninfo->cstp_pkt->hdr[7])
 			goto unknown_pkt;
 
-		payload_len = (buf[4] << 8) + buf[5];
+		payload_len = (vpninfo->cstp_pkt->hdr[4] << 8) + vpninfo->cstp_pkt->hdr[5];
 		if (len != 8 + payload_len) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Unexpected packet length. SSL_read returned %d but packet is\n"),
 				     len);
 			vpn_progress(vpninfo, PRG_ERR,
 				     "%02x %02x %02x %02x %02x %02x %02x %02x\n",
-				     buf[0], buf[1], buf[2], buf[3],
-				     buf[4], buf[5], buf[6], buf[7]);
+				     vpninfo->cstp_pkt->hdr[0], vpninfo->cstp_pkt->hdr[1],
+				     vpninfo->cstp_pkt->hdr[2], vpninfo->cstp_pkt->hdr[3],
+				     vpninfo->cstp_pkt->hdr[4], vpninfo->cstp_pkt->hdr[5],
+				     vpninfo->cstp_pkt->hdr[6], vpninfo->cstp_pkt->hdr[7]);
 			continue;
 		}
 		vpninfo->ssl_times.last_rx = time(NULL);
-		switch (buf[6]) {
+		switch (vpninfo->cstp_pkt->hdr[6]) {
 		case AC_PKT_DPD_OUT:
 			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Got CSTP DPD request\n"));
@@ -833,21 +855,22 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpn_progress(vpninfo, PRG_TRACE,
 				     _("Received uncompressed data packet of %d bytes\n"),
 				     payload_len);
-			queue_new_packet(&vpninfo->incoming_queue, buf + 8,
-					 payload_len);
+			vpninfo->cstp_pkt->len = payload_len;
+			queue_packet(&vpninfo->incoming_queue, vpninfo->cstp_pkt);
+			vpninfo->cstp_pkt = NULL;
 			work_done = 1;
 			continue;
 
 		case AC_PKT_DISCONN: {
 			int i;
-			for (i = 0; i < payload_len; i++) {
-				if (!isprint(buf[payload_len + 8 + i]))
-					buf[payload_len + 8 + i] = '.';
+			for (i = 1; i < payload_len; i++) {
+				if (!isprint(vpninfo->cstp_pkt->data[i]))
+					vpninfo->cstp_pkt->data[i] = '.';
 			}
-			buf[payload_len + 8] = 0;
+			vpninfo->cstp_pkt->data[payload_len] = 0;
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Received server disconnect: %02x '%s'\n"),
-				     buf[8], buf + 9);
+				     vpninfo->cstp_pkt->data[0], vpninfo->cstp_pkt->data + 1);
 			vpninfo->quit_reason = "Server request";
 			return -EPIPE;
 		}
@@ -857,7 +880,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 					     _("Compressed packet received in !deflate mode\n"));
 				goto unknown_pkt;
 			}
-			inflate_and_queue_packet(vpninfo, buf + 8, payload_len);
+			inflate_and_queue_packet(vpninfo, vpninfo->cstp_pkt->data, payload_len);
 			work_done = 1;
 			continue;
 
@@ -870,13 +893,13 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	unknown_pkt:
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"),
-			     buf[0], buf[1], buf[2], buf[3],
-			     buf[4], buf[5], buf[6], buf[7]);
+			     vpninfo->cstp_pkt->hdr[0], vpninfo->cstp_pkt->hdr[1],
+			     vpninfo->cstp_pkt->hdr[2], vpninfo->cstp_pkt->hdr[3],
+			     vpninfo->cstp_pkt->hdr[4], vpninfo->cstp_pkt->hdr[5],
+			     vpninfo->cstp_pkt->hdr[6], vpninfo->cstp_pkt->hdr[7]);
 		vpninfo->quit_reason = "Unknown packet received";
 		return 1;
 	}
-	if (len < 0)
-		goto do_reconnect;
 
 
 	/* If SSL_write() fails we are expected to try again. With exactly
