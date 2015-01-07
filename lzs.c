@@ -158,7 +158,16 @@ do {								\
  * Much of the compression algorithm used here is based very loosely on ideas
  * from isdn_lzscomp.c by Andre Beck: http://micky.ibh.de/~beck/stuff/lzs4i4l/
  */
-struct lzs_state {
+int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen)
+{
+	int inpos = 0;
+	uint32_t match_len;
+	uint32_t hash;
+	uint16_t hofs, longest_match_len, longest_match_ofs;
+	int outpos = 0;
+	uint32_t outbits = 0;
+	int nr_outbits = 0;
+
 	/*
 	 * Each pair of bytes from the input is hashed into a hash value of
 	 * size HASH_BITS (currently 12 bits). We could use 16 bits and stop
@@ -186,71 +195,32 @@ struct lzs_state {
 	 * offset will yield the previous offset at which the same data hash
 	 * value was found.
 	 */
-#define MAX_HISTORY (1ULL<<11) /* Highest offset LZS can represent is 11 bits */
+#define MAX_HISTORY (1<<11) /* Highest offset LZS can represent is 11 bits */
 	uint16_t hash_chain[MAX_HISTORY];
-
-};
-
-struct lzs_state *alloc_lzs_state(void)
-{
-	struct lzs_state *lzs = malloc(sizeof(*lzs));
-	if (!lzs)
-		return NULL;
-
-	memset(lzs->hash_table, 0xff, sizeof(lzs->hash_table));
-	memset(lzs->hash_chain, 0xff, sizeof(lzs->hash_chain));
-
-	return lzs;
-}
-
-int lzs_compress(struct lzs_state *lzs, unsigned char *dst, int dstlen,
-		 const unsigned char *src, int srclen)
-{
-	int inpos = 0;
-	uint32_t match_len;
-	uint32_t hash;
-	uint32_t hofs, longest_match_len, longest_match_ofs;
-	int outpos = 0;
-	uint32_t outbits = 0;
-	int nr_outbits = 0;
 
 	/* Just in case anyone tries to use this in a more general-purpose
 	 * scenario... */
-	if (srclen > 0x10000)
+	if (srclen > INVALID_OFS + 1)
 		return -EFBIG;
+
+	/* There are ways we could probably avoid having to do this memset
+	 * each time... */
+	memset(hash_table, 0xff, sizeof(hash_table));
+	memset(hash_chain, 0xff, sizeof(hash_chain));
 
 	while (inpos < srclen - 1) {
 		hash = HASH(src + inpos);
-		hofs = lzs->hash_table[hash];
+		hofs = hash_table[hash];
 
 		longest_match_len = 0;
 
-		/* If there is a stale entry in the hash table from a previous
-		 * packet, then clear it. This is what makes it OK to re-use the
-		 * data structures without clearing them each time; the first time
-		 * we see any given hash value in the current packet, we'll reset
-		 * the chain.
-		 *
-		 * We don't have to worry about the contents of hash_chain because
-		 * we should only ever be following links to entries in that which
-		 * *have* been written this time around. */
-		if (hofs >= inpos || hash != HASH(src + hofs))
-			hofs = lzs->hash_table[hash] = INVALID_OFS;
-
-		/* inpos can never exceed INVALID_OFS-1 so there's no need for an
-		 * explicit check for hofs != INVALID_OFS. */
-		while (hofs < inpos && hofs + MAX_HISTORY > inpos) {
-			match_len = find_match_len(src, hofs, inpos,
-						   longest_match_len ? : 2, srclen - inpos);
+		while (hofs != INVALID_OFS && hofs + MAX_HISTORY > inpos) {
+			match_len = find_match_len(src, hofs, inpos, longest_match_len ? : 2, srclen - inpos);
 			if (match_len > longest_match_len) {
 				longest_match_len = match_len;
 				longest_match_ofs = hofs;
 			}
-			/* Sanity check to prevent looping — we should always be
-			 * working *backwards* */
-			if (lzs->hash_chain[hofs & (MAX_HISTORY - 1)] >= hofs)
-				break;
-			hofs = lzs->hash_chain[hofs & (MAX_HISTORY - 1)];
+			hofs = hash_chain[hofs & (MAX_HISTORY - 1)];
 		}
 		if (longest_match_len) {
 			/* Output offset, as 7-bit or 11-bit as appropriate */
@@ -290,12 +260,8 @@ int lzs_compress(struct lzs_state *lzs, unsigned char *dst, int dstlen,
 
 		while (longest_match_len--) {
 			hash = HASH(src + inpos);
-			/* Don't link to stale hash chains. */
-			if (hofs >= inpos || hash != HASH(src + hofs))
-				lzs->hash_chain[inpos & (MAX_HISTORY - 1)] = INVALID_OFS;
-			else
-				lzs->hash_chain[inpos & (MAX_HISTORY - 1)] = lzs->hash_table[hash];
-			lzs->hash_table[hash] = inpos++;
+			hash_chain[inpos & (MAX_HISTORY - 1)] = hash_table[hash];
+			hash_table[hash] = inpos++;
 		}
 	}
 	if (inpos < srclen)

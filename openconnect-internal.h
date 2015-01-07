@@ -194,8 +194,6 @@ struct proxy_auth_state {
 	char *challenge;
 };
 
-struct lzs_state;
-
 struct openconnect_info {
 #ifdef HAVE_ICONV
 	iconv_t ic_legacy_to_utf8;
@@ -370,8 +368,6 @@ struct openconnect_info {
 	uint32_t inflate_adler32;
 	z_stream deflate_strm;
 	uint32_t deflate_adler32;
-
-	struct lzs_state *lzs_state;
 
 	int disable_ipv6;
 	int reconnect_timeout;
@@ -640,9 +636,7 @@ int decompress_and_queue_packet(struct openconnect_info *vpninfo,
 
 /* lzs.c */
 int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
-int lzs_compress(struct lzs_state *, unsigned char *dst, int dstlen,
-		 const unsigned char *src, int srclen);
-struct lzs_state *alloc_lzs_state(void);
+int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
 
 /* ssl.c */
 unsigned string_is_hostname(const char* str);

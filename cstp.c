@@ -575,18 +575,9 @@ int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 	if (ret)
 		goto out;
 
-	if (vpninfo->cstp_compr == COMPR_LZS) {
-		if (!vpninfo->lzs_state)
-			vpninfo->lzs_state = alloc_lzs_state();
-		if (!vpninfo->lzs_state) {
-			vpn_progress(vpninfo, PRG_ERR, _("Compression setup failed\n"));
-			ret = -ENOMEM;
-			goto out;
-		}
-
-		/* This will definitely be smaller than zlib's */
+	/* This will definitely be smaller than zlib's */
+	if (vpninfo->cstp_compr == COMPR_LZS)
 		deflate_bufsize = vpninfo->ip_info.mtu;
-	}
 
 	/* If deflate compression is enabled (which is CSTP-only), it needs its
 	 * context to be allocated. */
@@ -1111,8 +1102,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpninfo->pending_deflated_pkt = this;
 			vpninfo->current_ssl_pkt = vpninfo->deflate_pkt;
 		} else if (vpninfo->cstp_compr == COMPR_LZS) {
-			ret = lzs_compress(vpninfo->lzs_state,
-					   vpninfo->deflate_pkt->data, this->len,
+			ret = lzs_compress(vpninfo->deflate_pkt->data, this->len,
 					   this->data, this->len);
 			if (ret < 0)
 				goto uncompr; /* It only ever returns -EFBIG */

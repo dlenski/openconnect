@@ -860,8 +860,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		if (vpninfo->dtls_compr & COMPR_LZS && this->len > 0x40 &&
 		    vpninfo->current_ssl_pkt != vpninfo->deflate_pkt) {
 
-			ret = lzs_compress(vpninfo->lzs_state,
-					   vpninfo->deflate_pkt->data, this->len,
+			ret = lzs_compress(vpninfo->deflate_pkt->data, this->len,
 					   this->data, this->len);
 			if (ret > 0) {
 				send_pkt = vpninfo->deflate_pkt;

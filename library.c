@@ -291,7 +291,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	/* These check strm->state so they are safe to call multiple times */
 	inflateEnd(&vpninfo->inflate_strm);
 	deflateEnd(&vpninfo->deflate_strm);
-	free(vpninfo->lzs_state);
+
 	free(vpninfo->deflate_pkt);
 	free(vpninfo->tun_pkt);
 	free(vpninfo->dtls_pkt);
