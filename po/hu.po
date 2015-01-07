@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2014-12-22 08:13+0000\n"
+"POT-Creation-Date: 2015-01-07 09:49+0000\n"
 "PO-Revision-Date: 2011-09-22 22:31+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Hungarian (http://www.transifex.net/projects/p/meego/team/"
@@ -102,239 +102,248 @@ msgstr "TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"
 msgid "TCP_MAXSEG %d\n"
 msgstr "TCP_MAXSEG %d\n"
 
-#: cstp.c:207
+#: cstp.c:214
 msgid ""
 "CRITICAL ERROR: DTLS master secret is uninitialised. Please report this.\n"
 msgstr ""
 "KRITIKUS HIBA: A DTLS mestertitok nincs előkészítve. Kérjük ezt jelentse.\n"
 
-#: cstp.c:216
+#: cstp.c:223
 msgid "Error creating HTTPS CONNECT request\n"
 msgstr "Hiba a HTTPS CONNECT kérés létrehozásakor\n"
 
-#: cstp.c:228 http.c:353
+#: cstp.c:235 http.c:353
 msgid "Error fetching HTTPS response\n"
 msgstr "Hiba a HTTPS válasz lekérésekor\n"
 
-#: cstp.c:235 http.c:633 http.c:1134
+#: cstp.c:242 http.c:633 http.c:1134
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "Nem sikerült a HTTPS kapcsolat megnyitása ehhez: %s\n"
 
-#: cstp.c:255
+#: cstp.c:262
 #, c-format
 msgid "VPN service unavailable; reason: %s\n"
 msgstr "A VPN szolgáltatás nem érhető el; ok: %s\n"
 
-#: cstp.c:260
+#: cstp.c:267
 #, c-format
 msgid "Got inappropriate HTTP CONNECT response: %s\n"
 msgstr "Nem megfelelő HTTP CONNECT válasz érkezett: %s\n"
 
-#: cstp.c:267
+#: cstp.c:274
 #, c-format
 msgid "Got CONNECT response: %s\n"
 msgstr "CONNECT válasz érkezett: %s\n"
 
-#: cstp.c:295 cstp.c:303
+#: cstp.c:302 cstp.c:310
 msgid "No memory for options\n"
 msgstr "Nincs memória a kapcsolókhoz\n"
 
-#: cstp.c:312 http.c:413
+#: cstp.c:319 http.c:413
 msgid "<elided>"
 msgstr "<elided>"
 
-#: cstp.c:329
+#: cstp.c:336
 #, c-format
 msgid "X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"
 msgstr "Az X-DTLS-Session-ID nem 64 karakteres; értéke: „%s”\n"
 
-#: cstp.c:373
+#: cstp.c:380
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
 msgstr "Ismeretlen CSTP tartalomkódolás: %s\n"
 
-#: cstp.c:446
+#: cstp.c:453
 msgid "No MTU received. Aborting\n"
 msgstr "Nem érkezett MTU. Megszakítás\n"
 
-#: cstp.c:453
+#: cstp.c:460
 msgid "No IP address received. Aborting\n"
 msgstr "Nem érkezett IP-cím. Megszakítás\n"
 
-#: cstp.c:459
+#: cstp.c:466
 #, c-format
 msgid "IPv6 configuration received but MTU %d is too small.\n"
 msgstr "IPv6 beállítás érkezett, de a(z) %d MTU túl kicsi.\n"
 
-#: cstp.c:465
+#: cstp.c:472
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr "Az újracsatlakozás eltérő örökölt IP-címet adott (%s != %s)\n"
 
-#: cstp.c:473
+#: cstp.c:480
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr ""
 "Az újracsatlakozás eltérő örökölt IP hálózati maszkot adott (%s != %s)\n"
 
-#: cstp.c:481
+#: cstp.c:488
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
 msgstr "Az újracsatlakozás eltérő IPv6-címet adott (%s != %s)\n"
 
-#: cstp.c:489
+#: cstp.c:496
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr "Az újracsatlakozás eltérő IPv6 hálózati maszkot adott (%s != %s)\n"
 
-#: cstp.c:509
+#: cstp.c:516
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr "CSTP kapcsolódva. DPD %d, Keepalive %d\n"
 
-#: cstp.c:511
+#: cstp.c:518
 #, c-format
 msgid "CSTP Ciphersuite: %s\n"
 msgstr "CSTP titkosító alkalmazáscsomag: %s\n"
 
-#: cstp.c:556
+#: cstp.c:570
 msgid "Compression setup failed\n"
 msgstr "Tömörítés beállítás sikertelen\n"
 
-#: cstp.c:564
+#: cstp.c:587
 msgid "Allocation of deflate buffer failed\n"
 msgstr "A deflate puffer lefoglalása meghiúsult\n"
 
-#: cstp.c:608
+#: cstp.c:636
 msgid "Cookie is no longer valid, ending session\n"
 msgstr "A süti nem érvényes többé, munkamenet befejezése\n"
 
-#: cstp.c:612
+#: cstp.c:640
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
 msgstr "alvás: %dmp, hátralévő időkorlát: %dmp\n"
 
-#: cstp.c:647
+#: cstp.c:675
 msgid "inflate failed\n"
 msgstr "inflate meghiúsult\n"
 
-#: cstp.c:664
+#: cstp.c:692
 #, c-format
 msgid "Received compressed data packet of %ld bytes\n"
 msgstr "%ld bájt tömörített adatcsomag érkezett\n"
 
-#: cstp.c:683
+#: cstp.c:711
 #, c-format
 msgid "SSL read error %d (server probably closed connection); reconnecting.\n"
 msgstr ""
 "SSL olvasási hiba: %d (a kiszolgáló valószínűleg lezárta a kapcsolatot); "
 "újracsatlakozás.\n"
 
-#: cstp.c:708
+#: cstp.c:736
 #, c-format
 msgid "SSL_write failed: %d\n"
 msgstr "SSL_write sikertelen: %d\n"
 
-#: cstp.c:724
+#: cstp.c:752
 #, c-format
 msgid "SSL read error: %s; reconnecting.\n"
 msgstr "SSL olvasási hiba: %s; újracsatlakozás.\n"
 
-#: cstp.c:747
+#: cstp.c:775
 #, c-format
 msgid "SSL send failed: %s\n"
 msgstr "SSL küldés sikertelen: %s\n"
 
-#: cstp.c:778
+#: cstp.c:802
+msgid "Allocation failed\n"
+msgstr ""
+
+#: cstp.c:813
+#, c-format
+msgid "Short packet received (%d bytes)\n"
+msgstr ""
+
+#: cstp.c:826
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
 msgstr ""
 "Váratlan csomaghossz. Az SSL_read visszatérési értéke %d, de a csomag\n"
 
-#: cstp.c:790
+#: cstp.c:840
 msgid "Got CSTP DPD request\n"
 msgstr "CSTP DPD kérés érkezett\n"
 
-#: cstp.c:796
+#: cstp.c:846
 msgid "Got CSTP DPD response\n"
 msgstr "CSTP DPD válasz érkezett\n"
 
-#: cstp.c:801
+#: cstp.c:851
 msgid "Got CSTP Keepalive\n"
 msgstr "CSTP Keepalive érkezett\n"
 
-#: cstp.c:806
+#: cstp.c:856
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr "%d bájt tömörítetlen adatcsomag érkezett\n"
 
-#: cstp.c:821
+#: cstp.c:872
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
 msgstr "Kiszolgáló leválasztás érkezett: %02x „%s”\n"
 
-#: cstp.c:829
+#: cstp.c:880
 msgid "Compressed packet received in !deflate mode\n"
 msgstr "Tömörített csomag érkezett !deflate módban\n"
 
-#: cstp.c:837
+#: cstp.c:888
 msgid "received server terminate packet\n"
 msgstr "kiszolgáló megszakítás csomag érkezett\n"
 
-#: cstp.c:844
+#: cstp.c:895
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr "Ismeretlen csomag: %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
-#: cstp.c:887
+#: cstp.c:938
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr "Az SSL túl kevés bájtot írt! %d volt a kérés, %d lett elküldve\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:914
+#: cstp.c:965
 msgid "CSTP rekey due\n"
 msgstr "CSTP kulcsmegújítás esedékes\n"
 
 #. if we failed rehandshake try establishing a new-tunnel instead of failing
-#: cstp.c:921
+#: cstp.c:972
 msgid "Rehandshake failed; attempting new-tunnel\n"
 msgstr "Újra kézfogás sikertelen, új alagút kísérlete\n"
 
-#: cstp.c:932
+#: cstp.c:983
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr "A CSTP halott csomópont felderítés halott csomópontot észlelt!\n"
 
-#: cstp.c:936
+#: cstp.c:987
 msgid "Reconnect failed\n"
 msgstr "Újracsatlakozás sikertelen\n"
 
-#: cstp.c:952
+#: cstp.c:1003
 msgid "Send CSTP DPD\n"
 msgstr "CSTP DPD küldése\n"
 
-#: cstp.c:963
+#: cstp.c:1014
 msgid "Send CSTP Keepalive\n"
 msgstr "CSTP Keepalive küldése\n"
 
-#: cstp.c:990
+#: cstp.c:1041
 #, c-format
 msgid "deflate failed %d\n"
 msgstr "deflate meghiúsult: %d\n"
 
-#: cstp.c:1010
+#: cstp.c:1061
 #, c-format
 msgid "Sending compressed data packet of %d bytes\n"
 msgstr "%d bájt tömörített adatcsomag küldése\n"
 
-#: cstp.c:1022
+#: cstp.c:1073
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr "%d bájt tömörítetlen adatcsomag küldése\n"
 
-#: cstp.c:1062
+#: cstp.c:1113
 #, c-format
 msgid "Send BYE packet: %s\n"
 msgstr "BYE csomag küldése: %s\n"
@@ -483,80 +492,80 @@ msgstr "DTLS kapcsoló: %s : %s\n"
 msgid "DTLS initialised. DPD %d, Keepalive %d\n"
 msgstr "DTLS előkészítve. DPD %d, Keepalive %d\n"
 
-#: dtls.c:703
+#: dtls.c:700
 msgid "Attempt new DTLS connection\n"
 msgstr "Új DTLS csatlakozási kísérlet\n"
 
-#: dtls.c:730
+#: dtls.c:726
 #, c-format
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
 msgstr "Fogadott DTLS csomag 0x%02x / %d bájt\n"
 
-#: dtls.c:744
+#: dtls.c:740
 msgid "Got DTLS DPD request\n"
 msgstr "DTLS DPD kérés érkezett\n"
 
-#: dtls.c:750
+#: dtls.c:746
 msgid "Failed to send DPD response. Expect disconnect\n"
 msgstr "Nem sikerült a DPD válasz küldése. Leválasztás várható\n"
 
-#: dtls.c:754
+#: dtls.c:750
 msgid "Got DTLS DPD response\n"
 msgstr "DTLS DPD válasz érkezett\n"
 
-#: dtls.c:758
+#: dtls.c:754
 msgid "Got DTLS Keepalive\n"
 msgstr "DTLS Keepalive érkezett\n"
 
-#: dtls.c:763
+#: dtls.c:759
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
 msgstr "Ismeretlen DTLS csomagtípus: %02x, hossz: %d\n"
 
-#: dtls.c:784
+#: dtls.c:780
 msgid "DTLS rekey due\n"
 msgstr "DTLS kulcsmegújítás esedékes\n"
 
-#: dtls.c:791
+#: dtls.c:787
 msgid "DTLS Rehandshake failed; reconnecting.\n"
 msgstr "DTLS újra kézfogás sikertelen, újracsatlakozás.\n"
 
-#: dtls.c:800
+#: dtls.c:796
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
 msgstr "A DTLS halott csomópont felderítés halott csomópontot észlelt!\n"
 
-#: dtls.c:806
+#: dtls.c:802
 msgid "Send DTLS DPD\n"
 msgstr "DTLS DPD küldése\n"
 
-#: dtls.c:811
+#: dtls.c:807
 msgid "Failed to send DPD request. Expect disconnect\n"
 msgstr "Nem sikerült a DPD kérés küldése. Leválasztás várható\n"
 
-#: dtls.c:824
+#: dtls.c:820
 msgid "Send DTLS Keepalive\n"
 msgstr "DTLS Keepalive küldése\n"
 
-#: dtls.c:829
+#: dtls.c:825
 msgid "Failed to send keepalive request. Expect disconnect\n"
 msgstr "Nem sikerült az életben tartás kérés küldése. Leválasztás várható\n"
 
-#: dtls.c:864
+#: dtls.c:860
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
 msgstr "A DTLS írási hibát kapott: %d. Visszatérés SSL-re\n"
 
-#: dtls.c:879
+#: dtls.c:875
 #, c-format
 msgid "DTLS got write error: %s. Falling back to SSL\n"
 msgstr "A DTLS írási hibát kapott: %s. Visszatérés SSL-re\n"
 
-#: dtls.c:896
+#: dtls.c:892
 #, c-format
 msgid "Sent DTLS packet of %d bytes; DTLS send returned %d\n"
 msgstr "%d bájt DTLS csomag küldése; a DTLS küldés visszatérése: %d\n"
 
-#: dtls.c:908
+#: dtls.c:904
 msgid "Built against SSL library with no Cisco DTLS support\n"
 msgstr "A Cisco DTLS támogatás nélküli SSL könyvtárral szemben készítve\n"
 
@@ -1567,12 +1576,12 @@ msgstr "Ismeretlen proxy típus: „%s”\n"
 msgid "Only http or socks(5) proxies supported\n"
 msgstr "Csak http vagy socks(5) proxyk támogatottak\n"
 
-#: library.c:467
+#: library.c:469
 #, c-format
 msgid "Failed to parse server URL '%s'\n"
 msgstr "Nem sikerült a kiszolgáló URL feldolgozása: „%s”\n"
 
-#: library.c:473
+#: library.c:475
 msgid "Only https:// permitted for server URL\n"
 msgstr "Csak https:// engedélyezett a kiszolgáló URL-hez\n"
 
@@ -2305,7 +2314,7 @@ msgstr "OATH HOTP tokenkód előállítása\n"
 msgid "Unable to generate OATH HOTP token code: %s\n"
 msgstr "Nem sikerült az OATH HOTP tokenkód előállítása: %s\n"
 
-#: openconnect-internal.h:784 openconnect-internal.h:792
+#: openconnect-internal.h:795 openconnect-internal.h:803
 #, c-format
 msgid "ERROR: %s() called with invalid UTF-8 for '%s' argument\n"
 msgstr ""
@@ -2313,60 +2322,63 @@ msgstr ""
 
 #: openssl-pkcs11.c:42
 msgid "Failed to establish libp11 PKCS#11 context:\n"
-msgstr ""
+msgstr "Nem sikerült libp11 PKCS#11 környezetet létesíteni:\n"
 
 #: openssl-pkcs11.c:48
 msgid "Failed to load PKCS#11 provider module (p11-kit-proxy.so):\n"
 msgstr ""
+"Nem sikerült betölteni a PKCS#11-et biztosító modult (p11-kit-proxy.so):\n"
 
 #: openssl-pkcs11.c:252
 msgid "PIN locked\n"
-msgstr ""
+msgstr "PIN-kód zárolva\n"
 
 #: openssl-pkcs11.c:255
 msgid "PIN expired\n"
-msgstr ""
+msgstr "PIN-kód lejárt\n"
 
 #: openssl-pkcs11.c:258
 msgid "Another user already logged in\n"
-msgstr ""
+msgstr "Egy másik felhasználó már bejelentkezett\n"
 
 #: openssl-pkcs11.c:262
 msgid "Unknown error logging in to PKCS#11 token\n"
-msgstr ""
+msgstr "Ismeretlen hiba a PKCS#11 tokenbe való bejelentkezéskor\n"
 
 #: openssl-pkcs11.c:269
 #, c-format
 msgid "Logged in to PKCS#11 slot '%s'\n"
-msgstr ""
+msgstr "Bejelentkezve a következő PKCS#11 tárolóhelyre: „%s”\n"
 
 #: openssl-pkcs11.c:283
 #, c-format
 msgid "Failed to enumerate certs in PKCS#11 slot '%s'\n"
 msgstr ""
+"Nem sikerült a tanúsítványok felsorolása a következő PKCS#11 tárolóhelyen: "
+"„%s”\n"
 
 #: openssl-pkcs11.c:289
 #, c-format
 msgid "Found %d certs in slot '%s'\n"
-msgstr ""
+msgstr "%d tanúsítvány található a következő tárolóhelyen: „%s”\n"
 
 #: openssl-pkcs11.c:321 openssl-pkcs11.c:473
 #, c-format
 msgid "Failed to parse PKCS#11 URI '%s'\n"
-msgstr ""
+msgstr "Nem sikerült a következő PKCS#11 URI feldolgozása: „%s”\n"
 
 #: openssl-pkcs11.c:328 openssl-pkcs11.c:483
 msgid "Failed to enumerate PKCS#11 slots\n"
-msgstr ""
+msgstr "Nem sikerült felsorolni a PKCS#11 tárolóhelyeket\n"
 
 #: openssl-pkcs11.c:362 openssl-pkcs11.c:525
 #, c-format
 msgid "Logging in to PKCS#11 slot '%s'\n"
-msgstr ""
+msgstr "Bejelentkezés a következő PKCS#11 tárolóhelyre: „%s”\n"
 
 #: openssl-pkcs11.c:377
 msgid "Certificate X.509 content not fetched by libp11\n"
-msgstr ""
+msgstr "A tanúsítvány X.509 tartalmát nem kérte le a libp11\n"
 
 #: openssl-pkcs11.c:388 openssl.c:633
 msgid "Failed to install certificate in OpenSSL context\n"
@@ -2376,23 +2388,24 @@ msgstr "Nem sikerült a tanúsítvány telepítése az OpenSSL környezetben\n"
 #, c-format
 msgid "Failed to enumerate keys in PKCS#11 slot '%s'\n"
 msgstr ""
+"Nem sikerült a kulcsok felsorolása a következő PKCS#11 tárolóhelyen: „%s”\n"
 
 #: openssl-pkcs11.c:440
 #, c-format
 msgid "Found %d keys in slot '%s'\n"
-msgstr ""
+msgstr "%d kulcs található a következő tárolóhelyen: „%s”\n"
 
 #: openssl-pkcs11.c:554
 msgid "Failed to instantiated private key from PKCS#11\n"
-msgstr ""
+msgstr "Nem sikerült példányosítani a személyes kulcsot a PKCS#11-ből\n"
 
 #: openssl-pkcs11.c:561
 msgid "Add key from PKCS#11 failed\n"
-msgstr ""
+msgstr "A kulcs hozzáadása nem sikerült a PKCS#11-ből\n"
 
 #: openssl-pkcs11.c:593 openssl-pkcs11.c:599
 msgid "This version of OpenConnect was built without PKCS#11 support\n"
-msgstr ""
+msgstr "Az OpenConnect ezen verziója PKCS#11 támogatás nélkül készült\n"
 
 #: openssl.c:116
 msgid "Failed to write to SSL socket\n"
@@ -2651,7 +2664,7 @@ msgstr "Proxy a libproxy könyvtárból: %s://%s:%d/\n"
 msgid "getaddrinfo failed for host '%s': %s\n"
 msgstr "A getaddrinfo meghiúsult a(z) „%s” gépnél: %s\n"
 
-#: ssl.c:258 ssl.c:342
+#: ssl.c:258 ssl.c:349
 msgid "Reconnecting to DynDNS server using previously cached IP address\n"
 msgstr ""
 "Újracsatlakozás a DynDNS kiszolgálóhoz az előzőleg gyorsítótárazott IP-cím "
@@ -2671,84 +2684,84 @@ msgstr "Kapcsolódási kísérlet a következő kiszolgálóhoz: %s%s%s:%s\n"
 msgid "Failed to allocate sockaddr storage\n"
 msgstr "Nem sikerült lefoglalni a sockaddr tárolót\n"
 
-#: ssl.c:327
+#: ssl.c:334
 msgid "Forgetting non-functional previous peer address\n"
 msgstr "A nem funkcionális előző csomópont címének elfelejtése\n"
 
-#: ssl.c:337
+#: ssl.c:344
 #, c-format
 msgid "Failed to connect to host %s\n"
 msgstr "Nem sikerült kapcsolódni a következő géphez: %s\n"
 
-#: ssl.c:356
+#: ssl.c:363
 #, c-format
 msgid "Reconnecting to proxy %s\n"
 msgstr "Újracsatlakozás a proxyhoz: „%s”\n"
 
-#: ssl.c:427
+#: ssl.c:434
 #, c-format
 msgid "statvfs: %s\n"
 msgstr "statvfs: %s\n"
 
-#: ssl.c:455
+#: ssl.c:462
 msgid "Could not obtain file system ID for passphrase\n"
 msgstr "Nem sikerült beszerezni a fájlrendszer azonosítót a jelszóhoz\n"
 
-#: ssl.c:466
+#: ssl.c:473
 #, c-format
 msgid "Failed to open private key file '%s': %s\n"
 msgstr "A(z) „%s” személyes kulcsfájl megnyitása nem sikerült: %s\n"
 
-#: ssl.c:494
+#: ssl.c:501
 #, c-format
 msgid "statfs: %s\n"
 msgstr "statfs: %s\n"
 
-#: ssl.c:580
+#: ssl.c:587
 msgid "No error"
 msgstr "Nincs hiba"
 
-#: ssl.c:581
+#: ssl.c:588
 msgid "Keystore locked"
 msgstr "Kulcstároló zárolva"
 
-#: ssl.c:582
+#: ssl.c:589
 msgid "Keystore uninitialized"
 msgstr "Kulcstároló nincs előkészítve"
 
-#: ssl.c:583
+#: ssl.c:590
 msgid "System error"
 msgstr "Rendszerhiba"
 
-#: ssl.c:584
+#: ssl.c:591
 msgid "Protocol error"
 msgstr "Protokollhiba"
 
-#: ssl.c:585
+#: ssl.c:592
 msgid "Permission denied"
 msgstr "Hozzáférés megtagadva"
 
-#: ssl.c:586
+#: ssl.c:593
 msgid "Key not found"
 msgstr "Kulcs nem található"
 
-#: ssl.c:587
+#: ssl.c:594
 msgid "Value corrupted"
 msgstr "Sérült érték"
 
-#: ssl.c:588
+#: ssl.c:595
 msgid "Undefined action"
 msgstr "Meghatározatlan művelet"
 
-#: ssl.c:592
+#: ssl.c:599
 msgid "Wrong password"
 msgstr "Hibás jelszó"
 
-#: ssl.c:593
+#: ssl.c:600
 msgid "Unknown error"
 msgstr "Ismeretlen hiba"
 
-#: ssl.c:783
+#: ssl.c:790
 #, c-format
 msgid "openconnect_fopen_utf8() used with unsupported mode '%s'\n"
 msgstr ""
