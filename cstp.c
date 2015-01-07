@@ -40,22 +40,22 @@
  * 0008: data payload
  */
 
-static char data_hdr[8] = {
+static const char data_hdr[8] = {
 	'S', 'T', 'F', 1,
 	0, 0,		/* Length */
 	AC_PKT_DATA,	/* Type */
 	0		/* Unknown */
 };
 
-static struct pkt keepalive_pkt = {
+static const struct pkt keepalive_pkt = {
 	.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_KEEPALIVE, 0 },
 };
 
-static struct pkt dpd_pkt = {
+static const struct pkt dpd_pkt = {
 	.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_OUT, 0 },
 };
 
-static struct pkt dpd_resp_pkt = {
+static const struct pkt dpd_resp_pkt = {
 	.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_RESP, 0 },
 };
 
@@ -953,7 +953,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 	if (vpninfo->owe_ssl_dpd_response) {
 		vpninfo->owe_ssl_dpd_response = 0;
-		vpninfo->current_ssl_pkt = &dpd_resp_pkt;
+		vpninfo->current_ssl_pkt = (struct pkt *)&dpd_resp_pkt;
 		goto handle_outgoing;
 	}
 
@@ -1002,7 +1002,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	case KA_DPD:
 		vpn_progress(vpninfo, PRG_DEBUG, _("Send CSTP DPD\n"));
 
-		vpninfo->current_ssl_pkt = &dpd_pkt;
+		vpninfo->current_ssl_pkt = (struct pkt *)&dpd_pkt;
 		goto handle_outgoing;
 
 	case KA_KEEPALIVE:
@@ -1013,7 +1013,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		vpn_progress(vpninfo, PRG_DEBUG, _("Send CSTP Keepalive\n"));
 
-		vpninfo->current_ssl_pkt = &keepalive_pkt;
+		vpninfo->current_ssl_pkt = (struct pkt *)&keepalive_pkt;
 		goto handle_outgoing;
 
 	case KA_NONE:
