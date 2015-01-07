@@ -146,7 +146,13 @@ do {								\
 	outbits <<= (nr);					\
 	outbits |= (bits);					\
 	nr_outbits += (nr);					\
-	while (nr_outbits >= 8) {				\
+	if ((nr) > 8) {						\
+		nr_outbits -= 8;				\
+		dst[outpos++] = outbits >> nr_outbits;		\
+		if (outpos >= dstlen)				\
+			return -EFBIG;				\
+	}							\
+	if (nr_outbits >= 8) {					\
 		nr_outbits -= 8;				\
 		dst[outpos++] = outbits >> nr_outbits;		\
 		if (outpos >= dstlen)				\
