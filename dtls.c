@@ -712,7 +712,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		if (!vpninfo->dtls_pkt) {
 			vpninfo->dtls_pkt = malloc(sizeof(struct pkt) + len);
 			if (!vpninfo->dtls_pkt) {
-				vpn_progress(vpninfo, PRG_ERR, "Allocation failed\n");
+				vpn_progress(vpninfo, PRG_ERR, _("Allocation failed\n"));
 				break;
 			}
 		}
