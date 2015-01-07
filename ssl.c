@@ -297,10 +297,17 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 				}
 				vpninfo->peer_addrlen = rp->ai_addrlen;
 				memcpy(vpninfo->peer_addr, rp->ai_addr, rp->ai_addrlen);
-				/* If no proxy, and if more than one address for the hostname,
-				   ensure that we output the same IP address in authentication
-				   results (from libopenconnect or --authenticate). */
-				if (!vpninfo->proxy && (rp != result || rp->ai_next) && host[0]) {
+				/* If no proxy, ensure that we output *this* IP address in
+				 * authentication results because we're going to need to
+				 * reconnect to the *same* server from the rotation. And with
+				 * some trick DNS setups, it might possibly be a "rotation"
+				 * even if we only got one result from getaddrinfo() this
+				 * time.
+				 *
+				 * If there's a proxy, we're kind of screwed; we can't know
+				 * which IP address we connected to. Perhaps we ought to do
+				 * the DNS lookup locally and connect to a specific IP? */
+				if (!vpninfo->proxy && host[0]) {
 					char *p = malloc(strlen(host) + 3);
 					if (p) {
 						free(vpninfo->unique_hostname);
