@@ -222,7 +222,11 @@ int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int s
 			}
 			hofs = hash_chain[hofs & (MAX_HISTORY - 1)];
 		}
-		if (longest_match_len) {
+		if (!longest_match_len) {
+			PUT_BITS(9, src[inpos]);
+			hash_chain[inpos & (MAX_HISTORY - 1)] = hash_table[hash];
+			hash_table[hash] = inpos++;
+		} else {
 			/* Output offset, as 7-bit or 11-bit as appropriate */
 			int offset = inpos - longest_match_ofs;
 			int length = longest_match_len;
@@ -247,22 +251,20 @@ int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int s
 				}
 				PUT_BITS(4, length);
 			}
-		} else {
-			PUT_BITS(9, src[inpos]);
-			longest_match_len = 1;
+
+			/* Add byte(s) to the hash tables unless we're done */
+			if (inpos + longest_match_len >= srclen - 1) {
+				inpos += longest_match_len;
+				break;
+			}
+
+			while (longest_match_len--) {
+				hash = HASH(src + inpos);
+				hash_chain[inpos & (MAX_HISTORY - 1)] = hash_table[hash];
+				hash_table[hash] = inpos++;
+			}
 		}
 
-		/* Add byte(s) to the hash tables unless we're done */
-		if (inpos + longest_match_len >= srclen - 1) {
-			inpos += longest_match_len;
-			break;
-		}
-
-		while (longest_match_len--) {
-			hash = HASH(src + inpos);
-			hash_chain[inpos & (MAX_HISTORY - 1)] = hash_table[hash];
-			hash_table[hash] = inpos++;
-		}
 	}
 	if (inpos < srclen)
 		PUT_BITS(9, src[inpos]);
