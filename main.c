@@ -193,7 +193,7 @@ enum {
 #define OPTION(name, arg, abbrev) {name, arg, NULL, abbrev}
 #endif
 
-static struct option long_options[] = {
+static const struct option long_options[] = {
 #ifndef _WIN32
 	OPTION("background", 0, 'b'),
 	OPTION("pid-file", 1, OPT_PIDFILE),
@@ -835,7 +835,7 @@ static int next_option(int argc, char **argv, char **config_arg)
 
 	ssize_t llen;
 	int opt, optlen = 0;
-	struct option *this;
+	const struct option *this;
 	char *line;
 	int ate_equals = 0;
 
