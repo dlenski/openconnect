@@ -208,10 +208,9 @@ int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int s
 	if (srclen > INVALID_OFS + 1)
 		return -EFBIG;
 
-	/* There are ways we could probably avoid having to do this memset
-	 * each time... */
+	/* No need to initialise hash_chain since we can only ever follow
+	 * links to it that have already been initialised. */
 	memset(hash_table, 0xff, sizeof(hash_table));
-	memset(hash_chain, 0xff, sizeof(hash_chain));
 
 	while (inpos < srclen - 1) {
 		hash = HASH(src + inpos);
