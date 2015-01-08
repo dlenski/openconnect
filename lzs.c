@@ -61,8 +61,8 @@ int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int
 {
 	int outlen = 0;
 	int bits_left = 8; /* Bits left in the current byte at *src */
-	int data;
-	int offset, length;
+	uint32_t data;
+	uint16_t offset, length;
 
 	while (1) {
 		/* Get 9 bits, which is the minimum and a common case */
@@ -166,11 +166,10 @@ do {								\
  */
 int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen)
 {
-	int inpos = 0;
-	uint32_t match_len;
-	uint32_t hash;
-	uint16_t hofs, longest_match_len, longest_match_ofs;
-	int outpos = 0;
+	int inpos = 0, outpos = 0;
+	uint16_t match_len, longest_match_len;
+	uint16_t hofs, longest_match_ofs;
+	uint16_t hash;
 	uint32_t outbits = 0;
 	int nr_outbits = 0;
 
