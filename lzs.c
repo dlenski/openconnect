@@ -218,6 +218,9 @@ int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int s
 		hash = HASH(src + inpos);
 		hofs = hash_table[hash];
 
+		hash_chain[inpos & (MAX_HISTORY - 1)] = hofs;
+		hash_table[hash] = inpos;
+
 		longest_match_len = 0;
 
 		while (hofs != INVALID_OFS && hofs + MAX_HISTORY > inpos) {
@@ -230,8 +233,7 @@ int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int s
 		}
 		if (!longest_match_len) {
 			PUT_BITS(9, src[inpos]);
-			hash_chain[inpos & (MAX_HISTORY - 1)] = hash_table[hash];
-			hash_table[hash] = inpos++;
+			inpos++;
 		} else {
 			/* Output offset, as 7-bit or 11-bit as appropriate */
 			int offset = inpos - longest_match_ofs;
@@ -259,13 +261,15 @@ int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int s
 					PUT_BITS(4, length);
 			}
 
-			/* Add byte(s) to the hash tables unless we're done */
+			/* If we're already done, don't bother updating the hash tables. */
 			if (inpos + longest_match_len >= srclen - 1) {
 				inpos += longest_match_len;
 				break;
 			}
 
-			while (longest_match_len--) {
+			/* We already added the first byte to the hash tables. Add the rest. */
+			inpos++;
+			while (--longest_match_len) {
 				hash = HASH(src + inpos);
 				hash_chain[inpos & (MAX_HISTORY - 1)] = hash_table[hash];
 				hash_table[hash] = inpos++;
