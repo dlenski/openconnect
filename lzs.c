@@ -41,10 +41,11 @@ do {									\
 		if (bits > 8 || bits_left < 8) {			\
 			/* We need bits from the next byte too... */	\
 			data |= src[0] >> bits_left;			\
-			/* ...if we used *all* of them then bump the	\
+			/* ...if we used *all* of them then (which can	\
+			 * only happen if bits > 8), then bump the	\
 			 * input pointer again so we never leave	\
 			 * bits_left == 0. */				\
-			if (!bits_left) {				\
+			if (bits > 8 && !bits_left) {			\
 				bits_left = 8;				\
 				src++;					\
 				srclen--;				\
