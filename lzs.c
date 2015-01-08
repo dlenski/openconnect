@@ -175,13 +175,12 @@ int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int s
 	int nr_outbits = 0;
 
 	/*
-	 * Each pair of bytes from the input is hashed into a hash value of
-	 * size HASH_BITS (currently 12 bits). We could use 16 bits and stop
-	 * calling it a hash, I suppose, since RAM is cheap these days.
+	 * This is theoretically a hash. But RAM is cheap and just loading the
+	 * 16-bit value and using it as a hash is *much* faster.
 	 */
-#define HASH_BITS 12
+#define HASH_BITS 16
 #define HASH_TABLE_SIZE (1ULL << HASH_BITS)
-#define HASH(p) ((p)[0] << (HASH_BITS - 8) ^ (p)[1])
+#define HASH(p) (*(uint16_t *)(p))
 
 	/*
 	 * There are two data structures for tracking the history. The first
