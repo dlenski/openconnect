@@ -132,17 +132,6 @@ int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int
 	return -EINVAL;
 }
 
-static inline int find_match_len(const unsigned char *buf, int potential, int pos, int min, int max)
-{
-	if (memcmp(buf + potential, buf + pos, min))
-		return 0;
-
-	while (min < max && buf[potential + min] == buf[pos + min])
-		min++;
-
-	return min;
-}
-
 #define PUT_BITS(nr, bits)					\
 do {								\
 	outbits <<= (nr);					\
@@ -168,8 +157,9 @@ do {								\
  */
 int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen)
 {
+	int length, offset;
 	int inpos = 0, outpos = 0;
-	uint16_t match_len, longest_match_len;
+	uint16_t longest_match_len;
 	uint16_t hofs, longest_match_ofs;
 	uint16_t hash;
 	uint32_t outbits = 0;
@@ -213,71 +203,116 @@ int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int s
 	 * links to it that have already been initialised. */
 	memset(hash_table, 0xff, sizeof(hash_table));
 
-	while (inpos < srclen - 1) {
+	while (inpos < srclen - 2) {
 		hash = HASH(src + inpos);
 		hofs = hash_table[hash];
 
 		hash_chain[inpos & (MAX_HISTORY - 1)] = hofs;
 		hash_table[hash] = inpos;
 
-		longest_match_len = 0;
-
-		while (hofs != INVALID_OFS && hofs + MAX_HISTORY > inpos) {
-			match_len = find_match_len(src, hofs, inpos, longest_match_len ? : 2, srclen - inpos);
-			if (match_len > longest_match_len) {
-				longest_match_len = match_len;
-				longest_match_ofs = hofs;
-			}
-			hofs = hash_chain[hofs & (MAX_HISTORY - 1)];
-		}
-		if (!longest_match_len) {
+		if (hofs == INVALID_OFS || hofs + MAX_HISTORY <= inpos) {
 			PUT_BITS(9, src[inpos]);
 			inpos++;
-		} else {
-			/* Output offset, as 7-bit or 11-bit as appropriate */
-			int offset = inpos - longest_match_ofs;
-			int length = longest_match_len;
-
-			if (offset < 0x80) {
-				PUT_BITS(9, 0x180 | offset);
-			} else {
-				PUT_BITS(13, 0x1000 | offset);
-			}
-			/* Output length */
-			if (length < 5)
-				PUT_BITS(2, length - 2);
-			else if (length < 8)
-				PUT_BITS(4, length + 7);
-			else {
-				length += 7;
-				while (length >= 30) {
-					PUT_BITS(8, 0xff);
-					length -= 30;
-				}
-				if (length >= 15)
-					PUT_BITS(8, 0xf0 + length - 15);
-				else
-					PUT_BITS(4, length);
-			}
-
-			/* If we're already done, don't bother updating the hash tables. */
-			if (inpos + longest_match_len >= srclen - 1) {
-				inpos += longest_match_len;
-				break;
-			}
-
-			/* We already added the first byte to the hash tables. Add the rest. */
-			inpos++;
-			while (--longest_match_len) {
-				hash = HASH(src + inpos);
-				hash_chain[inpos & (MAX_HISTORY - 1)] = hash_table[hash];
-				hash_table[hash] = inpos++;
-			}
+			continue;
 		}
 
+		/* Since the hash is 16-bits, we *know* the first two bytes match */
+		longest_match_len = 2;
+		longest_match_ofs = hofs;
+
+		for (; hofs != INVALID_OFS && hofs + MAX_HISTORY > inpos;
+		     hofs = hash_chain[hofs & (MAX_HISTORY - 1)]) {
+
+			/* We only get here if longest_match_len is >= 2. We need to find
+			   a match of longest_match_len + 1 for it to be interesting. */
+			if (!memcmp(src + hofs + 2, src + inpos + 2, longest_match_len - 1)) {
+				longest_match_ofs = hofs;
+
+				do {
+					longest_match_len++;
+
+					/* If we cannot *have* a longer match because we're at the
+					 * end of the input, stop looking */
+					if (longest_match_len + inpos == srclen)
+						goto got_match;
+
+				} while (src[longest_match_len + inpos] == src[longest_match_len + hofs]);
+			}
+
+			/* Typical compressor tuning would have a break out of the loop
+			   here depending on the number of potential match locations we've
+			   tried, or a value of longest_match_len that's considered "good
+			   enough" so we stop looking for something better. We could also
+			   do a hybrid where we count the total bytes compared, so 5
+			   attempts to find a match better than 10 bytes is worth the same
+			   as 10 attempts to find a match better than 5 bytes. Or
+			   something. Anyway, we currently don't give up until we run out
+			   of reachable history — maximal compression. */
+		}
+	got_match:
+		/* Output offset, as 7-bit or 11-bit as appropriate */
+		offset = inpos - longest_match_ofs;
+		length = longest_match_len;
+
+		if (offset < 0x80)
+			PUT_BITS(9, 0x180 | offset);
+		else
+			PUT_BITS(13, 0x1000 | offset);
+
+		/* Output length */
+		if (length < 5)
+			PUT_BITS(2, length - 2);
+		else if (length < 8)
+			PUT_BITS(4, length + 7);
+		else {
+			length += 7;
+			while (length >= 30) {
+				PUT_BITS(8, 0xff);
+				length -= 30;
+			}
+			if (length >= 15)
+				PUT_BITS(8, 0xf0 + length - 15);
+			else
+				PUT_BITS(4, length);
+		}
+
+		/* If we're already done, don't bother updating the hash tables. */
+		if (inpos + longest_match_len >= srclen - 2) {
+			inpos += longest_match_len;
+			break;
+		}
+
+		/* We already added the first byte to the hash tables. Add the rest. */
+		inpos++;
+		while (--longest_match_len) {
+			hash = HASH(src + inpos);
+			hash_chain[inpos & (MAX_HISTORY - 1)] = hash_table[hash];
+			hash_table[hash] = inpos++;
+		}
 	}
-	if (inpos < srclen)
+
+	/* Special cases at the end */
+	if (inpos == srclen - 2) {
+		hash = HASH(src + inpos);
+		hofs = hash_table[hash];
+
+		if (hofs != INVALID_OFS && hofs + MAX_HISTORY > inpos) {
+			offset = inpos - hofs;
+
+			if (offset < 0x80)
+				PUT_BITS(9, 0x180 | offset);
+			else
+				PUT_BITS(13, 0x1000 | offset);
+
+			/* The length is 2 bytes */
+			PUT_BITS(2, 0);
+		} else {
+			PUT_BITS(9, src[inpos]);
+			PUT_BITS(9, src[inpos + 1]);
+		}
+	} else if (inpos == srclen - 1) {
 		PUT_BITS(9, src[inpos]);
+	}
 
 	/* End marker, with 7 trailing zero bits to ensure that it's flushed. */
 	PUT_BITS(16, 0xc000);
