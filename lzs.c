@@ -69,12 +69,13 @@ int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int
 		/* Get 9 bits, which is the minimum and a common case */
 		GET_BITS(9);
 
-		/* 0bbbbbbbb is a literal byte */
-		if (data < 0x100) {
+		/* 0bbbbbbbb is a literal byte. The loop gives a hint to
+		 * the compiler that we expect to see a few of these. */
+		while (data < 0x100) {
 			if (outlen == dstlen)
 				return -EFBIG;
 			dst[outlen++] = data;
-			continue;
+			GET_BITS(9);
 		}
 
 		/* 110000000 is the end marker */
