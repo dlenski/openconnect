@@ -238,11 +238,9 @@ int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int s
 			int length = longest_match_len;
 
 			if (offset < 0x80) {
-				PUT_BITS(2, 3);
-				PUT_BITS(7, offset);
+				PUT_BITS(9, 0x180 | offset);
 			} else {
-				PUT_BITS(2, 2);
-				PUT_BITS(11, offset);
+				PUT_BITS(13, 0x1000 | offset);
 			}
 			/* Output length */
 			if (length < 5)
@@ -251,11 +249,14 @@ int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int s
 				PUT_BITS(4, length + 7);
 			else {
 				length += 7;
-				while (length >= 15) {
-					PUT_BITS(4, 15);
-					length -= 15;
+				while (length >= 30) {
+					PUT_BITS(8, 0xff);
+					length -= 30;
 				}
-				PUT_BITS(4, length);
+				if (length >= 15)
+					PUT_BITS(8, 0xf0 + length - 15);
+				else
+					PUT_BITS(4, length);
 			}
 
 			/* Add byte(s) to the hash tables unless we're done */
@@ -275,10 +276,8 @@ int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int s
 	if (inpos < srclen)
 		PUT_BITS(9, src[inpos]);
 
-	/* End marker */
-	PUT_BITS(9, 0x180);
-	/* ... which must have its final bits flushed to the output. */
-	PUT_BITS(7, 0);
+	/* End marker, with 7 trailing zero bits to ensure that it's flushed. */
+	PUT_BITS(16, 0xc000);
 
 	return outpos;
 }
