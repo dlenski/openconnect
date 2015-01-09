@@ -11,7 +11,9 @@ if [ -d ${GIT_DIR:-.git} ] && tag=`git describe --tags`; then
 	# Does the index show uncommitted changes?
 	git diff-index --exit-code HEAD > /dev/null || \
 		v="$v"-dirty
-else
+elif [ -n "$RPM_PACKAGE_VERSION" ] && [ -n "$RPM_PACKAGE_RELEASE" ]; then
+	v="v$RPM_PACKAGE_VERSION-$RPM_PACKAGE_RELEASE"
+else # XXX: Equivalent for .deb packages?
 	v="$v"-unknown
 fi
 
