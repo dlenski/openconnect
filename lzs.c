@@ -148,15 +148,15 @@ do {								\
 	nr_outbits += (nr);					\
 	if ((nr) > 8) {						\
 		nr_outbits -= 8;				\
-		dst[outpos++] = outbits >> nr_outbits;		\
-		if (outpos >= dstlen)				\
+		if (outpos == dstlen)				\
 			return -EFBIG;				\
+		dst[outpos++] = outbits >> nr_outbits;		\
 	}							\
 	if (nr_outbits >= 8) {					\
 		nr_outbits -= 8;				\
-		dst[outpos++] = outbits >> nr_outbits;		\
-		if (outpos >= dstlen)				\
+		if (outpos == dstlen)				\
 			return -EFBIG;				\
+		dst[outpos++] = outbits >> nr_outbits;		\
 	}							\
 } while (0)
 
