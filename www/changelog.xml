@@ -15,7 +15,10 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li><i>No changelog entries yet</i></li>
+       <li>Android build infrastructure updates, including 64-bit support.</li>
+       <li>Clean up handling of incoming packets.</li>
+       <li>Fix issue with two-stage <i>(i.e. NetworkManager)</i> connection to servers with trick DNS <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1179681"><i>(RH#1179681)</i></a>.</li>
+       <li>Stop using static variables for received packets.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.02.tar.gz">OpenConnect v7.02</a></b>
