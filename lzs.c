@@ -26,11 +26,20 @@
 
 #define GET_BITS(bits)							\
 do {									\
-	if (srclen < 1 + (bits_left < bits))				\
+	/* Strictly speaking, this check ought to be on			\
+	 * (srclen < 1 + (bits_left < bits)). However, when bits == 9	\
+	 * the (bits_left < bits) comparison is always true so it	\
+	 * always comes out as (srclen < 2).				\
+	 * And bits is only anything *other* than 9 when we're reading	\
+	 * reading part of a match encoding. And in that case, there	\
+	 * damn well ought to be an end marker (7 more bits) after	\
+	 * what we're reading now, so it's perfectly OK to use		\
+	 * (srclen < 2) in that case too. And a *lot* cheaper. */	\
+	if (srclen < 2)							\
 		return -EINVAL;						\
-	/* Explicit comparison with 8 to optimise the bits == 9 case	\
-	 * because the compiler doesn't know that bits_left can never	\
-	 * be larger than 8. */						\
+	/* Explicit comparison with 8 to optimise it into a tautology	\
+	 * in the the bits == 9 case, because the compiler doesn't	\
+	 * know that bits_left can never be larger than 8. */		\
 	if (bits >= 8 || bits >= bits_left) {				\
 		/* We need *all* the bits that are left in the current	\
 		 * byte. Take them and bump the input pointer. */	\
