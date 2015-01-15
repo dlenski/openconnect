@@ -150,6 +150,23 @@ void cstp_free_splits(struct openconnect_info *vpninfo)
 # define DEFAULT_CIPHER_LIST "AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA"
 #endif
 
+static void append_compr_types(struct oc_text_buf *buf, const char *proto, int avail)
+{
+	if (avail) {
+		char sep = ' ';
+		buf_append(buf, "X-%s-Accept-Encoding:", proto);
+		if (avail & COMPR_LZS) {
+			buf_append(buf, "%clzs", sep);
+			sep = ',';
+		}
+		if (avail & COMPR_DEFLATE) {
+			buf_append(buf, "%cdeflate", sep);
+			sep = ',';
+		}
+		buf_append(buf, "\r\n");
+	}
+}
+
 static int start_cstp_connection(struct openconnect_info *vpninfo)
 {
 	struct oc_text_buf *reqbuf;
@@ -188,19 +205,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	buf_append(reqbuf, "Cookie: webvpn=%s\r\n", vpninfo->cookie);
 	buf_append(reqbuf, "X-CSTP-Version: 1\r\n");
 	buf_append(reqbuf, "X-CSTP-Hostname: %s\r\n", vpninfo->localname);
-	if (vpninfo->req_compr) {
-		char sep = ' ';
-		buf_append(reqbuf, "X-CSTP-Accept-Encoding:");
-		if (vpninfo->req_compr & COMPR_LZS) {
-			buf_append(reqbuf, "%clzs", sep);
-			sep = ',';
-		}
-		if (vpninfo->req_compr & COMPR_DEFLATE) {
-			buf_append(reqbuf, "%cdeflate", sep);
-			sep = ',';
-		}
-		buf_append(reqbuf, "\r\n");
-	}
+
+	append_compr_types(reqbuf, "CSTP", vpninfo->req_compr & ~COMPR_DEFLATE);
+
 	if (base_mtu)
 		buf_append(reqbuf, "X-CSTP-Base-MTU: %d\r\n", base_mtu);
 	buf_append(reqbuf, "X-CSTP-MTU: %d\r\n", mtu);
@@ -220,8 +227,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	}
 	buf_append(reqbuf, "\r\nX-DTLS-CipherSuite: %s\r\n",
 			       vpninfo->dtls_ciphers ? : DEFAULT_CIPHER_LIST);
-	if (vpninfo->req_compr & COMPR_LZS)
-		buf_append(reqbuf, "X-DTLS-Accept-Encoding: lzs\r\n");
+
+	append_compr_types(reqbuf, "DTLS", vpninfo->req_compr);
 	buf_append(reqbuf, "\r\n");
 
 	if (buf_error(reqbuf)) {

@@ -931,6 +931,7 @@ int main(int argc, char **argv)
 {
 	struct openconnect_info *vpninfo;
 	char *urlpath = NULL;
+	const char *compr = "";
 	char *proxy = getenv("https_proxy");
 	char *vpnc_script = NULL, *ifname = NULL;
 	const struct oc_ip_info *ip_info;
@@ -1423,15 +1424,25 @@ int main(int argc, char **argv)
 		fprintf(stderr, _("Set up DTLS failed; using SSL instead\n"));
 
 	openconnect_get_ip_info(vpninfo, &ip_info, NULL, NULL);
+
+	if (vpninfo->dtls_state != DTLS_CONNECTED) {
+		if (vpninfo->cstp_compr == COMPR_DEFLATE)
+			compr = " + deflate";
+		else if (vpninfo->cstp_compr == COMPR_LZS)
+			compr = " + lzs";
+	} else {
+		if (vpninfo->dtls_compr == COMPR_DEFLATE)
+			compr = " + deflate";
+		else if (vpninfo->dtls_compr == COMPR_LZS)
+			compr = " + lzs";
+	}
 	vpn_progress(vpninfo, PRG_INFO,
-		     _("Connected %s as %s%s%s, using %s\n"), openconnect_get_ifname(vpninfo),
+		     _("Connected %s as %s%s%s, using %s%s\n"), openconnect_get_ifname(vpninfo),
 		     ip_info->addr?:"",
 		     (ip_info->netmask6 && ip_info->addr) ? " + " : "",
 		     ip_info->netmask6 ? : "",
-		     (vpninfo->dtls_state != DTLS_CONNECTED) ?
-		     (vpninfo->cstp_compr == COMPR_DEFLATE) ? "SSL + deflate" :
-		     (vpninfo->cstp_compr == COMPR_LZS) ? "SSL + lzs" : "SSL"
-		     : "DTLS");
+		     (vpninfo->dtls_state != DTLS_CONNECTED) ? "SSL"
+		     : "DTLS", compr);
 
 	if (!vpninfo->vpnc_script) {
 		vpn_progress(vpninfo, PRG_INFO,
