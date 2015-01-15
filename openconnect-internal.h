@@ -141,7 +141,8 @@ struct pkt {
 #define DTLS_CONNECTED	4
 
 #define COMPR_DEFLATE	(1<<0)
-#define COMPR_ALL	(COMPR_DEFLATE)
+#define COMPR_LZS	(1<<1)
+#define COMPR_ALL	(COMPR_DEFLATE | COMPR_LZS)
 
 struct keepalive_info {
 	int dpd;
@@ -630,6 +631,12 @@ void dtls_shutdown(struct openconnect_info *vpninfo);
 int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int cstp_bye(struct openconnect_info *vpninfo, const char *reason);
 void cstp_free_splits(struct openconnect_info *vpninfo);
+int decompress_and_queue_packet(struct openconnect_info *vpninfo,
+				unsigned char *buf, int len);
+
+/* lzs.c */
+int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
+int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
 
 /* ssl.c */
 unsigned string_is_hostname(const char* str);

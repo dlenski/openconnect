@@ -1429,7 +1429,8 @@ int main(int argc, char **argv)
 		     (ip_info->netmask6 && ip_info->addr) ? " + " : "",
 		     ip_info->netmask6 ? : "",
 		     (vpninfo->dtls_state != DTLS_CONNECTED) ?
-		     (vpninfo->cstp_compr == COMPR_DEFLATE) ? "SSL + deflate" : "SSL"
+		     (vpninfo->cstp_compr == COMPR_DEFLATE) ? "SSL + deflate" :
+		     (vpninfo->cstp_compr == COMPR_LZS) ? "SSL + lzs" : "SSL"
 		     : "DTLS");
 
 	if (!vpninfo->vpnc_script) {

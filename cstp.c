@@ -191,6 +191,10 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	if (vpninfo->req_compr) {
 		char sep = ' ';
 		buf_append(reqbuf, "X-CSTP-Accept-Encoding:");
+		if (vpninfo->req_compr & COMPR_LZS) {
+			buf_append(reqbuf, "%clzs", sep);
+			sep = ',';
+		}
 		if (vpninfo->req_compr & COMPR_DEFLATE) {
 			buf_append(reqbuf, "%cdeflate", sep);
 			sep = ',';
@@ -214,9 +218,11 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			     _("CRITICAL ERROR: DTLS master secret is uninitialised. Please report this.\n"));
 		return -EINVAL;
 	}
-
-	buf_append(reqbuf, "\r\nX-DTLS-CipherSuite: %s\r\n\r\n",
+	buf_append(reqbuf, "\r\nX-DTLS-CipherSuite: %s\r\n",
 			       vpninfo->dtls_ciphers ? : DEFAULT_CIPHER_LIST);
+	if (vpninfo->req_compr & COMPR_LZS)
+		buf_append(reqbuf, "X-DTLS-Accept-Encoding: lzs\r\n");
+	buf_append(reqbuf, "\r\n");
 
 	if (buf_error(reqbuf)) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -349,6 +355,15 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
 				if (dtls_sessid_changed && vpninfo->dtls_state > DTLS_SLEEPING)
 					vpninfo->dtls_need_reconnect = 1;
+			} else if (!strcmp(buf + 7, "Content-Encoding")) {
+				if (!strcmp(colon, "lzs"))
+					vpninfo->dtls_compr = COMPR_LZS;
+				else {
+					vpn_progress(vpninfo, PRG_ERR,
+						     _("Unknown DTLS-Content-Encoding %s\n"),
+						     colon);
+					return -EINVAL;
+				}
 			}
 			continue;
 		}
@@ -375,6 +390,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		} else if (!strcmp(buf + 7, "Content-Encoding")) {
 			if (!strcmp(colon, "deflate"))
 				vpninfo->cstp_compr = COMPR_DEFLATE;
+			else if (!strcmp(colon, "lzs"))
+				vpninfo->cstp_compr = COMPR_LZS;
 			else {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Unknown CSTP-Content-Encoding %s\n"),
@@ -558,6 +575,10 @@ int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 	if (ret)
 		goto out;
 
+	/* This will definitely be smaller than zlib's */
+	if (vpninfo->cstp_compr == COMPR_LZS)
+		deflate_bufsize = vpninfo->ip_info.mtu;
+
 	/* If deflate compression is enabled (which is CSTP-only), it needs its
 	 * context to be allocated. */
 	if (vpninfo->cstp_compr == COMPR_DEFLATE) {
@@ -653,44 +674,61 @@ static int cstp_reconnect(struct openconnect_info *vpninfo)
 	return 0;
 }
 
-static int inflate_and_queue_packet(struct openconnect_info *vpninfo,
-				    unsigned char *buf, int len)
+int decompress_and_queue_packet(struct openconnect_info *vpninfo,
+				unsigned char *buf, int len)
 {
 	struct pkt *new = malloc(sizeof(struct pkt) + vpninfo->ip_info.mtu);
-	uint32_t pkt_sum;
+	const char *comprtype;
 
 	if (!new)
 		return -ENOMEM;
 
 	new->next = NULL;
 
-	vpninfo->inflate_strm.next_in = buf;
-	vpninfo->inflate_strm.avail_in = len - 4;
+	if (vpninfo->cstp_compr == COMPR_DEFLATE) {
+		uint32_t pkt_sum;
 
-	vpninfo->inflate_strm.next_out = new->data;
-	vpninfo->inflate_strm.avail_out = vpninfo->ip_info.mtu;
-	vpninfo->inflate_strm.total_out = 0;
+		/* Not sure this actually needs to be translated? */
+		comprtype = _("deflate");
 
-	if (inflate(&vpninfo->inflate_strm, Z_SYNC_FLUSH)) {
-		vpn_progress(vpninfo, PRG_ERR, _("inflate failed\n"));
-		free(new);
-		return -EINVAL;
+		vpninfo->inflate_strm.next_in = buf;
+		vpninfo->inflate_strm.avail_in = len - 4;
+
+		vpninfo->inflate_strm.next_out = new->data;
+		vpninfo->inflate_strm.avail_out = vpninfo->ip_info.mtu;
+		vpninfo->inflate_strm.total_out = 0;
+
+		if (inflate(&vpninfo->inflate_strm, Z_SYNC_FLUSH)) {
+			vpn_progress(vpninfo, PRG_ERR, _("inflate failed\n"));
+			free(new);
+			return -EINVAL;
+		}
+
+		new->len = vpninfo->inflate_strm.total_out;
+
+		vpninfo->inflate_adler32 = adler32(vpninfo->inflate_adler32,
+						   new->data, new->len);
+
+		pkt_sum = buf[len - 1] | (buf[len - 2] << 8) |
+			(buf[len - 3] << 16) | (buf[len - 4] << 24);
+
+		if (vpninfo->inflate_adler32 != pkt_sum)
+			vpninfo->quit_reason = "Compression (inflate) adler32 failure";
+
+	} else {
+		comprtype = "LZS";
+
+		new->len = lzs_decompress(new->data, vpninfo->ip_info.mtu, buf, len);
+		if (new->len < 0) {
+			vpn_progress(vpninfo, PRG_ERR, _("LZS decompression failed: %s\n"),
+				     strerror(-new->len));
+			free(new);
+			return len;
+		}
 	}
-
-	new->len = vpninfo->inflate_strm.total_out;
-
-	vpninfo->inflate_adler32 = adler32(vpninfo->inflate_adler32,
-					   new->data, new->len);
-
-	pkt_sum = buf[len - 1] | (buf[len - 2] << 8) |
-		(buf[len - 3] << 16) | (buf[len - 4] << 24);
-
-	if (vpninfo->inflate_adler32 != pkt_sum)
-		vpninfo->quit_reason = "Compression (inflate) adler32 failure";
-
 	vpn_progress(vpninfo, PRG_TRACE,
-		     _("Received compressed data packet of %ld bytes\n"),
-		     (long)vpninfo->inflate_strm.total_out);
+		     _("Received %s compressed data packet of %d bytes (was %d)\n"),
+		     comprtype, new->len, len);
 
 	queue_packet(&vpninfo->incoming_queue, new);
 	return 0;
@@ -880,7 +918,8 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 					     _("Compressed packet received in !deflate mode\n"));
 				goto unknown_pkt;
 			}
-			inflate_and_queue_packet(vpninfo, vpninfo->cstp_pkt->data, payload_len);
+			decompress_and_queue_packet(vpninfo, vpninfo->cstp_pkt->data,
+					    payload_len);
 			work_done = 1;
 			continue;
 
@@ -1028,7 +1067,6 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		if (vpninfo->cstp_compr == COMPR_DEFLATE) {
 			unsigned char *adler;
-			int ret;
 
 			vpninfo->deflate_strm.next_in = this->data;
 			vpninfo->deflate_strm.avail_in = this->len;
@@ -1042,9 +1080,6 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				goto uncompr;
 			}
 
-			vpninfo->deflate_pkt->hdr[4] = (vpninfo->deflate_strm.total_out + 4) >> 8;
-			vpninfo->deflate_pkt->hdr[5] = (vpninfo->deflate_strm.total_out + 4) & 0xff;
-
 			/* Add ongoing adler32 to tail of compressed packet */
 			vpninfo->deflate_adler32 = adler32(vpninfo->deflate_adler32,
 							   this->data, this->len);
@@ -1057,9 +1092,32 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 			vpninfo->deflate_pkt->len = vpninfo->deflate_strm.total_out + 4;
 
+			vpninfo->deflate_pkt->hdr[4] = (vpninfo->deflate_pkt->len) >> 8;
+			vpninfo->deflate_pkt->hdr[5] = (vpninfo->deflate_pkt->len) & 0xff;
+
 			vpn_progress(vpninfo, PRG_TRACE,
-				     _("Sending compressed data packet of %d bytes\n"),
-				     this->len);
+				     _("Sending deflate compressed data packet of %d bytes (was %d)\n"),
+				     vpninfo->deflate_pkt->len, this->len);
+
+			vpninfo->pending_deflated_pkt = this;
+			vpninfo->current_ssl_pkt = vpninfo->deflate_pkt;
+		} else if (vpninfo->cstp_compr == COMPR_LZS) {
+			ret = lzs_compress(vpninfo->deflate_pkt->data, this->len,
+					   this->data, this->len);
+			if (ret < 0)
+				goto uncompr; /* It only ever returns -EFBIG */
+
+			vpninfo->deflate_pkt->len = ret;
+
+			vpninfo->deflate_pkt->hdr[4] = (vpninfo->deflate_pkt->len) >> 8;
+			vpninfo->deflate_pkt->hdr[5] = (vpninfo->deflate_pkt->len) & 0xff;
+
+			/* DTLS compression may have screwed with this */
+			vpninfo->deflate_pkt->hdr[7] = 0;
+
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("Sending LZS compressed data packet of %d bytes (was %d)\n"),
+				     ret, this->len);
 
 			vpninfo->pending_deflated_pkt = this;
 			vpninfo->current_ssl_pkt = vpninfo->deflate_pkt;
