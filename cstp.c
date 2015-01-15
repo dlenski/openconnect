@@ -28,6 +28,9 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <stdarg.h>
+#ifdef HAVE_LZ4
+#include <lz4.h>
+#endif
 
 #include "openconnect-internal.h"
 
@@ -155,6 +158,10 @@ static void append_compr_types(struct oc_text_buf *buf, const char *proto, int a
 	if (avail) {
 		char sep = ' ';
 		buf_append(buf, "X-%s-Accept-Encoding:", proto);
+		if (avail & COMPR_LZ4) {
+			buf_append(buf, "%coc-lz4", sep);
+			sep = ',';
+		}
 		if (avail & COMPR_LZS) {
 			buf_append(buf, "%clzs", sep);
 			sep = ',';
@@ -365,6 +372,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			} else if (!strcmp(buf + 7, "Content-Encoding")) {
 				if (!strcmp(colon, "lzs"))
 					vpninfo->dtls_compr = COMPR_LZS;
+				else if (!strcmp(colon, "oc-lz4"))
+					vpninfo->dtls_compr = COMPR_LZ4;
 				else {
 					vpn_progress(vpninfo, PRG_ERR,
 						     _("Unknown DTLS-Content-Encoding %s\n"),
@@ -399,6 +408,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 				vpninfo->cstp_compr = COMPR_DEFLATE;
 			else if (!strcmp(colon, "lzs"))
 				vpninfo->cstp_compr = COMPR_LZS;
+			else if (!strcmp(colon, "oc-lz4"))
+				vpninfo->cstp_compr = COMPR_LZ4;
 			else {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Unknown CSTP-Content-Encoding %s\n"),
@@ -583,7 +594,7 @@ int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 		goto out;
 
 	/* This will definitely be smaller than zlib's */
-	if (vpninfo->cstp_compr == COMPR_LZS)
+	if (vpninfo->cstp_compr == COMPR_LZS || vpninfo->cstp_compr == COMPR_LZ4)
 		deflate_bufsize = vpninfo->ip_info.mtu;
 
 	/* If deflate compression is enabled (which is CSTP-only), it needs its
@@ -685,7 +696,7 @@ int decompress_and_queue_packet(struct openconnect_info *vpninfo,
 				unsigned char *buf, int len)
 {
 	struct pkt *new = malloc(sizeof(struct pkt) + vpninfo->ip_info.mtu);
-	const char *comprtype;
+	const char *comprtype = "";
 
 	if (!new)
 		return -ENOMEM;
@@ -722,16 +733,36 @@ int decompress_and_queue_packet(struct openconnect_info *vpninfo,
 		if (vpninfo->inflate_adler32 != pkt_sum)
 			vpninfo->quit_reason = "Compression (inflate) adler32 failure";
 
-	} else {
+	} else if (vpninfo->cstp_compr == COMPR_LZS) {
 		comprtype = "LZS";
 
 		new->len = lzs_decompress(new->data, vpninfo->ip_info.mtu, buf, len);
 		if (new->len < 0) {
+			len = new->len;
+			if (len == 0)
+				len = -EINVAL;
 			vpn_progress(vpninfo, PRG_ERR, _("LZS decompression failed: %s\n"),
-				     strerror(-new->len));
+				     strerror(-len));
 			free(new);
 			return len;
 		}
+#ifdef HAVE_LZ4
+	} else if (vpninfo->cstp_compr == COMPR_LZ4) {
+		comprtype = "LZ4";
+		new->len = LZ4_decompress_safe((void *)buf, (void *)new->data, len, vpninfo->ip_info.mtu);
+		if (new->len <= 0) {
+			len = new->len;
+			if (len == 0)
+				len = -EINVAL;
+			vpn_progress(vpninfo, PRG_ERR, _("LZ4 decompression failed\n"));
+			free(new);
+			return len;
+		}
+#endif
+	} else {
+		vpn_progress(vpninfo, PRG_ERR,
+		     _("Unknown compression type %d\n"), (int)vpninfo->cstp_compr);
+		return -EINVAL;
 	}
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Received %s compressed data packet of %d bytes (was %d)\n"),
@@ -785,6 +816,22 @@ int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt
 
 		vpninfo->deflate_pkt->len = ret;
 		return 0;
+#ifdef HAVE_LZ4
+	} else if (vpninfo->cstp_compr == COMPR_LZ4) {
+		if (this->len < 40)
+			return -EFBIG;
+
+		ret = LZ4_compress_limitedOutput((void*)this->data, (void*)vpninfo->deflate_pkt->data, this->len,
+				   this->len);
+		if (ret <= 0) {
+			if (ret == 0)
+				ret = -EFBIG;
+			return ret;
+		}
+
+		vpninfo->deflate_pkt->len = ret;
+		return 0;
+#endif
 	} else
 		return -EINVAL;
 

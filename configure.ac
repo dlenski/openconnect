@@ -514,6 +514,25 @@ Add --without-openssl-version-check to configure args to avoid this check, or
 perhaps consider building with GnuTLS instead.])])
 fi
 
+AC_ARG_WITH(lz4,
+  AS_HELP_STRING([--without-lz4], [disable support for LZ4 compression]),
+  test_for_lz4=$withval,
+  test_for_lz4=yes)
+
+enable_lz4=no
+if test "$test_for_lz4" = yes;then
+PKG_CHECK_MODULES([LIBLZ4], [liblz4], [
+enable_lz4=yes
+AC_DEFINE([HAVE_LZ4], [], [LZ4 was found])
+],
+[
+	AC_MSG_WARN([[
+***
+*** lz4 not found.
+*** ]])
+])
+fi
+
 # For some bizarre reason now that we use AM_ICONV, the mingw32 build doesn't
 # manage to set EGREP properly in the created ./libtool script. Make sure it's
 # found.

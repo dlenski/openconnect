@@ -142,7 +142,13 @@ struct pkt {
 
 #define COMPR_DEFLATE	(1<<0)
 #define COMPR_LZS	(1<<1)
+#define COMPR_LZ4	(1<<2)
+
+#ifdef HAVE_LZ4
+#define COMPR_ALL	(COMPR_DEFLATE | COMPR_LZS | COMPR_LZ4)
+#else
 #define COMPR_ALL	(COMPR_DEFLATE | COMPR_LZS)
+#endif
 
 struct keepalive_info {
 	int dpd;

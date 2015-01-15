@@ -1430,11 +1430,15 @@ int main(int argc, char **argv)
 			compr = " + deflate";
 		else if (vpninfo->cstp_compr == COMPR_LZS)
 			compr = " + lzs";
+		else if (vpninfo->cstp_compr == COMPR_LZ4)
+			compr = " + lz4";
 	} else {
 		if (vpninfo->dtls_compr == COMPR_DEFLATE)
 			compr = " + deflate";
 		else if (vpninfo->dtls_compr == COMPR_LZS)
 			compr = " + lzs";
+		else if (vpninfo->dtls_compr == COMPR_LZ4)
+			compr = " + lz4";
 	}
 	vpn_progress(vpninfo, PRG_INFO,
 		     _("Connected %s as %s%s%s, using %s%s\n"), openconnect_get_ifname(vpninfo),
