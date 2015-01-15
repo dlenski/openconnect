@@ -734,6 +734,56 @@ int decompress_and_queue_packet(struct openconnect_info *vpninfo,
 	return 0;
 }
 
+int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt *this)
+{
+	int ret;
+	if (compr_type == COMPR_DEFLATE) {
+		unsigned char *adler;
+
+		vpninfo->deflate_strm.next_in = this->data;
+		vpninfo->deflate_strm.avail_in = this->len;
+		vpninfo->deflate_strm.next_out = (void *)vpninfo->deflate_pkt->data;
+		vpninfo->deflate_strm.avail_out = vpninfo->deflate_pkt_size - 4;
+		vpninfo->deflate_strm.total_out = 0;
+
+		ret = deflate(&vpninfo->deflate_strm, Z_SYNC_FLUSH);
+		if (ret) {
+			vpn_progress(vpninfo, PRG_ERR, _("deflate failed %d\n"), ret);
+			/* Things are going to go horribly wrong if we try to do any
+			   more compression. Give up entirely. */
+			vpninfo->cstp_compr = 0;
+			return -EIO;
+		}
+
+		/* Add ongoing adler32 to tail of compressed packet */
+		vpninfo->deflate_adler32 = adler32(vpninfo->deflate_adler32,
+						   this->data, this->len);
+
+		adler = &vpninfo->deflate_pkt->data[vpninfo->deflate_strm.total_out];
+		*(adler++) =  vpninfo->deflate_adler32 >> 24;
+		*(adler++) = (vpninfo->deflate_adler32 >> 16) & 0xff;
+		*(adler++) = (vpninfo->deflate_adler32 >> 8) & 0xff;
+		*(adler)   =  vpninfo->deflate_adler32 & 0xff;
+
+		vpninfo->deflate_pkt->len = vpninfo->deflate_strm.total_out + 4;
+		return 0;
+	} else if (vpninfo->cstp_compr == COMPR_LZS) {
+		if (this->len < 40)
+			return -EFBIG;
+
+		ret = lzs_compress(vpninfo->deflate_pkt->data, this->len,
+				   this->data, this->len);
+		if (ret < 0)
+			return ret;
+
+		vpninfo->deflate_pkt->len = ret;
+		return 0;
+	} else
+		return -EINVAL;
+
+	return 0;
+}
+
 #if defined(OPENCONNECT_OPENSSL)
 static int cstp_read(struct openconnect_info *vpninfo, void *buf, int maxlen)
 {
@@ -1065,49 +1115,10 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpninfo->outgoing_queue = this->next;
 		vpninfo->outgoing_qlen--;
 
-		if (vpninfo->cstp_compr == COMPR_DEFLATE) {
-			unsigned char *adler;
-
-			vpninfo->deflate_strm.next_in = this->data;
-			vpninfo->deflate_strm.avail_in = this->len;
-			vpninfo->deflate_strm.next_out = (void *)vpninfo->deflate_pkt->data;
-			vpninfo->deflate_strm.avail_out = vpninfo->deflate_pkt_size - 4;
-			vpninfo->deflate_strm.total_out = 0;
-
-			ret = deflate(&vpninfo->deflate_strm, Z_SYNC_FLUSH);
-			if (ret) {
-				vpn_progress(vpninfo, PRG_ERR, _("deflate failed %d\n"), ret);
-				goto uncompr;
-			}
-
-			/* Add ongoing adler32 to tail of compressed packet */
-			vpninfo->deflate_adler32 = adler32(vpninfo->deflate_adler32,
-							   this->data, this->len);
-
-			adler = &vpninfo->deflate_pkt->data[vpninfo->deflate_strm.total_out];
-			*(adler++) =  vpninfo->deflate_adler32 >> 24;
-			*(adler++) = (vpninfo->deflate_adler32 >> 16) & 0xff;
-			*(adler++) = (vpninfo->deflate_adler32 >> 8) & 0xff;
-			*(adler)   =  vpninfo->deflate_adler32 & 0xff;
-
-			vpninfo->deflate_pkt->len = vpninfo->deflate_strm.total_out + 4;
-
-			vpninfo->deflate_pkt->hdr[4] = (vpninfo->deflate_pkt->len) >> 8;
-			vpninfo->deflate_pkt->hdr[5] = (vpninfo->deflate_pkt->len) & 0xff;
-
-			vpn_progress(vpninfo, PRG_TRACE,
-				     _("Sending deflate compressed data packet of %d bytes (was %d)\n"),
-				     vpninfo->deflate_pkt->len, this->len);
-
-			vpninfo->pending_deflated_pkt = this;
-			vpninfo->current_ssl_pkt = vpninfo->deflate_pkt;
-		} else if (vpninfo->cstp_compr == COMPR_LZS) {
-			ret = lzs_compress(vpninfo->deflate_pkt->data, this->len,
-					   this->data, this->len);
+		if (vpninfo->cstp_compr) {
+			ret = compress_packet(vpninfo, vpninfo->cstp_compr, this);
 			if (ret < 0)
-				goto uncompr; /* It only ever returns -EFBIG */
-
-			vpninfo->deflate_pkt->len = ret;
+				goto uncompr;
 
 			vpninfo->deflate_pkt->hdr[4] = (vpninfo->deflate_pkt->len) >> 8;
 			vpninfo->deflate_pkt->hdr[5] = (vpninfo->deflate_pkt->len) & 0xff;
@@ -1116,8 +1127,8 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpninfo->deflate_pkt->hdr[7] = 0;
 
 			vpn_progress(vpninfo, PRG_TRACE,
-				     _("Sending LZS compressed data packet of %d bytes (was %d)\n"),
-				     ret, this->len);
+				     _("Sending compressed data packet of %d bytes (was %d)\n"),
+				     vpninfo->deflate_pkt->len, this->len);
 
 			vpninfo->pending_deflated_pkt = this;
 			vpninfo->current_ssl_pkt = vpninfo->deflate_pkt;

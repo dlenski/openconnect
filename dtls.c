@@ -854,19 +854,14 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		/* One byte of header */
 		this->hdr[7] = AC_PKT_DATA;
 
-		/* We can just use vpninfo->deflate_pkt unless CSTP currently
-		 * has a compressed packet pending — which it shouldn't if
-		 * DTLS is active. */
-		if (vpninfo->dtls_compr & COMPR_LZS && this->len > 0x40 &&
-		    vpninfo->current_ssl_pkt != vpninfo->deflate_pkt) {
-
-			ret = lzs_compress(vpninfo->deflate_pkt->data, this->len,
-					   this->data, this->len);
-			if (ret > 0) {
+		/* We can compress into vpninfo->deflate_pkt unless CSTP
+		 * currently has a compressed packet pending — which it
+		 * shouldn't if DTLS is active. */
+		if (vpninfo->dtls_compr &&
+		    vpninfo->current_ssl_pkt != vpninfo->deflate_pkt &&
+		    !compress_packet(vpninfo, vpninfo->dtls_compr, this)) {
 				send_pkt = vpninfo->deflate_pkt;
 				send_pkt->hdr[7] = AC_PKT_COMPRESSED;
-				send_pkt->len = ret;
-			}
 		}
 
 #if defined(DTLS_OPENSSL)

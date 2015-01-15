@@ -633,6 +633,7 @@ int cstp_bye(struct openconnect_info *vpninfo, const char *reason);
 void cstp_free_splits(struct openconnect_info *vpninfo);
 int decompress_and_queue_packet(struct openconnect_info *vpninfo,
 				unsigned char *buf, int len);
+int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt *this);
 
 /* lzs.c */
 int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
