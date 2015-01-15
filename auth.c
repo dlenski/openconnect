@@ -2,7 +2,6 @@
  * OpenConnect (SSL + DTLS) VPN client
  *
  * Copyright © 2008-2014 Intel Corporation.
- * Copyright © 2008 Nick Andrew <nick@nick-andrew.net>
  * Copyright © 2013 John Morrissey <jwm@horde.net>
  *
  * Author: David Woodhouse <dwmw2@infradead.org>
