@@ -205,6 +205,11 @@ struct proxy_auth_state {
 struct vpn_proto {
 	int (*vpn_close_session)(struct openconnect_info *vpninfo, const char *reason);
 
+	/* Establish the TCP connection (and obtain configuration) */
+	int (*tcp_connect)(struct openconnect_info *vpninfo);
+
+	int (*tcp_mainloop)(struct openconnect_info *vpninfo, int *timeout);
+
 	/* Set up the UDP (DTLS) connection. Doesn't actually *start* it. */
 	int (*udp_setup)(struct openconnect_info *vpninfo, int attempt_period);
 
@@ -656,6 +661,7 @@ void dtls_close(struct openconnect_info *vpninfo);
 void dtls_shutdown(struct openconnect_info *vpninfo);
 
 /* cstp.c */
+int cstp_connect(struct openconnect_info *vpninfo);
 int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int cstp_bye(struct openconnect_info *vpninfo, const char *reason);
 void cstp_free_splits(struct openconnect_info *vpninfo);

@@ -576,7 +576,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 }
 
 
-int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
+int cstp_connect(struct openconnect_info *vpninfo)
 {
 	int ret;
 	int deflate_bufsize = 0;

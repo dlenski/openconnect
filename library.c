@@ -92,6 +92,8 @@ struct openconnect_info *openconnect_vpninfo_new(const char *useragent,
 #endif
 
 	vpninfo->proto.vpn_close_session = cstp_bye;
+	vpninfo->proto.tcp_connect = cstp_connect;
+	vpninfo->proto.tcp_mainloop = cstp_mainloop;
 #ifdef HAVE_DTLS
 	vpninfo->proto.udp_setup = dtls_setup;
 	vpninfo->proto.udp_mainloop = dtls_mainloop;
@@ -120,6 +122,11 @@ int openconnect_setup_dtls(struct openconnect_info *vpninfo,
 	vpn_progress(vpninfo, PRG_ERR,
 		     _("Built against SSL library with no Cisco DTLS support\n"));
 	return -EINVAL;
+}
+
+int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
+{
+	return vpninfo->proto.tcp_connect(vpninfo);
 }
 
 int openconnect_set_reported_os(struct openconnect_info *vpninfo,

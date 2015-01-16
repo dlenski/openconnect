@@ -145,7 +145,7 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 			did_work += ret;
 		}
 
-		ret = cstp_mainloop(vpninfo, &timeout);
+		ret = vpninfo->proto.tcp_mainloop(vpninfo, &timeout);
 		if (vpninfo->quit_reason)
 			break;
 		did_work += ret;
