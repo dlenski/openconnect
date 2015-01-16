@@ -28,19 +28,6 @@
 
 #include "openconnect-internal.h"
 
-static unsigned char nybble(unsigned char n)
-{
-	if      (n >= '0' && n <= '9') return n - '0';
-	else if (n >= 'A' && n <= 'F') return n - ('A' - 10);
-	else if (n >= 'a' && n <= 'f') return n - ('a' - 10);
-	return 0;
-}
-
-unsigned char unhex(const char *data)
-{
-	return (nybble(data[0]) << 4) | nybble(data[1]);
-}
-
 #ifdef HAVE_DTLS
 
 #if 0

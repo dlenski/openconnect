@@ -645,6 +645,7 @@ char *openconnect_legacy_to_utf8(struct openconnect_info *vpninfo, const char *l
 #endif
 
 /* script.c */
+unsigned char unhex(const char *data);
 int script_setenv(struct openconnect_info *vpninfo, const char *opt, const char *val, int append);
 int script_setenv_int(struct openconnect_info *vpninfo, const char *opt, int value);
 void prepare_script_env(struct openconnect_info *vpninfo);
@@ -659,7 +660,6 @@ int os_write_tun(struct openconnect_info *vpninfo, struct pkt *pkt);
 intptr_t os_setup_tun(struct openconnect_info *vpninfo);
 
 /* dtls.c */
-unsigned char unhex(const char *data);
 int dtls_setup(struct openconnect_info *vpninfo, int dtls_attempt_period);
 int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int dtls_try_handshake(struct openconnect_info *vpninfo);
