@@ -781,11 +781,8 @@ int do_gen_yubikey_code(struct openconnect_info *vpninfo,
 			struct oc_form_opt *opt);
 
 /* auth.c */
-void nuke_opt_values(struct oc_form_opt *opt);
 int parse_xml_response(struct openconnect_info *vpninfo, char *response,
 		       struct oc_auth_form **form, int *cert_rq);
-int process_auth_form(struct openconnect_info *vpninfo,
-		      struct oc_auth_form *form);
 int handle_auth_form(struct openconnect_info *vpninfo,
 		     struct oc_auth_form *form,
 		     struct oc_text_buf *request_body, const char **method,
@@ -836,6 +833,10 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo);
 
 /* digest.c */
 int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
+
+/* library.c */
+void nuke_opt_values(struct oc_form_opt *opt);
+int process_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form);
 
 /* version.c */
 extern const char *openconnect_version_str;
