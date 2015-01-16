@@ -781,15 +781,6 @@ int do_gen_yubikey_code(struct openconnect_info *vpninfo,
 			struct oc_form_opt *opt);
 
 /* auth.c */
-int parse_xml_response(struct openconnect_info *vpninfo, char *response,
-		       struct oc_auth_form **form, int *cert_rq);
-int handle_auth_form(struct openconnect_info *vpninfo,
-		     struct oc_auth_form *form,
-		     struct oc_text_buf *request_body, const char **method,
-		     const char **request_body_type);
-void free_auth_form(struct oc_auth_form *form);
-int xmlpost_initial_req(struct openconnect_info *vpninfo,
-			struct oc_text_buf *request_body, int cert_fail);
 int cstp_obtain_cookie(struct openconnect_info *vpninfo);
 
 /* http.c */

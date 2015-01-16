@@ -600,12 +600,30 @@ static void parse_config_node(struct openconnect_info *vpninfo, xmlNode *xml_nod
 	}
 }
 
+static void free_auth_form(struct oc_auth_form *form)
+{
+	if (!form)
+		return;
+	while (form->opts) {
+		struct oc_form_opt *tmp = form->opts->next;
+		free_opt(form->opts);
+		form->opts = tmp;
+	}
+	free(form->error);
+	free(form->message);
+	free(form->banner);
+	free(form->auth_id);
+	free(form->method);
+	free(form->action);
+	free(form);
+}
 
 /* Return value:
  *  < 0, on error
  *  = 0, on success; *form is populated
  */
-int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct oc_auth_form **formp, int *cert_rq)
+static int parse_xml_response(struct openconnect_info *vpninfo, char *response,
+			      struct oc_auth_form **formp, int *cert_rq)
 {
 	struct oc_auth_form *form;
 	xmlDocPtr xml_doc;
@@ -705,9 +723,9 @@ int parse_xml_response(struct openconnect_info *vpninfo, char *response, struct 
  *  = OC_FORM_RESULT_CANCELLED, when response was cancelled by user
  *  = OC_FORM_RESULT_LOGGEDIN, when form indicates that login was already successful
  */
-int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
-		     struct oc_text_buf *request_body, const char **method,
-		     const char **request_body_type)
+static int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form,
+			    struct oc_text_buf *request_body, const char **method,
+			    const char **request_body_type)
 {
 	int ret;
 	struct oc_vpn_option *opt, *next;
@@ -761,24 +779,6 @@ int handle_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form
 		*request_body_type = "application/x-www-form-urlencoded";
 	}
 	return ret;
-}
-
-void free_auth_form(struct oc_auth_form *form)
-{
-	if (!form)
-		return;
-	while (form->opts) {
-		struct oc_form_opt *tmp = form->opts->next;
-		free_opt(form->opts);
-		form->opts = tmp;
-	}
-	free(form->error);
-	free(form->message);
-	free(form->banner);
-	free(form->auth_id);
-	free(form->method);
-	free(form->action);
-	free(form);
 }
 
 /*
@@ -875,7 +875,8 @@ static int xmlpost_complete(xmlDocPtr doc, struct oc_text_buf *body)
 	return ret;
 }
 
-int xmlpost_initial_req(struct openconnect_info *vpninfo, struct oc_text_buf *request_body, int cert_fail)
+static int xmlpost_initial_req(struct openconnect_info *vpninfo,
+			       struct oc_text_buf *request_body, int cert_fail)
 {
 	xmlNodePtr root, node;
 	xmlDocPtr doc = xmlpost_new_query(vpninfo, "init", &root);
