@@ -15,7 +15,8 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
-       <li>Add support for LZS compression.</li>
+       <li>Add support for LZS compression <i>(compatible with latest Cisco ASA and ocserv)</i>.</li>
+       <li>Add support for <a href="https://code.google.com/p/lz4/">LZ4</a> compression <i>(compatible with ocserv)</i>.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.03.tar.gz">OpenConnect v7.03</a></b>
