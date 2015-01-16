@@ -123,29 +123,6 @@ static void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *
 		*mtu = 1280;
 }
 
-void cstp_free_splits(struct openconnect_info *vpninfo)
-{
-	struct oc_split_include *inc;
-
-	for (inc = vpninfo->ip_info.split_includes; inc; ) {
-		struct oc_split_include *next = inc->next;
-		free(inc);
-		inc = next;
-	}
-	for (inc = vpninfo->ip_info.split_excludes; inc; ) {
-		struct oc_split_include *next = inc->next;
-		free(inc);
-		inc = next;
-	}
-	for (inc = vpninfo->ip_info.split_dns; inc; ) {
-		struct oc_split_include *next = inc->next;
-		free(inc);
-		inc = next;
-	}
-	vpninfo->ip_info.split_dns = vpninfo->ip_info.split_includes =
-		vpninfo->ip_info.split_excludes = NULL;
-}
-
 /* if DTLS 1.2 is supported */
 #if defined(DTLS_GNUTLS) && GNUTLS_VERSION_NUMBER >= 0x030200
 # define DEFAULT_CIPHER_LIST "OC-DTLS1_2-AES256-GCM:OC-DTLS1_2-AES128-GCM:AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA"
@@ -200,7 +177,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
 	for (i = 0; i < 3; i++)
 		vpninfo->ip_info.dns[i] = vpninfo->ip_info.nbns[i] = NULL;
-	cstp_free_splits(vpninfo);
+	free_split_routes(vpninfo);
 
  retry:
 	calculate_mtu(vpninfo, &base_mtu, &mtu);

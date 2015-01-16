@@ -220,7 +220,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free_optlist(vpninfo->cookies);
 	free_optlist(vpninfo->cstp_options);
 	free_optlist(vpninfo->dtls_options);
-	cstp_free_splits(vpninfo);
+	free_split_routes(vpninfo);
 	free(vpninfo->hostname);
 	free(vpninfo->unique_hostname);
 	free(vpninfo->urlpath);

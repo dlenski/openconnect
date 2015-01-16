@@ -650,6 +650,7 @@ int script_setenv_int(struct openconnect_info *vpninfo, const char *opt, int val
 void prepare_script_env(struct openconnect_info *vpninfo);
 int script_config_tun(struct openconnect_info *vpninfo, const char *reason);
 int apply_script_env(struct oc_vpn_option *envs);
+void free_split_routes(struct openconnect_info *vpninfo);
 
 /* tun.c / tun-win32.c */
 void os_shutdown_tun(struct openconnect_info *vpninfo);
@@ -671,7 +672,6 @@ void cstp_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 int cstp_connect(struct openconnect_info *vpninfo);
 int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int cstp_bye(struct openconnect_info *vpninfo, const char *reason);
-void cstp_free_splits(struct openconnect_info *vpninfo);
 int decompress_and_queue_packet(struct openconnect_info *vpninfo,
 				unsigned char *buf, int len);
 int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt *this);
