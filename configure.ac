@@ -199,6 +199,11 @@ if test "$ac_cv_func_nl_langinfo" = "yes"; then
 fi
 AM_CONDITIONAL(OPENCONNECT_ICONV, [test "$am_cv_func_iconv" = "yes"])
 
+AC_ARG_ENABLE([lzstest],
+	[ --enable-lzstest         build LZS test harness],
+	[BUILD_LZSTEST=$enableval], [BUILD_LZSTEST=no])
+AM_CONDITIONAL(BUILD_LZSTEST, [test "$BUILD_LZSTEST" = "yes"])
+
 AC_ARG_ENABLE([nls],
 	[  --disable-nls           do not use Native Language Support],
 	[USE_NLS=$enableval], [USE_NLS=yes])
