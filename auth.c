@@ -25,6 +25,11 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#ifndef _WIN32
+#include <pwd.h>
+#endif
 
 #ifdef HAVE_LIBOATH
 #include <liboath/oath.h>
@@ -1109,4 +1114,554 @@ static int do_gen_tokencode(struct openconnect_info *vpninfo,
 	default:
 		return -EINVAL;
 	}
+}
+
+static int fetch_config(struct openconnect_info *vpninfo)
+{
+	struct oc_text_buf *buf;
+	int result;
+	unsigned char local_sha1_bin[SHA1_SIZE];
+	char local_sha1_ascii[(SHA1_SIZE * 2)+1];
+	int i;
+
+	if (!vpninfo->profile_url || !vpninfo->profile_sha1 || !vpninfo->write_new_config)
+		return -ENOENT;
+
+	if (!strncasecmp(vpninfo->xmlsha1, vpninfo->profile_sha1, SHA1_SIZE * 2)) {
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Not downloading XML profile because SHA1 already matches\n"));
+		return 0;
+	}
+
+	if ((result = openconnect_open_https(vpninfo))) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to open HTTPS connection to %s\n"),
+			     vpninfo->hostname);
+		return result;
+	}
+
+	buf = buf_alloc();
+	buf_append(buf, "GET %s HTTP/1.1\r\n", vpninfo->profile_url);
+	cstp_common_headers(vpninfo, buf);
+	if (vpninfo->xmlpost)
+		buf_append(buf, "Cookie: webvpn=%s\r\n", vpninfo->cookie);
+	buf_append(buf, "\r\n");
+
+	if (buf_error(buf))
+		return buf_free(buf);
+
+	if (vpninfo->ssl_write(vpninfo, buf->data, buf->pos) != buf->pos) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to send GET request for new config\n"));
+		buf_free(buf);
+		return -EIO;
+	}
+
+	result = process_http_response(vpninfo, 0, NULL, buf);
+	if (result < 0) {
+		/* We'll already have complained about whatever offended us */
+		buf_free(buf);
+		return -EINVAL;
+	}
+
+	if (result != 200) {
+		buf_free(buf);
+		return -EINVAL;
+	}
+
+	openconnect_sha1(local_sha1_bin, buf->data, buf->pos);
+
+	for (i = 0; i < SHA1_SIZE; i++)
+		sprintf(&local_sha1_ascii[i*2], "%02x", local_sha1_bin[i]);
+
+	if (strcasecmp(vpninfo->profile_sha1, local_sha1_ascii)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Downloaded config file did not match intended SHA1\n"));
+		buf_free(buf);
+		return -EINVAL;
+	}
+
+	vpn_progress(vpninfo, PRG_DEBUG, _("Downloaded new XML profile\n"));
+
+	result = vpninfo->write_new_config(vpninfo->cbdata, buf->data, buf->pos);
+	buf_free(buf);
+	return result;
+}
+
+static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int buflen)
+{
+#ifdef _WIN32
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Error: Running the 'Cisco Secure Desktop' trojan on Windows is not yet implemented.\n"));
+	return -EPERM;
+#else
+	char fname[64];
+	int fd, ret;
+
+	if (!vpninfo->csd_wrapper && !buflen) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Error: Server asked us to run CSD hostscan.\n"
+			       "You need to provide a suitable --csd-wrapper argument.\n"));
+		return -EINVAL;
+	}
+
+	if (!vpninfo->uid_csd_given && !vpninfo->csd_wrapper) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
+			       "This facility is disabled by default for security reasons, so you may wish to enable it.\n"));
+		return -EPERM;
+	}
+
+#ifndef __linux__
+	vpn_progress(vpninfo, PRG_INFO,
+		     _("Trying to run Linux CSD trojan script.\n"));
+#endif
+
+	fname[0] = 0;
+	if (buflen) {
+		struct oc_vpn_option *opt;
+		const char *tmpdir = NULL;
+
+		/* If the caller wanted $TMPDIR set for the CSD script, that
+		   means for us too; look through the csd_env for a TMPDIR
+		   override. */
+		for (opt = vpninfo->csd_env; opt; opt = opt->next) {
+			if (!strcmp(opt->option, "TMPDIR")) {
+				tmpdir = opt->value;
+				break;
+			}
+		}
+		if (!opt)
+			tmpdir = getenv("TMPDIR");
+
+		if (!tmpdir && !access("/var/tmp", W_OK))
+			tmpdir = "/var/tmp";
+		if (!tmpdir)
+			tmpdir = "/tmp";
+
+		if (access(tmpdir, W_OK))
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Temporary directory '%s' is not writable: %s\n"),
+				     tmpdir, strerror(errno));
+
+		snprintf(fname, 64, "%s/csdXXXXXX", tmpdir);
+		fd = mkstemp(fname);
+		if (fd < 0) {
+			int err = -errno;
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to open temporary CSD script file: %s\n"),
+				     strerror(errno));
+			return err;
+		}
+
+		ret = write(fd, (void *)buf, buflen);
+		if (ret != buflen) {
+			int err = -errno;
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to write temporary CSD script file: %s\n"),
+				     strerror(errno));
+			return err;
+		}
+		fchmod(fd, 0755);
+		close(fd);
+	}
+
+	if (!fork()) {
+		char scertbuf[MD5_SIZE * 2 + 1];
+		char ccertbuf[MD5_SIZE * 2 + 1];
+		char *csd_argv[32];
+		int i = 0;
+
+		if (vpninfo->uid_csd_given && vpninfo->uid_csd != getuid()) {
+			struct passwd *pw;
+
+			if (setuid(vpninfo->uid_csd)) {
+				fprintf(stderr, _("Failed to set uid %ld\n"),
+					(long)vpninfo->uid_csd);
+				exit(1);
+			}
+			if (!(pw = getpwuid(vpninfo->uid_csd))) {
+				fprintf(stderr, _("Invalid user uid=%ld\n"),
+					(long)vpninfo->uid_csd);
+				exit(1);
+			}
+			setenv("HOME", pw->pw_dir, 1);
+			if (chdir(pw->pw_dir)) {
+				fprintf(stderr, _("Failed to change to CSD home directory '%s': %s\n"),
+					pw->pw_dir, strerror(errno));
+				exit(1);
+			}
+		}
+		if (getuid() == 0 && !vpninfo->csd_wrapper) {
+			fprintf(stderr, _("Warning: you are running insecure "
+					  "CSD code with root privileges\n"
+					  "\t Use command line option \"--csd-user\"\n"));
+		}
+		/* Spurious stdout output from the CSD trojan will break both
+		   the NM tool and the various cookieonly modes. */
+		dup2(2, 1);
+		if (vpninfo->csd_wrapper)
+			csd_argv[i++] = openconnect_utf8_to_legacy(vpninfo,
+								   vpninfo->csd_wrapper);
+		csd_argv[i++] = fname;
+		csd_argv[i++] = (char *)"-ticket";
+		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->csd_ticket) == -1)
+			goto out;
+		csd_argv[i++] = (char *)"-stub";
+		csd_argv[i++] = (char *)"\"0\"";
+		csd_argv[i++] = (char *)"-group";
+		if (asprintf(&csd_argv[i++], "\"%s\"", vpninfo->authgroup?:"") == -1)
+			goto out;
+
+		openconnect_local_cert_md5(vpninfo, ccertbuf);
+		scertbuf[0] = 0;
+		get_cert_md5_fingerprint(vpninfo, vpninfo->peer_cert, scertbuf);
+		csd_argv[i++] = (char *)"-certhash";
+		if (asprintf(&csd_argv[i++], "\"%s:%s\"", scertbuf, ccertbuf) == -1)
+			goto out;
+
+		csd_argv[i++] = (char *)"-url";
+		if (asprintf(&csd_argv[i++], "\"https://%s%s\"", vpninfo->hostname, vpninfo->csd_starturl) == -1)
+			goto out;
+
+		csd_argv[i++] = (char *)"-langselen";
+		csd_argv[i++] = NULL;
+
+		if (setenv("CSD_TOKEN", vpninfo->csd_token, 1))
+			goto out;
+		if (setenv("CSD_HOSTNAME", vpninfo->hostname, 1))
+			goto out;
+
+		apply_script_env(vpninfo->csd_env);
+
+		execv(csd_argv[0], csd_argv);
+
+out:
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to exec CSD script %s\n"), csd_argv[0]);
+		exit(1);
+	}
+
+	free(vpninfo->csd_stuburl);
+	vpninfo->csd_stuburl = NULL;
+	free(vpninfo->urlpath);
+	vpninfo->urlpath = strdup(vpninfo->csd_waiturl +
+				  (vpninfo->csd_waiturl[0] == '/' ? 1 : 0));
+	free(vpninfo->csd_waiturl);
+	vpninfo->csd_waiturl = NULL;
+	vpninfo->csd_scriptname = strdup(fname);
+
+	http_add_cookie(vpninfo, "sdesktop", vpninfo->csd_token);
+	return 0;
+#endif /* !_WIN32 */
+}
+
+
+/* Return value:
+ *  < 0, if the data is unrecognized
+ *  = 0, if the page contains an XML document
+ *  = 1, if the page is a wait/refresh HTML page
+ */
+static int check_response_type(struct openconnect_info *vpninfo, char *form_buf)
+{
+	if (strncmp(form_buf, "<?xml", 5)) {
+		/* Not XML? Perhaps it's HTML with a refresh... */
+		if (strcasestr(form_buf, "http-equiv=\"refresh\""))
+			return 1;
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Unknown response from server\n"));
+		return -EINVAL;
+	}
+	return 0;
+}
+
+/* Return value:
+ *  < 0, on error
+ *  > 0, no cookie (user cancel)
+ *  = 0, obtained cookie
+ */
+int cstp_obtain_cookie(struct openconnect_info *vpninfo)
+{
+	struct oc_vpn_option *opt;
+	char *form_buf = NULL;
+	struct oc_auth_form *form = NULL;
+	int result, buflen, tries;
+	struct oc_text_buf *request_body = buf_alloc();
+	const char *request_body_type = "application/x-www-form-urlencoded";
+	const char *method = "POST";
+	char *orig_host = NULL, *orig_path = NULL, *form_path = NULL;
+	int orig_port = 0;
+	int cert_rq, cert_sent = !vpninfo->cert;
+
+#ifdef HAVE_LIBSTOKEN
+	/* Step 1: Unlock software token (if applicable) */
+	if (vpninfo->token_mode == OC_TOKEN_MODE_STOKEN) {
+		result = prepare_stoken(vpninfo);
+		if (result)
+			return result;
+	}
+#endif
+
+	if (!vpninfo->xmlpost)
+		goto no_xmlpost;
+
+	/*
+	 * Step 2: Probe for XML POST compatibility
+	 *
+	 * This can get stuck in a redirect loop, so give up after any of:
+	 *
+	 * a) HTTP error (e.g. 400 Bad Request)
+	 * b) Same-host redirect (e.g. Location: /foo/bar)
+	 * c) Three redirects without seeing a plausible login form
+	 */
+newgroup:
+	buf_truncate(request_body);
+	result = xmlpost_initial_req(vpninfo, request_body, 0);
+	if (result < 0)
+		goto out;
+
+	free(orig_host);
+	free(orig_path);
+	orig_host = strdup(vpninfo->hostname);
+	orig_path = vpninfo->urlpath ? strdup(vpninfo->urlpath) : NULL;
+	orig_port = vpninfo->port;
+
+	for (tries = 0; ; tries++) {
+		if (tries == 3) {
+		fail:
+			if (vpninfo->xmlpost) {
+			no_xmlpost:
+				/* Try without XML POST this time... */
+				tries = 0;
+				vpninfo->xmlpost = 0;
+				request_body_type = NULL;
+				buf_truncate(request_body);
+				method = "GET";
+				if (orig_host) {
+					openconnect_set_hostname(vpninfo, orig_host);
+					free(orig_host);
+					orig_host = NULL;
+					free(vpninfo->urlpath);
+					vpninfo->urlpath = orig_path;
+					orig_path = NULL;
+					vpninfo->port = orig_port;
+				}
+				openconnect_close_https(vpninfo, 0);
+			} else {
+				result = -EIO;
+				goto out;
+			}
+		}
+
+		result = do_https_request(vpninfo, method, request_body_type, request_body,
+					  &form_buf, 0);
+		if (vpninfo->got_cancel_cmd) {
+			result = 1;
+			goto out;
+		}
+		if (result == -EINVAL)
+			goto fail;
+		if (result < 0)
+			goto out;
+
+		/* Some ASAs forget to send the TLS cert request on the initial connection.
+		 * If we have a client cert, disable HTTP keepalive until we get a real
+		 * login form (not a redirect). */
+		if (!cert_sent)
+			openconnect_close_https(vpninfo, 0);
+
+		/* XML POST does not allow local redirects, but GET does. */
+		if (vpninfo->xmlpost &&
+		    vpninfo->redirect_type == REDIR_TYPE_LOCAL)
+			goto fail;
+		else if (vpninfo->redirect_type != REDIR_TYPE_NONE)
+			continue;
+
+		result = parse_xml_response(vpninfo, form_buf, &form, &cert_rq);
+		if (result < 0)
+			goto fail;
+
+		if (cert_rq) {
+			int cert_failed = 0;
+
+			free_auth_form(form);
+			form = NULL;
+
+			if (!cert_sent && vpninfo->cert) {
+				/* Try again on a fresh connection. */
+				cert_sent = 1;
+			} else if (cert_sent && vpninfo->cert) {
+				/* Try again with <client-cert-fail/> in the request */
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Server requested SSL client certificate after one was provided\n"));
+				cert_failed = 1;
+			} else {
+				vpn_progress(vpninfo, PRG_INFO,
+					     _("Server requested SSL client certificate; none was configured\n"));
+				cert_failed = 1;
+			}
+			buf_truncate(request_body);
+			result = xmlpost_initial_req(vpninfo, request_body, cert_failed);
+			if (result < 0)
+				goto fail;
+			continue;
+		}
+		if (form && form->action) {
+			vpninfo->redirect_url = strdup(form->action);
+			handle_redirect(vpninfo);
+		}
+		break;
+	}
+	if (vpninfo->xmlpost)
+		vpn_progress(vpninfo, PRG_INFO, _("XML POST enabled\n"));
+
+	/* Step 4: Run the CSD trojan, if applicable */
+	if (vpninfo->csd_starturl && vpninfo->csd_waiturl) {
+		buflen = 0;
+
+		if (vpninfo->urlpath) {
+			form_path = strdup(vpninfo->urlpath);
+			if (!form_path) {
+				result = -ENOMEM;
+				goto out;
+			}
+		}
+
+		/* fetch the CSD program, if available */
+		if (vpninfo->csd_stuburl) {
+			vpninfo->redirect_url = vpninfo->csd_stuburl;
+			vpninfo->csd_stuburl = NULL;
+			handle_redirect(vpninfo);
+
+			buflen = do_https_request(vpninfo, "GET", NULL, NULL, &form_buf, 0);
+			if (buflen <= 0) {
+				result = -EINVAL;
+				goto out;
+			}
+		}
+
+		/* This is the CSD stub script, which we now need to run */
+		result = run_csd_script(vpninfo, form_buf, buflen);
+		if (result)
+			goto out;
+
+		/* vpninfo->urlpath now points to the wait page */
+		while (1) {
+			result = do_https_request(vpninfo, "GET", NULL, NULL, &form_buf, 0);
+			if (result <= 0)
+				break;
+
+			result = check_response_type(vpninfo, form_buf);
+			if (result <= 0)
+				break;
+
+			vpn_progress(vpninfo, PRG_INFO,
+				     _("Refreshing %s after 1 second...\n"),
+				     vpninfo->urlpath);
+			sleep(1);
+		}
+		if (result < 0)
+			goto out;
+
+		/* refresh the form page, to see if we're authorized now */
+		free(vpninfo->urlpath);
+		vpninfo->urlpath = form_path;
+		form_path = NULL;
+
+		result = do_https_request(vpninfo,
+					  vpninfo->xmlpost ? "POST" : "GET",
+					  request_body_type, request_body, &form_buf, 1);
+		if (result < 0)
+			goto out;
+
+		result = parse_xml_response(vpninfo, form_buf, &form, NULL);
+		if (result < 0)
+			goto out;
+	}
+
+	/* Step 5: Ask the user to fill in the auth form; repeat as necessary */
+	while (1) {
+		buf_truncate(request_body);
+		result = handle_auth_form(vpninfo, form, request_body,
+					  &method, &request_body_type);
+		if (result < 0 || result == OC_FORM_RESULT_CANCELLED)
+			goto out;
+		if (result == OC_FORM_RESULT_LOGGEDIN)
+			break;
+		if (result == OC_FORM_RESULT_NEWGROUP) {
+			free(form_buf);
+			form_buf = NULL;
+			free_auth_form(form);
+			form = NULL;
+			goto newgroup;
+		}
+
+		result = do_https_request(vpninfo, method, request_body_type, request_body,
+					  &form_buf, 1);
+		if (result < 0)
+			goto out;
+
+		result = parse_xml_response(vpninfo, form_buf, &form, NULL);
+		if (result < 0)
+			goto out;
+		if (form->action) {
+			vpninfo->redirect_url = strdup(form->action);
+			handle_redirect(vpninfo);
+		}
+	}
+
+	/* A return value of 2 means the XML form indicated
+	   success. We _should_ have a cookie... */
+
+	for (opt = vpninfo->cookies; opt; opt = opt->next) {
+
+		if (!strcmp(opt->option, "webvpn")) {
+			free(vpninfo->cookie);
+			vpninfo->cookie = strdup(opt->value);
+		} else if (vpninfo->write_new_config && !strcmp(opt->option, "webvpnc")) {
+			char *tok = opt->value;
+			char *bu = NULL, *fu = NULL, *sha = NULL;
+
+			do {
+				if (tok != opt->value)
+					*(tok++) = 0;
+
+				if (!strncmp(tok, "bu:", 3))
+					bu = tok + 3;
+				else if (!strncmp(tok, "fu:", 3))
+					fu = tok + 3;
+				else if (!strncmp(tok, "fh:", 3))
+					sha = tok + 3;
+			} while ((tok = strchr(tok, '&')));
+
+			if (bu && fu && sha) {
+				if (asprintf(&vpninfo->profile_url, "%s%s", bu, fu) == -1) {
+					result = -ENOMEM;
+					goto out;
+				}
+				vpninfo->profile_sha1 = strdup(sha);
+			}
+		}
+	}
+	result = 0;
+
+	fetch_config(vpninfo);
+
+out:
+	buf_free(request_body);
+
+	free (orig_host);
+	free (orig_path);
+
+	free(form_path);
+	free(form_buf);
+	free_auth_form(form);
+
+	if (vpninfo->csd_scriptname) {
+		unlink(vpninfo->csd_scriptname);
+		free(vpninfo->csd_scriptname);
+		vpninfo->csd_scriptname = NULL;
+	}
+
+	return result;
 }

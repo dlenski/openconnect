@@ -205,10 +205,16 @@ struct proxy_auth_state {
 struct vpn_proto {
 	int (*vpn_close_session)(struct openconnect_info *vpninfo, const char *reason);
 
+	/* This does the full authentication, calling back as appropriate */
+	int (*obtain_cookie)(struct openconnect_info *vpninfo);
+
 	/* Establish the TCP connection (and obtain configuration) */
 	int (*tcp_connect)(struct openconnect_info *vpninfo);
 
 	int (*tcp_mainloop)(struct openconnect_info *vpninfo, int *timeout);
+
+	/* Add headers common to each HTTP request */
+	void (*add_http_headers)(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
 
 	/* Set up the UDP (DTLS) connection. Doesn't actually *start* it. */
 	int (*udp_setup)(struct openconnect_info *vpninfo, int attempt_period);
@@ -661,6 +667,7 @@ void dtls_close(struct openconnect_info *vpninfo);
 void dtls_shutdown(struct openconnect_info *vpninfo);
 
 /* cstp.c */
+void cstp_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
 int cstp_connect(struct openconnect_info *vpninfo);
 int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int cstp_bye(struct openconnect_info *vpninfo, const char *reason);
@@ -786,6 +793,7 @@ int handle_auth_form(struct openconnect_info *vpninfo,
 void free_auth_form(struct oc_auth_form *form);
 int xmlpost_initial_req(struct openconnect_info *vpninfo,
 			struct oc_text_buf *request_body, int cert_fail);
+int cstp_obtain_cookie(struct openconnect_info *vpninfo);
 
 /* http.c */
 struct oc_text_buf *buf_alloc(void);
@@ -807,6 +815,15 @@ void cleanup_proxy_auth(struct openconnect_info *vpninfo);
 int process_proxy(struct openconnect_info *vpninfo, int ssl_sock);
 int internal_parse_url(const char *url, char **res_proto, char **res_host,
 		       int *res_port, char **res_path, int default_port);
+int do_https_request(struct openconnect_info *vpninfo, const char *method,
+		     const char *request_body_type, struct oc_text_buf *request_body,
+		     char **form_buf, int fetch_redirect);
+int http_add_cookie(struct openconnect_info *vpninfo,
+			   const char *option, const char *value);
+int process_http_response(struct openconnect_info *vpninfo, int connect,
+			  int (*header_cb)(struct openconnect_info *, char *, char *),
+			  struct oc_text_buf *body);
+int handle_redirect(struct openconnect_info *vpninfo);
 
 /* ntlm.c */
 int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
