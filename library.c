@@ -90,7 +90,6 @@ struct openconnect_info *openconnect_vpninfo_new(const char *useragent,
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
 #endif
-
 	vpninfo->proto.vpn_close_session = cstp_bye;
 	vpninfo->proto.tcp_connect = cstp_connect;
 	vpninfo->proto.tcp_mainloop = cstp_mainloop;
@@ -104,7 +103,6 @@ struct openconnect_info *openconnect_vpninfo_new(const char *useragent,
 #else
 	vpninfo->dtls_state = DTLS_DISABLED;
 #endif
-
 	return vpninfo;
 
 err:
@@ -112,6 +110,20 @@ err:
 	free(vpninfo->useragent);
 	free(vpninfo);
 	return NULL;
+}
+
+void openconnect_set_juniper(struct openconnect_info *vpninfo)
+{
+	vpninfo->proto.vpn_close_session = NULL;
+	vpninfo->proto.tcp_connect = oncp_connect;
+	vpninfo->proto.tcp_mainloop = oncp_mainloop;
+	vpninfo->proto.add_http_headers = NULL;
+	vpninfo->proto.obtain_cookie = oncp_obtain_cookie;
+	vpninfo->proto.udp_setup = NULL;
+	vpninfo->proto.udp_mainloop = NULL;
+	vpninfo->proto.udp_close = NULL;
+	vpninfo->proto.udp_shutdown = NULL;
+	vpninfo->dtls_state = DTLS_DISABLED;
 }
 
 int openconnect_setup_dtls(struct openconnect_info *vpninfo,

@@ -67,6 +67,7 @@ OPENCONNECT_PRIVATE {
  global: @SYMVER_TIME@ @SYMVER_GETLINE@ @SYMVER_JAVA@ @SYMVER_ASPRINTF@ @SYMVER_VASPRINTF@ @SYMVER_WIN32_STRERROR@
 	openconnect_fopen_utf8;
 	openconnect_open_utf8;
+	openconnect_set_juniper;
 	openconnect_sha1;
 	openconnect_version_str;
  local:

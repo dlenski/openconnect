@@ -674,6 +674,11 @@ int decompress_and_queue_packet(struct openconnect_info *vpninfo,
 				unsigned char *buf, int len);
 int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt *this);
 
+/* oncp.c */
+int oncp_obtain_cookie(struct openconnect_info *vpninfo);
+int oncp_connect(struct openconnect_info *vpninfo);
+int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout);
+
 /* lzs.c */
 int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
 int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
@@ -841,6 +846,8 @@ int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *b
 /* library.c */
 void nuke_opt_values(struct oc_form_opt *opt);
 int process_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form);
+/* This is private for now since we haven't yet worked out what the API will be */
+void openconnect_set_juniper(struct openconnect_info *vpninfo);
 
 /* version.c */
 extern const char *openconnect_version_str;

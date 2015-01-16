@@ -159,6 +159,7 @@ enum {
 	OPT_DUMP_HTTP,
 	OPT_FORCE_DPD,
 	OPT_GNUTLS_DEBUG,
+	OPT_JUNIPER,
 	OPT_KEY_PASSWORD_FROM_FSID,
 	OPT_LIBPROXY,
 	OPT_NO_CERT_CHECK,
@@ -210,6 +211,7 @@ static const struct option long_options[] = {
 	OPTION("cookie", 1, 'C'),
 	OPTION("compression", 1, OPT_COMPRESSION),
 	OPTION("deflate", 0, 'd'),
+	OPTION("juniper", 0, OPT_JUNIPER),
 	OPTION("no-deflate", 0, 'D'),
 	OPTION("cert-expire-warning", 1, 'e'),
 	OPTION("usergroup", 1, 'g'),
@@ -1033,6 +1035,9 @@ int main(int argc, char **argv)
 			}
 			break;
 		}
+		case OPT_JUNIPER:
+			openconnect_set_juniper(vpninfo);
+			break;
 		case OPT_CSD_USER: {
 			char *strend;
 			vpninfo->uid_csd = strtol(config_arg, &strend, 0);
