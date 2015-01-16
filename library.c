@@ -91,6 +91,8 @@ struct openconnect_info *openconnect_vpninfo_new(const char *useragent,
 	bindtextdomain("openconnect", LOCALEDIR);
 #endif
 
+	vpninfo->proto.vpn_close_session = cstp_bye;
+
 	return vpninfo;
 
 err:

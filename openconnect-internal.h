@@ -201,7 +201,13 @@ struct proxy_auth_state {
 	char *challenge;
 };
 
+struct vpn_proto {
+	int (*vpn_close_session)(struct openconnect_info *vpninfo, const char *reason);
+};
+
 struct openconnect_info {
+	struct vpn_proto proto;
+
 #ifdef HAVE_ICONV
 	iconv_t ic_legacy_to_utf8;
 	iconv_t ic_utf8_to_legacy;

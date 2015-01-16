@@ -224,8 +224,8 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 #endif
 	}
 
-	if (vpninfo->quit_reason)
-		cstp_bye(vpninfo, vpninfo->quit_reason);
+	if (vpninfo->quit_reason && vpninfo->proto.vpn_close_session)
+		vpninfo->proto.vpn_close_session(vpninfo, vpninfo->quit_reason);
 
 	os_shutdown_tun(vpninfo);
 	return ret < 0 ? ret : -EIO;
