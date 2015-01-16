@@ -138,14 +138,12 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 		fd_set rfds, wfds, efds;
 #endif
 
-#ifdef HAVE_DTLS
-		if (vpninfo->dtls_state != DTLS_DISABLED) {
-			ret = dtls_mainloop(vpninfo, &timeout);
+		if (vpninfo->dtls_state > DTLS_DISABLED) {
+			ret = vpninfo->proto.udp_mainloop(vpninfo, &timeout);
 			if (vpninfo->quit_reason)
 				break;
 			did_work += ret;
 		}
-#endif
 
 		ret = cstp_mainloop(vpninfo, &timeout);
 		if (vpninfo->quit_reason)
@@ -173,7 +171,7 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 			   openconnect_mainloop() again */
 			openconnect_close_https(vpninfo, 0);
 			if (vpninfo->dtls_state != DTLS_DISABLED) {
-				dtls_close(vpninfo);
+				vpninfo->proto.udp_close(vpninfo);
 				vpninfo->dtls_state = DTLS_SLEEPING;
 				vpninfo->new_dtls_started = 0;
 			}

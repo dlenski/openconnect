@@ -135,10 +135,11 @@ struct pkt {
 #define KA_REKEY	4
 
 #define DTLS_NOSECRET	0
-#define DTLS_DISABLED	1
-#define DTLS_SLEEPING	2
-#define DTLS_CONNECTING	3
-#define DTLS_CONNECTED	4
+#define DTLS_SECRET	1
+#define DTLS_DISABLED	2
+#define DTLS_SLEEPING	3
+#define DTLS_CONNECTING	4
+#define DTLS_CONNECTED	5
 
 #define COMPR_DEFLATE	(1<<0)
 #define COMPR_LZS	(1<<1)
@@ -203,6 +204,19 @@ struct proxy_auth_state {
 
 struct vpn_proto {
 	int (*vpn_close_session)(struct openconnect_info *vpninfo, const char *reason);
+
+	/* Set up the UDP (DTLS) connection. Doesn't actually *start* it. */
+	int (*udp_setup)(struct openconnect_info *vpninfo, int attempt_period);
+
+	/* This will actually complete the UDP connection setup/handshake on the wire,
+	   as well as transporting packets */
+	int (*udp_mainloop)(struct openconnect_info *vpninfo, int *timeout);
+
+	/* Close the connection but leave the session setup so it restarts */
+	void (*udp_close)(struct openconnect_info *vpninfo);
+
+	/* Close and destroy the (UDP) session */
+	void (*udp_shutdown)(struct openconnect_info *vpninfo);
 };
 
 struct openconnect_info {
@@ -634,6 +648,7 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo);
 
 /* dtls.c */
 unsigned char unhex(const char *data);
+int dtls_setup(struct openconnect_info *vpninfo, int dtls_attempt_period);
 int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int dtls_try_handshake(struct openconnect_info *vpninfo);
 int connect_dtls_socket(struct openconnect_info *vpninfo);

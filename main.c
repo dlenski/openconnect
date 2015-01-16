@@ -940,7 +940,6 @@ int main(int argc, char **argv)
 	int autoproxy = 0;
 	int opt;
 	char *pidfile = NULL;
-	int use_dtls = 1;
 	FILE *fp = NULL;
 	char *config_arg;
 	char *config_filename;
@@ -1098,7 +1097,7 @@ int main(int argc, char **argv)
 			openconnect_set_system_trust(vpninfo, 0);
 			break;
 		case OPT_NO_DTLS:
-			use_dtls = 0;
+			vpninfo->dtls_state = DTLS_DISABLED;
 			break;
 		case OPT_COOKIEONLY:
 			cookieonly = 1;
@@ -1436,7 +1435,8 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	if (use_dtls && openconnect_setup_dtls(vpninfo, 60))
+	if (vpninfo->dtls_state != DTLS_DISABLED &&
+	    openconnect_setup_dtls(vpninfo, 60))
 		fprintf(stderr, _("Set up DTLS failed; using SSL instead\n"));
 
 	openconnect_get_ip_info(vpninfo, &ip_info, NULL, NULL);

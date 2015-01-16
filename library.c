@@ -92,6 +92,14 @@ struct openconnect_info *openconnect_vpninfo_new(const char *useragent,
 #endif
 
 	vpninfo->proto.vpn_close_session = cstp_bye;
+#ifdef HAVE_DTLS
+	vpninfo->proto.udp_setup = dtls_setup;
+	vpninfo->proto.udp_mainloop = dtls_mainloop;
+	vpninfo->proto.udp_close = dtls_close;
+	vpninfo->proto.udp_shutdown = dtls_shutdown;
+#else
+	vpninfo->dtls_state = DTLS_DISABLED;
+#endif
 
 	return vpninfo;
 
@@ -100,6 +108,18 @@ err:
 	free(vpninfo->useragent);
 	free(vpninfo);
 	return NULL;
+}
+
+int openconnect_setup_dtls(struct openconnect_info *vpninfo,
+			   int attempt_period)
+
+{
+	if (vpninfo->proto.udp_setup)
+		return vpninfo->proto.udp_setup(vpninfo, attempt_period);
+
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Built against SSL library with no Cisco DTLS support\n"));
+	return -EINVAL;
 }
 
 int openconnect_set_reported_os(struct openconnect_info *vpninfo,
@@ -158,7 +178,8 @@ static void free_optlist(struct oc_vpn_option *opt)
 void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 {
 	openconnect_close_https(vpninfo, 1);
-	dtls_shutdown(vpninfo);
+	if (vpninfo->proto.udp_shutdown)
+		vpninfo->proto.udp_shutdown(vpninfo);
 	if (vpninfo->cmd_fd_write != -1) {
 		closesocket(vpninfo->cmd_fd);
 		closesocket(vpninfo->cmd_fd_write);

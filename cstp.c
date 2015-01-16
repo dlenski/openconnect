@@ -222,20 +222,22 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			       vpninfo->disable_ipv6 ? "IPv4" : "IPv6,IPv4");
 	if (!vpninfo->disable_ipv6)
 		buf_append(reqbuf, "X-CSTP-Full-IPv6-Capability: true\r\n");
-	buf_append(reqbuf, "X-DTLS-Master-Secret: ");
-	for (i = 0; i < sizeof(vpninfo->dtls_secret); i++) {
-		buf_append(reqbuf, "%02X", vpninfo->dtls_secret[i]);
-		dtls_secret_set |= vpninfo->dtls_secret[i];
-	}
-	if (!dtls_secret_set) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("CRITICAL ERROR: DTLS master secret is uninitialised. Please report this.\n"));
-		return -EINVAL;
-	}
-	buf_append(reqbuf, "\r\nX-DTLS-CipherSuite: %s\r\n",
-			       vpninfo->dtls_ciphers ? : DEFAULT_CIPHER_LIST);
+	if (vpninfo->dtls_state != DTLS_DISABLED) {
+		buf_append(reqbuf, "X-DTLS-Master-Secret: ");
+		for (i = 0; i < sizeof(vpninfo->dtls_secret); i++) {
+			buf_append(reqbuf, "%02X", vpninfo->dtls_secret[i]);
+			dtls_secret_set |= vpninfo->dtls_secret[i];
+		}
+		if (!dtls_secret_set) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("CRITICAL ERROR: DTLS master secret is uninitialised. Please report this.\n"));
+			return -EINVAL;
+		}
+		buf_append(reqbuf, "\r\nX-DTLS-CipherSuite: %s\r\n",
+			   vpninfo->dtls_ciphers ? : DEFAULT_CIPHER_LIST);
 
-	append_compr_types(reqbuf, "DTLS", vpninfo->req_compr & ~COMPR_DEFLATE);
+		append_compr_types(reqbuf, "DTLS", vpninfo->req_compr & ~COMPR_DEFLATE);
+	}
 	buf_append(reqbuf, "\r\n");
 
 	if (buf_error(reqbuf)) {
@@ -586,7 +588,7 @@ int openconnect_make_cstp_connection(struct openconnect_info *vpninfo)
 		if (openconnect_random(vpninfo->dtls_secret, sizeof(vpninfo->dtls_secret)))
 			return -EINVAL;
 		/* The application will later call openconnect_setup_dtls() */
-		vpninfo->dtls_state = DTLS_DISABLED;
+		vpninfo->dtls_state = DTLS_SECRET;
 	}
 
 	ret = openconnect_open_https(vpninfo);
