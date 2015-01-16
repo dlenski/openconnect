@@ -117,7 +117,7 @@ void openconnect_set_juniper(struct openconnect_info *vpninfo)
 	vpninfo->proto.vpn_close_session = NULL;
 	vpninfo->proto.tcp_connect = oncp_connect;
 	vpninfo->proto.tcp_mainloop = oncp_mainloop;
-	vpninfo->proto.add_http_headers = NULL;
+	vpninfo->proto.add_http_headers = oncp_common_headers;
 	vpninfo->proto.obtain_cookie = oncp_obtain_cookie;
 	vpninfo->proto.udp_setup = NULL;
 	vpninfo->proto.udp_mainloop = NULL;

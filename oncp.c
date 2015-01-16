@@ -30,6 +30,24 @@
 
 #include "openconnect-internal.h"
 
+/* XX: This is actually a lot of duplication with the CSTP version. */
+void oncp_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+{
+	struct oc_vpn_option *opt;
+
+	buf_append(buf, "Host: %s\r\n", vpninfo->hostname);
+	buf_append(buf, "User-Agent: %s\r\n", vpninfo->useragent);
+	buf_append(buf, "Accept: */*\r\n");
+	buf_append(buf, "Accept-Encoding: identity\r\n");
+
+	if (vpninfo->cookies) {
+		buf_append(buf, "Cookie: ");
+		for (opt = vpninfo->cookies; opt; opt = opt->next)
+			buf_append(buf, "%s=%s%s", opt->option,
+				      opt->value, opt->next ? "; " : "\r\n");
+	}
+}
+
 int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 {
 	vpn_progress(vpninfo, PRG_ERR, _("oNCP authentication not yet implemented\n"));

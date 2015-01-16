@@ -678,6 +678,7 @@ int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt
 int oncp_obtain_cookie(struct openconnect_info *vpninfo);
 int oncp_connect(struct openconnect_info *vpninfo);
 int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout);
+void oncp_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
 
 /* lzs.c */
 int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
