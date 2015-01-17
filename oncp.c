@@ -293,7 +293,9 @@ static const unsigned char kmp_tail[] = { 0x01, 0x00, 0x00, 0x00, 0x00,
 					  0x00, 0x00, 0x00, 0x00, 0x00 };
 static const unsigned char kmp_tail_out[] = { 0x01, 0x00, 0x00, 0x00, 0x01,
 					      0x00, 0x00, 0x00, 0x00, 0x00 };
-
+static const unsigned char data_hdr[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+					  0x01, 0x2c, 0x01, 0x00, 0x00, 0x00,
+					  0x01, 0x00, 0x00, 0x00, 0x00, 0x00 };
 int oncp_connect(struct openconnect_info *vpninfo)
 {
 	int ret, ofs, kmp, kmpend, kmplen, attr, attrlen, group, grouplen, groupend;
@@ -499,7 +501,9 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	}
 	put_len32(reqbuf, group);
 	put_len16(reqbuf, kmp);
-	put_len16(reqbuf, 2);
+	/* Length at the start of the packet is little-endian */
+	reqbuf->data[0] = (reqbuf->pos - 2);
+	reqbuf->data[1] = (reqbuf->pos - 2) >> 8;
 
 	buf_hexdump(vpninfo,reqbuf);
 	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
@@ -513,5 +517,246 @@ int oncp_connect(struct openconnect_info *vpninfo)
 
 int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
-	return 0;
+	int ret;
+	int work_done = 0;
+
+	if (vpninfo->ssl_fd == -1)
+		goto do_reconnect;
+
+	/* FIXME: The poll() handling here is fairly simplistic. Actually,
+	   if the SSL connection stalls it could return a WANT_WRITE error
+	   on _either_ of the SSL_read() or SSL_write() calls. In that case,
+	   we should probably remove POLLIN from the events we're looking for,
+	   and add POLLOUT. As it is, though, it'll just chew CPU time in that
+	   fairly unlikely situation, until the write backlog clears. */
+	while (1) {
+		int len = vpninfo->ip_info.mtu;
+		int kmp, kmplen;
+
+		if (!vpninfo->cstp_pkt) {
+			vpninfo->cstp_pkt = malloc(sizeof(struct pkt) + len);
+			if (!vpninfo->cstp_pkt) {
+				vpn_progress(vpninfo, PRG_ERR, _("Allocation failed\n"));
+				break;
+			}
+		}
+
+		len = ssl_nonblock_read(vpninfo, vpninfo->cstp_pkt->oncp_hdr, len + 22);
+		if (!len)
+			break;
+		if (len < 0)
+			goto do_reconnect;
+		if (len < 22) {
+			vpn_progress(vpninfo, PRG_ERR, _("Short packet received (%d bytes)\n"), len);
+			vpninfo->quit_reason = "Short packet received";
+			return 1;
+		}
+
+		if (len != vpninfo->cstp_pkt->oncp_hdr[0] +
+		    (vpninfo->cstp_pkt->oncp_hdr[1] << 8) + 2)
+			goto unknown_pkt;
+
+		kmplen = (vpninfo->cstp_pkt->oncp_hdr[20] << 8) +
+			vpninfo->cstp_pkt->oncp_hdr[21];
+		if (len != kmplen + 22)
+			goto unknown_pkt;
+
+		kmp = (vpninfo->cstp_pkt->oncp_hdr[0] << 8) +
+			vpninfo->cstp_pkt->oncp_hdr[1];
+		vpn_progress(vpninfo, PRG_DEBUG, _("Incoming KMP message %d of size %d\n"),
+			     kmp, kmplen);
+		if (kmp != 300)
+			goto unknown_pkt;
+
+		vpninfo->ssl_times.last_rx = time(NULL);
+		switch (kmp) {
+		case 300:
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("Received uncompressed data packet of %d bytes\n"),
+				     kmplen);
+			vpninfo->cstp_pkt->len = kmplen;
+			queue_packet(&vpninfo->incoming_queue, vpninfo->cstp_pkt);
+			vpninfo->cstp_pkt = NULL;
+			work_done = 1;
+			break;
+
+		default:
+		unknown_pkt:
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Unknown packet (0x%x bytes) %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n"),
+				     len,
+				     vpninfo->cstp_pkt->oncp_hdr[0], vpninfo->cstp_pkt->oncp_hdr[1],
+				     vpninfo->cstp_pkt->oncp_hdr[2], vpninfo->cstp_pkt->oncp_hdr[3],
+				     vpninfo->cstp_pkt->oncp_hdr[4], vpninfo->cstp_pkt->oncp_hdr[5],
+				     vpninfo->cstp_pkt->oncp_hdr[6], vpninfo->cstp_pkt->oncp_hdr[7],
+				     vpninfo->cstp_pkt->oncp_hdr[8], vpninfo->cstp_pkt->oncp_hdr[9],
+				     vpninfo->cstp_pkt->oncp_hdr[10], vpninfo->cstp_pkt->oncp_hdr[11],
+				     vpninfo->cstp_pkt->oncp_hdr[12], vpninfo->cstp_pkt->oncp_hdr[13],
+				     vpninfo->cstp_pkt->oncp_hdr[14], vpninfo->cstp_pkt->oncp_hdr[15],
+				     vpninfo->cstp_pkt->oncp_hdr[16], vpninfo->cstp_pkt->oncp_hdr[17],
+				     vpninfo->cstp_pkt->oncp_hdr[18], vpninfo->cstp_pkt->oncp_hdr[19],
+				     vpninfo->cstp_pkt->oncp_hdr[20], vpninfo->cstp_pkt->oncp_hdr[21]);
+			vpninfo->quit_reason = "Unknown packet received";
+			return 1;
+		}
+	}
+
+	/* If SSL_write() fails we are expected to try again. With exactly
+	   the same data, at exactly the same location. So we keep the
+	   packet we had before.... */
+	if (vpninfo->current_ssl_pkt) {
+	handle_outgoing:
+		vpninfo->ssl_times.last_tx = time(NULL);
+		unmonitor_write_fd(vpninfo, ssl);
+
+		ret = ssl_nonblock_write(vpninfo,
+					 vpninfo->current_ssl_pkt->oncp_hdr,
+					 vpninfo->current_ssl_pkt->len + 22);
+		if (ret < 0) {
+#if 0
+			goto do_reconnect;
+#else
+		do_reconnect:
+			vpn_progress(vpninfo, PRG_ERR, _("Reconnect not implemented yet for oNCP\n"));
+			vpninfo->quit_reason = "Need reconnect";
+			return 1;
+#endif
+		}
+		else if (!ret) {
+#if 0 /* Not for Juniper yet */
+			/* -EAGAIN: ssl_nonblock_write() will have added the SSL
+			   fd to ->select_wfds if appropriate, so we can just
+			   return and wait. Unless it's been stalled for so long
+			   that DPD kicks in and we kill the connection. */
+			switch (ka_stalled_action(&vpninfo->ssl_times, timeout)) {
+			case KA_DPD_DEAD:
+				goto peer_dead;
+			case KA_REKEY:
+				goto do_rekey;
+			case KA_NONE:
+				return work_done;
+			default:
+				/* This should never happen */
+				;
+			}
+#else
+			return work_done;
+#endif
+		}
+
+		if (ret != vpninfo->current_ssl_pkt->len + 22) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("SSL wrote too few bytes! Asked for %d, sent %d\n"),
+				     vpninfo->current_ssl_pkt->len + 22, ret);
+			vpninfo->quit_reason = "Internal error";
+			return 1;
+		}
+		/* Don't free the 'special' packets */
+		if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt)
+			free(vpninfo->pending_deflated_pkt);
+		else
+#if 0 /* No DPD or keepalive for Juniper yet */
+		if (vpninfo->current_ssl_pkt != &dpd_pkt &&
+		    vpninfo->current_ssl_pkt != &dpd_resp_pkt &&
+		    vpninfo->current_ssl_pkt != &keepalive_pkt)
+#endif
+			free(vpninfo->current_ssl_pkt);
+		vpninfo->current_ssl_pkt = NULL;
+	}
+
+#if 0 /* Not understood for Juniper yet */
+	if (vpninfo->owe_ssl_dpd_response) {
+		vpninfo->owe_ssl_dpd_response = 0;
+		vpninfo->current_ssl_pkt = (struct pkt *)&dpd_resp_pkt;
+		goto handle_outgoing;
+	}
+
+	switch (keepalive_action(&vpninfo->ssl_times, timeout)) {
+	case KA_REKEY:
+	do_rekey:
+		/* Not that this will ever happen; we don't even process
+		   the setting when we're asked for it. */
+		vpn_progress(vpninfo, PRG_INFO, _("CSTP rekey due\n"));
+		if (vpninfo->ssl_times.rekey_method == REKEY_TUNNEL)
+			goto do_reconnect;
+		else if (vpninfo->ssl_times.rekey_method == REKEY_SSL) {
+			ret = cstp_handshake(vpninfo, 0);
+			if (ret) {
+				/* if we failed rehandshake try establishing a new-tunnel instead of failing */
+				vpn_progress(vpninfo, PRG_ERR, _("Rehandshake failed; attempting new-tunnel\n"));
+				goto do_reconnect;
+			}
+
+			goto do_dtls_reconnect;
+		}
+		break;
+
+	case KA_DPD_DEAD:
+	peer_dead:
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("CSTP Dead Peer Detection detected dead peer!\n"));
+	do_reconnect:
+		ret = cstp_reconnect(vpninfo);
+		if (ret) {
+			vpn_progress(vpninfo, PRG_ERR, _("Reconnect failed\n"));
+			vpninfo->quit_reason = "CSTP reconnect failed";
+			return ret;
+		}
+
+	do_dtls_reconnect:
+		/* succeeded, let's rekey DTLS, if it is not rekeying
+		 * itself. */
+		if (vpninfo->dtls_state > DTLS_SLEEPING &&
+		    vpninfo->dtls_times.rekey_method == REKEY_NONE) {
+			vpninfo->dtls_need_reconnect = 1;
+		}
+
+		return 1;
+
+	case KA_DPD:
+		vpn_progress(vpninfo, PRG_DEBUG, _("Send CSTP DPD\n"));
+
+		vpninfo->current_ssl_pkt = (struct pkt *)&dpd_pkt;
+		goto handle_outgoing;
+
+	case KA_KEEPALIVE:
+		/* No need to send an explicit keepalive
+		   if we have real data to send */
+		if (vpninfo->dtls_state != DTLS_CONNECTED && vpninfo->outgoing_queue)
+			break;
+
+		vpn_progress(vpninfo, PRG_DEBUG, _("Send CSTP Keepalive\n"));
+
+		vpninfo->current_ssl_pkt = (struct pkt *)&keepalive_pkt;
+		goto handle_outgoing;
+
+	case KA_NONE:
+		;
+	}
+#endif
+
+	/* Service outgoing packet queue, if no DTLS */
+	while (vpninfo->dtls_state != DTLS_CONNECTED && vpninfo->outgoing_queue) {
+		struct pkt *this = vpninfo->outgoing_queue;
+		vpninfo->outgoing_queue = this->next;
+		vpninfo->outgoing_qlen--;
+
+		/* Little-endian overall record length */
+		this->oncp_hdr[0] = (this->len + 22) & 0xff;
+		this->oncp_hdr[1] = (this->len + 22) >> 8;
+		memcpy(this->oncp_hdr + 2, data_hdr, 18);
+		/* Big-endian length in KMP message header */
+		this->oncp_hdr[20] = this->len >> 8;
+		this->oncp_hdr[21] = this->len & 0xff;
+
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Sending uncompressed data packet of %d bytes\n"),
+			     this->len);
+
+		vpninfo->current_ssl_pkt = this;
+		goto handle_outgoing;
+	}
+
+	/* Work is not done if we just got rid of packets off the queue */
+	return work_done;
 }

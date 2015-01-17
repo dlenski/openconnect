@@ -120,7 +120,13 @@
 struct pkt {
 	int len;
 	struct pkt *next;
-	unsigned char hdr[8];
+	union {
+		unsigned char oncp_hdr[22];
+		struct {
+			unsigned char pad[14];
+			unsigned char hdr[8];
+		};
+	};
 	unsigned char data[];
 };
 
