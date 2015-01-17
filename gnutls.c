@@ -214,6 +214,44 @@ static int openconnect_gnutls_gets(struct openconnect_info *vpninfo, char *buf, 
 	return i ?: ret;
 }
 
+int ssl_nonblock_read(struct openconnect_info *vpninfo, void *buf, int maxlen)
+{
+	int ret;
+
+	ret = gnutls_record_recv(vpninfo->https_sess, buf, maxlen);
+	if (ret > 0)
+		return ret;
+
+	if (ret != GNUTLS_E_AGAIN) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("SSL read error: %s; reconnecting.\n"),
+			     gnutls_strerror(ret));
+		return -EIO;
+	}
+	return 0;
+}
+
+int ssl_nonblock_write(struct openconnect_info *vpninfo, void *buf, int buflen)
+{
+	int ret;
+
+	ret = gnutls_record_send(vpninfo->https_sess, buf, buflen);
+	if (ret > 0)
+		return ret;
+
+	if (ret == GNUTLS_E_AGAIN) {
+		if (gnutls_record_get_direction(vpninfo->https_sess)) {
+			/* Waiting for the socket to become writable -- it's
+			   probably stalled, and/or the buffers are full */
+			monitor_write_fd(vpninfo, ssl);
+		}
+		return 0;
+	}
+	vpn_progress(vpninfo, PRG_ERR, _("SSL send failed: %s\n"),
+		     gnutls_strerror(ret));
+	return -1;
+}
+
 static int check_certificate_expiry(struct openconnect_info *vpninfo, gnutls_x509_crt_t cert)
 {
 	const char *reason = NULL;

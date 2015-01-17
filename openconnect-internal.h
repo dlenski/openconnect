@@ -713,6 +713,8 @@ int load_pkcs11_key(struct openconnect_info *vpninfo);
 int load_pkcs11_certificate(struct openconnect_info *vpninfo);
 
 /* {gnutls,openssl}.c */
+int ssl_nonblock_read(struct openconnect_info *vpninfo, void *buf, int maxlen);
+int ssl_nonblock_write(struct openconnect_info *vpninfo, void *buf, int buflen);
 int openconnect_open_https(struct openconnect_info *vpninfo);
 void openconnect_close_https(struct openconnect_info *vpninfo, int final);
 int cstp_handshake(struct openconnect_info *vpninfo, unsigned init);

@@ -215,6 +215,47 @@ static int openconnect_openssl_gets(struct openconnect_info *vpninfo, char *buf,
 	return i ?: ret;
 }
 
+int ssl_nonblock_read(struct openconnect_info *vpninfo, void *buf, int maxlen)
+{
+	int len, ret;
+
+	len = SSL_read(vpninfo->https_ssl, buf, maxlen);
+	if (len > 0)
+		return len;
+
+	ret = SSL_get_error(vpninfo->https_ssl, len);
+	if (ret == SSL_ERROR_SYSCALL || ret == SSL_ERROR_ZERO_RETURN) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("SSL read error %d (server probably closed connection); reconnecting.\n"),
+			     ret);
+		return -EIO;
+	}
+	return 0;
+}
+
+int ssl_nonblock_write(struct openconnect_info *vpninfo, void *buf, int buflen)
+{
+	int ret;
+
+	ret = SSL_write(vpninfo->https_ssl, buf, buflen);
+	if (ret > 0)
+		return ret;
+
+	ret = SSL_get_error(vpninfo->https_ssl, ret);
+	switch (ret) {
+	case SSL_ERROR_WANT_WRITE:
+		/* Waiting for the socket to become writable -- it's
+		   probably stalled, and/or the buffers are full */
+		monitor_write_fd(vpninfo, ssl);
+	case SSL_ERROR_WANT_READ:
+		return 0;
+
+	default:
+		vpn_progress(vpninfo, PRG_ERR, _("SSL_write failed: %d\n"), ret);
+		openconnect_report_ssl_errors(vpninfo);
+		return -1;
+	}
+}
 
 /* UI handling. All this just to handle the PIN callback from the TPM ENGINE,
    and turn it into a call to our ->process_auth_form function */
