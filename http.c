@@ -280,8 +280,8 @@ int buf_free(struct oc_text_buf *buf)
  * provided by their caller.
  */
 
-int http_add_cookie(struct openconnect_info *vpninfo,
-		    const char *option, const char *value)
+int http_add_cookie(struct openconnect_info *vpninfo, const char *option,
+		    const char *value, int replace)
 {
 	struct oc_vpn_option *new, **this;
 
@@ -307,6 +307,12 @@ int http_add_cookie(struct openconnect_info *vpninfo,
 	}
 	for (this = &vpninfo->cookies; *this; this = &(*this)->next) {
 		if (!strcmp(option, (*this)->option)) {
+			if (!replace) {
+				free(new->value);
+				free(new->option);
+				free(new);
+				return 0;
+			}
 			/* Replace existing cookie */
 			if (new)
 				new->next = (*this)->next;
@@ -417,7 +423,7 @@ int process_http_response(struct openconnect_info *vpninfo, int connect,
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("SSL certificate authentication failed\n"));
 
-			ret = http_add_cookie(vpninfo, colon, equals);
+			ret = http_add_cookie(vpninfo, colon, equals, 1);
 			if (ret)
 				return ret;
 		} else {

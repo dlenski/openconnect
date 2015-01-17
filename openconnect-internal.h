@@ -806,8 +806,8 @@ int internal_parse_url(const char *url, char **res_proto, char **res_host,
 int do_https_request(struct openconnect_info *vpninfo, const char *method,
 		     const char *request_body_type, struct oc_text_buf *request_body,
 		     char **form_buf, int fetch_redirect);
-int http_add_cookie(struct openconnect_info *vpninfo,
-			   const char *option, const char *value);
+int http_add_cookie(struct openconnect_info *vpninfo, const char *option,
+		    const char *value, int replace);
 int process_http_response(struct openconnect_info *vpninfo, int connect,
 			  int (*header_cb)(struct openconnect_info *, char *, char *),
 			  struct oc_text_buf *body);

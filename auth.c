@@ -1277,7 +1277,7 @@ out:
 	vpninfo->csd_waiturl = NULL;
 	vpninfo->csd_scriptname = strdup(fname);
 
-	http_add_cookie(vpninfo, "sdesktop", vpninfo->csd_token);
+	http_add_cookie(vpninfo, "sdesktop", vpninfo->csd_token, 1);
 	return 0;
 #endif /* !_WIN32 */
 }
