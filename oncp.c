@@ -101,6 +101,33 @@ static void buf_append_le16(struct oc_text_buf *buf, uint16_t val)
 	buf_append_bytes(buf, b, 2);
 }
 
+static void buf_append_tlv(struct oc_text_buf *buf, uint16_t val, uint32_t len, void *data)
+{
+	unsigned char b[6];
+
+	b[0] = val >> 8;
+	b[1] = val;
+	b[2] = len >> 24;
+	b[3] = len >> 16;
+	b[4] = len >> 8;
+	b[5] = len;
+	buf_append_bytes(buf, b, 6);
+	if (len)
+		buf_append_bytes(buf, data, len);
+}
+
+static void buf_append_tlv_be32(struct oc_text_buf *buf, uint16_t val, uint32_t data)
+{
+	unsigned char d[4];
+
+	d[0] = data >> 24;
+	d[1] = data >> 16;
+	d[2] = data >> 8;
+	d[3] = data;
+
+	buf_append_tlv(buf, val, 4, d);
+}
+
 static void buf_hexdump(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
 {
 	char linebuf[80];
@@ -241,6 +268,32 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 	return 0;
 }
 
+static void put_len16(struct oc_text_buf *buf, int where)
+{
+	int len = buf->pos - where;
+
+	buf->data[where - 1] = len;
+	buf->data[where - 2] = len >> 8;
+}
+
+static void put_len32(struct oc_text_buf *buf, int where)
+{
+	int len = buf->pos - where;
+
+	buf->data[where - 1] = len;
+	buf->data[where - 2] = len >> 8;
+	buf->data[where - 3] = len >> 16;
+	buf->data[where - 4] = len >> 24;
+}
+
+
+/* We don't know what these are so just hope they never change */
+static const unsigned char kmp_head[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+static const unsigned char kmp_tail[] = { 0x01, 0x00, 0x00, 0x00, 0x00,
+					  0x00, 0x00, 0x00, 0x00, 0x00 };
+static const unsigned char kmp_tail_out[] = { 0x01, 0x00, 0x00, 0x00, 0x01,
+					      0x00, 0x00, 0x00, 0x00, 0x00 };
+
 int oncp_connect(struct openconnect_info *vpninfo)
 {
 	int ret, ofs, kmp, kmpend, kmplen, attr, attrlen, group, grouplen, groupend;
@@ -258,7 +311,9 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	ret = openconnect_open_https(vpninfo);
 	if (ret)
 		return ret;
+
 	reqbuf = buf_alloc();
+
  	buf_append(reqbuf, "POST /dana/js?prot=1&svc=1 HTTP/1.1\r\n");
 	oncp_common_headers(vpninfo, reqbuf);
 	buf_append(reqbuf, "\r\n");
@@ -266,26 +321,25 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	if (buf_error(reqbuf)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error creating oNCP negotiation request\n"));
-		return buf_free(reqbuf);
+		ret = buf_error(reqbuf);
+		goto out;
 	}
 
 	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
-	if (ret < 0) {
-		buf_free(reqbuf);
-		return ret;
-	}
+	if (ret < 0)
+		goto out;
+
 	ret = process_http_response(vpninfo, 0, NULL, reqbuf);
 	if (ret < 0) {
 		/* We'll already have complained about whatever offended us */
-		buf_free(reqbuf);
-		return ret;
+		goto out;
 	}
 	if (ret != 200) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unexpected %d result from server\n"),
 			     ret);
-		buf_free(reqbuf);
-		return -EINVAL;
+		ret = -EINVAL;
+		goto out;
 	}
 
 	/* Now the second request. We should reduce the duplication
@@ -294,10 +348,9 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	   do_https_request() or a new helper function work for those
 	   too. */
 	ret = openconnect_open_https(vpninfo);
-	if (ret) {
-		buf_free(reqbuf);
-		return ret;
-	}
+	if (ret)
+		goto out;
+
 	buf_truncate(reqbuf);
 	buf_append(reqbuf, "POST /dana/js?prot=1&svc=4 HTTP/1.1\r\n");
 	oncp_common_headers(vpninfo, reqbuf);
@@ -306,32 +359,29 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	if (buf_error(reqbuf)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error creating oNCP negotiation request\n"));
-		return buf_free(reqbuf);
+		ret = buf_error(reqbuf);
+		goto out;
 	}
 	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
-	if (ret < 0) {
-		buf_free(reqbuf);
-		return ret;
-	}
+	if (ret < 0)
+		goto out;
+
 	ret = process_http_response(vpninfo, 1, NULL, reqbuf);
-	if (ret < 0) {
-		/* We'll already have complained about whatever offended us */
-		buf_free(reqbuf);
-		return ret;
-	}
+	if (ret < 0)
+		goto out;
+
 	if (ret != 200) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unexpected %d result from server\n"),
 			     ret);
-		buf_free(reqbuf);
-		return -EINVAL;
+		ret = -EINVAL;
+		goto out;
 	}
-
-	buf_truncate(reqbuf);
 
 	/* This is probably some kind of vestigial authentication packet, although
 	 * it's mostly obsolete now that the authentication is really done over
 	 * HTTP. We only send the hostname. */
+	buf_truncate(reqbuf);
 	buf_append_le16(reqbuf, sizeof(authpkt_head) + 2 +
 			strlen(vpninfo->localname) + sizeof(authpkt_tail));
 	buf_append_bytes(reqbuf, authpkt_head, sizeof(authpkt_head));
@@ -341,62 +391,58 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	if (buf_error(reqbuf)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error creating oNCP negotiation request\n"));
-		return buf_free(reqbuf);
+		ret = buf_error(reqbuf);
+		goto out;
 	}
 	buf_hexdump(vpninfo, reqbuf);
 	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
-	if (ret < 0) {
-		buf_free(reqbuf);
-		return ret;
-	}
+	if (ret < 0)
+		goto out;
 
 	/* Now we expect a three-byte response with what's presumably an
 	   error code */
 	ret = vpninfo->ssl_read(vpninfo, (void *)bytes, 3);
-	if (ret < 0) {
-		buf_free(reqbuf);
-		return ret;
-	}
+	if (ret < 0)
+		goto out;
+
 	if (ret != 3 || bytes[0] != 1 || bytes[1] != 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unexpected response of size %d after hostname packet\n"),
 			     ret);
-		buf_free(reqbuf);
-		return -EINVAL;
+		ret = -EINVAL;
+		goto out;
 	}
 	if (bytes[2]) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Server response to hostname packet is error 0x%02x\n"),
 			     bytes[2]);
-		buf_free(reqbuf);
-		return -EINVAL;
+		ret = -EINVAL;
+		goto out;
 	}
 
 	/* And then a KMP message 301 with the IP configuration */
 	ret = vpninfo->ssl_read(vpninfo, (void *)bytes, sizeof(bytes));
-	if (ret < 0) {
-		buf_free(reqbuf);
-		return -EINVAL;
-	}
+	if (ret < 0)
+		goto out;
 
 	if (ret < 0x16 || bytes[0] + (bytes[1] << 8) + 2 != ret) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Invalid packet waiting for KMP 301\n"));
-		buf_free(reqbuf);
-		return -EINVAL;
+		ret = -EINVAL;
+		goto out;
 	}
 
 	ofs = 2;
 
 	while (ofs < ret) {
 		/* Check the KMP message header. */
-		if (ofs + 20 > ret || memcmp(bytes + ofs, "\0\0\0\0\0\0", 6) ||
-		    memcmp(bytes + ofs + 8, "\1\0\0\0\0\0\0\0\0\0", 10)) {
+		if (ofs + 20 > ret || memcmp(bytes + ofs, kmp_head, sizeof(kmp_head)) ||
+		    memcmp(bytes + ofs + 8, kmp_tail, sizeof(kmp_tail))) {
 		eparse:
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to parse server response\n"));
-			buf_free(reqbuf);
-			return -EINVAL;
+			ret = -EINVAL;
+			goto out;
 		}
 		kmp = bytes[ofs + 7] + (bytes[ofs + 6] << 8);
 		kmplen = bytes[ofs + 19] + (bytes[ofs + 18] << 8);
@@ -434,7 +480,35 @@ int oncp_connect(struct openconnect_info *vpninfo)
 			}
 		}
 	}
-	return 0;
+
+	buf_truncate(reqbuf);
+	buf_append_le16(reqbuf, 0); /* Length. We'll fix it later. */
+	buf_append_bytes(reqbuf, kmp_head, sizeof(kmp_head));
+	buf_append_le16(reqbuf, 303); /* KMP message 303 */
+	buf_append_bytes(reqbuf, kmp_tail_out, sizeof(kmp_tail_out));
+	buf_append_le16(reqbuf, 0); /* KMP message length */
+	kmp = reqbuf->pos;
+	buf_append_tlv(reqbuf, 6, 0, NULL); /* TLV group 6 */
+	group = reqbuf->pos;
+	buf_append_tlv_be32(reqbuf, 2, vpninfo->ip_info.mtu);
+	if (buf_error(reqbuf)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Error creating oNCP negotiation request\n"));
+		ret = buf_error(reqbuf);
+		goto out;
+	}
+	put_len32(reqbuf, group);
+	put_len16(reqbuf, kmp);
+	put_len16(reqbuf, 2);
+
+	buf_hexdump(vpninfo,reqbuf);
+	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
+
+ out:
+	if (ret)
+		openconnect_close_https(vpninfo, 0);
+	buf_free(reqbuf);
+	return ret;
 }
 
 int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
