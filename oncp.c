@@ -28,21 +28,15 @@
 #include <sys/types.h>
 #include <stdarg.h>
 
+#include <libxml/HTMLparser.h>
+#include <libxml/HTMLtree.h>
+
 #include "openconnect-internal.h"
 
 /* XX: This is actually a lot of duplication with the CSTP version. */
 void oncp_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
 {
-	struct oc_vpn_option *opt;
-
-	buf_append(buf, "Host: %s\r\n", vpninfo->hostname);
-
-	if (vpninfo->cookies) {
-		buf_append(buf, "Cookie: ");
-		for (opt = vpninfo->cookies; opt; opt = opt->next)
-			buf_append(buf, "%s=%s%s", opt->option,
-				      opt->value, opt->next ? "; " : "\r\n");
-	}
+	http_common_headers(vpninfo, buf);
 
 	buf_append(buf, "Connection: close\r\n");
 //	buf_append(buf, "Content-Length: 256\r\n");
@@ -50,9 +44,220 @@ void oncp_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 //	buf_append(buf, "Accept-Encoding: gzip\r\n");
 }
 
+
+static xmlNodePtr htmlnode_next(xmlNodePtr top, xmlNodePtr node)
+{
+	if (node->children)
+		return node->children;
+
+	while (!node->next) {
+		node = node->parent;
+		if (!node || node == top)
+			return NULL;
+	}
+	return node->next;
+}
+
+static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_form *form,
+		     xmlNodePtr node)
+{
+	const char *type = (const char *)xmlGetProp(node, (unsigned char *)"type");
+	struct oc_form_opt **p = &form->opts;
+	struct oc_form_opt *opt;
+
+	if (!type)
+		return -EINVAL;
+
+	opt = calloc(1, sizeof(*opt));
+	if (!opt)
+		return -ENOMEM;
+	
+	if (!strcasecmp(type, "hidden")) {
+		opt->type = OC_FORM_OPT_HIDDEN;
+		xmlnode_get_prop(node, "name", &opt->name);
+		xmlnode_get_prop(node, "value", &opt->_value);
+		/* XXX: Handle tz_offset / tz */
+	} else if (!strcasecmp(type, "password")) {
+		opt->type = OC_FORM_OPT_PASSWORD;
+		xmlnode_get_prop(node, "name", &opt->name);
+		opt->label = strdup(opt->name);
+	} else if (!strcasecmp(type, "text")) {
+		opt->type = OC_FORM_OPT_TEXT;
+		xmlnode_get_prop(node, "name", &opt->name);
+		opt->label = strdup(opt->name);
+	} else if (!strcasecmp(type, "submit")) {
+		xmlnode_get_prop(node, "name", &opt->name);
+		if (!opt->name || strcmp(opt->name, "btnSubmit")) {
+			vpn_progress(vpninfo, PRG_DEBUG,
+				     _("Ignoring unknown form submit item '%s'\n"),
+				     opt->name);
+			free_opt(opt);
+			return -EINVAL;
+		}
+		xmlnode_get_prop(node, "value", &opt->_value);
+		opt->type = OC_FORM_OPT_HIDDEN;
+	} else {
+		vpn_progress(vpninfo, PRG_DEBUG,
+			     _("Ignoring unknown form input type '%s'\n"),
+			     type);
+		free_opt(opt);
+		return -EINVAL;
+	}
+
+	/* Append to the existing list */
+	while (*p)
+		p = &(*p)->next;
+	*p = opt;
+	return 0;
+}
+
+static int parse_select_node(struct openconnect_info *vpninfo, struct oc_auth_form *form,
+		     xmlNodePtr node)
+{
+	xmlNodePtr child;
+	struct oc_form_opt_select *opt;
+	struct oc_choice *choice;
+
+	opt = calloc(1, sizeof(*opt));
+	if (!opt)
+		return -ENOMEM;
+
+	xmlnode_get_prop(node, "name", &opt->form.name);
+	opt->form.label = strdup(opt->form.name);
+	opt->form.type = OC_FORM_OPT_SELECT;
+
+	for (child = node->children; child; child = child->next) {
+		if (!child->name || strcasecmp((const char *)child->name, "option"))
+			continue;
+
+		choice = calloc(1, sizeof(*choice));
+		if (!choice) {
+			free_opt((void *)choice);
+			return -ENOMEM;
+		}
+			
+		xmlnode_get_prop(node, "name", &choice->name);
+		choice->label = (char *)xmlNodeGetContent(child);
+		choice->name = strdup(choice->label);
+		realloc_inplace(opt->choices, sizeof(opt->choices[0]) * (opt->nr_choices+1));
+		if (!opt->choices) {
+			opt->nr_choices = 0;
+			free_opt((void *)opt);
+			return -ENOMEM;
+		}
+		opt->choices[opt->nr_choices++] = choice;
+	}
+	printf("nr_choices %d\n", opt->nr_choices);
+	/* Prepend to the existing list */
+	opt->form.next = form->opts;
+	form->opts = &opt->form;
+	return 0;
+}
+
+static struct oc_auth_form *parse_form_node(struct openconnect_info *vpninfo, xmlNodePtr node)
+{
+	struct oc_auth_form *form = calloc(1, sizeof(*form));
+	xmlNodePtr child;
+	
+	if (!form)
+		return NULL;
+
+	xmlnode_get_prop(node, "method", &form->method);
+	xmlnode_get_prop(node, "action", &form->action);
+	if (!form->method || strcasecmp(form->method, "POST") ||
+	    !form->action || !form->action[0]) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Cannot handle form method='%s', action='%s'\n"),
+			     form->method, form->action);
+		free(form);
+		return NULL;
+	}
+	xmlnode_get_prop(node, "name", &form->auth_id);
+	form->banner = form->auth_id;
+
+	for (child = htmlnode_next(node, node); child && child != node; child = htmlnode_next(node, child)) {
+		if (!child->name)
+			continue;
+
+		if (!strcasecmp((char *)child->name, "input"))
+			parse_input_node(vpninfo, form, child);
+		else if (!strcasecmp((char *)child->name, "select")) {
+			parse_select_node(vpninfo, form, child);
+			/* Skip its children */
+			while (child->children)
+				child = child->last;
+		}
+	}
+	return form;
+}
+
 int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 {
+	int ret;
+	char *form_buf = NULL;
+	struct oc_text_buf *buf;
+	xmlDocPtr doc = NULL;
+	xmlNodePtr node, root;
+	struct oc_auth_form *form = NULL;
+
+	ret = do_https_request(vpninfo, "GET", NULL, NULL, &form_buf, 1);
+	if (ret < 0)
+		return ret;
+
+	buf = buf_alloc();
+	buf_append(buf, "https://%s", vpninfo->hostname);
+	if (vpninfo->port != 443)
+		buf_append(buf, ":%d", vpninfo->port);
+	buf_append(buf, "/");
+	if (vpninfo->urlpath)
+		buf_append(buf, "%s", vpninfo->urlpath);
+
+	if (buf_error(buf)) {
+		free(form_buf);
+		return buf_free(buf);
+	}
+
+	doc = htmlReadMemory(form_buf, ret, buf->data, NULL,
+			     HTML_PARSE_RECOVER|HTML_PARSE_NOERROR|HTML_PARSE_NOWARNING|HTML_PARSE_NONET);
+	buf_free(buf);
+	buf = NULL;
+	free(form_buf);
+
+	if (!doc) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to parse HTML document\n"));
+		return -EINVAL;
+	}
+	for (root = node = xmlDocGetRootElement(doc); node; node = htmlnode_next(root, node)) {
+		if (node->name && !strcasecmp((char *)node->name, "form")) {
+			form = parse_form_node(vpninfo, node);
+			break;
+		}
+	}
+	if (!form) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to find or parse web form in login page\n"));
+		ret = -EINVAL;
+		goto out;
+	}
+	ret = process_auth_form(vpninfo, form);
+	if (ret)
+		return ret;
+	buf = buf_alloc();
+	append_form_opts(vpninfo, form, buf);
+	if (buf_error(buf))
+		return buf_free(buf);
+
+
+	printf("Form response '%s'\n", buf->data);
+	/* POST it ... */
+		
 	vpn_progress(vpninfo, PRG_ERR, _("oNCP authentication not yet implemented\n"));
+ out:
+//	if (form)
+//		free_auth_form(form);
+	if (doc)
+		xmlFreeDoc(doc);
 	return -EOPNOTSUPP;
 }
 static int parse_cookie(struct openconnect_info *vpninfo)
