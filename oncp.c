@@ -947,10 +947,20 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	   the same data, at exactly the same location. So we keep the
 	   packet we had before.... */
 	if (vpninfo->current_ssl_pkt) {
+		int i;
 	handle_outgoing:
 		vpninfo->ssl_times.last_tx = time(NULL);
 		unmonitor_write_fd(vpninfo, ssl);
 
+		printf("Packet outgoing:");
+		for (i=0; i < vpninfo->current_ssl_pkt->len + 22; i++) {
+			if ((i % 16) == 0)
+				printf("\n%04x:", i);
+			printf(" %02x", vpninfo->current_ssl_pkt->oncp_hdr[i]);
+		}
+		printf("\n");
+				
+		
 		ret = ssl_nonblock_write(vpninfo,
 					 vpninfo->current_ssl_pkt->oncp_hdr,
 					 vpninfo->current_ssl_pkt->len + 22);
