@@ -893,6 +893,11 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 		if (result == 0) {
 			if (!fetch_redirect)
 				goto out;
+			if (fetch_redirect == 2) {
+				/* Juniper requires we GET after a redirected POST */
+				method = "GET";
+				request_body_type = NULL;
+			}
 			goto redirected;
 		}
 		goto out;
