@@ -639,7 +639,13 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	if (ret < 0)
 		goto out;
 
-	ret = process_http_response(vpninfo, 0, NULL, reqbuf);
+	/* The server is fairly weird. It sends Connection: close which would
+	 * indicate an HTTP 1.0-style body, but doesn't seem to actually close
+	 * the connection. So tell process_http_response() it was a CONNECT
+	 * request, since we don't care about the body anyway, and then close
+	 * the connection for ourselves. */
+	ret = process_http_response(vpninfo, 1, NULL, reqbuf);
+	openconnect_close_https(vpninfo, 0);
 	if (ret < 0) {
 		/* We'll already have complained about whatever offended us */
 		goto out;
