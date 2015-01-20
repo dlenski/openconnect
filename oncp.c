@@ -1094,8 +1094,8 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpninfo->outgoing_qlen--;
 
 		/* Little-endian overall record length */
-		this->oncp_hdr[0] = (this->len + 22) & 0xff;
-		this->oncp_hdr[1] = (this->len + 22) >> 8;
+		this->oncp_hdr[0] = (this->len + 20) & 0xff;
+		this->oncp_hdr[1] = (this->len + 20) >> 8;
 		memcpy(this->oncp_hdr + 2, data_hdr, 18);
 		/* Big-endian length in KMP message header */
 		this->oncp_hdr[20] = this->len >> 8;
