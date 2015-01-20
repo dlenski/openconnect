@@ -350,10 +350,14 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 		form->action = NULL;
 		free_auth_form(form);
 		form = NULL;
+		xmlFreeDoc(doc);
+		doc = NULL;
 
 		handle_redirect(vpninfo);
 	}
  out:
+	if (doc)
+		xmlFreeDoc(doc);
 	free(form_id);
 	if (form)
 		free_auth_form(form);
