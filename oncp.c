@@ -730,7 +730,9 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	ret = vpninfo->ssl_read(vpninfo, (void *)bytes, 3);
 	if (ret < 0)
 		goto out;
-
+	vpn_progress(vpninfo, PRG_TRACE,
+		     _("Read %d bytes of SSL record\n"), ret);
+	
 	if (ret != 3 || bytes[0] != 1 || bytes[1] != 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unexpected response of size %d after hostname packet\n"),
@@ -750,6 +752,8 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	ret = vpninfo->ssl_read(vpninfo, (void *)bytes, sizeof(bytes));
 	if (ret < 0)
 		goto out;
+	vpn_progress(vpninfo, PRG_TRACE,
+		     _("Read %d bytes of SSL record\n"), ret);
 
 	if (ret < 0x16 || bytes[0] + (bytes[1] << 8) + 2 != ret) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -870,6 +874,8 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			break;
 		if (len < 0)
 			goto do_reconnect;
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("oNCP mainloop read %d bytes of SSL record\n"), len);
 		if (len < 22) {
 			vpn_progress(vpninfo, PRG_ERR, _("Short packet received (%d bytes)\n"), len);
 			vpninfo->quit_reason = "Short packet received";
