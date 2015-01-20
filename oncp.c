@@ -722,8 +722,14 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	}
 	buf_hexdump(vpninfo, reqbuf);
 	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
-	if (ret < 0)
+	if (ret != reqbuf->pos) {
+		if (ret >= 0) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Short write in oNCP negotiation\n"));
+			ret = -EIO;
+		}
 		goto out;
+	}
 
 	/* Now we expect a three-byte response with what's presumably an
 	   error code */
@@ -835,7 +841,13 @@ int oncp_connect(struct openconnect_info *vpninfo)
 
 	buf_hexdump(vpninfo,reqbuf);
 	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
-
+	if (ret == reqbuf->pos)
+		ret = 0;
+	else if (ret >= 0) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Short write in oNCP negotiation\n"));
+		ret = -EIO;
+	}
  out:
 	if (ret)
 		openconnect_close_https(vpninfo, 0);
