@@ -903,8 +903,8 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		if (len != kmplen + 22)
 			goto unknown_pkt;
 
-		kmp = (vpninfo->cstp_pkt->oncp_hdr[0] << 8) +
-			vpninfo->cstp_pkt->oncp_hdr[1];
+		kmp = (vpninfo->cstp_pkt->oncp_hdr[8] << 8) +
+			vpninfo->cstp_pkt->oncp_hdr[9];
 		vpn_progress(vpninfo, PRG_DEBUG, _("Incoming KMP message %d of size %d\n"),
 			     kmp, kmplen);
 		if (kmp != 300)
