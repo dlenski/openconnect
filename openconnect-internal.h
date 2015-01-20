@@ -785,6 +785,16 @@ int do_gen_yubikey_code(struct openconnect_info *vpninfo,
 /* auth.c */
 int cstp_obtain_cookie(struct openconnect_info *vpninfo);
 
+/* auth-common.c */
+int xmlnode_is_named(xmlNode *xml_node, const char *name);
+int xmlnode_get_prop(xmlNode *xml_node, const char *name, char **var);
+int xmlnode_match_prop(xmlNode *xml_node, const char *name, const char *match);
+int append_opt(struct oc_text_buf *body, char *opt, char *name);
+int append_form_opts(struct openconnect_info *vpninfo,
+		     struct oc_auth_form *form, struct oc_text_buf *body);
+void free_opt(struct oc_form_opt *opt);
+void free_auth_form(struct oc_auth_form *form);
+
 /* http.c */
 struct oc_text_buf *buf_alloc(void);
 void dump_buf(struct openconnect_info *vpninfo, char prefix, char *buf);
@@ -814,6 +824,7 @@ int process_http_response(struct openconnect_info *vpninfo, int connect,
 			  int (*header_cb)(struct openconnect_info *, char *, char *),
 			  struct oc_text_buf *body);
 int handle_redirect(struct openconnect_info *vpninfo);
+void http_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
 
 /* ntlm.c */
 int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);

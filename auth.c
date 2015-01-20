@@ -68,60 +68,6 @@ int openconnect_set_option_value(struct oc_form_opt *opt, const char *value)
 	return 0;
 }
 
-static int append_opt(struct oc_text_buf *body, char *opt, char *name)
-{
-	if (buf_error(body))
-		return buf_error(body);
-
-	if (body->pos)
-		buf_append(body, "&");
-
-	buf_append_urlencoded(body, opt);
-	buf_append(body, "=");
-	buf_append_urlencoded(body, name);
-
-	return 0;
-}
-
-static int append_form_opts(struct openconnect_info *vpninfo,
-			    struct oc_auth_form *form, struct oc_text_buf *body)
-{
-	struct oc_form_opt *opt;
-	int ret;
-
-	for (opt = form->opts; opt; opt = opt->next) {
-		ret = append_opt(body, opt->name, opt->_value);
-		if (ret)
-			return ret;
-	}
-	return 0;
-}
-
-static void free_opt(struct oc_form_opt *opt)
-{
-	/* for SELECT options, opt->value is a pointer to oc_choice->name */
-	if (opt->type != OC_FORM_OPT_SELECT)
-		free(opt->_value);
-	else {
-		struct oc_form_opt_select *sel = (void *)opt;
-		int i;
-
-		for (i = 0; i < sel->nr_choices; i++) {
-			free(sel->choices[i]->name);
-			free(sel->choices[i]->label);
-			free(sel->choices[i]->auth_type);
-			free(sel->choices[i]->override_name);
-			free(sel->choices[i]->override_label);
-			free(sel->choices[i]);
-		}
-		free(sel->choices);
-	}
-
-	free(opt->name);
-	free(opt->label);
-	free(opt);
-}
-
 static int prop_equals(xmlNode *xml_node, const char *name, const char *value)
 {
 	char *tmp = (char *)xmlGetProp(xml_node, (unsigned char *)name);
@@ -363,38 +309,6 @@ static char *xmlnode_msg(xmlNode *xml_node)
 	return result;
 }
 
-static int xmlnode_is_named(xmlNode *xml_node, const char *name)
-{
-	return !strcmp((char *)xml_node->name, name);
-}
-
-static int xmlnode_get_prop(xmlNode *xml_node, const char *name, char **var)
-{
-	char *str = (char *)xmlGetProp(xml_node, (unsigned char *)name);
-
-	if (!str)
-		return -ENOENT;
-
-	free(*var);
-	*var = str;
-	return 0;
-}
-
-static int xmlnode_match_prop(xmlNode *xml_node, const char *name, const char *match)
-{
-	char *str = (char *)xmlGetProp(xml_node, (unsigned char *)name);
-	int ret = 0;
-
-	if (!str)
-		return -ENOENT;
-
-	if (strcmp(str, match))
-	    ret = -EEXIST;
-
-	free(str);
-	return ret;
-}
-
 static int xmlnode_get_text(xmlNode *xml_node, const char *name, char **var)
 {
 	char *str;
@@ -598,24 +512,6 @@ static void parse_config_node(struct openconnect_info *vpninfo, xmlNode *xml_nod
 		if (xmlnode_is_named(xml_node, "vpn-profile-manifest"))
 			parse_profile_node(vpninfo, xml_node);
 	}
-}
-
-static void free_auth_form(struct oc_auth_form *form)
-{
-	if (!form)
-		return;
-	while (form->opts) {
-		struct oc_form_opt *tmp = form->opts->next;
-		free_opt(form->opts);
-		form->opts = tmp;
-	}
-	free(form->error);
-	free(form->message);
-	free(form->banner);
-	free(form->auth_id);
-	free(form->method);
-	free(form->action);
-	free(form);
 }
 
 /* Return value:

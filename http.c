@@ -1705,3 +1705,18 @@ int openconnect_set_http_proxy(struct openconnect_info *vpninfo,
 	free(url);
 	return ret;
 }
+
+void http_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+{
+	struct oc_vpn_option *opt;
+
+	buf_append(buf, "Host: %s\r\n", vpninfo->hostname);
+	buf_append(buf, "User-Agent: %s\r\n", vpninfo->useragent);
+
+	if (vpninfo->cookies) {
+		buf_append(buf, "Cookie: ");
+		for (opt = vpninfo->cookies; opt; opt = opt->next)
+			buf_append(buf, "%s=%s%s", opt->option,
+				      opt->value, opt->next ? "; " : "\r\n");
+	}
+}

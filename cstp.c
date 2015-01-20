@@ -1144,19 +1144,10 @@ int cstp_bye(struct openconnect_info *vpninfo, const char *reason)
 
 void cstp_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
 {
-	struct oc_vpn_option *opt;
+	http_common_headers(vpninfo, buf);
 
-	buf_append(buf, "Host: %s\r\n", vpninfo->hostname);
-	buf_append(buf, "User-Agent: %s\r\n", vpninfo->useragent);
 	buf_append(buf, "Accept: */*\r\n");
 	buf_append(buf, "Accept-Encoding: identity\r\n");
-
-	if (vpninfo->cookies) {
-		buf_append(buf, "Cookie: ");
-		for (opt = vpninfo->cookies; opt; opt = opt->next)
-			buf_append(buf, "%s=%s%s", opt->option,
-				      opt->value, opt->next ? "; " : "\r\n");
-	}
 	buf_append(buf, "X-Transcend-Version: 1\r\n");
 	if (vpninfo->xmlpost) {
 		buf_append(buf, "X-Aggregate-Auth: 1\r\n");
