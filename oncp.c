@@ -399,6 +399,16 @@ static int parse_cookie(struct openconnect_info *vpninfo)
 	return 0;
 }
 
+static void buf_append_be16(struct oc_text_buf *buf, uint16_t val)
+{
+	unsigned char b[2];
+
+	b[0] = val >> 8;
+	b[1] = val & 0xff;
+
+	buf_append_bytes(buf, b, 2);
+}
+
 static void buf_append_le16(struct oc_text_buf *buf, uint16_t val)
 {
 	unsigned char b[2];
@@ -800,9 +810,9 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	buf_truncate(reqbuf);
 	buf_append_le16(reqbuf, 0); /* Length. We'll fix it later. */
 	buf_append_bytes(reqbuf, kmp_head, sizeof(kmp_head));
-	buf_append_le16(reqbuf, 303); /* KMP message 303 */
+	buf_append_be16(reqbuf, 303); /* KMP message 303 */
 	buf_append_bytes(reqbuf, kmp_tail_out, sizeof(kmp_tail_out));
-	buf_append_le16(reqbuf, 0); /* KMP message length */
+	buf_append_be16(reqbuf, 0); /* KMP message length */
 	kmp = reqbuf->pos;
 	buf_append_tlv(reqbuf, 6, 0, NULL); /* TLV group 6 */
 	group = reqbuf->pos;
