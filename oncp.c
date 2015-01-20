@@ -557,7 +557,7 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 		snprintf(buf, sizeof(buf), "%d.%d.%d.%d", data[0], data[1], data[2], data[3]);
 
 		vpn_progress(vpninfo, PRG_DEBUG, _("Received netmask %s\n"), buf);
-		vpninfo->ip_info.addr = add_option(vpninfo, "netmask", buf, -1);
+		vpninfo->ip_info.netmask = add_option(vpninfo, "netmask", buf, -1);
 		break;
 
 	case GRP_ATTR(1, 3):
