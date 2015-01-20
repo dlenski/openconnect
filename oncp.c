@@ -281,7 +281,7 @@ static int check_cookie_success(struct openconnect_info *vpninfo)
 int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 {
 	int ret;
-	struct oc_text_buf *resp_buf;
+	struct oc_text_buf *resp_buf = NULL;
 	xmlDocPtr doc = NULL;
 	xmlNodePtr node;
 	struct oc_auth_form *form = NULL;
@@ -292,7 +292,7 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 		return -ENOMEM;
 
 	while (1) {
-		ret = oncp_https_submit(vpninfo, NULL, &doc);
+		ret = oncp_https_submit(vpninfo, resp_buf, &doc);
 		if (ret)
 			return ret;
 		node = find_form_node(doc);
