@@ -447,6 +447,7 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 		if (ret || !check_cookie_success(vpninfo))
 			break;
 
+		buf_truncate(resp_buf);
 
 		node = find_form_node(doc);
 		if (!node) {
@@ -518,8 +519,6 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 	tncc_done:
 		xmlFreeDoc(doc);
 		doc = NULL;
-		buf_truncate(resp_buf);
-
 	}
  out:
 	if (doc)
