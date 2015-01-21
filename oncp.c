@@ -600,6 +600,13 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 			     TLV_BE32(data));
 		break;
 
+	case GRP_ATTR(8, 10):
+		if (attrlen != 4)
+			goto badlen;
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP replay protection: %d\n"),
+			     TLV_BE32(data));
+		break;
+
 	case GRP_ATTR(7, 1):
 		if (attrlen != 4)
 			goto badlen;
