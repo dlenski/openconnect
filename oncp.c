@@ -87,7 +87,7 @@ static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_for
 		asprintf(&opt->label, "%s:", opt->name);
 	} else if (!strcasecmp(type, "submit")) {
 		xmlnode_get_prop(node, "name", &opt->name);
-		if (!opt->name || strncmp(opt->name, submit_button, 3)) {
+		if (!opt->name || strcmp(opt->name, submit_button)) {
 			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Ignoring unknown form submit item '%s'\n"),
 				     opt->name);
