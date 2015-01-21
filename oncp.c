@@ -599,7 +599,7 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 			     TLV_BE32(data));
 		break;
 
-	case GRP_ATTR(8, 7):
+	case GRP_ATTR(8, 9):
 		if (attrlen != 4)
 			goto badlen;
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP to SSL fallback: %d seconds\n"),
