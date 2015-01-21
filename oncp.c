@@ -468,6 +468,7 @@ static const char authpkt_tail[] = { 0xbb, 0x01, 0x00, 0x00, 0x00, 0x00 };
 
 #define GRP_ATTR(g, a) (((g) << 16) | (a))
 #define TLV_BE32(data) ((data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[3])
+#define TLV_BE16(data) ((data[0] << 8) + data[1])
 
 /* We behave like CSTP — create a linked list in vpninfo->cstp_options
  * with the strings containing the information we got from the server,
@@ -572,7 +573,45 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 		add_option(vpninfo, "ipaddr", buf, -1);
 		break;
 
-		/* ESP SPI is (7,1) and secret (64 bytes) is (7,2) */
+	case GRP_ATTR(8, 4):
+		if (attrlen != 2)
+			goto badlen;
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP port: %d\n"), TLV_BE16(data));
+		break;
+
+	case GRP_ATTR(8, 5):
+		if (attrlen != 4)
+			goto badlen;
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP key lifetime: %d bytes\n"),
+			     TLV_BE32(data));
+		break;
+
+	case GRP_ATTR(8, 6):
+		if (attrlen != 4)
+			goto badlen;
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP key lifetime: %d seconds\n"),
+			     TLV_BE32(data));
+		break;
+
+	case GRP_ATTR(8, 7):
+		if (attrlen != 4)
+			goto badlen;
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP to SSL fallback: %d seconds\n"),
+			     TLV_BE32(data));
+		break;
+
+	case GRP_ATTR(7, 1):
+		if (attrlen != 4)
+			goto badlen;
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP SPI (outbound): %d\n"),
+			     TLV_BE32(data));
+		break;
+
+	case GRP_ATTR(7, 2):
+		vpn_progress(vpninfo, PRG_DEBUG, _("%d bytes of ESP secrets\n"),
+			     attrlen);
+		break;
+
 	default:
 		buf[0] = 0;
 		for (i=0; i < 16 && i < attrlen; i++)
