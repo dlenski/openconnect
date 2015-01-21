@@ -27,6 +27,10 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <stdarg.h>
+#include <sys/types.h>
+#ifndef _WIN32
+#include <sys/wait.h>
+#endif
 
 #include <libxml/HTMLparser.h>
 #include <libxml/HTMLtree.h>
@@ -199,9 +203,14 @@ static int oncp_https_submit(struct openconnect_info *vpninfo,
 	char *form_buf = NULL;
 	struct oc_text_buf *url;
 
-	ret = do_https_request(vpninfo, req_buf ? "POST" : "GET",
-			       req_buf ? "application/x-www-form-urlencoded" : NULL,
-			       req_buf, &form_buf, 2);
+	if (req_buf && req_buf->pos)
+		ret =do_https_request(vpninfo, "POST",
+				      "application/x-www-form-urlencoded",
+				      req_buf, &form_buf, 2);
+	else
+		ret = do_https_request(vpninfo, "GET", NULL, NULL,
+				       &form_buf, 2);
+
 	if (ret < 0)
 		return ret;
 
@@ -260,8 +269,17 @@ static int check_cookie_success(struct openconnect_info *vpninfo)
 	if (!dsid)
 		return -ENOENT;
 
-	/* XXX: Do these need escaping? Could they theoreetically have semicolons in? */
 	buf = buf_alloc();
+	if (vpninfo->tncc_fd != -1) {
+		buf_append(buf, "setcookie\n");
+		buf_append(buf, "Cookie=%s\n", dsid);
+		if (buf_error(buf))
+			return buf_free(buf);
+		send(vpninfo->tncc_fd, buf->data, buf->pos, 0);
+		buf_truncate(buf);
+	}
+
+	/* XXX: Do these need escaping? Could they theoreetically have semicolons in? */
 	buf_append(buf, "DSID=%s", dsid);
 	if (dsfirst)
 		buf_append(buf, "; DSFirst=%s", dsfirst);
@@ -277,6 +295,138 @@ static int check_cookie_success(struct openconnect_info *vpninfo)
 	buf_free(buf);
 	return 0;
 }
+#ifdef _WIN32
+static int tncc_preauth(struct openconnect_info *vpninfo)
+{
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("TNCC support not implemented yet on Windows\n"));
+	return -EOPNOTSUPP;
+}
+#else
+static int tncc_preauth(struct openconnect_info *vpninfo)
+{
+	int sockfd[2];
+	pid_t pid;
+	struct oc_text_buf *buf;
+	struct oc_vpn_option *cookie;
+	const char *dspreauth = NULL, *dssignin = "null";
+	char recvbuf[1024], *p;
+	int len;
+
+	for (cookie = vpninfo->cookies; cookie; cookie = cookie->next) {
+		if (!strcmp(cookie->option, "DSPREAUTH"))
+			dspreauth = cookie->value;
+		else if (!strcmp(cookie->option, "DSSIGNIN"))
+			dssignin = cookie->value;
+	}
+	if (!dspreauth) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("No DSPREAUTH cookie; not attempting TNCC\n"));
+		return -EINVAL;
+	}
+
+	buf = buf_alloc();
+	buf_append(buf, "start\n");
+	buf_append(buf, "IC=%s\n", vpninfo->hostname);
+	buf_append(buf, "Cookie=%s\n", dspreauth);
+	buf_append(buf, "DSSIGNIN=%s\n", dssignin);
+	if (buf_error(buf)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to allocate memory for communication with TNCC\n"));
+		return buf_free(buf);
+	}
+#ifdef SOCK_CLOEXEC
+	if (socketpair(AF_UNIX, SOCK_SEQPACKET | SOCK_CLOEXEC, 0, sockfd))
+#endif
+	{
+		if (socketpair(AF_UNIX, SOCK_SEQPACKET, 0, sockfd))
+			return -errno;
+		set_fd_cloexec(sockfd[0]);
+		set_fd_cloexec(sockfd[1]);
+	}
+	pid = fork();
+	if (pid == -1) {
+		buf_free(buf);
+		return -errno;
+	}
+
+	if (!pid) {
+		int i;
+		/* Fork again to detach grandchild */
+		if (fork())
+			exit(1);
+
+		close(sockfd[1]);
+		/* The duplicated fd does not have O_CLOEXEC */
+		dup2(sockfd[0], 0);
+		/* We really don't want anything going to stdout */
+		dup2(1, 2);
+		for (i = 3; i < 1024 ; i++)
+			close(i);
+
+		execl(vpninfo->csd_wrapper, vpninfo->csd_wrapper, vpninfo->hostname, NULL);
+		fprintf(stderr, _("Failed to exec TNCC script %s: %s\n"),
+			vpninfo->csd_wrapper, strerror(errno));
+		exit(1);
+	}
+	waitpid(pid, NULL, 0);
+	close(sockfd[0]);
+
+	if (send(sockfd[1], buf->data, buf->pos, 0) != buf->pos) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to send start command to TNCC\n"));
+		buf_free(buf);
+		close(sockfd[1]);
+		return -EIO;
+	}
+	buf_free(buf);
+	vpn_progress(vpninfo, PRG_DEBUG,
+		     _("Sent start; waiting for response from TNCC\n"));
+
+	len = recv(sockfd[1], recvbuf, sizeof(recvbuf) - 1, 0);
+	if (len < 0) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to read response from TNCC\n"));
+		close(sockfd[1]);
+		return -EIO;
+	}
+
+	recvbuf[len] = 0;
+
+	p = strchr(recvbuf, '\n');
+	if (!p) {
+	invalid_response:
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Received invalid response from TNCC\n"));
+	print_response:
+		vpn_progress(vpninfo, PRG_TRACE, _("TNCC response: -->\n%s\n<--\n"),
+			     recvbuf);
+		close(sockfd[1]);
+		return -EINVAL;
+	}
+	*p = 0;
+	if (strcmp(recvbuf, "200")) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Received unsuccessful %s response from TNCC\n"),
+			     recvbuf);
+		goto print_response;
+	}
+	p = strchr(p + 1, '\n');
+	if (!p)
+		goto invalid_response;
+	dspreauth = p + 1;
+	p = strchr(p + 1, '\n');
+	if (!p)
+		goto invalid_response;
+	*p = 0;
+	vpn_progress(vpninfo, PRG_DEBUG,
+		     _("Got new DSPREAUTH cookie from TNCC: %s\n"),
+		     dspreauth);
+	http_add_cookie(vpninfo, "DSPREAUTH", dspreauth, 1);
+	vpninfo->tncc_fd = sockfd[1];
+	return 0;
+}
+#endif
 
 int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 {
@@ -286,6 +436,7 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 	xmlNodePtr node;
 	struct oc_auth_form *form = NULL;
 	char *form_id = NULL;
+	int try_tncc = !!vpninfo->csd_wrapper;
 
 	resp_buf = buf_alloc();
 	if (buf_error(resp_buf))
@@ -293,19 +444,30 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 
 	while (1) {
 		ret = oncp_https_submit(vpninfo, resp_buf, &doc);
-		if (ret)
-			return ret;
-		if (!check_cookie_success(vpninfo))
+		if (ret || !check_cookie_success(vpninfo))
 			break;
+
+
 		node = find_form_node(doc);
 		if (!node) {
+			if (try_tncc) {
+				try_tncc = 0;
+				ret = tncc_preauth(vpninfo);
+				if (ret)
+					return ret;
+				goto tncc_done;
+			}
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to find or parse web form in login page\n"));
 			ret = -EINVAL;
 			break;
 		}
 		form_id = (char *)xmlGetProp(node, (unsigned char *)"name");
-		if (!strcmp(form_id, "frmLogin")) {
+		if (!form_id) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Encountered form with no ID\n"));
+			goto dump_form;
+		} else if (!strcmp(form_id, "frmLogin")) {
 			form = parse_form_node(vpninfo, node, "btnSubmit");
 			if (!form) {
 				ret = -EINVAL;
@@ -330,6 +492,9 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Unknown form ID '%s'\n"),
 				     form_id);
+		dump_form:
+			fprintf(stderr, _("Dumping unknown HTML form:\n"));
+			htmlNodeDumpFileFormat(stderr, node->doc, node, NULL, 1);
 			ret = -EINVAL;
 			break;
 		}
@@ -338,7 +503,6 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 		if (ret)
 			goto out;
 
-		buf_truncate(resp_buf);
 	form_done:
 		append_form_opts(vpninfo, form, resp_buf);
 		ret = buf_error(resp_buf);
@@ -349,10 +513,13 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 		form->action = NULL;
 		free_auth_form(form);
 		form = NULL;
+		handle_redirect(vpninfo);
+
+	tncc_done:
 		xmlFreeDoc(doc);
 		doc = NULL;
+		buf_truncate(resp_buf);
 
-		handle_redirect(vpninfo);
 	}
  out:
 	if (doc)

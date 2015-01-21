@@ -246,6 +246,7 @@ struct openconnect_info {
 	char *redirect_url;
 	int redirect_type;
 
+	int tncc_fd; /* For Juniper TNCC */
 	const char *csd_xmltag;
 	int csd_nostub;
 	char *platname;

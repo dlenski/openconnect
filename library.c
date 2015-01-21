@@ -71,6 +71,7 @@ struct openconnect_info *openconnect_vpninfo_new(const char *useragent,
 #endif
 	vpninfo->ssl_fd = vpninfo->dtls_fd = -1;
 	vpninfo->cmd_fd = vpninfo->cmd_fd_write = -1;
+	vpninfo->tncc_fd = -1;
 	vpninfo->cert_expire_warning = 60 * 86400;
 	vpninfo->req_compr = COMPR_STATELESS;
 	vpninfo->max_qlen = 10;
@@ -206,6 +207,8 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	openconnect_close_https(vpninfo, 1);
 	if (vpninfo->proto.udp_shutdown)
 		vpninfo->proto.udp_shutdown(vpninfo);
+	if (vpninfo->tncc_fd != -1)
+		closesocket(vpninfo->tncc_fd);
 	if (vpninfo->cmd_fd_write != -1) {
 		closesocket(vpninfo->cmd_fd);
 		closesocket(vpninfo->cmd_fd_write);
