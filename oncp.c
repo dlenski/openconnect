@@ -538,7 +538,7 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 		break;
 
 	case GRP_ATTR(2, 2):
-		vpn_progress(vpninfo, PRG_DEBUG, _("Received DNS search domain %.*s"),
+		vpn_progress(vpninfo, PRG_DEBUG, _("Received DNS search domain %.*s\n"),
 			     attrlen, (char *)data);
 		vpninfo->ip_info.domain = add_option(vpninfo, "search", (char *)data, attrlen);
 		break;
