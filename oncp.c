@@ -201,7 +201,7 @@ static int oncp_https_submit(struct openconnect_info *vpninfo,
 
 	ret = do_https_request(vpninfo, req_buf ? "POST" : "GET",
 			       req_buf ? "application/x-www-form-urlencoded" : NULL,
-			       req_buf, &form_buf, 1);
+			       req_buf, &form_buf, 2);
 	if (ret < 0)
 		return ret;
 
