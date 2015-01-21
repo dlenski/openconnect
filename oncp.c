@@ -361,8 +361,6 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 	if (form)
 		free_auth_form(form);
 	buf_free(resp_buf);
-	if (doc)
-		xmlFreeDoc(doc);
 	return ret;
 }
 
