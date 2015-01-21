@@ -573,6 +573,12 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 		add_option(vpninfo, "ipaddr", buf, -1);
 		break;
 
+	case GRP_ATTR(8, 3):
+		if (attrlen != 1)
+			goto badlen;
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP compression: %d\n"), data[0]);
+		break;
+
 	case GRP_ATTR(8, 4):
 		if (attrlen != 2)
 			goto badlen;
