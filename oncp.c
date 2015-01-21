@@ -573,6 +573,53 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 		add_option(vpninfo, "ipaddr", buf, -1);
 		break;
 
+	case GRP_ATTR(4, 1):
+		if (attrlen != 4)
+			goto badlen;
+		snprintf(buf, sizeof(buf), "%d.%d.%d.%d", data[0], data[1], data[2], data[3]);
+
+		vpn_progress(vpninfo, PRG_DEBUG, _("Received WINS server %s\n"), buf);
+
+		for (i = 0; i < 3; i++) {
+			if (!vpninfo->ip_info.nbns[i]) {
+				vpninfo->ip_info.nbns[i] = add_option(vpninfo, "WINS", buf, -1);
+				break;
+			}
+		}
+		break;
+
+	case GRP_ATTR(8, 1): {
+		const char *mactype;
+
+		if (attrlen != 1)
+			goto badlen;
+		if (data[0] == 0x01)
+			mactype = "MD5";
+		else if (data[0] == 0x02)
+			mactype = "SHA1";
+		else
+			mactype = "unknown";
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP HMAC: 0x%02x (%s)\n"),
+			      data[0], mactype);
+		break;
+	}
+
+	case GRP_ATTR(8, 2): {
+		const char *enctype;
+
+		if (attrlen != 1)
+			goto badlen;
+		if (data[0] == 0x02)
+			enctype = "AES-128";
+		else if (data[0] == 0x05)
+			enctype = "AES-256";
+		else
+			enctype = "unknown";
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP encryption: 0x%02x (%s)\n"),
+			      data[0], enctype);
+		break;
+	}
+
 	case GRP_ATTR(8, 3):
 		if (attrlen != 1)
 			goto badlen;
