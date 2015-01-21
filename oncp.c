@@ -295,11 +295,10 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 		ret = oncp_https_submit(vpninfo, resp_buf, &doc);
 		if (ret)
 			return ret;
+		if (!check_cookie_success(vpninfo))
+			break;
 		node = find_form_node(doc);
 		if (!node) {
-			if (!check_cookie_success(vpninfo))
-				break;
-
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to find or parse web form in login page\n"));
 			ret = -EINVAL;
