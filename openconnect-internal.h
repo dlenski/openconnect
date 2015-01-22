@@ -704,6 +704,7 @@ int openconnect_open_utf8(struct openconnect_info *vpninfo,
 FILE *openconnect_fopen_utf8(struct openconnect_info *vpninfo,
 			     const char *fname, const char *mode);
 int udp_sockaddr(struct openconnect_info *vpninfo, int port);
+int udp_connect(struct openconnect_info *vpninfo);
 
 void openconnect_clear_cookies(struct openconnect_info *vpninfo);
 

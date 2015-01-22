@@ -457,7 +457,7 @@ void dtls_shutdown(struct openconnect_info *vpninfo)
 
 static int connect_dtls_socket(struct openconnect_info *vpninfo)
 {
-	int dtls_fd, ret, sndbuf;
+	int dtls_fd, ret;
 
 	/* Sanity check for the removal of new_dtls_{fd,ssl} */
 	if (vpninfo->dtls_fd != -1) {
@@ -486,61 +486,10 @@ static int connect_dtls_socket(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	dtls_fd = socket(vpninfo->peer_addr->sa_family, SOCK_DGRAM, IPPROTO_UDP);
-	if (dtls_fd < 0) {
-		vpn_perror(vpninfo, _("Open UDP socket for DTLS:"));
+	dtls_fd = udp_connect(vpninfo);
+	if (dtls_fd < 0)
 		return -EINVAL;
-	}
-	if (vpninfo->protect_socket)
-		vpninfo->protect_socket(vpninfo->cbdata, dtls_fd);
 
-	sndbuf = vpninfo->ip_info.mtu * 2;
-	setsockopt(dtls_fd, SOL_SOCKET, SO_SNDBUF, (void *)&sndbuf, sizeof(sndbuf));
-
-	if (vpninfo->dtls_local_port) {
-		union {
-			struct sockaddr_in in;
-			struct sockaddr_in6 in6;
-		} dtls_bind_addr;
-		int dtls_bind_addrlen;
-		memset(&dtls_bind_addr, 0, sizeof(dtls_bind_addr));
-
-		if (vpninfo->peer_addr->sa_family == AF_INET) {
-			struct sockaddr_in *addr = &dtls_bind_addr.in;
-			dtls_bind_addrlen = sizeof(*addr);
-			addr->sin_family = AF_INET;
-			addr->sin_addr.s_addr = INADDR_ANY;
-			addr->sin_port = htons(vpninfo->dtls_local_port);
-		} else if (vpninfo->peer_addr->sa_family == AF_INET6) {
-			struct sockaddr_in6 *addr = &dtls_bind_addr.in6;
-			dtls_bind_addrlen = sizeof(*addr);
-			addr->sin6_family = AF_INET6;
-			addr->sin6_addr = in6addr_any;
-			addr->sin6_port = htons(vpninfo->dtls_local_port);
-		} else {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Unknown protocol family %d. Cannot do DTLS\n"),
-				     vpninfo->peer_addr->sa_family);
-			vpninfo->dtls_attempt_period = 0;
-			closesocket(dtls_fd);
-			return -EINVAL;
-		}
-
-		if (bind(dtls_fd, (struct sockaddr *)&dtls_bind_addr, dtls_bind_addrlen)) {
-			vpn_perror(vpninfo, _("Bind UDP socket for DTLS"));
-			closesocket(dtls_fd);
-			return -EINVAL;
-		}
-	}
-
-	if (connect(dtls_fd, vpninfo->dtls_addr, vpninfo->peer_addrlen)) {
-		vpn_perror(vpninfo, _("UDP (DTLS) connect:\n"));
-		closesocket(dtls_fd);
-		return -EINVAL;
-	}
-
-	set_fd_cloexec(dtls_fd);
-	set_sock_nonblock(dtls_fd);
 
 	ret = start_dtls_handshake(vpninfo, dtls_fd);
 	if (ret) {

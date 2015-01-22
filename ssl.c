@@ -822,3 +822,66 @@ int udp_sockaddr(struct openconnect_info *vpninfo, int port)
 
 	return 0;
 }
+
+int udp_connect(struct openconnect_info *vpninfo)
+{
+	int fd, sndbuf;
+
+	fd = socket(vpninfo->peer_addr->sa_family, SOCK_DGRAM, IPPROTO_UDP);
+	if (fd < 0) {
+		vpn_perror(vpninfo, _("Open UDP socket"));
+		return -EINVAL;
+	}
+	if (vpninfo->protect_socket)
+		vpninfo->protect_socket(vpninfo->cbdata, fd);
+
+	sndbuf = vpninfo->ip_info.mtu * 2;
+	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void *)&sndbuf, sizeof(sndbuf));
+
+	if (vpninfo->dtls_local_port) {
+		union {
+			struct sockaddr_in in;
+			struct sockaddr_in6 in6;
+		} dtls_bind_addr;
+		int dtls_bind_addrlen;
+		memset(&dtls_bind_addr, 0, sizeof(dtls_bind_addr));
+
+		if (vpninfo->peer_addr->sa_family == AF_INET) {
+			struct sockaddr_in *addr = &dtls_bind_addr.in;
+			dtls_bind_addrlen = sizeof(*addr);
+			addr->sin_family = AF_INET;
+			addr->sin_addr.s_addr = INADDR_ANY;
+			addr->sin_port = htons(vpninfo->dtls_local_port);
+		} else if (vpninfo->peer_addr->sa_family == AF_INET6) {
+			struct sockaddr_in6 *addr = &dtls_bind_addr.in6;
+			dtls_bind_addrlen = sizeof(*addr);
+			addr->sin6_family = AF_INET6;
+			addr->sin6_addr = in6addr_any;
+			addr->sin6_port = htons(vpninfo->dtls_local_port);
+		} else {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Unknown protocol family %d. Cannot use UDP transport\n"),
+				     vpninfo->peer_addr->sa_family);
+			vpninfo->dtls_attempt_period = 0;
+			closesocket(fd);
+			return -EINVAL;
+		}
+
+		if (bind(fd, (struct sockaddr *)&dtls_bind_addr, dtls_bind_addrlen)) {
+			vpn_perror(vpninfo, _("Bind UDP socket"));
+			closesocket(fd);
+			return -EINVAL;
+		}
+	}
+
+	if (connect(fd, vpninfo->dtls_addr, vpninfo->peer_addrlen)) {
+		vpn_perror(vpninfo, _("Connect UDP socket\n"));
+		closesocket(fd);
+		return -EINVAL;
+	}
+
+	set_fd_cloexec(fd);
+	set_sock_nonblock(fd);
+
+	return fd;
+}
