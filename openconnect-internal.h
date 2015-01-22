@@ -751,6 +751,7 @@ int load_pkcs11_certificate(struct openconnect_info *vpninfo);
 /* gnutls-esp.c */
 int setup_esp_keys(struct openconnect_info *vpninfo);
 void destroy_esp_ciphers(struct esp *esp);
+int decrypt_and_queue_esp_packet(struct openconnect_info *vpninfo, unsigned char *esp, int len);
 
 /* {gnutls,openssl}.c */
 int ssl_nonblock_read(struct openconnect_info *vpninfo, void *buf, int maxlen);
