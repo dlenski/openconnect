@@ -106,3 +106,27 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 		return 0;
 	}
 }
+
+
+int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
+{
+	if (vpninfo->dtls_state == DTLS_DISABLED)
+		return -EINVAL;
+
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("ESP not implemented yet\n"));
+	return -EINVAL;
+}
+
+int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
+{
+	return 0;
+}
+
+void esp_close(struct openconnect_info *vpninfo)
+{
+}
+
+void esp_shutdown(struct openconnect_info *vpninfo)
+{
+}

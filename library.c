@@ -120,11 +120,10 @@ void openconnect_set_juniper(struct openconnect_info *vpninfo)
 	vpninfo->proto.tcp_mainloop = oncp_mainloop;
 	vpninfo->proto.add_http_headers = oncp_common_headers;
 	vpninfo->proto.obtain_cookie = oncp_obtain_cookie;
-	vpninfo->proto.udp_setup = NULL;
-	vpninfo->proto.udp_mainloop = NULL;
-	vpninfo->proto.udp_close = NULL;
-	vpninfo->proto.udp_shutdown = NULL;
-	vpninfo->dtls_state = DTLS_DISABLED;
+	vpninfo->proto.udp_setup = esp_setup;
+	vpninfo->proto.udp_mainloop = esp_mainloop;
+	vpninfo->proto.udp_close = esp_close;
+	vpninfo->proto.udp_shutdown = esp_shutdown;
 }
 
 int openconnect_setup_dtls(struct openconnect_info *vpninfo,

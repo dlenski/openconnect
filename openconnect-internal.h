@@ -765,6 +765,10 @@ int load_pkcs11_certificate(struct openconnect_info *vpninfo);
 /* esp.c */
 int verify_packet_seqno(struct openconnect_info *vpninfo,
 			struct esp *esp, uint32_t seq);
+int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period);
+int esp_mainloop(struct openconnect_info *vpninfo, int *timeout);
+void esp_close(struct openconnect_info *vpninfo);
+void esp_shutdown(struct openconnect_info *vpninfo);
 
 /* gnutls-esp.c */
 int setup_esp_keys(struct openconnect_info *vpninfo);
