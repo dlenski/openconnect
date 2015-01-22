@@ -636,27 +636,10 @@ int dtls_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 	if (vpninfo->dtls_times.rekey <= 0)
 		vpninfo->dtls_times.rekey_method = REKEY_NONE;
 
-	vpninfo->dtls_addr = malloc(vpninfo->peer_addrlen);
-	if (!vpninfo->dtls_addr) {
-		vpninfo->dtls_attempt_period = 0;
-		return -ENOMEM;
-	}
-	memcpy(vpninfo->dtls_addr, vpninfo->peer_addr, vpninfo->peer_addrlen);
-
-	if (vpninfo->peer_addr->sa_family == AF_INET) {
-		struct sockaddr_in *sin = (void *)vpninfo->dtls_addr;
-		sin->sin_port = htons(dtls_port);
-	} else if (vpninfo->peer_addr->sa_family == AF_INET6) {
-		struct sockaddr_in6 *sin = (void *)vpninfo->dtls_addr;
-		sin->sin6_port = htons(dtls_port);
-	} else {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Unknown protocol family %d. Cannot do DTLS\n"),
-			     vpninfo->peer_addr->sa_family);
+	if (udp_sockaddr(vpninfo, dtls_port)) {
 		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
-
 	if (connect_dtls_socket(vpninfo))
 		return -EINVAL;
 

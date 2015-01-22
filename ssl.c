@@ -798,3 +798,27 @@ FILE *openconnect_fopen_utf8(struct openconnect_info *vpninfo, const char *fname
 
 	return fdopen(fd, mode);
 }
+
+int udp_sockaddr(struct openconnect_info *vpninfo, int port)
+{
+	vpninfo->dtls_addr = malloc(vpninfo->peer_addrlen);
+	if (!vpninfo->dtls_addr)
+		return -ENOMEM;
+
+	memcpy(vpninfo->dtls_addr, vpninfo->peer_addr, vpninfo->peer_addrlen);
+
+	if (vpninfo->peer_addr->sa_family == AF_INET) {
+		struct sockaddr_in *sin = (void *)vpninfo->dtls_addr;
+		sin->sin_port = htons(port);
+	} else if (vpninfo->peer_addr->sa_family == AF_INET6) {
+		struct sockaddr_in6 *sin = (void *)vpninfo->dtls_addr;
+		sin->sin6_port = htons(port);
+	} else {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Unknown protocol family %d. Cannot create UDP server address\n"),
+			     vpninfo->peer_addr->sa_family);
+		return -EINVAL;
+	}
+
+	return 0;
+}
