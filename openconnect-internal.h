@@ -122,9 +122,17 @@ struct pkt {
 	int len;
 	struct pkt *next;
 	union {
-		unsigned char oncp_hdr[22];
 		struct {
-			unsigned char pad[14];
+			unsigned char spi[4];
+			uint32_t seq;
+			unsigned char iv[16];
+		} esp;
+		struct {
+			unsigned char oncp_pad[2];
+			unsigned char oncp_hdr[22];
+		};
+		struct {
+			unsigned char pad[16];
 			unsigned char hdr[8];
 		};
 	};
@@ -244,6 +252,7 @@ struct esp {
 #else
 #error No OpenSSL support for ESP yet
 #endif
+	uint32_t seq;
 	unsigned char spi[4];
 	unsigned char secrets[0x40];
 };
@@ -431,7 +440,8 @@ struct openconnect_info {
 	struct pkt *cstp_pkt;
 	struct pkt *dtls_pkt;
 	struct pkt *tun_pkt;
-	
+	int pkt_trailer; /* How many bytes after payload for encryption (ESP HMAC) */
+
 	z_stream inflate_strm;
 	uint32_t inflate_adler32;
 	z_stream deflate_strm;
@@ -752,6 +762,7 @@ int load_pkcs11_certificate(struct openconnect_info *vpninfo);
 int setup_esp_keys(struct openconnect_info *vpninfo);
 void destroy_esp_ciphers(struct esp *esp);
 int decrypt_and_queue_esp_packet(struct openconnect_info *vpninfo, unsigned char *esp, int len);
+int encrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt);
 
 /* {gnutls,openssl}.c */
 int ssl_nonblock_read(struct openconnect_info *vpninfo, void *buf, int maxlen);
