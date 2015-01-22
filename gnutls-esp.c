@@ -25,9 +25,6 @@
 #include <gnutls/gnutls.h>
 #include <gnutls/crypto.h>
 
-#include <gnutls/gnutls.h>
-#include <gnutls/crypto.h>
-
 #include "openconnect-internal.h"
 
 void destroy_esp_ciphers(struct esp *esp)
@@ -76,6 +73,7 @@ static int init_esp_ciphers(struct openconnect_info *vpninfo, struct esp *esp,
 		destroy_esp_ciphers(esp);
 	}
 	esp->seq = 0;
+	esp->seq_backlog = 0;
 	return 0;
 }
 
@@ -137,23 +135,20 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 
 int decrypt_and_queue_esp_packet(struct openconnect_info *vpninfo, unsigned char *esp, int len)
 {
+	struct esp_hdr *hdr = (void *)esp;
 	struct pkt *pkt;
 	unsigned char hmac_buf[20];
-	const int ivsize = sizeof(pkt->esp.iv);
+	int err;
 
-	if (len < 20 + ivsize)
+	if (len < sizeof(*hdr) + 12)
 		return -EINVAL;
 
-	if (memcmp(esp, vpninfo->esp_in.spi, 4)) {
+	if (memcmp(hdr->spi, vpninfo->esp_in.spi, 4)) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Received ESP packet with invalid SPI %02x%02x%02x%02x\n"),
 			     esp[0], esp[1], esp[2], esp[3]);
 		return -EINVAL;
 	}
-
-	/* XXX: Implement seq checking. Record the highest seq# received, and keep
-	   a small bitmap covering a sliding window just before that, so out-of-order
-	   packets can be accepted within reason but each packet only once. */
 
 	gnutls_hmac(vpninfo->esp_in.hmac, esp, len - 12);
 	gnutls_hmac_output(vpninfo->esp_in.hmac, hmac_buf);
@@ -163,18 +158,28 @@ int decrypt_and_queue_esp_packet(struct openconnect_info *vpninfo, unsigned char
 		return -EINVAL;
 	}
 
-	gnutls_cipher_set_iv(vpninfo->esp_in.cipher, esp + 8, ivsize);
+	/* Why in $DEITY's name would you ever *not* set this? Perhaps we
+	 * should do th check anyway, but only warn instead of discarding
+	 * the packet? */
+	if (vpninfo->esp_replay_protect &&
+	    verify_packet_seqno(vpninfo, &vpninfo->esp_in, ntohl(hdr->seq)))
+		return -EINVAL;
 
-	len -= 20 + ivsize;
+	gnutls_cipher_set_iv(vpninfo->esp_in.cipher, hdr->iv, sizeof(hdr->iv));
+
+	len -= sizeof(*hdr) + 12;
 
 	pkt = malloc(sizeof(struct pkt) + len);
 	if (!pkt)
 		return -ENOMEM;
 
-	if (gnutls_cipher_decrypt2(vpninfo->esp_in.cipher,
-				   pkt->data + 8 + ivsize, len,
-				   pkt->data, len)) {
-		printf("decrypt fail\n");
+	err = gnutls_cipher_decrypt2(vpninfo->esp_in.cipher,
+				     hdr->payload, len,
+				     pkt->data, len);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Decrypting ESP packet failed: %s\n"),
+			     gnutls_strerror(err));
 		return -EINVAL;
 	}
 
@@ -186,10 +191,12 @@ int decrypt_and_queue_esp_packet(struct openconnect_info *vpninfo, unsigned char
 		return -EINVAL;
 	}
 	if (len <= 2 + pkt->data[len - 2]) {
-		printf("Invalid padding length %02x in ESP\n",
-		       pkt->data[len - 2]);
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Invalid padding length %02x in ESP\n"),
+			     pkt->data[len - 2]);
 		return -EINVAL;
 	}
+	/* XXX: Actually check the padding bytes too. */
 	pkt->len = len - 2 + pkt->data[len - 2];
 
 	queue_packet(&vpninfo->incoming_queue, pkt);
@@ -204,7 +211,7 @@ int encrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt)
 
 	/* This gets much more fun if the IV is variable-length */
 	memcpy(pkt->esp.spi, vpninfo->esp_out.spi, 4);
-	pkt->esp.seq = vpninfo->esp_out.seq++;
+	pkt->esp.seq = htonl(vpninfo->esp_out.seq++);
 	err = gnutls_rnd(GNUTLS_RND_RANDOM, pkt->esp.iv, sizeof(pkt->esp.iv));
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,

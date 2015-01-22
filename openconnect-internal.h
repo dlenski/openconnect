@@ -118,15 +118,18 @@
 
 /****************************************************************************/
 
+struct esp_hdr {
+	unsigned char spi[4];
+	uint32_t seq;
+	unsigned char iv[16];
+	unsigned char payload[];
+};
+
 struct pkt {
 	int len;
 	struct pkt *next;
 	union {
-		struct {
-			unsigned char spi[4];
-			uint32_t seq;
-			unsigned char iv[16];
-		} esp;
+		struct esp_hdr esp;
 		struct {
 			unsigned char oncp_pad[2];
 			unsigned char oncp_hdr[22];
@@ -253,6 +256,7 @@ struct esp {
 #error No OpenSSL support for ESP yet
 #endif
 	uint32_t seq;
+	uint32_t seq_backlog;
 	unsigned char spi[4];
 	unsigned char secrets[0x40];
 };
@@ -757,6 +761,10 @@ void openconnect_clear_cookies(struct openconnect_info *vpninfo);
 /* openssl-pkcs11.c */
 int load_pkcs11_key(struct openconnect_info *vpninfo);
 int load_pkcs11_certificate(struct openconnect_info *vpninfo);
+
+/* esp.c */
+int verify_packet_seqno(struct openconnect_info *vpninfo,
+			struct esp *esp, uint32_t seq);
 
 /* gnutls-esp.c */
 int setup_esp_keys(struct openconnect_info *vpninfo);
