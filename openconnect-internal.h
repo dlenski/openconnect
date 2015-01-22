@@ -662,8 +662,6 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo);
 /* dtls.c */
 int dtls_setup(struct openconnect_info *vpninfo, int dtls_attempt_period);
 int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout);
-int dtls_try_handshake(struct openconnect_info *vpninfo);
-int connect_dtls_socket(struct openconnect_info *vpninfo);
 void dtls_close(struct openconnect_info *vpninfo);
 void dtls_shutdown(struct openconnect_info *vpninfo);
 

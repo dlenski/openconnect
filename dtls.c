@@ -194,7 +194,7 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 	return 0;
 }
 
-int dtls_try_handshake(struct openconnect_info *vpninfo)
+static int dtls_try_handshake(struct openconnect_info *vpninfo)
 {
 	int ret = SSL_do_handshake(vpninfo->dtls_ssl);
 
@@ -385,7 +385,7 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 	return 0;
 }
 
-int dtls_try_handshake(struct openconnect_info *vpninfo)
+static int dtls_try_handshake(struct openconnect_info *vpninfo)
 {
 	int err = gnutls_handshake(vpninfo->dtls_ssl);
 	char *str;
@@ -455,7 +455,7 @@ void dtls_shutdown(struct openconnect_info *vpninfo)
 }
 #endif
 
-int connect_dtls_socket(struct openconnect_info *vpninfo)
+static int connect_dtls_socket(struct openconnect_info *vpninfo)
 {
 	int dtls_fd, ret, sndbuf;
 
