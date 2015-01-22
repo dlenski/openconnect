@@ -110,17 +110,146 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 
 int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 {
-	if (vpninfo->dtls_state == DTLS_DISABLED)
+	int fd;
+	struct pkt *pkt;
+	int pktlen;
+
+	if (vpninfo->dtls_state == DTLS_DISABLED ||
+	    vpninfo->dtls_state == DTLS_NOSECRET)
 		return -EINVAL;
 
-	vpn_progress(vpninfo, PRG_ERR,
-		     _("ESP not implemented yet\n"));
-	return -EINVAL;
+	fd = udp_connect(vpninfo);
+	if (fd < 0)
+		return fd;
+
+	pkt = malloc(sizeof(*pkt) + 1 + vpninfo->pkt_trailer);
+	if (!pkt) {
+		closesocket(fd);
+		return -ENOMEM;
+	}
+
+	/* We are not connected until we get an ESP packet back */
+	vpninfo->dtls_state = DTLS_CONNECTING;
+	vpninfo->dtls_fd = fd;
+	monitor_fd_new(vpninfo, dtls);
+	monitor_read_fd(vpninfo, dtls);
+	monitor_except_fd(vpninfo, dtls);
+
+	pkt->len = 1;
+	pkt->data[0] = 0;
+	pktlen = encrypt_esp_packet(vpninfo, pkt);
+	send(fd, &pkt->esp, pktlen, 0);
+
+	pkt->len = 1;
+	pkt->data[0] = 0;
+	pktlen = encrypt_esp_packet(vpninfo, pkt);
+	send(fd, &pkt->esp, pktlen, 0);
+
+	free(pkt);
+	time(&vpninfo->new_dtls_started);
+
+	return 0;
 }
 
 int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
-	return 0;
+	int work_done = 0;
+	int ret;
+
+	while (1) {
+		int len = vpninfo->ip_info.mtu + vpninfo->pkt_trailer;
+		struct pkt *pkt;
+
+		if (!vpninfo->dtls_pkt) {
+			vpninfo->dtls_pkt = malloc(sizeof(struct pkt) + len);
+			if (!vpninfo->dtls_pkt) {
+				vpn_progress(vpninfo, PRG_ERR, _("Allocation failed\n"));
+				break;
+			}
+		}
+		pkt = vpninfo->dtls_pkt;
+		len = recv(vpninfo->dtls_fd, &pkt->esp, len + sizeof(pkt->esp), 0);
+		if (len <= 0)
+			break;
+
+		vpn_progress(vpninfo, PRG_TRACE, _("Received ESP packet of %d bytes\n"),
+			     len);
+		work_done = 1;
+
+		if (len <= sizeof(pkt->esp) + 12)
+			continue;
+
+		len -= sizeof(pkt->esp) + 12;
+		pkt->len = len;
+
+		if (decrypt_esp_packet(vpninfo, pkt))
+			continue;
+
+		if (pkt->data[len - 1] != 0x04 && pkt->data[len - 1] != 0x29) {
+			/* 0x05 is LZO compressed. */
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Received ESP packet with unrecognised payload type %02x\n"),
+				     pkt->data[len-1]);
+			continue;
+		}
+
+		if (len <= 2 + pkt->data[len - 2]) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Invalid padding length %02x in ESP\n"),
+				     pkt->data[len - 2]);
+			continue;
+		}
+		/* XXX: Actually check the padding bytes too. */
+		pkt->len = len - 2 - pkt->data[len - 2];
+
+		if (pkt->len  == 1 && pkt->data[0] == 0) {
+			vpn_progress(vpninfo, PRG_INFO,
+				     _("ESP session established with server\n"));
+			vpninfo->dtls_state = DTLS_CONNECTED;
+			continue;
+		}
+		queue_packet(&vpninfo->incoming_queue, pkt);
+		vpninfo->dtls_pkt = NULL;
+	}
+
+	if (vpninfo->dtls_state != DTLS_CONNECTED)
+		return 0;
+
+	unmonitor_write_fd(vpninfo, dtls);
+	while (vpninfo->outgoing_queue) {
+		struct pkt *this = vpninfo->outgoing_queue;
+		int len;
+
+		vpninfo->outgoing_queue = this->next;
+		vpninfo->outgoing_qlen--;
+
+		len = encrypt_esp_packet(vpninfo, this);
+		if (len > 0) {
+			ret = send(vpninfo->dtls_fd, &this->esp, len, 0);
+			if (ret < 0) {
+				/* Not that this is likely to happen with UDP, but... */
+				if (errno == ENOBUFS || errno == EAGAIN || errno == EWOULDBLOCK) {
+					monitor_write_fd(vpninfo, dtls);
+					/* XXX: Keep the packet somewhere? */
+					free(this);
+					return work_done;
+				} else {
+					/* A real error in sending. Fall back to TCP? */
+					vpn_progress(vpninfo, PRG_ERR,
+						     _("Failed to send ESP packet: %s\n"),
+						     strerror(errno));
+				}
+			} else
+				vpn_progress(vpninfo, PRG_TRACE, _("Sent ESP packet of %d bytes\n"),
+					     len);
+		} else {
+			/* XXX: Fall back to TCP transport? */
+		}
+		free(this);
+		work_done = 1;
+	}
+
+	return work_done;
 }
 
 void esp_close(struct openconnect_info *vpninfo)

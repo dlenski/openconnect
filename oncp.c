@@ -798,8 +798,9 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 	case GRP_ATTR(8, 4):
 		if (attrlen != 2)
 			goto badlen;
-		vpninfo->esp_port = TLV_BE16(data);
-		vpn_progress(vpninfo, PRG_DEBUG, _("ESP port: %d\n"), vpninfo->esp_port);
+		i = TLV_BE16(data);
+		udp_sockaddr(vpninfo, i);
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP port: %d\n"), i);
 		break;
 
 	case GRP_ATTR(8, 5):
@@ -838,7 +839,7 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 		if (attrlen != 4)
 			goto badlen;
 		memcpy(vpninfo->esp_out.spi, data, 4);
-		vpn_progress(vpninfo, PRG_DEBUG, _("ESP SPI (outbound): %u\n"),
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP SPI (outbound): %x\n"),
 			     TLV_BE32(data));
 		break;
 

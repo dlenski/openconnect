@@ -280,7 +280,6 @@ struct openconnect_info {
 	uint32_t esp_ssl_fallback;
 	struct esp esp_in;
 	struct esp esp_out;
-	int esp_port;
 
 	int tncc_fd; /* For Juniper TNCC */
 	const char *csd_xmltag;
@@ -773,7 +772,7 @@ void esp_shutdown(struct openconnect_info *vpninfo);
 /* gnutls-esp.c */
 int setup_esp_keys(struct openconnect_info *vpninfo);
 void destroy_esp_ciphers(struct esp *esp);
-int decrypt_and_queue_esp_packet(struct openconnect_info *vpninfo, unsigned char *esp, int len);
+int decrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt);
 int encrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt);
 
 /* {gnutls,openssl}.c */

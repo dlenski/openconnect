@@ -85,6 +85,8 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 
 	if (vpninfo->dtls_state == DTLS_DISABLED)
 		return -EOPNOTSUPP;
+	if (!vpninfo->dtls_addr)
+		return -EINVAL;
 
 	switch (vpninfo->esp_enc) {
 	case 0x02:
@@ -132,27 +134,22 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 	return 0;
 }
 
-
-int decrypt_and_queue_esp_packet(struct openconnect_info *vpninfo, unsigned char *esp, int len)
+/* pkt->len shall be the *payload* length. Omitting the header and the 12-byte HMAC */
+int decrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt)
 {
-	struct esp_hdr *hdr = (void *)esp;
-	struct pkt *pkt;
 	unsigned char hmac_buf[20];
 	int err;
 
-	if (len < sizeof(*hdr) + 12)
-		return -EINVAL;
-
-	if (memcmp(hdr->spi, vpninfo->esp_in.spi, 4)) {
+	if (memcmp(pkt->esp.spi, vpninfo->esp_in.spi, 4)) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Received ESP packet with invalid SPI %02x%02x%02x%02x\n"),
-			     esp[0], esp[1], esp[2], esp[3]);
+			     pkt->esp.spi[0], pkt->esp.spi[1], pkt->esp.spi[2], pkt->esp.spi[3]);
 		return -EINVAL;
 	}
 
-	gnutls_hmac(vpninfo->esp_in.hmac, esp, len - 12);
+	gnutls_hmac(vpninfo->esp_in.hmac, &pkt->esp, sizeof(pkt->esp) + pkt->len);
 	gnutls_hmac_output(vpninfo->esp_in.hmac, hmac_buf);
-	if (memcmp(hmac_buf, esp + len - 12, 12)) {
+	if (memcmp(hmac_buf, pkt->data + pkt->len, 12)) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Received ESP packet with invalid HMAC\n"));
 		return -EINVAL;
@@ -162,20 +159,13 @@ int decrypt_and_queue_esp_packet(struct openconnect_info *vpninfo, unsigned char
 	 * should do th check anyway, but only warn instead of discarding
 	 * the packet? */
 	if (vpninfo->esp_replay_protect &&
-	    verify_packet_seqno(vpninfo, &vpninfo->esp_in, ntohl(hdr->seq)))
+	    verify_packet_seqno(vpninfo, &vpninfo->esp_in, ntohl(pkt->esp.seq)))
 		return -EINVAL;
 
-	gnutls_cipher_set_iv(vpninfo->esp_in.cipher, hdr->iv, sizeof(hdr->iv));
+	gnutls_cipher_set_iv(vpninfo->esp_in.cipher, pkt->esp.iv, sizeof(pkt->esp.iv));
 
-	len -= sizeof(*hdr) + 12;
-
-	pkt = malloc(sizeof(struct pkt) + len);
-	if (!pkt)
-		return -ENOMEM;
-
-	err = gnutls_cipher_decrypt2(vpninfo->esp_in.cipher,
-				     hdr->payload, len,
-				     pkt->data, len);
+	err = gnutls_cipher_decrypt(vpninfo->esp_in.cipher,
+				    pkt->data, pkt->len);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Decrypting ESP packet failed: %s\n"),
@@ -183,23 +173,6 @@ int decrypt_and_queue_esp_packet(struct openconnect_info *vpninfo, unsigned char
 		return -EINVAL;
 	}
 
-	if (pkt->data[len - 1] != 0x04 && pkt->data[len - 1] != 0x29) {
-		/* 0x05 is LZO compressed. */
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Received ESP packet with unrecognised payload type %02x\n"),
-			     pkt->data[len-1]);
-		return -EINVAL;
-	}
-	if (len <= 2 + pkt->data[len - 2]) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Invalid padding length %02x in ESP\n"),
-			     pkt->data[len - 2]);
-		return -EINVAL;
-	}
-	/* XXX: Actually check the padding bytes too. */
-	pkt->len = len - 2 + pkt->data[len - 2];
-
-	queue_packet(&vpninfo->incoming_queue, pkt);
 	return 0;
 }
 
@@ -212,7 +185,7 @@ int encrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt)
 	/* This gets much more fun if the IV is variable-length */
 	memcpy(pkt->esp.spi, vpninfo->esp_out.spi, 4);
 	pkt->esp.seq = htonl(vpninfo->esp_out.seq++);
-	err = gnutls_rnd(GNUTLS_RND_RANDOM, pkt->esp.iv, sizeof(pkt->esp.iv));
+	err = gnutls_rnd(GNUTLS_RND_NONCE, pkt->esp.iv, sizeof(pkt->esp.iv));
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to generate ESP packet IV: %s\n"),
@@ -235,13 +208,13 @@ int encrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt)
 		return -EIO;
 	}
 
-	err = gnutls_hmac(vpninfo->esp_out.hmac, pkt->data, pkt->len + padlen + 2);
+	err = gnutls_hmac(vpninfo->esp_out.hmac, &pkt->esp, sizeof(pkt->esp) + pkt->len + padlen + 2);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to calculate HMAC for ESP packet: %s\n"),
 			     gnutls_strerror(err));
 		return -EIO;
 	}
-		gnutls_hmac_output(vpninfo->esp_out.hmac, pkt->data + pkt->len + padlen + 2);
+	gnutls_hmac_output(vpninfo->esp_out.hmac, pkt->data + pkt->len + padlen + 2);
 	return sizeof(pkt->esp) + pkt->len + padlen + 2 + 12;
 }
