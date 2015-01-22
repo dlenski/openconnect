@@ -1159,6 +1159,11 @@ int oncp_connect(struct openconnect_info *vpninfo)
  out:
 	if (ret)
 		openconnect_close_https(vpninfo, 0);
+	else {
+		monitor_fd_new(vpninfo, ssl);
+		monitor_read_fd(vpninfo, ssl);
+		monitor_except_fd(vpninfo, ssl);
+	}
 	buf_free(reqbuf);
 	return ret;
 }
