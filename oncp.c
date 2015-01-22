@@ -767,6 +767,7 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 			mactype = "unknown";
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP HMAC: 0x%02x (%s)\n"),
 			      data[0], mactype);
+		vpninfo->esp_hmac = data[0];
 		break;
 	}
 
@@ -783,45 +784,52 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 			enctype = "unknown";
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP encryption: 0x%02x (%s)\n"),
 			      data[0], enctype);
+		vpninfo->esp_enc = data[0];
 		break;
 	}
 
 	case GRP_ATTR(8, 3):
 		if (attrlen != 1)
 			goto badlen;
+		vpninfo->esp_compr = data[0];
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP compression: %d\n"), data[0]);
 		break;
 
 	case GRP_ATTR(8, 4):
 		if (attrlen != 2)
 			goto badlen;
-		vpn_progress(vpninfo, PRG_DEBUG, _("ESP port: %d\n"), TLV_BE16(data));
+		vpninfo->esp_port = TLV_BE16(data);
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP port: %d\n"), vpninfo->esp_port);
 		break;
 
 	case GRP_ATTR(8, 5):
 		if (attrlen != 4)
 			goto badlen;
-		vpn_progress(vpninfo, PRG_DEBUG, _("ESP key lifetime: %d bytes\n"),
-			     TLV_BE32(data));
+		vpninfo->esp_lifetime_bytes = TLV_BE32(data);
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP key lifetime: %u bytes\n"),
+			     vpninfo->esp_lifetime_bytes);
 		break;
 
 	case GRP_ATTR(8, 6):
 		if (attrlen != 4)
 			goto badlen;
-		vpn_progress(vpninfo, PRG_DEBUG, _("ESP key lifetime: %d seconds\n"),
-			     TLV_BE32(data));
+		vpninfo->esp_lifetime_seconds = TLV_BE32(data);
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP key lifetime: %u seconds\n"),
+			     vpninfo->esp_lifetime_seconds);
 		break;
 
 	case GRP_ATTR(8, 9):
 		if (attrlen != 4)
 			goto badlen;
-		vpn_progress(vpninfo, PRG_DEBUG, _("ESP to SSL fallback: %d seconds\n"),
-			     TLV_BE32(data));
+		vpninfo->esp_ssl_fallback = TLV_BE32(data);
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP to SSL fallback: %u seconds\n"),
+			     vpninfo->esp_ssl_fallback);
 		break;
 
 	case GRP_ATTR(8, 10):
 		if (attrlen != 4)
 			goto badlen;
+		vpninfo->esp_replay_protect = TLV_BE32(data);
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP replay protection: %d\n"),
 			     TLV_BE32(data));
 		break;
@@ -829,11 +837,15 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 	case GRP_ATTR(7, 1):
 		if (attrlen != 4)
 			goto badlen;
+		memcpy(vpninfo->esp_out.spi, data, 4);
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP SPI (outbound): %d\n"),
 			     TLV_BE32(data));
 		break;
 
 	case GRP_ATTR(7, 2):
+		if (attrlen != 0x40)
+			goto badlen;
+		memcpy(vpninfo->esp_out.secrets, data, 0x40);
 		vpn_progress(vpninfo, PRG_DEBUG, _("%d bytes of ESP secrets\n"),
 			     attrlen);
 		break;
@@ -880,6 +892,21 @@ static const unsigned char kmp_tail_out[] = { 0x01, 0x00, 0x00, 0x00, 0x01,
 static const unsigned char data_hdr[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 					  0x01, 0x2c, 0x01, 0x00, 0x00, 0x00,
 					  0x01, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+static const unsigned char esp_kmp_hdr[] = {
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x2e,
+	0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, /* KMP header */
+	0x00, 0x56, /* KMP length */
+	0x00, 0x07, 0x00, 0x00, 0x00, 0x50, /* TLV group 7 */
+	0x00, 0x01, 0x00, 0x00, 0x00, 0x04, /* Attr 1 (SPI) */
+};
+/* Followed by 4 bytes of SPI */
+static const unsigned char esp_kmp_part2[] = {
+	0x00, 0x02, 0x00, 0x00, 0x00, 0x40, /* Attr 2 (secrets) */
+};
+/* And now 0x40 bytes of random secret for encryption and HMAC key */
+
+
 int oncp_connect(struct openconnect_info *vpninfo)
 {
 	int ret, ofs, kmp, kmpend, kmplen, attr, attrlen, group, grouplen, groupend;
@@ -1094,6 +1121,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	group = reqbuf->pos;
 	buf_append_tlv_be32(reqbuf, 2, vpninfo->ip_info.mtu);
 	if (buf_error(reqbuf)) {
+	enomem:
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error creating oNCP negotiation request\n"));
 		ret = buf_error(reqbuf);
@@ -1101,6 +1129,19 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	}
 	put_len32(reqbuf, group);
 	put_len16(reqbuf, kmp);
+
+	if (!setup_esp_keys(vpninfo)) {
+		/* Since we'll want to do this in the oncp_mainloop too, where it's easier
+		 * *not* to have an oc_text_buf and build it up manually, and since it's
+		 * all fixed size and fairly simple anyway, just hard-code the packet */
+		buf_append_bytes(reqbuf, esp_kmp_hdr, sizeof(esp_kmp_hdr));
+		buf_append_bytes(reqbuf, vpninfo->esp_in.spi, sizeof(vpninfo->esp_in.spi));
+		buf_append_bytes(reqbuf, esp_kmp_part2, sizeof(esp_kmp_part2));
+		buf_append_bytes(reqbuf, vpninfo->esp_in.secrets, sizeof(vpninfo->esp_in.secrets));
+		if (buf_error(reqbuf))
+			goto enomem;
+	}
+
 	/* Length at the start of the packet is little-endian */
 	reqbuf->data[0] = (reqbuf->pos - 2);
 	reqbuf->data[1] = (reqbuf->pos - 2) >> 8;

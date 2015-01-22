@@ -56,6 +56,7 @@
 #include <gnutls/gnutls.h>
 #include <gnutls/abstract.h>
 #include <gnutls/x509.h>
+#include <gnutls/crypto.h>
 #ifdef HAVE_TROUSERS
 #include <trousers/tss.h>
 #include <trousers/trousers.h>
@@ -236,6 +237,17 @@ struct vpn_proto {
 	void (*udp_shutdown)(struct openconnect_info *vpninfo);
 };
 
+struct esp {
+#ifdef OPENCONNECT_GNUTLS
+	gnutls_cipher_hd_t cipher;
+	gnutls_hmac_hd_t hmac;
+#else
+#error No OpenSSL support for ESP yet
+#endif
+	unsigned char spi[4];
+	unsigned char secrets[0x40];
+};
+
 struct openconnect_info {
 	struct vpn_proto proto;
 
@@ -245,6 +257,17 @@ struct openconnect_info {
 #endif
 	char *redirect_url;
 	int redirect_type;
+
+	unsigned char esp_hmac;
+	unsigned char esp_enc;
+	unsigned char esp_compr;
+	uint32_t esp_replay_protect;
+	uint32_t esp_lifetime_bytes;
+	uint32_t esp_lifetime_seconds;
+	uint32_t esp_ssl_fallback;
+	struct esp esp_in;
+	struct esp esp_out;
+	int esp_port;
 
 	int tncc_fd; /* For Juniper TNCC */
 	const char *csd_xmltag;
@@ -724,6 +747,10 @@ void openconnect_clear_cookies(struct openconnect_info *vpninfo);
 /* openssl-pkcs11.c */
 int load_pkcs11_key(struct openconnect_info *vpninfo);
 int load_pkcs11_certificate(struct openconnect_info *vpninfo);
+
+/* gnutls-esp.c */
+int setup_esp_keys(struct openconnect_info *vpninfo);
+void destroy_esp_ciphers(struct esp *esp);
 
 /* {gnutls,openssl}.c */
 int ssl_nonblock_read(struct openconnect_info *vpninfo, void *buf, int maxlen);
