@@ -755,23 +755,6 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 		break;
 
 	case GRP_ATTR(8, 1): {
-		const char *mactype;
-
-		if (attrlen != 1)
-			goto badlen;
-		if (data[0] == 0x01)
-			mactype = "MD5";
-		else if (data[0] == 0x02)
-			mactype = "SHA1";
-		else
-			mactype = "unknown";
-		vpn_progress(vpninfo, PRG_DEBUG, _("ESP HMAC: 0x%02x (%s)\n"),
-			      data[0], mactype);
-		vpninfo->esp_hmac = data[0];
-		break;
-	}
-
-	case GRP_ATTR(8, 2): {
 		const char *enctype;
 
 		if (attrlen != 1)
@@ -785,6 +768,23 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP encryption: 0x%02x (%s)\n"),
 			      data[0], enctype);
 		vpninfo->esp_enc = data[0];
+		break;
+	}
+
+	case GRP_ATTR(8, 2): {
+		const char *mactype;
+
+		if (attrlen != 1)
+			goto badlen;
+		if (data[0] == 0x01)
+			mactype = "MD5";
+		else if (data[0] == 0x02)
+			mactype = "SHA1";
+		else
+			mactype = "unknown";
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP HMAC: 0x%02x (%s)\n"),
+			      data[0], mactype);
+		vpninfo->esp_hmac = data[0];
 		break;
 	}
 
@@ -838,7 +838,7 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 		if (attrlen != 4)
 			goto badlen;
 		memcpy(vpninfo->esp_out.spi, data, 4);
-		vpn_progress(vpninfo, PRG_DEBUG, _("ESP SPI (outbound): %d\n"),
+		vpn_progress(vpninfo, PRG_DEBUG, _("ESP SPI (outbound): %u\n"),
 			     TLV_BE32(data));
 		break;
 
