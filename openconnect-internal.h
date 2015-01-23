@@ -119,7 +119,7 @@
 /****************************************************************************/
 
 struct esp_hdr {
-	unsigned char spi[4];
+	uint32_t spi;
 	uint32_t seq;
 	unsigned char iv[16];
 	unsigned char payload[];
@@ -258,7 +258,7 @@ struct esp {
 #endif
 	uint32_t seq;
 	uint32_t seq_backlog;
-	unsigned char spi[4];
+	uint32_t spi; /* Stored network-endian */
 	unsigned char secrets[0x40];
 };
 

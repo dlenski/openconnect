@@ -99,8 +99,8 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	if (!RAND_bytes((void *)&vpninfo->esp_in.spi,
-			sizeof(vpninfo->esp_in.secrets) + sizeof(vpninfo->esp_in.spi))) {
+	if (!RAND_pseudo_bytes((void *)&vpninfo->esp_in.spi, sizeof(vpninfo->esp_in.spi)) ||
+	    !RAND_bytes((void *)&vpninfo->esp_in.secrets, sizeof(vpninfo->esp_in.secrets))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to generate random keys for ESP:\n"));
 		openconnect_report_ssl_errors(vpninfo);
@@ -130,10 +130,10 @@ int decrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt)
 	int crypt_len = pkt->len;
 	HMAC_CTX hmac_ctx;
 
-	if (memcmp(pkt->esp.spi, vpninfo->esp_in.spi, 4)) {
+	if (pkt->esp.spi != vpninfo->esp_in.spi) {
 		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("Received ESP packet with invalid SPI %02x%02x%02x%02x\n"),
-			     pkt->esp.spi[0], pkt->esp.spi[1], pkt->esp.spi[2], pkt->esp.spi[3]);
+			     _("Received ESP packet with invalid SPI 0x%08x\n"),
+			     ntohl(pkt->esp.spi));
 		return -EINVAL;
 	}
 
@@ -184,7 +184,7 @@ int encrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt)
 	HMAC_CTX hmac_ctx;
 
 	/* This gets much more fun if the IV is variable-length */
-	memcpy(pkt->esp.spi, vpninfo->esp_out.spi, 4);
+	pkt->esp.spi = vpninfo->esp_out.spi;
 	pkt->esp.seq = htonl(vpninfo->esp_out.seq++);
 	if (!RAND_pseudo_bytes((void *)&pkt->esp.iv, sizeof(pkt->esp.iv))) {
 		vpn_progress(vpninfo, PRG_ERR,

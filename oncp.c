@@ -838,7 +838,7 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 	case GRP_ATTR(7, 1):
 		if (attrlen != 4)
 			goto badlen;
-		memcpy(vpninfo->esp_out.spi, data, 4);
+		memcpy(&vpninfo->esp_out.spi, data, 4);
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP SPI (outbound): %x\n"),
 			     TLV_BE32(data));
 		break;
@@ -1136,7 +1136,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 		 * *not* to have an oc_text_buf and build it up manually, and since it's
 		 * all fixed size and fairly simple anyway, just hard-code the packet */
 		buf_append_bytes(reqbuf, esp_kmp_hdr, sizeof(esp_kmp_hdr));
-		buf_append_bytes(reqbuf, vpninfo->esp_in.spi, sizeof(vpninfo->esp_in.spi));
+		buf_append_bytes(reqbuf, &vpninfo->esp_in.spi, sizeof(vpninfo->esp_in.spi));
 		buf_append_bytes(reqbuf, esp_kmp_part2, sizeof(esp_kmp_part2));
 		buf_append_bytes(reqbuf, vpninfo->esp_in.secrets, sizeof(vpninfo->esp_in.secrets));
 		if (buf_error(reqbuf))

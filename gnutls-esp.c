@@ -109,18 +109,15 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 	default:
 		return -EINVAL;
 	}
-#if 1
-	memcpy(vpninfo->esp_in.spi, vpninfo->esp_out.spi, 0x44);
-#else
-	ret = gnutls_rnd(GNUTLS_RND_RANDOM, &vpninfo->esp_in.spi,
-			 sizeof(vpninfo->esp_in.secrets) + sizeof(vpninfo->esp_in.spi));
-	if (ret) {
+
+	if ((ret = gnutls_rnd(GNUTLS_RND_NONCE, &vpninfo->esp_in.spi, sizeof(vpninfo->esp_in.spi))) ||
+	    (ret = gnutls_rnd(GNUTLS_RND_RANDOM, &vpninfo->esp_in.secrets, sizeof(vpninfo->esp_in.secrets)))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to generate random keys for ESP: %s\n"),
 			     gnutls_strerror(ret));
 		return -EIO;
 	}
-#endif
+
 	ret = init_esp_ciphers(vpninfo, &vpninfo->esp_out, macalg, encalg);
 	if (ret)
 		return ret;
@@ -142,10 +139,10 @@ int decrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt)
 	unsigned char hmac_buf[20];
 	int err;
 
-	if (memcmp(pkt->esp.spi, vpninfo->esp_in.spi, 4)) {
+	if (pkt->esp.spi != vpninfo->esp_in.spi) {
 		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("Received ESP packet with invalid SPI %02x%02x%02x%02x\n"),
-			     pkt->esp.spi[0], pkt->esp.spi[1], pkt->esp.spi[2], pkt->esp.spi[3]);
+			     _("Received ESP packet with invalid SPI 0x%08x\n"),
+			     ntohl(pkt->esp.spi));
 		return -EINVAL;
 	}
 
@@ -185,7 +182,7 @@ int encrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt)
 	int err;
 
 	/* This gets much more fun if the IV is variable-length */
-	memcpy(pkt->esp.spi, vpninfo->esp_out.spi, 4);
+	pkt->esp.spi = vpninfo->esp_out.spi;
 	pkt->esp.seq = htonl(vpninfo->esp_out.seq++);
 	err = gnutls_rnd(GNUTLS_RND_NONCE, pkt->esp.iv, sizeof(pkt->esp.iv));
 	if (err) {
