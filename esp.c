@@ -107,6 +107,54 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 	}
 }
 
+int print_esp_keys(struct openconnect_info *vpninfo, const char *name, struct esp *esp)
+{
+	int i;
+	const char *enctype, *mactype;
+	char enckey[256], mackey[256];
+	int enclen, maclen;
+
+	switch(vpninfo->esp_enc) {
+	case 0x02:
+		enctype = "AES-128-CBC (RFC3602)";
+		enclen = 16;
+		break;
+	case 0x05:
+		enctype = "AES-256-CBC (RFC3602)";
+		enclen = 32;
+		break;
+	default:
+		return -EINVAL;
+	}
+	switch(vpninfo->esp_hmac) {
+	case 0x01:
+		mactype = "HMAC-MD5-96 (RFC2403)";
+		maclen = 16;
+		break;
+	case 0x02:
+		mactype = "HMAC-SHA-1-96 (RFC2404)";
+		maclen = 20;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	for (i = 0; i < enclen; i++)
+		sprintf(enckey + (2 * i), "%02x", esp->secrets[i]);
+	for (i = 0; i < maclen; i++)
+		sprintf(mackey + (2 * i), "%02x", esp->secrets[enclen + i]);
+
+	vpn_progress(vpninfo, PRG_TRACE,
+		     _("Parameters for %s ESP: SPI 0x%08x\n"),
+		     name, ntohl(esp->spi));
+	vpn_progress(vpninfo, PRG_TRACE,
+		     _("ESP encryption type %s key 0x%s\n"),
+		     enctype, enckey);
+	vpn_progress(vpninfo, PRG_TRACE,
+		     _("ESP authentication type %s key 0x%s\n"),
+		     mactype, mackey);
+	return 0;
+}
 
 int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 {
@@ -127,6 +175,9 @@ int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 		closesocket(fd);
 		return -ENOMEM;
 	}
+
+	print_esp_keys(vpninfo, _("incoming"), &vpninfo->esp_in);
+	print_esp_keys(vpninfo, _("outgoing"), &vpninfo->esp_out);
 
 	/* We are not connected until we get an ESP packet back */
 	vpninfo->dtls_state = DTLS_CONNECTING;
