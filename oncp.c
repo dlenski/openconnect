@@ -1168,6 +1168,106 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	return ret;
 }
 
+static int oncp_receive_data(struct openconnect_info *vpninfo, int len, int unreceived)
+{
+	struct pkt *pkt = vpninfo->cstp_pkt;
+	int pktlen;
+	int ret;
+
+	while (1) {
+		/*
+		 * 'len' is the total amount of data remaining in thie SSL record,
+		 * of which 'unreceived' has yet to be received.
+		 *
+		 * We have already got (len - unreceived) bytes in vpninfo->cstp_pkt,
+		 * and if unreceived is not zero then we'll have a full MTU, thus
+		 * len - unreceived == vpninfo->ip_info.mtu.
+		 *
+		 * So we know we should have at least one complete IP packet, and
+		 * maybe more. Receive the IP packet, copy any remaining bytes into
+		 * a newly-allocated 'struct pkt', read any more bytes from the SSL
+		 * record that we need to make the above still true, and repeat.
+		 */
+
+		/* Ick. Windows doesn't give us 'struct ip', AFAICT. */
+		switch(pkt->data[0] >> 4) {
+		case 4:
+			pktlen = (pkt->data[2] << 8) | pkt->data[3];
+			break;
+		case 6:
+			pktlen = (pkt->data[4] << 8) | pkt->data[5];
+			break;
+		default:
+		badlen:
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Unrecognised data packet starting %02x %02x %02x %02x %02x %02x %02x %02x\n"),
+				     pkt->data[0], pkt->data[1], pkt->data[2], pkt->data[3],
+				     pkt->data[4], pkt->data[5], pkt->data[6], pkt->data[7]);
+			/* Drain the unreceived bytes if we want to continue */
+			return -EINVAL;
+		}
+
+		/* Should never happen, but would cause an endless loop if it did. */
+		if (!pktlen)
+			goto badlen;
+
+		/* Receive this packet */
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Received uncompressed data packet of %d bytes\n"),
+			     pktlen);
+		pkt->len = pktlen;
+		queue_packet(&vpninfo->incoming_queue, pkt);
+		vpninfo->cstp_pkt = NULL;
+
+		len -= pktlen;
+		if (!len) /* Common case */
+			return 0;
+
+		/* Allocate the *next* packet to be received */
+		vpninfo->cstp_pkt = malloc(sizeof(struct pkt) + vpninfo->ip_info.mtu);
+		if (!vpninfo->cstp_pkt) {
+			vpn_progress(vpninfo, PRG_ERR, _("Allocation failed\n"));
+			/* Drain the unreceived bytes if we want to continue */
+			return -ENOMEM;
+		}
+
+		/* Copy any extra bytes from the tail of 'pkt', which is already
+		 * on the RX queue, into the next packet. */
+		if (len - unreceived)
+			memcpy(vpninfo->cstp_pkt->data,
+			       pkt->data + pktlen,
+			       len - unreceived);
+
+		pkt = vpninfo->cstp_pkt;
+
+		if (unreceived) {
+			/* The length of the previous packet is the amount by
+			 * which we need to replenish the buffer. */
+			if (pktlen > unreceived)
+				pktlen = unreceived;
+
+			/* This is a *blocking* read, since if the crypto library
+			 * already started returning the first part of this SSL
+			 * record then it damn well ought to have the rest of it
+			 * available already. */
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("Reading additional %d bytes from oNCP...\n"),
+				     pktlen);
+			ret = vpninfo->ssl_read(vpninfo, (void *)(pkt->data + (len - unreceived)),
+						pktlen);
+			if (ret < 0)
+				return ret;
+			if (ret != pktlen) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Short read for end of large KMP message. Expected %d, got %d bytes\n"),
+					     pktlen, ret);
+				return -EIO;
+			}
+			unreceived -= pktlen;
+		}
+	}
+}
+
 int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
 	int ret;
@@ -1184,7 +1284,8 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	   fairly unlikely situation, until the write backlog clears. */
 	while (1) {
 		int len = vpninfo->ip_info.mtu;
-		int kmp, kmplen;
+		int kmp, kmplen, reclen;
+		int morecoming;
 
 		if (!vpninfo->cstp_pkt) {
 			vpninfo->cstp_pkt = malloc(sizeof(struct pkt) + len);
@@ -1194,44 +1295,71 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			}
 		}
 
+		/*
+		 * The first two bytes of each SSL record contain the (little-endian)
+		 * length of that record. On the wire it's arguably redundant, but
+		 * it's nice to have it here and just be able to read() from the SSL
+		 * "stream" in the knowledge that a single read call will never cross
+		 * record boundaries.
+		 *
+		 * An SSL record may contain multiple KMP messages. And a KMP message
+		 * of type 300 (data) can evidently contain multiple IP packets with
+		 * nothing to split them apart except the length field in the IP
+		 * packet itself.
+		 *
+		 * But the *common* case is that we read a full SSL record which
+		 * contains a single KMP message 300, which contains a single IP
+		 * packet. So receive it into the appropriate place in a struct pkt
+		 * so that we can just pass it up the stack. And cope with the rest
+		 * as corner cases.
+		 */
 		len = ssl_nonblock_read(vpninfo, vpninfo->cstp_pkt->oncp_hdr, len + 22);
 		if (!len)
 			break;
 		if (len < 0)
 			goto do_reconnect;
+
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("oNCP mainloop read %d bytes of SSL record\n"), len);
+
 		if (len < 22) {
 			vpn_progress(vpninfo, PRG_ERR, _("Short packet received (%d bytes)\n"), len);
 			vpninfo->quit_reason = "Short packet received";
 			return 1;
 		}
 
-		if (len != vpninfo->cstp_pkt->oncp_hdr[0] +
-		    (vpninfo->cstp_pkt->oncp_hdr[1] << 8) + 2)
+		/* This is the length of the SSL record */
+		reclen = vpninfo->cstp_pkt->oncp_hdr[0] +
+			(vpninfo->cstp_pkt->oncp_hdr[1] << 8) + 2;
+
+		if (len < reclen && len == vpninfo->ip_info.mtu + 22) {
+			/* We read as much as we asked for, and there is more of
+			 * this SSL record to come. */
+			morecoming = reclen - len;
+		} else if (len != reclen)
 			goto unknown_pkt;
+		else
+			morecoming = 0;
 
 		kmplen = (vpninfo->cstp_pkt->oncp_hdr[20] << 8) +
 			vpninfo->cstp_pkt->oncp_hdr[21];
-		if (len != kmplen + 22)
+
+		if (reclen != kmplen + 22) {
+			/* For now we don't cope with more than one KMP message in the
+			 * same SSL record. But we *send* them, and should probably be
+			 * capable of receiving them too. */
 			goto unknown_pkt;
+		}
 
 		kmp = (vpninfo->cstp_pkt->oncp_hdr[8] << 8) +
 			vpninfo->cstp_pkt->oncp_hdr[9];
 		vpn_progress(vpninfo, PRG_DEBUG, _("Incoming KMP message %d of size %d\n"),
 			     kmp, kmplen);
-		if (kmp != 300)
-			goto unknown_pkt;
 
 		vpninfo->ssl_times.last_rx = time(NULL);
 		switch (kmp) {
 		case 300:
-			vpn_progress(vpninfo, PRG_TRACE,
-				     _("Received uncompressed data packet of %d bytes\n"),
-				     kmplen);
-			vpninfo->cstp_pkt->len = kmplen;
-			queue_packet(&vpninfo->incoming_queue, vpninfo->cstp_pkt);
-			vpninfo->cstp_pkt = NULL;
+			ret = oncp_receive_data(vpninfo, kmplen, morecoming);
 			work_done = 1;
 			break;
 
