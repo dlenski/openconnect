@@ -155,9 +155,9 @@ struct pkt {
 #define DTLS_NOSECRET	0
 #define DTLS_SECRET	1
 #define DTLS_DISABLED	2
-#define DTLS_SLEEPING	3
-#define DTLS_CONNECTING	4
-#define DTLS_CONNECTED	5
+#define DTLS_SLEEPING	3	/* For ESP, sometimes sending probes */
+#define DTLS_CONNECTING	4	/* ESP probe received; must tell server */
+#define DTLS_CONNECTED	5	/* Server informed and should be sending ESP */
 
 #define COMPR_DEFLATE	(1<<0)
 #define COMPR_LZS	(1<<1)

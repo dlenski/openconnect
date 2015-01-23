@@ -156,11 +156,34 @@ int print_esp_keys(struct openconnect_info *vpninfo, const char *name, struct es
 	return 0;
 }
 
+static int esp_send_probes(struct openconnect_info *vpninfo)
+{
+	struct pkt *pkt;
+	int pktlen;
+
+	pkt = malloc(sizeof(*pkt) + 1 + vpninfo->pkt_trailer);
+	if (!pkt)
+		return -ENOMEM;
+
+	pkt->len = 1;
+	pkt->data[0] = 0;
+	pktlen = encrypt_esp_packet(vpninfo, pkt);
+	send(vpninfo->dtls_fd, &pkt->esp, pktlen, 0);
+
+	pkt->len = 1;
+	pkt->data[0] = 0;
+	pktlen = encrypt_esp_packet(vpninfo, pkt);
+	send(vpninfo->dtls_fd, &pkt->esp, pktlen, 0);
+
+	free(pkt);
+	time(&vpninfo->new_dtls_started);
+
+	return 0;
+};
+
 int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 {
 	int fd;
-	struct pkt *pkt;
-	int pktlen;
 
 	if (vpninfo->dtls_state == DTLS_DISABLED ||
 	    vpninfo->dtls_state == DTLS_NOSECRET)
@@ -170,34 +193,17 @@ int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 	if (fd < 0)
 		return fd;
 
-	pkt = malloc(sizeof(*pkt) + 1 + vpninfo->pkt_trailer);
-	if (!pkt) {
-		closesocket(fd);
-		return -ENOMEM;
-	}
-
 	print_esp_keys(vpninfo, _("incoming"), &vpninfo->esp_in);
 	print_esp_keys(vpninfo, _("outgoing"), &vpninfo->esp_out);
 
 	/* We are not connected until we get an ESP packet back */
-	vpninfo->dtls_state = DTLS_CONNECTING;
+	vpninfo->dtls_state = DTLS_SLEEPING;
 	vpninfo->dtls_fd = fd;
 	monitor_fd_new(vpninfo, dtls);
 	monitor_read_fd(vpninfo, dtls);
 	monitor_except_fd(vpninfo, dtls);
 
-	pkt->len = 1;
-	pkt->data[0] = 0;
-	pktlen = encrypt_esp_packet(vpninfo, pkt);
-	send(fd, &pkt->esp, pktlen, 0);
-
-	pkt->len = 1;
-	pkt->data[0] = 0;
-	pktlen = encrypt_esp_packet(vpninfo, pkt);
-	send(fd, &pkt->esp, pktlen, 0);
-
-	free(pkt);
-	time(&vpninfo->new_dtls_started);
+	esp_send_probes(vpninfo);
 
 	return 0;
 }
@@ -254,9 +260,11 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		pkt->len = len - 2 - pkt->data[len - 2];
 
 		if (pkt->len  == 1 && pkt->data[0] == 0) {
-			vpn_progress(vpninfo, PRG_INFO,
-				     _("ESP session established with server\n"));
-			vpninfo->dtls_state = DTLS_CONNECTED;
+			if (vpninfo->dtls_state == DTLS_SLEEPING) {
+				vpn_progress(vpninfo, PRG_INFO,
+					     _("ESP session established with server\n"));
+				vpninfo->dtls_state = DTLS_CONNECTING;
+			}
 			continue;
 		}
 		queue_packet(&vpninfo->incoming_queue, pkt);

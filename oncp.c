@@ -908,6 +908,20 @@ static const unsigned char esp_kmp_part2[] = {
 /* And now 0x40 bytes of random secret for encryption and HMAC key */
 
 
+static const struct pkt esp_enable_pkt = {
+	.oncp_hdr = {
+		0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x01, 0x2f, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x0d
+	},
+	.data = {
+		0x00, 0x06, 0x00, 0x00, 0x00, 0x07, /* Group 6, len 7 */
+		0x00, 0x01, 0x00, 0x00, 0x00, 0x01, /* Attr 1, len 1 */
+		0x01
+	},
+	.len = 13
+};
+
 int oncp_connect(struct openconnect_info *vpninfo)
 {
 	int ret, ofs, kmp, kmpend, kmplen, attr, attrlen, group, grouplen, groupend;
@@ -1447,13 +1461,14 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		/* Don't free the 'special' packets */
 		if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt)
 			free(vpninfo->pending_deflated_pkt);
-		else
-#if 0 /* No DPD or keepalive for Juniper yet */
-		if (vpninfo->current_ssl_pkt != &dpd_pkt &&
-		    vpninfo->current_ssl_pkt != &dpd_resp_pkt &&
-		    vpninfo->current_ssl_pkt != &keepalive_pkt)
-#endif
+		else if (vpninfo->current_ssl_pkt == &esp_enable_pkt) {
+			/* If we sent the special ESP enable packet, ESP
+			 * is now enabled. And we don't need to free it. */
+			if (vpninfo->dtls_state == DTLS_CONNECTING)
+				vpninfo->dtls_state = DTLS_CONNECTED;
+		} else {
 			free(vpninfo->current_ssl_pkt);
+		}
 		vpninfo->current_ssl_pkt = NULL;
 	}
 
@@ -1528,6 +1543,10 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	}
 #endif
 
+	if (vpninfo->dtls_state == DTLS_CONNECTING) {
+		vpninfo->current_ssl_pkt = (struct pkt *)&esp_enable_pkt;
+		goto handle_outgoing;
+	}
 	/* Service outgoing packet queue, if no DTLS */
 	while (vpninfo->dtls_state != DTLS_CONNECTED && vpninfo->outgoing_queue) {
 		struct pkt *this = vpninfo->outgoing_queue;
