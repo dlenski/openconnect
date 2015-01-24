@@ -439,7 +439,7 @@ struct openconnect_info {
 	struct pkt *deflate_pkt;		/* For compressing outbound packets into */
 	struct pkt *pending_deflated_pkt;	/* The original packet associated with above */
 	struct pkt *current_ssl_pkt;		/* Partially sent SSL packet */
-
+	struct pkt *oncp_control_queue;		/* Control packets to be sent on oNCP next */
 	/* Packet buffers for receiving into */
 	struct pkt *cstp_pkt;
 	struct pkt *dtls_pkt;

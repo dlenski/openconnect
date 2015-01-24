@@ -922,9 +922,74 @@ static const struct pkt esp_enable_pkt = {
 	.len = 13
 };
 
+static int check_kmp_header(struct openconnect_info *vpninfo, unsigned char *bytes, int pktlen)
+{
+	if (pktlen < 20 || memcmp(bytes, kmp_head, sizeof(kmp_head)) ||
+	    memcmp(bytes + 8, kmp_tail, sizeof(kmp_tail))) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to parse KMP header\n"));
+		return -EINVAL;
+	}
+	return bytes[7] | (bytes[6] << 8);
+}
+
+static int parse_conf_pkt(struct openconnect_info *vpninfo, unsigned char *bytes, int pktlen, int kmp)
+{
+	int kmplen, kmpend, grouplen, groupend, group, attr, attrlen;
+	int ofs = 0;
+
+	kmplen = bytes[ofs + 19] + (bytes[ofs + 18] << 8);
+	kmpend = ofs + kmplen;
+	if (kmpend > pktlen) {
+	eparse:
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to parse KMP message\n"));
+		return -EINVAL;
+	}
+
+	vpn_progress(vpninfo, PRG_DEBUG,
+		     _("Got KMP message %d of size %d\n"),
+		     kmp, kmplen);
+	ofs += 0x14;
+
+	while (ofs < kmpend) {
+		if (ofs + 6 > kmpend)
+			goto eparse;
+		group = (bytes[ofs] << 8) + bytes[ofs+1];
+		grouplen = (bytes[ofs+2] << 24) + (bytes[ofs+3] << 16) +
+			(bytes[ofs+4] << 8) + bytes[ofs+5];
+		ofs += 6;
+		groupend = ofs + grouplen;
+		if (groupend > pktlen)
+			goto eparse;
+
+		if (kmp == 302 && group != 7 && group != 8) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Received non-ESP TLVs (group %d) in ESP negotiation KMP\n"),
+				     group);
+			return -EINVAL;
+		}
+
+		while (ofs < groupend) {
+			if (ofs + 6 > groupend)
+				goto eparse;
+			attr = (bytes[ofs] << 8) + bytes[ofs+1];
+			attrlen = (bytes[ofs+2] << 24) + (bytes[ofs+3] << 16) +
+				(bytes[ofs+4] << 8) + bytes[ofs+5];
+			ofs += 6;
+			if (attrlen + ofs > groupend)
+				goto eparse;
+			if (process_attr(vpninfo, group, attr, bytes + ofs, attrlen))
+				goto eparse;
+			ofs += attrlen;
+		}
+	}
+	return 0;
+}
+
 int oncp_connect(struct openconnect_info *vpninfo)
 {
-	int ret, ofs, kmp, kmpend, kmplen, attr, attrlen, group, grouplen, groupend;
+	int ret, len, kmp, group;
 	struct oc_text_buf *reqbuf;
 	unsigned char bytes[1024];
 	/* XXX: We should do what cstp_connect() does to check that configuration
@@ -1063,67 +1128,37 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	}
 
 	/* And then a KMP message 301 with the IP configuration */
-	ret = vpninfo->ssl_read(vpninfo, (void *)bytes, sizeof(bytes));
-	if (ret < 0)
+	len = vpninfo->ssl_read(vpninfo, (void *)bytes, sizeof(bytes));
+	if (len < 0) {
+		ret = len;
 		goto out;
+	}
 	vpn_progress(vpninfo, PRG_TRACE,
-		     _("Read %d bytes of SSL record\n"), ret);
+		     _("Read %d bytes of SSL record\n"), len);
 
-	if (ret < 0x16 || bytes[0] + (bytes[1] << 8) + 2 != ret) {
+	if (len < 0x16 || bytes[0] + (bytes[1] << 8) + 2 != len) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Invalid packet waiting for KMP 301\n"));
 		ret = -EINVAL;
 		goto out;
 	}
 
-	ofs = 2;
+	ret = check_kmp_header(vpninfo, bytes + 2, len);
+	if (ret < 0)
+		goto out;
 
-	while (ofs < ret) {
-		/* Check the KMP message header. */
-		if (ofs + 20 > ret || memcmp(bytes + ofs, kmp_head, sizeof(kmp_head)) ||
-		    memcmp(bytes + ofs + 8, kmp_tail, sizeof(kmp_tail))) {
-		eparse:
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Failed to parse server response\n"));
-			ret = -EINVAL;
-			goto out;
-		}
-		kmp = bytes[ofs + 7] + (bytes[ofs + 6] << 8);
-		kmplen = bytes[ofs + 19] + (bytes[ofs + 18] << 8);
-		if (ofs + kmplen > ret)
-			goto eparse;
-		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("Got KMP message %d of size %d\n"),
-			     kmp, kmplen);
-		ofs += 0x14;
-		kmpend = ofs + kmplen;
-		if (kmp != 301)
-			goto eparse;
-
-		while (ofs < kmpend) {
-			if (ofs + 6 > kmpend)
-				goto eparse;
-			group = (bytes[ofs] << 8) + bytes[ofs+1];
-			grouplen = (bytes[ofs+2] << 24) + (bytes[ofs+3] << 16) +
-				(bytes[ofs+4] << 8) + bytes[ofs+5];
-			ofs += 6;
-			groupend = ofs + grouplen;
-
-			while (ofs < groupend) {
-				if (ofs + 6 > groupend)
-					goto eparse;
-				attr = (bytes[ofs] << 8) + bytes[ofs+1];
-				attrlen = (bytes[ofs+2] << 24) + (bytes[ofs+3] << 16) +
-					(bytes[ofs+4] << 8) + bytes[ofs+5];
-				ofs += 6;
-				if (attrlen + ofs > groupend)
-					goto eparse;
-				if (process_attr(vpninfo, group, attr, bytes + ofs, attrlen))
-					goto eparse;
-				ofs += attrlen;
-			}
-		}
+	/* We expect KMP message 301 here */
+	if (ret != 301) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Expected KMP message 301 from server but got %d\n"),
+			     ret);
+		ret = -EINVAL;
+		goto out;
 	}
+
+	ret = parse_conf_pkt(vpninfo, bytes + 2, len, ret);
+	if (ret)
+		goto out;
 
 	buf_truncate(reqbuf);
 	buf_append_le16(reqbuf, 0); /* Length. We'll fix it later. */
@@ -1182,6 +1217,31 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	return ret;
 }
 
+static int oncp_receive_espkeys(struct openconnect_info *vpninfo, int len)
+{
+	int ret;
+
+	ret = parse_conf_pkt(vpninfo, vpninfo->cstp_pkt->oncp_hdr + 2, len + 20, 301);
+	if (!ret && !setup_esp_keys(vpninfo)) {
+		unsigned char *p = vpninfo->cstp_pkt->data;
+
+		memcpy(p, esp_kmp_hdr, sizeof(esp_kmp_hdr));
+		p += sizeof(esp_kmp_hdr);
+		memcpy(p, &vpninfo->esp_in.spi, sizeof(vpninfo->esp_in.spi));
+		p += sizeof(vpninfo->esp_in.spi);
+		memcpy(p, esp_kmp_part2, sizeof(esp_kmp_part2));
+		p += sizeof(esp_kmp_part2);
+		memcpy(p, vpninfo->esp_in.secrets, sizeof(vpninfo->esp_in.secrets));
+		p += sizeof(vpninfo->esp_in.secrets);
+		vpninfo->cstp_pkt->len = p - vpninfo->cstp_pkt->data;
+		queue_packet(&vpninfo->oncp_control_queue, vpninfo->cstp_pkt);
+		vpninfo->cstp_pkt = NULL;
+
+		print_esp_keys(vpninfo, _("new incoming"), &vpninfo->esp_in);
+		print_esp_keys(vpninfo, _("new outgoing"), &vpninfo->esp_out);
+	}
+	return ret;
+}
 static int oncp_receive_data(struct openconnect_info *vpninfo, int len, int unreceived)
 {
 	struct pkt *pkt = vpninfo->cstp_pkt;
@@ -1374,6 +1434,15 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		switch (kmp) {
 		case 300:
 			ret = oncp_receive_data(vpninfo, kmplen, morecoming);
+			if (ret)
+				goto unknown_pkt;
+			work_done = 1;
+			break;
+
+		case 302:
+			if (morecoming)
+				goto unknown_pkt;
+			ret = oncp_receive_espkeys(vpninfo, kmplen);
 			work_done = 1;
 			break;
 
@@ -1542,7 +1611,11 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		;
 	}
 #endif
-
+	if (vpninfo->oncp_control_queue) {
+		vpninfo->current_ssl_pkt = vpninfo->oncp_control_queue;
+		vpninfo->oncp_control_queue = vpninfo->oncp_control_queue->next;
+		goto handle_outgoing;
+	}
 	if (vpninfo->dtls_state == DTLS_CONNECTING) {
 		vpninfo->current_ssl_pkt = (struct pkt *)&esp_enable_pkt;
 		goto handle_outgoing;

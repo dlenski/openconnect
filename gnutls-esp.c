@@ -128,7 +128,8 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 		return ret;
 	}
 
-	vpninfo->dtls_state = DTLS_SECRET;
+	if (vpninfo->dtls_state == DTLS_NOSECRET)
+		vpninfo->dtls_state = DTLS_SECRET;
 	vpninfo->pkt_trailer = 16 + 20; /* 16 for pad, 20 for HMAC (of which we use 16) */
 	return 0;
 }
