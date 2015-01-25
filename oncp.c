@@ -1341,11 +1341,13 @@ static int oncp_receive_data(struct openconnect_info *vpninfo, int len, int unre
 		pkt = vpninfo->cstp_pkt;
 
 		if (unreceived) {
+			int retried = 0;
+
 			/* The length of the previous packet is the amount by
 			 * which we need to replenish the buffer. */
 			if (pktlen > unreceived)
 				pktlen = unreceived;
-
+		retry:
 			/* This is a *blocking* read, since if the crypto library
 			 * already started returning the first part of this SSL
 			 * record then it damn well ought to have the rest of it
@@ -1357,6 +1359,27 @@ static int oncp_receive_data(struct openconnect_info *vpninfo, int len, int unre
 						pktlen);
 			if (ret < 0)
 				return ret;
+			if (ret != pktlen && !retried) {
+				/* This can happen when there are *so* many IP packets in a single oNCP
+				   packet that it exceeds the 16KiB maximum size of a SSL record. So
+				   in that case the above comment about a blocking read is invalid; we
+				   *could* end up waiting here. We should actually fix things to be
+				   completely asynchronous, storing the 'len' and 'unreceived' variables
+				   in the vpninfo structure and getting back into this loop directly
+				   from oncp_mainloop(). But I'm not going to lose too much sleep
+				   over that just yet. After all, we wouldn't be receiving data here
+				   if the ESP was up — we know there's no *other* data transport that
+				   the mainloop should be servicing while it's blocked. Perhaps we could
+				   be sending packets on *this* TCP connection while we wait for the
+				   next SSL record to arrive, though. */
+				vpn_progress(vpninfo, PRG_DEBUG,
+					     _("Short read on (%d < %d) on large KMP message. Trying again in case it crossed SSL record boundary\n"),
+					     ret, pktlen);
+				unreceived -= ret;
+				pktlen -= ret;
+				retried = 1;
+				goto retry;
+			}
 			if (ret != pktlen) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Short read for end of large KMP message. Expected %d, got %d bytes\n"),
