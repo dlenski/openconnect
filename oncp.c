@@ -739,6 +739,27 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 		add_option(vpninfo, "ipaddr", buf, -1);
 		break;
 
+	case GRP_ATTR(3, 3): {
+		struct oc_split_include *inc;
+		if (attrlen != 8)
+			goto badlen;
+		snprintf(buf, sizeof(buf), "%d.%d.%d.%d/%d.%d.%d.%d",
+			 data[0], data[1], data[2], data[3],
+			 data[4], data[5], data[6], data[7]);
+		vpn_progress(vpninfo, PRG_DEBUG, _("Received split include route %s\n"), buf);
+		if (!data[4] && !data[5] && !data[6] && !data[7])
+			break;
+		inc = malloc(sizeof(*inc));
+		if (inc) {
+			inc->route = add_option(vpninfo, "split-include", buf, -1);
+			if (inc->route) {
+				inc->next = vpninfo->ip_info.split_includes;
+				vpninfo->ip_info.split_includes = inc;
+			} else
+				free(inc);
+		}
+		break;
+	}
 	case GRP_ATTR(4, 1):
 		if (attrlen != 4)
 			goto badlen;
