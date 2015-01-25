@@ -613,18 +613,18 @@ static void buf_append_tlv_be32(struct oc_text_buf *buf, uint16_t val, uint32_t 
 	buf_append_tlv(buf, val, 4, d);
 }
 
-static void buf_hexdump(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+static void buf_hexdump(struct openconnect_info *vpninfo, unsigned char *d, int len)
 {
 	char linebuf[80];
 	int i;
 
-	for (i = 0; i < buf->pos; i++) {
+	for (i = 0; i < len; i++) {
 		if (i % 16 == 0) {
 			if (i)
 				vpn_progress(vpninfo, PRG_DEBUG, "%s\n", linebuf);
 			sprintf(linebuf, "%04x:", i);
 		}
-		sprintf(linebuf + strlen(linebuf), " %02x", (unsigned char)buf->data[i]);
+		sprintf(linebuf + strlen(linebuf), " %02x", d[i]);
 	}
 	vpn_progress(vpninfo, PRG_DEBUG, "%s\n", linebuf);
 }
@@ -1093,7 +1093,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 		ret = buf_error(reqbuf);
 		goto out;
 	}
-	buf_hexdump(vpninfo, reqbuf);
+	buf_hexdump(vpninfo, (void *)reqbuf->data, reqbuf->pos);
 	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
 	if (ret != reqbuf->pos) {
 		if (ret >= 0) {
@@ -1197,7 +1197,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	reqbuf->data[0] = (reqbuf->pos - 2);
 	reqbuf->data[1] = (reqbuf->pos - 2) >> 8;
 
-	buf_hexdump(vpninfo,reqbuf);
+	buf_hexdump(vpninfo, (void *)reqbuf->data, reqbuf->pos);
 	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
 	if (ret == reqbuf->pos)
 		ret = 0;
@@ -1365,7 +1365,11 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		int len = vpninfo->ip_info.mtu;
 		int kmp, kmplen, reclen;
 		int morecoming;
+		int followon; /* 0 for the first time round, 2 later to skip the length word */
 
+		followon = 0;
+
+	next_kmp:
 		if (!vpninfo->cstp_pkt) {
 			vpninfo->cstp_pkt = malloc(sizeof(struct pkt) + len);
 			if (!vpninfo->cstp_pkt) {
@@ -1392,46 +1396,74 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		 * so that we can just pass it up the stack. And cope with the rest
 		 * as corner cases.
 		 */
-		len = ssl_nonblock_read(vpninfo, vpninfo->cstp_pkt->oncp_hdr, len + 22);
+
+		len = ssl_nonblock_read(vpninfo, vpninfo->cstp_pkt->oncp_hdr + followon,
+					22 - followon);
 		if (!len)
 			break;
 		if (len < 0)
 			goto do_reconnect;
-
-		vpn_progress(vpninfo, PRG_TRACE,
-			     _("oNCP mainloop read %d bytes of SSL record\n"), len);
-
-		if (len < 22) {
-			vpn_progress(vpninfo, PRG_ERR, _("Short packet received (%d bytes)\n"), len);
+		if (len != 22 - followon) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to read KMP header from SSL stream; only %d bytes available of %d\n"),
+				     len, 22 - followon);
+			buf_hexdump(vpninfo, vpninfo->cstp_pkt->oncp_hdr + followon, len - followon);
 			vpninfo->quit_reason = "Short packet received";
 			return 1;
 		}
 
-		/* This is the length of the SSL record */
-		reclen = vpninfo->cstp_pkt->oncp_hdr[0] +
-			(vpninfo->cstp_pkt->oncp_hdr[1] << 8) + 2;
-
-		if (len < reclen && len == vpninfo->ip_info.mtu + 22) {
-			/* We read as much as we asked for, and there is more of
-			 * this SSL record to come. */
-			morecoming = reclen - len;
-		} else if (len != reclen)
-			goto unknown_pkt;
-		else
-			morecoming = 0;
-
-		kmplen = (vpninfo->cstp_pkt->oncp_hdr[20] << 8) +
-			vpninfo->cstp_pkt->oncp_hdr[21];
-
-		if (reclen != kmplen + 22) {
-			/* For now we don't cope with more than one KMP message in the
-			 * same SSL record. But we *send* them, and should probably be
-			 * capable of receiving them too. */
-			goto unknown_pkt;
+		if (!followon) {
+			/* This is the length of the packet (little-endian) */
+			reclen = vpninfo->cstp_pkt->oncp_hdr[0] +
+				(vpninfo->cstp_pkt->oncp_hdr[1] << 8);
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("Incoming oNCP packet of size %d\n"), reclen);
+		}
+		if (reclen < 20) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Packet too small (%d bytes) to contain KMP message header\n"),
+				     reclen);
+			vpninfo->quit_reason = "Failed to packetise stream";
+			return 1;
 		}
 
-		kmp = (vpninfo->cstp_pkt->oncp_hdr[8] << 8) +
-			vpninfo->cstp_pkt->oncp_hdr[9];
+		kmp = vpninfo->cstp_pkt->oncp_hdr[9] | (vpninfo->cstp_pkt->oncp_hdr[8] << 8);
+		kmplen = (vpninfo->cstp_pkt->oncp_hdr[20] << 8) +
+			vpninfo->cstp_pkt->oncp_hdr[21];
+		if (kmplen + 20 > reclen) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("KMP message larger than packet (%d > %d)\n"),
+				     kmplen + 20, reclen);
+			vpninfo->quit_reason = "KMP message too large";
+			return 1;
+		}
+		/* Now read as much of the first KMP message from the packet
+		 * as fits into the MTU. */
+		if (kmplen > vpninfo->ip_info.mtu) {
+			len = vpninfo->ip_info.mtu;
+			morecoming = kmplen - len;
+		} else {
+			len = kmplen;
+			morecoming = 0;
+		}
+		if (len) {
+			/* This is a *blocking* read, since if the crypto library
+			 * already started returning the first part of this SSL
+			 * record then it damn well ought to have the rest of it
+			 * available already. */
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("Reading additional %d bytes from oNCP...\n"),
+				     len);
+			ret = vpninfo->ssl_read(vpninfo, (void *)vpninfo->cstp_pkt->data, len);
+			if (ret != len) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Short read of KMP message. Expected %d, got %d bytes\n"),
+					     len, ret);
+				/* Just to set up the debugging hex dump of it... */
+				morecoming = len - ret;
+				goto unknown_pkt;
+			}
+		}
 		vpn_progress(vpninfo, PRG_DEBUG, _("Incoming KMP message %d of size %d\n"),
 			     kmp, kmplen);
 
@@ -1439,8 +1471,10 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		switch (kmp) {
 		case 300:
 			ret = oncp_receive_data(vpninfo, kmplen, morecoming);
-			if (ret)
-				goto unknown_pkt;
+			if (ret) {
+				vpninfo->quit_reason = "Failed to read KMP data message";
+				return 1;
+			}
 			work_done = 1;
 			break;
 
@@ -1454,21 +1488,24 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		default:
 		unknown_pkt:
 			vpn_progress(vpninfo, PRG_ERR,
-				     _("Unknown packet (0x%x bytes) %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n"),
-				     len,
-				     vpninfo->cstp_pkt->oncp_hdr[0], vpninfo->cstp_pkt->oncp_hdr[1],
-				     vpninfo->cstp_pkt->oncp_hdr[2], vpninfo->cstp_pkt->oncp_hdr[3],
-				     vpninfo->cstp_pkt->oncp_hdr[4], vpninfo->cstp_pkt->oncp_hdr[5],
-				     vpninfo->cstp_pkt->oncp_hdr[6], vpninfo->cstp_pkt->oncp_hdr[7],
-				     vpninfo->cstp_pkt->oncp_hdr[8], vpninfo->cstp_pkt->oncp_hdr[9],
-				     vpninfo->cstp_pkt->oncp_hdr[10], vpninfo->cstp_pkt->oncp_hdr[11],
-				     vpninfo->cstp_pkt->oncp_hdr[12], vpninfo->cstp_pkt->oncp_hdr[13],
-				     vpninfo->cstp_pkt->oncp_hdr[14], vpninfo->cstp_pkt->oncp_hdr[15],
-				     vpninfo->cstp_pkt->oncp_hdr[16], vpninfo->cstp_pkt->oncp_hdr[17],
-				     vpninfo->cstp_pkt->oncp_hdr[18], vpninfo->cstp_pkt->oncp_hdr[19],
-				     vpninfo->cstp_pkt->oncp_hdr[20], vpninfo->cstp_pkt->oncp_hdr[21]);
+				     _("Unknown KMP message %d of size %d:\n"), kmp, kmplen);
+			buf_hexdump(vpninfo, vpninfo->cstp_pkt->oncp_hdr,
+				    kmplen + 22 - morecoming);
+			if (morecoming)
+				vpn_progress(vpninfo, PRG_DEBUG,
+					     _(".... + %d more bytes unreceived\n"),
+					     morecoming);
 			vpninfo->quit_reason = "Unknown packet received";
 			return 1;
+		}
+
+		reclen -= kmplen + 20;
+		if (reclen) {
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("Still %d bytes left in this packet. Looping...\n"),
+				     reclen);
+			followon = 2;
+			goto next_kmp;
 		}
 	}
 
@@ -1476,20 +1513,14 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	   the same data, at exactly the same location. So we keep the
 	   packet we had before.... */
 	if (vpninfo->current_ssl_pkt) {
-		int i;
 	handle_outgoing:
 		vpninfo->ssl_times.last_tx = time(NULL);
 		unmonitor_write_fd(vpninfo, ssl);
 
-		printf("Packet outgoing:");
-		for (i=0; i < vpninfo->current_ssl_pkt->len + 22; i++) {
-			if ((i % 16) == 0)
-				printf("\n%04x:", i);
-			printf(" %02x", vpninfo->current_ssl_pkt->oncp_hdr[i]);
-		}
-		printf("\n");
-				
-		
+		vpn_progress(vpninfo, PRG_TRACE, _("Packet outgoing:\n"));
+		buf_hexdump(vpninfo, vpninfo->current_ssl_pkt->oncp_hdr,
+			    vpninfo->current_ssl_pkt->len + 22);
+
 		ret = ssl_nonblock_write(vpninfo,
 					 vpninfo->current_ssl_pkt->oncp_hdr,
 					 vpninfo->current_ssl_pkt->len + 22);
