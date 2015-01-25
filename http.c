@@ -1021,7 +1021,7 @@ static int handle_redirect(struct openconnect_info *vpninfo)
 	}
 }
 
-static void dump_buf(struct openconnect_info *vpninfo, char prefix, char *buf)
+void dump_buf(struct openconnect_info *vpninfo, char prefix, char *buf)
 {
 	while (*buf) {
 		char *eol = buf;

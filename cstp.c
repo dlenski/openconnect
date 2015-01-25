@@ -243,6 +243,10 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			     _("Error creating HTTPS CONNECT request\n"));
 		return buf_free(reqbuf);
 	}
+
+	if (vpninfo->dump_http_traffic)
+		dump_buf(vpninfo, '>', reqbuf->data);
+
 	vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
 	buf_free(reqbuf);
 

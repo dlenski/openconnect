@@ -762,6 +762,7 @@ int xmlpost_initial_req(struct openconnect_info *vpninfo,
 
 /* http.c */
 struct oc_text_buf *buf_alloc(void);
+void dump_buf(struct openconnect_info *vpninfo, char prefix, char *buf);
 int buf_ensure_space(struct oc_text_buf *buf, int len);
 void  __attribute__ ((format (printf, 2, 3)))
 	buf_append(struct oc_text_buf *buf, const char *fmt, ...);
