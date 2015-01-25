@@ -1181,13 +1181,14 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	put_len16(reqbuf, kmp);
 
 	if (!setup_esp_keys(vpninfo)) {
+		struct esp *esp = &vpninfo->esp_in[vpninfo->current_esp_in];
 		/* Since we'll want to do this in the oncp_mainloop too, where it's easier
 		 * *not* to have an oc_text_buf and build it up manually, and since it's
 		 * all fixed size and fairly simple anyway, just hard-code the packet */
 		buf_append_bytes(reqbuf, esp_kmp_hdr, sizeof(esp_kmp_hdr));
-		buf_append_bytes(reqbuf, &vpninfo->esp_in.spi, sizeof(vpninfo->esp_in.spi));
+		buf_append_bytes(reqbuf, &esp->spi, sizeof(esp->spi));
 		buf_append_bytes(reqbuf, esp_kmp_part2, sizeof(esp_kmp_part2));
-		buf_append_bytes(reqbuf, vpninfo->esp_in.secrets, sizeof(vpninfo->esp_in.secrets));
+		buf_append_bytes(reqbuf, &esp->secrets, sizeof(esp->secrets));
 		if (buf_error(reqbuf))
 			goto enomem;
 	}
@@ -1223,16 +1224,17 @@ static int oncp_receive_espkeys(struct openconnect_info *vpninfo, int len)
 
 	ret = parse_conf_pkt(vpninfo, vpninfo->cstp_pkt->oncp_hdr + 2, len + 20, 301);
 	if (!ret && !setup_esp_keys(vpninfo)) {
+		struct esp *esp = &vpninfo->esp_in[vpninfo->current_esp_in];
 		unsigned char *p = vpninfo->cstp_pkt->oncp_hdr + 2;
 
 		memcpy(p, esp_kmp_hdr, sizeof(esp_kmp_hdr));
 		p += sizeof(esp_kmp_hdr);
-		memcpy(p, &vpninfo->esp_in.spi, sizeof(vpninfo->esp_in.spi));
-		p += sizeof(vpninfo->esp_in.spi);
+		memcpy(p, &esp->spi, sizeof(esp->spi));
+		p += sizeof(esp->spi);
 		memcpy(p, esp_kmp_part2, sizeof(esp_kmp_part2));
 		p += sizeof(esp_kmp_part2);
-		memcpy(p, vpninfo->esp_in.secrets, sizeof(vpninfo->esp_in.secrets));
-		p += sizeof(vpninfo->esp_in.secrets);
+		memcpy(p, esp->secrets, sizeof(esp->secrets));
+		p += sizeof(esp->secrets);
 		vpninfo->cstp_pkt->len = p - vpninfo->cstp_pkt->data;
 		vpninfo->cstp_pkt->oncp_hdr[0] = (p - vpninfo->cstp_pkt->oncp_hdr - 2);
 		vpninfo->cstp_pkt->oncp_hdr[1] = (p - vpninfo->cstp_pkt->oncp_hdr - 2) >> 8;
@@ -1240,7 +1242,7 @@ static int oncp_receive_espkeys(struct openconnect_info *vpninfo, int len)
 		queue_packet(&vpninfo->oncp_control_queue, vpninfo->cstp_pkt);
 		vpninfo->cstp_pkt = NULL;
 
-		print_esp_keys(vpninfo, _("new incoming"), &vpninfo->esp_in);
+		print_esp_keys(vpninfo, _("new incoming"), esp);
 		print_esp_keys(vpninfo, _("new outgoing"), &vpninfo->esp_out);
 	}
 	return ret;

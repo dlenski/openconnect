@@ -38,6 +38,8 @@ static int init_esp_ciphers(struct openconnect_info *vpninfo, struct esp *esp,
 {
 	int ret;
 
+	destroy_esp_ciphers(esp);
+
 	EVP_CIPHER_CTX_init(&esp->cipher);
 	if (decrypt)
 		ret = EVP_DecryptInit_ex(&esp->cipher, encalg, NULL, esp->secrets, NULL);
@@ -51,7 +53,7 @@ static int init_esp_ciphers(struct openconnect_info *vpninfo, struct esp *esp,
 		return -EIO;
 	}
 	EVP_CIPHER_CTX_set_padding(&esp->cipher, 0);
-	
+
 	HMAC_CTX_init(&esp->hmac);
 	if (!HMAC_Init_ex(&esp->hmac, esp->secrets + EVP_CIPHER_key_length(encalg),
 			  EVP_MD_size(macalg), macalg, NULL)) {
@@ -68,6 +70,7 @@ static int init_esp_ciphers(struct openconnect_info *vpninfo, struct esp *esp,
 
 int setup_esp_keys(struct openconnect_info *vpninfo)
 {
+	struct esp *esp_in;
 	const EVP_CIPHER *encalg;
 	const EVP_MD *macalg;
 	int ret;
@@ -99,8 +102,12 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	if (!RAND_pseudo_bytes((void *)&vpninfo->esp_in.spi, sizeof(vpninfo->esp_in.spi)) ||
-	    !RAND_bytes((void *)&vpninfo->esp_in.secrets, sizeof(vpninfo->esp_in.secrets))) {
+	vpninfo->old_esp_maxseq = vpninfo->esp_in[vpninfo->current_esp_in].seq + 32;
+	vpninfo->current_esp_in ^= 1;
+	esp_in = &vpninfo->esp_in[vpninfo->current_esp_in];
+
+	if (!RAND_pseudo_bytes((void *)&esp_in->spi, sizeof(esp_in->spi)) ||
+	    !RAND_bytes((void *)&esp_in->secrets, sizeof(esp_in->secrets))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to generate random keys for ESP:\n"));
 		openconnect_report_ssl_errors(vpninfo);
@@ -111,7 +118,7 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 	if (ret)
 		return ret;
 
-	ret = init_esp_ciphers(vpninfo, &vpninfo->esp_in, macalg, encalg, 1);
+	ret = init_esp_ciphers(vpninfo, esp_in, macalg, encalg, 1);
 	if (ret) {
 		destroy_esp_ciphers(&vpninfo->esp_out);
 		return ret;
@@ -124,21 +131,14 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 }
 
 /* pkt->len shall be the *payload* length. Omitting the header and the 12-byte HMAC */
-int decrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt)
+int decrypt_esp_packet(struct openconnect_info *vpninfo, struct esp *esp, struct pkt *pkt)
 {
 	unsigned char hmac_buf[20];
 	unsigned int hmac_len = sizeof(hmac_buf);
 	int crypt_len = pkt->len;
 	HMAC_CTX hmac_ctx;
 
-	if (pkt->esp.spi != vpninfo->esp_in.spi) {
-		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("Received ESP packet with invalid SPI 0x%08x\n"),
-			     ntohl(pkt->esp.spi));
-		return -EINVAL;
-	}
-
-	HMAC_CTX_copy(&hmac_ctx, &vpninfo->esp_in.hmac);
+	HMAC_CTX_copy(&hmac_ctx, &esp->hmac);
 	HMAC_Update(&hmac_ctx, (void *)&pkt->esp, sizeof(pkt->esp) + pkt->len);
 	HMAC_Final(&hmac_ctx, hmac_buf, &hmac_len);
 	HMAC_CTX_cleanup(&hmac_ctx);
@@ -153,11 +153,11 @@ int decrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt)
 	 * should do th check anyway, but only warn instead of discarding
 	 * the packet? */
 	if (vpninfo->esp_replay_protect &&
-	    verify_packet_seqno(vpninfo, &vpninfo->esp_in, ntohl(pkt->esp.seq)))
+	    verify_packet_seqno(vpninfo, esp, ntohl(pkt->esp.seq)))
 		return -EINVAL;
 
 
-	if (!EVP_DecryptInit_ex(&vpninfo->esp_in.cipher, NULL, NULL, NULL,
+	if (!EVP_DecryptInit_ex(&esp->cipher, NULL, NULL, NULL,
 				pkt->esp.iv)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to set up decryption context for ESP packet:\n"));
@@ -165,7 +165,7 @@ int decrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt)
 		return -EINVAL;
 	}
 
-	if (!EVP_DecryptUpdate(&vpninfo->esp_in.cipher, pkt->data, &crypt_len,
+	if (!EVP_DecryptUpdate(&esp->cipher, pkt->data, &crypt_len,
 			       pkt->data, pkt->len)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to decrypt ESP packet:\n"));

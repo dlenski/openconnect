@@ -279,7 +279,9 @@ struct openconnect_info {
 	uint32_t esp_lifetime_bytes;
 	uint32_t esp_lifetime_seconds;
 	uint32_t esp_ssl_fallback;
-	struct esp esp_in;
+	int current_esp_in;
+	int old_esp_maxseq;
+	struct esp esp_in[2];
 	struct esp esp_out;
 
 	int tncc_fd; /* For Juniper TNCC */
@@ -774,7 +776,7 @@ int print_esp_keys(struct openconnect_info *vpninfo, const char *name, struct es
 /* gnutls-esp.c */
 int setup_esp_keys(struct openconnect_info *vpninfo);
 void destroy_esp_ciphers(struct esp *esp);
-int decrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt);
+int decrypt_esp_packet(struct openconnect_info *vpninfo, struct esp *esp, struct pkt *pkt);
 int encrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt);
 
 /* {gnutls,openssl}.c */

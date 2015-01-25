@@ -254,7 +254,8 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 #ifdef DTLS_GNUTLS
 	gnutls_free(vpninfo->gnutls_dtls_cipher);
 #endif
-	destroy_esp_ciphers(&vpninfo->esp_in);
+	destroy_esp_ciphers(&vpninfo->esp_in[0]);
+	destroy_esp_ciphers(&vpninfo->esp_in[1]);
 	destroy_esp_ciphers(&vpninfo->esp_out);
 	free(vpninfo->dtls_addr);
 

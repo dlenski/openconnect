@@ -45,14 +45,9 @@ static int init_esp_ciphers(struct openconnect_info *vpninfo, struct esp *esp,
 	gnutls_datum_t enc_key;
 	int err;
 
-	/* ∄ gnutls_cipher_get_key_size() */
-	if (encalg == GNUTLS_CIPHER_AES_128_CBC)
-		enc_key.size = 16;
-	else if (encalg == GNUTLS_CIPHER_AES_256_CBC)
-		enc_key.size = 32;
-	else
-		return -EINVAL;
-	
+	destroy_esp_ciphers(esp);
+
+	enc_key.size = gnutls_cipher_get_key_size(encalg);
 	enc_key.data = esp->secrets;
 
 	err = gnutls_cipher_init(&esp->cipher, encalg, &enc_key, NULL);
@@ -79,6 +74,7 @@ static int init_esp_ciphers(struct openconnect_info *vpninfo, struct esp *esp,
 
 int setup_esp_keys(struct openconnect_info *vpninfo)
 {
+	struct esp *esp_in;
 	gnutls_mac_algorithm_t macalg;
 	gnutls_cipher_algorithm_t encalg;
 	int ret;
@@ -110,8 +106,12 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	if ((ret = gnutls_rnd(GNUTLS_RND_NONCE, &vpninfo->esp_in.spi, sizeof(vpninfo->esp_in.spi))) ||
-	    (ret = gnutls_rnd(GNUTLS_RND_RANDOM, &vpninfo->esp_in.secrets, sizeof(vpninfo->esp_in.secrets)))) {
+	vpninfo->old_esp_maxseq = vpninfo->esp_in[vpninfo->current_esp_in].seq + 32;
+	vpninfo->current_esp_in ^= 1;
+	esp_in = &vpninfo->esp_in[vpninfo->current_esp_in];
+
+	if ((ret = gnutls_rnd(GNUTLS_RND_NONCE, &esp_in->spi, sizeof(esp_in->spi))) ||
+	    (ret = gnutls_rnd(GNUTLS_RND_RANDOM, &esp_in->secrets, sizeof(esp_in->secrets)))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to generate random keys for ESP: %s\n"),
 			     gnutls_strerror(ret));
@@ -122,7 +122,7 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 	if (ret)
 		return ret;
 
-	ret = init_esp_ciphers(vpninfo, &vpninfo->esp_in, macalg, encalg);
+	ret = init_esp_ciphers(vpninfo, esp_in, macalg, encalg);
 	if (ret) {
 		destroy_esp_ciphers(&vpninfo->esp_out);
 		return ret;
@@ -135,20 +135,13 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 }
 
 /* pkt->len shall be the *payload* length. Omitting the header and the 12-byte HMAC */
-int decrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt)
+int decrypt_esp_packet(struct openconnect_info *vpninfo, struct esp *esp, struct pkt *pkt)
 {
 	unsigned char hmac_buf[20];
 	int err;
 
-	if (pkt->esp.spi != vpninfo->esp_in.spi) {
-		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("Received ESP packet with invalid SPI 0x%08x\n"),
-			     ntohl(pkt->esp.spi));
-		return -EINVAL;
-	}
-
-	gnutls_hmac(vpninfo->esp_in.hmac, &pkt->esp, sizeof(pkt->esp) + pkt->len);
-	gnutls_hmac_output(vpninfo->esp_in.hmac, hmac_buf);
+	gnutls_hmac(esp->hmac, &pkt->esp, sizeof(pkt->esp) + pkt->len);
+	gnutls_hmac_output(esp->hmac, hmac_buf);
 	if (memcmp(hmac_buf, pkt->data + pkt->len, 12)) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Received ESP packet with invalid HMAC\n"));
@@ -159,13 +152,12 @@ int decrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt)
 	 * should do th check anyway, but only warn instead of discarding
 	 * the packet? */
 	if (vpninfo->esp_replay_protect &&
-	    verify_packet_seqno(vpninfo, &vpninfo->esp_in, ntohl(pkt->esp.seq)))
+	    verify_packet_seqno(vpninfo, esp, ntohl(pkt->esp.seq)))
 		return -EINVAL;
 
-	gnutls_cipher_set_iv(vpninfo->esp_in.cipher, pkt->esp.iv, sizeof(pkt->esp.iv));
+	gnutls_cipher_set_iv(esp->cipher, pkt->esp.iv, sizeof(pkt->esp.iv));
 
-	err = gnutls_cipher_decrypt(vpninfo->esp_in.cipher,
-				    pkt->data, pkt->len);
+	err = gnutls_cipher_decrypt(esp->cipher, pkt->data, pkt->len);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Decrypting ESP packet failed: %s\n"),

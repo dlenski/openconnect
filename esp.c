@@ -196,7 +196,7 @@ int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 	if (fd < 0)
 		return fd;
 
-	print_esp_keys(vpninfo, _("incoming"), &vpninfo->esp_in);
+	print_esp_keys(vpninfo, _("incoming"), &vpninfo->esp_in[vpninfo->current_esp_in]);
 	print_esp_keys(vpninfo, _("outgoing"), &vpninfo->esp_out);
 
 	/* We are not connected until we get an ESP packet back */
@@ -213,6 +213,8 @@ int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 
 int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
+	struct esp *esp = &vpninfo->esp_in[vpninfo->current_esp_in];
+	struct esp *old_esp = &vpninfo->esp_in[vpninfo->current_esp_in ^ 1];
 	int work_done = 0;
 	int ret;
 
@@ -242,8 +244,22 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		len -= sizeof(pkt->esp) + 12;
 		pkt->len = len;
 
-		if (decrypt_esp_packet(vpninfo, pkt))
+		if (pkt->esp.spi == esp->spi) {
+			if (decrypt_esp_packet(vpninfo, esp, pkt))
+				continue;
+		} else if (pkt->esp.spi == old_esp->spi &&
+			   ntohl(pkt->esp.seq) + esp->seq < vpninfo->old_esp_maxseq) {
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("Consider SPI 0x%x, seq %u against outgoing ESP setup\n"),
+				     ntohl(old_esp->spi), ntohl(pkt->esp.seq));
+			if (decrypt_esp_packet(vpninfo, old_esp, pkt))
+				continue;
+		} else {
+			vpn_progress(vpninfo, PRG_DEBUG,
+				     _("Received ESP packet with invalid SPI 0x%08x\n"),
+				     ntohl(pkt->esp.spi));
 			continue;
+		}
 
 		if (pkt->data[len - 1] != 0x04 && pkt->data[len - 1] != 0x29) {
 			/* 0x05 is LZO compressed. */
