@@ -212,7 +212,7 @@ struct oc_auth_form {
 };
 
 struct oc_split_include {
-	char *route;
+	const char *route;
 	struct oc_split_include *next;
 };
 
