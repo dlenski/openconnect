@@ -3275,12 +3275,3 @@ msgstr "příkaz výpočtu"
 #: yubikey.c:569
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr "Nerozpoznaná odpověď od Yubikey při generování kódu tokenu\n"
-
-#~ msgid "Connected %s as %s%s%s, using %s\n"
-#~ msgstr "Spojeno %s jako %s%s%s, pomocí %s\n"
-
-#~ msgid "Sending compressed data packet of %d bytes\n"
-#~ msgstr "Posílá se zabalený paket dat %d bytů\n"
-
-#~ msgid "Received compressed data packet of %ld bytes\n"
-#~ msgstr "Přijat zabalený paket dat %ld bytů\n"
