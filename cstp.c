@@ -213,7 +213,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	buf_append(reqbuf, "X-CSTP-Version: 1\r\n");
 	buf_append(reqbuf, "X-CSTP-Hostname: %s\r\n", vpninfo->localname);
 
-	append_compr_types(reqbuf, "CSTP", vpninfo->req_compr & ~COMPR_DEFLATE);
+	append_compr_types(reqbuf, "CSTP", vpninfo->req_compr);
 
 	if (base_mtu)
 		buf_append(reqbuf, "X-CSTP-Base-MTU: %d\r\n", base_mtu);
@@ -235,7 +235,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	buf_append(reqbuf, "\r\nX-DTLS-CipherSuite: %s\r\n",
 			       vpninfo->dtls_ciphers ? : DEFAULT_CIPHER_LIST);
 
-	append_compr_types(reqbuf, "DTLS", vpninfo->req_compr);
+	append_compr_types(reqbuf, "DTLS", vpninfo->req_compr & ~COMPR_DEFLATE);
 	buf_append(reqbuf, "\r\n");
 
 	if (buf_error(reqbuf)) {
