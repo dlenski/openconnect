@@ -1308,7 +1308,7 @@ static int oncp_receive_data(struct openconnect_info *vpninfo, int len, int unre
 		}
 
 		/* Should never happen, but would cause an endless loop if it did. */
-		if (!pktlen)
+		if (!pktlen || pktlen > vpninfo->ip_info.mtu)
 			goto badlen;
 
 		/* Receive this packet */
