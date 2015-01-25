@@ -1351,8 +1351,8 @@ static int oncp_receive_data(struct openconnect_info *vpninfo, int len, int unre
 			 * record then it damn well ought to have the rest of it
 			 * available already. */
 			vpn_progress(vpninfo, PRG_TRACE,
-				     _("Reading additional %d bytes from oNCP...\n"),
-				     pktlen);
+				     _("Reading additional %d bytes (of %d still unreceived) from oNCP...\n"),
+				     pktlen, unreceived);
 			ret = vpninfo->ssl_read(vpninfo, (void *)(pkt->data + (len - unreceived)),
 						pktlen);
 			if (ret < 0)
