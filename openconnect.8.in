@@ -11,6 +11,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-k,\-\-sslkey key
 .OP \-C,\-\-cookie cookie
 .OP \-\-cookie\-on\-stdin
+.OP \-\-compression MODE
 .OP \-d,\-\-deflate
 .OP \-D,\-\-no\-deflate
 .OP \-\-force\-dpd interval
@@ -125,18 +126,37 @@ which may be either a file name or, if OpenConnect has been built with an approp
 version of GnuTLS, a PKCS#11 URL.
 .TP
 .B \-C,\-\-cookie=COOKIE
-Use WebVPN cookie
+Use WebVPN cookie.
 .I COOKIE
 .TP
 .B \-\-cookie\-on\-stdin
-Read cookie from standard input
+Read cookie from standard input.
 .TP
 .B \-d,\-\-deflate
-Enable compression (default)
+Enable all compression, including stateful modes. By default, only stateless
+compression algorithms are enabled.
 .TP
 .B \-D,\-\-no\-deflate
-Disable compression
+Disable all compression.
 .TP
+.B \-\-compression=MODE
+Set compression mode, where
+.I MODE
+is one of
+.I "stateless"
+,
+.I "none"
+, or
+.I "all".
+
+By default, only stateless compression algorithms which do not maintain state
+from one packet to the next (and which can be used on UDP transports) are
+enabled. By setting the mode to
+.I "all"
+stateful algorithms (currently only zlib deflate) can be enabled. Or all
+compression can be disabled by setting the mode to
+.I "none".
+
 .B \-\-force\-dpd=INTERVAL
 Use
 .I INTERVAL

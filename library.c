@@ -824,3 +824,20 @@ const char *openconnect_get_peer_cert_hash(struct openconnect_info *vpninfo)
 {
 	return vpninfo->peer_cert_hash;
 }
+int openconnect_set_compression_mode(struct openconnect_info *vpninfo,
+				     oc_compression_mode_t mode)
+{
+	switch(mode) {
+	case OC_COMPRESSION_MODE_NONE:
+		vpninfo->req_compr = 0;
+		return 0;
+	case OC_COMPRESSION_MODE_STATELESS:
+		vpninfo->req_compr = COMPR_STATELESS;
+		return 0;
+	case OC_COMPRESSION_MODE_ALL:
+		vpninfo->req_compr = COMPR_ALL;
+		return 0;
+	default:
+		return -EINVAL;
+	}
+}

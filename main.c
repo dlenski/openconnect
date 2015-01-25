@@ -148,6 +148,7 @@ enum {
 	OPT_AUTHGROUP,
 	OPT_BASEMTU,
 	OPT_CAFILE,
+	OPT_COMPRESSION,
 	OPT_CONFIGFILE,
 	OPT_COOKIEONLY,
 	OPT_COOKIE_ON_STDIN,
@@ -207,6 +208,7 @@ static const struct option long_options[] = {
 	OPTION("certificate", 1, 'c'),
 	OPTION("sslkey", 1, 'k'),
 	OPTION("cookie", 1, 'C'),
+	OPTION("compression", 1, OPT_COMPRESSION),
 	OPTION("deflate", 0, 'd'),
 	OPTION("no-deflate", 0, 'D'),
 	OPTION("cert-expire-warning", 1, 'e'),
@@ -1067,6 +1069,20 @@ int main(int argc, char **argv)
 			}
 			config_line_num = 1;
 			/* The next option will come from the file... */
+			break;
+		case OPT_COMPRESSION:
+			if (!strcmp(config_arg, "none") ||
+			    !strcmp(config_arg, "off"))
+				openconnect_set_compression_mode(vpninfo, OC_COMPRESSION_MODE_NONE);
+			else if (!strcmp(config_arg, "all"))
+				openconnect_set_compression_mode(vpninfo, OC_COMPRESSION_MODE_ALL);
+			else if (!strcmp(config_arg, "stateless"))
+				openconnect_set_compression_mode(vpninfo, OC_COMPRESSION_MODE_STATELESS);
+			else {
+				fprintf(stderr, _("Invalid compression mode '%s'\n"),
+					config_arg);
+				exit(1);
+			}
 			break;
 		case OPT_CAFILE:
 			openconnect_set_cafile(vpninfo, dup_config_arg());

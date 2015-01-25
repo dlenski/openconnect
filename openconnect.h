@@ -29,9 +29,12 @@
 #endif
 
 #define OPENCONNECT_API_VERSION_MAJOR 5
-#define OPENCONNECT_API_VERSION_MINOR 0
+#define OPENCONNECT_API_VERSION_MINOR 1
 
 /*
+ * API version 5.1:
+ *  - Add openconnect_set_compression_mode().
+ *
  * API version 5.0:
  *  - Remove OPENCONNECT_X509 and openconnect_get_peer_cert().
  *  - Change openconnect_get_cert_der() to openconnect_get_peer_cert_DER() etc.
@@ -279,6 +282,12 @@ typedef enum {
 	OC_TOKEN_MODE_YUBIOATH,
 } oc_token_mode_t;
 
+typedef enum {
+	OC_COMPRESSION_MODE_NONE,
+	OC_COMPRESSION_MODE_STATELESS,
+	OC_COMPRESSION_MODE_ALL,
+} oc_compression_mode_t;
+
 /* All strings are UTF-8. If operating in a legacy environment where
    nl_langinfo(CODESET) returns anything other than UTF-8, or on Windows,
    the library will take appropriate steps to convert back to the legacy
@@ -379,6 +388,9 @@ int openconnect_set_token_mode(struct openconnect_info *,
 			       oc_token_mode_t, const char *token_str);
 /* Legacy stoken-only function; do not use */
 int openconnect_set_stoken_mode(struct openconnect_info *, int, const char *);
+
+int openconnect_set_compression_mode(struct openconnect_info *,
+				     oc_compression_mode_t);
 
 /* The size must be 41 bytes, since that's the size of a 20-byte SHA1
    represented as hex with a trailing NUL. */
