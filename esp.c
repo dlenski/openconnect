@@ -52,6 +52,9 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 		/* The common case. This is the packet we expected next. */
 		esp->seq_backlog <<= 1;
 		esp->seq++;
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Accepting expected ESP packet with seq %u\n"),
+			     seq);
 		return 0;
 	} else if (seq + 33 < esp->seq) {
 		/* Too old. We can't know if it's a replay. */
