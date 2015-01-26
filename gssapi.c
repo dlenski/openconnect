@@ -198,8 +198,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 
 		pktbuf[0] = 1; /* ver */
 		pktbuf[1] = 1; /* mtyp */
-		pktbuf[2] = (out.length >> 8) & 0xff;
-		pktbuf[3] = out.length & 0xff;
+		store_be16(pktbuf + 2, out.length);
 		memcpy(pktbuf + 4, out.value, out.length);
 
 		free(out.value);
@@ -232,7 +231,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 				     pktbuf[1]);
 			break;
 		}
-		in.length = (pktbuf[2] << 8) | pktbuf[3];
+		in.length = load_be16(pktbuf + 2);
 		in.value = pktbuf;
 
 		if (!in.length) {
@@ -269,8 +268,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 
 		pktbuf[0] = 1;
 		pktbuf[1] = 2;
-		pktbuf[2] = (out.length >> 8) & 0xff;
-		pktbuf[3] = out.length & 0xff;
+		store_be16(pktbuf + 2, out.length);
 		memcpy(pktbuf + 4, out.value, out.length);
 
 		free(out.value);
@@ -293,7 +291,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 				     strerror(-i));
 			goto err;
 		}
-		in.length = (pktbuf[2] << 8) | pktbuf[3];
+		in.length = load_be16(pktbuf + 2);
 		in.value = pktbuf;
 
 		i = vpninfo->ssl_read(vpninfo, (void *)pktbuf, in.length);
