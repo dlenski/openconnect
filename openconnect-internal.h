@@ -131,9 +131,9 @@ struct pkt {
 	union {
 		struct esp_hdr esp;
 		struct {
-			unsigned char oncp_pad[2];
-			unsigned char oncp_hdr[22];
-		};
+			unsigned char pad[2];
+			unsigned char hdr[22];
+		} oncp;
 		struct {
 			unsigned char pad[16];
 			unsigned char hdr[8];

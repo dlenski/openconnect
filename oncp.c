@@ -915,7 +915,7 @@ static const unsigned char esp_kmp_part2[] = {
 
 
 static const struct pkt esp_enable_pkt = {
-	.oncp_hdr = {
+	.oncp.hdr = {
 		0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x01, 0x2f, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x0d
@@ -1230,10 +1230,10 @@ static int oncp_receive_espkeys(struct openconnect_info *vpninfo, int len)
 #if defined(ESP_GNUTLS) || defined(ESP_OPENSSL)
 	int ret;
 
-	ret = parse_conf_pkt(vpninfo, vpninfo->cstp_pkt->oncp_hdr + 2, len + 20, 301);
+	ret = parse_conf_pkt(vpninfo, vpninfo->cstp_pkt->oncp.hdr + 2, len + 20, 301);
 	if (!ret && !setup_esp_keys(vpninfo)) {
 		struct esp *esp = &vpninfo->esp_in[vpninfo->current_esp_in];
-		unsigned char *p = vpninfo->cstp_pkt->oncp_hdr + 2;
+		unsigned char *p = vpninfo->cstp_pkt->oncp.hdr + 2;
 
 		memcpy(p, esp_kmp_hdr, sizeof(esp_kmp_hdr));
 		p += sizeof(esp_kmp_hdr);
@@ -1244,8 +1244,8 @@ static int oncp_receive_espkeys(struct openconnect_info *vpninfo, int len)
 		memcpy(p, esp->secrets, sizeof(esp->secrets));
 		p += sizeof(esp->secrets);
 		vpninfo->cstp_pkt->len = p - vpninfo->cstp_pkt->data;
-		store_le16(vpninfo->cstp_pkt->oncp_hdr,
-			   (p - vpninfo->cstp_pkt->oncp_hdr - 2));
+		store_le16(vpninfo->cstp_pkt->oncp.hdr,
+			   (p - vpninfo->cstp_pkt->oncp.hdr - 2));
 
 		queue_packet(&vpninfo->oncp_control_queue, vpninfo->cstp_pkt);
 		vpninfo->cstp_pkt = NULL;
@@ -1434,7 +1434,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		 * as corner cases.
 		 */
 
-		len = ssl_nonblock_read(vpninfo, vpninfo->cstp_pkt->oncp_hdr + followon,
+		len = ssl_nonblock_read(vpninfo, vpninfo->cstp_pkt->oncp.hdr + followon,
 					22 - followon);
 		if (!len)
 			break;
@@ -1444,14 +1444,14 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to read KMP header from SSL stream; only %d bytes available of %d\n"),
 				     len, 22 - followon);
-			buf_hexdump(vpninfo, vpninfo->cstp_pkt->oncp_hdr + followon, len - followon);
+			buf_hexdump(vpninfo, vpninfo->cstp_pkt->oncp.hdr + followon, len - followon);
 			vpninfo->quit_reason = "Short packet received";
 			return 1;
 		}
 
 		if (!followon) {
 			/* This is the length of the packet (little-endian) */
-			reclen = load_le16(vpninfo->cstp_pkt->oncp_hdr);
+			reclen = load_le16(vpninfo->cstp_pkt->oncp.hdr);
 			vpn_progress(vpninfo, PRG_TRACE,
 				     _("Incoming oNCP packet of size %d\n"), reclen);
 		}
@@ -1463,8 +1463,8 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			return 1;
 		}
 
-		kmp = load_be16(vpninfo->cstp_pkt->oncp_hdr + 8);
-		kmplen = load_be16(vpninfo->cstp_pkt->oncp_hdr + 20);
+		kmp = load_be16(vpninfo->cstp_pkt->oncp.hdr + 8);
+		kmplen = load_be16(vpninfo->cstp_pkt->oncp.hdr + 20);
 		if (kmplen + 20 > reclen) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("KMP message larger than packet (%d > %d)\n"),
@@ -1524,7 +1524,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		unknown_pkt:
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Unknown KMP message %d of size %d:\n"), kmp, kmplen);
-			buf_hexdump(vpninfo, vpninfo->cstp_pkt->oncp_hdr,
+			buf_hexdump(vpninfo, vpninfo->cstp_pkt->oncp.hdr,
 				    kmplen + 22 - morecoming);
 			if (morecoming)
 				vpn_progress(vpninfo, PRG_DEBUG,
@@ -1553,11 +1553,11 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		unmonitor_write_fd(vpninfo, ssl);
 
 		vpn_progress(vpninfo, PRG_TRACE, _("Packet outgoing:\n"));
-		buf_hexdump(vpninfo, vpninfo->current_ssl_pkt->oncp_hdr,
+		buf_hexdump(vpninfo, vpninfo->current_ssl_pkt->oncp.hdr,
 			    vpninfo->current_ssl_pkt->len + 22);
 
 		ret = ssl_nonblock_write(vpninfo,
-					 vpninfo->current_ssl_pkt->oncp_hdr,
+					 vpninfo->current_ssl_pkt->oncp.hdr,
 					 vpninfo->current_ssl_pkt->len + 22);
 		if (ret < 0) {
 #if 0
@@ -1698,10 +1698,10 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpninfo->outgoing_qlen--;
 
 		/* Little-endian overall record length */
-		store_le16(this->oncp_hdr, (this->len + 20));
-		memcpy(this->oncp_hdr + 2, data_hdr, 18);
+		store_le16(this->oncp.hdr, (this->len + 20));
+		memcpy(this->oncp.hdr + 2, data_hdr, 18);
 		/* Big-endian length in KMP message header */
-		store_be16(this->oncp_hdr + 20, this->len);
+		store_be16(this->oncp.hdr + 20, this->len);
 
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("Sending uncompressed data packet of %d bytes\n"),
