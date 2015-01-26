@@ -622,8 +622,7 @@ int keystore_fetch(const char *key, unsigned char **result)
 	}
 	len = strlen(key);
 	buf[0] = 'g';
-	buf[1] = len >> 8;
-	buf[2] = len & 0xff;
+	store_be16(buf + 1, len);
 
 	if (send(fd, buf, 3, 0) != 3 || send(fd, key, len, 0) != len ||
 	    shutdown(fd, SHUT_WR) || recv(fd, buf, 1, 0) != 1)
@@ -636,7 +635,7 @@ int keystore_fetch(const char *key, unsigned char **result)
 	}
 	if (recv(fd, buf, 2, 0) != 2)
 		goto out;
-	len = (buf[0] << 8) + buf[1];
+	len = load_be16(buf);
 	data = malloc(len);
 	if (!data)
 		goto out;
