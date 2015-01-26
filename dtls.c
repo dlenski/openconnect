@@ -774,7 +774,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpninfo->outgoing_qlen--;
 
 		/* One byte of header */
-		this->hdr[7] = AC_PKT_DATA;
+		this->cstp.hdr[7] = AC_PKT_DATA;
 
 		/* We can compress into vpninfo->deflate_pkt unless CSTP
 		 * currently has a compressed packet pending — which it
@@ -783,11 +783,11 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		    vpninfo->current_ssl_pkt != vpninfo->deflate_pkt &&
 		    !compress_packet(vpninfo, vpninfo->dtls_compr, this)) {
 				send_pkt = vpninfo->deflate_pkt;
-				send_pkt->hdr[7] = AC_PKT_COMPRESSED;
+				send_pkt->cstp.hdr[7] = AC_PKT_COMPRESSED;
 		}
 
 #if defined(DTLS_OPENSSL)
-		ret = SSL_write(vpninfo->dtls_ssl, &send_pkt->hdr[7], send_pkt->len + 1);
+		ret = SSL_write(vpninfo->dtls_ssl, &send_pkt->cstp.hdr[7], send_pkt->len + 1);
 		if (ret <= 0) {
 			ret = SSL_get_error(vpninfo->dtls_ssl, ret);
 
@@ -810,7 +810,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			return work_done;
 		}
 #elif defined(DTLS_GNUTLS)
-		ret = gnutls_record_send(vpninfo->dtls_ssl, &send_pkt->hdr[7], send_pkt->len + 1);
+		ret = gnutls_record_send(vpninfo->dtls_ssl, &send_pkt->cstp.hdr[7], send_pkt->len + 1);
 		if (ret <= 0) {
 			if (ret != GNUTLS_E_AGAIN) {
 				vpn_progress(vpninfo, PRG_ERR,

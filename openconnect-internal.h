@@ -135,7 +135,7 @@ struct pkt {
 		struct {
 			unsigned char pad[16];
 			unsigned char hdr[8];
-		};
+		} cstp;
 	};
 	unsigned char data[];
 };

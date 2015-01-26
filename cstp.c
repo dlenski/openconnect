@@ -51,15 +51,15 @@ static const char data_hdr[8] = {
 };
 
 static const struct pkt keepalive_pkt = {
-	.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_KEEPALIVE, 0 },
+	.cstp.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_KEEPALIVE, 0 },
 };
 
 static const struct pkt dpd_pkt = {
-	.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_OUT, 0 },
+	.cstp.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_OUT, 0 },
 };
 
 static const struct pkt dpd_resp_pkt = {
-	.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_RESP, 0 },
+	.cstp.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_RESP, 0 },
 };
 
 /* Calculate MTU to request. Old servers simply use the X-CSTP-MTU: header,
@@ -613,8 +613,8 @@ int cstp_connect(struct openconnect_info *vpninfo)
 
 		vpninfo->deflate_pkt_size = deflate_bufsize;
 		memset(vpninfo->deflate_pkt, 0, sizeof(struct pkt));
-		memcpy(vpninfo->deflate_pkt->hdr, data_hdr, 8);
-		vpninfo->deflate_pkt->hdr[6] = AC_PKT_COMPRESSED;
+		memcpy(vpninfo->deflate_pkt->cstp.hdr, data_hdr, 8);
+		vpninfo->deflate_pkt->cstp.hdr[6] = AC_PKT_COMPRESSED;
 	}
 
  out:
@@ -841,7 +841,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			}
 		}
 
-		len = ssl_nonblock_read(vpninfo, vpninfo->cstp_pkt->hdr, len + 8);
+		len = ssl_nonblock_read(vpninfo, vpninfo->cstp_pkt->cstp.hdr, len + 8);
 		if (!len)
 			break;
 		if (len < 0)
@@ -852,26 +852,26 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			return 1;
 		}
 
-		if (vpninfo->cstp_pkt->hdr[0] != 'S' || vpninfo->cstp_pkt->hdr[1] != 'T' ||
-		    vpninfo->cstp_pkt->hdr[2] != 'F' || vpninfo->cstp_pkt->hdr[3] != 1 ||
-		    vpninfo->cstp_pkt->hdr[7])
+		if (vpninfo->cstp_pkt->cstp.hdr[0] != 'S' || vpninfo->cstp_pkt->cstp.hdr[1] != 'T' ||
+		    vpninfo->cstp_pkt->cstp.hdr[2] != 'F' || vpninfo->cstp_pkt->cstp.hdr[3] != 1 ||
+		    vpninfo->cstp_pkt->cstp.hdr[7])
 			goto unknown_pkt;
 
-		payload_len = load_be16(vpninfo->cstp_pkt->hdr + 4);
+		payload_len = load_be16(vpninfo->cstp_pkt->cstp.hdr + 4);
 		if (len != 8 + payload_len) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Unexpected packet length. SSL_read returned %d but packet is\n"),
 				     len);
 			vpn_progress(vpninfo, PRG_ERR,
 				     "%02x %02x %02x %02x %02x %02x %02x %02x\n",
-				     vpninfo->cstp_pkt->hdr[0], vpninfo->cstp_pkt->hdr[1],
-				     vpninfo->cstp_pkt->hdr[2], vpninfo->cstp_pkt->hdr[3],
-				     vpninfo->cstp_pkt->hdr[4], vpninfo->cstp_pkt->hdr[5],
-				     vpninfo->cstp_pkt->hdr[6], vpninfo->cstp_pkt->hdr[7]);
+				     vpninfo->cstp_pkt->cstp.hdr[0], vpninfo->cstp_pkt->cstp.hdr[1],
+				     vpninfo->cstp_pkt->cstp.hdr[2], vpninfo->cstp_pkt->cstp.hdr[3],
+				     vpninfo->cstp_pkt->cstp.hdr[4], vpninfo->cstp_pkt->cstp.hdr[5],
+				     vpninfo->cstp_pkt->cstp.hdr[6], vpninfo->cstp_pkt->cstp.hdr[7]);
 			continue;
 		}
 		vpninfo->ssl_times.last_rx = time(NULL);
-		switch (vpninfo->cstp_pkt->hdr[6]) {
+		switch (vpninfo->cstp_pkt->cstp.hdr[6]) {
 		case AC_PKT_DPD_OUT:
 			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Got CSTP DPD request\n"));
@@ -931,10 +931,10 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	unknown_pkt:
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"),
-			     vpninfo->cstp_pkt->hdr[0], vpninfo->cstp_pkt->hdr[1],
-			     vpninfo->cstp_pkt->hdr[2], vpninfo->cstp_pkt->hdr[3],
-			     vpninfo->cstp_pkt->hdr[4], vpninfo->cstp_pkt->hdr[5],
-			     vpninfo->cstp_pkt->hdr[6], vpninfo->cstp_pkt->hdr[7]);
+			     vpninfo->cstp_pkt->cstp.hdr[0], vpninfo->cstp_pkt->cstp.hdr[1],
+			     vpninfo->cstp_pkt->cstp.hdr[2], vpninfo->cstp_pkt->cstp.hdr[3],
+			     vpninfo->cstp_pkt->cstp.hdr[4], vpninfo->cstp_pkt->cstp.hdr[5],
+			     vpninfo->cstp_pkt->cstp.hdr[6], vpninfo->cstp_pkt->cstp.hdr[7]);
 		vpninfo->quit_reason = "Unknown packet received";
 		return 1;
 	}
@@ -949,7 +949,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		unmonitor_write_fd(vpninfo, ssl);
 
 		ret = ssl_nonblock_write(vpninfo,
-					 vpninfo->current_ssl_pkt->hdr,
+					 vpninfo->current_ssl_pkt->cstp.hdr,
 					 vpninfo->current_ssl_pkt->len + 8);
 		if (ret < 0)
 			goto do_reconnect;
@@ -1069,10 +1069,10 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			if (ret < 0)
 				goto uncompr;
 
-			store_be16(vpninfo->deflate_pkt->hdr + 4, vpninfo->deflate_pkt->len);
+			store_be16(vpninfo->deflate_pkt->cstp.hdr + 4, vpninfo->deflate_pkt->len);
 
 			/* DTLS compression may have screwed with this */
-			vpninfo->deflate_pkt->hdr[7] = 0;
+			vpninfo->deflate_pkt->cstp.hdr[7] = 0;
 
 			vpn_progress(vpninfo, PRG_TRACE,
 				     _("Sending compressed data packet of %d bytes (was %d)\n"),
@@ -1082,8 +1082,8 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpninfo->current_ssl_pkt = vpninfo->deflate_pkt;
 		} else {
 		uncompr:
-			memcpy(this->hdr, data_hdr, 8);
-			store_be16(this->hdr + 4, this->len);
+			memcpy(this->cstp.hdr, data_hdr, 8);
+			store_be16(this->cstp.hdr + 4, this->len);
 
 			vpn_progress(vpninfo, PRG_TRACE,
 				     _("Sending uncompressed data packet of %d bytes\n"),
