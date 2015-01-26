@@ -710,8 +710,7 @@ int decompress_and_queue_packet(struct openconnect_info *vpninfo,
 		vpninfo->inflate_adler32 = adler32(vpninfo->inflate_adler32,
 						   new->data, new->len);
 
-		pkt_sum = buf[len - 1] | (buf[len - 2] << 8) |
-			(buf[len - 3] << 16) | (buf[len - 4] << 24);
+		pkt_sum = load_be32(buf + len - 4);
 
 		if (vpninfo->inflate_adler32 != pkt_sum)
 			vpninfo->quit_reason = "Compression (inflate) adler32 failure";
@@ -759,8 +758,6 @@ int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt
 {
 	int ret;
 	if (compr_type == COMPR_DEFLATE) {
-		unsigned char *adler;
-
 		vpninfo->deflate_strm.next_in = this->data;
 		vpninfo->deflate_strm.avail_in = this->len;
 		vpninfo->deflate_strm.next_out = (void *)vpninfo->deflate_pkt->data;
@@ -780,11 +777,8 @@ int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt
 		vpninfo->deflate_adler32 = adler32(vpninfo->deflate_adler32,
 						   this->data, this->len);
 
-		adler = &vpninfo->deflate_pkt->data[vpninfo->deflate_strm.total_out];
-		*(adler++) =  vpninfo->deflate_adler32 >> 24;
-		*(adler++) = (vpninfo->deflate_adler32 >> 16) & 0xff;
-		*(adler++) = (vpninfo->deflate_adler32 >> 8) & 0xff;
-		*(adler)   =  vpninfo->deflate_adler32 & 0xff;
+		store_be32(&vpninfo->deflate_pkt->data[vpninfo->deflate_strm.total_out],
+			   vpninfo->deflate_adler32);
 
 		vpninfo->deflate_pkt->len = vpninfo->deflate_strm.total_out + 4;
 		return 0;
@@ -863,7 +857,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		    vpninfo->cstp_pkt->hdr[7])
 			goto unknown_pkt;
 
-		payload_len = (vpninfo->cstp_pkt->hdr[4] << 8) + vpninfo->cstp_pkt->hdr[5];
+		payload_len = load_be16(vpninfo->cstp_pkt->hdr + 4);
 		if (len != 8 + payload_len) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Unexpected packet length. SSL_read returned %d but packet is\n"),
@@ -1075,8 +1069,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			if (ret < 0)
 				goto uncompr;
 
-			vpninfo->deflate_pkt->hdr[4] = (vpninfo->deflate_pkt->len) >> 8;
-			vpninfo->deflate_pkt->hdr[5] = (vpninfo->deflate_pkt->len) & 0xff;
+			store_be16(vpninfo->deflate_pkt->hdr + 4, vpninfo->deflate_pkt->len);
 
 			/* DTLS compression may have screwed with this */
 			vpninfo->deflate_pkt->hdr[7] = 0;
@@ -1090,8 +1083,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		} else {
 		uncompr:
 			memcpy(this->hdr, data_hdr, 8);
-			this->hdr[4] = this->len >> 8;
-			this->hdr[5] = this->len & 0xff;
+			store_be16(this->hdr + 4, this->len);
 
 			vpn_progress(vpninfo, PRG_TRACE,
 				     _("Sending uncompressed data packet of %d bytes\n"),
@@ -1128,8 +1120,7 @@ int cstp_bye(struct openconnect_info *vpninfo, const char *reason)
 	memcpy(bye_pkt, data_hdr, 8);
 	memcpy(bye_pkt + 9, reason, reason_len);
 
-	bye_pkt[4] = (reason_len + 1) >> 8;
-	bye_pkt[5] = (reason_len + 1) & 0xff;
+	store_be16(bye_pkt + 4, reason_len + 1);
 	bye_pkt[6] = AC_PKT_DISCONN;
 	bye_pkt[8] = 0xb0;
 
