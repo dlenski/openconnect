@@ -939,4 +939,111 @@ extern const char *openconnect_version_str;
 		return;							\
 	}
 
+/* Let's stop open-coding big-endian and little-endian loads/stores.
+ *
+ * Start with a packed structure so that we can let the compiler
+ * decide whether the target CPU can cope with unaligned load/stores
+ * or not. Then there are three cases to handle:
+ *  - For big-endian loads/stores, just use htons() et al.
+ *  - For little-endian when we *know* the CPU is LE, just load/store
+ *  - For little-endian otherwise, do the data acess byte-wise
+ */
+struct oc_packed_uint32_t {
+	uint32_t d;
+} __attribute__((packed));
+struct oc_packed_uint16_t {
+	uint16_t d;
+} __attribute__((packed));
+
+static inline uint32_t load_be32(const void *_p)
+{
+	const struct oc_packed_uint32_t *p = _p;
+	return ntohl(p->d);
+}
+
+static inline uint16_t load_be16(const void *_p)
+{
+	const struct oc_packed_uint16_t *p = _p;
+	return ntohs(p->d);
+}
+
+static inline void store_be32(void *_p, uint32_t d)
+{
+	struct oc_packed_uint32_t *p = _p;
+	p->d = htonl(d);
+}
+
+static inline void store_be16(void *_p, uint16_t d)
+{
+	struct oc_packed_uint16_t *p = _p;
+	p->d = htons(d);
+}
+
+/* It doesn't matter if we don't find one. It'll default to the
+ * "not known to be little-endian" case, and do the bytewise
+ * load/store. Modern compilers might even spot the pattern and
+ * optimise it (see GCC PR#55177 around comment 15). */
+#ifdef ENDIAN_HDR
+#include ENDIAN_HDR
+#endif
+
+#if defined(_WIN32) ||							       \
+   (defined(_LITTLE_ENDIAN) && !defined(_BIG_ENDIAN)) /* Solaris */ ||	       \
+   (defined(__LITTLE_ENDIAN) && defined(__BIG_ENDIAN) && defined(__BYTE_ORDER) \
+    && __BYTE_ORDER == __LITTLE_ENDIAN) /* Linux */ ||			       \
+   (defined(LITTLE_ENDIAN) && defined(BIG_ENDIAN) && defined(BYTE_ORDER)       \
+    && BYTE_ORDER == LITTLE_ENDIAN) /* *BSD */
+static inline uint32_t load_le32(const void *_p)
+{
+	const struct oc_packed_uint32_t *p = _p;
+	return p->d;
+}
+
+static inline uint16_t load_le16(const void *_p)
+{
+	const struct oc_packed_uint16_t *p = _p;
+	return p->d;
+}
+
+static inline void store_le32(void *_p, uint32_t d)
+{
+	struct oc_packed_uint32_t *p = _p;
+	p->d = d;
+}
+
+static inline void store_le16(void *_p, uint16_t d)
+{
+	struct oc_packed_uint16_t *p = _p;
+	p->d = d;
+}
+#else
+static inline uint32_t load_le32(const void *_p)
+{
+	const unsigned char *p = _p;
+	return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
+}
+
+static inline uint16_t load_le16(const void *_p)
+{
+	const unsigned char *p = _p;
+	return p[0] | (p[1] << 8);
+}
+
+static inline void store_le32(void *_p, uint32_t d)
+{
+	unsigned char *p = _p;
+	p[0] = d;
+	p[1] = d >> 8;
+}
+
+static inline void store_le16(void *_p, uint16_t d)
+{
+	unsigned char *p = _p;
+	p[0] = d;
+	p[1] = d >> 8;
+	p[2] = d >> 16;
+	p[3] = d >> 24;
+}
+#endif /* !Not known to be little-endian */
+
 #endif /* __OPENCONNECT_INTERNAL_H__ */

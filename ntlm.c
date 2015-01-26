@@ -826,32 +826,6 @@ static void ntlm_calc_response (const unsigned char key[21],
 	des (ks, results + 16);
 }
 
-static inline uint32_t load_le32(void *_p)
-{
-	unsigned char *p = _p;
-	return (p[3] << 24) | (p[2] << 16) | p[1] << 8 | p[0];
-}
-static inline uint16_t load_le16(void *_p)
-{
-	unsigned char *p = _p;
-	return p[1] << 8 | p[0];
-}
-
-static inline void store_le32(void *_p, uint32_t v)
-{
-	unsigned char *p = _p;
-	p[0] = v;
-	p[1] = v >> 8;
-	p[2] = v >> 16;
-	p[3] = v >> 24;
-}
-static inline void store_le16(void *_p, uint16_t v)
-{
-	unsigned char *p = _p;
-	p[0] = v;
-	p[1] = v >> 8;
-}
-
 #define NTLM_CHALLENGE_DOMAIN_OFFSET		12
 #define NTLM_CHALLENGE_FLAGS_OFFSET		20
 #define NTLM_CHALLENGE_NONCE_OFFSET		24

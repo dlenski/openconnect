@@ -884,6 +884,13 @@ AC_CHECK_HEADER([if_tun.h],
 AC_CHECK_HEADER([net/if_utun.h], AC_DEFINE([HAVE_NET_UTUN_H], 1, [Have net/utun.h]))
 AC_CHECK_HEADER([alloca.h], AC_DEFINE([HAVE_ALLOCA_H], 1, [Have alloca.h]))
 
+AC_CHECK_HEADER([endian.h],
+    [AC_DEFINE([ENDIAN_HDR], [<endian.h>], [endian header include path])],
+    [AC_CHECK_HEADER([sys/endian.h],
+        [AC_DEFINE([ENDIAN_HDR], [<sys/endian.h>])],
+        [AC_CHECK_HEADER([sys/isa_defs.h],
+            [AC_DEFINE([ENDIAN_HDR], [<sys/isa_defs.h>])])])])
+
 if test "$ssl_library" = "openssl" || test "$ssl_library" = "both"; then
     oldLIBS="$LIBS"
     LIBS="$LIBS $OPENSSL_LIBS"
