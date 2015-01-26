@@ -332,8 +332,20 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 void esp_close(struct openconnect_info *vpninfo)
 {
+	/* We close and reopen the socket in case we roamed and our
+	   local IP address has changed. */
+	if (vpninfo->dtls_fd != -1) {
+		closesocket(vpninfo->dtls_fd);
+		unmonitor_read_fd(vpninfo, dtls);
+		unmonitor_write_fd(vpninfo, dtls);
+		unmonitor_except_fd(vpninfo, dtls);
+	}
 }
 
 void esp_shutdown(struct openconnect_info *vpninfo)
 {
+	destroy_esp_ciphers(&vpninfo->esp_in[0]);
+	destroy_esp_ciphers(&vpninfo->esp_in[1]);
+	destroy_esp_ciphers(&vpninfo->esp_out);
+	esp_close(vpninfo);
 }
