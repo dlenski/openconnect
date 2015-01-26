@@ -558,7 +558,7 @@ static int parse_cookie(struct openconnect_info *vpninfo)
 		if (p) {
 			*p = ';';
 			p++;
-			while (*p && isspace(*p))
+			while (*p && isspace((int)(unsigned char)*p))
 				p++;
 		}
 	}
