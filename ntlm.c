@@ -299,10 +299,7 @@ static int md4sum (struct oc_text_buf *buf, unsigned char digest[16])
 	M = (void *)buf->data;
 	memset (M + nbytes, 0, pbytes + 8);
 	M[nbytes] = 0x80;
-	M[nbytes + pbytes] = nbits & 0xFF;
-	M[nbytes + pbytes + 1] = (nbits >> 8) & 0xFF;
-	M[nbytes + pbytes + 2] = (nbits >> 16) & 0xFF;
-	M[nbytes + pbytes + 3] = (nbits >> 24) & 0xFF;
+	store_le32(&M[nbytes + pbytes], nbits);
 
 	A = 0x67452301;
 	B = 0xEFCDAB89;
@@ -310,12 +307,8 @@ static int md4sum (struct oc_text_buf *buf, unsigned char digest[16])
 	D = 0x10325476;
 
 	for (i = 0; i < nbytes + pbytes + 8; i += 64) {
-		for (j = 0; j < 16; j++) {
-			X[j] =  (M[i + j * 4]) |
-				(M[i + j * 4 + 1] << 8) |
-				(M[i + j * 4 + 2] << 16) |
-				(M[i + j * 4 + 3] << 24);
-		}
+		for (j = 0; j < 16; j++)
+			X[j] =  load_le32(&M[i + j * 4]);
 
 		AA = A;
 		BB = B;
@@ -379,22 +372,10 @@ static int md4sum (struct oc_text_buf *buf, unsigned char digest[16])
 		D += DD;
 	}
 
-	digest[0]  =  A        & 0xFF;
-	digest[1]  = (A >>  8) & 0xFF;
-	digest[2]  = (A >> 16) & 0xFF;
-	digest[3]  = (A >> 24) & 0xFF;
-	digest[4]  =  B        & 0xFF;
-	digest[5]  = (B >>  8) & 0xFF;
-	digest[6]  = (B >> 16) & 0xFF;
-	digest[7]  = (B >> 24) & 0xFF;
-	digest[8]  =  C        & 0xFF;
-	digest[9]  = (C >>  8) & 0xFF;
-	digest[10] = (C >> 16) & 0xFF;
-	digest[11] = (C >> 24) & 0xFF;
-	digest[12] =  D        & 0xFF;
-	digest[13] = (D >>  8) & 0xFF;
-	digest[14] = (D >> 16) & 0xFF;
-	digest[15] = (D >> 24) & 0xFF;
+	store_le32(digest,      A);
+	store_le32(digest + 4,  B);
+	store_le32(digest + 8,  C);
+	store_le32(digest + 12, D);
 
 	return 0;
 }
@@ -551,14 +532,8 @@ static void des (uint32_t ks[16][2], unsigned char block[8])
 	uint32_t left, right, work;
 
 	/* Read input block and place in left/right in big-endian order */
-	left = ((uint32_t) block[0] << 24)
-	 | ((uint32_t) block[1] << 16)
-	 | ((uint32_t) block[2] << 8)
-	 | (uint32_t) block[3];
-	right = ((uint32_t) block[4] << 24)
-	 | ((uint32_t) block[5] << 16)
-	 | ((uint32_t) block[6] << 8)
-	 | (uint32_t) block[7];
+	left = load_be32(block);
+	right = load_be32(block + 4);
 
 	/* Hoey's clever initial permutation algorithm, from Outerbridge
 	 * (see Schneier p 478)
@@ -626,14 +601,8 @@ static void des (uint32_t ks[16][2], unsigned char block[8])
 	right ^= work << 4;
 
 	/* Put the block back into the user's buffer with final swap */
-	block[0] = right >> 24;
-	block[1] = right >> 16;
-	block[2] = right >> 8;
-	block[3] = right;
-	block[4] = left >> 24;
-	block[5] = left >> 16;
-	block[6] = left >> 8;
-	block[7] = left;
+	store_be32(block, right);
+	store_be32(block + 4, left);
 }
 
 /* Key schedule-related tables from FIPS-46 */
