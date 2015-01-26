@@ -570,8 +570,7 @@ static void buf_append_be16(struct oc_text_buf *buf, uint16_t val)
 {
 	unsigned char b[2];
 
-	b[0] = val >> 8;
-	b[1] = val & 0xff;
+	store_be16(b, val);
 
 	buf_append_bytes(buf, b, 2);
 }
@@ -580,8 +579,7 @@ static void buf_append_le16(struct oc_text_buf *buf, uint16_t val)
 {
 	unsigned char b[2];
 
-	b[0] = val & 0xff;
-	b[1] = val >> 8;
+	store_le16(b, val);
 
 	buf_append_bytes(buf, b, 2);
 }
@@ -590,12 +588,8 @@ static void buf_append_tlv(struct oc_text_buf *buf, uint16_t val, uint32_t len, 
 {
 	unsigned char b[6];
 
-	b[0] = val >> 8;
-	b[1] = val;
-	b[2] = len >> 24;
-	b[3] = len >> 16;
-	b[4] = len >> 8;
-	b[5] = len;
+	store_be16(b, val);
+	store_be32(b + 2, len);
 	buf_append_bytes(buf, b, 6);
 	if (len)
 		buf_append_bytes(buf, data, len);
@@ -605,10 +599,7 @@ static void buf_append_tlv_be32(struct oc_text_buf *buf, uint16_t val, uint32_t 
 {
 	unsigned char d[4];
 
-	d[0] = data >> 24;
-	d[1] = data >> 16;
-	d[2] = data >> 8;
-	d[3] = data;
+	store_be32(d, data);
 
 	buf_append_tlv(buf, val, 4, d);
 }
@@ -633,8 +624,6 @@ static const char authpkt_head[] = { 0x00, 0x04, 0x00, 0x00, 0x00 };
 static const char authpkt_tail[] = { 0xbb, 0x01, 0x00, 0x00, 0x00, 0x00 };
 
 #define GRP_ATTR(g, a) (((g) << 16) | (a))
-#define TLV_BE32(data) ((data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[3])
-#define TLV_BE16(data) ((data[0] << 8) + data[1])
 
 /* We behave like CSTP — create a linked list in vpninfo->cstp_options
  * with the strings containing the information we got from the server,
@@ -683,7 +672,7 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 			return -EINVAL;
 			goto badlen;
 		}
-		vpninfo->ip_info.mtu = TLV_BE32(data);
+		vpninfo->ip_info.mtu = load_be32(data);
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Received MTU %d from server\n"),
 			     vpninfo->ip_info.mtu);
@@ -819,7 +808,7 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 	case GRP_ATTR(8, 4):
 		if (attrlen != 2)
 			goto badlen;
-		i = TLV_BE16(data);
+		i = load_be16(data);
 		udp_sockaddr(vpninfo, i);
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP port: %d\n"), i);
 		break;
@@ -827,7 +816,7 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 	case GRP_ATTR(8, 5):
 		if (attrlen != 4)
 			goto badlen;
-		vpninfo->esp_lifetime_bytes = TLV_BE32(data);
+		vpninfo->esp_lifetime_bytes = load_be32(data);
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP key lifetime: %u bytes\n"),
 			     vpninfo->esp_lifetime_bytes);
 		break;
@@ -835,7 +824,7 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 	case GRP_ATTR(8, 6):
 		if (attrlen != 4)
 			goto badlen;
-		vpninfo->esp_lifetime_seconds = TLV_BE32(data);
+		vpninfo->esp_lifetime_seconds = load_be32(data);
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP key lifetime: %u seconds\n"),
 			     vpninfo->esp_lifetime_seconds);
 		break;
@@ -843,7 +832,7 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 	case GRP_ATTR(8, 9):
 		if (attrlen != 4)
 			goto badlen;
-		vpninfo->esp_ssl_fallback = TLV_BE32(data);
+		vpninfo->esp_ssl_fallback = load_be32(data);
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP to SSL fallback: %u seconds\n"),
 			     vpninfo->esp_ssl_fallback);
 		break;
@@ -851,9 +840,9 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 	case GRP_ATTR(8, 10):
 		if (attrlen != 4)
 			goto badlen;
-		vpninfo->esp_replay_protect = TLV_BE32(data);
+		vpninfo->esp_replay_protect = load_be32(data);
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP replay protection: %d\n"),
-			     TLV_BE32(data));
+			     load_be32(data));
 		break;
 
 	case GRP_ATTR(7, 1):
@@ -861,7 +850,7 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 			goto badlen;
 		memcpy(&vpninfo->esp_out.spi, data, 4);
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP SPI (outbound): %x\n"),
-			     TLV_BE32(data));
+			     load_be32(data));
 		break;
 
 	case GRP_ATTR(7, 2):
@@ -890,18 +879,14 @@ static void put_len16(struct oc_text_buf *buf, int where)
 {
 	int len = buf->pos - where;
 
-	buf->data[where - 1] = len;
-	buf->data[where - 2] = len >> 8;
+	store_be16(buf->data + where - 2, len);
 }
 
 static void put_len32(struct oc_text_buf *buf, int where)
 {
 	int len = buf->pos - where;
 
-	buf->data[where - 1] = len;
-	buf->data[where - 2] = len >> 8;
-	buf->data[where - 3] = len >> 16;
-	buf->data[where - 4] = len >> 24;
+	store_be32(buf->data + where - 4, len);
 }
 
 
@@ -951,7 +936,7 @@ static int check_kmp_header(struct openconnect_info *vpninfo, unsigned char *byt
 			     _("Failed to parse KMP header\n"));
 		return -EINVAL;
 	}
-	return bytes[7] | (bytes[6] << 8);
+	return load_be16(bytes + 6);
 }
 
 static int parse_conf_pkt(struct openconnect_info *vpninfo, unsigned char *bytes, int pktlen, int kmp)
@@ -959,7 +944,7 @@ static int parse_conf_pkt(struct openconnect_info *vpninfo, unsigned char *bytes
 	int kmplen, kmpend, grouplen, groupend, group, attr, attrlen;
 	int ofs = 0;
 
-	kmplen = bytes[ofs + 19] + (bytes[ofs + 18] << 8);
+	kmplen = load_be16(bytes + ofs + 18);
 	kmpend = ofs + kmplen;
 	if (kmpend > pktlen) {
 	eparse:
@@ -976,9 +961,8 @@ static int parse_conf_pkt(struct openconnect_info *vpninfo, unsigned char *bytes
 	while (ofs < kmpend) {
 		if (ofs + 6 > kmpend)
 			goto eparse;
-		group = (bytes[ofs] << 8) + bytes[ofs+1];
-		grouplen = (bytes[ofs+2] << 24) + (bytes[ofs+3] << 16) +
-			(bytes[ofs+4] << 8) + bytes[ofs+5];
+		group = load_be16(bytes + ofs);
+		grouplen = load_be32(bytes + ofs + 2);
 		ofs += 6;
 		groupend = ofs + grouplen;
 		if (groupend > pktlen)
@@ -994,9 +978,8 @@ static int parse_conf_pkt(struct openconnect_info *vpninfo, unsigned char *bytes
 		while (ofs < groupend) {
 			if (ofs + 6 > groupend)
 				goto eparse;
-			attr = (bytes[ofs] << 8) + bytes[ofs+1];
-			attrlen = (bytes[ofs+2] << 24) + (bytes[ofs+3] << 16) +
-				(bytes[ofs+4] << 8) + bytes[ofs+5];
+			attr = load_be16(bytes + ofs);
+			attrlen = load_be32(bytes + ofs + 2);
 			ofs += 6;
 			if (attrlen + ofs > groupend)
 				goto eparse;
@@ -1157,7 +1140,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Read %d bytes of SSL record\n"), len);
 
-	if (len < 0x16 || bytes[0] + (bytes[1] << 8) + 2 != len) {
+	if (len < 0x16 || load_le16(bytes) + 2 != len) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Invalid packet waiting for KMP 301\n"));
 		ret = -EINVAL;
@@ -1219,8 +1202,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	}
 #endif
 	/* Length at the start of the packet is little-endian */
-	reqbuf->data[0] = (reqbuf->pos - 2);
-	reqbuf->data[1] = (reqbuf->pos - 2) >> 8;
+	store_le16(reqbuf->data, reqbuf->pos - 2);
 
 	buf_hexdump(vpninfo, (void *)reqbuf->data, reqbuf->pos);
 	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
@@ -1262,8 +1244,8 @@ static int oncp_receive_espkeys(struct openconnect_info *vpninfo, int len)
 		memcpy(p, esp->secrets, sizeof(esp->secrets));
 		p += sizeof(esp->secrets);
 		vpninfo->cstp_pkt->len = p - vpninfo->cstp_pkt->data;
-		vpninfo->cstp_pkt->oncp_hdr[0] = (p - vpninfo->cstp_pkt->oncp_hdr - 2);
-		vpninfo->cstp_pkt->oncp_hdr[1] = (p - vpninfo->cstp_pkt->oncp_hdr - 2) >> 8;
+		store_le16(vpninfo->cstp_pkt->oncp_hdr,
+			   (p - vpninfo->cstp_pkt->oncp_hdr - 2));
 
 		queue_packet(&vpninfo->oncp_control_queue, vpninfo->cstp_pkt);
 		vpninfo->cstp_pkt = NULL;
@@ -1303,10 +1285,10 @@ static int oncp_receive_data(struct openconnect_info *vpninfo, int len, int unre
 		/* Ick. Windows doesn't give us 'struct ip', AFAICT. */
 		switch(pkt->data[0] >> 4) {
 		case 4:
-			pktlen = (pkt->data[2] << 8) | pkt->data[3];
+			pktlen = load_be16(pkt->data + 2);
 			break;
 		case 6:
-			pktlen = (pkt->data[4] << 8) | pkt->data[5];
+			pktlen = load_be16(pkt->data + 4);
 			break;
 		default:
 		badlen:
@@ -1469,8 +1451,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		if (!followon) {
 			/* This is the length of the packet (little-endian) */
-			reclen = vpninfo->cstp_pkt->oncp_hdr[0] +
-				(vpninfo->cstp_pkt->oncp_hdr[1] << 8);
+			reclen = load_le16(vpninfo->cstp_pkt->oncp_hdr);
 			vpn_progress(vpninfo, PRG_TRACE,
 				     _("Incoming oNCP packet of size %d\n"), reclen);
 		}
@@ -1482,9 +1463,8 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			return 1;
 		}
 
-		kmp = vpninfo->cstp_pkt->oncp_hdr[9] | (vpninfo->cstp_pkt->oncp_hdr[8] << 8);
-		kmplen = (vpninfo->cstp_pkt->oncp_hdr[20] << 8) +
-			vpninfo->cstp_pkt->oncp_hdr[21];
+		kmp = load_be16(vpninfo->cstp_pkt->oncp_hdr + 8);
+		kmplen = load_be16(vpninfo->cstp_pkt->oncp_hdr + 20);
 		if (kmplen + 20 > reclen) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("KMP message larger than packet (%d > %d)\n"),
@@ -1718,12 +1698,10 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpninfo->outgoing_qlen--;
 
 		/* Little-endian overall record length */
-		this->oncp_hdr[0] = (this->len + 20) & 0xff;
-		this->oncp_hdr[1] = (this->len + 20) >> 8;
+		store_le16(this->oncp_hdr, (this->len + 20));
 		memcpy(this->oncp_hdr + 2, data_hdr, 18);
 		/* Big-endian length in KMP message header */
-		this->oncp_hdr[20] = this->len >> 8;
-		this->oncp_hdr[21] = this->len & 0xff;
+		store_be16(this->oncp_hdr + 20, this->len);
 
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("Sending uncompressed data packet of %d bytes\n"),
