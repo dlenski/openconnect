@@ -118,18 +118,16 @@
 
 /****************************************************************************/
 
-struct esp_hdr {
-	uint32_t spi;
-	uint32_t seq;
-	unsigned char iv[16];
-	unsigned char payload[];
-};
-
 struct pkt {
 	int len;
 	struct pkt *next;
 	union {
-		struct esp_hdr esp;
+		struct {
+			uint32_t spi;
+			uint32_t seq;
+			unsigned char iv[16];
+			unsigned char payload[];
+		} esp;
 		struct {
 			unsigned char pad[2];
 			unsigned char hdr[22];
