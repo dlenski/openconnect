@@ -57,11 +57,15 @@ library_srcs += $(lib_srcs_gssapi)
 endif
 if OPENCONNECT_GNUTLS
 library_srcs += $(lib_srcs_gnutls)
+endif
+if ESP_GNUTLS
 lib_srcs_juniper += gnutls-esp.c
+endif
+if ESP_OPENSSL
+lib_srcs_juniper += openssl-esp.c
 endif
 if OPENCONNECT_OPENSSL
 library_srcs += $(lib_srcs_openssl)
-lib_srcs_juniper += openssl-esp.c
 endif
 if OPENCONNECT_ICONV
 library_srcs += $(lib_srcs_iconv)

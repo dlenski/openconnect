@@ -356,6 +356,8 @@ if test "$with_gnutls" = "yes"; then
 	fi
 	AC_DEFINE_UNQUOTED([DEFAULT_SYSTEM_CAFILE], ["$with_system_cafile"], [Location of System CA trust file])
     fi
+    AC_CHECK_FUNC(gnutls_cipher_set_iv,
+		 [have_gnutls_esp=yes], [have_gnutls_esp=no])
     AC_CHECK_FUNC(gnutls_pkcs12_simple_parse,
 		 [AC_DEFINE(HAVE_GNUTLS_PKCS12_SIMPLE_PARSE, 1, [This one was obvious too])], [])
     AC_CHECK_FUNC(gnutls_certificate_set_key,
@@ -461,6 +463,9 @@ case "$ssl_library" in
 	AC_SUBST(SSL_LIBS, ['$(GNUTLS_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
 	check_openssl_dtls=no
+	if test "$have_gnutls_dtls" = "yes"; then
+	   esp=gnutls
+	fi
 	;;
     openssl)
 	PKG_CHECK_MODULES(P11KIT, p11-kit-1,
@@ -475,7 +480,9 @@ case "$ssl_library" in
 	AC_SUBST(SSL_DTLS_PC, [openssl])
 	AC_SUBST(SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
+	AC_DEFINE(ESP_OPENSSL, 1, [Using OpenSSL for ESP])
 	check_openssl_dtls=yes
+	esp=openssl
 	;;
     both)
 	# GnuTLS for TCP, OpenSSL for DTLS
@@ -487,6 +494,11 @@ case "$ssl_library" in
 	AC_SUBST(DTLS_SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(DTLS_SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
 	check_openssl_dtls=yes
+	if test "$have_gnutls_dtls" = "yes"; then
+	    esp=gnutls
+	else
+	    esp=openssl
+	fi
 	;;
     *)
 	AC_MSG_ERROR([Neither OpenSSL nor GnuTLS selected for SSL.])
@@ -494,6 +506,13 @@ case "$ssl_library" in
 esac
 AM_CONDITIONAL(OPENCONNECT_GNUTLS,  [ test "$ssl_library" != "openssl" ])
 AM_CONDITIONAL(OPENCONNECT_OPENSSL, [ test "$ssl_library" = "openssl" ])
+AM_CONDITIONAL(ESP_GNUTLS, [ test "$esp" = "gnutls" ])
+AM_CONDITIONAL(ESP_OPENSSL, [ test "$esp" = "openssl" ])
+if test "$esp" = "gnutls"; then
+    AC_DEFINE(ESP_GNUTLS, 1, [Using GnuTLS for ESP])
+elif test "$esp" = "openssl"; then
+    AC_DEFINE(ESP_OPENSSL, 1, [Using OpenSSL for ESP])
+fi
 
 AC_ARG_WITH([openssl-version-check],
 	AS_HELP_STRING([--without-openssl-version-check],

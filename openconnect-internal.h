@@ -249,10 +249,10 @@ struct vpn_proto {
 };
 
 struct esp {
-#ifdef OPENCONNECT_GNUTLS
+#if defined(ESP_GNUTLS)
 	gnutls_cipher_hd_t cipher;
 	gnutls_hmac_hd_t hmac;
-#else
+#elif defined(ESP_OPENSSL)
 	HMAC_CTX hmac;
 	EVP_CIPHER_CTX cipher;
 #endif
