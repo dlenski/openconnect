@@ -50,16 +50,22 @@ static const char data_hdr[8] = {
 	0		/* Unknown */
 };
 
+/* Strange initialisers here to work around GCC PR#10676 (which was
+ * fixed in GCC 4.6 but it takes a while for some systems to catch
+ * up. */
 static const struct pkt keepalive_pkt = {
-	.cstp.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_KEEPALIVE, 0 },
+	.next = NULL,
+	{ .cstp.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_KEEPALIVE, 0 } }
 };
 
 static const struct pkt dpd_pkt = {
-	.cstp.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_OUT, 0 },
+	.next = NULL,
+	{ .cstp.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_OUT, 0 } }
 };
 
 static const struct pkt dpd_resp_pkt = {
-	.cstp.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_RESP, 0 },
+	.next = NULL,
+	{ .cstp.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_RESP, 0 } }
 };
 
 /* Calculate MTU to request. Old servers simply use the X-CSTP-MTU: header,
