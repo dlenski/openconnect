@@ -149,7 +149,7 @@ int print_esp_keys(struct openconnect_info *vpninfo, const char *name, struct es
 
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Parameters for %s ESP: SPI 0x%08x\n"),
-		     name, ntohl(esp->spi));
+		     name, (unsigned)ntohl(esp->spi));
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("ESP encryption type %s key 0x%s\n"),
 		     enctype, enckey);
@@ -171,12 +171,12 @@ static int esp_send_probes(struct openconnect_info *vpninfo)
 	pkt->len = 1;
 	pkt->data[0] = 0;
 	pktlen = encrypt_esp_packet(vpninfo, pkt);
-	send(vpninfo->dtls_fd, &pkt->esp, pktlen, 0);
+	send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
 
 	pkt->len = 1;
 	pkt->data[0] = 0;
 	pktlen = encrypt_esp_packet(vpninfo, pkt);
-	send(vpninfo->dtls_fd, &pkt->esp, pktlen, 0);
+	send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
 
 	free(pkt);
 	time(&vpninfo->new_dtls_started);
@@ -230,7 +230,7 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			}
 		}
 		pkt = vpninfo->dtls_pkt;
-		len = recv(vpninfo->dtls_fd, &pkt->esp, len + sizeof(pkt->esp), 0);
+		len = recv(vpninfo->dtls_fd, (void *)&pkt->esp, len + sizeof(pkt->esp), 0);
 		if (len <= 0)
 			break;
 
@@ -251,13 +251,13 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			   ntohl(pkt->esp.seq) + esp->seq < vpninfo->old_esp_maxseq) {
 			vpn_progress(vpninfo, PRG_TRACE,
 				     _("Consider SPI 0x%x, seq %u against outgoing ESP setup\n"),
-				     ntohl(old_esp->spi), ntohl(pkt->esp.seq));
+				     (unsigned)ntohl(old_esp->spi), (unsigned)ntohl(pkt->esp.seq));
 			if (decrypt_esp_packet(vpninfo, old_esp, pkt))
 				continue;
 		} else {
 			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Received ESP packet with invalid SPI 0x%08x\n"),
-				     ntohl(pkt->esp.spi));
+				     (unsigned)ntohl(pkt->esp.spi));
 			continue;
 		}
 
@@ -303,7 +303,7 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		len = encrypt_esp_packet(vpninfo, this);
 		if (len > 0) {
-			ret = send(vpninfo->dtls_fd, &this->esp, len, 0);
+			ret = send(vpninfo->dtls_fd, (void *)&this->esp, len, 0);
 			if (ret < 0) {
 				/* Not that this is likely to happen with UDP, but... */
 				if (errno == ENOBUFS || errno == EAGAIN || errno == EWOULDBLOCK) {
