@@ -454,7 +454,7 @@ elif test "$with_openssl" != "no" ; then
         ssl_library=openssl
     fi
 fi
-
+esp=none
 case "$ssl_library" in
     gnutls)
 	AC_DEFINE(OPENCONNECT_GNUTLS, 1, [Using GnuTLS])
@@ -480,7 +480,6 @@ case "$ssl_library" in
 	AC_SUBST(SSL_DTLS_PC, [openssl])
 	AC_SUBST(SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
-	AC_DEFINE(ESP_OPENSSL, 1, [Using OpenSSL for ESP])
 	check_openssl_dtls=yes
 	esp=openssl
 	;;
@@ -504,15 +503,6 @@ case "$ssl_library" in
 	AC_MSG_ERROR([Neither OpenSSL nor GnuTLS selected for SSL.])
 	;;
 esac
-AM_CONDITIONAL(OPENCONNECT_GNUTLS,  [ test "$ssl_library" != "openssl" ])
-AM_CONDITIONAL(OPENCONNECT_OPENSSL, [ test "$ssl_library" = "openssl" ])
-AM_CONDITIONAL(ESP_GNUTLS, [ test "$esp" = "gnutls" ])
-AM_CONDITIONAL(ESP_OPENSSL, [ test "$esp" = "openssl" ])
-if test "$esp" = "gnutls"; then
-    AC_DEFINE(ESP_GNUTLS, 1, [Using GnuTLS for ESP])
-elif test "$esp" = "openssl"; then
-    AC_DEFINE(ESP_OPENSSL, 1, [Using OpenSSL for ESP])
-fi
 
 AC_ARG_WITH([openssl-version-check],
 	AS_HELP_STRING([--without-openssl-version-check],
@@ -521,6 +511,10 @@ if test "$with_openssl_version_check" = "no"; then
    check_openssl_dtls=no
 fi
 
+oldLIBS="${LIBS}"
+oldCFLAGS="${CFLAGS}"
+LIBS="${LIBS} ${OPENSSL_LIBS}"
+CFLAGS="${CFLAGS} ${OPENSSL_CFLAGS}"
 if test "$check_openssl_dtls" = "yes"; then
 	AC_MSG_CHECKING([for known-broken versions of OpenSSL])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],[#if \
@@ -537,6 +531,25 @@ See http://rt.openssl.org/Ticket/Display.html?id=2984&user=guest&pass=guest
 Add --without-openssl-version-check to configure args to avoid this check, or
 perhaps consider building with GnuTLS instead.])])
 fi
+if test "$esp" = "openssl"; then
+    AC_CHECK_FUNC(HMAC_CTX_copky,
+		  [], [esp=none
+		       echo set ESP to $esp
+		       AC_MSG_WARN([ESP support will be disabled])])
+fi
+LIBS="${oldLIBS}"
+CFLAGS="${oldCFLAGS}"
+echo ESP now $esp
+AM_CONDITIONAL(OPENCONNECT_GNUTLS,  [ test "$ssl_library" != "openssl" ])
+AM_CONDITIONAL(OPENCONNECT_OPENSSL, [ test "$ssl_library" = "openssl" ])
+AM_CONDITIONAL(ESP_GNUTLS, [ test "$esp" = "gnutls" ])
+AM_CONDITIONAL(ESP_OPENSSL, [ test "$esp" = "openssl" ])
+if test "$esp" = "gnutls"; then
+    AC_DEFINE(ESP_GNUTLS, 1, [Using GnuTLS for ESP])
+elif test "$esp" = "openssl"; then
+    AC_DEFINE(ESP_OPENSSL, 1, [Using OpenSSL for ESP])
+fi
+
 
 AC_ARG_WITH(lz4,
   AS_HELP_STRING([--without-lz4], [disable support for LZ4 compression]),
