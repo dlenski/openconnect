@@ -96,11 +96,9 @@ static int yubikey_cmd(struct openconnect_info *vpninfo, SCARDHANDLE card, int e
 		outlen = sizeof(send_remaining);
 	} while (buf->data[buf->pos] == 0x61);
 
-	if ((unsigned char)buf->data[buf->pos] == 0x90 && buf->data[buf->pos+1] == 0x00)
+	status = load_be16(buf->data + buf->pos);
+	if (status == 0x9000)
 		return 0;
-
-	status = (unsigned short)buf->data[buf->pos] << 8;
-	status |= (unsigned char)buf->data[buf->pos+1];
 
 	vpn_progress(vpninfo, errlvl,
 		     _("Failure response to \"%s\": %04x\n"),
@@ -483,8 +481,7 @@ static int append_tlvlen(unsigned char *p, int tlvlen)
 	} else {
 		if (p) {
 			p[0] = 0x82;
-			p[1] = tlvlen >> 8;
-			p[2] = tlvlen & 0xff;
+			store_be16(p + 1, tlvlen);
 		}
 		return 3;
 	}
@@ -550,10 +547,8 @@ int do_gen_yubikey_code(struct openconnect_info *vpninfo,
 		reqbuf[i++] = 0;
 		reqbuf[i++] = 0;
 		reqbuf[i++] = 0;
-		reqbuf[i++] = token_steps >> 24;
-		reqbuf[i++] = token_steps >> 16;
-		reqbuf[i++] = token_steps >> 8;
-		reqbuf[i++] = token_steps;
+		store_be32(reqbuf + i, token_steps);
+		i += 4;
 	} else {
 		reqbuf[i++] = 0; /* HOTP mode, zero-length challenge */
 	}
@@ -571,10 +566,7 @@ int do_gen_yubikey_code(struct openconnect_info *vpninfo,
 		goto out;
 	}
 
-	tokval = ((unsigned char)respbuf->data[3] << 24) +
-		((unsigned char)respbuf->data[4] << 16) +
-		((unsigned char)respbuf->data[5] << 8) +
-		(unsigned char)respbuf->data[6];
+	tokval = load_be32(respbuf->data + 3);
 	opt->_value = malloc(respbuf->data[2] + 1);
 	if (!opt->_value) {
 		ret = -ENOMEM;
