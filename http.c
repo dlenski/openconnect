@@ -143,7 +143,7 @@ void buf_append_from_utf16le(struct oc_text_buf *buf, const void *_utf16)
 			c += 0x10000;
 			utf16 += 4;
 		} else {
-			c = utf16[0] | (utf16[1] << 8);
+			c = load_le16(utf16);
 			utf16 += 2;
 		}
 
@@ -236,8 +236,8 @@ int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8)
 		} else {
 			if (buf_ensure_space(buf, 2))
 				return buf_error(buf);
-			buf->data[buf->pos++] = utfchar & 0xff;
-			buf->data[buf->pos++] = utfchar >> 8;
+			store_le16(buf->data + buf->pos, utfchar);
+			buf->pos += 2;
 			len += 2;
 		}
 	}
@@ -1194,8 +1194,8 @@ static int process_socks_proxy(struct openconnect_info *vpninfo)
 	buf[4] = strlen(vpninfo->hostname);
 	strcpy((char *)buf + 5, vpninfo->hostname);
 	i = strlen(vpninfo->hostname) + 5;
-	buf[i++] = vpninfo->port >> 8;
-	buf[i++] = vpninfo->port & 0xff;
+	store_be16(buf + i, vpninfo->port);
+	i += 2;
 
 	if ((i = proxy_write(vpninfo, buf, i)) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
