@@ -15,6 +15,10 @@
  * Lesser General Public License for more details.
  */
 
+/*
+ * Grateful thanks to Tiebing Zhang, who did much of the hard work
+ * of analysing and decoding the protocol.
+ */
 #include <config.h>
 
 #include <unistd.h>
