@@ -1192,7 +1192,6 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	group = reqbuf->pos;
 	buf_append_tlv_be32(reqbuf, 2, vpninfo->ip_info.mtu);
 	if (buf_error(reqbuf)) {
-	enomem:
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Error creating oNCP negotiation request\n"));
 		ret = buf_error(reqbuf);
@@ -1201,6 +1200,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	put_len32(reqbuf, group);
 	put_len16(reqbuf, kmp);
 
+#if defined(ESP_GNUTLS) || defined(ESP_OPENSSL)
 	if (!setup_esp_keys(vpninfo)) {
 		struct esp *esp = &vpninfo->esp_in[vpninfo->current_esp_in];
 		/* Since we'll want to do this in the oncp_mainloop too, where it's easier
@@ -1210,10 +1210,14 @@ int oncp_connect(struct openconnect_info *vpninfo)
 		buf_append_bytes(reqbuf, &esp->spi, sizeof(esp->spi));
 		buf_append_bytes(reqbuf, esp_kmp_part2, sizeof(esp_kmp_part2));
 		buf_append_bytes(reqbuf, &esp->secrets, sizeof(esp->secrets));
-		if (buf_error(reqbuf))
-			goto enomem;
+		if (buf_error(reqbuf)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Error negotiating ESP keys\n"));
+			ret = buf_error(reqbuf);
+			goto out;
+		}
 	}
-
+#endif
 	/* Length at the start of the packet is little-endian */
 	reqbuf->data[0] = (reqbuf->pos - 2);
 	reqbuf->data[1] = (reqbuf->pos - 2) >> 8;
@@ -1241,6 +1245,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 
 static int oncp_receive_espkeys(struct openconnect_info *vpninfo, int len)
 {
+#if defined(ESP_GNUTLS) || defined(ESP_OPENSSL)
 	int ret;
 
 	ret = parse_conf_pkt(vpninfo, vpninfo->cstp_pkt->oncp_hdr + 2, len + 20, 301);
@@ -1267,7 +1272,13 @@ static int oncp_receive_espkeys(struct openconnect_info *vpninfo, int len)
 		print_esp_keys(vpninfo, _("new outgoing"), &vpninfo->esp_out);
 	}
 	return ret;
+#else
+	vpn_progress(vpninfo, PRG_DEBUG,
+		     _("Ignoring ESP keys since ESP support not available in this build\n"));
+	return 0;
+#endif
 }
+
 static int oncp_receive_data(struct openconnect_info *vpninfo, int len, int unreceived)
 {
 	struct pkt *pkt = vpninfo->cstp_pkt;

@@ -120,10 +120,14 @@ void openconnect_set_juniper(struct openconnect_info *vpninfo)
 	vpninfo->proto.tcp_mainloop = oncp_mainloop;
 	vpninfo->proto.add_http_headers = oncp_common_headers;
 	vpninfo->proto.obtain_cookie = oncp_obtain_cookie;
+#if defined(ESP_GNUTLS) || defined(ESP_OPENSSL)
 	vpninfo->proto.udp_setup = esp_setup;
 	vpninfo->proto.udp_mainloop = esp_mainloop;
 	vpninfo->proto.udp_close = esp_close;
 	vpninfo->proto.udp_shutdown = esp_shutdown;
+#else
+	vpninfo->dtls_state = DTLS_DISABLED;
+#endif
 }
 
 int openconnect_setup_dtls(struct openconnect_info *vpninfo,
@@ -254,9 +258,11 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 #ifdef DTLS_GNUTLS
 	gnutls_free(vpninfo->gnutls_dtls_cipher);
 #endif
+#if defined(ESP_GNUTLS) || defined(ESP_OPENSSL)
 	destroy_esp_ciphers(&vpninfo->esp_in[0]);
 	destroy_esp_ciphers(&vpninfo->esp_in[1]);
 	destroy_esp_ciphers(&vpninfo->esp_out);
+#endif
 	free(vpninfo->dtls_addr);
 
 	if (vpninfo->csd_scriptname) {

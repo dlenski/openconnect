@@ -25,7 +25,7 @@ openconnect_LDADD = libopenconnect.la $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIB
 
 library_srcs = ssl.c http.c auth-common.c library.c compat.c lzs.c mainloop.c script.c ntlm.c digest.c
 lib_srcs_cisco = auth.c cstp.c dtls.c
-lib_srcs_juniper = oncp.c esp.c
+lib_srcs_juniper = oncp.c
 lib_srcs_gnutls = gnutls.c gnutls_pkcs12.c gnutls_tpm.c
 lib_srcs_openssl = openssl.c openssl-pkcs11.c
 lib_srcs_win32 = tun-win32.c sspi.c
@@ -37,7 +37,7 @@ lib_srcs_yubikey = yubikey.c
 lib_srcs_stoken = stoken.c
 
 POTFILES = $(openconnect_SOURCES) $(lib_srcs_cisco) $(lib_srcs_juniper) \
-	   gnutls-esp.c openssl-esp.c \
+	   gnutls-esp.c openssl-esp.c esp.c \
 	   $(lib_srcs_openssl) $(lib_srcs_gnutls) $(library_srcs) \
 	   $(lib_srcs_win32) $(lib_srcs_posix) $(lib_srcs_gssapi) $(lib_srcs_iconv) \
 	   $(lib_srcs_oath) $(lib_srcs_yubikey) $(lib_srcs_stoken) openconnect-internal.h
@@ -59,10 +59,10 @@ if OPENCONNECT_GNUTLS
 library_srcs += $(lib_srcs_gnutls)
 endif
 if ESP_GNUTLS
-lib_srcs_juniper += gnutls-esp.c
+lib_srcs_juniper += gnutls-esp.c esp.c
 endif
 if ESP_OPENSSL
-lib_srcs_juniper += openssl-esp.c
+lib_srcs_juniper += openssl-esp.c esp.c
 endif
 if OPENCONNECT_OPENSSL
 library_srcs += $(lib_srcs_openssl)
