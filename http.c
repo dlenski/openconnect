@@ -138,8 +138,8 @@ void buf_append_from_utf16le(struct oc_text_buf *buf, const void *_utf16)
 
 	while (utf16[0] || utf16[1]) {
 		if ((utf16[1] & 0xfc) == 0xd8 && (utf16[3] & 0xfc) == 0xdc) {
-			c = utf16[3] | ((utf16[4] & 3) << 8) |
-				(utf16[0] << 10) | ((utf16[1] & 3) << 18);
+			c = ((load_le16(utf16) & 0x3ff) << 10)|
+				(load_le16(utf16 + 2) & 0x3ff);
 			c += 0x10000;
 			utf16 += 4;
 		} else {
@@ -228,10 +228,9 @@ int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8)
 			utfchar -= 0x10000;
 			if (buf_ensure_space(buf, 4))
 				return buf_error(buf);
-			buf->data[buf->pos++] = (utfchar >> 10) & 0xff;
-			buf->data[buf->pos++] = 0xd8 | ((utfchar >> 18) & 3);
-			buf->data[buf->pos++] = utfchar & 0xff;
-			buf->data[buf->pos++] = 0xdc | ((utfchar >> 8) & 3);
+			store_le16(buf->data + buf->pos, (utfchar >> 10) | 0xd800);
+			store_le16(buf->data + buf->pos + 2, (utfchar & 0x3ff) | 0xdc00);
+			buf->pos += 4;
 			len += 4;
 		} else {
 			if (buf_ensure_space(buf, 2))
