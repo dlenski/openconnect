@@ -25,7 +25,7 @@ openconnect_LDADD = libopenconnect.la $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIB
 
 library_srcs = ssl.c http.c auth-common.c library.c compat.c lzs.c mainloop.c script.c ntlm.c digest.c
 lib_srcs_cisco = auth.c cstp.c dtls.c
-lib_srcs_juniper = oncp.c
+lib_srcs_juniper = oncp.c lzo.c
 lib_srcs_gnutls = gnutls.c gnutls_pkcs12.c gnutls_tpm.c
 lib_srcs_openssl = openssl.c openssl-pkcs11.c
 lib_srcs_win32 = tun-win32.c sspi.c

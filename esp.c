@@ -25,6 +25,7 @@
 #include <errno.h>
 
 #include "openconnect-internal.h"
+#include "lzo.h"
 
 /* Eventually we're going to have to have more than one incoming ESP
    context at a time, to allow for the overlap period during a rekey.
@@ -261,8 +262,8 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			continue;
 		}
 
-		if (pkt->data[len - 1] != 0x04 && pkt->data[len - 1] != 0x29) {
-			/* 0x05 is LZO compressed. */
+		if (pkt->data[len - 1] != 0x04 && pkt->data[len - 1] != 0x29 &&
+		    pkt->data[len - 1] != 0x05) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Received ESP packet with unrecognised payload type %02x\n"),
 				     pkt->data[len-1]);
@@ -286,8 +287,30 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			}
 			continue;
 		}
-		queue_packet(&vpninfo->incoming_queue, pkt);
-		vpninfo->dtls_pkt = NULL;
+		if (pkt->data[len - 1] == 0x05) {
+			struct pkt *newpkt = malloc(sizeof(*pkt) + vpninfo->ip_info.mtu + vpninfo->pkt_trailer);
+			int newlen = vpninfo->ip_info.mtu;
+			if (!newpkt) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to allocate memory to decrypt ESP packet\n"));
+				continue;
+			}
+			if (av_lzo1x_decode(newpkt->data, &newlen,
+					    pkt->data, &pkt->len) || pkt->len) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("LZO decompression of ESP packet failed\n"));
+				free(newpkt);
+				continue;
+			}
+			newpkt->len = vpninfo->ip_info.mtu - newlen;
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("LZO decompressed %d bytes into %d\n"),
+				     len - 2 - pkt->data[len-2], newpkt->len);
+			queue_packet(&vpninfo->incoming_queue, newpkt);
+		} else {
+			queue_packet(&vpninfo->incoming_queue, pkt);
+			vpninfo->dtls_pkt = NULL;
+		}
 	}
 
 	if (vpninfo->dtls_state != DTLS_CONNECTED)
