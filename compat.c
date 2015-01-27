@@ -28,7 +28,8 @@
 #ifdef HAVE_SUNOS_BROKEN_TIME
 /*
  * On SunOS, time() goes backwards. Thankfully, gethrtime() doesn't.
- * https://www.illumos.org/issues/1871 and, for Solaris 11, CR7121035.
+ * https://www.illumos.org/issues/1871 and, for Solaris 11, Oracle
+ * bug ID #15760793 (previously Sun CR ID 7121035).
  */
 #include <sys/time.h>
 
