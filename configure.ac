@@ -532,7 +532,7 @@ Add --without-openssl-version-check to configure args to avoid this check, or
 perhaps consider building with GnuTLS instead.])])
 fi
 if test "$esp" = "openssl"; then
-    AC_CHECK_FUNC(HMAC_CTX_copky,
+    AC_CHECK_FUNC(HMAC_CTX_copy,
 		  [], [esp=none
 		       echo set ESP to $esp
 		       AC_MSG_WARN([ESP support will be disabled])])
