@@ -216,6 +216,7 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
 	struct esp *esp = &vpninfo->esp_in[vpninfo->current_esp_in];
 	struct esp *old_esp = &vpninfo->esp_in[vpninfo->current_esp_in ^ 1];
+	struct pkt *this;
 	int work_done = 0;
 	int ret;
 
@@ -317,12 +318,8 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		return 0;
 
 	unmonitor_write_fd(vpninfo, dtls);
-	while (vpninfo->outgoing_queue) {
-		struct pkt *this = vpninfo->outgoing_queue;
+	while ((this = dequeue_packet(&vpninfo->outgoing_queue))) {
 		int len;
-
-		vpninfo->outgoing_queue = this->next;
-		vpninfo->outgoing_qlen--;
 
 		len = encrypt_esp_packet(vpninfo, this);
 		if (len > 0) {

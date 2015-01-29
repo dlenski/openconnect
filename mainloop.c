@@ -25,16 +25,7 @@
 
 #include "openconnect-internal.h"
 
-void queue_packet(struct pkt **q, struct pkt *new)
-{
-	while (*q)
-		q = &(*q)->next;
-
-	new->next = NULL;
-	*q = new;
-}
-
-int queue_new_packet(struct pkt **q, void *buf, int len)
+int queue_new_packet(struct pkt_q *q, void *buf, int len)
 {
 	struct pkt *new = malloc(sizeof(struct pkt) + len);
 	if (!new)
@@ -51,6 +42,7 @@ int queue_new_packet(struct pkt **q, void *buf, int len)
    tun*.c files for specific platforms */
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 {
+	struct pkt *this;
 	int work_done = 0;
 
 	if (read_fd_monitored(vpninfo, tun)) {
@@ -72,32 +64,30 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 			vpninfo->stats.tx_pkts++;
 			vpninfo->stats.tx_bytes += out_pkt->len;
-
-			queue_packet(&vpninfo->outgoing_queue, out_pkt);
-			out_pkt = NULL;
-
 			work_done = 1;
-			vpninfo->outgoing_qlen++;
-			if (vpninfo->outgoing_qlen == vpninfo->max_qlen) {
+
+			if (queue_packet(&vpninfo->outgoing_queue, out_pkt) ==
+			    vpninfo->max_qlen) {
+				out_pkt = NULL;
 				unmonitor_read_fd(vpninfo, tun);
 				break;
 			}
+			out_pkt = NULL;
 		}
 		vpninfo->tun_pkt = out_pkt;
-	} else if (vpninfo->outgoing_qlen < vpninfo->max_qlen) {
+	} else if (vpninfo->outgoing_queue.count < vpninfo->max_qlen) {
 		monitor_read_fd(vpninfo, tun);
 	}
 
-	while (vpninfo->incoming_queue) {
-		struct pkt *this = vpninfo->incoming_queue;
+	while ((this = dequeue_packet(&vpninfo->incoming_queue))) {
 
-		if (os_write_tun(vpninfo, this))
+		if (os_write_tun(vpninfo, this)) {
+			requeue_packet(&vpninfo->incoming_queue, this);
 			break;
+		}
 
 		vpninfo->stats.rx_pkts++;
 		vpninfo->stats.rx_bytes += this->len;
-
-		vpninfo->incoming_queue = this->next;
 
 		free(this);
 	}

@@ -746,7 +746,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	case KA_KEEPALIVE:
 		/* No need to send an explicit keepalive
 		   if we have real data to send */
-		if (vpninfo->outgoing_queue)
+		if (vpninfo->outgoing_queue.head)
 			break;
 
 		vpn_progress(vpninfo, PRG_DEBUG, _("Send DTLS Keepalive\n"));
@@ -765,13 +765,10 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 	/* Service outgoing packet queue */
 	unmonitor_write_fd(vpninfo, dtls);
-	while (vpninfo->outgoing_queue) {
-		struct pkt *this = vpninfo->outgoing_queue;
+	while (vpninfo->outgoing_queue.head) {
+		struct pkt *this = dequeue_packet(&vpninfo->outgoing_queue);
 		struct pkt *send_pkt = this;
 		int ret;
-
-		vpninfo->outgoing_queue = this->next;
-		vpninfo->outgoing_qlen--;
 
 		/* One byte of header */
 		this->cstp.hdr[7] = AC_PKT_DATA;
@@ -793,8 +790,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 			if (ret == SSL_ERROR_WANT_WRITE) {
 				monitor_write_fd(vpninfo, dtls);
-				vpninfo->outgoing_queue = this;
-				vpninfo->outgoing_qlen++;
+				requeue_packet(&vpninfo->outgoing_queue, this);
 			} else if (ret != SSL_ERROR_WANT_READ) {
 				/* If it's a real error, kill the DTLS connection and
 				   requeue the packet to be sent over SSL */
@@ -803,8 +799,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 					     ret);
 				openconnect_report_ssl_errors(vpninfo);
 				dtls_reconnect(vpninfo);
-				vpninfo->outgoing_queue = this;
-				vpninfo->outgoing_qlen++;
+				requeue_packet(&vpninfo->outgoing_queue, this);
 				work_done = 1;
 			}
 			return work_done;
@@ -817,13 +812,11 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 					     _("DTLS got write error: %s. Falling back to SSL\n"),
 					     gnutls_strerror(ret));
 				dtls_reconnect(vpninfo);
-				vpninfo->outgoing_queue = this;
-				vpninfo->outgoing_qlen++;
+				requeue_packet(&vpninfo->outgoing_queue, this);
 				work_done = 1;
 			} else if (gnutls_record_get_direction(vpninfo->dtls_ssl)) {
 				monitor_write_fd(vpninfo, dtls);
-				vpninfo->outgoing_queue = this;
-				vpninfo->outgoing_qlen++;
+				requeue_packet(&vpninfo->outgoing_queue, this);
 			}
 
 			return work_done;

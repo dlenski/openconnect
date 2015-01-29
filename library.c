@@ -69,6 +69,9 @@ struct openconnect_info *openconnect_vpninfo_new(const char *useragent,
 #ifndef _WIN32
 	vpninfo->tun_fd = -1;
 #endif
+	init_pkt_queue(&vpninfo->incoming_queue);
+	init_pkt_queue(&vpninfo->outgoing_queue);
+	init_pkt_queue(&vpninfo->oncp_control_queue);
 	vpninfo->ssl_fd = vpninfo->dtls_fd = -1;
 	vpninfo->cmd_fd = vpninfo->cmd_fd_write = -1;
 	vpninfo->tncc_fd = -1;

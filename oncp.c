@@ -1687,20 +1687,18 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		;
 	}
 #endif
-	if (vpninfo->oncp_control_queue) {
-		vpninfo->current_ssl_pkt = vpninfo->oncp_control_queue;
-		vpninfo->oncp_control_queue = vpninfo->oncp_control_queue->next;
+	vpninfo->current_ssl_pkt = dequeue_packet(&vpninfo->oncp_control_queue);
+	if (vpninfo->current_ssl_pkt)
 		goto handle_outgoing;
-	}
+
 	if (vpninfo->dtls_state == DTLS_CONNECTING) {
 		vpninfo->current_ssl_pkt = (struct pkt *)&esp_enable_pkt;
 		goto handle_outgoing;
 	}
 	/* Service outgoing packet queue, if no DTLS */
-	while (vpninfo->dtls_state != DTLS_CONNECTED && vpninfo->outgoing_queue) {
-		struct pkt *this = vpninfo->outgoing_queue;
-		vpninfo->outgoing_queue = this->next;
-		vpninfo->outgoing_qlen--;
+	while (vpninfo->dtls_state != DTLS_CONNECTED &&
+	       (vpninfo->current_ssl_pkt = dequeue_packet(&vpninfo->outgoing_queue))) {
+		struct pkt *this = vpninfo->current_ssl_pkt;
 
 		/* Little-endian overall record length */
 		store_le16(this->oncp.hdr, (this->len + 20));
@@ -1712,7 +1710,6 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			     _("Sending uncompressed data packet of %d bytes\n"),
 			     this->len);
 
-		vpninfo->current_ssl_pkt = this;
 		goto handle_outgoing;
 	}
 

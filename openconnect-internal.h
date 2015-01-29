@@ -246,6 +246,45 @@ struct vpn_proto {
 	void (*udp_shutdown)(struct openconnect_info *vpninfo);
 };
 
+struct pkt_q {
+	struct pkt *head;
+	struct pkt **tail;
+	int count;
+};
+
+static inline struct pkt *dequeue_packet(struct pkt_q *q)
+{
+	struct pkt *ret = q->head;
+
+	if (ret) {
+		q->head = ret->next;
+		if (!--q->count)
+			q->tail = &q->head;
+	}
+	return ret;
+}
+
+static inline void requeue_packet(struct pkt_q *q, struct pkt *p)
+{
+	p->next = q->head;
+	q->head = p;
+	if (!q->count++)
+		q->tail = &p->next;
+}
+
+static inline int queue_packet(struct pkt_q *q, struct pkt *p)
+{
+	*(q->tail) = p;
+	p->next = NULL;
+	q->tail = &p->next;
+	return ++q->count;
+}
+
+static inline void init_pkt_queue(struct pkt_q *q)
+{
+	q->tail = &q->head;
+}
+	
 struct esp {
 #if defined(ESP_GNUTLS)
 	gnutls_cipher_hd_t cipher;
@@ -439,7 +478,7 @@ struct openconnect_info {
 	struct pkt *deflate_pkt;		/* For compressing outbound packets into */
 	struct pkt *pending_deflated_pkt;	/* The original packet associated with above */
 	struct pkt *current_ssl_pkt;		/* Partially sent SSL packet */
-	struct pkt *oncp_control_queue;		/* Control packets to be sent on oNCP next */
+	struct pkt_q oncp_control_queue;		/* Control packets to be sent on oNCP next */
 	/* Packet buffers for receiving into */
 	struct pkt *cstp_pkt;
 	struct pkt *dtls_pkt;
@@ -516,9 +555,8 @@ struct openconnect_info {
 	int got_pause_cmd;
 	char cancel_type;
 
-	struct pkt *incoming_queue;
-	struct pkt *outgoing_queue;
-	int outgoing_qlen;
+	struct pkt_q incoming_queue;
+	struct pkt_q outgoing_queue;
 	int max_qlen;
 	struct oc_stats stats;
 	openconnect_stats_vfn stats_handler;
@@ -802,8 +840,7 @@ int openconnect_hash_yubikey_password(struct openconnect_info *vpninfo,
 
 /* mainloop.c */
 int tun_mainloop(struct openconnect_info *vpninfo, int *timeout);
-int queue_new_packet(struct pkt **q, void *buf, int len);
-void queue_packet(struct pkt **q, struct pkt *new);
+int queue_new_packet(struct pkt_q *q, void *buf, int len);
 int keepalive_action(struct keepalive_info *ka, int *timeout);
 int ka_stalled_action(struct keepalive_info *ka, int *timeout);
 
