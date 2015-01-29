@@ -812,13 +812,13 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 					     _("DTLS got write error: %s. Falling back to SSL\n"),
 					     gnutls_strerror(ret));
 				dtls_reconnect(vpninfo);
-				requeue_packet(&vpninfo->outgoing_queue, this);
 				work_done = 1;
-			} else if (gnutls_record_get_direction(vpninfo->dtls_ssl)) {
+			} else {
+				/* Wake me up when it becomes writeable */
 				monitor_write_fd(vpninfo, dtls);
-				requeue_packet(&vpninfo->outgoing_queue, this);
 			}
 
+			requeue_packet(&vpninfo->outgoing_queue, this);
 			return work_done;
 		}
 #endif

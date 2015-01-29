@@ -240,8 +240,21 @@ int ssl_nonblock_write(struct openconnect_info *vpninfo, void *buf, int buflen)
 		return ret;
 
 	if (ret == GNUTLS_E_AGAIN) {
-		if (gnutls_record_get_direction(vpninfo->https_sess)) {
-			/* Waiting for the socket to become writable -- it's
+		/*
+		 * Before 3.3.13, GnuTLS could return zero instead of one,
+		 * indicating that it was waiting for a read when in fact
+		 * it was waiting for a write. That caused us to block for
+		 * ever, waiting for the read that it said it wanted.
+		 *
+		 * So instead, just *assume* it actually wants a write.
+		 * Which is true most of the time, and on the rare occasion
+		 * that it *isn't* true, the failure mode will just be that
+		 * we keep waking up and calling GnuTLS again until the read
+		 * that it's waiting for does arrive.
+		 */
+		if (GNUTLS_VERSION_NUMBER < 0x03030d ||
+		    gnutls_record_get_direction(vpninfo->https_sess)) {
+			/* Waiting for the socket to become writable — it's
 			   probably stalled, and/or the buffers are full */
 			monitor_write_fd(vpninfo, ssl);
 		}
