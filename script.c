@@ -403,7 +403,8 @@ static wchar_t *create_script_env(struct openconnect_info *vpninfo)
 
 		/* See if we can find it in the existing environment */
 		for (i = 0; i < nr_envs; i++) {
-			if (!wcsncmp((wchar_t *)buf->data, oldenv[i], buf->pos / 2)) {
+			if (oldenv[i] &&
+			    !wcsncmp((wchar_t *)buf->data, oldenv[i], buf->pos / 2)) {
 				oldenv[i] = NULL;
 				break;
 			}
