@@ -1860,6 +1860,11 @@ static int process_auth_form_cb(void *_vpninfo,
 			if (!opt->_value)
 				goto err;
 			empty = 0;
+		} else if (opt->type == OC_FORM_OPT_TOKEN) {
+			/* Nothing to do here, but if the tokencode is being
+			 * automatically generated then don't treat it as an
+			 * empty form for the purpose of loop avoidance. */
+			empty = 0;
 		}
 	}
 
