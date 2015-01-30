@@ -73,25 +73,12 @@ static int oncp_can_gen_tokencode(struct openconnect_info *vpninfo,
 	if (vpninfo->token_mode == OC_TOKEN_MODE_NONE ||
 	    vpninfo->token_bypassed)
 		return -EINVAL;
+
 	if (strcmp(form->auth_id, "frmDefender") &&
 	    strcmp(form->auth_id, "frmNextToken"))
 		return -EINVAL;
 
-	switch (vpninfo->token_mode) {
-#ifdef HAVE_LIBOATH
-	case OC_TOKEN_MODE_TOTP:
-		return can_gen_totp_code(vpninfo, form, opt);
-
-	case OC_TOKEN_MODE_HOTP:
-		return can_gen_hotp_code(vpninfo, form, opt);
-#endif
-#ifdef HAVE_LIBPCSCLITE
-	case OC_TOKEN_MODE_YUBIOATH:
-		return can_gen_yubikey_code(vpninfo, form, opt);
-#endif
-	default:
-		return -EINVAL;
-	}
+	return can_gen_tokencode(vpninfo, form, opt);
 }
 
 
