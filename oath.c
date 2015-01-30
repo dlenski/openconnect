@@ -401,7 +401,7 @@ static int gen_hotp(struct openconnect_info *vpninfo, uint64_t data, char *outpu
 		return digest;
 
 	digest %= 1000000;
-	snprintf(output, 7, "%d", digest);
+	snprintf(output, 7, "%06d", digest);
 
 	return 0;
 }
