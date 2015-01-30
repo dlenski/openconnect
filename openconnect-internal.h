@@ -407,6 +407,11 @@ struct openconnect_info {
 	char *oath_secret;
 	size_t oath_secret_len;
 	enum {
+		OATH_ALG_HMAC_SHA1 = 0,
+		OATH_ALG_HMAC_SHA256,
+		OATH_ALG_HMAC_SHA512,
+	} oath_hmac_alg;
+	enum {
 		HOTP_SECRET_BASE32 = 1,
 		HOTP_SECRET_RAW,
 		HOTP_SECRET_HEX,

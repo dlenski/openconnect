@@ -15,10 +15,8 @@ generating one-time passwords:</p>
 <ul>
   <li><a href="http://en.wikipedia.org/wiki/SecurID">RSA SecurID</a> tokens using
       <a href="http://stoken.sourceforge.net/">libstoken</a></li>
-  <li>OATH TOTP <i>(<a href="http://tools.ietf.org/html/rfc6238">RFC6238</a>)</i> tokens using
-      <a href="http://www.nongnu.org/oath-toolkit/">liboath</a></li>
-  <li>OATH HOTP <i>(<a href="http://tools.ietf.org/html/rfc4226">RFC4226</a>)</i> tokens using
-      <a href="http://www.nongnu.org/oath-toolkit/">liboath</a></li>
+  <li>OATH TOTP <i>(<a href="http://tools.ietf.org/html/rfc6238">RFC6238</a>)</i> tokens</li>
+  <li>OATH HOTP <i>(<a href="http://tools.ietf.org/html/rfc4226">RFC4226</a>)</i> tokens</li>
 </ul>
  <p>OATH HOTP/TOTP tokens are also supported in hardware by:</p>
  <ul><li><a href="https://developers.yubico.com/ykneo-oath/">ykneo-oath</a> applet on
@@ -113,15 +111,21 @@ of a referenced file, or entered into the NetworkManager configuration dialog.
 They may be specified in one of the following forms:</p>
 
 <ul>
-  <li><b>SecretSecret!</b><br/>
+  <li><b>SecretSecret!</b></li>
+  <li><b>sha256:SecretSecret!</b></li>
+  <li><b>sha512:SecretSecret!</b><br/>
   For secrets which are actually UTF-8 strings instead of entirely randomly generated
   data, they may be specified directly in this form.</li>
-  <li><b>0x53656372657453656372657421</b><br/>
+  <li><b>0x53656372657453656372657421</b></li>
+  <li><b>sha256:0x53656372657453656372657421</b></li>
+  <li><b>sha512:0x53656372657453656372657421</b><br/>
   This is the hexadecimal form which <i>(without the leading <tt>0x</tt>)</i> is
   accepted by default by the 
   <tt><a href="http://www.nongnu.org/oath-toolkit/oathtool.1.html">oathtool</a></tt>
   program.</li>
-  <li><b>base32:KNSWG4TFORJWKY3SMV2CC===</b><br/>
+  <li><b>base32:KNSWG4TFORJWKY3SMV2CC===</b></li>
+  <li><b>sha256:base32:KNSWG4TFORJWKY3SMV2CC===</b></li>
+  <li><b>sha512:base32:KNSWG4TFORJWKY3SMV2CC===</b><br/>
   This is the base32 form which is accepted by the 
   <tt><a href="http://www.nongnu.org/oath-toolkit/oathtool.1.html">oathtool</a></tt>
   program with its <tt>-b</tt> option..</li>
@@ -129,6 +133,15 @@ They may be specified in one of the following forms:</p>
   PSKC XML files conforming to <a href="http://tools.ietf.org/html/rfc6030">RFC6030</a>.
   These should be generally be imported from a file: '<tt>--token-secret @<i>FILE.PSKC</i></tt>'</li>
 </ul>
+
+<p>The default HMAC algorithm for TOTP tokens is SHA-1. SHA-256 and
+SHA-512 are also supported; to use them prefix "<tt>sha256:</tt>" or
+"<tt>sha512:</tt>" when explicitly providing a key on the command line.
+Algorithms other than SHA-1 are not yet supported with PSKC files until
+the relevant standards have been updated to indicate how they shall be
+indicated in the PSKC file. See <a href="http://www.rfc-editor.org/errata_search.php?rfc=6238&amp;eid=4249">this erratum</a> to RFC6238 for current status.</p>
+
+
 
 <h2>HOTP (HMAC-Based One-Time Password)</h2>
 
@@ -165,6 +178,8 @@ configuration. So if you configure a VPN connection with a HOTP token secret of 
 and authenticate once, you should be able to go back into the configuration and see
 that the token secret has been updated to <tt>"0x1234,2"</tt>.</p>
 
+<p>HOTP tokens also support SHA-256 and SHA-512 in precisely the same
+fashion as TOTP tokens, as described above.</p>
 <h2>Yubikey HOTP/TOTP</h2>
 
 <p>The <a href="https://developers.yubico.com/ykneo-oath/">ykneo-oath</a> applet

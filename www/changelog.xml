@@ -15,6 +15,8 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Add SHA256/SHA512 support for OATH.</li>
+       <li>Remove liboath dependency.</li>
        <li>Preliminary support for Juniper SSL VPN.</li>
      </ul><br/>
   </li>

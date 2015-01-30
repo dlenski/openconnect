@@ -226,7 +226,22 @@ int set_totp_mode(struct openconnect_info *vpninfo, const char *token_str)
 		ret = pskc_decode(vpninfo, token_str, toklen, OC_TOKEN_MODE_TOTP);
 		if (ret)
 			return -EINVAL;
-	} else if (strncasecmp(token_str, "base32:", strlen("base32:")) == 0) {
+		vpninfo->token_mode = OC_TOKEN_MODE_TOTP;
+		return 0;
+	}
+	if (!strncasecmp(token_str, "sha1:", 5)) {
+		token_str += 5;
+		vpninfo->oath_hmac_alg = OATH_ALG_HMAC_SHA1;
+	} else if (!strncasecmp(token_str, "sha256:", 7)) {
+		token_str += 7;
+		vpninfo->oath_hmac_alg = OATH_ALG_HMAC_SHA256;
+	} else if (!strncasecmp(token_str, "sha512:", 7)) {
+		token_str += 7;
+		vpninfo->oath_hmac_alg = OATH_ALG_HMAC_SHA256;
+	} else
+		vpninfo->oath_hmac_alg = OATH_ALG_HMAC_SHA1;
+
+	if (strncasecmp(token_str, "base32:", strlen("base32:")) == 0) {
 		ret = decode_base32(vpninfo, token_str + strlen("base32:"),
 				    toklen - strlen("base32:"));
 		if (ret)
@@ -263,6 +278,19 @@ int set_hotp_mode(struct openconnect_info *vpninfo, const char *token_str)
 		vpninfo->token_mode = OC_TOKEN_MODE_HOTP;
 		return 0;
 	}
+
+	if (!strncasecmp(token_str, "sha1:", 5)) {
+		token_str += 5;
+		vpninfo->oath_hmac_alg = OATH_ALG_HMAC_SHA1;
+	} else if (!strncasecmp(token_str, "sha256:", 7)) {
+		token_str += 7;
+		vpninfo->oath_hmac_alg = OATH_ALG_HMAC_SHA256;
+	} else if (!strncasecmp(token_str, "sha512:", 7)) {
+		token_str += 7;
+		vpninfo->oath_hmac_alg = OATH_ALG_HMAC_SHA256;
+	} else
+		vpninfo->oath_hmac_alg = OATH_ALG_HMAC_SHA1;
+
 	p = strrchr(token_str, ',');
 	if (p) {
 		long counter;

@@ -16,7 +16,7 @@
   <li>Authentication via HTTP forms.</li>
   <li>Authentication using SSL certificates &#8212; from local file, <a href="http://en.wikipedia.org/wiki/Trusted_Platform_Module">Trusted Platform Module</a> and PKCS#11 smartcards.</li>
   <li>Authentication using SecurID software tokens <i>(when built with libstoken)</i></li>
-  <li>Authentication using OATH TOTP or HOTP software tokens <i>(when built with liboath)</i></li>
+  <li>Authentication using OATH TOTP or HOTP software tokens.</li>
   <li>Authentication using Yubikey OATH tokens <i>(when built with libpcsclite)</i></li>
   <li><i>UserGroup</i> support for selecting between multiple configurations on a single VPN server.</li>
   <li>Data transport over TCP <i>(HTTPS)</i> or UDP <i>(DTLS)</i>.</li>

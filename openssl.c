@@ -1672,8 +1672,24 @@ int hotp_hmac(struct openconnect_info *vpninfo, const void *challenge)
 {
 	unsigned char hash[64]; /* Enough for a SHA256 */
 	unsigned int hashlen = sizeof(hash);
+	const EVP_MD *alg;
 
-	if (!HMAC(EVP_sha1(), vpninfo->oath_secret, vpninfo->oath_secret_len,
+	switch(vpninfo->oath_hmac_alg) {
+	case OATH_ALG_HMAC_SHA1:
+		alg = EVP_sha1();
+		break;
+	case OATH_ALG_HMAC_SHA256:
+		alg = EVP_sha256();
+		break;
+	case OATH_ALG_HMAC_SHA512:
+		alg = EVP_sha512();
+		break;
+	default:
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Unsupported OATH HMAC algorithm\n"));
+		return -EINVAL;
+	}
+	if (!HMAC(alg, vpninfo->oath_secret, vpninfo->oath_secret_len,
 		  challenge, 8, hash, &hashlen)) {
 		vpninfo->progress(vpninfo, PRG_ERR,
 				  _("Failed to calculate OATH HMAC\n"));
