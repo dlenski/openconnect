@@ -2602,12 +2602,15 @@ int hotp_hmac(struct openconnect_info *vpninfo, const void *challenge)
 	switch(vpninfo->oath_hmac_alg) {
 	case OATH_ALG_HMAC_SHA1:
 		alg = GNUTLS_MAC_SHA1;
+		hpos = 19;
 		break;
 	case OATH_ALG_HMAC_SHA256:
 		alg = GNUTLS_MAC_SHA256;
+		hpos = 31;
 		break;
 	case OATH_ALG_HMAC_SHA512:
 		alg = GNUTLS_MAC_SHA512;
+		hpos = 63;
 		break;
 	default:
 		vpn_progress(vpninfo, PRG_ERR,
@@ -2615,7 +2618,6 @@ int hotp_hmac(struct openconnect_info *vpninfo, const void *challenge)
 		return -EINVAL;
 	}
 
-	hpos = 19;
 	ret = gnutls_hmac_fast(alg, vpninfo->oath_secret,
 			       vpninfo->oath_secret_len,
 			       challenge, 8, hash);
