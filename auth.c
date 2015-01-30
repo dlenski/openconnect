@@ -31,10 +31,6 @@
 #include <pwd.h>
 #endif
 
-#ifdef HAVE_LIBOATH
-#include <liboath/oath.h>
-#endif
-
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 

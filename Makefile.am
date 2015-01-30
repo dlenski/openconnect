@@ -20,7 +20,7 @@ noinst_PROGRAMS = lzstest
 endif
 
 openconnect_SOURCES = xml.c main.c
-openconnect_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBOATH_CFLAGS) $(LIBPSKC_CFLAGS) $(GSSAPI_CFLAGS) $(INTL_CFLAGS) $(ICONV_CFLAGS) $(LIBPCSCLITE_CFLAGS)
+openconnect_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBPSKC_CFLAGS) $(GSSAPI_CFLAGS) $(INTL_CFLAGS) $(ICONV_CFLAGS) $(LIBPCSCLITE_CFLAGS)
 openconnect_LDADD = libopenconnect.la $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(INTL_LIBS) $(ICONV_LIBS)
 
 library_srcs = ssl.c http.c auth-common.c library.c compat.c lzs.c mainloop.c script.c ntlm.c digest.c
@@ -42,15 +42,12 @@ POTFILES = $(openconnect_SOURCES) $(lib_srcs_cisco) $(lib_srcs_juniper) \
 	   $(lib_srcs_win32) $(lib_srcs_posix) $(lib_srcs_gssapi) $(lib_srcs_iconv) \
 	   $(lib_srcs_oath) $(lib_srcs_yubikey) $(lib_srcs_stoken) openconnect-internal.h
 
-library_srcs += $(lib_srcs_juniper) $(lib_srcs_cisco)
+library_srcs += $(lib_srcs_juniper) $(lib_srcs_cisco) $(lib_srcs_oath)
 if OPENCONNECT_LIBPCSCLITE
 library_srcs += $(lib_srcs_yubikey)
 endif
 if OPENCONNECT_STOKEN
 library_srcs += $(lib_srcs_stoken)
-endif
-if OPENCONNECT_OATH
-library_srcs += $(lib_srcs_oath)
 endif
 if OPENCONNECT_GSSAPI
 library_srcs += $(lib_srcs_gssapi)
@@ -77,8 +74,8 @@ library_srcs += $(lib_srcs_posix)
 endif
 
 libopenconnect_la_SOURCES = version.c $(library_srcs)
-libopenconnect_la_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(P11KIT_CFLAGS) $(TSS_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBOATH_CFLAGS) $(LIBPSKC_CFLAGS) $(GSSAPI_CFLAGS) $(INTL_CFLAGS) $(ICONV_CFLAGS) $(LIBPCSCLITE_CFLAGS) $(LIBP11_CFLAGS) $(LIBLZ4_CFLAGS)
-libopenconnect_la_LIBADD = $(SSL_LIBS) $(DTLS_SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(P11KIT_LIBS) $(TSS_LIBS) $(LIBSTOKEN_LIBS) $(LIBOATH_LIBS) $(LIBPSKC_LIBS) $(GSSAPI_LIBS) $(INTL_LIBS) $(ICONV_LIBS) $(LIBPCSCLITE_LIBS) $(LIBP11_LIBS) $(LIBLZ4_LIBS)
+libopenconnect_la_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(P11KIT_CFLAGS) $(TSS_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBPSKC_CFLAGS) $(GSSAPI_CFLAGS) $(INTL_CFLAGS) $(ICONV_CFLAGS) $(LIBPCSCLITE_CFLAGS) $(LIBP11_CFLAGS) $(LIBLZ4_CFLAGS)
+libopenconnect_la_LIBADD = $(SSL_LIBS) $(DTLS_SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(ZLIB_LIBS) $(P11KIT_LIBS) $(TSS_LIBS) $(LIBSTOKEN_LIBS) $(LIBPSKC_LIBS) $(GSSAPI_LIBS) $(INTL_LIBS) $(ICONV_LIBS) $(LIBPCSCLITE_LIBS) $(LIBP11_LIBS) $(LIBLZ4_LIBS)
 if OPENBSD_LIBTOOL
 # OpenBSD's libtool doesn't have -version-number, but its -version-info arg
 # does what GNU libtool's -version-number does. Which arguably is what the

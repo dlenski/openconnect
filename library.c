@@ -29,10 +29,6 @@
 #include <stoken.h>
 #endif
 
-#ifdef HAVE_LIBOATH
-#include <liboath/oath.h>
-#endif
-
 #include <libxml/tree.h>
 #include <zlib.h>
 
@@ -316,7 +312,6 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	if (vpninfo->stoken_ctx)
 		stoken_destroy(vpninfo->stoken_ctx);
 #endif
-#ifdef HAVE_LIBOATH
 	if (vpninfo->oath_secret) {
 #ifdef HAVE_LIBPSKC
 		if (vpninfo->pskc)
@@ -324,9 +319,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		else
 #endif /* HAVE_LIBPSKC */
 		free(vpninfo->oath_secret);
-		oath_done();
 	}
-#endif /* HAVE_LIBOATH */
 #ifdef HAVE_LIBPCSCLITE
 	if (vpninfo->token_mode == OC_TOKEN_MODE_YUBIOATH) {
 		SCardDisconnect(vpninfo->pcsc_card, SCARD_LEAVE_CARD);
@@ -629,11 +622,7 @@ int openconnect_has_stoken_support(void)
 
 int openconnect_has_oath_support(void)
 {
-#ifdef HAVE_LIBOATH
 	return 2;
-#else
-	return 0;
-#endif
 }
 
 int openconnect_has_yubioath_support(void)
@@ -698,13 +687,11 @@ int openconnect_set_token_mode(struct openconnect_info *vpninfo,
 	case OC_TOKEN_MODE_STOKEN:
 		return set_libstoken_mode(vpninfo, token_str);
 #endif
-#ifdef HAVE_LIBOATH
 	case OC_TOKEN_MODE_TOTP:
 		return set_totp_mode(vpninfo, token_str);
 
 	case OC_TOKEN_MODE_HOTP:
 		return set_hotp_mode(vpninfo, token_str);
-#endif
 #ifdef HAVE_LIBPCSCLITE
 	case OC_TOKEN_MODE_YUBIOATH:
 		return set_yubikey_mode(vpninfo, token_str);

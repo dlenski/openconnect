@@ -156,13 +156,11 @@ int do_gen_tokencode(struct openconnect_info *vpninfo,
 	case OC_TOKEN_MODE_STOKEN:
 		return do_gen_stoken_code(vpninfo, form, opt);
 #endif
-#ifdef HAVE_LIBOATH
 	case OC_TOKEN_MODE_TOTP:
 		return do_gen_totp_code(vpninfo, form, opt);
 
 	case OC_TOKEN_MODE_HOTP:
 		return do_gen_hotp_code(vpninfo, form, opt);
-#endif
 #ifdef HAVE_LIBPCSCLITE
 	case OC_TOKEN_MODE_YUBIOATH:
 		return do_gen_yubikey_code(vpninfo, form, opt);
@@ -181,13 +179,11 @@ int can_gen_tokencode(struct openconnect_info *vpninfo,
 	case OC_TOKEN_MODE_STOKEN:
 		return can_gen_stoken_code(vpninfo, form, opt);
 #endif
-#ifdef HAVE_LIBOATH
 	case OC_TOKEN_MODE_TOTP:
 		return can_gen_totp_code(vpninfo, form, opt);
 
 	case OC_TOKEN_MODE_HOTP:
 		return can_gen_hotp_code(vpninfo, form, opt);
-#endif
 #ifdef HAVE_LIBPCSCLITE
 	case OC_TOKEN_MODE_YUBIOATH:
 		return can_gen_yubikey_code(vpninfo, form, opt);

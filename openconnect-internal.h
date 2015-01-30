@@ -404,7 +404,6 @@ struct openconnect_info {
 	pskc_t *pskc;
 	pskc_key_t *pskc_key;
 #endif
-#ifdef HAVE_LIBOATH
 	char *oath_secret;
 	size_t oath_secret_len;
 	enum {
@@ -413,7 +412,6 @@ struct openconnect_info {
 		HOTP_SECRET_HEX,
 		HOTP_SECRET_PSKC,
 	} hotp_secret_format; /* We need to give it back in the same form */
-#endif
 #ifdef HAVE_LIBPCSCLITE
 	SCARDHANDLE pcsc_ctx, pcsc_card;
 	char *yubikey_objname;

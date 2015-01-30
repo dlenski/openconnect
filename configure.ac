@@ -658,24 +658,15 @@ AS_IF([test "x$with_libpcsclite" != "xno"], [
 ], [libpcsclite_pkg=disabled])
 AM_CONDITIONAL(OPENCONNECT_LIBPCSCLITE, [test "$libpcsclite_pkg" = "yes"])
 
-AC_ARG_WITH([liboath],
-	AS_HELP_STRING([--without-liboath],
-	[Build without liboath library [default=auto]]))
-AS_IF([test "x$with_liboath" != "xno"], [
-	PKG_CHECK_MODULES(LIBOATH, [liboath >= 1.12.0],
-		[AC_SUBST(LIBOATH_PC, liboath)
-		 AC_DEFINE([HAVE_LIBOATH], 1, [Have liboath])
-		 liboath_pkg=yes],
-		 liboath_pkg=no)
-	if test "$liboath_pkg" = "yes"; then
-	    PKG_CHECK_MODULES(LIBPSKC, [libpskc >= 2.2.0],
+AC_ARG_WITH([libpskc],
+	AS_HELP_STRING([--without-libpskc],
+	[Build without libpskc library [default=auto]]))
+AS_IF([test "x$with_libpskc" != "xno"], [
+	PKG_CHECK_MODULES(LIBPSKC, [libpskc >= 2.2.0],
 		[AC_SUBST(LIBPSKC_PC, libpskc)
 		 AC_DEFINE([HAVE_LIBPSKC], 1, [Have libpskc])
 		 libpskc_pkg=yes],
-		 libpskc_pkg=no)
-	fi
-])
-AM_CONDITIONAL(OPENCONNECT_OATH, [test "$liboath_pkg" = "yes"])
+		 libpskc_pkg=no)])
 
 linked_gssapi=no
 AC_ARG_WITH([gssapi],

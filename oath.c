@@ -23,8 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <liboath/oath.h>
-
 #include "openconnect-internal.h"
 
 static int b32_char(char in)
@@ -216,10 +214,6 @@ int set_totp_mode(struct openconnect_info *vpninfo, const char *token_str)
 {
 	int ret, toklen;
 
-	ret = oath_init();
-	if (ret != OATH_OK)
-		return -EIO;
-
 	if (!token_str)
 		return -EINVAL;
 
@@ -255,10 +249,6 @@ int set_hotp_mode(struct openconnect_info *vpninfo, const char *token_str)
 {
 	int ret, toklen;
 	char *p;
-
-	ret = oath_init();
-	if (ret != OATH_OK)
-		return -EIO;
 
 	if (!token_str)
 		return -EINVAL;

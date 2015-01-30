@@ -772,9 +772,6 @@ static void usage(void)
 #ifndef HAVE_LIBSTOKEN
 	printf("                                  %s\n", _("(NOTE: libstoken (RSA SecurID) disabled in this build)"));
 #endif
-#ifndef HAVE_LIBOATH
-	printf("                                  %s\n", _("(NOTE: liboath (TOTP,HOTP) disabled in this build)"));
-#endif
 #ifndef HAVE_LIBPCSCLITE
 	printf("                                  %s\n", _("(NOTE: Yubikey OATH disabled in this build)"));
 #endif
