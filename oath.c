@@ -240,7 +240,7 @@ int set_totp_mode(struct openconnect_info *vpninfo, const char *token_str)
 	} else if (!strncasecmp(token_str, "sha512:", 7)) {
 		token_str += 7;
 		toklen -= 7;
-		vpninfo->oath_hmac_alg = OATH_ALG_HMAC_SHA256;
+		vpninfo->oath_hmac_alg = OATH_ALG_HMAC_SHA512;
 	} else
 		vpninfo->oath_hmac_alg = OATH_ALG_HMAC_SHA1;
 
@@ -293,7 +293,7 @@ int set_hotp_mode(struct openconnect_info *vpninfo, const char *token_str)
 	} else if (!strncasecmp(token_str, "sha512:", 7)) {
 		toklen -= 7;
 		token_str += 7;
-		vpninfo->oath_hmac_alg = OATH_ALG_HMAC_SHA256;
+		vpninfo->oath_hmac_alg = OATH_ALG_HMAC_SHA512;
 	} else
 		vpninfo->oath_hmac_alg = OATH_ALG_HMAC_SHA1;
 
