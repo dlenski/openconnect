@@ -223,12 +223,10 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 		} else if (!strcmp(input_type, "text")) {
 			opt->type = OC_FORM_OPT_TEXT;
 		} else if (!strcmp(input_type, "password")) {
-			if (vpninfo->token_mode != OC_TOKEN_MODE_NONE &&
-			    (can_gen_tokencode(vpninfo, form, opt) == 0)) {
+			if (!can_gen_tokencode(vpninfo, form, opt))
 				opt->type = OC_FORM_OPT_TOKEN;
-			} else {
+			else
 				opt->type = OC_FORM_OPT_PASSWORD;
-			}
 		} else {
 			vpn_progress(vpninfo, PRG_INFO,
 				     _("Unknown input type %s in form\n"),
@@ -879,11 +877,22 @@ static int can_gen_tokencode(struct openconnect_info *vpninfo,
 			     struct oc_auth_form *form,
 			     struct oc_form_opt *opt)
 {
-	switch (vpninfo->token_mode) {
+	if (vpninfo->token_mode == OC_TOKEN_MODE_NONE ||
+	    vpninfo->token_bypassed)
+		return -EINVAL;
+
 #ifdef HAVE_LIBSTOKEN
-	case OC_TOKEN_MODE_STOKEN:
+	if (vpninfo->token_mode == OC_TOKEN_MODE_STOKEN) {
+		if (strcmp(opt->name, "password") &&
+		    strcmp(opt->name, "answer"))
+			return -EINVAL;
 		return can_gen_stoken_code(vpninfo, form, opt);
+	}
 #endif
+	/* Otherwise it's an OATH token of some kind. */
+	if (strcmp(opt->name, "secondary_password"))
+		return -EINVAL;
+	switch (vpninfo->token_mode) {
 #ifdef HAVE_LIBOATH
 	case OC_TOKEN_MODE_TOTP:
 		return can_gen_totp_code(vpninfo, form, opt);

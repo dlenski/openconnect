@@ -232,9 +232,6 @@ int can_gen_totp_code(struct openconnect_info *vpninfo,
 		      struct oc_auth_form *form,
 		      struct oc_form_opt *opt)
 {
-	if ((strcmp(opt->name, "secondary_password") != 0) ||
-	    vpninfo->token_bypassed)
-		return -EINVAL;
 	if (vpninfo->token_tries == 0) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("OK to generate INITIAL tokencode\n"));
@@ -260,9 +257,6 @@ int can_gen_hotp_code(struct openconnect_info *vpninfo,
 		      struct oc_auth_form *form,
 		      struct oc_form_opt *opt)
 {
-	if ((strcmp(opt->name, "secondary_password") != 0) ||
-	    vpninfo->token_bypassed)
-		return -EINVAL;
 	if (vpninfo->token_tries == 0) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("OK to generate INITIAL tokencode\n"));
