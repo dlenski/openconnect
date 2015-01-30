@@ -315,15 +315,58 @@ int do_gen_totp_code(struct openconnect_info *vpninfo,
 
 static void buf_append_base32(struct oc_text_buf *buf, void *data, int len)
 {
-	size_t b32_len;
-	char *b32 = NULL;
+	static const char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+	unsigned char *bytes = data;
+	int i, j, b32_len = ((len + 4) / 5) * 8;
+	uint32_t d;
+	char b32[8];
 
-	if (oath_base32_encode(data, len, &b32, &b32_len)) {
-		buf->error = ENOMEM;
+	if (buf_ensure_space(buf, b32_len + 1))
 		return;
+
+	for (i = 0; i < (len - 4); i += 5) {
+		/* Load low 4 input bytes into 'd' */
+		d = load_be32(&bytes[i + 1]);
+		/* Loop backwardd over output group, emitting low
+		 * 5 bits of 'd' each time and shifting. */
+		for (j = 7; j >= 0; j--) {
+			b32[j] = alphabet[d & 31];
+			d >>= 5;
+			/* Mask in the last input byte when we can fit it */
+			if (j == 5)
+				d |= bytes[i] << 17;
+		}
+		buf_append_bytes(buf, b32, 8);
 	}
-	buf_append_bytes(buf, b32, b32_len);
-	free(b32);
+	if (i < len) {
+		d = 0;
+		/* This is basically load_be32(bytes + i) but substituting
+		 * zeroes instead of reading off the end. */
+		for (j = 0; j < 4; j++) {
+			d <<= 8;
+			if (i + j < len)
+				d |= bytes[i + j];
+		}
+		/* Now, work out how much '=' padding we need */
+		memset(b32, '=', 8);
+		b32_len = (((len - i) * 8) + 4) / 5;
+		memset(b32 + b32_len, '=', 8 - b32_len);
+		/* If we need 7 characters of data then put the seventh
+		 * in manually because the LSB of 'd' is actually bit 3
+		 * of the output character. */
+		if (b32_len == 7) {
+			b32[6] = alphabet[(d & 3) << 3];
+			b32_len--;
+		}
+		/* Now shift bits into the right place and do the simple
+		 * loop emitting characters from the low 5 bits of 'd'. */
+		d >>= ((8 - b32_len) * 5) - 8;
+		for (j = b32_len - 1; j >= 0; j--) {
+			b32[j] = alphabet[d & 31];
+			d >>= 5;
+		}
+		buf_append_bytes(buf, b32, 8);
+	}
 }
 
 static char *regen_hotp_secret(struct openconnect_info *vpninfo)
