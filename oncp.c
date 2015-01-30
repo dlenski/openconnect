@@ -480,11 +480,11 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 			}
 		} else if (!strcmp(form_id, "frmDefender") ||
 			   !strcmp(form_id, "frmNextToken")) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("No support for %s form type yet\n"),
-				     form_id);
-			ret = -EINVAL;
-			break;
+			form = parse_form_node(vpninfo, node, "btnAction");
+			if (!form) {
+				ret = -EINVAL;
+				break;
+			}
 		} else if (!strcmp(form_id, "frmConfirmation")) {
 			form = parse_form_node(vpninfo, node, "btnContinue");
 			if (!form) {
