@@ -2591,3 +2591,25 @@ int openconnect_yubikey_chalresp(struct openconnect_info *vpninfo,
 	return 0;
 }
 #endif
+
+int hotp_hmac(struct openconnect_info *vpninfo, const void *challenge)
+{
+	int ret;
+	int hpos;
+	unsigned char hash[64]; /* Enough for a SHA256 */
+
+	hpos = 19;
+	ret = gnutls_hmac_fast(GNUTLS_MAC_SHA1,
+			       vpninfo->oath_secret,
+			       vpninfo->oath_secret_len,
+			       challenge, 8, hash);
+	if (ret) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  _("Failed to calculate OATH HMAC: %s\n"),
+				  gnutls_strerror(ret));
+		return -EINVAL;
+	}
+
+	hpos = hash[hpos] & 15;
+	return load_be32(&hash[hpos]) & 0x7fffffff;
+}

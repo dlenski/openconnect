@@ -239,7 +239,7 @@ int can_gen_totp_code(struct openconnect_info *vpninfo,
 	} else if (vpninfo->token_tries == 1) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("OK to generate NEXT tokencode\n"));
-		vpninfo->token_time += OATH_TOTP_DEFAULT_TIME_STEP_SIZE;
+		vpninfo->token_time += 30;
 	} else {
 		/* limit the number of retries, to avoid account lockouts */
 		vpn_progress(vpninfo, PRG_INFO,
@@ -272,30 +272,41 @@ int can_gen_hotp_code(struct openconnect_info *vpninfo,
 	return 0;
 }
 
+static int gen_hotp(struct openconnect_info *vpninfo, uint64_t data, char *output)
+{
+	uint32_t data_be[2];
+	int digest;
+
+	data_be[0] = htonl(data >> 32);
+	data_be[1] = htonl(data);
+
+	digest = hotp_hmac(vpninfo, data_be);
+	if (digest < 0)
+		return digest;
+
+	digest %= 1000000;
+	snprintf(output, 7, "%d", digest);
+
+	return 0;
+}
+
 int do_gen_totp_code(struct openconnect_info *vpninfo,
 		     struct oc_auth_form *form,
 		     struct oc_form_opt *opt)
 {
-	int oath_err;
 	char tokencode[7];
+	uint64_t challenge;
 
 	if (!vpninfo->token_time)
 		vpninfo->token_time = time(NULL);
 
 	vpn_progress(vpninfo, PRG_INFO, _("Generating OATH TOTP token code\n"));
 
-	oath_err = oath_totp_generate(vpninfo->oath_secret,
-				      vpninfo->oath_secret_len,
-				      vpninfo->token_time,
-				      OATH_TOTP_DEFAULT_TIME_STEP_SIZE,
-				      OATH_TOTP_DEFAULT_START_TIME,
-				      6, tokencode);
-	if (oath_err != OATH_OK) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Unable to generate OATH TOTP token code: %s\n"),
-			     oath_strerror(oath_err));
+	/* XXX: Support non-standard start time and step size */
+	challenge = vpninfo->token_time / 30;
+
+	if (gen_hotp(vpninfo, challenge, tokencode))
 		return -EIO;
-	}
 
 	vpninfo->token_tries++;
 	opt->_value = strdup(tokencode);
@@ -392,7 +403,6 @@ int do_gen_hotp_code(struct openconnect_info *vpninfo,
 		     struct oc_auth_form *form,
 		     struct oc_form_opt *opt)
 {
-	int oath_err;
 	char tokencode[7];
 	int ret;
 
@@ -405,20 +415,9 @@ int do_gen_hotp_code(struct openconnect_info *vpninfo,
 		if (ret)
 			return ret;
 	}
-
-	oath_err = oath_hotp_generate(vpninfo->oath_secret,
-				      vpninfo->oath_secret_len,
-				      vpninfo->token_time,
-				      6, false, OATH_HOTP_DYNAMIC_TRUNCATION,
-				      tokencode);
-	if (oath_err != OATH_OK) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Unable to generate OATH HOTP token code: %s\n"),
-			     oath_strerror(oath_err));
-		if (vpninfo->unlock_token)
-			vpninfo->unlock_token(vpninfo->tok_cbdata, NULL);
+	if (gen_hotp(vpninfo, vpninfo->token_time, tokencode))
 		return -EIO;
-	}
+
 	vpninfo->token_time++;
 	vpninfo->token_tries++;
 	opt->_value = strdup(tokencode);

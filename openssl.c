@@ -1667,3 +1667,20 @@ int openconnect_yubikey_chalresp(struct openconnect_info *vpninfo,
 	return 0;
 }
 #endif
+
+int hotp_hmac(struct openconnect_info *vpninfo, const void *challenge)
+{
+	unsigned char hash[64]; /* Enough for a SHA256 */
+	unsigned int hashlen = sizeof(hash);
+
+	if (!HMAC(EVP_sha1(), vpninfo->oath_secret, vpninfo->oath_secret_len,
+		  challenge, 8, hash, &hashlen)) {
+		vpninfo->progress(vpninfo, PRG_ERR,
+				  _("Failed to calculate OATH HMAC\n"));
+		openconnect_report_ssl_errors(vpninfo);
+		return -EINVAL;
+	}
+
+	hashlen = hash[hashlen - 1] & 15;
+	return load_be32(&hash[hashlen]) & 0x7fffffff;
+}

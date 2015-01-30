@@ -832,6 +832,7 @@ int openconnect_yubikey_chalresp(struct openconnect_info *vpninfo,
 				 const void *challenge, int chall_len, void *result);
 int openconnect_hash_yubikey_password(struct openconnect_info *vpninfo,
 				      const char *password, const void *ident, int id_len);
+int hotp_hmac(struct openconnect_info *vpninfo, const void *challenge);
 #if defined(OPENCONNECT_OPENSSL)
 #define openconnect_https_connected(_v) ((_v)->https_ssl)
 #elif defined (OPENCONNECT_GNUTLS)
