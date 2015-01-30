@@ -27,6 +27,102 @@
 
 #include "openconnect-internal.h"
 
+static int b32_char(char in)
+{
+	if (in >= 'A' && in <= 'Z')
+		return in - 'A';
+	if (in >= 'a' && in <= 'z')
+		return in - 'a';
+	if (in >= '2' && in <= '7')
+		return in - '2' + 26;
+	if (in == '=')
+		return -2;
+	return -1;
+}
+
+static int decode_b32_group(unsigned char *out, const char *in)
+{
+	uint32_t d = 0;
+	int c, i, len;
+
+	for (i = 0; i < 8; i++) {
+		c = b32_char(in[i]);
+		if (c == -1)
+			return -EINVAL;
+		if (c == -2)
+			break;
+		d <<= 5;
+		d |= c;
+
+		/* Write the top bits before they disappear off the top
+		   of 'd' which is only a uint32_t */
+		if (i == 1)
+			out[0] = d >> 2;
+	}
+	len = i;
+	if (i < 8) {
+		d <<= 5 * (8 - i);
+		while (++i < 8) {
+			if (in[i] != '=')
+				return -EINVAL;
+		}
+	}
+
+	store_be32(out + 1, d);
+
+	switch(len) {
+	case 8:
+		return 5;
+	case 7:
+		return 4;
+	case 5:
+		return 3;
+	case 4:
+		return 2;
+	case 2:
+		return 1;
+	default:
+		return -EINVAL;
+	}
+}
+
+static int decode_base32(struct openconnect_info *vpninfo, const char *b32, int len)
+{
+	unsigned char *output = NULL;
+	int inpos, outpos;
+	int outlen;
+	int ret;
+
+	if (len % 8) {
+	invalid:
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Invalid base32 token string\n"));
+		free(output);
+		return -EINVAL;
+	}
+	outlen = len / 8 * 5;
+	output = malloc(outlen);
+	if (!output) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to allocate memory to decode OATH secret\n"));
+		return -ENOMEM;
+	}
+	outpos = inpos = 0;
+	while (inpos < len) {
+		ret = decode_b32_group(output + outpos, b32 + inpos);
+		if (ret < 0)
+			goto invalid;
+
+		inpos += 8;
+		if (ret != 5 && inpos != len)
+			goto invalid;
+		outpos += ret;
+	}
+	vpninfo->oath_secret = (void *)output;
+	vpninfo->oath_secret_len = outpos;
+	return 0;
+}
+
 static char *parse_hex(const char *tok, int len)
 {
 	unsigned char *data, *p;
@@ -137,12 +233,10 @@ int set_totp_mode(struct openconnect_info *vpninfo, const char *token_str)
 		if (ret)
 			return -EINVAL;
 	} else if (strncasecmp(token_str, "base32:", strlen("base32:")) == 0) {
-		ret = oath_base32_decode(token_str + strlen("base32:"),
-					 toklen - strlen("base32:"),
-					 &vpninfo->oath_secret,
-					 &vpninfo->oath_secret_len);
-		if (ret != OATH_OK)
-			return -EINVAL;
+		ret = decode_base32(vpninfo, token_str + strlen("base32:"),
+				    toklen - strlen("base32:"));
+		if (ret)
+			return ret;
 	} else if (strncmp(token_str, "0x", 2) == 0) {
 		vpninfo->oath_secret_len = (toklen - 2) / 2;
 		vpninfo->oath_secret = parse_hex(token_str + 2, toklen - 2);
@@ -202,12 +296,10 @@ int set_hotp_mode(struct openconnect_info *vpninfo, const char *token_str)
 
 	if (strncasecmp(token_str, "base32:", strlen("base32:")) == 0) {
 		vpninfo->hotp_secret_format = HOTP_SECRET_BASE32;
-		ret = oath_base32_decode(token_str + strlen("base32:"),
-					 toklen - strlen("base32:"),
-					 &vpninfo->oath_secret,
-					 &vpninfo->oath_secret_len);
-		if (ret != OATH_OK)
-			return -EINVAL;
+		ret = decode_base32(vpninfo, token_str + strlen("base32:"),
+				    toklen - strlen("base32:"));
+		if (ret)
+			return ret;
 	} else if (strncmp(token_str, "0x", 2) == 0) {
 		vpninfo->hotp_secret_format = HOTP_SECRET_HEX;
 		vpninfo->oath_secret_len = (toklen - 2) / 2;
