@@ -133,3 +133,66 @@ void free_auth_form(struct oc_auth_form *form)
 	free(form->action);
 	free(form);
 }
+
+/* Return value:
+ *  < 0, if unable to generate a tokencode
+ *  = 0, on success
+ */
+int do_gen_tokencode(struct openconnect_info *vpninfo,
+		     struct oc_auth_form *form)
+{
+	struct oc_form_opt *opt;
+
+	for (opt = form->opts; ; opt = opt->next) {
+		/* this form might not have anything for us to do */
+		if (!opt)
+			return 0;
+		if (opt->type == OC_FORM_OPT_TOKEN)
+			break;
+	}
+
+	switch (vpninfo->token_mode) {
+#ifdef HAVE_LIBSTOKEN
+	case OC_TOKEN_MODE_STOKEN:
+		return do_gen_stoken_code(vpninfo, form, opt);
+#endif
+#ifdef HAVE_LIBOATH
+	case OC_TOKEN_MODE_TOTP:
+		return do_gen_totp_code(vpninfo, form, opt);
+
+	case OC_TOKEN_MODE_HOTP:
+		return do_gen_hotp_code(vpninfo, form, opt);
+#endif
+#ifdef HAVE_LIBPCSCLITE
+	case OC_TOKEN_MODE_YUBIOATH:
+		return do_gen_yubikey_code(vpninfo, form, opt);
+#endif
+	default:
+		return -EINVAL;
+	}
+}
+
+int can_gen_tokencode(struct openconnect_info *vpninfo,
+		      struct oc_auth_form *form,
+		      struct oc_form_opt *opt)
+{
+	switch (vpninfo->token_mode) {
+#ifdef HAVE_LIBSTOKEN
+	case OC_TOKEN_MODE_STOKEN:
+		return can_gen_stoken_code(vpninfo, form, opt);
+#endif
+#ifdef HAVE_LIBOATH
+	case OC_TOKEN_MODE_TOTP:
+		return can_gen_totp_code(vpninfo, form, opt);
+
+	case OC_TOKEN_MODE_HOTP:
+		return can_gen_hotp_code(vpninfo, form, opt);
+#endif
+#ifdef HAVE_LIBPCSCLITE
+	case OC_TOKEN_MODE_YUBIOATH:
+		return can_gen_yubikey_code(vpninfo, form, opt);
+#endif
+	default:
+		return -EINVAL;
+	}
+}

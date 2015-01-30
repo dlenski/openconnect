@@ -42,9 +42,9 @@
 
 static int xmlpost_append_form_opts(struct openconnect_info *vpninfo,
 				    struct oc_auth_form *form, struct oc_text_buf *body);
-static int can_gen_tokencode(struct openconnect_info *vpninfo,
-			     struct oc_auth_form *form, struct oc_form_opt *opt);
-static int do_gen_tokencode(struct openconnect_info *vpninfo, struct oc_auth_form *form);
+static int cstp_can_gen_tokencode(struct openconnect_info *vpninfo,
+				  struct oc_auth_form *form,
+				  struct oc_form_opt *opt);
 
 int openconnect_set_option_value(struct oc_form_opt *opt, const char *value)
 {
@@ -223,7 +223,7 @@ static int parse_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 		} else if (!strcmp(input_type, "text")) {
 			opt->type = OC_FORM_OPT_TEXT;
 		} else if (!strcmp(input_type, "password")) {
-			if (!can_gen_tokencode(vpninfo, form, opt))
+			if (!cstp_can_gen_tokencode(vpninfo, form, opt))
 				opt->type = OC_FORM_OPT_TOKEN;
 			else
 				opt->type = OC_FORM_OPT_PASSWORD;
@@ -873,9 +873,9 @@ bad:
  *  < 0, if unable to generate a tokencode
  *  = 0, on success
  */
-static int can_gen_tokencode(struct openconnect_info *vpninfo,
-			     struct oc_auth_form *form,
-			     struct oc_form_opt *opt)
+static int cstp_can_gen_tokencode(struct openconnect_info *vpninfo,
+				  struct oc_auth_form *form,
+				  struct oc_form_opt *opt)
 {
 	if (vpninfo->token_mode == OC_TOKEN_MODE_NONE ||
 	    vpninfo->token_bypassed)
@@ -892,59 +892,8 @@ static int can_gen_tokencode(struct openconnect_info *vpninfo,
 	/* Otherwise it's an OATH token of some kind. */
 	if (strcmp(opt->name, "secondary_password"))
 		return -EINVAL;
-	switch (vpninfo->token_mode) {
-#ifdef HAVE_LIBOATH
-	case OC_TOKEN_MODE_TOTP:
-		return can_gen_totp_code(vpninfo, form, opt);
 
-	case OC_TOKEN_MODE_HOTP:
-		return can_gen_hotp_code(vpninfo, form, opt);
-#endif
-#ifdef HAVE_LIBPCSCLITE
-	case OC_TOKEN_MODE_YUBIOATH:
-		return can_gen_yubikey_code(vpninfo, form, opt);
-#endif
-	default:
-		return -EINVAL;
-	}
-}
-
-/* Return value:
- *  < 0, if unable to generate a tokencode
- *  = 0, on success
- */
-static int do_gen_tokencode(struct openconnect_info *vpninfo,
-			    struct oc_auth_form *form)
-{
-	struct oc_form_opt *opt;
-
-	for (opt = form->opts; ; opt = opt->next) {
-		/* this form might not have anything for us to do */
-		if (!opt)
-			return 0;
-		if (opt->type == OC_FORM_OPT_TOKEN)
-			break;
-	}
-
-	switch (vpninfo->token_mode) {
-#ifdef HAVE_LIBSTOKEN
-	case OC_TOKEN_MODE_STOKEN:
-		return do_gen_stoken_code(vpninfo, form, opt);
-#endif
-#ifdef HAVE_LIBOATH
-	case OC_TOKEN_MODE_TOTP:
-		return do_gen_totp_code(vpninfo, form, opt);
-
-	case OC_TOKEN_MODE_HOTP:
-		return do_gen_hotp_code(vpninfo, form, opt);
-#endif
-#ifdef HAVE_LIBPCSCLITE
-	case OC_TOKEN_MODE_YUBIOATH:
-		return do_gen_yubikey_code(vpninfo, form, opt);
-#endif
-	default:
-		return -EINVAL;
-	}
+	return can_gen_tokencode(vpninfo, form, opt);
 }
 
 static int fetch_config(struct openconnect_info *vpninfo)

@@ -66,6 +66,35 @@ static xmlNodePtr htmlnode_next(xmlNodePtr top, xmlNodePtr node)
 	return node->next;
 }
 
+static int oncp_can_gen_tokencode(struct openconnect_info *vpninfo,
+				  struct oc_auth_form *form,
+				  struct oc_form_opt *opt)
+{
+	if (vpninfo->token_mode == OC_TOKEN_MODE_NONE ||
+	    vpninfo->token_bypassed)
+		return -EINVAL;
+	if (strcmp(form->auth_id, "frmDefender") &&
+	    strcmp(form->auth_id, "frmNextToken"))
+		return -EINVAL;
+
+	switch (vpninfo->token_mode) {
+#ifdef HAVE_LIBOATH
+	case OC_TOKEN_MODE_TOTP:
+		return can_gen_totp_code(vpninfo, form, opt);
+
+	case OC_TOKEN_MODE_HOTP:
+		return can_gen_hotp_code(vpninfo, form, opt);
+#endif
+#ifdef HAVE_LIBPCSCLITE
+	case OC_TOKEN_MODE_YUBIOATH:
+		return can_gen_yubikey_code(vpninfo, form, opt);
+#endif
+	default:
+		return -EINVAL;
+	}
+}
+
+
 static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_form *form,
 			    xmlNodePtr node, const char *submit_button)
 {
@@ -89,6 +118,8 @@ static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_for
 		opt->type = OC_FORM_OPT_PASSWORD;
 		xmlnode_get_prop(node, "name", &opt->name);
 		asprintf(&opt->label, "%s:", opt->name);
+		if (!oncp_can_gen_tokencode(vpninfo, form, opt))
+			opt->type = OC_FORM_OPT_TOKEN;
 	} else if (!strcasecmp(type, "text")) {
 		opt->type = OC_FORM_OPT_TEXT;
 		xmlnode_get_prop(node, "name", &opt->name);
@@ -507,6 +538,13 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 		ret = process_auth_form(vpninfo, form);
 		if (ret)
 			goto out;
+
+		ret = do_gen_tokencode(vpninfo, form);
+		if (ret) {
+			vpn_progress(vpninfo, PRG_ERR, _("Failed to generate OTP tokencode; disabling token\n"));
+			vpninfo->token_bypassed = 1;
+			goto out;
+		}
 
 	form_done:
 		append_form_opts(vpninfo, form, resp_buf);

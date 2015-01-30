@@ -896,6 +896,11 @@ int append_form_opts(struct openconnect_info *vpninfo,
 		     struct oc_auth_form *form, struct oc_text_buf *body);
 void free_opt(struct oc_form_opt *opt);
 void free_auth_form(struct oc_auth_form *form);
+int do_gen_tokencode(struct openconnect_info *vpninfo,
+		     struct oc_auth_form *form);
+int can_gen_tokencode(struct openconnect_info *vpninfo,
+		      struct oc_auth_form *form,
+		      struct oc_form_opt *opt);
 
 /* http.c */
 struct oc_text_buf *buf_alloc(void);
