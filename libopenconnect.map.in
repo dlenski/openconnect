@@ -32,7 +32,6 @@ OPENCONNECT_5.0 {
 	openconnect_set_cancel_fd;
 	openconnect_set_cert_expiry_warning;
 	openconnect_set_client_cert;
-	openconnect_set_compression_mode;
 	openconnect_set_csd_environ;
 	openconnect_set_dpd;
 	openconnect_set_hostname;
@@ -62,6 +61,11 @@ OPENCONNECT_5.0 {
 	openconnect_vpninfo_new;
 };
 
+OPENCONNECT_5_1 {
+ global:
+	openconnect_set_compression_mode;
+	openconnect_set_loglevel;
+} OPENCONNECT_5.0;
 
 OPENCONNECT_PRIVATE {
  global: @SYMVER_TIME@ @SYMVER_GETLINE@ @SYMVER_JAVA@ @SYMVER_ASPRINTF@ @SYMVER_VASPRINTF@ @SYMVER_WIN32_STRERROR@

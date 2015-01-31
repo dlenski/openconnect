@@ -82,6 +82,7 @@ struct openconnect_info *openconnect_vpninfo_new(const char *useragent,
 	vpninfo->progress = progress;
 	vpninfo->cbdata = privdata ? : vpninfo;
 	vpninfo->xmlpost = 1;
+	vpninfo->verbose = PRG_TRACE;
 	openconnect_set_reported_os(vpninfo, NULL);
 
 	if (!vpninfo->localname || !vpninfo->useragent)
@@ -127,6 +128,12 @@ void openconnect_set_juniper(struct openconnect_info *vpninfo)
 #else
 	vpninfo->dtls_state = DTLS_DISABLED;
 #endif
+}
+
+void openconnect_set_loglevel(struct openconnect_info *vpninfo,
+			      int level)
+{
+	vpninfo->verbose = level;
 }
 
 int openconnect_setup_dtls(struct openconnect_info *vpninfo,

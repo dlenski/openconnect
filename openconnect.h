@@ -33,7 +33,7 @@
 
 /*
  * API version 5.1:
- *  - Add openconnect_set_compression_mode().
+ *  - Add openconnect_set_compression_mode(), openconnect_set_loglevel()
  *
  * API version 5.0:
  *  - Remove OPENCONNECT_X509 and openconnect_get_peer_cert().
@@ -543,6 +543,9 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo);
 typedef void (*openconnect_protect_socket_vfn) (void *privdata, int fd);
 void openconnect_set_protect_socket_handler(struct openconnect_info *vpninfo,
 					    openconnect_protect_socket_vfn protect_socket);
+
+void openconnect_set_loglevel(struct openconnect_info *vpninfo,
+			      int level);
 
 /* Callback for obtaining traffic stats via OC_CMD_STATS.
  */

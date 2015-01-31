@@ -1505,6 +1505,8 @@ int main(int argc, char **argv)
 	}
 #endif
 
+	openconnect_set_loglevel(vpninfo, verbose);
+
 	while (1) {
 		ret = openconnect_mainloop(vpninfo, reconnect_timeout, RECONNECT_INTERVAL_MIN);
 		if (ret)

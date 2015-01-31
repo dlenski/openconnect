@@ -579,6 +579,7 @@ struct openconnect_info {
 
 	const char *quit_reason;
 
+	int verbose;
 	void *cbdata;
 	openconnect_validate_peer_cert_vfn validate_peer_cert;
 	openconnect_write_new_config_vfn write_new_config;
@@ -633,7 +634,10 @@ struct openconnect_info {
 #define AC_PKT_COMPRESSED	8	/* Compressed data */
 #define AC_PKT_TERM_SERVER	9	/* Server kick */
 
-#define vpn_progress(vpninfo, ...) (vpninfo)->progress((vpninfo)->cbdata, __VA_ARGS__)
+#define vpn_progress(_v, lvl, ...) do {					\
+	if ((_v)->verbose >= (lvl))					\
+		(_v)->progress((vpninfo)->cbdata, lvl, __VA_ARGS__);	\
+	} while(0)
 #define vpn_perror(vpninfo, msg) vpn_progress((vpninfo), PRG_ERR, "%s: %s\n", (msg), strerror(errno));
 
 /****************************************************************************/
