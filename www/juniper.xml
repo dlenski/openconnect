@@ -61,6 +61,25 @@ pass the cookie to OpenConnect with its <tt>-C</tt> option, for example:
 </pre>
 </p>
 
+<h3>Host Checker (tncc.jar)</h3>
+
+<p>Many sites require a Java applet to run certain tests as a precondition
+of authentication. This works by sending a <tt>DSPREAUTH</tt> cookie
+to the client which is attempting to authenticate, and the Java code
+in <tt>tncc.jar</tt> then runs and communicates with the server, handing
+back a new value for the <tt>DSPREAUTH</tt> cookie to be used when
+autnentication continues.</p>
+
+<p>OpenConnect supports this with a little assistance. There is a python
+script <tt>tncc-wrapper.py</tt> in the git repository which can be used
+along with the <tt>tncc-preload.so</tt> from
+<a href="https://github.com/russdill/ncsvc-socks-wrapper">this repository</a>.
+It may also be necessary to pass a Mozilla-compatible user agent string:
+<pre>
+  ./openconnect --juniper --useragent  'Mozilla/5.0 (Linux) Firefox' --csd-wrapper=./tncc-wrapper.py vpn.example.com
+</pre>
+</p>
+
 <h2>Connectivity</h2>
 
 <p>Once authentication is complete, the VPN connection can be
