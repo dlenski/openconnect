@@ -1,10 +1,14 @@
 <PAGE>
 	<INCLUDE file="inc/header.tmpl" />
 
-	<VAR match="VAR_SEL_TECHNICAL" replace="selected" />
+	<VAR match="VAR_SEL_PROTOCOLS" replace="selected" />
+	<VAR match="VAR_SEL_ANYCONNECT" replace="selected" />
 	<PARSE file="menu1.xml" />
+	<PARSE file="menu2-protocols.xml" />
 	
 	<INCLUDE file="inc/content.tmpl" />
+
+<h1>Cisco AnyConnect</h1>
 
 <h2>How the VPN works</h2>
 

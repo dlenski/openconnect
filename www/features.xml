@@ -19,7 +19,7 @@
   <li>Authentication using OATH TOTP or HOTP software tokens.</li>
   <li>Authentication using Yubikey OATH tokens <i>(when built with libpcsclite)</i></li>
   <li><i>UserGroup</i> support for selecting between multiple configurations on a single VPN server.</li>
-  <li>Data transport over TCP <i>(HTTPS)</i> or UDP <i>(DTLS)</i>.</li>
+  <li>Data transport over TCP <i>(HTTPS)</i> or UDP <i>(DTLS or ESP)</i>.</li>
   <li>Keepalive and Dead Peer Detection on both HTTPS and DTLS.</li>
   <li>Automatic update of VPN server list / configuration.</li>
   <li>Roaming support, allowing reconnection when the local IP address changes.</li>

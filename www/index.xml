@@ -9,16 +9,15 @@
 	<INCLUDE file="inc/content.tmpl" />
 
 <h1>OpenConnect</h1>
-<p>OpenConnect is a client for Cisco's <a href="http://www.cisco.com/en/US/netsol/ns1049/index.html">AnyConnect SSL VPN</a>, which is supported by the ASA5500 Series, by IOS 12.4(9)T or later on Cisco SR500, 870, 880, 1800, 2800, 3800, 7200 Series and Cisco 7301 Routers, and probably others.</p>
+<p>OpenConnect is an SSL VPN client initially created to support Cisco's <a href="http://www.cisco.com/go/asm">AnyConnect SSL VPN</a>. It has since been ported to support the Juniper SSL VPN which is now known as <a href="https://www.pulsesecure.net/products/connect-secure/">Pulse Connect Secure</a>.</p>
 
 <p>OpenConnect is released under the GNU Lesser Public License, version 2.1.</p>
 
 <p>Like <a href="http://www.unix-ag.uni-kl.de/~massar/vpnc/">vpnc</a>,
 OpenConnect is not officially supported by, or associated in any way
-with, Cisco Systems. It just happens to interoperate with their
-equipment.
+with, Cisco Systems, Juniper Networks or Pulse Secure. It just happens to interoperate with their equipment.
 </p>
-<p>Development of OpenConnect was started after a trial of their "official"
+<p>Development of OpenConnect was started after a trial of the Cisco 
 client under Linux found it to have many deficiencies:</p>
 <ul>
   <li>Inability to use SSL certificates from a <a href="http://en.wikipedia.org/wiki/Trusted_Platform_Module">TPM</a> or

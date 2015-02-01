@@ -15,9 +15,11 @@
 languages other than English. All contributions will be gratefully
 received.</p>
 
-<p>Translations for OpenConnect can be entered through <a
-href="https://www.transifex.net/projects/p/openconnect/">Transifex</a>
-or by editing one of the language files in the <tt><a
+<p>Translations for OpenConnect are maintained in the GNOME
+<a href="https://l10n.gnome.org/module/network-manager-openconnect/">network-manager-openconnect module</a>. Translations can be contributed by joining
+the GNOME team as described on their
+<a href="https://wiki.gnome.org/TranslationProject">TranslationProject</a>
+wiki page, or simply by editing one of the language files in the <tt><a
 href="http://git.infradead.org/users/dwmw2/openconnect.git/tree/HEAD:/po">po/</a></tt>
 directory and sending the resulting patch (or file) to the <a
 href="mail.html">mailing list</a>.</p>
@@ -34,7 +36,6 @@ Other items on the TODO list include:
 
 <ul>
   <li>Better support for running or emulating the '<a href="csd.html">Cisco Secure Desktop</a>' trojan.</li>
-  <li>GUI and NSI installer for Windows.</li>
   <li>GUI for OS X, perhaps based on <a href="http://code.google.com/p/tunnelblick/">Tunnelblick</a>.</li>
 </ul>
 

@@ -6,9 +6,10 @@ CONV 	= "$(srcdir)/html.py"
 FTR_PAGES = csd.html charset.html token.html pkcs11.html features.html gui.html nonroot.html
 START_PAGES = building.html connecting.html manual.html vpnc-script.html 
 INDEX_PAGES = changelog.html download.html index.html packages.html platforms.html
-TOPLEVEL_PAGES = contribute.html mail.html technical.html
+PROTO_PAGES = anyconnect.html juniper.html
+TOPLEVEL_PAGES = contribute.html mail.html
 
-ALL_PAGES = $(FTR_PAGES) $(START_PAGES) $(INDEX_PAGES) $(TOPLEVEL_PAGES)
+ALL_PAGES = $(FTR_PAGES) $(START_PAGES) $(INDEX_PAGES) $(TOPLEVEL_PAGES) $(PROTO_PAGES)
 
 html_DATA = $(ALL_PAGES)
 
@@ -21,6 +22,7 @@ clean-local:
 $(ALL_PAGES): menu1.xml $(srcdir)/inc/*.tmpl
 $(FTR_PAGES): menu2-features.xml
 $(START_PAGES): menu2-started.xml
+$(PROTO_PAGES): menu2-protocols.xml
 $(MAIN_PAGES): menu2.xml
 
 manual.html: openconnect.8.inc

@@ -1,0 +1,85 @@
+<PAGE>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_PROTOCOLS" replace="selected" />
+	<VAR match="VAR_SEL_JUNIPER" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2-protocols.xml" />
+	
+	<INCLUDE file="inc/content.tmpl" />
+
+<h1>Juniper SSL VPN / Pulse Connect Secure</h1>
+
+<p>Support for Juniper was added to OpenConnect in January of 2015,
+after the v7.04 release. It is still being tested. For the time being,
+Juniper mode is requested by adding <tt>--juniper</tt> to the command
+line:
+<pre>
+  openconnect --juniper vpn.example.com
+</pre></p>
+
+<p>The Juniper VPN works very similarly to
+<a href="anyconnect.html">AnyConnect</a> — initial authentication is made
+over HTTP, resulting in an HTTP cookie which is used to make the actual
+VPN connection. That connection is also made over HTTP, and the IP address
+and routing information are provided by the VPN server. The client then
+attempts to bring up a UDP transport, which in the case of Juniper is
+<a href="https://tools.ietf.org/html/rfc3948">ESP</a>.</p>
+
+<h2>Authentication</h2>
+
+<p>The authentication stage with Juniper is what is expected to cause
+most problems. Unlike AnyConnect which has a relatively simple XML
+schema for interacting with the user, the Juniper VPN expects a full
+web browser environment and uses HTML forms with JavaScript and even
+full-blown Java support.</p>
+
+<p>The common case is relatively simple, and OpenConnect supports the
+common forms defined by the Juniper-provided templates. However,
+administrators have the facility to put arbitrary HTML pages into the
+login sequence and full compatibility may require <em>actually</em>
+using a web browser to log in — ironically, since much of the reason
+users have been asking for OpenConnect to support Juniper is because
+they didn't <em>want</em> to have to use a web browser.</p>
+<p>For NetworkManager we may end up putting a full HTML renderer into
+the GUI authentication dialog, while the command line client continues
+to parse the common login forms and make a best attempt at handling
+anything non-standard.</p>
+
+<h3>External authentication</h3>
+<p>There are a number of perl and python scripts which handle authentication
+to Juniper servers to bypass the web browser. One such script has been
+ported to invoke OpenConnect instead of Juniper's own <tt>ncsvc</tt>
+client and can be found
+<a href="https://github.com/russdill/juniper-vpn-py">here</a>.</p>
+
+<p>Any of these scripts which authenticate and obtain a <tt>DSID</tt>
+cookie representing a VPN session can be used with OpenConnect. Just
+pass the cookie to OpenConnect with its <tt>-C</tt> option, for example:
+<pre>
+  openconnect --juniper -C "DSID=foobar12345" vpn.example.com
+</pre>
+</p>
+
+<h2>Connectivity</h2>
+
+<p>Once authentication is complete, the VPN connection can be
+established. At the time of writing much of the configuration for Legacy
+IP addressing and routes is understood and implemented. IPv6 is not
+yet implemented, and test reports from someone with an IPv6-capable server
+would be greatly appreciated.</p>
+
+<p>The data transport is functional both over the HTTPS session and also
+over ESP. Servers with compression enabled should also be supported, as
+LZO <em>decompression</em> is working and although we lack compression
+support it appears acceptable to simply send packets uncompressed.</p>
+
+<p>At the time of writing, some features such as automatic
+reconnection of the TCP connection, and keepalive of the UDP session
+(and thus fallback to using TCP) are not fully implemented. These will be
+added shortly, as they are required to have a fully production-quality
+client. However, the current implementation is basically usable and is
+definitely ready for some more widespread testing.</p>
+
+	<INCLUDE file="inc/footer.tmpl" />
+</PAGE>
