@@ -34,7 +34,6 @@
 	<p>If you do want to subscribe to the mailing list, you can do so from the <a
 	href="http://lists.infradead.org/mailman/listinfo/openconnect-devel">Mailman admin page</a>.</p>
 
-
 	<p>
 	  <b>SECURITY WARNING:</b><br/>
 	  If you are posting debugging output from openconnect to the mailing list, do <em>not</em> include a line which looks like this:
@@ -43,5 +42,27 @@
 	  it's almost as bad as giving your password away. Version 2.26 or later of OpenConnect will 
 	  automatically filter this out of the debugging output for you.
 	</p>
+	<p>For Juniper VPN, the equivalent is a <tt>DSID</tt> cookie, which is not yet filtered
+	out of any output <i>(the authentication support in Juniper is still very new)</i>.</p>
+
+	<h1>Internet Relay Chat (IRC)</h1>
+
+	<p>There is also an IRC channel
+	<a href="ircs://irc.oftc.net:6697/#openconnect"><tt>#openconnect</tt></a>
+	on the <a HREF="http://www.oftc.net/">OFTC</a> network. You can access it via the
+	<a href="https://webchat.oftc.net/">OFTC webchat</a> if you don't have an
+	IRC client.</p>
+
+	<p>Please note that the people who can help you may be busy, and may be in a
+	different time zone to you, and often indeed in a different time zone from one
+	day to the next. If nobody is answering you immediately, please be patient —
+	state your problem or question concisely and completely, and remain on the
+	channel. You may well find that by the time you look back again, even if
+	it's the next day, you have an answer or a fix has been made.</p>
+
+	<p>If you simply look in, say <i>"hello?"</i> a few times in the middle
+	of the night, and then disappear again, that's not a lot more useful than
+	posting to a randomly-chosen web forum as discussed above.</p>
+
 	<INCLUDE file="inc/footer.tmpl" />
 </PAGE>
