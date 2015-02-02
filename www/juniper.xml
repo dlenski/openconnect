@@ -93,12 +93,11 @@ over ESP. Servers with compression enabled should also be supported, as
 LZO <em>decompression</em> is working and although we lack compression
 support it appears acceptable to simply send packets uncompressed.</p>
 
-<p>At the time of writing, some features such as automatic
-reconnection of the TCP connection, and keepalive of the UDP session
-(and thus fallback to using TCP) are not fully implemented. These will be
-added shortly, as they are required to have a fully production-quality
-client. However, the current implementation is basically usable and is
-definitely ready for some more widespread testing.</p>
+<p>At the time of writing, keepalive for the ESP connection has been
+implemented and extremely lightly tested, while it isn't yet known if
+the VPN supports keepalive on the HTTPS connection. Reconnection of both
+the HTTPS and ESP links is implemented. The current implementation is
+basically usable and is definitely ready for some more widespread testing.</p>
 
 	<INCLUDE file="inc/footer.tmpl" />
 </PAGE>
