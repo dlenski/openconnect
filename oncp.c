@@ -151,6 +151,8 @@ static int parse_select_node(struct openconnect_info *vpninfo, struct oc_auth_fo
 	xmlnode_get_prop(node, "name", &opt->form.name);
 	opt->form.label = strdup(opt->form.name);
 	opt->form.type = OC_FORM_OPT_SELECT;
+	if (!strcmp(opt->form.name, "realm"))
+		form->authgroup_opt = opt;
 
 	for (child = node->children; child; child = child->next) {
 		if (!child->name || strcasecmp((const char *)child->name, "option"))
@@ -522,7 +524,9 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 			break;
 		}
 
-		ret = process_auth_form(vpninfo, form);
+		do {
+			ret = process_auth_form(vpninfo, form);
+		} while (ret == OC_FORM_RESULT_NEWGROUP);
 		if (ret)
 			goto out;
 
