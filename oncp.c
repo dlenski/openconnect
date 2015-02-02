@@ -962,6 +962,18 @@ static const struct pkt esp_enable_pkt = {
 	.len = 13
 };
 
+int queue_esp_control(struct openconnect_info *vpninfo, int enable)
+{
+	struct pkt *new = malloc(sizeof(*new) + 13);
+	if (!new)
+		return -ENOMEM;
+
+	memcpy(new, &esp_enable_pkt, sizeof(*new) + 13);
+	new->data[12] = enable;
+	queue_packet(&vpninfo->oncp_control_queue, new);
+	return 0;
+}
+
 static int check_kmp_header(struct openconnect_info *vpninfo, unsigned char *bytes, int pktlen)
 {
 	if (pktlen < 20 || memcmp(bytes, kmp_head, sizeof(kmp_head)) ||
@@ -1641,6 +1653,17 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			if (vpninfo->dtls_state == DTLS_CONNECTING)
 				vpninfo->dtls_state = DTLS_CONNECTED;
 		} else {
+			/* Only set the ESP state to connected and actually start
+			   sending packets on it once the enable message has been
+			   *sent* over the TCP channel. */
+			if (vpninfo->dtls_state == DTLS_CONNECTING &&
+			    vpninfo->current_ssl_pkt->len == 13 &&
+			    load_be16(&vpninfo->current_ssl_pkt->oncp.hdr[8]) == 0x12f &&
+			    vpninfo->current_ssl_pkt->data[12]) {
+				vpn_progress(vpninfo, PRG_TRACE,
+					     _("Sent ESP enable control packet\n"));
+				vpninfo->dtls_state = DTLS_CONNECTED;
+			}
 			free(vpninfo->current_ssl_pkt);
 		}
 		vpninfo->current_ssl_pkt = NULL;
@@ -1720,10 +1743,6 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	if (vpninfo->current_ssl_pkt)
 		goto handle_outgoing;
 
-	if (vpninfo->dtls_state == DTLS_CONNECTING) {
-		vpninfo->current_ssl_pkt = (struct pkt *)&esp_enable_pkt;
-		goto handle_outgoing;
-	}
 	/* Service outgoing packet queue, if no DTLS */
 	while (vpninfo->dtls_state != DTLS_CONNECTED &&
 	       (vpninfo->current_ssl_pkt = dequeue_packet(&vpninfo->outgoing_queue))) {

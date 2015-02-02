@@ -165,6 +165,19 @@ static int esp_send_probes(struct openconnect_info *vpninfo)
 	struct pkt *pkt;
 	int pktlen;
 
+	if (vpninfo->dtls_fd == -1) {
+		int fd = udp_connect(vpninfo);
+		if (fd < 0)
+			return fd;
+
+		/* We are not connected until we get an ESP packet back */
+		vpninfo->dtls_state = DTLS_SLEEPING;
+		vpninfo->dtls_fd = fd;
+		monitor_fd_new(vpninfo, dtls);
+		monitor_read_fd(vpninfo, dtls);
+		monitor_except_fd(vpninfo, dtls);
+	}
+
 	pkt = malloc(sizeof(*pkt) + 1 + vpninfo->pkt_trailer);
 	if (!pkt)
 		return -ENOMEM;
@@ -180,32 +193,27 @@ static int esp_send_probes(struct openconnect_info *vpninfo)
 	send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
 
 	free(pkt);
-	time(&vpninfo->new_dtls_started);
+
+	vpninfo->dtls_times.last_tx = time(&vpninfo->new_dtls_started);
 
 	return 0;
 };
 
 int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 {
-	int fd;
-
 	if (vpninfo->dtls_state == DTLS_DISABLED ||
 	    vpninfo->dtls_state == DTLS_NOSECRET)
 		return -EINVAL;
 
-	fd = udp_connect(vpninfo);
-	if (fd < 0)
-		return fd;
+	if (vpninfo->esp_ssl_fallback)
+		vpninfo->dtls_times.dpd = vpninfo->esp_ssl_fallback;
+	else
+		vpninfo->dtls_times.dpd = dtls_attempt_period;
+
+	vpninfo->dtls_attempt_period = dtls_attempt_period;
 
 	print_esp_keys(vpninfo, _("incoming"), &vpninfo->esp_in[vpninfo->current_esp_in]);
 	print_esp_keys(vpninfo, _("outgoing"), &vpninfo->esp_out);
-
-	/* We are not connected until we get an ESP packet back */
-	vpninfo->dtls_state = DTLS_SLEEPING;
-	vpninfo->dtls_fd = fd;
-	monitor_fd_new(vpninfo, dtls);
-	monitor_read_fd(vpninfo, dtls);
-	monitor_except_fd(vpninfo, dtls);
 
 	esp_send_probes(vpninfo);
 
@@ -219,6 +227,19 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	struct pkt *this;
 	int work_done = 0;
 	int ret;
+
+	if (vpninfo->dtls_state == DTLS_SLEEPING) {
+		int when = vpninfo->new_dtls_started + vpninfo->dtls_attempt_period - time(NULL);
+		if (when <= 0) {
+			vpn_progress(vpninfo, PRG_DEBUG, _("Send ESP probes\n"));
+			esp_send_probes(vpninfo);
+			when = vpninfo->dtls_attempt_period;
+		}
+		if (*timeout > when * 1000)
+			*timeout = when * 1000;
+	}
+	if (vpninfo->dtls_fd == -1)
+		return 0;
 
 	while (1) {
 		int len = vpninfo->ip_info.mtu + vpninfo->pkt_trailer;
@@ -279,11 +300,13 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		}
 		/* XXX: Actually check the padding bytes too. */
 		pkt->len = len - 2 - pkt->data[len - 2];
+		vpninfo->dtls_times.last_rx = time(NULL);
 
 		if (pkt->len  == 1 && pkt->data[0] == 0) {
 			if (vpninfo->dtls_state == DTLS_SLEEPING) {
 				vpn_progress(vpninfo, PRG_INFO,
 					     _("ESP session established with server\n"));
+				queue_esp_control(vpninfo, 1);
 				vpninfo->dtls_state = DTLS_CONNECTING;
 			}
 			continue;
@@ -317,6 +340,31 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	if (vpninfo->dtls_state != DTLS_CONNECTED)
 		return 0;
 
+	switch (keepalive_action(&vpninfo->dtls_times, timeout)) {
+	case KA_REKEY:
+		vpn_progress(vpninfo, PRG_ERR, _("Rekey not implemented for ESP\n"));
+		break;
+
+	case KA_DPD_DEAD:
+		vpn_progress(vpninfo, PRG_ERR, _("ESP detected dead peer\n"));
+		queue_esp_control(vpninfo, 0);
+		esp_close(vpninfo);
+		esp_send_probes(vpninfo);
+		return 1;
+
+	case KA_DPD:
+		vpn_progress(vpninfo, PRG_DEBUG, _("Send ESP probes for DPD\n"));
+		esp_send_probes(vpninfo);
+		work_done = 1;
+		break;
+
+	case KA_KEEPALIVE:
+		vpn_progress(vpninfo, PRG_ERR, _("Keepalive not implemented for ESP\n"));
+		break;
+
+	case KA_NONE:
+		break;
+	}
 	unmonitor_write_fd(vpninfo, dtls);
 	while ((this = dequeue_packet(&vpninfo->outgoing_queue))) {
 		int len;
@@ -337,9 +385,12 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 						     _("Failed to send ESP packet: %s\n"),
 						     strerror(errno));
 				}
-			} else
+			} else {
+				vpninfo->dtls_times.last_tx = time(NULL);
+
 				vpn_progress(vpninfo, PRG_TRACE, _("Sent ESP packet of %d bytes\n"),
 					     len);
+			}
 		} else {
 			/* XXX: Fall back to TCP transport? */
 		}
@@ -360,6 +411,7 @@ void esp_close(struct openconnect_info *vpninfo)
 		unmonitor_write_fd(vpninfo, dtls);
 		unmonitor_except_fd(vpninfo, dtls);
 	}
+	vpninfo->dtls_state = DTLS_SLEEPING;
 }
 
 void esp_shutdown(struct openconnect_info *vpninfo)

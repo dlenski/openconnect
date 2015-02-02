@@ -764,6 +764,7 @@ int decompress_and_queue_packet(struct openconnect_info *vpninfo,
 int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt *this);
 
 /* oncp.c */
+int queue_esp_control(struct openconnect_info *vpninfo, int enable);
 int oncp_obtain_cookie(struct openconnect_info *vpninfo);
 int oncp_connect(struct openconnect_info *vpninfo);
 int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout);
