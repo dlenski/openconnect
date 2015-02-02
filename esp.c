@@ -230,7 +230,7 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 	if (vpninfo->dtls_state == DTLS_SLEEPING) {
 		int when = vpninfo->new_dtls_started + vpninfo->dtls_attempt_period - time(NULL);
-		if (when <= 0) {
+		if (when <= 0 || vpninfo->dtls_need_reconnect) {
 			vpn_progress(vpninfo, PRG_DEBUG, _("Send ESP probes\n"));
 			esp_send_probes(vpninfo);
 			when = vpninfo->dtls_attempt_period;
@@ -410,6 +410,7 @@ void esp_close(struct openconnect_info *vpninfo)
 		unmonitor_read_fd(vpninfo, dtls);
 		unmonitor_write_fd(vpninfo, dtls);
 		unmonitor_except_fd(vpninfo, dtls);
+		vpninfo->dtls_fd = -1;
 	}
 	vpninfo->dtls_state = DTLS_SLEEPING;
 }

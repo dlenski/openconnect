@@ -1606,16 +1606,20 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 					 vpninfo->current_ssl_pkt->oncp.hdr,
 					 vpninfo->current_ssl_pkt->len + 22);
 		if (ret < 0) {
-#if 0
-			goto do_reconnect;
-#else
 		do_reconnect:
-			vpn_progress(vpninfo, PRG_ERR, _("Reconnect not implemented yet for oNCP\n"));
-			vpninfo->quit_reason = "Need reconnect";
+			/* XXX: Do we have to do this or can we leave it open?
+			 * Perhaps we could even reconnect asynchronously while
+			 * the ESP is still running? */
+			esp_shutdown(vpninfo);
+			ret = ssl_reconnect(vpninfo);
+			if (ret) {
+				vpn_progress(vpninfo, PRG_ERR, _("Reconnect failed\n"));
+				vpninfo->quit_reason = "oNCP reconnect failed";
+				return ret;
+			}
+			vpninfo->dtls_need_reconnect = 1;
 			return 1;
-#endif
-		}
-		else if (!ret) {
+		} else if (!ret) {
 #if 0 /* Not for Juniper yet */
 			/* -EAGAIN: ssl_nonblock_write() will have added the SSL
 			   fd to ->select_wfds if appropriate, so we can just
