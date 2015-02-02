@@ -1645,13 +1645,8 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			return 1;
 		}
 		/* Don't free the 'special' packets */
-		if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt)
+		if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt) {
 			free(vpninfo->pending_deflated_pkt);
-		else if (vpninfo->current_ssl_pkt == &esp_enable_pkt) {
-			/* If we sent the special ESP enable packet, ESP
-			 * is now enabled. And we don't need to free it. */
-			if (vpninfo->dtls_state == DTLS_CONNECTING)
-				vpninfo->dtls_state = DTLS_CONNECTED;
 		} else {
 			/* Only set the ESP state to connected and actually start
 			   sending packets on it once the enable message has been
