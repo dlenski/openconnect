@@ -2545,14 +2545,15 @@ static P11KitPin *p11kit_pin_callback(const char *pin_source, P11KitUri *pin_uri
 
 #ifdef HAVE_LIBPCSCLITE
 int openconnect_hash_yubikey_password(struct openconnect_info *vpninfo,
-				      const char *password, const void *ident, int id_len)
+				      const char *password, int pwlen,
+				      const void *ident, int id_len)
 {
 	unsigned char U[SHA1_SIZE];
 	gnutls_hmac_hd_t dgst;
 	int ret = -EIO;
 	int i, j;
 
-	if (gnutls_hmac_init(&dgst, GNUTLS_MAC_SHA1, password, strlen(password)))
+	if (gnutls_hmac_init(&dgst, GNUTLS_MAC_SHA1, password, pwlen))
 		return -EIO;
 
 	if (gnutls_hmac(dgst, ident, id_len))

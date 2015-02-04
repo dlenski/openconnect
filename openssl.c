@@ -1647,9 +1647,10 @@ int openconnect_local_cert_md5(struct openconnect_info *vpninfo,
 
 #ifdef HAVE_LIBPCSCLITE
 int openconnect_hash_yubikey_password(struct openconnect_info *vpninfo,
-				      const char *password, const void *ident, int id_len)
+				      const char *password, int pwlen,
+				      const void *ident, int id_len)
 {
-	if (!PKCS5_PBKDF2_HMAC_SHA1(password, strlen(password), ident, id_len, 1000, 16,
+	if (!PKCS5_PBKDF2_HMAC_SHA1(password, pwlen, ident, id_len, 1000, 16,
 				    vpninfo->yubikey_pwhash))
 		return -EIO;
 
