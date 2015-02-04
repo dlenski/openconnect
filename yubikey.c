@@ -225,8 +225,7 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 			}
 			pin = o._value;
 			pin_len = strlen(pin);
-			/* XXX: What charset is the password in? Assuming UTF-8 because that's
-			   the only sane option, but see http://forum.yubico.com/viewtopic.php?f=26&t=1601 */
+			/* This *should* be UTF-8 but see the workaround below. */
 			ret = openconnect_hash_yubikey_password(vpninfo, o._value, pin_len,
 								applet_id, id_len);
 			if (ret)
@@ -259,6 +258,38 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 		if (ret == -EINVAL) {
 			memset(vpninfo->yubikey_pwhash, 0, sizeof(vpninfo->yubikey_pwhash));
 			vpninfo->yubikey_pw_set = 0;
+			if (pin) {
+				/* Try working around pre-KitKat PBKDF2 bug discussed at
+				 * http://forum.yubico.com/viewtopic.php?f=26&t=1601#p6807 and
+				 * http://android-developers.blogspot.se/2013/12/changes-to-secretkeyfactory-api-in.html */
+				const char *in;
+				char *out;
+
+				/* Convert the UTF-8 PIN to byte-truncated form in-place */
+				in = out = pin;
+				while (*in) {
+					int c = get_utf8char(&in);
+					if (c < 0) {
+						/* Screw it. Break out of the loop in such a fashion
+						 * that we don't try the 'converted' result. */
+						in = out;
+						break;
+					}
+					*(out++) = c;
+				}
+				/* If out == in then the string only contained ASCII so
+				 * there was no conversion to be done (or was invalid
+				 * UTF-8 and hit the error case above). So don't try. */
+				if (out != in &&
+				    !openconnect_hash_yubikey_password(vpninfo, pin, out - pin,
+								       applet_id, id_len)) {
+					/* We'll have printed with PRG_ERR when the proper
+					 * encoding failed. So use PRG_ERR here too. */
+					vpn_progress(vpninfo, PRG_ERR,
+						     _("Trying truncated-char PBKBF2 variant of Yubikey PIN\n"));
+					vpninfo->yubikey_pw_set = 1;
+				}
+			}
 			goto retry;
 		}
 	}
