@@ -171,56 +171,61 @@ void buf_append_from_utf16le(struct oc_text_buf *buf, const void *_utf16)
 	buf_append_bytes(buf, utf8, 1);
 }
 
+int get_utf8char(const char **p)
+{
+	const char *utf8 = *p;
+	unsigned char c;
+	int utfchar, nr_extra, min;
+
+	c = *(utf8++);
+	if (c < 128) {
+		utfchar = c;
+		nr_extra = 0;
+		min = 0;
+	} else if ((c & 0xe0) == 0xc0) {
+		utfchar = c & 0x1f;
+		nr_extra = 1;
+		min = 0x80;
+	} else if ((c & 0xf0) == 0xe0) {
+		utfchar = c & 0x0f;
+		nr_extra = 2;
+		min = 0x800;
+	} else if ((c & 0xf8) == 0xf0) {
+		utfchar = c & 0x07;
+		nr_extra = 3;
+		min = 0x10000;
+	} else {
+		return -EILSEQ;
+	}
+
+	while (nr_extra--) {
+		c = *(utf8++);
+		if ((c & 0xc0) != 0x80)
+			return -EILSEQ;
+
+		utfchar <<= 6;
+		utfchar |= (c & 0x3f);
+	}
+	if (utfchar > 0x10ffff || utfchar < min)
+		return -EILSEQ;
+
+	*p = utf8;
+	return utfchar;
+}
+
 int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8)
 {
-	int len = 0;
-	unsigned char c;
-	unsigned long utfchar;
-	int min;
-	int nr_extra;
+	int utfchar, len = 0;
 
 	/* Ick. Now I'm implementing my own UTF8 handling too. Perhaps it's
 	   time to bite the bullet and start requiring something like glib? */
 	while (*utf8) {
-		c = *(utf8++);
-		if (c < 128) {
-			utfchar = c;
-			nr_extra = 0;
-			min = 0;
-		} else if ((c & 0xe0) == 0xc0) {
-			utfchar = c & 0x1f;
-			nr_extra = 1;
-			min = 0x80;
-		} else if ((c & 0xf0) == 0xe0) {
-			utfchar = c & 0x0f;
-			nr_extra = 2;
-			min = 0x800;
-		} else if ((c & 0xf8) == 0xf0) {
-			utfchar = c & 0x07;
-			nr_extra = 3;
-			min = 0x10000;
-		} else {
+		utfchar = get_utf8char(&utf8);
+		if (utfchar < 0) {
 			if (buf)
-				buf->error = -EILSEQ;
-			return -EILSEQ;
+				buf->error = utfchar;
+			return utfchar;
 		}
-
-		while (nr_extra--) {
-			c = *(utf8++);
-			if ((c & 0xc0) != 0x80) {
-				if (buf)
-					buf->error = -EILSEQ;
-				return -EILSEQ;
-			}
-			utfchar <<= 6;
-			utfchar |= (c & 0x3f);
-		}
-		if (utfchar > 0x10ffff || utfchar < min) {
-			if (buf)
-				buf->error = -EILSEQ;
-			return -EILSEQ;
-		}
-
 		if (!buf)
 			continue;
 
