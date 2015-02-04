@@ -636,7 +636,7 @@ struct openconnect_info {
 
 #define vpn_progress(_v, lvl, ...) do {					\
 	if ((_v)->verbose >= (lvl))					\
-		(_v)->progress((vpninfo)->cbdata, lvl, __VA_ARGS__);	\
+		(_v)->progress((_v)->cbdata, lvl, __VA_ARGS__);	\
 	} while(0)
 #define vpn_perror(vpninfo, msg) vpn_progress((vpninfo), PRG_ERR, "%s: %s\n", (msg), strerror(errno));
 
