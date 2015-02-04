@@ -215,6 +215,7 @@ int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 	print_esp_keys(vpninfo, _("incoming"), &vpninfo->esp_in[vpninfo->current_esp_in]);
 	print_esp_keys(vpninfo, _("outgoing"), &vpninfo->esp_out);
 
+	vpn_progress(vpninfo, PRG_DEBUG, _("Send ESP probes\n"));
 	esp_send_probes(vpninfo);
 
 	return 0;
