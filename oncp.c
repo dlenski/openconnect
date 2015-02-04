@@ -1486,6 +1486,17 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			break;
 		if (len < 0)
 			goto do_reconnect;
+		if (len == 3 && !followon &&
+		    vpninfo->cstp_pkt->oncp.hdr[0] == 0 &&
+		    vpninfo->cstp_pkt->oncp.hdr[1] == 0 &&
+		    vpninfo->cstp_pkt->oncp.hdr[2] == 1) {
+			/* This protocol is entirely fucked up. They appear to
+			 * send 00 00 01 to indicate the session expired. */
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("VPN session expired\n"));
+			vpninfo->quit_reason = "VPN session expired\n";
+			return -EPIPE;
+		}
 		if (len != 22 - followon) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to read KMP header from SSL stream; only %d bytes available of %d\n"),
