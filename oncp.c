@@ -122,6 +122,10 @@ static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_for
 		}
 		xmlnode_get_prop(node, "value", &opt->_value);
 		opt->type = OC_FORM_OPT_HIDDEN;
+	} else if (!strcasecmp(type, "checkbox")) {
+		opt->type = OC_FORM_OPT_HIDDEN;
+		xmlnode_get_prop(node, "name", &opt->name);
+		xmlnode_get_prop(node, "value", &opt->_value);
 	} else {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Ignoring unknown form input type '%s'\n"),
@@ -131,8 +135,16 @@ static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_for
 	}
 
 	/* Append to the existing list */
-	while (*p)
+	while (*p) {
+		if (!strcmp((*p)->name, opt->name)) {
+			vpn_progress(vpninfo, PRG_DEBUG,
+				     _("Discarding duplicate option '%s'\n"),
+				     opt->name);
+			free_opt(opt);
+			return 0;
+		}
 		p = &(*p)->next;
+	}
 	*p = opt;
 	return 0;
 }
