@@ -152,6 +152,8 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 	unsigned char type;
 	unsigned char applet_id[16], challenge[16];
 	unsigned char *applet_ver;
+	char *pin = NULL;
+	int pin_len = 0;
 
 	ret = yubikey_cmd(vpninfo, pcsc_card, PRG_DEBUG, _("select applet command"),
 			  appselect, sizeof(appselect), buf);
@@ -211,26 +213,33 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 
 			ret = process_auth_form(vpninfo, &f);
 			if (ret)
-				return ret;
-			if (!o._value)
-				return -EPERM;
+				goto out;
+			if (!o._value) {
+				ret = -EPERM;
+				goto out;
+			}
 
+			if (pin) {
+				memset(pin, 0, pin_len);
+				free(pin);
+			}
+			pin = o._value;
+			pin_len = strlen(pin);
 			/* XXX: What charset is the password in? Assuming UTF-8 because that's
 			   the only sane option, but see http://forum.yubico.com/viewtopic.php?f=26&t=1601 */
-			ret = openconnect_hash_yubikey_password(vpninfo, o._value, strlen(o._value),
+			ret = openconnect_hash_yubikey_password(vpninfo, o._value, pin_len,
 								applet_id, id_len);
 			if (ret)
-				return ret;
+				goto out;
 
 			vpninfo->yubikey_pw_set = 1;
-			memset(o._value, 0, strlen(o._value));
-			free(o._value);
 		}
 		if (openconnect_yubikey_chalresp(vpninfo, &challenge, chall_len,
 						  chalresp + 7)) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to calculate Yubikey unlock response\n"));
-			return -EIO;
+			ret = -EIO;
+			goto out;
 		}
 
 		chalresp[0] = 0;
@@ -252,10 +261,13 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 			vpninfo->yubikey_pw_set = 0;
 			goto retry;
 		}
-		if (ret)
-			return ret;
 	}
-	return 0;
+ out:
+	if (pin) {
+		memset(pin, 0, pin_len);
+		free(pin);
+	}
+	return ret;
 }
 
 #ifdef _WIN32
