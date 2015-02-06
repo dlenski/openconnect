@@ -1685,6 +1685,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				vpn_progress(vpninfo, PRG_TRACE,
 					     _("Sent ESP enable control packet\n"));
 				vpninfo->dtls_state = DTLS_CONNECTED;
+				work_done = 1;
 			}
 			free(vpninfo->current_ssl_pkt);
 		}
