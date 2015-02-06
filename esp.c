@@ -244,6 +244,7 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 	while (1) {
 		int len = vpninfo->ip_info.mtu + vpninfo->pkt_trailer;
+		int i;
 		struct pkt *pkt;
 
 		if (!vpninfo->dtls_pkt) {
@@ -299,8 +300,17 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				     pkt->data[len - 2]);
 			continue;
 		}
-		/* XXX: Actually check the padding bytes too. */
 		pkt->len = len - 2 - pkt->data[len - 2];
+		for (i = 0 ; i < pkt->data[len - 2]; i++) {
+			if (pkt->data[pkt->len + i] != i + 1)
+				break; /* We can't just 'continue' here because it
+					* would only break out of this 'for' loop */
+		}
+		if (i != pkt->data[len - 2]) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Invalid padding bytes in ESP\n"));
+			continue; /* We can here, though */
+		}
 		vpninfo->dtls_times.last_rx = time(NULL);
 
 		if (pkt->len  == 1 && pkt->data[0] == 0) {
