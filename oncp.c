@@ -1201,6 +1201,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	if (len < 0x16 || load_le16(bytes) + 2 != len) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Invalid packet waiting for KMP 301\n"));
+		buf_hexdump(vpninfo, bytes, len);
 		ret = -EINVAL;
 		goto out;
 	}
