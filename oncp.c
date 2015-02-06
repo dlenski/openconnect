@@ -514,7 +514,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 {
 	int ret, len, kmp, group;
 	struct oc_text_buf *reqbuf;
-	unsigned char bytes[1024];
+	unsigned char bytes[4096];
 	/* XXX: We should do what cstp_connect() does to check that configuration
 	   hasn't changed on a reconnect. */
 
