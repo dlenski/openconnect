@@ -871,14 +871,18 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		case AC_PKT_DISCONN: {
 			int i;
-			for (i = 1; i < payload_len; i++) {
-				if (!isprint(vpninfo->cstp_pkt->data[i]))
-					vpninfo->cstp_pkt->data[i] = '.';
+			if (payload_len >= 2) {
+				for (i = 1; i < payload_len; i++) {
+					if (!isprint(vpninfo->cstp_pkt->data[i]))
+						vpninfo->cstp_pkt->data[i] = '.';
+				}
+				vpninfo->cstp_pkt->data[payload_len] = 0;
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Received server disconnect: %02x '%s'\n"),
+					     vpninfo->cstp_pkt->data[0], vpninfo->cstp_pkt->data + 1);
+			} else {
+				vpn_progress(vpninfo, PRG_ERR, _("Received server disconnect\n"));
 			}
-			vpninfo->cstp_pkt->data[payload_len] = 0;
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Received server disconnect: %02x '%s'\n"),
-				     vpninfo->cstp_pkt->data[0], vpninfo->cstp_pkt->data + 1);
 			vpninfo->quit_reason = "Server request";
 			return -EPIPE;
 		}
