@@ -100,7 +100,7 @@ $(LIBXML2_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(LIBXML2_SRC)/configure
 	cd $(LIBXML2_BUILD) && ../../$(LIBXML2_SRC)/configure $(CONFIGURE_ARGS) \
 	    --without-c14n -without-catalog --without-debug --without-docbook \
 	    --without-fexceptions --without-ftp --without-history \
-	    --without-html --without-http --without-iconv --without-iconv \
+	    --without-http --without-iconv --without-iconv \
 	    --without-iso8859x --without-legacy --without-pattern \
 	    --without-push --without-regexps --without-run-debug \
 	    --without-sax1 --without-schemas --without-schematron \
