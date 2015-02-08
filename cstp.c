@@ -157,6 +157,22 @@ static void append_compr_types(struct oc_text_buf *buf, const char *proto, int a
 	}
 }
 
+static void append_mobile_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+{
+	if (vpninfo->mobile_platform_version) {
+		buf_append(buf, "X-AnyConnect-Identifier-ClientVersion: %s\r\n",
+			   openconnect_version_str);
+		buf_append(buf, "X-AnyConnect-Identifier-Platform: %s\r\n",
+			   vpninfo->platname);
+		buf_append(buf, "X-AnyConnect-Identifier-PlatformVersion: %s\r\n",
+			   vpninfo->mobile_platform_version);
+		buf_append(buf, "X-AnyConnect-Identifier-DeviceType: %s\r\n",
+			   vpninfo->mobile_device_type);
+		buf_append(buf, "X-AnyConnect-Identifier-Device-UniqueID: %s\r\n",
+			   vpninfo->mobile_device_uniqueid);
+	}
+}
+
 static int start_cstp_connection(struct openconnect_info *vpninfo)
 {
 	struct oc_text_buf *reqbuf;
@@ -196,6 +212,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	buf_append(reqbuf, "X-CSTP-Version: 1\r\n");
 	buf_append(reqbuf, "X-CSTP-Hostname: %s\r\n", vpninfo->localname);
 
+	append_mobile_headers(vpninfo, reqbuf);
 	append_compr_types(reqbuf, "CSTP", vpninfo->req_compr);
 
 	if (base_mtu)
@@ -1120,16 +1137,6 @@ void cstp_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 		buf_append(buf, "X-AnyConnect-Platform: %s\r\n",
 			   vpninfo->platname);
 	}
-	if (vpninfo->mobile_platform_version) {
-		buf_append(buf, "X-AnyConnect-Identifier-ClientVersion: %s\r\n",
-			   openconnect_version_str);
-		buf_append(buf, "X-AnyConnect-Identifier-Platform: %s\r\n",
-			   vpninfo->platname);
-		buf_append(buf, "X-AnyConnect-Identifier-PlatformVersion: %s\r\n",
-			   vpninfo->mobile_platform_version);
-		buf_append(buf, "X-AnyConnect-Identifier-DeviceType: %s\r\n",
-			   vpninfo->mobile_device_type);
-		buf_append(buf, "X-AnyConnect-Identifier-Device-UniqueID: %s\r\n",
-			   vpninfo->mobile_device_uniqueid);
-	}
+
+	append_mobile_headers(vpninfo, buf);
 }
