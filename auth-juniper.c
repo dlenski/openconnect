@@ -105,13 +105,19 @@ static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_for
 	} else if (!strcasecmp(type, "password")) {
 		opt->type = OC_FORM_OPT_PASSWORD;
 		xmlnode_get_prop(node, "name", &opt->name);
-		asprintf(&opt->label, "%s:", opt->name);
+		if (asprintf(&opt->label, "%s:", opt->name) == -1) {
+			free_opt(opt);
+			return -ENOMEM;
+		}
 		if (!oncp_can_gen_tokencode(vpninfo, form, opt))
 			opt->type = OC_FORM_OPT_TOKEN;
 	} else if (!strcasecmp(type, "text")) {
 		opt->type = OC_FORM_OPT_TEXT;
 		xmlnode_get_prop(node, "name", &opt->name);
-		asprintf(&opt->label, "%s:", opt->name);
+		if (asprintf(&opt->label, "%s:", opt->name) == -1) {
+			free_opt(opt);
+			return -ENOMEM;
+		}
 	} else if (!strcasecmp(type, "submit")) {
 		xmlnode_get_prop(node, "name", &opt->name);
 		if (!opt->name || strcmp(opt->name, submit_button)) {
