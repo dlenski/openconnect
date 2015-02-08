@@ -55,9 +55,10 @@ CONFIGURE_ARGS := --host=$(TRIPLET) --prefix=$(OC_SYSROOT) \
 
 SOURCE_LIST = $(LIBXML2_SRC)/configure $(GMP_SRC)/configure \
 	$(NETTLE_SRC)/configure $(GNUTLS_SRC)/configure \
-	$(STOKEN_SRC)/configure $(OATH_SRC)/configure
+	$(STOKEN_SRC)/configure $(OATH_SRC)/configure \
+	$(LZ4_DIR)/Makefile
 
-PKG_LIST := LIBXML2 OPENSSL GMP NETTLE GNUTLS STOKEN OATH
+PKG_LIST := LIBXML2 OPENSSL GMP NETTLE GNUTLS STOKEN OATH LZ4
 
 MIRROR_TEST_TARGETS := $(addprefix mirror-test-,$(PKG_LIST))
 
@@ -349,6 +350,36 @@ oath: $(OATH_DEPS)
 
 #####################################################################
 #
+# Build liblz4
+#
+LZ4_VER := r127
+LZ4_TAR := lz4-$(LZ4_VER).tar.gz
+LZ4_SHA1 := 1aa7d4bb62eb79f88b33f86f9890dc9f96797af5
+LZ4_DIR := $(TRIPLET)/lz4-$(LZ4_VER)
+
+$(LZ4_TAR):
+	$(FETCH) $@ $(LZ4_SHA1)
+
+$(LZ4_DIR)/Makefile: $(LZ4_TAR)
+	mkdir -p $(TRIPLET)
+	tar xzf $< -C $(TRIPLET)
+	touch $@
+
+$(OC_SYSROOT)/lib/liblz4.a: $(TOOLCHAIN_BUILT) $(LZ4_DIR)/Makefile
+	$(MAKE) -C $(LZ4_DIR)/lib \
+		CC="$(TRIPLET)-gcc $(EXTRA_CFLAGS)" \
+		AR="$(TRIPLET)-ar" \
+		LIBDIR=$(OC_SYSROOT)/lib \
+		INCLUDEDIR=$(OC_SYSROOT)/include \
+		install
+	rm -f $(OC_SYSROOT)/lib/liblz4.so*
+
+LZ4_DEPS := $(OC_SYSROOT)/lib/liblz4.a
+
+lz4: $(LZ4_DEPS)
+
+#####################################################################
+#
 # Build OpenConnect for Android
 #
 OPENCONNECT_SRC := ..
@@ -357,7 +388,8 @@ OPENCONNECT_BUILD := $(TRIPLET)/openconnect
 $(OPENCONNECT_SRC)/configure:
 	cd $(OPENCONNECT_SRC) && ./autogen.sh
 
-$(OPENCONNECT_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_DEPS) $(LIBXML_DEPS) $(STOKEN_DEPS) $(OATH_DEPS) $(OPENCONNECT_SRC)/configure
+$(OPENCONNECT_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_DEPS) $(LIBXML_DEPS) \
+		$(STOKEN_DEPS) $(OATH_DEPS) $(LZ4_DEPS) $(OPENCONNECT_SRC)/configure
 	mkdir -p $(OPENCONNECT_BUILD)
 	cd $(OPENCONNECT_BUILD) && ../../../configure \
 	--host=$(TRIPLET) --prefix=/ \

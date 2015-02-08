@@ -48,6 +48,8 @@ oath_toolkit_MIRROR_0=http://download.savannah.gnu.org/releases/oath-toolkit
 oath_toolkit_MIRROR_1=http://packetstorm.wowhacker.com/UNIX/utilities
 oath_toolkit_MIRROR_2=ftp://ftp.netbsd.org/pub/pkgsrc/distfiles
 
+lz4_MIRROR_0=https://github.com/Cyan4973/lz4/archive
+
 MAX_TRIES=5
 
 function make_url
@@ -71,7 +73,14 @@ function make_url
 		return
 	fi
 
-	echo "${mirror_base}/${tarball}${mirror_suffix}"
+	if [[ "${mirror_base}" = *//github.com*/archive* ]]; then
+		# typical format: https://github.com/USER/PKG/archive/TAG.tar.gz
+		echo "${mirror_base}/${tarball#*-}"
+	else
+		# typical format: http://.../PKG-TAG.tar.gz
+		echo "${mirror_base}/${tarball}${mirror_suffix}"
+	fi
+
 	return
 
 }
