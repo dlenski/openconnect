@@ -239,9 +239,15 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 	if (vpninfo->ifname)
 		ifreq_set_ifname(vpninfo, &ifr);
 	if (ioctl(tun_fd, TUNSETIFF, (void *) &ifr) < 0) {
+		int err = errno;
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("TUNSETIFF failed: %s\n"),
-			     strerror(errno));
+			     _("Failed to bind local tun device (TUNSETIFF): %s\n"),
+			     strerror(err));
+		if (err == EPERM) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("To configure local networking, openconnect must be running as root\n"
+				       "See http://www.infradead.org/openconnect/nonroot.html for more information\n"));
+		}
 		close(tun_fd);
 		return -EIO;
 	}

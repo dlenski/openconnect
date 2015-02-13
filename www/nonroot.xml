@@ -10,20 +10,63 @@
 
 <h1>Running as non-root user</h1>
 
-<p>There are two ways that OpenConnect can run without root
-privileges. The first is that it can use a tun device which is created
-and configured in advance by the root user, and set to be owned by the
-user who runs OpenConnect. NetworkManager uses OpenConnect in this mode.</p>
+<p>Under normal circumstances OpenConnect needs to be run as the root user.
+If it cannot create the local <tt>tun</tt> network interface, you will see
+an error such as:
+<pre>  Failed to bind (TUNSETIFF) tun device: Operation not permitted</pre>
+or in older versions, "<tt>TUNSETIFF failed: Operation not permitted</tt>".
+The simple fix for this problem is, of course, to run OpenConnect as root.
+</p>
+<p>For security reasons, it is better if network-facing code can run
+without root privileges — and there are a few options which allow OpenConnect
+to run as an unprivileged user instead.</p>
 
-<p>The second is that it can avoid using the tun device altogether and
-instead spawn a user-supplied program, passing all data traffic
-through a UNIX socket to that program.  This latter option can be used
-in conjunction with a userspace TCP stack such as <a
-href="http://savannah.nongnu.org/projects/lwip/">lwip</a> to provide
-SOCKS access to the VPN without giving full access to all untrusted
-users and processes on the computer, and without requiring root
-privileges at all.  <a href="http://repo.or.cz/w/ocproxy.git">ocproxy</a>
-is one such implementation.</p>
+<h2>Pre-configured <tt>tun</tt> device</h2>
+
+<p>On Linux, it's possible to create its <tt>tun</tt> device in advance.
+For example:</p>
+<pre>
+# ip tuntap add vpn0 mode tun user dwmw2
+</pre>
+<p>This creates a device <tt>vpn0</tt> which can be opened by user <tt>dwmw2</tt>
+who can pass traffic to/from it without needing any elevated privileges. You
+can now tell OpenConnect to use that device by adding "<tt>-i vpn0</tt>" to
+its command-line arguments. Note that the <tt>/dev/net/tun</tt> device node
+should be readable and writeable by everyone. <i>(Some distributions misconfigure
+that, so if it isn't world-writeable then please file a bug against your
+distribution.)</i></p>
+
+<p>Of course, something does also need to <em>configure</em> the IP addresses
+and routing. You could either add "<tt>-s /bin/true</tt>" to OpenConnect's
+command line to stop it trying to run vpnc-script for itself, and manually
+configure the network as root too. Or you could use
+"<tt>-s 'sudo -E /etc/vpnc/vpnc-script'</tt>" so that OpenConnect itself
+runs without elevated privileges but can still invoke <tt>vpnc-script</tt>
+as root. Note the <tt>-E</tt> part which ensures the environment variables
+with the configuration are actually passed through to <tt>vpnc-script</tt>.</p>
+
+<p>NetworkManager usually has a dedicated unprivileged user <tt>nm-openconnect</tt>
+and runs OpenConnect as that user, having pre-created the <tt>tun</tt> device for it.
+OpenConnect then invokes a "vpnc-script" provided by NetworkManager which just
+passes all the configuration back to NetworkManager over DBus.</p>
+
+<h2>SOCKS / port-forwarding proxy</h2>
+
+<p>An alternative option which doesn't require any root access
+at all, is simply <em>not</em> to create the <tt>tun</tt> device and
+modify the system's network configuration.  Instead, OpenConnect can
+spawn a user-supplied program, passing all data traffic through a UNIX
+socket to that program.</p>
+<p>This option can be used in conjunction with a userspace TCP stack
+such as <a href="http://savannah.nongnu.org/projects/lwip/">lwip</a>
+to provide SOCKS access to the VPN, without requiring root privileges
+at all.</p>
+<p>SOCKS proxy implementions suitable for being used from OpenConnect
+include:</p>
+<ul>
+  <li><a href="https://github.com/cernekee/ocproxy">ocproxy</a></li>
+  <li><a href="https://github.com/russdill/tunsocks">tunsocks</a></li>
+</ul>
 
 <INCLUDE file="inc/footer.tmpl" />
 </PAGE>
