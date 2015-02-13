@@ -255,6 +255,29 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 		}
 		break;
 	}
+
+	case GRP_ATTR(3, 4): {
+		struct oc_split_include *exc;
+		if (attrlen != 8)
+			goto badlen;
+		snprintf(buf, sizeof(buf), "%d.%d.%d.%d/%d.%d.%d.%d",
+			 data[0], data[1], data[2], data[3],
+			 data[4], data[5], data[6], data[7]);
+		vpn_progress(vpninfo, PRG_DEBUG, _("Received split exclude route %s\n"), buf);
+		if (!data[4] && !data[5] && !data[6] && !data[7])
+			break;
+		exc = malloc(sizeof(*exc));
+		if (exc) {
+			exc->route = add_option(vpninfo, "split-exclude", buf, -1);
+			if (exc->route) {
+				exc->next = vpninfo->ip_info.split_excludes;
+				vpninfo->ip_info.split_excludes = exc;
+			} else
+				free(exc);
+		}
+		break;
+	}
+
 	case GRP_ATTR(4, 1):
 		if (attrlen != 4)
 			goto badlen;
