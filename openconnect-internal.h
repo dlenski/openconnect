@@ -501,7 +501,6 @@ struct openconnect_info {
 #if defined(DTLS_OPENSSL)
 	SSL_CTX *dtls_ctx;
 	SSL *dtls_ssl;
-	SSL_SESSION *dtls_session;
 #elif defined(DTLS_GNUTLS)
 	/* Call this dtls_ssl rather than dtls_sess because it's just a
 	   pointer, and generic code in dtls.c wants to check if it's

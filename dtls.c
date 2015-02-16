@@ -100,6 +100,7 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 {
 	STACK_OF(SSL_CIPHER) *ciphers;
 	method_const SSL_METHOD *dtls_method;
+	SSL_SESSION *dtls_session;
 	SSL_CIPHER *dtls_cipher;
 	SSL *dtls_ssl;
 	BIO *dtls_bio;
@@ -129,25 +130,22 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 		}
 	}
 
-	if (!vpninfo->dtls_session) {
-		/* We're going to "resume" a session which never existed. Fake it... */
-		vpninfo->dtls_session = SSL_SESSION_new();
-		if (!vpninfo->dtls_session) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Initialise DTLSv1 session failed\n"));
-			vpninfo->dtls_attempt_period = 0;
-			return -EINVAL;
-		}
-		vpninfo->dtls_session->ssl_version = 0x0100; /* DTLS1_BAD_VER */
+	/* We're going to "resume" a session which never existed. Fake it... */
+	dtls_session = SSL_SESSION_new();
+	if (!dtls_session) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Initialise DTLSv1 session failed\n"));
+		vpninfo->dtls_attempt_period = 0;
+		return -EINVAL;
 	}
 
-	/* Do this every time; it may have changed due to a rekey */
-	vpninfo->dtls_session->master_key_length = sizeof(vpninfo->dtls_secret);
-	memcpy(vpninfo->dtls_session->master_key, vpninfo->dtls_secret,
+	dtls_session->ssl_version = 0x0100; /* DTLS1_BAD_VER */
+	dtls_session->master_key_length = sizeof(vpninfo->dtls_secret);
+	memcpy(dtls_session->master_key, vpninfo->dtls_secret,
 	       sizeof(vpninfo->dtls_secret));
 
-	vpninfo->dtls_session->session_id_length = sizeof(vpninfo->dtls_session_id);
-	memcpy(vpninfo->dtls_session->session_id, vpninfo->dtls_session_id,
+	dtls_session->session_id_length = sizeof(vpninfo->dtls_session_id);
+	memcpy(dtls_session->session_id, vpninfo->dtls_session_id,
 	       sizeof(vpninfo->dtls_session_id));
 
 	dtls_ssl = SSL_new(vpninfo->dtls_ctx);
@@ -158,29 +156,31 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 		vpn_progress(vpninfo, PRG_ERR, _("Not precisely one DTLS cipher\n"));
 		SSL_CTX_free(vpninfo->dtls_ctx);
 		SSL_free(dtls_ssl);
-		SSL_SESSION_free(vpninfo->dtls_session);
+		SSL_SESSION_free(dtls_session);
 		vpninfo->dtls_ctx = NULL;
-		vpninfo->dtls_session = NULL;
 		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
 	dtls_cipher = sk_SSL_CIPHER_value(ciphers, 0);
 
 	/* Set the appropriate cipher on our session to be resumed */
-	vpninfo->dtls_session->cipher = dtls_cipher;
-	vpninfo->dtls_session->cipher_id = dtls_cipher->id;
+	dtls_session->cipher = dtls_cipher;
+	dtls_session->cipher_id = dtls_cipher->id;
 
 	/* Add the generated session to the SSL */
-	if (!SSL_set_session(dtls_ssl, vpninfo->dtls_session)) {
+	if (!SSL_set_session(dtls_ssl, dtls_session)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("SSL_set_session() failed with old protocol version 0x%x\n"
 			       "Are you using a version of OpenSSL older than 0.9.8m?\n"
 			       "See http://rt.openssl.org/Ticket/Display.html?id=1751\n"
 			       "Use the --no-dtls command line option to avoid this message\n"),
-			     vpninfo->dtls_session->ssl_version);
+			     dtls_session->ssl_version);
 		vpninfo->dtls_attempt_period = 0;
+		SSL_SESSION_free(dtls_session);
 		return -EINVAL;
 	}
+	/* We don't need our own refcount on it any more */
+	SSL_SESSION_free(dtls_session);
 
 	dtls_bio = BIO_new_socket(dtls_fd, BIO_NOCLOSE);
 	/* Set non-blocking */
@@ -298,7 +298,6 @@ void dtls_shutdown(struct openconnect_info *vpninfo)
 {
 	dtls_close(vpninfo);
 	SSL_CTX_free(vpninfo->dtls_ctx);
-	SSL_SESSION_free(vpninfo->dtls_session);
 }
 
 #elif defined(DTLS_GNUTLS)
