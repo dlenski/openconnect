@@ -539,7 +539,6 @@ if test "$esp" = "openssl"; then
 fi
 LIBS="${oldLIBS}"
 CFLAGS="${oldCFLAGS}"
-echo ESP now $esp
 AM_CONDITIONAL(OPENCONNECT_GNUTLS,  [ test "$ssl_library" != "openssl" ])
 AM_CONDITIONAL(OPENCONNECT_OPENSSL, [ test "$ssl_library" = "openssl" ])
 AM_CONDITIONAL(ESP_GNUTLS, [ test "$esp" = "gnutls" ])
