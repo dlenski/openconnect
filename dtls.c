@@ -130,6 +130,20 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 		}
 	}
 
+	dtls_ssl = SSL_new(vpninfo->dtls_ctx);
+	SSL_set_connect_state(dtls_ssl);
+
+	ciphers = SSL_get_ciphers(dtls_ssl);
+	if (sk_SSL_CIPHER_num(ciphers) != 1) {
+		vpn_progress(vpninfo, PRG_ERR, _("Not precisely one DTLS cipher\n"));
+		SSL_CTX_free(vpninfo->dtls_ctx);
+		SSL_free(dtls_ssl);
+		vpninfo->dtls_ctx = NULL;
+		vpninfo->dtls_attempt_period = 0;
+		return -EINVAL;
+	}
+	dtls_cipher = sk_SSL_CIPHER_value(ciphers, 0);
+
 	/* We're going to "resume" a session which never existed. Fake it... */
 	dtls_session = SSL_SESSION_new();
 	if (!dtls_session) {
@@ -148,22 +162,6 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 	memcpy(dtls_session->session_id, vpninfo->dtls_session_id,
 	       sizeof(vpninfo->dtls_session_id));
 
-	dtls_ssl = SSL_new(vpninfo->dtls_ctx);
-	SSL_set_connect_state(dtls_ssl);
-
-	ciphers = SSL_get_ciphers(dtls_ssl);
-	if (sk_SSL_CIPHER_num(ciphers) != 1) {
-		vpn_progress(vpninfo, PRG_ERR, _("Not precisely one DTLS cipher\n"));
-		SSL_CTX_free(vpninfo->dtls_ctx);
-		SSL_free(dtls_ssl);
-		SSL_SESSION_free(dtls_session);
-		vpninfo->dtls_ctx = NULL;
-		vpninfo->dtls_attempt_period = 0;
-		return -EINVAL;
-	}
-	dtls_cipher = sk_SSL_CIPHER_value(ciphers, 0);
-
-	/* Set the appropriate cipher on our session to be resumed */
 	dtls_session->cipher = dtls_cipher;
 	dtls_session->cipher_id = dtls_cipher->id;
 
