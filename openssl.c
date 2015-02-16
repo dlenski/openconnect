@@ -33,7 +33,8 @@
 #include <openssl/x509v3.h>
 #include <openssl/x509.h>
 #include <openssl/bio.h>
-
+#include <openssl/ui.h>
+#include <openssl/rsa.h>
 
 int openconnect_sha1(unsigned char *result, void *data, int len)
 {
