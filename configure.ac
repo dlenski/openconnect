@@ -530,6 +530,18 @@ if test "$check_openssl_dtls" = "yes"; then
 See http://rt.openssl.org/Ticket/Display.html?id=2984&user=guest&pass=guest
 Add --without-openssl-version-check to configure args to avoid this check, or
 perhaps consider building with GnuTLS instead.])])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],[#if \
+				    (OPENSSL_VERSION_NUMBER == 0x1000200fL)
+				#error Bad OpenSSL
+				#endif
+				])],
+			  [AC_MSG_RESULT(no)],
+			  [AC_MSG_RESULT(yes)
+			   AC_ERROR([This version of OpenSSL is known to be broken with Cisco DTLS.
+See https://mta.openssl.org/pipermail/openssl-dev/2015-February/000698.html
+and https://mta.openssl.org/pipermail/openssl-dev/2015-February/000710.html
+Add --without-openssl-version-check to configure args to avoid this check, or
+perhaps consider building with GnuTLS instead.])])
 fi
 if test "$esp" = "openssl"; then
     AC_CHECK_FUNC(HMAC_CTX_copy,
