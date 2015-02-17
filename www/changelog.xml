@@ -18,6 +18,7 @@
        <li>Work around Yubikey <a href="http://forum.yubico.com/viewtopic.php?f=26&amp;t=1601#p6807">issue</a> with non-ASCII passphrase set on pre-KitKat Android.</li>
        <li>Add SHA256/SHA512 support for OATH.</li>
        <li>Remove liboath dependency.</li>
+       <li>Fix build with OpenSSL HEAD <i>(OpenSSL 1.1.x)</i></li>
        <li>Preliminary support for Juniper SSL VPN.</li>
      </ul><br/>
   </li>

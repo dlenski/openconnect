@@ -96,6 +96,97 @@ int RAND_bytes(char *buf, int len)
 extern void dtls1_stop_timer(SSL *);
 #endif
 
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+/* Since OpenSSL 1.1, the SSL_SESSION structure is opaque and we can't
+ * just fill it in directly. So we have to generate the OpenSSL ASN.1
+ * ASN.1 representation of the SSL_SESSION, and use d2i_SSL_SESSION()
+ * to create the SSL_SESSION from that. */
+
+static void buf_append_INTEGER(struct oc_text_buf *buf, uint32_t datum)
+{
+	int l;
+
+	if (datum < 0x100)
+		l = 1;
+	else if (datum < 0x10000)
+		l = 2;
+	else if (datum < 0x1000000)
+		l = 3;
+	else
+		l = 4;
+
+	if (buf_ensure_space(buf, 2 + l))
+		return;
+
+	buf->data[buf->pos++] = 0x02;
+	buf->data[buf->pos++] = l;
+	while (l--)
+		buf->data[buf->pos++] = datum >> (l * 8);
+}
+
+static void buf_append_OCTET_STRING(struct oc_text_buf *buf, void *data, int len)
+{
+	/* We only (need to) cope with length < 0x80 for now */
+	if (len >= 0x80) {
+		buf->error = -EINVAL;
+		return;
+	}
+
+	if (buf_ensure_space(buf, 2 + len))
+		return;
+
+	buf->data[buf->pos++] = 0x04;
+	buf->data[buf->pos++] = len;
+	memcpy(buf->data + buf->pos, data, len);
+	buf->pos += len;
+}
+
+static SSL_SESSION *generate_dtls_session(struct openconnect_info *vpninfo,
+					  SSL_CIPHER *cipher)
+{
+	struct oc_text_buf *buf = buf_alloc();
+	SSL_SESSION *dtls_session;
+	const unsigned char *asn;
+	uint16_t cid;
+
+	buf_append_bytes(buf, "\x30\x80", 2); // SEQUENCE, indeterminate length
+	buf_append_INTEGER(buf, 1 /* SSL_SESSION_ASN1_VERSION */);
+	buf_append_INTEGER(buf, DTLS1_BAD_VER);
+	store_be16(&cid, SSL_CIPHER_get_id(cipher) & 0xffff);
+	buf_append_OCTET_STRING(buf, &cid, 2);
+	buf_append_OCTET_STRING(buf, vpninfo->dtls_session_id,
+				sizeof(vpninfo->dtls_session_id));
+	buf_append_OCTET_STRING(buf, vpninfo->dtls_secret,
+				sizeof(vpninfo->dtls_secret));
+	/* If the length actually fits in one byte (which it should), do
+	 * it that way.  Else, leave it indeterminate and add two
+	 * end-of-contents octets to mark the end of the SEQUENCE. */
+	if (!buf_error(buf) && buf->pos <= 0x80)
+		buf->data[1] = buf->pos - 2;
+	else
+		buf_append_bytes(buf, "\0\0", 2);
+
+	if (buf_error(buf)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to create SSL_SESSION ASN.1 for OpenSSL: %s\n"),
+			     strerror(buf_error(buf)));
+		buf_free(buf);
+		return NULL;
+	}
+
+	asn = (void *)buf->data;
+	dtls_session = d2i_SSL_SESSION(NULL, &asn, buf->pos);
+	buf_free(buf);
+	if (!dtls_session) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("OpenSSL failed to parse SSL_SESSION ASN.1\n"));
+		openconnect_report_ssl_errors(vpninfo);
+		return NULL;
+	}
+
+	return dtls_session;
+}
+#else /* OpenSSL before 1.1 */
 static SSL_SESSION *generate_dtls_session(struct openconnect_info *vpninfo,
 					  SSL_CIPHER *cipher)
 {
@@ -120,6 +211,7 @@ static SSL_SESSION *generate_dtls_session(struct openconnect_info *vpninfo,
 
 	return dtls_session;
 }
+#endif
 
 static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 {
