@@ -1275,6 +1275,12 @@ static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
 	return ret;
 }
 
+/* Before OpenSSL 1.1 we could do this directly. And needed to. */
+#ifndef SSL_CTX_get_extra_chain_certs_only
+#define SSL_CTX_get_extra_chain_certs_only(ctx, st) \
+	do { *(st) = (ctx)->extra_certs; } while(0)
+#endif
+
 static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 					     SSL *ssl)
 {
@@ -1286,12 +1292,14 @@ static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 	X509 *cert2;
 	X509_STORE *store = SSL_CTX_get_cert_store(vpninfo->https_ctx);
 	X509_STORE_CTX ctx;
+	void *extra_certs;
 
 	if (!cert || !store)
 		return;
 
 	/* If we already have 'supporting' certs, don't add them again */
-	if (vpninfo->https_ctx->extra_certs)
+	SSL_CTX_get_extra_chain_certs_only(vpninfo->https_ctx, &extra_certs);
+	if (extra_certs)
 		return;
 
 	if (!X509_STORE_CTX_init(&ctx, store, NULL, NULL))
