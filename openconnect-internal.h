@@ -758,7 +758,7 @@ void cstp_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 int cstp_connect(struct openconnect_info *vpninfo);
 int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int cstp_bye(struct openconnect_info *vpninfo, const char *reason);
-int decompress_and_queue_packet(struct openconnect_info *vpninfo,
+int decompress_and_queue_packet(struct openconnect_info *vpninfo, int compr_type,
 				unsigned char *buf, int len);
 int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt *this);
 

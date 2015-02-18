@@ -786,8 +786,8 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 					     _("Compressed DTLS packet received when compression not enabled\n"));
 				goto unknown_pkt;
 			}
-			decompress_and_queue_packet(vpninfo, vpninfo->dtls_pkt->data,
-						    len - 1);
+			decompress_and_queue_packet(vpninfo, vpninfo->dtls_compr,
+						    vpninfo->dtls_pkt->data, len - 1);
 			break;
 		default:
 			vpn_progress(vpninfo, PRG_ERR,
