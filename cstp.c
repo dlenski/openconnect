@@ -129,8 +129,13 @@ static void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *
 		*mtu = 1280;
 }
 
-/* if DTLS 1.2 is supported */
+/* For OpenSSL the configure script detects DTLS 1.2 support.
+ * For GnuTLS just check for v3.2.0+ */
 #if defined(DTLS_GNUTLS) && GNUTLS_VERSION_NUMBER >= 0x030200
+#define HAVE_DTLS12 1
+#endif
+
+#ifdef HAVE_DTLS12
 # define DEFAULT_CIPHER_LIST "OC-DTLS1_2-AES256-GCM:OC-DTLS1_2-AES128-GCM:AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA"
 #else
 # define DEFAULT_CIPHER_LIST "AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA"

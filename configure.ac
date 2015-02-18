@@ -930,7 +930,14 @@ if test "$ssl_library" = "openssl" || test "$ssl_library" = "both"; then
 		   [AC_MSG_RESULT(yes)
 		    AC_DEFINE(HAVE_DTLS1_STOP_TIMER, [1], [OpenSSL has dtls1_stop_timer() function])],
 		   [AC_MSG_RESULT(no)])
-    LIBS="$oldLIBS"
+
+    AC_MSG_CHECKING([for DTLSv1_2_client_method() in OpenSSL])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <openssl/ssl.h>],
+				    [DTLSv1_2_client_method();])],
+		   [AC_MSG_RESULT(yes)
+		    AC_DEFINE(HAVE_DTLS12, [1], [OpenSSL has DTLSv1_2_client_method() function])],
+		   [AC_MSG_RESULT(no)])
+LIBS="$oldLIBS"
     CFLAGS="$oldCFLAGS"
 fi
 

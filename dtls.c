@@ -90,6 +90,14 @@ int RAND_bytes(char *buf, int len)
 #define DTLS_RECV SSL_read
 #define DTLS_FREE SSL_free
 
+/* In the very early days there were cases where this wasn't found in
+ * the header files but it did still work somehow. I forget the details
+ * now but I was definitely avoiding using the macro. Let's just define
+ * it for ourselves instead.*/
+#ifndef DTLS1_BAD_VER
+#define DTLS1_BAD_VER 0x100
+#endif
+
 #ifdef HAVE_DTLS1_STOP_TIMER
 /* OpenSSL doesn't deliberately export this, but we need it to
    workaround a DTLS bug in versions < 1.0.0e */
@@ -143,7 +151,7 @@ static void buf_append_OCTET_STRING(struct oc_text_buf *buf, void *data, int len
 }
 
 static SSL_SESSION *generate_dtls_session(struct openconnect_info *vpninfo,
-					  SSL_CIPHER *cipher)
+					  int dtlsver, SSL_CIPHER *cipher)
 {
 	struct oc_text_buf *buf = buf_alloc();
 	SSL_SESSION *dtls_session;
@@ -152,7 +160,7 @@ static SSL_SESSION *generate_dtls_session(struct openconnect_info *vpninfo,
 
 	buf_append_bytes(buf, "\x30\x80", 2); // SEQUENCE, indeterminate length
 	buf_append_INTEGER(buf, 1 /* SSL_SESSION_ASN1_VERSION */);
-	buf_append_INTEGER(buf, DTLS1_BAD_VER);
+	buf_append_INTEGER(buf, dtlsver);
 	store_be16(&cid, SSL_CIPHER_get_id(cipher) & 0xffff);
 	buf_append_OCTET_STRING(buf, &cid, 2);
 	buf_append_OCTET_STRING(buf, vpninfo->dtls_session_id,
@@ -189,7 +197,7 @@ static SSL_SESSION *generate_dtls_session(struct openconnect_info *vpninfo,
 }
 #else /* OpenSSL before 1.1 */
 static SSL_SESSION *generate_dtls_session(struct openconnect_info *vpninfo,
-					  SSL_CIPHER *cipher)
+					  int dtlsver, SSL_CIPHER *cipher)
 {
 	SSL_SESSION *dtls_session = SSL_SESSION_new();
 	if (!dtls_session) {
@@ -198,7 +206,7 @@ static SSL_SESSION *generate_dtls_session(struct openconnect_info *vpninfo,
 		return NULL;
 	}
 
-	dtls_session->ssl_version = 0x0100; /* DTLS1_BAD_VER */
+	dtls_session->ssl_version = dtlsver;
 	dtls_session->master_key_length = sizeof(vpninfo->dtls_secret);
 	memcpy(dtls_session->master_key, vpninfo->dtls_secret,
 	       sizeof(vpninfo->dtls_secret));
@@ -221,9 +229,27 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 	SSL_SESSION *dtls_session;
 	SSL *dtls_ssl;
 	BIO *dtls_bio;
+	int dtlsver = DTLS1_BAD_VER;
+	const char *cipher = vpninfo->dtls_cipher;
+
+#ifdef HAVE_DTLS12
+	if (!strcmp(cipher, "OC-DTLS1_2-AES128-GCM")) {
+		dtlsver = DTLS1_2_VERSION;
+		cipher = "AES128-GCM-SHA256";
+	} else if (!strcmp(cipher, "OC-DTLS1_2-AES256-GCM")) {
+		dtlsver = DTLS1_2_VERSION;
+		cipher = "AES256-GCM-SHA384";
+	}
+#endif
 
 	if (!vpninfo->dtls_ctx) {
-		dtls_method = DTLSv1_client_method();
+#ifdef HAVE_DTLS12
+		if (dtlsver == DTLS1_2_VERSION)
+			dtls_method = DTLSv1_2_client_method();
+		else
+#endif
+			dtls_method = DTLSv1_client_method();
+
 		vpninfo->dtls_ctx = SSL_CTX_new(dtls_method);
 		if (!vpninfo->dtls_ctx) {
 			vpn_progress(vpninfo, PRG_ERR,
@@ -237,7 +263,7 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 		   away the tail of data packets. */
 		SSL_CTX_set_read_ahead(vpninfo->dtls_ctx, 1);
 
-		if (!SSL_CTX_set_cipher_list(vpninfo->dtls_ctx, vpninfo->dtls_cipher)) {
+		if (!SSL_CTX_set_cipher_list(vpninfo->dtls_ctx, cipher)) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Set DTLS cipher list failed\n"));
 			SSL_CTX_free(vpninfo->dtls_ctx);
@@ -261,7 +287,8 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 	}
 
 	/* We're going to "resume" a session which never existed. Fake it... */
-	dtls_session = generate_dtls_session(vpninfo, sk_SSL_CIPHER_value(ciphers, 0));
+	dtls_session = generate_dtls_session(vpninfo, dtlsver,
+					     sk_SSL_CIPHER_value(ciphers, 0));
 	if (!dtls_session) {
 		SSL_CTX_free(vpninfo->dtls_ctx);
 		SSL_free(dtls_ssl);
@@ -277,7 +304,7 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 			       "Are you using a version of OpenSSL older than 0.9.8m?\n"
 			       "See http://rt.openssl.org/Ticket/Display.html?id=1751\n"
 			       "Use the --no-dtls command line option to avoid this message\n"),
-			     0x100);
+			     DTLS1_BAD_VER);
 		SSL_CTX_free(vpninfo->dtls_ctx);
 		SSL_free(dtls_ssl);
 		vpninfo->dtls_ctx = NULL;
@@ -293,7 +320,8 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 	BIO_set_nbio(dtls_bio, 1);
 	SSL_set_bio(dtls_ssl, dtls_bio, dtls_bio);
 
-	SSL_set_options(dtls_ssl, SSL_OP_CISCO_ANYCONNECT);
+	if (dtlsver == DTLS1_BAD_VER)
+		SSL_set_options(dtls_ssl, SSL_OP_CISCO_ANYCONNECT);
 
 	vpninfo->dtls_ssl = dtls_ssl;
 
