@@ -106,11 +106,12 @@ static void buf_append_INTEGER(struct oc_text_buf *buf, uint32_t datum)
 {
 	int l;
 
-	if (datum < 0x100)
+	/* We only handle positive integers up to INT_MAX */
+	if (datum < 0x80)
 		l = 1;
-	else if (datum < 0x10000)
+	else if (datum < 0x8000)
 		l = 2;
-	else if (datum < 0x1000000)
+	else if (datum < 0x800000)
 		l = 3;
 	else
 		l = 4;
