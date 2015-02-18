@@ -107,8 +107,8 @@ extern void dtls1_stop_timer(SSL *);
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
 /* Since OpenSSL 1.1, the SSL_SESSION structure is opaque and we can't
  * just fill it in directly. So we have to generate the OpenSSL ASN.1
- * ASN.1 representation of the SSL_SESSION, and use d2i_SSL_SESSION()
- * to create the SSL_SESSION from that. */
+ * representation of the SSL_SESSION, and use d2i_SSL_SESSION() to
+ * create the SSL_SESSION from that. */
 
 static void buf_append_INTEGER(struct oc_text_buf *buf, uint32_t datum)
 {
