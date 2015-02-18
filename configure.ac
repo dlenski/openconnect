@@ -538,8 +538,8 @@ perhaps consider building with GnuTLS instead.])])
 			  [AC_MSG_RESULT(no)],
 			  [AC_MSG_RESULT(yes)
 			   AC_ERROR([This version of OpenSSL is known to be broken with Cisco DTLS.
-See https://mta.openssl.org/pipermail/openssl-dev/2015-February/000698.html
-and https://mta.openssl.org/pipermail/openssl-dev/2015-February/000710.html
+See http://rt.openssl.org/Ticket/Display.html?id=3703&user=guest&pass=guest
+and http://rt.openssl.org/Ticket/Display.html?id=3711&user=guest&pass=guest
 Add --without-openssl-version-check to configure args to avoid this check, or
 perhaps consider building with GnuTLS instead.])])
 fi
