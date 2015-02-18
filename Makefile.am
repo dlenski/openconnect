@@ -85,7 +85,7 @@ else
 LT_VER_ARG = -version-number
 endif
 libopenconnect_la_LDFLAGS = $(LT_VER_ARG) @APIMAJOR@:@APIMINOR@ -no-undefined
-noinst_HEADERS = openconnect-internal.h openconnect.h gnutls.h
+noinst_HEADERS = openconnect-internal.h openconnect.h gnutls.h lzo.h
 include_HEADERS = openconnect.h
 if HAVE_VSCRIPT
 libopenconnect_la_LDFLAGS += @VSCRIPT_LDFLAGS@,libopenconnect.map
