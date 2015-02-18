@@ -218,7 +218,7 @@ int encrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt)
 	}
 
 	HMAC_CTX_copy(&hmac_ctx, &vpninfo->esp_out.hmac);
-	HMAC_Update(&hmac_ctx, (void *)&pkt->esp, sizeof(pkt->esp) + pkt->len);
+	HMAC_Update(&hmac_ctx, (void *)&pkt->esp, sizeof(pkt->esp) + crypt_len);
 	HMAC_Final(&hmac_ctx, pkt->data + crypt_len, &hmac_len);
 	HMAC_CTX_cleanup(&hmac_ctx);
 
