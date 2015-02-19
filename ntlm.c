@@ -255,7 +255,7 @@ static int ntlm_helper_challenge(struct openconnect_info *vpninfo, struct oc_tex
 
 void cleanup_ntlm_auth(struct openconnect_info *vpninfo)
 {
-	if (vpninfo->auth[AUTH_TYPE_NTLM].state == NTLM_SSO_REQ) {
+	if (vpninfo->ntlm_helper_fd != -1) {
 		close(vpninfo->ntlm_helper_fd);
 		vpninfo->ntlm_helper_fd = -1;
 	}
