@@ -113,7 +113,7 @@ int gssapi_authorization(struct openconnect_info *vpninfo, int proxy,
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("InitializeSecurityContext() failed: %lx\n"), status);
 	fail_gssapi:
-		cleanup_gssapi_auth(vpninfo);
+		cleanup_gssapi_auth(vpninfo, proxy, auth_state);
 		auth_state->state = AUTH_FAILED;
 		/* -EAGAIN to first a reconnect if we had been trying. Else -EIO */
 		return first ? -EIO : -EAGAIN;
@@ -128,9 +128,11 @@ int gssapi_authorization(struct openconnect_info *vpninfo, int proxy,
 	return 0;
 }
 
-void cleanup_gssapi_auth(struct openconnect_info *vpninfo)
+void cleanup_gssapi_auth(struct openconnect_info *vpninfo, int proxy,
+			 struct http_auth_state *auth_state)
+
 {
-	if (vpninfo->proxy_auth[AUTH_TYPE_GSSAPI].state >= AUTH_IN_PROGRESS) {
+	if (auth_state->state >= AUTH_IN_PROGRESS) {
 		free(vpninfo->sspi_target_name);
 		vpninfo->sspi_target_name = NULL;
 		FreeCredentialsHandle(&vpninfo->sspi_cred);
@@ -418,7 +420,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 	}
 
  err:
-	cleanup_gssapi_auth(vpninfo);
+	cleanup_gssapi_auth(vpninfo, 1, &vpninfo->proxy_auth[AUTH_TYPE_GSSAPI]);
 	vpninfo->proxy_auth[AUTH_TYPE_GSSAPI].state = AUTH_UNSEEN;
 	free(pktbuf);
 

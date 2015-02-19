@@ -125,9 +125,10 @@ static int ntlm_helper_challenge(struct openconnect_info *vpninfo,
 	return ntlm_sspi(vpninfo, buf, auth_state->challenge);
 }
 
-void cleanup_ntlm_auth(struct openconnect_info *vpninfo)
+void cleanup_ntlm_auth(struct openconnect_info *vpninfo, int proxy,
+		       struct http_auth_state *auth_state)
 {
-	if (vpninfo->proxy_auth[AUTH_TYPE_NTLM].state == NTLM_SSO_REQ) {
+	if (auth_state->state == NTLM_SSO_REQ) {
 		FreeCredentialsHandle(&vpninfo->ntlm_sspi_cred);
 		DeleteSecurityContext(&vpninfo->ntlm_sspi_ctx);
 	}
@@ -257,7 +258,8 @@ static int ntlm_helper_challenge(struct openconnect_info *vpninfo,
 
 }
 
-void cleanup_ntlm_auth(struct openconnect_info *vpninfo)
+void cleanup_ntlm_auth(struct openconnect_info *vpninfo, int proxy,
+		       struct http_auth_state *auth_state)
 {
 	if (vpninfo->ntlm_helper_fd != -1) {
 		close(vpninfo->ntlm_helper_fd);
@@ -977,7 +979,7 @@ int ntlm_authorization(struct openconnect_info *vpninfo, int proxy,
 		int ret;
 		ret = ntlm_helper_challenge(vpninfo, auth_state, buf);
 		/* Clean up after it. We're done here, whether it worked or not */
-		cleanup_ntlm_auth(vpninfo);
+		cleanup_ntlm_auth(vpninfo, proxy, auth_state);
 		auth_state->state = NTLM_MANUAL;
 		if (ret == -EAGAIN) {
 			/* Don't let it reset our state when it reconnects */

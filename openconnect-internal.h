@@ -949,11 +949,11 @@ void http_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 
 /* ntlm.c */
 int ntlm_authorization(struct openconnect_info *vpninfo, int proxy, struct http_auth_state *auth_state, struct oc_text_buf *buf);
-void cleanup_ntlm_auth(struct openconnect_info *vpninfo);
+void cleanup_ntlm_auth(struct openconnect_info *vpninfo, int proxy, struct http_auth_state *auth_state);
 
 /* gssapi.c */
 int gssapi_authorization(struct openconnect_info *vpninfo, int proxy, struct http_auth_state *auth_state, struct oc_text_buf *buf);
-void cleanup_gssapi_auth(struct openconnect_info *vpninfo);
+void cleanup_gssapi_auth(struct openconnect_info *vpninfo, int proxy, struct http_auth_state *auth_state);
 int socks_gssapi_auth(struct openconnect_info *vpninfo);
 
 /* digest.c */

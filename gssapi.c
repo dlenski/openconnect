@@ -124,7 +124,7 @@ int gssapi_authorization(struct openconnect_info *vpninfo, int proxy,
 		print_gss_err(vpninfo, "gss_init_sec_context()", mech, major, minor);
 	fail_gssapi:
 		auth_state->state = AUTH_FAILED;
-		cleanup_gssapi_auth(vpninfo);
+		cleanup_gssapi_auth(vpninfo, proxy, auth_state);
 		/* If we were *trying*, then -EAGAIN. Else -ENOENT to let another
 		   auth method try without having to reconnect first. */
 		return in.value ? -EAGAIN : -ENOENT;
@@ -140,13 +140,15 @@ int gssapi_authorization(struct openconnect_info *vpninfo, int proxy,
 	return 0;
 }
 
-void cleanup_gssapi_auth(struct openconnect_info *vpninfo)
+/* auth_state is NULL when called from socks_gssapi_auth() */
+void cleanup_gssapi_auth(struct openconnect_info *vpninfo, int proxy,
+			 struct http_auth_state *auth_state)
 {
 	OM_uint32 minor;
 
 	if (vpninfo->gss_target_name != GSS_C_NO_NAME)
 		gss_release_name(&minor, &vpninfo->gss_target_name);
-
+	
 	if (vpninfo->gss_context != GSS_C_NO_CONTEXT)
 		gss_delete_sec_context(&minor, &vpninfo->gss_context, GSS_C_NO_BUFFER);
 
@@ -338,7 +340,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 		ret = 0;
 	}
  err:
-	cleanup_gssapi_auth(vpninfo);
+	cleanup_gssapi_auth(vpninfo, 1, NULL);
 	free(pktbuf);
 
 	return ret;
