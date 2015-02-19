@@ -54,7 +54,7 @@ static struct oc_text_buf *get_qs(char **str)
 	return NULL;
 }
 
-static void buf_append_unq(struct oc_text_buf *buf, char *str)
+static void buf_append_unq(struct oc_text_buf *buf, const char *str)
 {
 	while (*str) {
 		if (*str == '\"' || *str == '\\')
@@ -91,8 +91,17 @@ int digest_authorization(struct openconnect_info *vpninfo, int proxy,
 	struct oc_text_buf *a1 = NULL, *a2 = NULL, *kd = NULL;
 	struct oc_text_buf *cnonce = NULL;
 	unsigned char cnonce_random[32];
+	const char *user, *pass;
 
-	if (!vpninfo->proxy_user || !vpninfo->proxy_pass)
+	if (proxy) {
+		user = vpninfo->proxy_user;
+		pass = vpninfo->proxy_pass;
+	} else {
+		/* Need to parse this out of the URL */
+		return -EINVAL;
+	}
+
+	if (!user || !pass)
 		return -EINVAL;
 
 	if (auth_state->state < AUTH_AVAILABLE)
@@ -194,8 +203,8 @@ int digest_authorization(struct openconnect_info *vpninfo, int proxy,
 	 * So the username is escaped, while the password isn't.
 	 */
 	a1 = buf_alloc();
-	buf_append_unq(a1, vpninfo->proxy_user);
-	buf_append(a1, ":%s:%s", realm->data, vpninfo->proxy_pass);
+	buf_append_unq(a1, user);
+	buf_append(a1, ":%s:%s", realm->data, pass);
 	if (buf_error(a1))
 		goto err;
 	if (algo == ALGO_MD5_SESS) {
@@ -224,8 +233,8 @@ int digest_authorization(struct openconnect_info *vpninfo, int proxy,
 	if (buf_error(kd))
 		goto err;
 
-	buf_append(hdrbuf, "Proxy-Authorization: Digest username=\"");
-	buf_append_unq(hdrbuf, vpninfo->proxy_user);
+	buf_append(hdrbuf, "%sAuthorization: Digest username=\"", proxy ? "Proxy-" : "");
+	buf_append_unq(hdrbuf, user);
 	buf_append(hdrbuf, "\", realm=\"%s\", nonce=\"%s\", uri=\"%s:%d\", ",
 		   realm->data, nonce->data, vpninfo->hostname, vpninfo->port);
 	if (qop_auth)
@@ -240,8 +249,13 @@ int digest_authorization(struct openconnect_info *vpninfo, int proxy,
 	ret = 0;
 
 	auth_state->state = AUTH_IN_PROGRESS;
-	vpn_progress(vpninfo, PRG_INFO,
-		     _("Attempting Digest authentication to proxy\n"));
+	if (proxy)
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("Attempting Digest authentication to proxy\n"));
+	else
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("Attempting Digest authentication to server '%s'\n"),
+			     vpninfo->hostname);
  err:
 	if (a1 && a1->data)
 		memset(a1->data, 0, a1->pos);
