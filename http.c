@@ -1118,11 +1118,11 @@ static int process_socks_proxy(struct openconnect_info *vpninfo)
 
 	buf[2 + nr_auth_methods++] = SOCKS_AUTH_NONE;
 #if defined(HAVE_GSSAPI) || defined(_WIN32)
-	if (vpninfo->auth[AUTH_TYPE_GSSAPI].state != AUTH_DISABLED &&
+	if (vpninfo->proxy_auth[AUTH_TYPE_GSSAPI].state != AUTH_DISABLED &&
 	    !vpninfo->proxy_user && !vpninfo->proxy_pass)
 		buf[2 + nr_auth_methods++] = SOCKS_AUTH_GSSAPI;
 #endif
-	if (vpninfo->auth[AUTH_TYPE_BASIC].state != AUTH_DISABLED &&
+	if (vpninfo->proxy_auth[AUTH_TYPE_BASIC].state != AUTH_DISABLED &&
 	    vpninfo->proxy_user && vpninfo->proxy_pass)
 		buf[2 + nr_auth_methods++] = SOCKS_AUTH_PASSWORD;
 
@@ -1376,7 +1376,9 @@ void buf_append_base64(struct oc_text_buf *buf, const void *bytes, int len)
 	buf->data[buf->pos] = 0;
 }
 
-static int basic_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *hdrbuf)
+static int basic_authorization(struct openconnect_info *vpninfo,
+			       struct http_auth_state *auth_state,
+			       struct oc_text_buf *hdrbuf)
 {
 	struct oc_text_buf *text;
 
@@ -1386,12 +1388,12 @@ static int basic_authorization(struct openconnect_info *vpninfo, struct oc_text_
 	if (!vpninfo->authmethods_set) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Proxy requested Basic authentication which is disabled by default\n"));
-		vpninfo->auth[AUTH_TYPE_BASIC].state = AUTH_FAILED;
+		auth_state->state = AUTH_FAILED;
 		return -EINVAL;
 	}
 
-	if (vpninfo->auth[AUTH_TYPE_BASIC].state == AUTH_IN_PROGRESS) {
-		vpninfo->auth[AUTH_TYPE_BASIC].state = AUTH_FAILED;
+	if (auth_state->state == AUTH_IN_PROGRESS) {
+		auth_state->state = AUTH_FAILED;
 		return -EAGAIN;
 	}
 
@@ -1408,17 +1410,19 @@ static int basic_authorization(struct openconnect_info *vpninfo, struct oc_text_
 	buf_free(text);
 
 	vpn_progress(vpninfo, PRG_INFO, _("Attempting HTTP Basic authentication to proxy\n"));
-	vpninfo->auth[AUTH_TYPE_BASIC].state = AUTH_IN_PROGRESS;
+	auth_state->state = AUTH_IN_PROGRESS;
 	return 0;
 }
 
 #if !defined(HAVE_GSSAPI) && !defined(_WIN32)
-static int no_gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *hdrbuf)
+static int no_gssapi_authorization(struct openconnect_info *vpninfo,
+				   struct http_auth_State *auth_state,
+				   struct oc_text_buf *hdrbuf)
 {
 	/* This comes last so just complain. We're about to bail. */
 	vpn_progress(vpninfo, PRG_ERR,
 		     _("This version of OpenConnect was built without GSSAPI support\n"));
-	vpninfo->auth[AUTH_TYPE_GSSAPI].state = AUTH_FAILED;
+	auth_state->state = AUTH_FAILED;
 	return -ENOENT;
 }
 #endif
@@ -1426,7 +1430,7 @@ static int no_gssapi_authorization(struct openconnect_info *vpninfo, struct oc_t
 struct auth_method {
 	int state_index;
 	const char *name;
-	int (*authorization)(struct openconnect_info *, struct oc_text_buf *);
+	int (*authorization)(struct openconnect_info *, struct http_auth_state *, struct oc_text_buf *);
 	void (*cleanup)(struct openconnect_info *);
 } auth_methods[] = {
 #if defined(HAVE_GSSAPI) || defined(_WIN32)
@@ -1447,9 +1451,9 @@ static int proxy_authorization(struct openconnect_info *vpninfo, struct oc_text_
 	int i;
 
 	for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++) {
-		int index = auth_methods[i].state_index;
-		if (vpninfo->auth[index].state > AUTH_UNSEEN) {
-			ret = auth_methods[i].authorization(vpninfo, buf);
+		struct http_auth_state *auth_state = &vpninfo->proxy_auth[auth_methods[i].state_index];
+		if (auth_state->state > AUTH_UNSEEN) {
+			ret = auth_methods[i].authorization(vpninfo, auth_state, buf);
 			if (ret == -EAGAIN || !ret)
 				return ret;
 		}
@@ -1460,9 +1464,9 @@ static int proxy_authorization(struct openconnect_info *vpninfo, struct oc_text_
 
 /* Returns non-zero if it matched */
 static int handle_auth_proto(struct openconnect_info *vpninfo,
-			      struct auth_method *method, char *hdr)
+			     struct auth_method *method, char *hdr)
 {
-	struct http_auth_state *auth = &vpninfo->auth[method->state_index];
+	struct http_auth_state *auth = &vpninfo->proxy_auth[method->state_index];
 	int l = strlen(method->name);
 
 	if (auth->state <= AUTH_FAILED)
@@ -1511,7 +1515,7 @@ static int proxy_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val)
 static void clear_auth_state(struct openconnect_info *vpninfo,
 			     struct auth_method *method, int reset)
 {
-	struct http_auth_state *auth = &vpninfo->auth[method->state_index];
+	struct http_auth_state *auth = &vpninfo->proxy_auth[method->state_index];
 
 	/* The 'reset' argument is set when we're connected successfully,
 	   to fully reset the state to allow another connection to start
@@ -1642,7 +1646,7 @@ int openconnect_set_proxy_auth(struct openconnect_info *vpninfo, const char *met
 	const char *p;
 
 	for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++)
-		vpninfo->auth[auth_methods[i].state_index].state = AUTH_DISABLED;
+		vpninfo->proxy_auth[auth_methods[i].state_index].state = AUTH_DISABLED;
 
 	while (methods) {
 		p = strchr(methods, ',');
@@ -1656,7 +1660,7 @@ int openconnect_set_proxy_auth(struct openconnect_info *vpninfo, const char *met
 			if (strprefix_match(methods, len, auth_methods[i].name) ||
 			    (auth_methods[i].state_index == AUTH_TYPE_GSSAPI &&
 			     strprefix_match(methods, len, "gssapi"))) {
-				vpninfo->auth[auth_methods[i].state_index].state = AUTH_UNSEEN;
+				vpninfo->proxy_auth[auth_methods[i].state_index].state = AUTH_UNSEEN;
 				break;
 			}
 		}

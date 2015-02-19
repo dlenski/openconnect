@@ -78,7 +78,8 @@ static void buf_append_md5(struct oc_text_buf *buf, void *data, int len)
 		buf_append(buf, "%02x", md5[i]);
 }
 
-int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *hdrbuf)
+int digest_authorization(struct openconnect_info *vpninfo, struct http_auth_state *auth_state,
+			 struct oc_text_buf *hdrbuf)
 {
 	char *chall;
 	int ret = -EINVAL;
@@ -93,15 +94,15 @@ int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 	if (!vpninfo->proxy_user || !vpninfo->proxy_pass)
 		return -EINVAL;
 
-	if (vpninfo->auth[AUTH_TYPE_DIGEST].state < AUTH_AVAILABLE)
+	if (auth_state->state < AUTH_AVAILABLE)
 		return -EINVAL;
 
-	if (vpninfo->auth[AUTH_TYPE_DIGEST].state == AUTH_IN_PROGRESS) {
-		vpninfo->auth[AUTH_TYPE_DIGEST].state = AUTH_FAILED;
+	if (auth_state->state == AUTH_IN_PROGRESS) {
+		auth_state->state = AUTH_FAILED;
 		return -EAGAIN;
 	}
 
-	chall = vpninfo->auth[AUTH_TYPE_DIGEST].challenge;
+	chall = auth_state->challenge;
 	if (!chall)
 		return -EINVAL;
 
@@ -237,7 +238,7 @@ int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *h
 
 	ret = 0;
 
-	vpninfo->auth[AUTH_TYPE_DIGEST].state = AUTH_IN_PROGRESS;
+	auth_state->state = AUTH_IN_PROGRESS;
 	vpn_progress(vpninfo, PRG_INFO,
 		     _("Attempting Digest authentication to proxy\n"));
  err:

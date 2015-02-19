@@ -118,9 +118,11 @@ static int ntlm_helper_spawn(struct openconnect_info *vpninfo, struct oc_text_bu
 	return ret;
 }
 
-static int ntlm_helper_challenge(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+static int ntlm_helper_challenge(struct openconnect_info *vpninfo,
+				 struct http_auth_state *auth_state,
+				 struct oc_text_buf *buf)
 {
-	return ntlm_sspi(vpninfo, buf, vpninfo->auth[AUTH_TYPE_NTLM].challenge);
+	return ntlm_sspi(vpninfo, buf, auth_state->challenge);
 }
 
 void cleanup_ntlm_auth(struct openconnect_info *vpninfo)
@@ -221,15 +223,17 @@ static int ntlm_helper_spawn(struct openconnect_info *vpninfo, struct oc_text_bu
 	return 0;
 }
 
-static int ntlm_helper_challenge(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+static int ntlm_helper_challenge(struct openconnect_info *vpninfo,
+				 struct http_auth_state *auth_state,
+				 struct oc_text_buf *buf)
 {
 	char helperbuf[4096];
 	int len;
 
-	if (!vpninfo->auth[AUTH_TYPE_NTLM].challenge ||
+	if (!auth_state->challenge ||
 	    write(vpninfo->ntlm_helper_fd, "TT ", 3) != 3 ||
-	    write(vpninfo->ntlm_helper_fd, vpninfo->auth[AUTH_TYPE_NTLM].challenge,
-		  strlen(vpninfo->auth[AUTH_TYPE_NTLM].challenge)) != strlen(vpninfo->auth[AUTH_TYPE_NTLM].challenge) ||
+	    write(vpninfo->ntlm_helper_fd, auth_state->challenge,
+		  strlen(auth_state->challenge)) != strlen(auth_state->challenge) ||
 	    write(vpninfo->ntlm_helper_fd, "\n", 1) != 1) {
 	err:
 		vpn_progress(vpninfo, PRG_ERR, _("Error communicating with ntlm_auth helper\n"));
@@ -841,7 +845,9 @@ static void ntlm_set_string_binary(struct oc_text_buf *buf, int offset,
 	buf_append_bytes(buf, data, len);
 }
 
-static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_text_buf *hdrbuf)
+static int ntlm_manual_challenge(struct openconnect_info *vpninfo,
+				 struct http_auth_state *auth_state,
+				 struct oc_text_buf *hdrbuf)
 {
 	struct oc_text_buf *resp;
 	char *user;
@@ -850,14 +856,14 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	int token_len = -EINVAL;
 	int ntlmver;
 
-	if (!vpninfo->auth[AUTH_TYPE_NTLM].challenge)
+	if (!auth_state->challenge)
 		return -EINVAL;
 
 	if (ntlm_nt_hash (vpninfo->proxy_pass, (char *) hash))
 		return -EINVAL;
 
 	token = openconnect_base64_decode(&token_len,
-					  vpninfo->auth[AUTH_TYPE_NTLM].challenge);
+					  auth_state->challenge);
 	if (!token)
 		return token_len;
 
@@ -956,22 +962,23 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo, struct oc_tex
 	return 0;
 }
 
-int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+int ntlm_authorization(struct openconnect_info *vpninfo,
+		       struct http_auth_state *auth_state, struct oc_text_buf *buf)
 {
-	if (vpninfo->auth[AUTH_TYPE_NTLM].state == AUTH_AVAILABLE) {
-		vpninfo->auth[AUTH_TYPE_NTLM].state = NTLM_MANUAL;
+	if (auth_state->state == AUTH_AVAILABLE) {
+		auth_state->state = NTLM_MANUAL;
 		/* Don't attempt automatic NTLM auth if we were given a password */
 		if (!vpninfo->proxy_pass && !ntlm_helper_spawn(vpninfo, buf)) {
-			vpninfo->auth[AUTH_TYPE_NTLM].state = NTLM_SSO_REQ;
+			auth_state->state = NTLM_SSO_REQ;
 			return 0;
 		}
 	}
-	if (vpninfo->auth[AUTH_TYPE_NTLM].state == NTLM_SSO_REQ) {
+	if (auth_state->state == NTLM_SSO_REQ) {
 		int ret;
-		ret = ntlm_helper_challenge(vpninfo, buf);
+		ret = ntlm_helper_challenge(vpninfo, auth_state, buf);
 		/* Clean up after it. We're done here, whether it worked or not */
 		cleanup_ntlm_auth(vpninfo);
-		vpninfo->auth[AUTH_TYPE_NTLM].state = NTLM_MANUAL;
+		auth_state->state = NTLM_MANUAL;
 		if (ret == -EAGAIN) {
 			/* Don't let it reset our state when it reconnects */
 			vpninfo->proxy_close_during_auth = 1;
@@ -980,19 +987,19 @@ int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf
 		if (!ret)
 			return ret;
 	}
-	if (vpninfo->auth[AUTH_TYPE_NTLM].state == NTLM_MANUAL && vpninfo->proxy_user &&
+	if (auth_state->state == NTLM_MANUAL && vpninfo->proxy_user &&
 	    vpninfo->proxy_pass) {
 		buf_append(buf, "Proxy-Authorization: NTLM %s\r\n",
 			   "TlRMTVNTUAABAAAABYIIAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAwAAAA");
-		vpninfo->auth[AUTH_TYPE_NTLM].state = NTLM_MANUAL_REQ;
+		auth_state->state = NTLM_MANUAL_REQ;
 		return 0;
 	}
-	if (vpninfo->auth[AUTH_TYPE_NTLM].state == NTLM_MANUAL_REQ &&
-	    !ntlm_manual_challenge(vpninfo, buf)) {
+	if (auth_state->state == NTLM_MANUAL_REQ &&
+	    !ntlm_manual_challenge(vpninfo, auth_state, buf)) {
 		/* Leave the state as it is. If we come back there'll be no
 		   challenge string and we'll fail then. */
 		return 0;
 	}
-	vpninfo->auth[AUTH_TYPE_NTLM].state = AUTH_FAILED;
+	auth_state->state = AUTH_FAILED;
 	return -EAGAIN;
 }

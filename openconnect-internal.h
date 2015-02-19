@@ -351,7 +351,7 @@ struct openconnect_info {
 	char *proxy_user;
 	char *proxy_pass;
 	int proxy_close_during_auth;
-	struct http_auth_state auth[MAX_AUTH_TYPES];
+	struct http_auth_state proxy_auth[MAX_AUTH_TYPES];
 #ifdef HAVE_GSSAPI
 	gss_name_t gss_target_name;
 	gss_ctx_id_t gss_context;
@@ -946,16 +946,16 @@ int handle_redirect(struct openconnect_info *vpninfo);
 void http_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
 
 /* ntlm.c */
-int ntlm_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
+int ntlm_authorization(struct openconnect_info *vpninfo, struct http_auth_state *auth_state, struct oc_text_buf *buf);
 void cleanup_ntlm_auth(struct openconnect_info *vpninfo);
 
 /* gssapi.c */
-int gssapi_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
+int gssapi_authorization(struct openconnect_info *vpninfo, struct http_auth_state *auth_state, struct oc_text_buf *buf);
 void cleanup_gssapi_auth(struct openconnect_info *vpninfo);
 int socks_gssapi_auth(struct openconnect_info *vpninfo);
 
 /* digest.c */
-int digest_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
+int digest_authorization(struct openconnect_info *vpninfo, struct http_auth_state *auth_state, struct oc_text_buf *buf);
 
 /* library.c */
 void nuke_opt_values(struct oc_form_opt *opt);
