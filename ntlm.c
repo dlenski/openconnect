@@ -127,7 +127,7 @@ static int ntlm_helper_challenge(struct openconnect_info *vpninfo,
 
 void cleanup_ntlm_auth(struct openconnect_info *vpninfo)
 {
-	if (vpninfo->auth[AUTH_TYPE_NTLM].state == NTLM_SSO_REQ) {
+	if (vpninfo->proxy_auth[AUTH_TYPE_NTLM].state == NTLM_SSO_REQ) {
 		FreeCredentialsHandle(&vpninfo->ntlm_sspi_cred);
 		DeleteSecurityContext(&vpninfo->ntlm_sspi_ctx);
 	}
