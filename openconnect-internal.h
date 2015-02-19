@@ -213,7 +213,7 @@ struct oc_text_buf {
 	/* Individual auth types may use 2 onwards for their own state */
 #define AUTH_IN_PROGRESS	2	/* In-progress attempt */
 
-struct proxy_auth_state {
+struct http_auth_state {
 	int state;
 	char *challenge;
 };
@@ -351,7 +351,7 @@ struct openconnect_info {
 	char *proxy_user;
 	char *proxy_pass;
 	int proxy_close_during_auth;
-	struct proxy_auth_state auth[MAX_AUTH_TYPES];
+	struct http_auth_state auth[MAX_AUTH_TYPES];
 #ifdef HAVE_GSSAPI
 	gss_name_t gss_target_name;
 	gss_ctx_id_t gss_context;

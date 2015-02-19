@@ -1462,7 +1462,7 @@ static int proxy_authorization(struct openconnect_info *vpninfo, struct oc_text_
 static int handle_auth_proto(struct openconnect_info *vpninfo,
 			      struct auth_method *method, char *hdr)
 {
-	struct proxy_auth_state *auth = &vpninfo->auth[method->state_index];
+	struct http_auth_state *auth = &vpninfo->auth[method->state_index];
 	int l = strlen(method->name);
 
 	if (auth->state <= AUTH_FAILED)
@@ -1511,7 +1511,7 @@ static int proxy_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val)
 static void clear_auth_state(struct openconnect_info *vpninfo,
 			     struct auth_method *method, int reset)
 {
-	struct proxy_auth_state *auth = &vpninfo->auth[method->state_index];
+	struct http_auth_state *auth = &vpninfo->auth[method->state_index];
 
 	/* The 'reset' argument is set when we're connected successfully,
 	   to fully reset the state to allow another connection to start
