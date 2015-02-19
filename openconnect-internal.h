@@ -355,8 +355,8 @@ struct openconnect_info {
 	struct http_auth_state http_auth[MAX_AUTH_TYPES];
 	struct http_auth_state proxy_auth[MAX_AUTH_TYPES];
 #ifdef HAVE_GSSAPI
-	gss_name_t gss_target_name;
-	gss_ctx_id_t gss_context;
+	gss_name_t gss_target_name[2];
+	gss_ctx_id_t gss_context[2];
 #endif
 #ifdef _WIN32
 	CredHandle ntlm_sspi_cred;
