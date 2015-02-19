@@ -78,7 +78,8 @@ static void buf_append_md5(struct oc_text_buf *buf, void *data, int len)
 		buf_append(buf, "%02x", md5[i]);
 }
 
-int digest_authorization(struct openconnect_info *vpninfo, struct http_auth_state *auth_state,
+int digest_authorization(struct openconnect_info *vpninfo, int proxy,
+			 struct http_auth_state *auth_state,
 			 struct oc_text_buf *hdrbuf)
 {
 	char *chall;

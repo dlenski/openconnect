@@ -54,8 +54,8 @@ static int sspi_setup(struct openconnect_info *vpninfo, const char *service)
 	return 0;
 }
 
-int gssapi_authorization(struct openconnect_info *vpninfo, struct http_auth_state *auth_state,
-			 struct oc_text_buf *hdrbuf)
+int gssapi_authorization(struct openconnect_info *vpninfo, int proxy,
+			 struct http_auth_state *auth_state, struct oc_text_buf *hdrbuf)
 {
 	SECURITY_STATUS status;
 	SecBufferDesc input_desc, output_desc;

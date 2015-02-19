@@ -962,7 +962,7 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo,
 	return 0;
 }
 
-int ntlm_authorization(struct openconnect_info *vpninfo,
+int ntlm_authorization(struct openconnect_info *vpninfo, int proxy,
 		       struct http_auth_state *auth_state, struct oc_text_buf *buf)
 {
 	if (auth_state->state == AUTH_AVAILABLE) {

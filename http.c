@@ -1376,7 +1376,7 @@ void buf_append_base64(struct oc_text_buf *buf, const void *bytes, int len)
 	buf->data[buf->pos] = 0;
 }
 
-static int basic_authorization(struct openconnect_info *vpninfo,
+static int basic_authorization(struct openconnect_info *vpninfo, int proxy,
 			       struct http_auth_state *auth_state,
 			       struct oc_text_buf *hdrbuf)
 {
@@ -1430,7 +1430,7 @@ static int no_gssapi_authorization(struct openconnect_info *vpninfo,
 struct auth_method {
 	int state_index;
 	const char *name;
-	int (*authorization)(struct openconnect_info *, struct http_auth_state *, struct oc_text_buf *);
+	int (*authorization)(struct openconnect_info *, int, struct http_auth_state *, struct oc_text_buf *);
 	void (*cleanup)(struct openconnect_info *);
 } auth_methods[] = {
 #if defined(HAVE_GSSAPI) || defined(_WIN32)
@@ -1445,15 +1445,20 @@ struct auth_method {
 };
 
 /* Generate Proxy-Authorization: header for request if appropriate */
-static int proxy_authorization(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+static int gen_authorization_hdr(struct openconnect_info *vpninfo, int proxy,
+				 struct oc_text_buf *buf)
 {
 	int ret;
 	int i;
 
 	for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++) {
-		struct http_auth_state *auth_state = &vpninfo->proxy_auth[auth_methods[i].state_index];
+		struct http_auth_state *auth_state;
+		if (proxy)
+			auth_state = &vpninfo->proxy_auth[auth_methods[i].state_index];
+		else
+			auth_state = &vpninfo->http_auth[auth_methods[i].state_index];
 		if (auth_state->state > AUTH_UNSEEN) {
-			ret = auth_methods[i].authorization(vpninfo, auth_state, buf);
+			ret = auth_methods[i].authorization(vpninfo, proxy, auth_state, buf);
 			if (ret == -EAGAIN || !ret)
 				return ret;
 		}
@@ -1557,7 +1562,7 @@ static int process_http_proxy(struct openconnect_info *vpninfo)
 	if (auth) {
 		int i;
 
-		result = proxy_authorization(vpninfo, reqbuf);
+		result = gen_authorization_hdr(vpninfo, 1, reqbuf);
 		if (result) {
 			buf_free(reqbuf);
 			return result;

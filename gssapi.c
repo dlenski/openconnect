@@ -80,7 +80,7 @@ static int gssapi_setup(struct openconnect_info *vpninfo, const char *service)
 #define GSSAPI_CONTINUE	2
 #define GSSAPI_COMPLETE	3
 
-int gssapi_authorization(struct openconnect_info *vpninfo,
+int gssapi_authorization(struct openconnect_info *vpninfo, int proxy,
 			 struct http_auth_state *auth_state,
 			 struct oc_text_buf *hdrbuf)
 {
