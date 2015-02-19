@@ -849,7 +849,9 @@ static void ntlm_set_string_binary(struct oc_text_buf *buf, int offset,
 
 static int ntlm_manual_challenge(struct openconnect_info *vpninfo,
 				 struct http_auth_state *auth_state,
-				 struct oc_text_buf *hdrbuf)
+				 struct oc_text_buf *hdrbuf,
+				 const char *domuser, const char *pass,
+				 int proxy)
 {
 	struct oc_text_buf *resp;
 	char *user;
@@ -861,7 +863,7 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo,
 	if (!auth_state->challenge)
 		return -EINVAL;
 
-	if (ntlm_nt_hash (vpninfo->proxy_pass, (char *) hash))
+	if (ntlm_nt_hash (pass, (char *) hash))
 		return -EINVAL;
 
 	token = openconnect_base64_decode(&token_len,
@@ -911,7 +913,7 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo,
 		ntlmver = 1;
 		memcpy (nonce, token + NTLM_CHALLENGE_NONCE_OFFSET, 8);
 		ntlm_calc_response (hash, nonce, nt_resp);
-		ntlm_lanmanager_hash (vpninfo->proxy_pass, (char *) hash);
+		ntlm_lanmanager_hash (pass, (char *) hash);
 		ntlm_calc_response (hash, nonce, lm_resp);
 	}
 
@@ -924,10 +926,10 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo,
 	/* Mask in the NTLM2SESSION flag */
 	resp->data[NTLM_RESPONSE_FLAGS_OFFSET + 2] = token[NTLM_CHALLENGE_FLAGS_OFFSET + 2] & 8;
 
-	user = strchr(vpninfo->proxy_user, '\\');
+	user = strchr(domuser, '\\');
 	if (user) {
 		*user = 0;
-		ntlm_set_string_utf8(resp, NTLM_RESPONSE_DOMAIN_OFFSET, vpninfo->proxy_user);
+		ntlm_set_string_utf8(resp, NTLM_RESPONSE_DOMAIN_OFFSET, domuser);
 		*user = '\\';
 		user++;
 	} else {
@@ -940,7 +942,7 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo,
 		}
 		ntlm_set_string_binary(resp, NTLM_RESPONSE_DOMAIN_OFFSET, token + offset, len);
 
-		user = vpninfo->proxy_user;
+		user = (char *)domuser;
 	}
 
 	ntlm_set_string_utf8(resp, NTLM_RESPONSE_USER_OFFSET, user);
@@ -953,24 +955,38 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo,
 	if (buf_error(resp))
 		return buf_free(resp);
 
-	buf_append(hdrbuf, "Proxy-Authorization: NTLM ");
+	buf_append(hdrbuf, "%sAuthorization: NTLM ", proxy ? "Proxy-" : "");
 	buf_append_base64(hdrbuf, resp->data, resp->pos);
 	buf_append(hdrbuf, "\r\n");
 
 	buf_free(resp);
-	vpn_progress(vpninfo, PRG_INFO,
-		     _("Attempting HTTP NTLMv%d authentication to proxy\n"),
-		     ntlmver);
+	if (proxy)
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("Attempting HTTP NTLMv%d authentication to proxy\n"),
+			     ntlmver);
+	else
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("Attempting HTTP NTLMv%d authentication to server '%s'\n"),
+			     ntlmver, vpninfo->hostname);
 	return 0;
 }
 
 int ntlm_authorization(struct openconnect_info *vpninfo, int proxy,
 		       struct http_auth_state *auth_state, struct oc_text_buf *buf)
 {
+	const char *user, *pass;
+
+	if (proxy) {
+		user = vpninfo->proxy_user;
+		pass = vpninfo->proxy_pass;
+	} else {
+		user = pass = NULL;
+	}
+
 	if (auth_state->state == AUTH_AVAILABLE) {
 		auth_state->state = NTLM_MANUAL;
 		/* Don't attempt automatic NTLM auth if we were given a password */
-		if (!vpninfo->proxy_pass && !ntlm_helper_spawn(vpninfo, buf)) {
+		if (!pass && !ntlm_helper_spawn(vpninfo, buf)) {
 			auth_state->state = NTLM_SSO_REQ;
 			return 0;
 		}
@@ -983,21 +999,24 @@ int ntlm_authorization(struct openconnect_info *vpninfo, int proxy,
 		auth_state->state = NTLM_MANUAL;
 		if (ret == -EAGAIN) {
 			/* Don't let it reset our state when it reconnects */
-			vpninfo->proxy_close_during_auth = 1;
+			if (proxy)
+				vpninfo->proxy_close_during_auth = 1;
+			else
+				vpninfo->http_close_during_auth = 1;
 			return ret;
 		}
 		if (!ret)
 			return ret;
 	}
-	if (auth_state->state == NTLM_MANUAL && vpninfo->proxy_user &&
-	    vpninfo->proxy_pass) {
-		buf_append(buf, "Proxy-Authorization: NTLM %s\r\n",
-			   "TlRMTVNTUAABAAAABYIIAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAwAAAA");
+	if (auth_state->state == NTLM_MANUAL && user && pass) {
+		buf_append(buf, "%sAuthorization: NTLM %s\r\n",
+			   "TlRMTVNTUAABAAAABYIIAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAwAAAA",
+			   proxy ? "Proxy-" : "");
 		auth_state->state = NTLM_MANUAL_REQ;
 		return 0;
 	}
 	if (auth_state->state == NTLM_MANUAL_REQ &&
-	    !ntlm_manual_challenge(vpninfo, auth_state, buf)) {
+	    !ntlm_manual_challenge(vpninfo, auth_state, buf, user, pass, proxy)) {
 		/* Leave the state as it is. If we come back there'll be no
 		   challenge string and we'll fail then. */
 		return 0;
