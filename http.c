@@ -1381,8 +1381,17 @@ static int basic_authorization(struct openconnect_info *vpninfo, int proxy,
 			       struct oc_text_buf *hdrbuf)
 {
 	struct oc_text_buf *text;
+	const char *user, *pass;
 
-	if (!vpninfo->proxy_user || !vpninfo->proxy_pass)
+	if (proxy) {
+		user = vpninfo->proxy_user;
+		pass = vpninfo->proxy_pass;
+	} else {
+		/* Need to parse this out of the URL */
+		return -EINVAL;
+	}
+
+	if (!user || !pass)
 		return -EINVAL;
 
 	if (!vpninfo->authmethods_set) {
@@ -1398,18 +1407,23 @@ static int basic_authorization(struct openconnect_info *vpninfo, int proxy,
 	}
 
 	text = buf_alloc();
-	buf_append(text, "%s:%s", vpninfo->proxy_user, vpninfo->proxy_pass);
+	buf_append(text, "%s:%s", user, pass);
 	if (buf_error(text))
 		return buf_free(text);
 
-	buf_append(hdrbuf, "Proxy-Authorization: Basic ");
+	buf_append(hdrbuf, "%sAuthorization: Basic ", proxy ? "Proxy-" : "");
 	buf_append_base64(hdrbuf, text->data, text->pos);
 	buf_append(hdrbuf, "\r\n");
 
 	memset(text->data, 0, text->pos);
 	buf_free(text);
 
-	vpn_progress(vpninfo, PRG_INFO, _("Attempting HTTP Basic authentication to proxy\n"));
+	if (proxy)
+		vpn_progress(vpninfo, PRG_INFO, _("Attempting HTTP Basic authentication to proxy\n"));
+	else
+		vpn_progress(vpninfo, PRG_INFO, _("Attempting HTTP Basic authentication to server '%s'\n"),
+			     vpninfo->hostname);
+
 	auth_state->state = AUTH_IN_PROGRESS;
 	return 0;
 }
