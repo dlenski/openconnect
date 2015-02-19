@@ -23,31 +23,31 @@
 #include "openconnect-internal.h"
 
 
-static int sspi_setup(struct openconnect_info *vpninfo, const char *service)
+static int sspi_setup(struct openconnect_info *vpninfo, const char *service, int proxy)
 {
 	SECURITY_STATUS status;
 	struct oc_text_buf *buf = buf_alloc();
 
 	buf_append_utf16le(buf, service);
 	buf_append_utf16le(buf, "/");
-	buf_append_utf16le(buf, vpninfo->proxy);
+	buf_append_utf16le(buf, proxy ? vpninfo->proxy : vpninfo->hostname);
 
 	if (buf_error(buf))
 		return buf_free(buf);
 
-	vpninfo->sspi_target_name = (wchar_t *)buf->data;
+	vpninfo->sspi_target_name[proxy] = (wchar_t *)buf->data;
 	buf->data = NULL;
 	buf_free(buf);
 
 	status = AcquireCredentialsHandleW(NULL, (SEC_WCHAR *)L"Negotiate",
 					   SECPKG_CRED_OUTBOUND, NULL, NULL,
-					   NULL, NULL, &vpninfo->sspi_cred,
+					   NULL, NULL, &vpninfo->sspi_cred[proxy],
 					   NULL);
 	if (status != SEC_E_OK) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("AcquireCredentialsHandle() failed: %lx\n"), status);
-		free(vpninfo->sspi_target_name);
-		vpninfo->sspi_target_name = NULL;
+		free(vpninfo->sspi_target_name[proxy]);
+		vpninfo->sspi_target_name[proxy] = NULL;
 		return -EIO;
 	}
 
@@ -63,7 +63,7 @@ int gssapi_authorization(struct openconnect_info *vpninfo, int proxy,
 	ULONG ret_flags;
 	int first = 1;
 
-	if (auth_state->state == AUTH_AVAILABLE && sspi_setup(vpninfo, "HTTP")) {
+	if (auth_state->state == AUTH_AVAILABLE && sspi_setup(vpninfo, "HTTP", proxy)) {
 		auth_state->state = AUTH_FAILED;
 		return -EIO;
 	}
@@ -101,13 +101,13 @@ int gssapi_authorization(struct openconnect_info *vpninfo, int proxy,
 	out_token.cbBuffer = 0;
 	out_token.pvBuffer = NULL;
 
-	status = InitializeSecurityContextW(&vpninfo->sspi_cred,
-					    first ? NULL : &vpninfo->sspi_ctx,
-					    vpninfo->sspi_target_name,
+	status = InitializeSecurityContextW(&vpninfo->sspi_cred[proxy],
+					    first ? NULL : &vpninfo->sspi_ctx[proxy],
+					    vpninfo->sspi_target_name[proxy],
 					    ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
 					    0, SECURITY_NETWORK_DREP,
 					    first ? NULL : &input_desc,
-					    0, &vpninfo->sspi_ctx,
+					    0, &vpninfo->sspi_ctx[proxy],
 					    &output_desc, &ret_flags, NULL);
 	if (status != SEC_E_OK && status != SEC_I_CONTINUE_NEEDED) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -134,9 +134,9 @@ void cleanup_gssapi_auth(struct openconnect_info *vpninfo, int proxy,
 {
 	if (auth_state->state >= AUTH_IN_PROGRESS) {
 		free(vpninfo->sspi_target_name);
-		vpninfo->sspi_target_name = NULL;
-		FreeCredentialsHandle(&vpninfo->sspi_cred);
-		DeleteSecurityContext(&vpninfo->sspi_ctx);
+		vpninfo->sspi_target_name[proxy] = NULL;
+		FreeCredentialsHandle(&vpninfo->sspi_cred[proxy]);
+		DeleteSecurityContext(&vpninfo->sspi_ctx[proxy]);
 	}
 }
 
@@ -151,7 +151,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 	int i;
 	int ret = -EIO;
 
-	if (sspi_setup(vpninfo, "rcmd"))
+	if (sspi_setup(vpninfo, "rcmd", 1))
 		return -EIO;
 
 	vpninfo->proxy_auth[AUTH_TYPE_GSSAPI].state = AUTH_IN_PROGRESS;
@@ -175,12 +175,13 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 	out_token.pvBuffer = NULL;
 
 	while (1) {
-		status = InitializeSecurityContextW(&vpninfo->sspi_cred, first ? NULL : &vpninfo->sspi_ctx,
-						    vpninfo->sspi_target_name,
+		status = InitializeSecurityContextW(&vpninfo->sspi_cred[1],
+						    first ? NULL : &vpninfo->sspi_ctx[1],
+						    vpninfo->sspi_target_name[1],
 						    ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
 						    0, SECURITY_NETWORK_DREP,
 						    first ? NULL : &input_desc,
-						    0, &vpninfo->sspi_ctx,
+						    0, &vpninfo->sspi_ctx[1],
 						    &output_desc, &ret_flags, NULL);
 		if (status == SEC_E_OK) {
 			/* If we still have a token to send, send it. */
@@ -269,7 +270,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 
 		ret = -EIO;
 
-		status = QueryContextAttributes(&vpninfo->sspi_ctx, SECPKG_ATTR_SIZES, &sizes);
+		status = QueryContextAttributes(&vpninfo->sspi_ctx[1], SECPKG_ATTR_SIZES, &sizes);
 		if (status != SEC_E_OK) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("QueryContextAttributes() failed: %lx\n"), status);
@@ -305,7 +306,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 			goto err;
 		}
 
-		status = EncryptMessage(&vpninfo->sspi_ctx, SECQOP_WRAP_NO_ENCRYPT, &enc_desc, 0);
+		status = EncryptMessage(&vpninfo->sspi_ctx[1], SECQOP_WRAP_NO_ENCRYPT, &enc_desc, 0);
 		if (status != SEC_E_OK) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("EncryptMessage() failed: %lx\n"), status);
@@ -386,7 +387,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo)
 		enc_bufs[1].cbBuffer = 0;
 		enc_bufs[1].pvBuffer = NULL;
 
-		status = DecryptMessage(&vpninfo->sspi_ctx, &enc_desc, 0, NULL);
+		status = DecryptMessage(&vpninfo->sspi_ctx[1], &enc_desc, 0, NULL);
 		if (status != SEC_E_OK) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("DecryptMessage failed: %lx\n"), status);

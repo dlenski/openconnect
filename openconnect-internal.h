@@ -361,9 +361,9 @@ struct openconnect_info {
 #ifdef _WIN32
 	CredHandle ntlm_sspi_cred;
 	CtxtHandle ntlm_sspi_ctx;
-	CredHandle sspi_cred;
-	CtxtHandle sspi_ctx;
-	SEC_WCHAR *sspi_target_name;
+	CredHandle sspi_cred[2];
+	CtxtHandle sspi_ctx[2];
+	SEC_WCHAR *sspi_target_name[2];
 #else
 	int ntlm_helper_fd;
 #endif
