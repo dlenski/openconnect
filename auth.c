@@ -1168,6 +1168,7 @@ int cstp_obtain_cookie(struct openconnect_info *vpninfo)
 	char *orig_host = NULL, *orig_path = NULL, *form_path = NULL;
 	int orig_port = 0;
 	int cert_rq, cert_sent = !vpninfo->cert;
+	int newgroup_attempts = 5;
 
 #ifdef HAVE_LIBSTOKEN
 	/* Step 1: Unlock software token (if applicable) */
@@ -1191,6 +1192,11 @@ int cstp_obtain_cookie(struct openconnect_info *vpninfo)
 	 * c) Three redirects without seeing a plausible login form
 	 */
 newgroup:
+	if (newgroup_attempts-- <= 0) {
+		result = -1;
+		goto out;
+	}
+
 	buf_truncate(request_body);
 	result = xmlpost_initial_req(vpninfo, request_body, 0);
 	if (result < 0)
