@@ -64,6 +64,7 @@ struct openconnect_info *openconnect_vpninfo_new(const char *useragent,
 #endif
 #ifndef _WIN32
 	vpninfo->tun_fd = -1;
+	vpninfo->ntlm_helper_fd = -1;
 #endif
 	init_pkt_queue(&vpninfo->incoming_queue);
 	init_pkt_queue(&vpninfo->outgoing_queue);
