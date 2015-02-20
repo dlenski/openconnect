@@ -1416,7 +1416,7 @@ static int basic_authorization(struct openconnect_info *vpninfo,
 
 #if !defined(HAVE_GSSAPI) && !defined(_WIN32)
 static int no_gssapi_authorization(struct openconnect_info *vpninfo,
-				   struct http_auth_State *auth_state,
+				   struct http_auth_state *auth_state,
 				   struct oc_text_buf *hdrbuf)
 {
 	/* This comes last so just complain. We're about to bail. */
