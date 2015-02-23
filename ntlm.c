@@ -261,7 +261,7 @@ static int ntlm_helper_challenge(struct openconnect_info *vpninfo,
 void cleanup_ntlm_auth(struct openconnect_info *vpninfo, int proxy,
 		       struct http_auth_state *auth_state)
 {
-	if (vpninfo->ntlm_helper_fd != -1) {
+	if (auth_state->state == NTLM_SSO_REQ) {
 		close(vpninfo->ntlm_helper_fd);
 		vpninfo->ntlm_helper_fd = -1;
 	}
