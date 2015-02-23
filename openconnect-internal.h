@@ -216,6 +216,29 @@ struct oc_text_buf {
 struct http_auth_state {
 	int state;
 	char *challenge;
+	union {
+#ifdef HAVE_GSSAPI
+		struct {
+			gss_name_t gss_target_name;
+			gss_ctx_id_t gss_context;
+		};
+#endif
+#ifdef _WIN32
+		struct {
+			CredHandle ntlm_sspi_cred;
+			CtxtHandle ntlm_sspi_ctx;
+		};
+		struct {
+			CredHandle sspi_cred;
+			CtxtHandle sspi_ctx;
+			SEC_WCHAR *sspi_target_name;
+		};
+#else
+		struct {
+			int ntlm_helper_fd;
+		};
+#endif
+	};
 };
 
 struct vpn_proto {
@@ -354,19 +377,6 @@ struct openconnect_info {
 	int http_close_during_auth;
 	struct http_auth_state http_auth[MAX_AUTH_TYPES];
 	struct http_auth_state proxy_auth[MAX_AUTH_TYPES];
-#ifdef HAVE_GSSAPI
-	gss_name_t gss_target_name[2];
-	gss_ctx_id_t gss_context[2];
-#endif
-#ifdef _WIN32
-	CredHandle ntlm_sspi_cred;
-	CtxtHandle ntlm_sspi_ctx;
-	CredHandle sspi_cred[2];
-	CtxtHandle sspi_ctx[2];
-	SEC_WCHAR *sspi_target_name[2];
-#else
-	int ntlm_helper_fd;
-#endif
 	int authmethods_set;
 
 	char *localname;
@@ -949,11 +959,11 @@ void http_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 
 /* ntlm.c */
 int ntlm_authorization(struct openconnect_info *vpninfo, int proxy, struct http_auth_state *auth_state, struct oc_text_buf *buf);
-void cleanup_ntlm_auth(struct openconnect_info *vpninfo, int proxy, struct http_auth_state *auth_state);
+void cleanup_ntlm_auth(struct openconnect_info *vpninfo, struct http_auth_state *auth_state);
 
 /* gssapi.c */
 int gssapi_authorization(struct openconnect_info *vpninfo, int proxy, struct http_auth_state *auth_state, struct oc_text_buf *buf);
-void cleanup_gssapi_auth(struct openconnect_info *vpninfo, int proxy, struct http_auth_state *auth_state);
+void cleanup_gssapi_auth(struct openconnect_info *vpninfo, struct http_auth_state *auth_state);
 int socks_gssapi_auth(struct openconnect_info *vpninfo);
 
 /* digest.c */

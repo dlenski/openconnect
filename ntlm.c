@@ -43,7 +43,7 @@
 #define NTLM_MANUAL_REQ		4	/* manual type1 packet sent */
 
 #ifdef _WIN32
-static int ntlm_sspi(struct openconnect_info *vpninfo, struct oc_text_buf *buf, const char *challenge)
+static int ntlm_sspi(struct openconnect_info *vpninfo, struct http_auth_state *auth_state, struct oc_text_buf *buf, const char *challenge)
 {
         SECURITY_STATUS status;
         SecBufferDesc input_desc, output_desc;
@@ -72,13 +72,13 @@ static int ntlm_sspi(struct openconnect_info *vpninfo, struct oc_text_buf *buf, 
         out_token.cbBuffer = 0;
         out_token.pvBuffer = NULL;
 
-	status = InitializeSecurityContextW(&vpninfo->ntlm_sspi_cred,
-					    challenge ? &vpninfo->ntlm_sspi_ctx : NULL,
+	status = InitializeSecurityContextW(&auth_state->ntlm_sspi_cred,
+					    challenge ? &auth_state->ntlm_sspi_ctx : NULL,
 					    (SEC_WCHAR *)L"",
 					    ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONNECTION,
 					    0, SECURITY_NETWORK_DREP,
 					    challenge ? &input_desc : NULL,
-					    0, &vpninfo->ntlm_sspi_ctx,
+					    0, &auth_state->ntlm_sspi_ctx,
 					    &output_desc, &ret_flags, NULL);
 
 	if (status != SEC_E_OK && status != SEC_I_CONTINUE_NEEDED) {
@@ -96,7 +96,7 @@ static int ntlm_sspi(struct openconnect_info *vpninfo, struct oc_text_buf *buf, 
 	return 0;
 }
 
-static int ntlm_helper_spawn(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+static int ntlm_helper_spawn(struct openconnect_info *vpninfo, struct http_auth_state *auth_state, struct oc_text_buf *buf)
 {
         SECURITY_STATUS status;
 	int ret;
@@ -104,16 +104,16 @@ static int ntlm_helper_spawn(struct openconnect_info *vpninfo, struct oc_text_bu
 	status = AcquireCredentialsHandleW(NULL, (SEC_WCHAR *)L"NTLM",
 					   SECPKG_CRED_OUTBOUND, NULL, NULL,
 					   NULL, NULL,
-					   &vpninfo->ntlm_sspi_cred, NULL);
+					   &auth_state->ntlm_sspi_cred, NULL);
 	if (status != SEC_E_OK) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("AcquireCredentialsHandle() failed: %lx\n"), status);
 		return -EIO;
 	}
 
-	ret = ntlm_sspi(vpninfo, buf, NULL);
+	ret = ntlm_sspi(vpninfo, auth_state, buf, NULL);
 	if (ret)
-		FreeCredentialsHandle(&vpninfo->ntlm_sspi_cred);
+		FreeCredentialsHandle(&auth_state->ntlm_sspi_cred);
 
 	return ret;
 }
@@ -122,21 +122,21 @@ static int ntlm_helper_challenge(struct openconnect_info *vpninfo,
 				 struct http_auth_state *auth_state,
 				 struct oc_text_buf *buf)
 {
-	return ntlm_sspi(vpninfo, buf, auth_state->challenge);
+	return ntlm_sspi(vpninfo, auth_state, buf, auth_state->challenge);
 }
 
-void cleanup_ntlm_auth(struct openconnect_info *vpninfo, int proxy,
+void cleanup_ntlm_auth(struct openconnect_info *vpninfo,
 		       struct http_auth_state *auth_state)
 {
 	if (auth_state->state == NTLM_SSO_REQ) {
-		FreeCredentialsHandle(&vpninfo->ntlm_sspi_cred);
-		DeleteSecurityContext(&vpninfo->ntlm_sspi_ctx);
+		FreeCredentialsHandle(&auth_state->ntlm_sspi_cred);
+		DeleteSecurityContext(&auth_state->ntlm_sspi_ctx);
 	}
 }
 
 #else /* !_WIN32 */
 
-static int ntlm_helper_spawn(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+static int ntlm_helper_spawn(struct openconnect_info *vpninfo, struct http_auth_state *auth_state, struct oc_text_buf *buf)
 {
 	char *username;
 	int pipefd[2];
@@ -220,7 +220,7 @@ static int ntlm_helper_spawn(struct openconnect_info *vpninfo, struct oc_text_bu
 	}
 	helperbuf[len - 1] = 0;
 	buf_append(buf, "Proxy-Authorization: NTLM %s\r\n", helperbuf + 3);
-	vpninfo->ntlm_helper_fd = pipefd[1];
+	auth_state->ntlm_helper_fd = pipefd[1];
 	return 0;
 }
 
@@ -232,17 +232,17 @@ static int ntlm_helper_challenge(struct openconnect_info *vpninfo,
 	int len;
 
 	if (!auth_state->challenge ||
-	    write(vpninfo->ntlm_helper_fd, "TT ", 3) != 3 ||
-	    write(vpninfo->ntlm_helper_fd, auth_state->challenge,
+	    write(auth_state->ntlm_helper_fd, "TT ", 3) != 3 ||
+	    write(auth_state->ntlm_helper_fd, auth_state->challenge,
 		  strlen(auth_state->challenge)) != strlen(auth_state->challenge) ||
-	    write(vpninfo->ntlm_helper_fd, "\n", 1) != 1) {
+	    write(auth_state->ntlm_helper_fd, "\n", 1) != 1) {
 	err:
 		vpn_progress(vpninfo, PRG_ERR, _("Error communicating with ntlm_auth helper\n"));
-		close(vpninfo->ntlm_helper_fd);
-		vpninfo->ntlm_helper_fd = -1;
+		close(auth_state->ntlm_helper_fd);
+		auth_state->ntlm_helper_fd = -1;
 		return -EAGAIN;
 	}
-	len = read(vpninfo->ntlm_helper_fd, helperbuf, sizeof(helperbuf));
+	len = read(auth_state->ntlm_helper_fd, helperbuf, sizeof(helperbuf));
 	/* Accept both 'KK' and 'AF'. It should be the latter but see
 	   https://bugzilla.samba.org/show_bug.cgi?id=10691 */
 	if (len < 4 || (!(helperbuf[0] == 'K' && helperbuf[1] == 'K') &&
@@ -258,12 +258,12 @@ static int ntlm_helper_challenge(struct openconnect_info *vpninfo,
 
 }
 
-void cleanup_ntlm_auth(struct openconnect_info *vpninfo, int proxy,
+void cleanup_ntlm_auth(struct openconnect_info *vpninfo,
 		       struct http_auth_state *auth_state)
 {
 	if (auth_state->state == NTLM_SSO_REQ) {
-		close(vpninfo->ntlm_helper_fd);
-		vpninfo->ntlm_helper_fd = -1;
+		close(auth_state->ntlm_helper_fd);
+		auth_state->ntlm_helper_fd = -1;
 	}
 }
 #endif /* !_WIN32 */
@@ -986,7 +986,7 @@ int ntlm_authorization(struct openconnect_info *vpninfo, int proxy,
 	if (auth_state->state == AUTH_AVAILABLE) {
 		auth_state->state = NTLM_MANUAL;
 		/* Don't attempt automatic NTLM auth if we were given a password */
-		if (!pass && !ntlm_helper_spawn(vpninfo, buf)) {
+		if (!pass && !ntlm_helper_spawn(vpninfo, auth_state, buf)) {
 			auth_state->state = NTLM_SSO_REQ;
 			return 0;
 		}
@@ -995,7 +995,7 @@ int ntlm_authorization(struct openconnect_info *vpninfo, int proxy,
 		int ret;
 		ret = ntlm_helper_challenge(vpninfo, auth_state, buf);
 		/* Clean up after it. We're done here, whether it worked or not */
-		cleanup_ntlm_auth(vpninfo, proxy, auth_state);
+		cleanup_ntlm_auth(vpninfo, auth_state);
 		auth_state->state = NTLM_MANUAL;
 		if (ret == -EAGAIN) {
 			/* Don't let it reset our state when it reconnects */
