@@ -820,8 +820,6 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 	 */
 	buf = buf_alloc();
 	buf_append(buf, "%s /%s HTTP/1.1\r\n", method, vpninfo->urlpath ?: "");
-	if (vpninfo->proto.add_http_headers)
-		vpninfo->proto.add_http_headers(vpninfo, buf);
 	if (auth) {
 		result = gen_authorization_hdr(vpninfo, 0, buf);
 		if (result)
@@ -830,6 +828,8 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 		/* Forget existing challenges */
 		clear_auth_states(vpninfo, vpninfo->http_auth, 0);
 	}
+	if (vpninfo->proto.add_http_headers)
+		vpninfo->proto.add_http_headers(vpninfo, buf);
 
 	if (request_body_type) {
 		rlen = request_body->pos;
@@ -858,6 +858,8 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 
 	if (buf_error(buf))
 		return buf_free(buf);
+
+	vpninfo->retry_on_auth_fail = 0;
 
  retry:
 	if (openconnect_https_connected(vpninfo)) {
@@ -899,7 +901,7 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 	if (vpninfo->dump_http_traffic && buf->pos)
 		dump_buf(vpninfo, '<', buf->data);
 
-	if (result == 401) {
+	if (result == 401 && vpninfo->try_http_auth) {
 		auth = 1;
 		goto redirected;
 	}

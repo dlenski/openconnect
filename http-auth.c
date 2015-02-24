@@ -247,6 +247,12 @@ int gen_authorization_hdr(struct openconnect_info *vpninfo, int proxy,
 		}
 	}
 	vpn_progress(vpninfo, PRG_INFO, _("No more authentication methods to try\n"));
+
+	if (vpninfo->retry_on_auth_fail) {
+		/* Try again without the X-Support-HTTP-Auth: header */
+		vpninfo->try_http_auth = 0;
+		return 0;
+	}
 	return -ENOENT;
 }
 
@@ -304,6 +310,12 @@ int proxy_auth_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val)
 int http_auth_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val)
 {
 	int i;
+
+	if (!strcasecmp(hdr, "X-HTTP-Auth-Support") &&
+	    !strcasecmp(val, "fallback")) {
+		vpninfo->retry_on_auth_fail = 1;
+		return 0;
+	}
 
 	if (strcasecmp(hdr, "WWW-Authenticate"))
 		return 0;
