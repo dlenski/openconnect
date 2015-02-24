@@ -1035,7 +1035,9 @@ int main(int argc, char **argv)
 			break;
 		}
 		case OPT_JUNIPER:
-			openconnect_set_juniper(vpninfo);
+			fprintf(stderr, "WARNING: Juniper Network Connect support is experimental.\n");
+			fprintf(stderr, "It will probably be superseded by Junos Pulse support.\n");
+			openconnect_set_protocol(vpninfo, "nc");
 			break;
 		case OPT_CSD_USER: {
 			char *strend;

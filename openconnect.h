@@ -33,7 +33,7 @@
 
 /*
  * API version 5.2:
- *  - Add openconnect_set_http_auth().
+ *  - Add openconnect_set_http_auth(), openconnect_set_protocol().
  *
  * API version 5.1:
  *  - Add openconnect_set_compression_mode(), openconnect_set_loglevel()
@@ -572,5 +572,7 @@ int openconnect_has_stoken_support(void);
 int openconnect_has_oath_support(void);
 int openconnect_has_yubioath_support(void);
 int openconnect_has_system_key_support(void);
+
+int openconnect_set_protocol(struct openconnect_info *vpninfo, const char *protocol);
 
 #endif /* __OPENCONNECT_H__ */

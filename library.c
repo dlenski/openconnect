@@ -94,19 +94,7 @@ struct openconnect_info *openconnect_vpninfo_new(const char *useragent,
 #ifdef ENABLE_NLS
 	bindtextdomain("openconnect", LOCALEDIR);
 #endif
-	vpninfo->proto.vpn_close_session = cstp_bye;
-	vpninfo->proto.tcp_connect = cstp_connect;
-	vpninfo->proto.tcp_mainloop = cstp_mainloop;
-	vpninfo->proto.add_http_headers = cstp_common_headers;
-	vpninfo->proto.obtain_cookie = cstp_obtain_cookie;
-#ifdef HAVE_DTLS
-	vpninfo->proto.udp_setup = dtls_setup;
-	vpninfo->proto.udp_mainloop = dtls_mainloop;
-	vpninfo->proto.udp_close = dtls_close;
-	vpninfo->proto.udp_shutdown = dtls_shutdown;
-#else
-	vpninfo->dtls_state = DTLS_DISABLED;
-#endif
+	openconnect_set_protocol(vpninfo, "anyconnect");
 	return vpninfo;
 
 err:
@@ -116,21 +104,43 @@ err:
 	return NULL;
 }
 
-void openconnect_set_juniper(struct openconnect_info *vpninfo)
+int openconnect_set_protocol(struct openconnect_info *vpninfo, const char *protocol)
 {
-	vpninfo->proto.vpn_close_session = NULL;
-	vpninfo->proto.tcp_connect = oncp_connect;
-	vpninfo->proto.tcp_mainloop = oncp_mainloop;
-	vpninfo->proto.add_http_headers = oncp_common_headers;
-	vpninfo->proto.obtain_cookie = oncp_obtain_cookie;
-#if defined(ESP_GNUTLS) || defined(ESP_OPENSSL)
-	vpninfo->proto.udp_setup = esp_setup;
-	vpninfo->proto.udp_mainloop = esp_mainloop;
-	vpninfo->proto.udp_close = esp_close;
-	vpninfo->proto.udp_shutdown = esp_shutdown;
+	if (!strcmp(protocol, "anyconnect")) {
+		vpninfo->proto.vpn_close_session = cstp_bye;
+		vpninfo->proto.tcp_connect = cstp_connect;
+		vpninfo->proto.tcp_mainloop = cstp_mainloop;
+		vpninfo->proto.add_http_headers = cstp_common_headers;
+		vpninfo->proto.obtain_cookie = cstp_obtain_cookie;
+#ifdef HAVE_DTLS
+		vpninfo->proto.udp_setup = dtls_setup;
+		vpninfo->proto.udp_mainloop = dtls_mainloop;
+		vpninfo->proto.udp_close = dtls_close;
+		vpninfo->proto.udp_shutdown = dtls_shutdown;
 #else
-	vpninfo->dtls_state = DTLS_DISABLED;
+		vpninfo->dtls_state = DTLS_DISABLED;
 #endif
+	} else if (!strcmp(protocol, "nc")) {
+		vpninfo->proto.vpn_close_session = NULL;
+		vpninfo->proto.tcp_connect = oncp_connect;
+		vpninfo->proto.tcp_mainloop = oncp_mainloop;
+		vpninfo->proto.add_http_headers = oncp_common_headers;
+		vpninfo->proto.obtain_cookie = oncp_obtain_cookie;
+#if defined(ESP_GNUTLS) || defined(ESP_OPENSSL)
+		vpninfo->proto.udp_setup = esp_setup;
+		vpninfo->proto.udp_mainloop = esp_mainloop;
+		vpninfo->proto.udp_close = esp_close;
+		vpninfo->proto.udp_shutdown = esp_shutdown;
+#else
+		vpninfo->dtls_state = DTLS_DISABLED;
+#endif
+	} else {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Unknown VPN protocol '%s'\n"), protocol);
+		return -EINVAL;
+	}
+
+	return 0;
 }
 
 void openconnect_set_loglevel(struct openconnect_info *vpninfo,
