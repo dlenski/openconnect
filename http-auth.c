@@ -253,9 +253,10 @@ int gen_authorization_hdr(struct openconnect_info *vpninfo, int proxy,
 
 /* Returns non-zero if it matched */
 static int handle_auth_proto(struct openconnect_info *vpninfo,
+			     struct http_auth_state *auth_states,
 			     struct auth_method *method, char *hdr)
 {
-	struct http_auth_state *auth = &vpninfo->proxy_auth[method->state_index];
+	struct http_auth_state *auth = &auth_states[method->state_index];
 	int l = strlen(method->name);
 
 	if (auth->state <= AUTH_FAILED)
@@ -294,7 +295,23 @@ int proxy_auth_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val)
 
 	for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++) {
 		/* Return once we've found a match */
-		if (handle_auth_proto(vpninfo, &auth_methods[i], val))
+		if (handle_auth_proto(vpninfo, vpninfo->proxy_auth, &auth_methods[i], val))
+			return 0;
+	}
+
+	return 0;
+}
+
+int http_auth_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val)
+{
+	int i;
+
+	if (strcasecmp(hdr, "WWW-Authenticate"))
+		return 0;
+
+	for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++) {
+		/* Return once we've found a match */
+		if (handle_auth_proto(vpninfo, vpninfo->http_auth, &auth_methods[i], val))
 			return 0;
 	}
 

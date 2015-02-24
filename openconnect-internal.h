@@ -374,7 +374,6 @@ struct openconnect_info {
 	char *proxy_user;
 	char *proxy_pass;
 	int proxy_close_during_auth;
-	int http_close_during_auth;
 	struct http_auth_state http_auth[MAX_AUTH_TYPES];
 	struct http_auth_state proxy_auth[MAX_AUTH_TYPES];
 	int authmethods_set;
@@ -960,6 +959,7 @@ void *openconnect_base64_decode(int *len, const char *in);
 void clear_auth_states(struct openconnect_info *vpninfo,
 		       struct http_auth_state *auth_states, int reset);
 int proxy_auth_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val);
+int http_auth_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val);
 int gen_authorization_hdr(struct openconnect_info *vpninfo, int proxy,
 			  struct oc_text_buf *buf);
 /* ntlm.c */

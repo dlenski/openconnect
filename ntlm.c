@@ -1014,8 +1014,6 @@ int ntlm_authorization(struct openconnect_info *vpninfo, int proxy,
 			/* Don't let it reset our state when it reconnects */
 			if (proxy)
 				vpninfo->proxy_close_during_auth = 1;
-			else
-				vpninfo->http_close_during_auth = 1;
 			return ret;
 		}
 		if (!ret)

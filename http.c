@@ -790,6 +790,7 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 	int result;
 	int rq_retry;
 	int rlen, pad;
+	int auth = 0;
 
 	if (request_body_type && buf_error(request_body))
 		return buf_error(request_body);
@@ -815,6 +816,14 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 	buf_append(buf, "%s /%s HTTP/1.1\r\n", method, vpninfo->urlpath ?: "");
 	if (vpninfo->proto.add_http_headers)
 		vpninfo->proto.add_http_headers(vpninfo, buf);
+	if (auth) {
+		result = gen_authorization_hdr(vpninfo, 0, buf);
+		if (result)
+			goto out;
+
+		/* Forget existing challenges */
+		clear_auth_states(vpninfo, vpninfo->http_auth, 0);
+	}
 
 	if (request_body_type) {
 		rlen = request_body->pos;
@@ -856,12 +865,12 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to open HTTPS connection to %s\n"),
 				     vpninfo->hostname);
-			buf_free(buf);
 			/* We really don't want to return -EINVAL if we have
 			   failed to even connect to the server, because if
 			   we do that openconnect_obtain_cookie() might try
 			   again without XMLPOST... with the same result. */
-			return -EIO;
+			result = -EIO;
+			goto out;
 		}
 	}
 
@@ -876,7 +885,7 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 	if (result < 0)
 		goto out;
 
-	result = process_http_response(vpninfo, 0, NULL, buf);
+	result = process_http_response(vpninfo, 0, http_auth_hdrs, buf);
 	if (result < 0) {
 		/* We'll already have complained about whatever offended us */
 		goto out;
@@ -884,6 +893,10 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 	if (vpninfo->dump_http_traffic && buf->pos)
 		dump_buf(vpninfo, '<', buf->data);
 
+	if (result == 401) {
+		auth = 1;
+		goto redirected;
+	}
 	if (result != 200 && vpninfo->redirect_url) {
 		result = handle_redirect(vpninfo);
 		if (result == 0) {
@@ -894,6 +907,8 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 				method = "GET";
 				request_body_type = NULL;
 			}
+			if (vpninfo->redirect_type == REDIR_TYPE_NEWHOST)
+				clear_auth_states(vpninfo, vpninfo->http_auth, 1);
 			goto redirected;
 		}
 		goto out;
@@ -912,6 +927,8 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 
  out:
 	buf_free(buf);
+	/* On success, clear out all authentication state for the next request */
+	clear_auth_states(vpninfo, vpninfo->http_auth, 1);
 	return result;
 }
 
