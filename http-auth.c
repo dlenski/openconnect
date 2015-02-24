@@ -2,7 +2,6 @@
  * OpenConnect (SSL + DTLS) VPN client
  *
  * Copyright © 2008-2015 Intel Corporation.
- * Copyright © 2008 Nick Andrew <nick@nick-andrew.net>
  *
  * Author: David Woodhouse <dwmw2@infradead.org>
  *
@@ -337,7 +336,7 @@ void clear_auth_states(struct openconnect_info *vpninfo,
 		auth->challenge = NULL;
 		/* If it *failed* don't try it again even next time */
 		if (auth->state <= AUTH_FAILED)
-			return;
+			continue;
 		if (reset || auth->state == AUTH_AVAILABLE)
 			auth->state = AUTH_UNSEEN;
 	}
