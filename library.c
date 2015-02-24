@@ -84,6 +84,8 @@ struct openconnect_info *openconnect_vpninfo_new(const char *useragent,
 	vpninfo->xmlpost = 1;
 	vpninfo->verbose = PRG_TRACE;
 	vpninfo->try_http_auth = 1;
+	vpninfo->proxy_auth[AUTH_TYPE_BASIC].state = AUTH_DEFAULT_DISABLED;
+	vpninfo->http_auth[AUTH_TYPE_BASIC].state = AUTH_DEFAULT_DISABLED;
 	openconnect_set_reported_os(vpninfo, NULL);
 
 	if (!vpninfo->localname || !vpninfo->useragent)

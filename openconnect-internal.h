@@ -206,6 +206,7 @@ struct oc_text_buf {
 
 #define MAX_AUTH_TYPES		4
 
+#define AUTH_DEFAULT_DISABLED	-3
 #define AUTH_DISABLED		-2
 #define AUTH_FAILED		-1	/* Failed */
 #define AUTH_UNSEEN		0	/* Server has not offered it */
@@ -378,7 +379,6 @@ struct openconnect_info {
 	int try_http_auth;
 	struct http_auth_state http_auth[MAX_AUTH_TYPES];
 	struct http_auth_state proxy_auth[MAX_AUTH_TYPES];
-	int authmethods_set;
 
 	char *localname;
 	char *hostname;

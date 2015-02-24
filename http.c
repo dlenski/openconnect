@@ -1135,11 +1135,11 @@ static int process_socks_proxy(struct openconnect_info *vpninfo)
 
 	buf[2 + nr_auth_methods++] = SOCKS_AUTH_NONE;
 #if defined(HAVE_GSSAPI) || defined(_WIN32)
-	if (vpninfo->proxy_auth[AUTH_TYPE_GSSAPI].state != AUTH_DISABLED &&
+	if (vpninfo->proxy_auth[AUTH_TYPE_GSSAPI].state > AUTH_FAILED &&
 	    !vpninfo->proxy_user && !vpninfo->proxy_pass)
 		buf[2 + nr_auth_methods++] = SOCKS_AUTH_GSSAPI;
 #endif
-	if (vpninfo->proxy_auth[AUTH_TYPE_BASIC].state != AUTH_DISABLED &&
+	if (vpninfo->proxy_auth[AUTH_TYPE_BASIC].state > AUTH_FAILED &&
 	    vpninfo->proxy_user && vpninfo->proxy_pass)
 		buf[2 + nr_auth_methods++] = SOCKS_AUTH_PASSWORD;
 

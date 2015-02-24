@@ -163,13 +163,6 @@ static int basic_authorization(struct openconnect_info *vpninfo, int proxy,
 	if (!user || !pass)
 		return -EINVAL;
 
-	if (!vpninfo->authmethods_set) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Proxy requested Basic authentication which is disabled by default\n"));
-		auth_state->state = AUTH_FAILED;
-		return -EINVAL;
-	}
-
 	if (auth_state->state == AUTH_IN_PROGRESS) {
 		auth_state->state = AUTH_FAILED;
 		return -EAGAIN;
@@ -240,6 +233,20 @@ int gen_authorization_hdr(struct openconnect_info *vpninfo, int proxy,
 			auth_state = &vpninfo->proxy_auth[auth_methods[i].state_index];
 		else
 			auth_state = &vpninfo->http_auth[auth_methods[i].state_index];
+
+		if (auth_state->state == AUTH_DEFAULT_DISABLED) {
+			if (proxy)
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Proxy requested Basic authentication which is disabled by default\n"));
+			else
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Server '%s' requested Basic authentication which is disabled by default\n"),
+					       vpninfo->hostname);
+			auth_state->state = AUTH_FAILED;
+			return -EINVAL;
+		}
+
+
 		if (auth_state->state > AUTH_UNSEEN) {
 			ret = auth_methods[i].authorization(vpninfo, proxy, auth_state, buf);
 			if (ret == -EAGAIN || !ret)
@@ -380,7 +387,6 @@ int openconnect_set_proxy_auth(struct openconnect_info *vpninfo, const char *met
 		}
 		methods = p;
 	}
-	vpninfo->authmethods_set = 1;
 	return 0;
 }
 
