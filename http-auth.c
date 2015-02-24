@@ -361,13 +361,14 @@ void clear_auth_states(struct openconnect_info *vpninfo,
 	}
 }
 
-int openconnect_set_proxy_auth(struct openconnect_info *vpninfo, const char *methods)
+static int set_authmethods(struct openconnect_info *vpninfo, struct http_auth_state *auth_states,
+			   const char *methods)
 {
 	int i, len;
 	const char *p;
 
 	for (i = 0; i < sizeof(auth_methods) / sizeof(auth_methods[0]); i++)
-		vpninfo->proxy_auth[auth_methods[i].state_index].state = AUTH_DISABLED;
+		auth_states[auth_methods[i].state_index].state = AUTH_DISABLED;
 
 	while (methods) {
 		p = strchr(methods, ',');
@@ -381,7 +382,7 @@ int openconnect_set_proxy_auth(struct openconnect_info *vpninfo, const char *met
 			if (strprefix_match(methods, len, auth_methods[i].name) ||
 			    (auth_methods[i].state_index == AUTH_TYPE_GSSAPI &&
 			     strprefix_match(methods, len, "gssapi"))) {
-				vpninfo->proxy_auth[auth_methods[i].state_index].state = AUTH_UNSEEN;
+				auth_states[auth_methods[i].state_index].state = AUTH_UNSEEN;
 				break;
 			}
 		}
@@ -390,3 +391,12 @@ int openconnect_set_proxy_auth(struct openconnect_info *vpninfo, const char *met
 	return 0;
 }
 
+int openconnect_set_http_auth(struct openconnect_info *vpninfo, const char *methods)
+{
+	return set_authmethods(vpninfo, vpninfo->http_auth, methods);
+}
+
+int openconnect_set_proxy_auth(struct openconnect_info *vpninfo, const char *methods)
+{
+	return set_authmethods(vpninfo, vpninfo->proxy_auth, methods);
+}

@@ -183,6 +183,7 @@ enum {
 	OPT_TIMESTAMP,
 	OPT_PFS,
 	OPT_PROXY_AUTH,
+	OPT_HTTP_AUTH,
 };
 
 #ifdef __sun__
@@ -216,6 +217,7 @@ static const struct option long_options[] = {
 	OPTION("cert-expire-warning", 1, 'e'),
 	OPTION("usergroup", 1, 'g'),
 	OPTION("help", 0, 'h'),
+	OPTION("http-auth", 1, OPT_HTTP_AUTH),
 	OPTION("interface", 1, 'i'),
 	OPTION("mtu", 1, 'm'),
 	OPTION("base-mtu", 1, OPT_BASEMTU),
@@ -1189,6 +1191,9 @@ int main(int argc, char **argv)
 			break;
 		case OPT_PROXY_AUTH:
 			openconnect_set_proxy_auth(vpninfo, config_arg);
+			break;
+		case OPT_HTTP_AUTH:
+			openconnect_set_http_auth(vpninfo, config_arg);
 			break;
 		case OPT_NO_PROXY:
 			autoproxy = 0;

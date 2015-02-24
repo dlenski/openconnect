@@ -17,6 +17,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-\-force\-dpd interval
 .OP \-g,\-\-usergroup group
 .OP \-h,\-\-help
+.OP \-\-http\-auth methods
 .OP \-i,\-\-interface ifname
 .OP \-l,\-\-syslog
 .OP \-\-timestamp
@@ -170,6 +171,15 @@ as login UserGroup
 .B \-h,\-\-help
 Display help text
 .TP
+.B \-\-http\-auth=METHODS
+Use only the specified methods for HTTP authentication to a server.  By default,
+only Negotiate, NTLM and Digest authentication are enabled. Basic authentication
+is also supported but because it is insecure it must be explicitly enabled. The
+argument is a comma-separated list of methods to be enabled. Note that the order
+does not matter: OpenConnect will use Negotiate, NTLM, Digest and Basic
+authentication in that order, if each is enabled, regardless of the order
+specified in the METHODS string.
+.TP
 .B \-i,\-\-interface=IFNAME
 Use
 .I IFNAME
@@ -214,7 +224,7 @@ in the given URL, and will be used for authentication. If authentication is
 required but no credentials are given, GSSAPI and automatic NTLM authentication
 using Samba's ntlm_auth helper tool may be attempted.
 .TP
-.B \-\-proxy-auth=METHODS
+.B \-\-proxy\-auth=METHODS
 Use only the specified methods for HTTP authentication to a proxy.  By default,
 only Negotiate, NTLM and Digest authentication are enabled. Basic authentication
 is also supported but because it is insecure it must be explicitly enabled. The

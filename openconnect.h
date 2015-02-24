@@ -32,6 +32,9 @@
 #define OPENCONNECT_API_VERSION_MINOR 1
 
 /*
+ * API version 5.2:
+ *  - Add openconnect_set_http_auth().
+ *
  * API version 5.1:
  *  - Add openconnect_set_compression_mode(), openconnect_set_loglevel()
  *
@@ -341,6 +344,8 @@ void openconnect_free_cert_info(struct openconnect_info *vpninfo,
 				void *buf);
 /* Contains a comma-separated list of authentication methods to enabled.
    Currently supported: Negotiate,NTLM,Digest,Basic */
+int openconnect_set_http_auth(struct openconnect_info *vpninfo,
+			      const char *methods);
 int openconnect_set_proxy_auth(struct openconnect_info *vpninfo,
 			       const char *methods);
 int openconnect_set_http_proxy(struct openconnect_info *vpninfo,
