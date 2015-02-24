@@ -932,17 +932,14 @@ int buf_ensure_space(struct oc_text_buf *buf, int len);
 void  __attribute__ ((format (printf, 2, 3)))
 	buf_append(struct oc_text_buf *buf, const char *fmt, ...);
 void buf_append_bytes(struct oc_text_buf *buf, const void *bytes, int len);
-void buf_append_base64(struct oc_text_buf *buf, const void *bytes, int len);
 int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8);
 int get_utf8char(const char **utf8);
 void buf_append_from_utf16le(struct oc_text_buf *buf, const void *utf16);
-void *openconnect_base64_decode(int *len, const char *in);
 void buf_truncate(struct oc_text_buf *buf);
 void buf_append_urlencoded(struct oc_text_buf *buf, char *str);
 int buf_error(struct oc_text_buf *buf);
 int buf_free(struct oc_text_buf *buf);
 char *openconnect_create_useragent(const char *base);
-void cleanup_proxy_auth(struct openconnect_info *vpninfo);
 int process_proxy(struct openconnect_info *vpninfo, int ssl_sock);
 int internal_parse_url(const char *url, char **res_proto, char **res_host,
 		       int *res_port, char **res_path, int default_port);
@@ -957,6 +954,14 @@ int process_http_response(struct openconnect_info *vpninfo, int connect,
 int handle_redirect(struct openconnect_info *vpninfo);
 void http_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
 
+/* http-auth.c */
+void buf_append_base64(struct oc_text_buf *buf, const void *bytes, int len);
+void *openconnect_base64_decode(int *len, const char *in);
+void clear_auth_states(struct openconnect_info *vpninfo,
+		       struct http_auth_state *auth_states, int reset);
+int proxy_auth_hdrs(struct openconnect_info *vpninfo, char *hdr, char *val);
+int gen_authorization_hdr(struct openconnect_info *vpninfo, int proxy,
+			  struct oc_text_buf *buf);
 /* ntlm.c */
 int ntlm_authorization(struct openconnect_info *vpninfo, int proxy, struct http_auth_state *auth_state, struct oc_text_buf *buf);
 void cleanup_ntlm_auth(struct openconnect_info *vpninfo, struct http_auth_state *auth_state);
@@ -977,6 +982,14 @@ void openconnect_set_juniper(struct openconnect_info *vpninfo);
 
 /* version.c */
 extern const char *openconnect_version_str;
+
+/* strncasecmp() just checks that the first n characters match. This
+   function ensures that the first n characters of the left-hand side
+   are a *precise* match for the right-hand side. */
+static inline int strprefix_match(const char *str, int len, const char *match)
+{
+	return len == strlen(match) && !strncasecmp(str, match, len);
+}
 
 #define STRDUP(res, arg) \
 	do {							\

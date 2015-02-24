@@ -369,7 +369,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
  out:
 	/* If proxy processing returned -EAGAIN to reconnect before attempting
 	   further auth, and we failed to reconnect, we have to clean up here. */
-	cleanup_proxy_auth(vpninfo);
+	clear_auth_states(vpninfo, vpninfo->proxy_auth, 1);
 	return ssl_sock;
 }
 

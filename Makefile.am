@@ -23,7 +23,7 @@ openconnect_SOURCES = xml.c main.c
 openconnect_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBPSKC_CFLAGS) $(GSSAPI_CFLAGS) $(INTL_CFLAGS) $(ICONV_CFLAGS) $(LIBPCSCLITE_CFLAGS)
 openconnect_LDADD = libopenconnect.la $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(INTL_LIBS) $(ICONV_LIBS)
 
-library_srcs = ssl.c http.c auth-common.c library.c compat.c lzs.c mainloop.c script.c ntlm.c digest.c
+library_srcs = ssl.c http.c http-auth.c auth-common.c library.c compat.c lzs.c mainloop.c script.c ntlm.c digest.c
 lib_srcs_cisco = auth.c cstp.c dtls.c
 lib_srcs_juniper = oncp.c lzo.c auth-juniper.c
 lib_srcs_gnutls = gnutls.c gnutls_pkcs12.c gnutls_tpm.c
