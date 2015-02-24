@@ -1188,7 +1188,7 @@ int main(int argc, char **argv)
 			autoproxy = 0;
 			break;
 		case OPT_PROXY_AUTH:
-			openconnect_set_proxy_auth(vpninfo, dup_config_arg());
+			openconnect_set_proxy_auth(vpninfo, config_arg);
 			break;
 		case OPT_NO_PROXY:
 			autoproxy = 0;
