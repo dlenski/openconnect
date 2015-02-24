@@ -139,9 +139,16 @@ int gssapi_authorization(struct openconnect_info *vpninfo, int proxy,
 	buf_append(hdrbuf, "\r\n");
 
 	gss_release_buffer(&minor, &out);
-	if (!auth_state->challenge)
-		vpn_progress(vpninfo, PRG_INFO,
-			     _("Attempting GSSAPI authentication to proxy\n"));
+	if (!auth_state->challenge) {
+		if (proxy)
+			vpn_progress(vpninfo, PRG_INFO,
+				     _("Attempting GSSAPI authentication to proxy\n"));
+		else
+			vpn_progress(vpninfo, PRG_INFO,
+				     _("Attempting GSSAPI authentication to server '%s'\n"),
+				     vpninfo->hostname);
+	}
+
 	return 0;
 }
 

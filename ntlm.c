@@ -37,6 +37,7 @@
 
 #include "openconnect-internal.h"
 
+#define auth_is_proxy(v, a) ((unsigned long)(a) >= ((unsigned long)(v)->proxy_auth))
 
 #define NTLM_SSO_REQ		2	/* SSO type1 packet sent */
 #define NTLM_MANUAL		3	/* SSO challenge/response sent or skipped; manual next */
@@ -87,7 +88,8 @@ static int ntlm_sspi(struct openconnect_info *vpninfo, struct http_auth_state *a
 		return -EIO;
 	}
 
-	buf_append(buf, "Proxy-Authorization: NTLM ");
+	buf_append(buf, "%sAuthorization: NTLM ",
+		   auth_is_proxy(vpninfo, auth_state) ? "Proxy-" : "");
 	buf_append_base64(buf, out_token.pvBuffer, out_token.cbBuffer);
 	buf_append(buf, "\r\n");
 
@@ -96,7 +98,8 @@ static int ntlm_sspi(struct openconnect_info *vpninfo, struct http_auth_state *a
 	return 0;
 }
 
-static int ntlm_helper_spawn(struct openconnect_info *vpninfo, struct http_auth_state *auth_state, struct oc_text_buf *buf)
+static int ntlm_helper_spawn(struct openconnect_info *vpninfo, struct http_auth_state *auth_state,
+			     struct oc_text_buf *buf)
 {
         SECURITY_STATUS status;
 	int ret;
@@ -136,7 +139,8 @@ void cleanup_ntlm_auth(struct openconnect_info *vpninfo,
 
 #else /* !_WIN32 */
 
-static int ntlm_helper_spawn(struct openconnect_info *vpninfo, struct http_auth_state *auth_state, struct oc_text_buf *buf)
+static int ntlm_helper_spawn(struct openconnect_info *vpninfo, struct http_auth_state *auth_state,
+			     struct oc_text_buf *buf)
 {
 	char *username;
 	int pipefd[2];
@@ -219,7 +223,9 @@ static int ntlm_helper_spawn(struct openconnect_info *vpninfo, struct http_auth_
 		return -EIO;
 	}
 	helperbuf[len - 1] = 0;
-	buf_append(buf, "Proxy-Authorization: NTLM %s\r\n", helperbuf + 3);
+	buf_append(buf, "%sAuthorization: NTLM %s\r\n",
+		   auth_is_proxy(vpninfo, auth_state) ? "Proxy-" : "",
+		   helperbuf + 3);
 	auth_state->ntlm_helper_fd = pipefd[1];
 	return 0;
 }
@@ -251,9 +257,16 @@ static int ntlm_helper_challenge(struct openconnect_info *vpninfo,
 		goto err;
 	}
 	helperbuf[len - 1] = 0;
-	buf_append(buf, "Proxy-Authorization: NTLM %s\r\n", helperbuf + 3);
+	buf_append(buf, "%sAuthorization: NTLM %s\r\n",
+		   auth_is_proxy(vpninfo, auth_state) ? "Proxy-" : "", helperbuf + 3);
 
-	vpn_progress(vpninfo, PRG_INFO, _("Attempting HTTP NTLM authentication to proxy (single-sign-on)\n"));
+	if (auth_is_proxy(vpninfo, auth_state))
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("Attempting HTTP NTLM authentication to proxy (single-sign-on)\n"));
+	else
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("Attempting HTTP NTLM authentication to server '%s' (single-sign-on)\n"),
+			     vpninfo->hostname);
 	return 0;
 
 }
@@ -850,8 +863,7 @@ static void ntlm_set_string_binary(struct oc_text_buf *buf, int offset,
 static int ntlm_manual_challenge(struct openconnect_info *vpninfo,
 				 struct http_auth_state *auth_state,
 				 struct oc_text_buf *hdrbuf,
-				 const char *domuser, const char *pass,
-				 int proxy)
+				 const char *domuser, const char *pass)
 {
 	struct oc_text_buf *resp;
 	char *user;
@@ -955,12 +967,13 @@ static int ntlm_manual_challenge(struct openconnect_info *vpninfo,
 	if (buf_error(resp))
 		return buf_free(resp);
 
-	buf_append(hdrbuf, "%sAuthorization: NTLM ", proxy ? "Proxy-" : "");
+	buf_append(hdrbuf, "%sAuthorization: NTLM ",
+		   auth_is_proxy(vpninfo, auth_state) ? "Proxy-" : "");
 	buf_append_base64(hdrbuf, resp->data, resp->pos);
 	buf_append(hdrbuf, "\r\n");
 
 	buf_free(resp);
-	if (proxy)
+	if (auth_is_proxy(vpninfo, auth_state))
 		vpn_progress(vpninfo, PRG_INFO,
 			     _("Attempting HTTP NTLMv%d authentication to proxy\n"),
 			     ntlmver);
@@ -1016,7 +1029,7 @@ int ntlm_authorization(struct openconnect_info *vpninfo, int proxy,
 		return 0;
 	}
 	if (auth_state->state == NTLM_MANUAL_REQ &&
-	    !ntlm_manual_challenge(vpninfo, auth_state, buf, user, pass, proxy)) {
+	    !ntlm_manual_challenge(vpninfo, auth_state, buf, user, pass)) {
 		/* Leave the state as it is. If we come back there'll be no
 		   challenge string and we'll fail then. */
 		return 0;
