@@ -1148,6 +1148,7 @@ void cstp_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 		buf_append(buf, "X-AnyConnect-Platform: %s\r\n",
 			   vpninfo->platname);
 	}
+	buf_append(buf, "X-Support-HTTP-Auth: true\r\n");
 
 	append_mobile_headers(vpninfo, buf);
 }
