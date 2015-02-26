@@ -10,15 +10,19 @@
 
 <h1>Juniper SSL VPN / Pulse Connect Secure</h1>
 
-<p>Support for Juniper was added to OpenConnect in January of 2015,
-after the v7.04 release. It is still being tested. For the time being,
-Juniper mode is requested by adding <tt>--juniper</tt> to the command
-line:
+<p>Support for Juniper's Network Connect protocol was added to
+OpenConnect in early 2015, for the 7.05 release. It is still
+experimental, and is quite likely to be deprecated in favour of the newer
+<a href="http://www.juniper.net/techpubs/en_US/junos-pulse4.0/topics/reference/a-c-c-nc-comparing.html">Junos
+Pulse</a> protocol.</p>
+
+<p>For the time being, Juniper mode is requested by adding <tt>--juniper</tt>
+to the command line:
 <pre>
   openconnect --juniper vpn.example.com
 </pre></p>
 
-<p>The Juniper VPN works very similarly to
+<p>Network Connect works very similarly to
 <a href="anyconnect.html">AnyConnect</a> — initial authentication is made
 over HTTP, resulting in an HTTP cookie which is used to make the actual
 VPN connection. That connection is also made over HTTP, and the IP address
