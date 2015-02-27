@@ -117,12 +117,12 @@ int digest_authorization(struct openconnect_info *vpninfo, int proxy,
 		return -EINVAL;
 
 	while (*chall) {
-		if (!strncmp(chall, "realm=", 6)) {
+		if (!realm && !strncmp(chall, "realm=", 6)) {
 			chall += 6;
 			realm = get_qs(&chall);
 			if (!realm)
 				goto err;
-		} else if (!strncmp(chall, "nonce=", 6)) {
+		} else if (!nonce && !strncmp(chall, "nonce=", 6)) {
 			chall += 6;
 			nonce = get_qs(&chall);
 			if (!nonce)
@@ -135,7 +135,7 @@ int digest_authorization(struct openconnect_info *vpninfo, int proxy,
 			}
 			qop_auth = 1;
 			chall += 6;
-		} else if (!strncmp(chall, "opaque=", 7)) {
+		} else if (!opaque && !strncmp(chall, "opaque=", 7)) {
 			chall += 7;
 			opaque = get_qs(&chall);
 			if (!opaque)
