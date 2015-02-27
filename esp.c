@@ -185,12 +185,14 @@ static int esp_send_probes(struct openconnect_info *vpninfo)
 	pkt->len = 1;
 	pkt->data[0] = 0;
 	pktlen = encrypt_esp_packet(vpninfo, pkt);
-	send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
+	if (pktlen >= 0)
+		send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
 
 	pkt->len = 1;
 	pkt->data[0] = 0;
 	pktlen = encrypt_esp_packet(vpninfo, pkt);
-	send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
+	if (pktlen >= 0)
+		send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
 
 	free(pkt);
 
