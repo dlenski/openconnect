@@ -382,8 +382,10 @@ static int tncc_preauth(struct openconnect_info *vpninfo)
 	if (socketpair(AF_UNIX, SOCK_SEQPACKET | SOCK_CLOEXEC, 0, sockfd))
 #endif
 	{
-		if (socketpair(AF_UNIX, SOCK_SEQPACKET, 0, sockfd))
+		if (socketpair(AF_UNIX, SOCK_SEQPACKET, 0, sockfd)) {
+			buf_free(buf);
 			return -errno;
+		}
 		set_fd_cloexec(sockfd[0]);
 		set_fd_cloexec(sockfd[1]);
 	}
