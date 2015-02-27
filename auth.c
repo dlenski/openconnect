@@ -1175,7 +1175,7 @@ int cstp_obtain_cookie(struct openconnect_info *vpninfo)
 	if (vpninfo->token_mode == OC_TOKEN_MODE_STOKEN) {
 		result = prepare_stoken(vpninfo);
 		if (result)
-			return result;
+			goto out;
 	}
 #endif
 
