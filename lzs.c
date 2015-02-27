@@ -179,7 +179,7 @@ int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int s
 	 */
 #define HASH_BITS 16
 #define HASH_TABLE_SIZE (1ULL << HASH_BITS)
-#define HASH(p) (*(uint16_t *)(p))
+#define HASH(p) (((struct oc_packed_uint16_t *)p)->d)
 
 	/*
 	 * There are two data structures for tracking the history. The first

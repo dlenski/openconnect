@@ -17,6 +17,10 @@
 
 #define __OPENCONNECT_INTERNAL_H__
 
+struct oc_packed_uint16_t {
+	unsigned short d;
+} __attribute__((packed));
+
 int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
 int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
 
