@@ -236,6 +236,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		if (!dtls_secret_set) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("CRITICAL ERROR: DTLS master secret is uninitialised. Please report this.\n"));
+			buf_free(reqbuf);
 			return -EINVAL;
 		}
 		buf_append(reqbuf, "\r\nX-DTLS-CipherSuite: %s\r\n",
