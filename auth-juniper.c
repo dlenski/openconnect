@@ -174,24 +174,24 @@ static int parse_select_node(struct openconnect_info *vpninfo, struct oc_auth_fo
 		form->authgroup_opt = opt;
 
 	for (child = node->children; child; child = child->next) {
+		struct oc_choice **new_choices;
 		if (!child->name || strcasecmp((const char *)child->name, "option"))
 			continue;
 
 		choice = calloc(1, sizeof(*choice));
-		if (!choice) {
-			free_opt((void *)choice);
+		if (!choice)
 			return -ENOMEM;
-		}
 
 		xmlnode_get_prop(node, "name", &choice->name);
 		choice->label = (char *)xmlNodeGetContent(child);
 		choice->name = strdup(choice->label);
-		realloc_inplace(opt->choices, sizeof(opt->choices[0]) * (opt->nr_choices+1));
-		if (!opt->choices) {
-			opt->nr_choices = 0;
+		new_choices = realloc(opt->choices, sizeof(opt->choices[0]) * (opt->nr_choices+1));
+		if (!new_choices) {
 			free_opt((void *)opt);
+			free(choice);
 			return -ENOMEM;
 		}
+		opt->choices = new_choices;
 		opt->choices[opt->nr_choices++] = choice;
 	}
 
