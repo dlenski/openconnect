@@ -743,6 +743,7 @@ int decompress_and_queue_packet(struct openconnect_info *vpninfo, int compr_type
 	} else {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unknown compression type %d\n"), compr_type);
+		free(new);
 		return -EINVAL;
 	}
 	vpn_progress(vpninfo, PRG_TRACE,
