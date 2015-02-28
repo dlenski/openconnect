@@ -1026,7 +1026,7 @@ int ntlm_authorization(struct openconnect_info *vpninfo, int proxy,
 		auth_state->state = NTLM_MANUAL_REQ;
 		return 0;
 	}
-	if (auth_state->state == NTLM_MANUAL_REQ &&
+	if (auth_state->state == NTLM_MANUAL_REQ && user && pass &&
 	    !ntlm_manual_challenge(vpninfo, auth_state, buf, user, pass)) {
 		/* Leave the state as it is. If we come back there'll be no
 		   challenge string and we'll fail then. */
