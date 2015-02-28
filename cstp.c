@@ -984,9 +984,10 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			return 1;
 		}
 		/* Don't free the 'special' packets */
-		if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt)
+		if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt) {
 			free(vpninfo->pending_deflated_pkt);
-		else if (vpninfo->current_ssl_pkt != &dpd_pkt &&
+			vpninfo->pending_deflated_pkt = NULL;
+		} else if (vpninfo->current_ssl_pkt != &dpd_pkt &&
 			 vpninfo->current_ssl_pkt != &dpd_resp_pkt &&
 			 vpninfo->current_ssl_pkt != &keepalive_pkt)
 			free(vpninfo->current_ssl_pkt);
