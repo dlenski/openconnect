@@ -129,6 +129,7 @@ int config_lookup_host(struct openconnect_info *vpninfo, const char *host)
 
 	if (openconnect_sha1(sha1, xmlfile, size)) {
 		fprintf(stderr, _("Failed to SHA1 existing file\n"));
+		free(xmlfile);
 		return -1;
 	}
 
