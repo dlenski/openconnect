@@ -176,7 +176,6 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 				     _("Unexpected length %d for TLV %d/%d\n"),
 				     attrlen, group, attr);
 			return -EINVAL;
-			goto badlen;
 		}
 		vpninfo->ip_info.mtu = load_be32(data);
 		vpn_progress(vpninfo, PRG_DEBUG,
