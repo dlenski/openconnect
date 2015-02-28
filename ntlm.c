@@ -1021,9 +1021,8 @@ int ntlm_authorization(struct openconnect_info *vpninfo, int proxy,
 			return ret;
 	}
 	if (auth_state->state == NTLM_MANUAL && user && pass) {
-		buf_append(buf, "%sAuthorization: NTLM %s\r\n",
-			   "TlRMTVNTUAABAAAABYIIAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAwAAAA",
-			   proxy ? "Proxy-" : "");
+		buf_append(buf, "%sAuthorization: NTLM %s\r\n", proxy ? "Proxy-" : "",
+			   "TlRMTVNTUAABAAAABYIIAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAwAAAA");
 		auth_state->state = NTLM_MANUAL_REQ;
 		return 0;
 	}
