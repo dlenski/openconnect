@@ -42,7 +42,7 @@ do {									\
 	if (bits >= 8 || bits >= bits_left) {				\
 		/* We need *all* the bits that are left in the current	\
 		 * byte. Take them and bump the input pointer. */	\
-		data = (src[0] << (bits - bits_left)) & ((1ULL << bits) - 1); \
+		data = (src[0] << (bits - bits_left)) & ((1 << bits) - 1); \
 		src++;							\
 		srclen--;						\
 		bits_left += 8 - bits;					\
