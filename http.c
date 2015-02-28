@@ -308,6 +308,9 @@ int http_add_cookie(struct openconnect_info *vpninfo, const char *option,
 	} else {
 		/* Kill cookie; don't replace it */
 		new = NULL;
+		/* This would be meaningless */
+		if (!replace)
+			return -EINVAL;
 	}
 	for (this = &vpninfo->cookies; *this; this = &(*this)->next) {
 		if (!strcmp(option, (*this)->option)) {
