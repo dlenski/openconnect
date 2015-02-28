@@ -1943,6 +1943,7 @@ static void init_token(struct openconnect_info *vpninfo,
 		switch(token_str[0]) {
 		case '@':
 			token_str++;
+			/* fall through... */
 		case '/':
 			if (read_file_into_string(vpninfo, token_str,
 						  &file_token) < 0)
