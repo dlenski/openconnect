@@ -140,7 +140,13 @@ int decrypt_esp_packet(struct openconnect_info *vpninfo, struct esp *esp, struct
 	unsigned char hmac_buf[20];
 	int err;
 
-	gnutls_hmac(esp->hmac, &pkt->esp, sizeof(pkt->esp) + pkt->len);
+	err = gnutls_hmac(esp->hmac, &pkt->esp, sizeof(pkt->esp) + pkt->len);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to calculate HMAC for ESP packet: %s\n"),
+			     gnutls_strerror(err));
+		return -EIO;
+	}
 	gnutls_hmac_output(esp->hmac, hmac_buf);
 	if (memcmp(hmac_buf, pkt->data + pkt->len, 12)) {
 		vpn_progress(vpninfo, PRG_DEBUG,
