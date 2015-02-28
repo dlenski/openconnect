@@ -773,23 +773,24 @@ static int ntlm_nt_hash (const char *pass, char hash[21])
 	   to the next multiple of 64. */
 	ret = buf_ensure_space(utf16pass, ((strlen(pass) * 2) + 1 + 8 + 63) & ~63);
 	if (ret)
-		return ret;
+		goto out;
 
 	ret = buf_append_utf16le(utf16pass, pass);
 	if (ret < 0)
-		return ret;
+		goto wipe;
 
 	ret = buf_error(utf16pass);
 	if (ret)
-		return ret;
+		goto wipe;
 
 	ret = md4sum(utf16pass, (unsigned char *) hash);
 	if (ret)
-		return ret;
+		goto wipe;
 
-	memset (hash + 16, 0, 5);
-
+	memset(hash + 16, 0, 5);
+ wipe:
 	memset(utf16pass->data, 0, utf16pass->pos);
+ out:
 	buf_free(utf16pass);
 	return 0;
 }
