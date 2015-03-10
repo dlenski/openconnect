@@ -15,6 +15,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.05.tar.gz">OpenConnect v7.05</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.05.tar.gz.asc">PGP signature</a>)</i> &#8212; 2015-03-10
+     <ul>
        <li>Fix alignment issue which broke LZS compression on ARM etc.</li>
        <li>Support HTTP authentication to servers, not just proxies.</li>
        <li>Work around Yubikey <a href="http://forum.yubico.com/viewtopic.php?f=26&amp;t=1601#p6807">issue</a> with non-ASCII passphrase set on pre-KitKat Android.</li>
