@@ -508,6 +508,7 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 			ret = -EINVAL;
 			break;
 		}
+		free(form_id);
 		form_id = (char *)xmlGetProp(node, (unsigned char *)"name");
 		if (!form_id) {
 			vpn_progress(vpninfo, PRG_ERR,
