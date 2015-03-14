@@ -86,16 +86,19 @@ static int oncp_can_gen_tokencode(struct openconnect_info *vpninfo,
 static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_form *form,
 			    xmlNodePtr node, const char *submit_button)
 {
-	const char *type = (const char *)xmlGetProp(node, (unsigned char *)"type");
+	char *type = (char *)xmlGetProp(node, (unsigned char *)"type");
 	struct oc_form_opt **p = &form->opts;
 	struct oc_form_opt *opt;
+	int ret = 0;
 
 	if (!type)
 		return -EINVAL;
 
 	opt = calloc(1, sizeof(*opt));
-	if (!opt)
-		return -ENOMEM;
+	if (!opt) {
+		ret = -ENOMEM;
+		goto out;
+	}
 
 	if (!strcasecmp(type, "hidden")) {
 		opt->type = OC_FORM_OPT_HIDDEN;
@@ -106,8 +109,8 @@ static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_for
 		opt->type = OC_FORM_OPT_PASSWORD;
 		xmlnode_get_prop(node, "name", &opt->name);
 		if (asprintf(&opt->label, "%s:", opt->name) == -1) {
-			free_opt(opt);
-			return -ENOMEM;
+			ret = -ENOMEM;
+			goto out;
 		}
 		if (!oncp_can_gen_tokencode(vpninfo, form, opt))
 			opt->type = OC_FORM_OPT_TOKEN;
@@ -115,8 +118,8 @@ static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_for
 		opt->type = OC_FORM_OPT_TEXT;
 		xmlnode_get_prop(node, "name", &opt->name);
 		if (asprintf(&opt->label, "%s:", opt->name) == -1) {
-			free_opt(opt);
-			return -ENOMEM;
+			ret = -ENOMEM;
+			goto out;
 		}
 	} else if (!strcasecmp(type, "submit")) {
 		xmlnode_get_prop(node, "name", &opt->name);
@@ -124,8 +127,8 @@ static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_for
 			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Ignoring unknown form submit item '%s'\n"),
 				     opt->name);
-			free_opt(opt);
-			return -EINVAL;
+			ret = -EINVAL;
+			goto out;
 		}
 		xmlnode_get_prop(node, "value", &opt->_value);
 		opt->type = OC_FORM_OPT_HIDDEN;
@@ -137,8 +140,8 @@ static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_for
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Ignoring unknown form input type '%s'\n"),
 			     type);
-		free_opt(opt);
-		return -EINVAL;
+		ret = -EINVAL;
+		goto out;
 	}
 
 	/* Append to the existing list */
@@ -147,13 +150,16 @@ static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_for
 			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Discarding duplicate option '%s'\n"),
 				     opt->name);
-			free_opt(opt);
-			return 0;
+			goto out;
 		}
 		p = &(*p)->next;
 	}
 	*p = opt;
-	return 0;
+ out:
+	if (ret)
+		free_opt(opt);
+	free(type);
+	return ret;
 }
 
 static int parse_select_node(struct openconnect_info *vpninfo, struct oc_auth_form *form,
