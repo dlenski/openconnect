@@ -496,6 +496,7 @@ struct openconnect_info {
 	struct pkt *pending_deflated_pkt;	/* The original packet associated with above */
 	struct pkt *current_ssl_pkt;		/* Partially sent SSL packet */
 	struct pkt_q oncp_control_queue;		/* Control packets to be sent on oNCP next */
+	int oncp_rec_size;			/* For packetising incoming oNCP stream */
 	/* Packet buffers for receiving into */
 	struct pkt *cstp_pkt;
 	struct pkt *dtls_pkt;
