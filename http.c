@@ -789,7 +789,7 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 		     const char *request_body_type, struct oc_text_buf *request_body,
 		     char **form_buf, int fetch_redirect)
 {
-	struct oc_text_buf *buf;
+	struct oc_text_buf *buf = buf_alloc();
 	int result;
 	int rq_retry;
 	int rlen, pad;
@@ -821,7 +821,7 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 	 *
 	 * So we process the HTTP for ourselves...
 	 */
-	buf = buf_alloc();
+	buf_truncate(buf);
 	buf_append(buf, "%s /%s HTTP/1.1\r\n", method, vpninfo->urlpath ?: "");
 	if (auth) {
 		result = gen_authorization_hdr(vpninfo, 0, buf);
