@@ -17,6 +17,7 @@
      <ul>
        <li>Refactor Juniper Network Connect receive loop.</li>
        <li>Fix some memory leaks.</li>
+       <li>Add Bosnian translation.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.05.tar.gz">OpenConnect v7.05</a></b>
