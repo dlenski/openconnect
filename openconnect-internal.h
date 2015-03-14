@@ -130,7 +130,8 @@ struct pkt {
 		} esp;
 		struct {
 			unsigned char pad[2];
-			unsigned char hdr[22];
+			unsigned char rec[2];
+			unsigned char kmp[20];
 		} oncp;
 		struct {
 			unsigned char pad[16];

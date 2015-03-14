@@ -444,11 +444,11 @@ static const unsigned char esp_kmp_part2[] = {
 
 static const struct pkt esp_enable_pkt = {
 	.next = NULL,
-	{ .oncp.hdr = {
-		0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0x01, 0x2f, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00,
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x0d
-	} },
+	{ .oncp.rec = { 0x21, 0x00 },
+	  .oncp.kmp = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x2f,
+			0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x0d }
+	},
 	.data = {
 		0x00, 0x06, 0x00, 0x00, 0x00, 0x07, /* Group 6, len 7 */
 		0x00, 0x01, 0x00, 0x00, 0x00, 0x01, /* Attr 1, len 1 */
@@ -764,6 +764,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 		monitor_except_fd(vpninfo, ssl);
 	}
 	buf_free(reqbuf);
+
 	return ret;
 }
 
@@ -772,10 +773,10 @@ static int oncp_receive_espkeys(struct openconnect_info *vpninfo, int len)
 #if defined(ESP_GNUTLS) || defined(ESP_OPENSSL)
 	int ret;
 
-	ret = parse_conf_pkt(vpninfo, vpninfo->cstp_pkt->oncp.hdr + 2, len + 20, 301);
+	ret = parse_conf_pkt(vpninfo, vpninfo->cstp_pkt->oncp.kmp, len + 20, 301);
 	if (!ret && !setup_esp_keys(vpninfo)) {
 		struct esp *esp = &vpninfo->esp_in[vpninfo->current_esp_in];
-		unsigned char *p = vpninfo->cstp_pkt->oncp.hdr + 2;
+		unsigned char *p = vpninfo->cstp_pkt->oncp.kmp;
 
 		memcpy(p, esp_kmp_hdr, sizeof(esp_kmp_hdr));
 		p += sizeof(esp_kmp_hdr);
@@ -786,8 +787,8 @@ static int oncp_receive_espkeys(struct openconnect_info *vpninfo, int len)
 		memcpy(p, esp->secrets, sizeof(esp->secrets));
 		p += sizeof(esp->secrets);
 		vpninfo->cstp_pkt->len = p - vpninfo->cstp_pkt->data;
-		store_le16(vpninfo->cstp_pkt->oncp.hdr,
-			   (p - vpninfo->cstp_pkt->oncp.hdr - 2));
+		store_le16(vpninfo->cstp_pkt->oncp.rec,
+			   (p - vpninfo->cstp_pkt->oncp.kmp));
 
 		queue_packet(&vpninfo->oncp_control_queue, vpninfo->cstp_pkt);
 		vpninfo->cstp_pkt = NULL;
@@ -977,16 +978,16 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		 * as corner cases.
 		 */
 
-		len = ssl_nonblock_read(vpninfo, vpninfo->cstp_pkt->oncp.hdr + followon,
+		len = ssl_nonblock_read(vpninfo, vpninfo->cstp_pkt->oncp.rec + followon,
 					22 - followon);
 		if (!len)
 			break;
 		if (len < 0)
 			goto do_reconnect;
 		if (len == 3 && !followon &&
-		    vpninfo->cstp_pkt->oncp.hdr[0] == 0 &&
-		    vpninfo->cstp_pkt->oncp.hdr[1] == 0 &&
-		    vpninfo->cstp_pkt->oncp.hdr[2] == 1) {
+		    vpninfo->cstp_pkt->oncp.rec[0] == 0 &&
+		    vpninfo->cstp_pkt->oncp.rec[1] == 0 &&
+		    vpninfo->cstp_pkt->oncp.kmp[0] == 1) {
 			/* This protocol is entirely fucked up. They appear to
 			 * send 00 00 01 to indicate the session expired. */
 			vpn_progress(vpninfo, PRG_ERR,
@@ -998,14 +999,14 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to read KMP header from SSL stream; only %d bytes available of %d\n"),
 				     len, 22 - followon);
-			buf_hexdump(vpninfo, vpninfo->cstp_pkt->oncp.hdr + followon, len - followon);
+			buf_hexdump(vpninfo, vpninfo->cstp_pkt->oncp.rec + followon, len - followon);
 			vpninfo->quit_reason = "Short packet received";
 			return 1;
 		}
 
 		if (!followon) {
 			/* This is the length of the packet (little-endian) */
-			reclen = load_le16(vpninfo->cstp_pkt->oncp.hdr);
+			reclen = load_le16(vpninfo->cstp_pkt->oncp.rec);
 			vpn_progress(vpninfo, PRG_TRACE,
 				     _("Incoming oNCP packet of size %d\n"), reclen);
 		}
@@ -1017,8 +1018,8 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			return 1;
 		}
 
-		kmp = load_be16(vpninfo->cstp_pkt->oncp.hdr + 8);
-		kmplen = load_be16(vpninfo->cstp_pkt->oncp.hdr + 20);
+		kmp = load_be16(vpninfo->cstp_pkt->oncp.kmp + 6);
+		kmplen = load_be16(vpninfo->cstp_pkt->oncp.kmp + 18);
 		if (kmplen + 20 > reclen) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("KMP message larger than packet (%d > %d)\n"),
@@ -1078,7 +1079,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		unknown_pkt:
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Unknown KMP message %d of size %d:\n"), kmp, kmplen);
-			buf_hexdump(vpninfo, vpninfo->cstp_pkt->oncp.hdr,
+			buf_hexdump(vpninfo, vpninfo->cstp_pkt->oncp.rec,
 				    kmplen + 22 - morecoming);
 			if (morecoming)
 				vpn_progress(vpninfo, PRG_DEBUG,
@@ -1107,11 +1108,11 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		unmonitor_write_fd(vpninfo, ssl);
 
 		vpn_progress(vpninfo, PRG_TRACE, _("Packet outgoing:\n"));
-		buf_hexdump(vpninfo, vpninfo->current_ssl_pkt->oncp.hdr,
+		buf_hexdump(vpninfo, vpninfo->current_ssl_pkt->oncp.rec,
 			    vpninfo->current_ssl_pkt->len + 22);
 
 		ret = ssl_nonblock_write(vpninfo,
-					 vpninfo->current_ssl_pkt->oncp.hdr,
+					 vpninfo->current_ssl_pkt->oncp.rec,
 					 vpninfo->current_ssl_pkt->len + 22);
 		if (ret < 0) {
 		do_reconnect:
@@ -1165,7 +1166,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			   *sent* over the TCP channel. */
 			if (vpninfo->dtls_state == DTLS_CONNECTING &&
 			    vpninfo->current_ssl_pkt->len == 13 &&
-			    load_be16(&vpninfo->current_ssl_pkt->oncp.hdr[8]) == 0x12f &&
+			    load_be16(&vpninfo->current_ssl_pkt->oncp.kmp[6]) == 0x12f &&
 			    vpninfo->current_ssl_pkt->data[12]) {
 				vpn_progress(vpninfo, PRG_TRACE,
 					     _("Sent ESP enable control packet\n"));
@@ -1257,10 +1258,10 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		struct pkt *this = vpninfo->current_ssl_pkt;
 
 		/* Little-endian overall record length */
-		store_le16(this->oncp.hdr, (this->len + 20));
-		memcpy(this->oncp.hdr + 2, data_hdr, 18);
+		store_le16(this->oncp.rec, (this->len + 20));
+		memcpy(this->oncp.kmp, data_hdr, 18);
 		/* Big-endian length in KMP message header */
-		store_be16(this->oncp.hdr + 20, this->len);
+		store_be16(this->oncp.kmp + 18, this->len);
 
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("Sending uncompressed data packet of %d bytes\n"),
