@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2015-03-10 21:22+0000\n"
+"POT-Creation-Date: 2015-03-14 21:12+0000\n"
 "PO-Revision-Date: 2011-09-22 22:31+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Thai (http://www.transifex.net/projects/p/meego/team/th/)\n"
@@ -17,64 +17,64 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0\n"
 
-#: auth-juniper.c:125
+#: auth-juniper.c:128
 #, c-format
 msgid "Ignoring unknown form submit item '%s'\n"
 msgstr ""
 
-#: auth-juniper.c:138
+#: auth-juniper.c:141
 #, c-format
 msgid "Ignoring unknown form input type '%s'\n"
 msgstr ""
 
-#: auth-juniper.c:148
+#: auth-juniper.c:151
 #, c-format
 msgid "Discarding duplicate option '%s'\n"
 msgstr ""
 
-#: auth-juniper.c:218 auth.c:406
+#: auth-juniper.c:224 auth.c:406
 #, c-format
 msgid "Cannot handle form method='%s', action='%s'\n"
 msgstr ""
 
-#: auth-juniper.c:279
+#: auth-juniper.c:285
 msgid "Failed to parse HTML document\n"
 msgstr ""
 
-#: auth-juniper.c:345
+#: auth-juniper.c:351
 msgid "TNCC support not implemented yet on Windows\n"
 msgstr ""
 
-#: auth-juniper.c:367
+#: auth-juniper.c:373
 msgid "No DSPREAUTH cookie; not attempting TNCC\n"
 msgstr ""
 
-#: auth-juniper.c:378
+#: auth-juniper.c:384
 msgid "Failed to allocate memory for communication with TNCC\n"
 msgstr ""
 
-#: auth-juniper.c:413
+#: auth-juniper.c:419
 #, c-format
 msgid "Failed to exec TNCC script %s: %s\n"
 msgstr ""
 
-#: auth-juniper.c:422
+#: auth-juniper.c:428
 msgid "Failed to send start command to TNCC\n"
 msgstr ""
 
-#: auth-juniper.c:429
+#: auth-juniper.c:435
 msgid "Sent start; waiting for response from TNCC\n"
 msgstr ""
 
-#: auth-juniper.c:434
+#: auth-juniper.c:440
 msgid "Failed to read response from TNCC\n"
 msgstr ""
 
-#: auth-juniper.c:445
+#: auth-juniper.c:451
 msgid "Received invalid response from TNCC\n"
 msgstr ""
 
-#: auth-juniper.c:447
+#: auth-juniper.c:453
 #, c-format
 msgid ""
 "TNCC response: -->\n"
@@ -82,35 +82,35 @@ msgid ""
 "<--\n"
 msgstr ""
 
-#: auth-juniper.c:455
+#: auth-juniper.c:461
 #, c-format
 msgid "Received unsuccessful %s response from TNCC\n"
 msgstr ""
 
-#: auth-juniper.c:468
+#: auth-juniper.c:474
 #, c-format
 msgid "Got new DSPREAUTH cookie from TNCC: %s\n"
 msgstr ""
 
-#: auth-juniper.c:507
+#: auth-juniper.c:513
 msgid "Failed to find or parse web form in login page\n"
 msgstr ""
 
-#: auth-juniper.c:514
+#: auth-juniper.c:521
 msgid "Encountered form with no ID\n"
 msgstr ""
 
-#: auth-juniper.c:539
+#: auth-juniper.c:546
 #, c-format
 msgid "Unknown form ID '%s'\n"
 msgstr ""
 
-#: auth-juniper.c:542
+#: auth-juniper.c:549
 #, c-format
 msgid "Dumping unknown HTML form:\n"
 msgstr ""
 
-#: auth-juniper.c:556 auth.c:659
+#: auth-juniper.c:563 auth.c:659
 msgid "Failed to generate OTP tokencode; disabling token\n"
 msgstr ""
 
@@ -422,7 +422,7 @@ msgstr ""
 msgid "deflate failed %d\n"
 msgstr ""
 
-#: cstp.c:840 dtls.c:770 esp.c:255 mainloop.c:56 oncp.c:864 oncp.c:955
+#: cstp.c:840 dtls.c:770 esp.c:255 mainloop.c:56 oncp.c:881
 msgid "Allocation failed\n"
 msgstr ""
 
@@ -448,7 +448,7 @@ msgstr ""
 msgid "Got CSTP Keepalive\n"
 msgstr ""
 
-#: cstp.c:894 oncp.c:851
+#: cstp.c:894 oncp.c:970
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr ""
@@ -475,35 +475,35 @@ msgstr ""
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr ""
 
-#: cstp.c:981 oncp.c:1153
+#: cstp.c:981 oncp.c:1085
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr ""
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:1009 oncp.c:1191
+#: cstp.c:1009 oncp.c:1123
 msgid "CSTP rekey due\n"
 msgstr ""
 
 #. if we failed rehandshake try establishing a new-tunnel instead of failing
-#: cstp.c:1016 oncp.c:1198
+#: cstp.c:1016 oncp.c:1130
 msgid "Rehandshake failed; attempting new-tunnel\n"
 msgstr ""
 
-#: cstp.c:1027 oncp.c:1209
+#: cstp.c:1027 oncp.c:1141
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr ""
 
-#: cstp.c:1031 oncp.c:1123 oncp.c:1213
+#: cstp.c:1031 oncp.c:1055 oncp.c:1145
 msgid "Reconnect failed\n"
 msgstr ""
 
-#: cstp.c:1047 oncp.c:1229
+#: cstp.c:1047 oncp.c:1161
 msgid "Send CSTP DPD\n"
 msgstr ""
 
-#: cstp.c:1059 oncp.c:1240
+#: cstp.c:1059 oncp.c:1172
 msgid "Send CSTP Keepalive\n"
 msgstr ""
 
@@ -512,7 +512,7 @@ msgstr ""
 msgid "Sending compressed data packet of %d bytes (was %d)\n"
 msgstr ""
 
-#: cstp.c:1095 oncp.c:1265
+#: cstp.c:1095 oncp.c:1197
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr ""
@@ -2704,105 +2704,68 @@ msgstr ""
 msgid "Error negotiating ESP keys\n"
 msgstr ""
 
-#: oncp.c:795
+#: oncp.c:800
 msgid "new incoming"
 msgstr ""
 
-#: oncp.c:796
+#: oncp.c:801
 msgid "new outgoing"
 msgstr ""
 
-#: oncp.c:801
+#: oncp.c:806
 msgid "Ignoring ESP keys since ESP support not available in this build\n"
 msgstr ""
 
-#: oncp.c:838
+#: oncp.c:826
+msgid "Read only 1 byte of oNCP length field\n"
+msgstr ""
+
+#: oncp.c:835
+msgid "Server terminated connection (session expired)\n"
+msgstr ""
+
+#: oncp.c:839
 #, c-format
-msgid ""
-"Unrecognised data packet starting %02x %02x %02x %02x %02x %02x %02x %02x\n"
+msgid "Server terminated connection (reason: %d)\n"
 msgstr ""
 
-#: oncp.c:891
+#: oncp.c:845
+msgid "Server sent zero-length oNCP record\n"
+msgstr ""
+
+#: oncp.c:936
 #, c-format
-msgid "Reading additional %d bytes (of %d still unreceived) from oNCP...\n"
+msgid "Incoming KMP message %d of size %d (got %d)\n"
 msgstr ""
 
-#: oncp.c:911
+#: oncp.c:939
 #, c-format
-msgid ""
-"Short read on (%d < %d) on large KMP message. Trying again in case it "
-"crossed SSL record boundary\n"
+msgid "Continuing to process KMP message %d now size %d (got %d)\n"
 msgstr ""
 
-#: oncp.c:920
-#, c-format
-msgid "Short read for end of large KMP message. Expected %d, got %d bytes\n"
+#: oncp.c:958
+msgid "Unrecognised data packet\n"
 msgstr ""
 
-#: oncp.c:992
-msgid "VPN session expired\n"
-msgstr ""
-
-#: oncp.c:998
-#, c-format
-msgid ""
-"Failed to read KMP header from SSL stream; only %d bytes available of %d\n"
-msgstr ""
-
-#: oncp.c:1009
-#, c-format
-msgid "Incoming oNCP packet of size %d\n"
-msgstr ""
-
-#: oncp.c:1013
-#, c-format
-msgid "Packet too small (%d bytes) to contain KMP message header\n"
-msgstr ""
-
-#: oncp.c:1023
-#, c-format
-msgid "KMP message larger than packet (%d > %d)\n"
-msgstr ""
-
-#: oncp.c:1043
-#, c-format
-msgid "Reading additional %d bytes from oNCP...\n"
-msgstr ""
-
-#: oncp.c:1048
-#, c-format
-msgid "Short read of KMP message. Expected %d, got %d bytes\n"
-msgstr ""
-
-#: oncp.c:1055
-#, c-format
-msgid "Incoming KMP message %d of size %d\n"
-msgstr ""
-
-#: oncp.c:1079
+#: oncp.c:1020
 #, c-format
 msgid "Unknown KMP message %d of size %d:\n"
 msgstr ""
 
-#: oncp.c:1084
+#: oncp.c:1025
 #, c-format
 msgid ".... + %d more bytes unreceived\n"
 msgstr ""
 
-#: oncp.c:1093
-#, c-format
-msgid "Still %d bytes left in this packet. Looping...\n"
-msgstr ""
-
-#: oncp.c:1108
+#: oncp.c:1040
 msgid "Packet outgoing:\n"
 msgstr ""
 
-#: oncp.c:1170
+#: oncp.c:1102
 msgid "Sent ESP enable control packet\n"
 msgstr ""
 
-#: openconnect-internal.h:1008 openconnect-internal.h:1016
+#: openconnect-internal.h:1010 openconnect-internal.h:1018
 #, c-format
 msgid "ERROR: %s() called with invalid UTF-8 for '%s' argument\n"
 msgstr ""
@@ -3290,33 +3253,33 @@ msgstr ""
 msgid "openconnect_fopen_utf8() used with unsupported mode '%s'\n"
 msgstr ""
 
-#: ssl.c:817
+#: ssl.c:818
 #, c-format
 msgid "Unknown protocol family %d. Cannot create UDP server address\n"
 msgstr ""
 
-#: ssl.c:831
+#: ssl.c:832
 msgid "Open UDP socket"
 msgstr ""
 
-#: ssl.c:862
+#: ssl.c:863
 #, c-format
 msgid "Unknown protocol family %d. Cannot use UDP transport\n"
 msgstr ""
 
-#: ssl.c:870
+#: ssl.c:871
 msgid "Bind UDP socket"
 msgstr ""
 
-#: ssl.c:877
+#: ssl.c:878
 msgid "Connect UDP socket\n"
 msgstr ""
 
-#: ssl.c:910
+#: ssl.c:911
 msgid "Cookie is no longer valid, ending session\n"
 msgstr ""
 
-#: ssl.c:914
+#: ssl.c:915
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
 msgstr ""
