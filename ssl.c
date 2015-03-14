@@ -800,6 +800,7 @@ FILE *openconnect_fopen_utf8(struct openconnect_info *vpninfo, const char *fname
 
 int udp_sockaddr(struct openconnect_info *vpninfo, int port)
 {
+	free(vpninfo->dtls_addr);
 	vpninfo->dtls_addr = malloc(vpninfo->peer_addrlen);
 	if (!vpninfo->dtls_addr)
 		return -ENOMEM;
