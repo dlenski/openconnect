@@ -941,7 +941,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	   and add POLLOUT. As it is, though, it'll just chew CPU time in that
 	   fairly unlikely situation, until the write backlog clears. */
 	while (1) {
-		int len = vpninfo->ip_info.mtu;
+		int len;
 		int kmp, kmplen, reclen;
 		int morecoming;
 		int followon; /* 0 for the first time round, 2 later to skip the length word */
@@ -949,6 +949,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		followon = 0;
 
 	next_kmp:
+		len = vpninfo->ip_info.mtu + vpninfo->pkt_trailer;
 		if (!vpninfo->cstp_pkt) {
 			vpninfo->cstp_pkt = malloc(sizeof(struct pkt) + len);
 			if (!vpninfo->cstp_pkt) {
