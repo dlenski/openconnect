@@ -915,7 +915,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		 * the amount of data received *including* the KMP header. */
 		len = oncp_record_read(vpninfo,
 				       vpninfo->cstp_pkt->oncp.kmp + vpninfo->cstp_pkt->len,
-				       vpninfo->ip_info.mtu - vpninfo->cstp_pkt->len);
+				       vpninfo->ip_info.mtu + 20 - vpninfo->cstp_pkt->len);
 		if (!len)
 			break;
 		else if (len < 0) {
