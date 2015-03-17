@@ -15,6 +15,12 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li><i>No changelog entries yet</i></li>
+     </ul><br/>
+  </li>
+  <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.06.tar.gz">OpenConnect v7.06</a></b>
+     <i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.06.tar.gz.asc">PGP signature</a>)</i> &#8212; 2015-03-17
+     <ul>
        <li>Fix <tt>openconnect.pc</tt> breakage after liboath removal.</li>
        <li>Refactor Juniper Network Connect receive loop.</li>
        <li>Fix some memory leaks.</li>

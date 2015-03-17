@@ -17,20 +17,14 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.05.tar.gz">OpenConnect v7.05</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.05.tar.gz.asc">PGP signature</a>)</i>,
-released on 2015-03-10 with the following changelog:</p>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.06.tar.gz">OpenConnect v7.06</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.06.tar.gz.asc">PGP signature</a>)</i>,
+released on 2015-03-17 with the following changelog:</p>
      <ul>
-       <li>Fix alignment issue which broke LZS compression on ARM etc.</li>
-       <li>Support HTTP authentication to servers, not just proxies.</li>
-       <li>Work around Yubikey <a href="http://forum.yubico.com/viewtopic.php?f=26&amp;t=1601#p6807">issue</a> with non-ASCII passphrase set on pre-KitKat Android.</li>
-       <li>Add SHA256/SHA512 support for OATH.</li>
-       <li>Remove liboath dependency.</li>
-       <li>Support DTLS v1.2 and AES-GCM with OpenSSL 1.0.2.</li>
-       <li>Add OpenSSL 1.0.2 to known-broken releases (<a href="http://rt.openssl.org/Ticket/Display.html?id=3703&amp;amp;user=guest&amp;amp;pass=guest">RT#3703</a>,
-       <a href="http://rt.openssl.org/Ticket/Display.html?id=3711&amp;amp;user=guest&amp;amp;pass=guest">RT#3711</a>).</li>
-       <li>Fix build with OpenSSL HEAD <i>(OpenSSL 1.1.x).</i></li>
-       <li>Preliminary support for Juniper SSL VPN.</li>
+       <li>Fix <tt>openconnect.pc</tt> breakage after liboath removal.</li>
+       <li>Refactor Juniper Network Connect receive loop.</li>
+       <li>Fix some memory leaks.</li>
+       <li>Add Bosnian translation.</li>
      </ul>
 <!-- latest-release-end -->
 
