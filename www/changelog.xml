@@ -15,6 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Fix <tt>openconnect.pc</tt> breakage after liboath removal.</li>
        <li>Refactor Juniper Network Connect receive loop.</li>
        <li>Fix some memory leaks.</li>
        <li>Add Bosnian translation.</li>
