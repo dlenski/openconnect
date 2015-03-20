@@ -1049,7 +1049,9 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			/* XXX: Do we have to do this or can we leave it open?
 			 * Perhaps we could even reconnect asynchronously while
 			 * the ESP is still running? */
+#if defined(ESP_GNUTLS) || defined(ESP_OPENSSL)
 			esp_shutdown(vpninfo);
+#endif
 			ret = ssl_reconnect(vpninfo);
 			if (ret) {
 				vpn_progress(vpninfo, PRG_ERR, _("Reconnect failed\n"));
