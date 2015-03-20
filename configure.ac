@@ -524,7 +524,7 @@ if test "$check_openssl_dtls" = "yes"; then
 				#error Bad OpenSSL
 				#endif
 				])],
-			  [AC_MSG_RESULT(no)],
+			  [],
 			  [AC_MSG_RESULT(yes)
 			   AC_ERROR([This version of OpenSSL is known to be broken with Cisco DTLS.
 See http://rt.openssl.org/Ticket/Display.html?id=2984&user=guest&pass=guest
@@ -535,18 +535,18 @@ perhaps consider building with GnuTLS instead.])])
 				#error Bad OpenSSL
 				#endif
 				])],
-			  [AC_MSG_RESULT(no)],
+			  [],
 			  [AC_MSG_RESULT(yes)
 			   AC_ERROR([This version of OpenSSL is known to be broken with Cisco DTLS.
 See http://rt.openssl.org/Ticket/Display.html?id=3703&user=guest&pass=guest
 and http://rt.openssl.org/Ticket/Display.html?id=3711&user=guest&pass=guest
 Add --without-openssl-version-check to configure args to avoid this check, or
 perhaps consider building with GnuTLS instead.])])
+	AC_MSG_RESULT(no)
 fi
 if test "$esp" = "openssl"; then
     AC_CHECK_FUNC(HMAC_CTX_copy,
 		  [], [esp=none
-		       echo set ESP to $esp
 		       AC_MSG_WARN([ESP support will be disabled])])
 fi
 LIBS="${oldLIBS}"
