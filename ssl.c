@@ -88,7 +88,12 @@ static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 
 	/* Check whether connect() succeeded or failed by using
 	   getpeername(). See http://cr.yp.to/docs/connect.html */
-	return getpeername(sockfd, (void *)&peer, &peerlen);
+	if (getpeername(sockfd, (void *)&peer, &peerlen) && errno == ENOTCONN) {
+		char ch;
+		read(sockfd, &ch, 1);
+		return -1;
+	}
+	return 0;
 }
 
 /* checks whether the provided string is an IP or a hostname.
@@ -151,12 +156,12 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 		reconn_err:
 			if (vpninfo->proxy) {
 				vpn_progress(vpninfo, PRG_ERR,
-					     _("Failed to reconnect to proxy %s\n"),
-					     vpninfo->proxy);
+					     _("Failed to reconnect to proxy %s: %s\n"),
+					     vpninfo->proxy, strerror(errno));
 			} else {
 				vpn_progress(vpninfo, PRG_ERR,
-					     _("Failed to reconnect to host %s\n"),
-					     vpninfo->hostname);
+					     _("Failed to reconnect to host %s: %s\n"),
+					     vpninfo->hostname, strerror(errno));
 			}
 			if (ssl_sock >= 0)
 				closesocket(ssl_sock);
@@ -269,7 +274,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 			host[0] = 0;
 			if (!getnameinfo(rp->ai_addr, rp->ai_addrlen, host,
 					 sizeof(host), NULL, 0, NI_NUMERICHOST))
-				vpn_progress(vpninfo, PRG_INFO, vpninfo->proxy_type ?
+				vpn_progress(vpninfo, PRG_DEBUG, vpninfo->proxy_type ?
 						     _("Attempting to connect to proxy %s%s%s:%s\n") :
 						     _("Attempting to connect to server %s%s%s:%s\n"),
 					     rp->ai_family == AF_INET6 ? "[" : "",
@@ -285,6 +290,13 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 			if (cancellable_connect(vpninfo, ssl_sock, rp->ai_addr, rp->ai_addrlen) >= 0) {
 				/* Store the peer address we actually used, so that DTLS can
 				   use it again later */
+				if (host[0])
+					vpn_progress(vpninfo, PRG_INFO, _("Connected to %s%s%s:%s\n"),
+						     rp->ai_family == AF_INET6 ? "[" : "",
+						     host,
+						     rp->ai_family == AF_INET6 ? "]" : "",
+						     port);
+
 				free(vpninfo->peer_addr);
 				vpninfo->peer_addrlen = 0;
 				vpninfo->peer_addr = malloc(rp->ai_addrlen);
@@ -323,6 +335,13 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 				}
 				break;
 			}
+			err = errno;
+			if (host[0])
+				vpn_progress(vpninfo, PRG_INFO, _("Failed to connect to %s%s%s:%s: %s\n"),
+					     rp->ai_family == AF_INET6 ? "[" : "",
+					     host,
+					     rp->ai_family == AF_INET6 ? "]" : "",
+					     port, strerror(err));
 			closesocket(ssl_sock);
 			ssl_sock = -1;
 
