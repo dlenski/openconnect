@@ -1034,11 +1034,6 @@ int main(int argc, char **argv)
 			}
 			break;
 		}
-		case OPT_JUNIPER:
-			fprintf(stderr, "WARNING: Juniper Network Connect support is experimental.\n");
-			fprintf(stderr, "It will probably be superseded by Junos Pulse support.\n");
-			openconnect_set_protocol(vpninfo, "nc");
-			break;
 		case OPT_CSD_USER: {
 			char *strend;
 			vpninfo->uid_csd = strtol(config_arg, &strend, 0);
@@ -1058,6 +1053,11 @@ int main(int argc, char **argv)
 			vpninfo->csd_wrapper = keep_config_arg();
 			break;
 #endif /* !_WIN32 */
+		case OPT_JUNIPER:
+			fprintf(stderr, "WARNING: Juniper Network Connect support is experimental.\n");
+			fprintf(stderr, "It will probably be superseded by Junos Pulse support.\n");
+			openconnect_set_protocol(vpninfo, "nc");
+			break;
 		case OPT_CONFIGFILE:
 			if (config_file) {
 				fprintf(stderr, _("Cannot use 'config' option inside config file\n"));
