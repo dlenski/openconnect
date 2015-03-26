@@ -57,43 +57,78 @@ static inline int connect_pending()
 	return errno == EINPROGRESS;
 #endif
 }
+
+/* Windows is interminably horrid, and has disjoint errno spaces.
+ * So if we return a positive value, that's a WSA Error and should
+ * be handled with openconnect__win32_strerror(). But if we return a
+ * negative value, that's a normal errno and should be handled with
+ * strerror(). No, you can't just pass the latter value (negated) to
+ * openconnect__win32_strerror() because it gives nonsense results. */
 static int cancellable_connect(struct openconnect_info *vpninfo, int sockfd,
 			       const struct sockaddr *addr, socklen_t addrlen)
 {
 	struct sockaddr_storage peer;
 	socklen_t peerlen = sizeof(peer);
-	fd_set wr_set, rd_set;
+	fd_set wr_set, rd_set, ex_set;
 	int maxfd = sockfd;
+	int err;
 
 	set_sock_nonblock(sockfd);
 	if (vpninfo->protect_socket)
 		vpninfo->protect_socket(vpninfo->cbdata, sockfd);
 
-	if (connect(sockfd, addr, addrlen) < 0 && !connect_pending())
-		return -1;
+	if (connect(sockfd, addr, addrlen) < 0 && !connect_pending()) {
+#ifdef _WIN32
+		return WSAGetLastError();
+#else
+		return -errno;
+#endif
+	}
 
 	do {
 		FD_ZERO(&wr_set);
 		FD_ZERO(&rd_set);
+		FD_ZERO(&ex_set);
 		FD_SET(sockfd, &wr_set);
+#ifdef _WIN32 /* Windows indicates failure this way, not in wr_set */
+		FD_SET(sockfd, &ex_set);
+#endif
 		cmd_fd_set(vpninfo, &rd_set, &maxfd);
-
-		select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
+		select(maxfd + 1, &rd_set, &wr_set, &ex_set, NULL);
 		if (is_cancel_pending(vpninfo, &rd_set)) {
 			vpn_progress(vpninfo, PRG_ERR, _("Socket connect cancelled\n"));
-			errno = EINTR;
-			return -1;
+			return -EINTR;
 		}
-	} while (!FD_ISSET(sockfd, &wr_set) && !vpninfo->got_pause_cmd);
+	} while (!FD_ISSET(sockfd, &wr_set) && !FD_ISSET(sockfd, &ex_set) &&
+		 !vpninfo->got_pause_cmd);
 
 	/* Check whether connect() succeeded or failed by using
 	   getpeername(). See http://cr.yp.to/docs/connect.html */
-	if (getpeername(sockfd, (void *)&peer, &peerlen) && errno == ENOTCONN) {
-		char ch;
-		read(sockfd, &ch, 1);
-		return -1;
+	if (!getpeername(sockfd, (void *)&peer, &peerlen))
+		return 0;
+
+#ifdef _WIN32 /* On Windows, use getsockopt() to determine the error.
+	       * We don't ddo this on Windows because it just reports
+	       * -ENOTCONN, which we already knew. */
+
+	err = WSAGetLastError();
+	if (err == WSAENOTCONN) {
+		socklen_t errlen = sizeof(err);
+
+		getsockopt(sockfd, SOL_SOCKET, SO_ERROR,
+			   (void *)&err, &errlen);
 	}
-	return 0;
+#else
+	err = -errno;
+	if (err == -ENOTCONN) {
+		int ch;
+
+		if (read(sockfd, &ch, 1) < 0)
+			err = -errno;
+		/* It should *always* fail! */
+	}
+#endif
+	return err;
 }
 
 /* checks whether the provided string is an IP or a hostname.
@@ -148,21 +183,39 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 #endif
 		{
 			ssl_sock = socket(vpninfo->peer_addr->sa_family, SOCK_STREAM, IPPROTO_IP);
-			if (ssl_sock < 0)
+			if (ssl_sock < 0) {
+#ifdef _WIN32
+				err = WSAGetLastError();
+#else
+				err = -errno;
+#endif
 				goto reconn_err;
+			}
 			set_fd_cloexec(ssl_sock);
 		}
-		if (cancellable_connect(vpninfo, ssl_sock, vpninfo->peer_addr, vpninfo->peer_addrlen)) {
+		err = cancellable_connect(vpninfo, ssl_sock, vpninfo->peer_addr, vpninfo->peer_addrlen);
+		if (err) {
+			char *errstr;
 		reconn_err:
+#ifdef _WIN32
+			if (err > 0)
+				errstr = openconnect__win32_strerror(err);
+			else
+#endif
+				errstr = strerror(-err);
 			if (vpninfo->proxy) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to reconnect to proxy %s: %s\n"),
-					     vpninfo->proxy, strerror(errno));
+					     vpninfo->proxy, errstr);
 			} else {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to reconnect to host %s: %s\n"),
-					     vpninfo->hostname, strerror(errno));
+					     vpninfo->hostname, errstr);
 			}
+#ifdef _WIN32
+			if (err > 0)
+				free(errstr);
+#endif
 			if (ssl_sock >= 0)
 				closesocket(ssl_sock);
 			ssl_sock = -EINVAL;
@@ -290,7 +343,8 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 			if (ssl_sock < 0)
 				continue;
 			set_fd_cloexec(ssl_sock);
-			if (cancellable_connect(vpninfo, ssl_sock, rp->ai_addr, rp->ai_addrlen) >= 0) {
+			err = cancellable_connect(vpninfo, ssl_sock, rp->ai_addr, rp->ai_addrlen);
+			if (!err) {
 				/* Store the peer address we actually used, so that DTLS can
 				   use it again later */
 				if (host[0])
@@ -338,13 +392,25 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 				}
 				break;
 			}
-			err = errno;
-			if (host[0])
+			if (host[0]) {
+				char *errstr;
+#ifdef _WIN32
+				if (err > 0)
+					errstr = openconnect__win32_strerror(err);
+				else
+#endif
+					errstr = strerror(-err);
+
 				vpn_progress(vpninfo, PRG_INFO, _("Failed to connect to %s%s%s:%s: %s\n"),
 					     rp->ai_family == AF_INET6 ? "[" : "",
 					     host,
 					     rp->ai_family == AF_INET6 ? "]" : "",
-					     port, strerror(err));
+					     port, errstr);
+#ifdef _WIN32
+				if (err > 0)
+					free(errstr);
+#endif
+			}
 			closesocket(ssl_sock);
 			ssl_sock = -1;
 
