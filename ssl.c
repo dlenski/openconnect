@@ -247,7 +247,10 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 			hints.ai_flags |= AI_NUMERICHOST;
 		}
 
-		err = getaddrinfo(hostname, port, &hints, &result);
+		if (vpninfo->getaddrinfo_override)
+			err = vpninfo->getaddrinfo_override(vpninfo->cbdata, hostname, port, &hints, &result);
+		else
+			err = getaddrinfo(hostname, port, &hints, &result);
 
 		if (err) {
 			vpn_progress(vpninfo, PRG_ERR,

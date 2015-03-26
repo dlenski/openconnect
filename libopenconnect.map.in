@@ -73,6 +73,11 @@ OPENCONNECT_5_2 {
 	openconnect_set_http_auth;
 } OPENCONNECT_5_1;
 
+OPENCONNECT_5_3 {
+ global:
+	openconnect_override_getaddrinfo;
+} OPENCONNECT_5_2;
+
 OPENCONNECT_PRIVATE {
  global: @SYMVER_TIME@ @SYMVER_GETLINE@ @SYMVER_JAVA@ @SYMVER_ASPRINTF@ @SYMVER_VASPRINTF@ @SYMVER_WIN32_STRERROR@
 	openconnect_fopen_utf8;
