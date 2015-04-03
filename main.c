@@ -174,6 +174,7 @@ enum {
 	OPT_PRINTCOOKIE,
 	OPT_RECONNECT_TIMEOUT,
 	OPT_SERVERCERT,
+	OPT_RESOLVE,
 	OPT_USERAGENT,
 	OPT_NON_INTER,
 	OPT_DTLS_LOCAL_PORT,
@@ -245,6 +246,7 @@ static const struct option long_options[] = {
 	OPTION("dtls-ciphers", 1, OPT_DTLS_CIPHERS),
 	OPTION("authgroup", 1, OPT_AUTHGROUP),
 	OPTION("servercert", 1, OPT_SERVERCERT),
+	OPTION("resolve", 1, OPT_RESOLVE),
 	OPTION("key-password-from-fsid", 0, OPT_KEY_PASSWORD_FROM_FSID),
 	OPTION("useragent", 1, OPT_USERAGENT),
 	OPTION("disable-ipv6", 0, OPT_DISABLE_IPV6),
@@ -700,6 +702,28 @@ static void set_default_vpncscript(void)
 }
 #endif
 
+static struct oc_vpn_option *gai_overrides;
+
+static int gai_override_cb(void *cbdata, const char *node,
+			    const char *service, const struct addrinfo *hints,
+			    struct addrinfo **res)
+{
+	struct openconnect_info *vpninfo = cbdata;
+	struct oc_vpn_option *p = gai_overrides;
+
+	while (p) {
+		if (!strcmp(node, p->option)) {
+			vpn_progress(vpninfo, PRG_TRACE, _("Override hostname '%s' to '%s'\n"),
+				     node, p->value);
+			node = p->value;
+			break;
+		}
+		p = p->next;
+	}
+
+	return getaddrinfo(node, service, hints, res);
+}
+
 static void usage(void)
 {
 	printf(_("Usage:  openconnect [options] <server>\n"));
@@ -780,6 +804,7 @@ static void usage(void)
 	printf("      --reconnect-timeout         %s\n", _("Connection retry timeout in seconds"));
 	printf("      --servercert=FINGERPRINT    %s\n", _("Server's certificate SHA1 fingerprint"));
 	printf("      --useragent=STRING          %s\n", _("HTTP header User-Agent: field"));
+	printf("      --resolve=HOST:IP           %s\n", _("Use IP when connecting to HOST"));
 	printf("      --os=STRING                 %s\n", _("OS type (linux,linux-64,win,...) to report"));
 	printf("      --dtls-local-port=PORT      %s\n", _("Set local port for DTLS datagrams"));
 	printf("\n");
@@ -934,6 +959,8 @@ int main(int argc, char **argv)
 {
 	struct openconnect_info *vpninfo;
 	char *urlpath = NULL;
+	struct oc_vpn_option *gai;
+	char *ip;
 	const char *compr = "";
 	char *proxy = getenv("https_proxy");
 	char *vpnc_script = NULL, *ifname = NULL;
@@ -1101,6 +1128,24 @@ int main(int argc, char **argv)
 		case OPT_SERVERCERT:
 			server_cert = keep_config_arg();
 			openconnect_set_system_trust(vpninfo, 0);
+			break;
+		case OPT_RESOLVE:
+			ip = strchr(config_arg, ':');
+			if (!ip) {
+				fprintf(stderr, _("Missing colon in resolve option\n"));
+				exit(1);
+			}
+			gai = malloc(sizeof(*gai) + strlen(config_arg));
+			if (!gai) {
+				fprintf(stderr, _("Failed to allocate memory\n"));
+				exit(1);
+			}
+			gai->next = gai_overrides;
+			gai_overrides = gai;
+			gai->option = (void *)(gai + 1);
+			memcpy(gai->option, config_arg, strlen(config_arg));
+			gai->option[ip - config_arg] = 0;
+			gai->value = gai->option + (ip - config_arg) + 1;
 			break;
 		case OPT_NO_DTLS:
 			vpninfo->dtls_state = DTLS_DISABLED;
@@ -1309,6 +1354,9 @@ int main(int argc, char **argv)
 			usage();
 		}
 	}
+
+	if (gai_overrides)
+		openconnect_override_getaddrinfo(vpninfo, gai_override_cb);
 
 	if (optind < argc - 1) {
 		fprintf(stderr, _("Too many arguments on command line\n"));

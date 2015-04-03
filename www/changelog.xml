@@ -17,6 +17,7 @@
      <ul>
        <li>Fix handling of large configuration packets for Network Connect.</li>
        <li>Enable SNI when built with OpenSSL <i>(1.0.1g or later)</i>.</li>
+       <li>Add <tt>--resolve</tt> option to command line.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.06.tar.gz">OpenConnect v7.06</a></b>

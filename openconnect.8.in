@@ -60,6 +60,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-\-token\-mode mode
 .OP \-\-token\-secret {secret\fR[\fI,counter\fR]|@\fIfile\fR}
 .OP \-\-reconnect\-timeout
+.OP \-\-resolve host:ip
 .OP \-\-servercert sha1
 .OP \-\-useragent string
 .OP \-\-os string
@@ -459,6 +460,13 @@ by the "stoken import" command.
 Keep reconnect attempts until so much seconds are elapsed. The default
 timeout is 300 seconds, which means that openconnect can recover
 VPN connection after a temporary network down time of 300 seconds.
+.TP
+.B \-\-resolve=HOST:IP
+Automatically resolve the hostname
+.IR HOST
+to
+.IR IP
+instead of using the normal resolver to look it up.
 .TP
 .B \-\-servercert=SHA1
 Accept server's SSL certificate only if its fingerprint matches
