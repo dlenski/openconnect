@@ -2045,12 +2045,28 @@ static int verify_peer(gnutls_session_t session)
 	return err;
 }
 
-
-/* The F5 firewall is confused when the TLS client hello is between
- * 256 and 512 bytes. By disabling several TLS options we force the
- * client hello to be < 256 bytes. We don't do that in gnutls versions
- * >= 3.2.9 as there the %COMPAT keyword ensures that the client hello
- * will be outside that range.
+/*
+ * If a ClientHello is between 256 and 511 bytes, the
+ * server cannot distinguish between a SSLv2 formatted
+ * packet and a SSLv3 formatted packet.
+ *
+ * F5 BIG-IP reverse proxies in particular will
+ * silently drop an ambiguous ClientHello.
+ *
+ * GnuTLS fixes this in v3.2.9+ by padding ClientHello
+ * packets to at least 512 bytes if %COMPAT or %DUMBFW
+ * is specified.
+ *
+ * Discussion:
+ * http://www.ietf.org/mail-archive/web/tls/current/msg10423.html
+ *
+ * GnuTLS commits:
+ * b6d29bb1737f96ac44a8ef9cc9fe7f9837e20465
+ * a9bd8c4d3a639c40adb964349297f891f583a21b
+ * 531bec47037e882af32963f8461988f8c724919e
+ * 7c45ebbdd877cd994b6b938bd6faef19558a01e1
+ * 8d28901a3ebd2589d0fc9941475d50f04047f6fe
+ * 28065ce3896b1b0f87972d0bce9b17641ebb69b9
  */
 #if GNUTLS_VERSION_NUMBER >= 0x030209
 # define DEFAULT_PRIO "NORMAL:-VERS-SSL3.0:%COMPAT"
@@ -2185,8 +2201,12 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	if (vpninfo->my_pkey == OPENCONNECT_TPM_PKEY)
 		gnutls_sign_callback_set(vpninfo->https_sess, gtls2_tpm_sign_cb, vpninfo);
 #endif
-	/* We depend on 3.2.9 because that has the workaround for the
-	   obnoxious F5 firewall that drops packets of certain sizes */
+	/*
+	 * For versions of GnuTLS older than 3.2.9, we try to avoid long
+	 * packets by silently disabling extensions such as SNI.
+	 *
+	 * See comments above regarding COMPAT and DUMBFW.
+	 */
 	if (gnutls_check_version("3.2.9") &&
 	    string_is_hostname(vpninfo->hostname))
 		gnutls_server_name_set(vpninfo->https_sess, GNUTLS_NAME_DNS,

@@ -1509,10 +1509,28 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	BIO_set_nbio(https_bio, 1);
 	SSL_set_bio(https_ssl, https_bio, https_bio);
 
-#if 0
-	/* Should be enabled on openssl versions that support
-	   SSL_set_tlsext_host_name() after the F5 firewall workaround
-	   is enabled */
+	/*
+	 * If a ClientHello is between 256 and 511 bytes, the
+	 * server cannot distinguish between a SSLv2 formatted
+	 * packet and a SSLv3 formatted packet.
+	 *
+	 * F5 BIG-IP reverse proxies in particular will
+	 * silently drop an ambiguous ClientHello.
+	 *
+	 * OpenSSL fixes this in v1.0.1g+ by padding ClientHello
+	 * packets to at least 512 bytes.
+	 *
+	 * For older versions of OpenSSL, we try to avoid long
+	 * packets by silently disabling extensions such as SNI.
+	 *
+	 * Discussion:
+	 * http://www.ietf.org/mail-archive/web/tls/current/msg10423.html
+	 *
+	 * OpenSSL commits:
+	 * 4fcdd66fff5fea0cfa1055c6680a76a4303f28a2
+	 * cd6bd5ffda616822b52104fee0c4c7d623fd4f53
+	 */
+#if OPENSSL_VERSION_NUMBER >= 0x10001070
 	if (string_is_hostname(vpninfo->hostname))
 		SSL_set_tlsext_host_name(https_ssl, vpninfo->hostname);
 #endif
