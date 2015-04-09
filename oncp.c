@@ -491,6 +491,7 @@ static int parse_conf_pkt(struct openconnect_info *vpninfo, unsigned char *bytes
 	eparse:
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to parse KMP message\n"));
+		buf_hexdump(vpninfo, bytes, pktlen);
 		return -EINVAL;
 	}
 
