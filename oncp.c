@@ -535,9 +535,10 @@ static int parse_conf_pkt(struct openconnect_info *vpninfo, unsigned char *bytes
 
 int oncp_connect(struct openconnect_info *vpninfo)
 {
-	int ret, len, kmp, group;
+	int ret, len, kmp, kmplen, group;
 	struct oc_text_buf *reqbuf;
-	unsigned char bytes[4096];
+	unsigned char bytes[8192];
+
 	/* XXX: We should do what cstp_connect() does to check that configuration
 	   hasn't changed on a reconnect. */
 
@@ -703,7 +704,49 @@ int oncp_connect(struct openconnect_info *vpninfo)
 		goto out;
 	}
 
-	ret = parse_conf_pkt(vpninfo, bytes + 2, len, ret);
+	kmplen = load_be16(bytes + 20);
+	if (kmplen + 2 >= sizeof(bytes)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("KMP message 301 from server too large (%d bytes)\n"),
+			     kmplen);
+		ret = -EINVAL;
+		goto out;
+	}
+	vpn_progress(vpninfo, PRG_TRACE,
+		     _("Got KMP message 301 of length %d\n"), kmplen);
+	while (kmplen + 22 > len) {
+		char l[2];
+		int thislen;
+
+		if (vpninfo->ssl_read(vpninfo, (void *)l, 2) != 2) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to read continuation record length\n"));
+			ret = -EINVAL;
+			goto out;
+		}
+		if (load_le16(l) + len > kmplen + 22) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Record of additional %d bytes too large; would make %d\n"),
+				     load_le16(l), len + load_le16(l));
+			ret = -EINVAL;
+			goto out;
+		}
+
+		thislen = vpninfo->ssl_read(vpninfo, (void *)(bytes + len), load_le16(l));
+		if (thislen != load_le16(l)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to read continuaton record of length %d\n"),
+				     load_le16(l));
+			ret = -EINVAL;
+			goto out;
+		}
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Read additional %d bytes of KMP 301 message\n"),
+			     thislen);
+		len += thislen;
+	}
+
+	ret = parse_conf_pkt(vpninfo, bytes + 2, len - 2, ret);
 	if (ret)
 		goto out;
 
