@@ -13,7 +13,8 @@
 <p>OpenConnect supports the use of X.509 certificates and keys from
 smart cards <i>(as well as software storage such as GNOME Keyring and
 SoftHSM)</i> by means of the PKCS#11 standard. Objects from PKCS#11 tokens
-are specified by a <a href="http://p11-glue.freedesktop.org/pkcs11-uris.html">PKCS#11 URI</a>.</p>
+are specified by a PKCS#11 URI according to
+<a href="https://tools.ietf.org/html/rfc7512">RFC 7512</a>.</p>
 
 <p>In order to use a certificate or key with OpenConnect, you must
 provide a PKCS#11 URI which identifies it sufficiently. That can be as simple
