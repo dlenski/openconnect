@@ -2014,6 +2014,7 @@ static int verify_peer(gnutls_session_t session)
 		else if (inet_pton(AF_INET6, vpninfo->hostname, addrbuf) > 0)
 			addrlen = 16;
 #endif
+
 		if (!addrlen) {
 			/* vpninfo->hostname was not a bare IP address. Nothing to do */
 			goto badhost;
@@ -2051,46 +2052,12 @@ static int verify_peer(gnutls_session_t session)
 	return err;
 }
 
-/*
- * If a ClientHello is between 256 and 511 bytes, the
- * server cannot distinguish between a SSLv2 formatted
- * packet and a SSLv3 formatted packet.
- *
- * F5 BIG-IP reverse proxies in particular will
- * silently drop an ambiguous ClientHello.
- *
- * GnuTLS fixes this in v3.2.9+ by padding ClientHello
- * packets to at least 512 bytes if %COMPAT or %DUMBFW
- * is specified.
- *
- * Discussion:
- * http://www.ietf.org/mail-archive/web/tls/current/msg10423.html
- *
- * GnuTLS commits:
- * b6d29bb1737f96ac44a8ef9cc9fe7f9837e20465
- * a9bd8c4d3a639c40adb964349297f891f583a21b
- * 531bec47037e882af32963f8461988f8c724919e
- * 7c45ebbdd877cd994b6b938bd6faef19558a01e1
- * 8d28901a3ebd2589d0fc9941475d50f04047f6fe
- * 28065ce3896b1b0f87972d0bce9b17641ebb69b9
- */
-#if GNUTLS_VERSION_NUMBER >= 0x030209
-# define DEFAULT_PRIO "NORMAL:-VERS-SSL3.0:%COMPAT"
-#else
-# define _DEFAULT_PRIO "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:" \
-	"%COMPAT:%DISABLE_SAFE_RENEGOTIATION:%LATEST_RECORD_VERSION"
-# if GNUTLS_VERSION_MAJOR >= 3
-#  define DEFAULT_PRIO _DEFAULT_PRIO":-CURVE-ALL:-ECDHE-RSA:-ECDHE-ECDSA"
-#else
-#  define DEFAULT_PRIO _DEFAULT_PRIO
-# endif
-#endif
 
 int openconnect_open_https(struct openconnect_info *vpninfo)
 {
 	int ssl_sock = -1;
 	int err;
-	const char * prio;
+	char prio[256];
 
 	if (vpninfo->https_sess)
 		return 0;
@@ -2219,10 +2186,41 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 				       vpninfo->hostname,
 				       strlen(vpninfo->hostname));
 
-	if (vpninfo->pfs) {
-		prio = DEFAULT_PRIO":-RSA";
+       /*
+	* If a ClientHello is between 256 and 511 bytes, the
+	* server cannot distinguish between a SSLv2 formatted
+	* packet and a SSLv3 formatted packet.
+	*
+	* F5 BIG-IP reverse proxies in particular will
+	* silently drop an ambiguous ClientHello.
+	*
+	* GnuTLS fixes this in v3.2.9+ by padding ClientHello
+	* packets to at least 512 bytes if %COMPAT or %DUMBFW
+	* is specified.
+	*
+	* Discussion:
+	* http://www.ietf.org/mail-archive/web/tls/current/msg10423.html
+	*
+	* GnuTLS commits:
+	* b6d29bb1737f96ac44a8ef9cc9fe7f9837e20465
+	* a9bd8c4d3a639c40adb964349297f891f583a21b
+	* 531bec47037e882af32963f8461988f8c724919e
+	* 7c45ebbdd877cd994b6b938bd6faef19558a01e1
+	* 8d28901a3ebd2589d0fc9941475d50f04047f6fe
+	* 28065ce3896b1b0f87972d0bce9b17641ebb69b9
+	*/
+	if (gnutls_check_version("3.2.9")) {
+		snprintf(prio, sizeof(prio), "NORMAL:-VERS-SSL3.0:%%COMPAT%s", vpninfo->pfs?":-RSA":"");
 	} else {
-		prio = DEFAULT_PRIO;
+		if (gnutls_check_version("3.0.0")) {
+			snprintf(prio, sizeof(prio), "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:" \
+			       "%%COMPAT:%%DISABLE_SAFE_RENEGOTIATION:%%LATEST_RECORD_VERSION" \
+			       ":-CURVE-ALL:-ECDHE-RSA:-ECDHE-ECDSA%s", vpninfo->pfs?":-RSA":"");
+		} else {
+			snprintf(prio, sizeof(prio), "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:" \
+			       "%%COMPAT:%%DISABLE_SAFE_RENEGOTIATION:%%LATEST_RECORD_VERSION%s",
+			       vpninfo->pfs?":-RSA":"");
+		}
 	}
 
 	err = gnutls_priority_set_direct(vpninfo->https_sess,
