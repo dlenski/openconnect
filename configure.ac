@@ -417,6 +417,15 @@ if test "$with_gnutls" = "yes"; then
     LIBS="$oldlibs"
     CFLAGS="$oldcflags"
 fi
+
+AC_ARG_WITH([default-gnutls-priority],
+	AS_HELP_STRING([--with-default-gnutls-priority=STRING],
+	[Provide a default string as GnuTLS priority string]),
+	default_gnutls_priority=$withval)
+if test -n "$default_gnutls_priority"; then
+   AC_DEFINE_UNQUOTED([DEFAULT_PRIO], ["$default_gnutls_priority"], [The GnuTLS priority string])
+fi
+
 if test "$with_openssl" = "yes" || test "$with_openssl" = "" || test "$ssl_library" = "both"; then
     PKG_CHECK_MODULES(OPENSSL, openssl, [],
 	[oldLIBS="$LIBS"

@@ -2052,6 +2052,18 @@ static int verify_peer(gnutls_session_t session)
 	return err;
 }
 
+#ifndef DEFAULT_PRIO
+# define DEFAULT_PRIO_3_2_9 "NORMAL:-VERS-SSL3.0:%%COMPAT"
+# define DEFAULT_PRIO_3_0_0 "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:" \
+			    "%%COMPAT:%%DISABLE_SAFE_RENEGOTIATION:%%LATEST_RECORD_VERSION" \
+			    ":-CURVE-ALL:-ECDHE-RSA:-ECDHE-ECDSA"
+# define DEFAULT_PRIO_2_12_0 "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:" \
+			     "%%COMPAT:%%DISABLE_SAFE_RENEGOTIATION:%%LATEST_RECORD_VERSION"
+#else
+# define DEFAULT_PRIO_3_2_9 DEFAULT_PRIO":%%COMPAT"
+# define DEFAULT_PRIO_3_0_0 DEFAULT_PRIO":%%COMPAT"
+# define DEFAULT_PRIO_2_12_0 DEFAULT_PRIO":%%COMPAT"
+#endif
 
 int openconnect_open_https(struct openconnect_info *vpninfo)
 {
@@ -2210,15 +2222,13 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	* 28065ce3896b1b0f87972d0bce9b17641ebb69b9
 	*/
 	if (gnutls_check_version("3.2.9")) {
-		snprintf(prio, sizeof(prio), "NORMAL:-VERS-SSL3.0:%%COMPAT%s", vpninfo->pfs?":-RSA":"");
+		snprintf(prio, sizeof(prio), DEFAULT_PRIO_3_2_9"%s", vpninfo->pfs?":-RSA":"");
 	} else {
 		if (gnutls_check_version("3.0.0")) {
-			snprintf(prio, sizeof(prio), "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:" \
-			       "%%COMPAT:%%DISABLE_SAFE_RENEGOTIATION:%%LATEST_RECORD_VERSION" \
-			       ":-CURVE-ALL:-ECDHE-RSA:-ECDHE-ECDSA%s", vpninfo->pfs?":-RSA":"");
+			snprintf(prio, sizeof(prio), DEFAULT_PRIO_3_0_0"%s", vpninfo->pfs?":-RSA":"");
 		} else {
-			snprintf(prio, sizeof(prio), "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:" \
-			       "%%COMPAT:%%DISABLE_SAFE_RENEGOTIATION:%%LATEST_RECORD_VERSION%s",
+
+			snprintf(prio, sizeof(prio), DEFAULT_PRIO_2_12_0"%s",
 			       vpninfo->pfs?":-RSA":"");
 		}
 	}
