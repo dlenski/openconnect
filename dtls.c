@@ -471,6 +471,7 @@ struct {
 	  "NONE:+VERS-DTLS1.2:+COMP-NULL:+AES-256-GCM:+AEAD:+RSA:%COMPAT:+SIGN-ALL", "3.2.7" },
 };
 
+#if GNUTLS_VERSION_NUMBER < 0x030009
 void append_dtls_ciphers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
 {
 	int i, first = 1;
@@ -482,7 +483,49 @@ void append_dtls_ciphers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 			first = 0;
 		}
 	}
+#else
+void append_dtls_ciphers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+{
+	/* only enable the ciphers that would have been negotiated in the TLS channel */
+	unsigned i, j, first = 1;
+	int ret;
+	unsigned idx;
+	gnutls_cipher_algorithm_t cipher;
+	gnutls_mac_algorithm_t mac;
+	gnutls_priority_t cache;
+	uint32_t used = 0;
+
+	ret = gnutls_priority_init(&cache, vpninfo->gnutls_prio, NULL);
+	if (ret < 0) {
+		buf->error = -EIO;
+		return;
+	}
+
+	for (j=0; ; j++) {
+		ret = gnutls_priority_get_cipher_suite_index(cache, j, &idx);
+		if (ret == GNUTLS_E_UNKNOWN_CIPHER_SUITE)
+			continue;
+		else if (ret < 0)
+			break;
+
+		if (gnutls_cipher_suite_info(idx, NULL, NULL, &cipher, &mac, NULL) != NULL) {
+			for (i = 0; i < sizeof(gnutls_dtls_ciphers)/sizeof(gnutls_dtls_ciphers[0]); i++) {
+				if (used & (1 << i))
+					continue;
+				if (gnutls_dtls_ciphers[i].mac == mac && gnutls_dtls_ciphers[i].cipher == cipher) {
+					buf_append(buf, "%s%s", first ? "" : ":",
+						   gnutls_dtls_ciphers[i].name);
+					first = 0;
+					used |= (1 << i);
+					break;
+				}
+			}
+		}
+	}
+
+	gnutls_priority_deinit(cache);
 }
+#endif
 
 #define DTLS_SEND gnutls_record_send
 #define DTLS_RECV gnutls_record_recv

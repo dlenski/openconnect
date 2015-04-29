@@ -2069,7 +2069,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 {
 	int ssl_sock = -1;
 	int err;
-	char prio[256];
 
 	if (vpninfo->https_sess)
 		return 0;
@@ -2222,19 +2221,19 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	* 28065ce3896b1b0f87972d0bce9b17641ebb69b9
 	*/
 	if (gnutls_check_version("3.2.9")) {
-		snprintf(prio, sizeof(prio), DEFAULT_PRIO_3_2_9"%s", vpninfo->pfs?":-RSA":"");
+		snprintf(vpninfo->gnutls_prio, sizeof(vpninfo->gnutls_prio), DEFAULT_PRIO_3_2_9"%s", vpninfo->pfs?":-RSA":"");
 	} else {
 		if (gnutls_check_version("3.0.0")) {
-			snprintf(prio, sizeof(prio), DEFAULT_PRIO_3_0_0"%s", vpninfo->pfs?":-RSA":"");
+			snprintf(vpninfo->gnutls_prio, sizeof(vpninfo->gnutls_prio), DEFAULT_PRIO_3_0_0"%s", vpninfo->pfs?":-RSA":"");
 		} else {
 
-			snprintf(prio, sizeof(prio), DEFAULT_PRIO_2_12_0"%s",
+			snprintf(vpninfo->gnutls_prio, sizeof(vpninfo->gnutls_prio), DEFAULT_PRIO_2_12_0"%s",
 			       vpninfo->pfs?":-RSA":"");
 		}
 	}
 
 	err = gnutls_priority_set_direct(vpninfo->https_sess,
-					prio, NULL);
+					 vpninfo->gnutls_prio, NULL);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to set TLS priority string: %s\n"),
