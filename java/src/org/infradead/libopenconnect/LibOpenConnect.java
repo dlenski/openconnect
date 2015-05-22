@@ -143,6 +143,8 @@ public abstract class LibOpenConnect {
 	public synchronized native IPInfo getIPInfo();
 	public synchronized native String getCSTPCipher();
 	public synchronized native String getDTLSCipher();
+	public synchronized native String getCSTPCompression();
+	public synchronized native String getDTLSCompression();
 
 	/* certificate info */
 

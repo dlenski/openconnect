@@ -76,6 +76,8 @@ OPENCONNECT_5_2 {
 OPENCONNECT_5_3 {
  global:
 	openconnect_override_getaddrinfo;
+	openconnect_get_cstp_compression;
+	openconnect_get_dtls_compression;
 } OPENCONNECT_5_2;
 
 OPENCONNECT_PRIVATE {

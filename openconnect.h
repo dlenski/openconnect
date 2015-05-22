@@ -34,6 +34,8 @@
 /*
  * API version 5.3:
  *  - Add openconnect_override_getaddrinfo().
+ *  - Add openconnect_get_cstp_compression().
+ *  - Add openconnect_get_dtls_compression().
  *
  * API version 5.2:
  *  - Add openconnect_set_http_auth(), openconnect_set_protocol().
@@ -364,6 +366,11 @@ int openconnect_init_ssl(void);
  * ask for an API that *does* offer you what you need. */
 const char *openconnect_get_cstp_cipher(struct openconnect_info *);
 const char *openconnect_get_dtls_cipher(struct openconnect_info *);
+
+/* These return a descriptive string of the compression algorithm 
+ * in use (LZS, LZ4, ...). If no compression then NULL is returned. */
+const char *openconnect_get_cstp_compression(struct openconnect_info *);
+const char *openconnect_get_dtls_compression(struct openconnect_info *);
 
 const char *openconnect_get_hostname(struct openconnect_info *);
 int openconnect_set_hostname(struct openconnect_info *, const char *);

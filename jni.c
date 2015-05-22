@@ -1074,6 +1074,22 @@ JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getDT
 	RETURN_STRING_END
 }
 
+JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getDTLSCompression(
+	JNIEnv *jenv, jobject jobj)
+{
+	RETURN_STRING_START
+	buf = openconnect_get_dtls_compression(ctx->vpninfo);
+	RETURN_STRING_END
+}
+
+JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getCSTPCompression(
+	JNIEnv *jenv, jobject jobj)
+{
+	RETURN_STRING_START
+	buf = openconnect_get_cstp_compression(ctx->vpninfo);
+	RETURN_STRING_END
+}
+
 JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getCSTPCipher(
 	JNIEnv *jenv, jobject jobj)
 {

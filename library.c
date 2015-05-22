@@ -794,6 +794,28 @@ int openconnect_setup_tun_device(struct openconnect_info *vpninfo,
 	return openconnect_setup_tun_fd(vpninfo, tun_fd);
 }
 
+static const char *compr_name_map[] = {
+	[COMPR_DEFLATE] = "Deflate",
+	[COMPR_LZS] = "LZS",
+	[COMPR_LZ4] = "LZ4"
+};
+
+const char *openconnect_get_cstp_compression(struct openconnect_info * vpninfo)
+{
+	if (vpninfo->cstp_compr <= 0 || vpninfo->cstp_compr > COMPR_MAX)
+		return NULL;
+
+	return compr_name_map[vpninfo->cstp_compr];
+}
+
+const char *openconnect_get_dtls_compression(struct openconnect_info * vpninfo)
+{
+	if (vpninfo->dtls_compr <= 0 || vpninfo->dtls_compr > COMPR_MAX)
+		return NULL;
+
+	return compr_name_map[vpninfo->dtls_compr];
+}
+
 const char *openconnect_get_dtls_cipher(struct openconnect_info *vpninfo)
 {
 #if defined(DTLS_GNUTLS)
