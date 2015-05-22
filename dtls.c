@@ -338,6 +338,12 @@ static int dtls_try_handshake(struct openconnect_info *vpninfo)
 			     _("Established DTLS connection (using OpenSSL). Ciphersuite %s.\n"),
 			     vpninfo->dtls_cipher);
 
+		c = openconnect_get_dtls_compression(vpninfo);
+		if (c) {
+			vpn_progress(vpninfo, PRG_INFO,
+				     _("DTLS connection compression using %s.\n"), c);
+		}
+
 		vpninfo->dtls_times.last_rekey = vpninfo->dtls_times.last_rx = 
 			vpninfo->dtls_times.last_tx = time(NULL);
 
@@ -625,10 +631,16 @@ static int dtls_try_handshake(struct openconnect_info *vpninfo)
 		vpninfo->dtls_state = DTLS_CONNECTED;
 		str = get_gnutls_cipher(vpninfo->dtls_ssl);
 		if (str) {
+			const char *c;
 			vpn_progress(vpninfo, PRG_INFO,
 				     _("Established DTLS connection (using GnuTLS). Ciphersuite %s.\n"),
 				     str);
 			gnutls_free(str);
+			c = openconnect_get_dtls_compression(vpninfo);
+			if (c) {
+				vpn_progress(vpninfo, PRG_INFO,
+					     _("DTLS connection compression using %s.\n"), c);
+			}
 		}
 
 		vpninfo->dtls_times.last_rekey = vpninfo->dtls_times.last_rx = 
