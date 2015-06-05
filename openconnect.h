@@ -77,7 +77,7 @@
  *    openconnect_get_ifname(), openconnect_set_reqmtu(),
  *    openconnect_get_ip_info(), openconnect_set_protect_socket_handler(),
  *    openconnect_set_mobile_info(), openconnect_set_xmlpost(),
-7 *    openconnect_set_stats_handler()
+ *    openconnect_set_stats_handler()
  *
  * API version 3.0:
  *  - Change oc_form_opt_select->choices to an array of pointers
