@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2015-04-27 15:17+0100\n"
+"POT-Creation-Date: 2015-06-08 11:49+0100\n"
 "PO-Revision-Date: 2011-09-22 22:31+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Polish (http://www.transifex.net/projects/p/meego/team/pl/)\n"
@@ -2248,7 +2248,7 @@ msgstr ""
 #: main.c:1140
 #, c-format
 msgid "Failed to allocate memory\n"
-msgstr ""
+msgstr "Przydzielenie pamięci się nie powiodło\n"
 
 #: main.c:1219 main.c:1228
 #, c-format
