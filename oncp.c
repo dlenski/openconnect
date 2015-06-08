@@ -735,7 +735,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 		thislen = vpninfo->ssl_read(vpninfo, (void *)(bytes + len), load_le16(l));
 		if (thislen != load_le16(l)) {
 			vpn_progress(vpninfo, PRG_ERR,
-				     _("Failed to read continuaton record of length %d\n"),
+				     _("Failed to read continuation record of length %d\n"),
 				     load_le16(l));
 			ret = -EINVAL;
 			goto out;

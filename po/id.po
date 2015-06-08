@@ -1214,7 +1214,7 @@ msgstr "Memakai sertifikat klien '%s'\n"
 
 #: gnutls.c:1577
 #, c-format
-msgid "Setting certificate recovation list failed: %s\n"
+msgid "Setting certificate revocation list failed: %s\n"
 msgstr "Pengaturan daftar pencabutan sertifikat gagal: %s\n"
 
 #: gnutls.c:1598 gnutls.c:1608

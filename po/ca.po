@@ -1236,7 +1236,7 @@ msgstr "S'està usant el certificat del client «%s»\n"
 
 #: gnutls.c:1577
 #, c-format
-msgid "Setting certificate recovation list failed: %s\n"
+msgid "Setting certificate revocation list failed: %s\n"
 msgstr ""
 "La configuració de la llista de recuperació del certificat ha fallat: %s\n"
 

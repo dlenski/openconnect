@@ -1197,7 +1197,7 @@ msgstr ""
 
 #: gnutls.c:1577
 #, c-format
-msgid "Setting certificate recovation list failed: %s\n"
+msgid "Setting certificate revocation list failed: %s\n"
 msgstr ""
 
 #: gnutls.c:1598 gnutls.c:1608
@@ -2747,7 +2747,7 @@ msgstr ""
 
 #: oncp.c:738
 #, c-format
-msgid "Failed to read continuaton record of length %d\n"
+msgid "Failed to read continuation record of length %d\n"
 msgstr ""
 
 #: oncp.c:744

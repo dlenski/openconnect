@@ -1225,7 +1225,7 @@ msgstr "A következő klienstanúsítvány használata: „%s”\n"
 
 #: gnutls.c:1577
 #, c-format
-msgid "Setting certificate recovation list failed: %s\n"
+msgid "Setting certificate revocation list failed: %s\n"
 msgstr "A tanúsítvány visszavonási lista beállítása nem sikerült: %s\n"
 
 #: gnutls.c:1598 gnutls.c:1608

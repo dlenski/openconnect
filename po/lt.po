@@ -1212,7 +1212,7 @@ msgstr "Naudojamas kliento liudijimas „%s“\n"
 
 #: gnutls.c:1577
 #, c-format
-msgid "Setting certificate recovation list failed: %s\n"
+msgid "Setting certificate revocation list failed: %s\n"
 msgstr "Nepavyko nustatyti liudijimų atšaukimų sąrašo: %s\n"
 
 #: gnutls.c:1598 gnutls.c:1608

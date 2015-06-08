@@ -1574,7 +1574,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		err = gnutls_certificate_set_x509_crl(vpninfo->https_cred, &crl, 1);
 		if (err) {
 			vpn_progress(vpninfo, PRG_ERR,
-				     _("Setting certificate recovation list failed: %s\n"),
+				     _("Setting certificate revocation list failed: %s\n"),
 				     gnutls_strerror(err));
 			ret = -EINVAL;
 			goto out;

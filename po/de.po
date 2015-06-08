@@ -1234,7 +1234,7 @@ msgstr "Client-Zertifikat »%s« wird verwendet\n"
 
 #: gnutls.c:1577
 #, c-format
-msgid "Setting certificate recovation list failed: %s\n"
+msgid "Setting certificate revocation list failed: %s\n"
 msgstr "Festlegen der Zertifikat-Wiederrufsliste schlug fehl: %s\n"
 
 #: gnutls.c:1598 gnutls.c:1608
