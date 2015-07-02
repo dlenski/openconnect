@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2015-06-08 11:49+0100\n"
+"POT-Creation-Date: 2015-07-02 14:17+0100\n"
 "PO-Revision-Date: 2014-02-21 01:11+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Czech (http://www.transifex.com/projects/p/meego/language/"
@@ -30,12 +30,12 @@ msgstr ""
 #: auth-juniper.c:141
 #, c-format
 msgid "Ignoring unknown form input type '%s'\n"
-msgstr ""
+msgstr "Ignoruje se neznámý typ vstupu „%s“ ve formuláři\n"
 
 #: auth-juniper.c:151
 #, c-format
 msgid "Discarding duplicate option '%s'\n"
-msgstr ""
+msgstr "Ignoruje se zdvojená volba: „%s“\n"
 
 #: auth-juniper.c:224 auth.c:406
 #, c-format
@@ -44,11 +44,11 @@ msgstr "Nepodařilo se zvládnout formulář metoda='%s', činnost='%s'\n"
 
 #: auth-juniper.c:285
 msgid "Failed to parse HTML document\n"
-msgstr ""
+msgstr "Selhala analýza dokumentu HTML\n"
 
 #: auth-juniper.c:351
 msgid "TNCC support not implemented yet on Windows\n"
-msgstr ""
+msgstr "Podpora TNCC není zatím ve Windows implementována\n"
 
 #: auth-juniper.c:373
 msgid "No DSPREAUTH cookie; not attempting TNCC\n"
@@ -56,28 +56,28 @@ msgstr ""
 
 #: auth-juniper.c:384
 msgid "Failed to allocate memory for communication with TNCC\n"
-msgstr ""
+msgstr "Selhala alokace paměti pro komunikaci s TNCC\n"
 
 #: auth-juniper.c:419
 #, c-format
 msgid "Failed to exec TNCC script %s: %s\n"
-msgstr ""
+msgstr "Nepodařilo se spustit skript TNCC %s: %s\n"
 
 #: auth-juniper.c:428
 msgid "Failed to send start command to TNCC\n"
-msgstr ""
+msgstr "Nepodařilo se odeslat startovací příkaz TNCC\n"
 
 #: auth-juniper.c:435
 msgid "Sent start; waiting for response from TNCC\n"
-msgstr ""
+msgstr "Odeslán start, čeká se na odpověď od TNCC\n"
 
 #: auth-juniper.c:440
 msgid "Failed to read response from TNCC\n"
-msgstr ""
+msgstr "Selhalo čtení odpovědi od TNCC\n"
 
 #: auth-juniper.c:451
 msgid "Received invalid response from TNCC\n"
-msgstr ""
+msgstr "Přijata neplatná odpověď od TNCC\n"
 
 #: auth-juniper.c:453
 #, c-format
@@ -86,11 +86,14 @@ msgid ""
 "%s\n"
 "<--\n"
 msgstr ""
+"Odpověď TNCC:  -->\n"
+"%s\n"
+"<--\n"
 
 #: auth-juniper.c:461
 #, c-format
 msgid "Received unsuccessful %s response from TNCC\n"
-msgstr ""
+msgstr "Přijata neúspěšná odpověď %s od TNCC\n"
 
 #: auth-juniper.c:474
 #, c-format
@@ -100,6 +103,8 @@ msgstr ""
 #: auth-juniper.c:513
 msgid "Failed to find or parse web form in login page\n"
 msgstr ""
+"Selhalo vyhledání nebo zpracování webového formuláře na přihlašovací "
+"stránce\n"
 
 #: auth-juniper.c:521
 msgid "Encountered form with no ID\n"
@@ -108,12 +113,12 @@ msgstr ""
 #: auth-juniper.c:546
 #, c-format
 msgid "Unknown form ID '%s'\n"
-msgstr ""
+msgstr "Neznámé ID formuláře „%s“\n"
 
 #: auth-juniper.c:549
 #, c-format
 msgid "Dumping unknown HTML form:\n"
-msgstr ""
+msgstr "Vypisuje se neznámý formulář HTML:\n"
 
 #: auth-juniper.c:563 auth.c:659
 msgid "Failed to generate OTP tokencode; disabling token\n"
@@ -421,12 +426,12 @@ msgstr "Dekomprimace LZS selhala: %s\n"
 
 #: cstp.c:738
 msgid "LZ4 decompression failed\n"
-msgstr ""
+msgstr "Selhala dekomprimace LZ4\n"
 
 #: cstp.c:745
 #, c-format
 msgid "Unknown compression type %d\n"
-msgstr ""
+msgstr "Neznámý typ komprimace %d\n"
 
 #: cstp.c:750
 #, c-format
@@ -476,7 +481,7 @@ msgstr "Přijato odpojení serveru: %02x '%s'\n"
 
 #: cstp.c:914
 msgid "Received server disconnect\n"
-msgstr ""
+msgstr "Přijato odpojení serveru\n"
 
 #: cstp.c:922
 msgid "Compressed packet received in !deflate mode\n"
@@ -526,7 +531,7 @@ msgstr "Poslat CSTP Keepalive\n"
 #: cstp.c:1084
 #, c-format
 msgid "Sending compressed data packet of %d bytes (was %d)\n"
-msgstr ""
+msgstr "Posílá se paket dat o velikosti %d bajtů (bylo %d)\n"
 
 #: cstp.c:1095 oncp.c:1243
 #, c-format
@@ -545,16 +550,16 @@ msgstr "Pokus o ověření k proxy metodou Digest\n"
 #: digest.c:257
 #, c-format
 msgid "Attempting Digest authentication to server '%s'\n"
-msgstr ""
+msgstr "Zkouší se ověření Digest vůči serveru „%s“\n"
 
 #: dtls.c:180
 #, c-format
 msgid "Failed to create SSL_SESSION ASN.1 for OpenSSL: %s\n"
-msgstr ""
+msgstr "Selhalo vytvoření SSL_SESSION ASN.1 pro OpenSSL: %s\n"
 
 #: dtls.c:191
 msgid "OpenSSL failed to parse SSL_SESSION ASN.1\n"
-msgstr ""
+msgstr "OpenSSL selhalo při analýze SSL_SESSION ASN.1\n"
 
 #: dtls.c:205
 msgid "Initialise DTLSv1 session failed\n"
@@ -780,34 +785,34 @@ msgstr ""
 #: esp.c:152
 #, c-format
 msgid "Parameters for %s ESP: SPI 0x%08x\n"
-msgstr ""
+msgstr "Parametry pro %s ESP: SPI 0x%08x\n"
 
 #: esp.c:155
 #, c-format
 msgid "ESP encryption type %s key 0x%s\n"
-msgstr ""
+msgstr "Typ šifrování ESP %s klíč 0x%s\n"
 
 #: esp.c:158
 #, c-format
 msgid "ESP authentication type %s key 0x%s\n"
-msgstr ""
+msgstr "Typ ověření ESP %s klíč 0x%s\n"
 
 #: esp.c:217
 msgid "incoming"
-msgstr ""
+msgstr "příchozí"
 
 #: esp.c:218
 msgid "outgoing"
-msgstr ""
+msgstr "odchozí"
 
 #: esp.c:220 esp.c:237
 msgid "Send ESP probes\n"
-msgstr ""
+msgstr "Odeslány sondy ESP\n"
 
 #: esp.c:264
 #, c-format
 msgid "Received ESP packet of %d bytes\n"
-msgstr ""
+msgstr "Přijat paket ESP o velikosti %d bajtů\n"
 
 #: esp.c:280
 #, c-format
@@ -817,7 +822,7 @@ msgstr ""
 #: esp.c:286
 #, c-format
 msgid "Received ESP packet with invalid SPI 0x%08x\n"
-msgstr ""
+msgstr "Přijat paket ESP s neplatným SPI 0x%08x\n"
 
 #: esp.c:294
 #, c-format
@@ -835,20 +840,20 @@ msgstr ""
 
 #: esp.c:321
 msgid "ESP session established with server\n"
-msgstr ""
+msgstr "Spojení ESP se serverem bylo ustaveno\n"
 
 #: esp.c:332
 msgid "Failed to allocate memory to decrypt ESP packet\n"
-msgstr ""
+msgstr "Selhala alokace paměti pro dešifrování paketu ESP\n"
 
 #: esp.c:338
 msgid "LZO decompression of ESP packet failed\n"
-msgstr ""
+msgstr "Selhala dekomprimace LZO paketu ESP\n"
 
 #: esp.c:344
 #, c-format
 msgid "LZO decompressed %d bytes into %d\n"
-msgstr ""
+msgstr "Dekomprimováno LZO o velikosti %d bajtů do %d\n"
 
 #: esp.c:358
 msgid "Rekey not implemented for ESP\n"
@@ -856,64 +861,64 @@ msgstr ""
 
 #: esp.c:362
 msgid "ESP detected dead peer\n"
-msgstr ""
+msgstr "ESP detekovalo mrtvý protějšek\n"
 
 #: esp.c:369
 msgid "Send ESP probes for DPD\n"
-msgstr ""
+msgstr "Odeslat sondy ESP pro DPD\n"
 
 #: esp.c:375
 msgid "Keepalive not implemented for ESP\n"
-msgstr ""
+msgstr "Pro ESP není funkce keepalive implementována\n"
 
 #: esp.c:398
 #, c-format
 msgid "Failed to send ESP packet: %s\n"
-msgstr ""
+msgstr "Selhalo odeslání paketu ESP: %s\n"
 
 #: esp.c:404
 #, c-format
 msgid "Sent ESP packet of %d bytes\n"
-msgstr ""
+msgstr "Odesláno %d bajtů v paketu ESP\n"
 
 #: gnutls-esp.c:56
 #, c-format
 msgid "Failed to initialise ESP cipher: %s\n"
-msgstr ""
+msgstr "Selhala inicializace algoritmu ESP: %s\n"
 
 #: gnutls-esp.c:66
 #, c-format
 msgid "Failed to initialize ESP HMAC: %s\n"
-msgstr ""
+msgstr "Selhala inicializace ESP HMAC: %s\n"
 
 #: gnutls-esp.c:116
 #, c-format
 msgid "Failed to generate random keys for ESP: %s\n"
-msgstr ""
+msgstr "Selhalo generování náhodných klíčů pro ESP: %s\n"
 
 #: gnutls-esp.c:146 gnutls-esp.c:212
 #, c-format
 msgid "Failed to calculate HMAC for ESP packet: %s\n"
-msgstr ""
+msgstr "Selhal výpočet HMAC pro paket ESP: %s\n"
 
 #: gnutls-esp.c:153 openssl-esp.c:148
 msgid "Received ESP packet with invalid HMAC\n"
-msgstr ""
+msgstr "Přijat paket s neplatným HMAC\n"
 
 #: gnutls-esp.c:169
 #, c-format
 msgid "Decrypting ESP packet failed: %s\n"
-msgstr ""
+msgstr "Selhalo dešifrování paketu ESP: %s\n"
 
 #: gnutls-esp.c:189
 #, c-format
 msgid "Failed to generate ESP packet IV: %s\n"
-msgstr ""
+msgstr "Selhalo generování IV paketu ESP: %s\n"
 
 #: gnutls-esp.c:204
 #, c-format
 msgid "Failed to encrypt ESP packet: %s\n"
-msgstr ""
+msgstr "Selhalo šifrování paketu ESP: %s\n"
 
 #: gnutls.c:107 openssl.c:124
 msgid "SSL write cancelled\n"
@@ -1388,12 +1393,12 @@ msgstr "Zadat PIN:"
 
 #: gnutls.c:2638 openssl.c:1717
 msgid "Unsupported OATH HMAC algorithm\n"
-msgstr ""
+msgstr "Nepodporovaný algoritmus OATH HMAC\n"
 
 #: gnutls.c:2647
 #, c-format
 msgid "Failed to calculate OATH HMAC: %s\n"
-msgstr ""
+msgstr "Nepodařilo se vypočítat OATH HMAC: %s\n"
 
 #: gnutls_tpm.c:84
 #, c-format
@@ -1582,7 +1587,7 @@ msgstr "Pokus o ověření k proxy metodou HTTP Basic\n"
 #: http-auth.c:186
 #, c-format
 msgid "Attempting HTTP Basic authentication to server '%s'\n"
-msgstr ""
+msgstr "Zkouší se ověření vůči serveru „%s“ metodou HTTP Basic\n"
 
 #: http-auth.c:200 http.c:1200
 msgid "This version of OpenConnect was built without GSSAPI support\n"
@@ -1598,6 +1603,8 @@ msgstr ""
 msgid ""
 "Server '%s' requested Basic authentication which is disabled by default\n"
 msgstr ""
+"Server „%s“ požadoval ověření Basic, které je ale ve výchozím nastavení "
+"zakázáno\n"
 
 #: http-auth.c:256
 msgid "No more authentication methods to try\n"
@@ -1839,7 +1846,7 @@ msgstr "Podporovány pouze proxy HTTP nebo socks(5)\n"
 #: library.c:139
 #, c-format
 msgid "Unknown VPN protocol '%s'\n"
-msgstr ""
+msgstr "Neznámý protokol VPN „%s“\n"
 
 #: library.c:160
 msgid "Built against SSL library with no Cisco DTLS support\n"
@@ -1936,7 +1943,7 @@ msgstr "Alokace cesty pro vpnc-script selhala\n"
 #: main.c:716
 #, c-format
 msgid "Override hostname '%s' to '%s'\n"
-msgstr ""
+msgstr "Přepsat název stroje „%s“ na „%s“\n"
 
 #: main.c:729
 #, c-format
@@ -2200,7 +2207,7 @@ msgstr "Pole User-Agent: HTTP hlavičky"
 
 #: main.c:807
 msgid "Use IP when connecting to HOST"
-msgstr ""
+msgstr "Pro připojení k HOST použít IP"
 
 #: main.c:808
 msgid "OS type (linux,linux-64,win,...) to report"
@@ -2278,17 +2285,17 @@ msgstr "Nelze otevřít konfigurační soubor '%s': %s\n"
 #: main.c:1114
 #, c-format
 msgid "Invalid compression mode '%s'\n"
-msgstr ""
+msgstr "Neplatný režim komprimace „%s“\n"
 
 #: main.c:1135
 #, c-format
 msgid "Missing colon in resolve option\n"
-msgstr ""
+msgstr "Chybí dvojtečka ve volbě převodu\n"
 
 #: main.c:1140
 #, c-format
 msgid "Failed to allocate memory\n"
-msgstr ""
+msgstr "Selhala alokace paměti\n"
 
 #: main.c:1219 main.c:1228
 #, c-format
@@ -2374,7 +2381,7 @@ msgstr "Nastavení DTLS selhalo; bude použito SSL\n"
 #: main.c:1517
 #, c-format
 msgid "Connected %s as %s%s%s, using %s%s\n"
-msgstr ""
+msgstr "Spojeno %s jako %s%s%s, pomocí %s%s\n"
 
 #: main.c:1526
 msgid "No --script argument provided; DNS and routing are not configured\n"
@@ -2567,7 +2574,7 @@ msgstr "Probíhá pokus o ověření HTTP NTLM k proxy (single-sign-on)\n"
 #: ntlm.c:268
 #, c-format
 msgid "Attempting HTTP NTLM authentication to server '%s' (single-sign-on)\n"
-msgstr ""
+msgstr "Zkouší se ověření HTTP NTLM k serveru „%s“ (single-sign-on)\n"
 
 #: ntlm.c:979
 #, c-format
@@ -2577,15 +2584,15 @@ msgstr "Probíhá pokus o ověření HTTP NTLMv%d k proxy\n"
 #: ntlm.c:983
 #, c-format
 msgid "Attempting HTTP NTLMv%d authentication to server '%s'\n"
-msgstr ""
+msgstr "Zkouší se ověření HTTP NTLMv%d k serveru „%s“\n"
 
 #: oath.c:97
 msgid "Invalid base32 token string\n"
-msgstr ""
+msgstr "Neplatný řetězec base32 tokenu\n"
 
 #: oath.c:105
 msgid "Failed to allocate memory to decode OATH secret\n"
-msgstr ""
+msgstr "Selhala alokace paměti pro dekódování tajemství OATH\n"
 
 #: oath.c:208
 msgid "This version of OpenConnect was built without PSKC support\n"
@@ -2614,87 +2621,87 @@ msgstr "Generuje se kód tokenu OATH HOTP\n"
 #: oncp.c:56
 #, c-format
 msgid "Invalid cookie '%s'\n"
-msgstr ""
+msgstr "Neplatná cookie „%s“\n"
 
 #: oncp.c:176
 #, c-format
 msgid "Unexpected length %d for TLV %d/%d\n"
-msgstr ""
+msgstr "Neočekávaná délka %d pro TLV %d/%d\n"
 
 #: oncp.c:182
 #, c-format
 msgid "Received MTU %d from server\n"
-msgstr ""
+msgstr "Přijato MTU %d od serveru\n"
 
 #: oncp.c:191
 #, c-format
 msgid "Received DNS server %s\n"
-msgstr ""
+msgstr "Přijat server DNS %s\n"
 
 #: oncp.c:202
 #, c-format
 msgid "Received DNS search domain %.*s\n"
-msgstr ""
+msgstr "Přijata doména DNS pro vyhledávání %.*s\n"
 
 #: oncp.c:212
 #, c-format
 msgid "Received internal IP address %s\n"
-msgstr ""
+msgstr "Přijata interní adresa IP %s\n"
 
 #: oncp.c:221
 #, c-format
 msgid "Received netmask %s\n"
-msgstr ""
+msgstr "Přijata síťová maska %s\n"
 
 #: oncp.c:230
 #, c-format
 msgid "Received internal gateway address %s\n"
-msgstr ""
+msgstr "Přijata adresa interní brány %s\n"
 
 #: oncp.c:243
 #, c-format
 msgid "Received split include route %s\n"
-msgstr ""
+msgstr "Přijato rozdělení zahrnuté cesty %s\n"
 
 #: oncp.c:265
 #, c-format
 msgid "Received split exclude route %s\n"
-msgstr ""
+msgstr "Přijato rozdělení vyloučené cesty %s\n"
 
 #: oncp.c:285
 #, c-format
 msgid "Received WINS server %s\n"
-msgstr ""
+msgstr "Přijt server WINS %s\n"
 
 #: oncp.c:306
 #, c-format
 msgid "ESP encryption: 0x%02x (%s)\n"
-msgstr ""
+msgstr "Šifrování ESP: 0x%02x (%s)\n"
 
 #: oncp.c:323
 #, c-format
 msgid "ESP HMAC: 0x%02x (%s)\n"
-msgstr ""
+msgstr "ESP HMAC: 0x%02x (%s)\n"
 
 #: oncp.c:333
 #, c-format
 msgid "ESP compression: %d\n"
-msgstr ""
+msgstr "Komprimace ESP: %d\n"
 
 #: oncp.c:341
 #, c-format
 msgid "ESP port: %d\n"
-msgstr ""
+msgstr "Port ESP: %d\n"
 
 #: oncp.c:348
 #, c-format
 msgid "ESP key lifetime: %u bytes\n"
-msgstr ""
+msgstr "Životnost klíče ESP: %u bajtů\n"
 
 #: oncp.c:356
 #, c-format
 msgid "ESP key lifetime: %u seconds\n"
-msgstr ""
+msgstr "Životnost klíče ESP: %u vteřin\n"
 
 #: oncp.c:364
 #, c-format
@@ -2704,35 +2711,35 @@ msgstr ""
 #: oncp.c:372
 #, c-format
 msgid "ESP replay protection: %d\n"
-msgstr ""
+msgstr "Ochrana opakování ESP: %d\n"
 
 #: oncp.c:380
 #, c-format
 msgid "ESP SPI (outbound): %x\n"
-msgstr ""
+msgstr "ESP SPI (odchozí): %x\n"
 
 #: oncp.c:388
 #, c-format
 msgid "%d bytes of ESP secrets\n"
-msgstr ""
+msgstr "%d bajtů tajemství ESP\n"
 
 #: oncp.c:400
 #, c-format
 msgid "Unknown TLV group %d attr %d len %d:%s\n"
-msgstr ""
+msgstr "Neznámá skupina TLV %d atrib %d délka %d:%s\n"
 
 #: oncp.c:477
 msgid "Failed to parse KMP header\n"
-msgstr ""
+msgstr "Selhala analýza hlavičky KMP\n"
 
 #: oncp.c:493
 msgid "Failed to parse KMP message\n"
-msgstr ""
+msgstr "Selhala analýza zprávy KMP\n"
 
 #: oncp.c:499
 #, c-format
 msgid "Got KMP message %d of size %d\n"
-msgstr ""
+msgstr "Získána zpráva KMP %d délky %d\n"
 
 #: oncp.c:515
 #, c-format
@@ -2741,7 +2748,7 @@ msgstr ""
 
 #: oncp.c:563 oncp.c:607 oncp.c:639 oncp.c:765
 msgid "Error creating oNCP negotiation request\n"
-msgstr ""
+msgstr "Chyba při vytváření požadavku vyjednávání oNCP\n"
 
 #: oncp.c:648 oncp.c:799
 msgid "Short write in oNCP negotiation\n"
@@ -2750,7 +2757,7 @@ msgstr ""
 #: oncp.c:660 oncp.c:684
 #, c-format
 msgid "Read %d bytes of SSL record\n"
-msgstr ""
+msgstr "Přečteno %d bajtů záznamu SSL\n"
 
 #: oncp.c:664
 #, c-format
@@ -2760,7 +2767,7 @@ msgstr ""
 #: oncp.c:671
 #, c-format
 msgid "Server response to hostname packet is error 0x%02x\n"
-msgstr ""
+msgstr "Odpovědí serveru na paket hostname je chyba 0x%02x\n"
 
 #: oncp.c:688
 msgid "Invalid packet waiting for KMP 301\n"
@@ -2769,17 +2776,17 @@ msgstr ""
 #: oncp.c:701
 #, c-format
 msgid "Expected KMP message 301 from server but got %d\n"
-msgstr ""
+msgstr "Byla očekávána zpráva KMP 301 od serveru, ale získána %d\n"
 
 #: oncp.c:710
 #, c-format
 msgid "KMP message 301 from server too large (%d bytes)\n"
-msgstr ""
+msgstr "Zpráva KMP 301 od serveru je příliš dlouhá (%d bajtů)\n"
 
 #: oncp.c:716
 #, c-format
 msgid "Got KMP message 301 of length %d\n"
-msgstr ""
+msgstr "Získána zpráva KMP 301 délky %d\n"
 
 #: oncp.c:723
 msgid "Failed to read continuation record length\n"
@@ -2802,19 +2809,20 @@ msgstr ""
 
 #: oncp.c:784
 msgid "Error negotiating ESP keys\n"
-msgstr ""
+msgstr "Chyba vyjednávání klíčů ESP\n"
 
 #: oncp.c:844
 msgid "new incoming"
-msgstr ""
+msgstr "nový příchozí"
 
 #: oncp.c:845
 msgid "new outgoing"
-msgstr ""
+msgstr "nový odchozí"
 
 #: oncp.c:850
 msgid "Ignoring ESP keys since ESP support not available in this build\n"
 msgstr ""
+"Klíče ESP jsou ignorovány, protože v tomto sestavení chybí podpora ESP\n"
 
 #: oncp.c:870
 msgid "Read only 1 byte of oNCP length field\n"
@@ -2822,12 +2830,12 @@ msgstr ""
 
 #: oncp.c:879
 msgid "Server terminated connection (session expired)\n"
-msgstr ""
+msgstr "Server ukončil spojení (platnost spojení vypršela)\n"
 
 #: oncp.c:883
 #, c-format
 msgid "Server terminated connection (reason: %d)\n"
-msgstr ""
+msgstr "Server ukončil spojení (důvod: %d)\n"
 
 #: oncp.c:889
 msgid "Server sent zero-length oNCP record\n"
@@ -2836,7 +2844,7 @@ msgstr ""
 #: oncp.c:980
 #, c-format
 msgid "Incoming KMP message %d of size %d (got %d)\n"
-msgstr ""
+msgstr "Příchozí zpráva KMP %d délky %d (získáno %d)\n"
 
 #: oncp.c:983
 #, c-format
@@ -2845,21 +2853,21 @@ msgstr ""
 
 #: oncp.c:1002
 msgid "Unrecognised data packet\n"
-msgstr ""
+msgstr "Nerozpoznaný datový paket\n"
 
 #: oncp.c:1064
 #, c-format
 msgid "Unknown KMP message %d of size %d:\n"
-msgstr ""
+msgstr "Neznámá zpráva KMP %d délky %d:\n"
 
 #: oncp.c:1069
 #, c-format
 msgid ".... + %d more bytes unreceived\n"
-msgstr ""
+msgstr "… + dalších %d nepřijatých batjů\n"
 
 #: oncp.c:1084
 msgid "Packet outgoing:\n"
-msgstr ""
+msgstr "Paket odchozí:\n"
 
 #: oncp.c:1148
 msgid "Sent ESP enable control packet\n"
@@ -2872,35 +2880,35 @@ msgstr "CHYBA:%s() voláno s neplatným UTF-8 u argumentu „%s“\n"
 
 #: openssl-esp.c:51
 msgid "Failed to initialise ESP cipher:\n"
-msgstr ""
+msgstr "Selhala inicializace algoritmu ESP:\n"
 
 #: openssl-esp.c:61
 msgid "Failed to initialize ESP HMAC\n"
-msgstr ""
+msgstr "Selhala inicializace ESP HMAC\n"
 
 #: openssl-esp.c:112
 msgid "Failed to generate random keys for ESP:\n"
-msgstr ""
+msgstr "Selhalo generování náhodných klíčů pro ESP:\n"
 
 #: openssl-esp.c:163
 msgid "Failed to set up decryption context for ESP packet:\n"
-msgstr ""
+msgstr "Selhalo nastavení dešifrovacího kontextu pro paket ESP: \n"
 
 #: openssl-esp.c:171
 msgid "Failed to decrypt ESP packet:\n"
-msgstr ""
+msgstr "Selhalo dešifrování paketu ESP:\n"
 
 #: openssl-esp.c:192
 msgid "Failed to generate random IV for ESP packet:\n"
-msgstr ""
+msgstr "Selhalo generování náhodného IV pro paket ESP:\n"
 
 #: openssl-esp.c:206
 msgid "Failed to set up encryption context for ESP packet:\n"
-msgstr ""
+msgstr "Selhalo nastavení šifrovacího kontextu pro paket ESP: \n"
 
 #: openssl-esp.c:215
 msgid "Failed to encrypt ESP packet:\n"
-msgstr ""
+msgstr "Selhalo šifrování paketu ESP:\n"
 
 #: openssl-pkcs11.c:42
 msgid "Failed to establish libp11 PKCS#11 context:\n"
@@ -3205,7 +3213,7 @@ msgstr "Selhání spojení SSL\n"
 
 #: openssl.c:1723
 msgid "Failed to calculate OATH HMAC\n"
-msgstr ""
+msgstr "Selhal výpočet OATH HMAC\n"
 
 #: script.c:96
 #, c-format
@@ -3239,12 +3247,12 @@ msgstr "Připojení zásuvky bylo zrušeno\n"
 #: ssl.c:208
 #, c-format
 msgid "Failed to reconnect to proxy %s: %s\n"
-msgstr ""
+msgstr "Nepodařilo se znovu spojit s proxy %s: %s\n"
 
 #: ssl.c:212
 #, c-format
 msgid "Failed to reconnect to host %s: %s\n"
-msgstr ""
+msgstr "Nepodařilo se znovu spojit s hostitelem %s: %s\n"
 
 #: ssl.c:282
 #, c-format
@@ -3274,7 +3282,7 @@ msgstr "Pokus o připojení k serveru %s%s%s:%s\n"
 #: ssl.c:351
 #, c-format
 msgid "Connected to %s%s%s:%s\n"
-msgstr ""
+msgstr "Připojen k %s%s%s:%s\n"
 
 #: ssl.c:362
 msgid "Failed to allocate sockaddr storage\n"
@@ -3283,7 +3291,7 @@ msgstr "Nepodařilo se přidělit skladiště sockaddr\n"
 #: ssl.c:404
 #, c-format
 msgid "Failed to connect to %s%s%s:%s: %s\n"
-msgstr ""
+msgstr "Selhalo připojení k %s%s%s:%s: %s\n"
 
 #: ssl.c:422
 msgid "Forgetting non-functional previous peer address\n"
@@ -3370,24 +3378,24 @@ msgstr "openconnect_fopen_utf8() použit s nepodporovaným režimem „%s“\n"
 #: ssl.c:906
 #, c-format
 msgid "Unknown protocol family %d. Cannot create UDP server address\n"
-msgstr ""
+msgstr "Neznámá rodina protokolu %d. Nelze vytvořit adresu serveru UDP\n"
 
 #: ssl.c:920
 msgid "Open UDP socket"
-msgstr ""
+msgstr "Otevřít zásuvku UDP"
 
 #: ssl.c:951
 #, c-format
 msgid "Unknown protocol family %d. Cannot use UDP transport\n"
-msgstr ""
+msgstr "Neznámá rodina protokolu %d. Nelze použít přenos UDP\n"
 
 #: ssl.c:959
 msgid "Bind UDP socket"
-msgstr ""
+msgstr "Otevřít soket UDP"
 
 #: ssl.c:966
 msgid "Connect UDP socket\n"
-msgstr ""
+msgstr "Připojit soket UDP\n"
 
 #: ssl.c:999
 msgid "Cookie is no longer valid, ending session\n"
