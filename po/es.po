@@ -2476,7 +2476,7 @@ msgstr "no"
 
 #: main.c:1709 main.c:1715
 msgid "yes"
-msgstr "sí"
+msgstr "sí"
 
 #: main.c:1736
 #, c-format
