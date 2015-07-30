@@ -2380,7 +2380,7 @@ msgstr ""
 
 #: main.c:1586
 msgid "User cancelled (SIGINT); exiting.\n"
-msgstr "USer canceled (SIGINT); exiting;\n"
+msgstr "User canceled (SIGINT); exiting;\n"
 
 #: main.c:1590
 msgid "User detached from session (SIGHUP); exiting.\n"
