@@ -21,17 +21,17 @@ msgstr ""
 #: auth-juniper.c:128
 #, c-format
 msgid "Ignoring unknown form submit item '%s'\n"
-msgstr ""
+msgstr "Ismeretlen űrlap elküldési elem mellőzése: „%s”\n"
 
 #: auth-juniper.c:141
 #, c-format
 msgid "Ignoring unknown form input type '%s'\n"
-msgstr ""
+msgstr "Ismeretlen űrlap beviteli típus mellőzése: „%s”\n"
 
 #: auth-juniper.c:151
 #, c-format
 msgid "Discarding duplicate option '%s'\n"
-msgstr ""
+msgstr "Kettőzött kapcsoló eldobása: „%s”\n"
 
 #: auth-juniper.c:224 auth.c:406
 #, c-format
@@ -40,40 +40,40 @@ msgstr "Nem kezelhetők az űrlap method='%s', action='%s' értékei\n"
 
 #: auth-juniper.c:285
 msgid "Failed to parse HTML document\n"
-msgstr ""
+msgstr "Nem sikerült feldolgozni a HTML dokumentumot\n"
 
 #: auth-juniper.c:351
 msgid "TNCC support not implemented yet on Windows\n"
-msgstr ""
+msgstr "A TNCC támogatás még nincs megvalósítva Windowson\n"
 
 #: auth-juniper.c:373
 msgid "No DSPREAUTH cookie; not attempting TNCC\n"
-msgstr ""
+msgstr "Nincs DSPREAUTH süti, TNCC nincs megpróbálva\n"
 
 #: auth-juniper.c:384
 msgid "Failed to allocate memory for communication with TNCC\n"
-msgstr ""
+msgstr "Nem sikerült memóriát lefoglalni a TNCC-vel való kommunikációhoz\n"
 
 #: auth-juniper.c:419
 #, c-format
 msgid "Failed to exec TNCC script %s: %s\n"
-msgstr ""
+msgstr "Nem sikerült végrehajtani a(z) %s TNCC parancsfájlt: %s\n"
 
 #: auth-juniper.c:428
 msgid "Failed to send start command to TNCC\n"
-msgstr ""
+msgstr "Nem sikerült indítási parancsot küldeni a TNCC-nek\n"
 
 #: auth-juniper.c:435
 msgid "Sent start; waiting for response from TNCC\n"
-msgstr ""
+msgstr "Indítás elküldve, várakozás a TNCC-től érkező válaszra\n"
 
 #: auth-juniper.c:440
 msgid "Failed to read response from TNCC\n"
-msgstr ""
+msgstr "Nem sikerült a válasz olvasása a TNCC-től\n"
 
 #: auth-juniper.c:451
 msgid "Received invalid response from TNCC\n"
-msgstr ""
+msgstr "Érvénytelen válasz érkezett a TNCC-től\n"
 
 #: auth-juniper.c:453
 #, c-format
@@ -82,34 +82,39 @@ msgid ""
 "%s\n"
 "<--\n"
 msgstr ""
+"TNCC válasz: -->\n"
+"%s\n"
+"<--\n"
 
 #: auth-juniper.c:461
 #, c-format
 msgid "Received unsuccessful %s response from TNCC\n"
-msgstr ""
+msgstr "%s válasz sikertelenül érkezett a TNCC-től\n"
 
 #: auth-juniper.c:474
 #, c-format
 msgid "Got new DSPREAUTH cookie from TNCC: %s\n"
-msgstr ""
+msgstr "Új DSPREAUTH süti beszerezve a TNCC-től: %s\n"
 
 #: auth-juniper.c:513
 msgid "Failed to find or parse web form in login page\n"
 msgstr ""
+"Nem sikerült megtalálni vagy feldolgozni a bejelentkező oldalon lévő webes "
+"űrlapot\n"
 
 #: auth-juniper.c:521
 msgid "Encountered form with no ID\n"
-msgstr ""
+msgstr "Azonosító nélküli űrlap található\n"
 
 #: auth-juniper.c:546
 #, c-format
 msgid "Unknown form ID '%s'\n"
-msgstr ""
+msgstr "Ismeretlen űrlap-azonosító: „%s”\n"
 
 #: auth-juniper.c:549
 #, c-format
 msgid "Dumping unknown HTML form:\n"
-msgstr ""
+msgstr "Ismeretlen HTML űrlap kiírása:\n"
 
 #: auth-juniper.c:563 auth.c:659
 msgid "Failed to generate OTP tokencode; disabling token\n"
@@ -351,7 +356,7 @@ msgstr "Az X-DTLS-Session-ID nem 64 karakteres; értéke: „%s”\n"
 #: cstp.c:391
 #, c-format
 msgid "Unknown DTLS-Content-Encoding %s\n"
-msgstr ""
+msgstr "Ismeretlen DTLS tartalomkódolás: %s\n"
 
 #: cstp.c:427
 #, c-format
@@ -417,21 +422,21 @@ msgstr "inflate meghiúsult\n"
 #: cstp.c:725
 #, c-format
 msgid "LZS decompression failed: %s\n"
-msgstr ""
+msgstr "Az LZS kibontás meghiúsult: %s\n"
 
 #: cstp.c:738
 msgid "LZ4 decompression failed\n"
-msgstr ""
+msgstr "Az LZ4 kibontás meghiúsult\n"
 
 #: cstp.c:745
 #, c-format
 msgid "Unknown compression type %d\n"
-msgstr ""
+msgstr "Ismeretlen tömörítési típus: %d\n"
 
 #: cstp.c:750
 #, c-format
 msgid "Received %s compressed data packet of %d bytes (was %d)\n"
-msgstr ""
+msgstr "%s / %d bájt tömörített adatcsomag érkezett (%d volt)\n"
 
 #: cstp.c:770
 #, c-format
@@ -440,12 +445,12 @@ msgstr "deflate meghiúsult: %d\n"
 
 #: cstp.c:840 dtls.c:770 esp.c:255 mainloop.c:56 oncp.c:925
 msgid "Allocation failed\n"
-msgstr ""
+msgstr "A lefoglalás meghiúsult\n"
 
 #: cstp.c:851
 #, c-format
 msgid "Short packet received (%d bytes)\n"
-msgstr ""
+msgstr "Rövid csomag érkezett (%d bájt)\n"
 
 #: cstp.c:864
 #, c-format
@@ -477,7 +482,7 @@ msgstr "Kiszolgáló leválasztás érkezett: %02x „%s”\n"
 
 #: cstp.c:914
 msgid "Received server disconnect\n"
-msgstr ""
+msgstr "Kiszolgáló leválasztás érkezett\n"
 
 #: cstp.c:922
 msgid "Compressed packet received in !deflate mode\n"
@@ -527,7 +532,7 @@ msgstr "CSTP Keepalive küldése\n"
 #: cstp.c:1084
 #, c-format
 msgid "Sending compressed data packet of %d bytes (was %d)\n"
-msgstr ""
+msgstr "%d bájt tömörített adatcsomag küldése (%d volt)\n"
 
 #: cstp.c:1095 oncp.c:1243
 #, c-format
@@ -546,16 +551,16 @@ msgstr "Digest hitelesítési kísérlet a proxyra\n"
 #: digest.c:257
 #, c-format
 msgid "Attempting Digest authentication to server '%s'\n"
-msgstr ""
+msgstr "Digest hitelesítési kísérlet a kiszolgálóra: „%s”\n"
 
 #: dtls.c:180
 #, c-format
 msgid "Failed to create SSL_SESSION ASN.1 for OpenSSL: %s\n"
-msgstr ""
+msgstr "Nem sikerült az SSL_SESSION ASN.1 létrehozása az OpenSSL-nél: %s\n"
 
 #: dtls.c:191
 msgid "OpenSSL failed to parse SSL_SESSION ASN.1\n"
-msgstr ""
+msgstr "Az OpenSSL nem tudta feldolgozni: SSL_SESSION ASN.1\n"
 
 #: dtls.c:205
 msgid "Initialise DTLSv1 session failed\n"
@@ -708,6 +713,7 @@ msgstr "DTLS Keepalive érkezett\n"
 #: dtls.c:815
 msgid "Compressed DTLS packet received when compression not enabled\n"
 msgstr ""
+"Tömörített DTLS csomag érkezett, amikor a tömörítés nincs engedélyezve\n"
 
 #: dtls.c:823
 #, c-format
@@ -760,59 +766,61 @@ msgstr "%d bájt DTLS csomag küldése; a DTLS küldés visszatérése: %d\n"
 #: esp.c:57
 #, c-format
 msgid "Accepting expected ESP packet with seq %u\n"
-msgstr ""
+msgstr "A várt ESP csomag elfogadása %u sorszámmal\n"
 
 #: esp.c:63
 #, c-format
 msgid "Discarding ancient ESP packet with seq %u (expected %u)\n"
-msgstr ""
+msgstr "Régi ESP csomag eldobása %u sorszámmal (várt érték: %u)\n"
 
 #: esp.c:72
 #, c-format
 msgid "Accepting out-of-order ESP packet with seq %u (expected %u)\n"
 msgstr ""
+"Sorrenden kívüli ESP csomag elfogadása %u sorszámmal (várt érték: %u)\n"
 
 #: esp.c:78
 #, c-format
 msgid "Discarding replayed ESP packet with seq %u\n"
-msgstr ""
+msgstr "Megismételt ESP csomag eldobása %u sorszámmal\n"
 
 #: esp.c:107
 #, c-format
 msgid "Accepting later-than-expected ESP packet with seq %u (expected %u)\n"
 msgstr ""
+"A vártnál későbbi ESP csomag elfogadása %u sorszámmal (várt érték: %u)\n"
 
 #: esp.c:152
 #, c-format
 msgid "Parameters for %s ESP: SPI 0x%08x\n"
-msgstr ""
+msgstr "Paraméterek a(z) %s ESP-hez: SPI 0x%08x\n"
 
 #: esp.c:155
 #, c-format
 msgid "ESP encryption type %s key 0x%s\n"
-msgstr ""
+msgstr "ESP titkosítási típus (%s) kulcs 0x%s\n"
 
 #: esp.c:158
 #, c-format
 msgid "ESP authentication type %s key 0x%s\n"
-msgstr ""
+msgstr "ESP hitelesítési típus (%s) kulcs 0x%s\n"
 
 #: esp.c:217
 msgid "incoming"
-msgstr ""
+msgstr "bejövő"
 
 #: esp.c:218
 msgid "outgoing"
-msgstr ""
+msgstr "kimenő"
 
 #: esp.c:220 esp.c:237
 msgid "Send ESP probes\n"
-msgstr ""
+msgstr "ESP szondák küldése\n"
 
 #: esp.c:264
 #, c-format
 msgid "Received ESP packet of %d bytes\n"
-msgstr ""
+msgstr "%d bájt ESP csomag érkezett\n"
 
 #: esp.c:280
 #, c-format
@@ -894,7 +902,7 @@ msgstr ""
 #: gnutls-esp.c:116
 #, c-format
 msgid "Failed to generate random keys for ESP: %s\n"
-msgstr ""
+msgstr "Nem sikerült a véletlen kulcsok előállítása az ESP-hez: %s\n"
 
 #: gnutls-esp.c:146 gnutls-esp.c:212
 #, c-format
@@ -1397,12 +1405,12 @@ msgstr "Adja meg a PIN-kódot:"
 
 #: gnutls.c:2638 openssl.c:1717
 msgid "Unsupported OATH HMAC algorithm\n"
-msgstr ""
+msgstr "Nem támogatott OATH HMAC algoritmus\n"
 
 #: gnutls.c:2647
 #, c-format
 msgid "Failed to calculate OATH HMAC: %s\n"
-msgstr ""
+msgstr "Nem sikerült az OATH HMAC kiszámítása: %s\n"
 
 #: gnutls_tpm.c:84
 #, c-format
@@ -1506,7 +1514,7 @@ msgstr "GSSAPI hitelesítési kísérlet a proxyra\n"
 #: gssapi.c:148
 #, c-format
 msgid "Attempting GSSAPI authentication to server '%s'\n"
-msgstr ""
+msgstr "GSSAPI hitelesítési kísérlet a kiszolgálóra: „%s”\n"
 
 #: gssapi.c:200 gssapi.c:256 sspi.c:191 sspi.c:249
 msgid "GSSAPI authentication completed\n"
@@ -1591,7 +1599,7 @@ msgstr "Alap HTML hitelesítési kísérlet a proxyra\n"
 #: http-auth.c:186
 #, c-format
 msgid "Attempting HTTP Basic authentication to server '%s'\n"
-msgstr ""
+msgstr "Alap HTML hitelesítési kísérlet a kiszolgálóra: „%s”\n"
 
 #: http-auth.c:200 http.c:1200
 msgid "This version of OpenConnect was built without GSSAPI support\n"
@@ -1607,6 +1615,8 @@ msgstr ""
 msgid ""
 "Server '%s' requested Basic authentication which is disabled by default\n"
 msgstr ""
+"A(z) „%s” kiszolgáló alap hitelesítést kért, amely alapértelmezetten le van "
+"tiltva\n"
 
 #: http-auth.c:256
 msgid "No more authentication methods to try\n"
@@ -1850,7 +1860,7 @@ msgstr "Csak http vagy socks(5) proxyk támogatottak\n"
 #: library.c:139
 #, c-format
 msgid "Unknown VPN protocol '%s'\n"
-msgstr ""
+msgstr "Ismeretlen VPN protokoll: „%s”\n"
 
 #: library.c:160
 msgid "Built against SSL library with no Cisco DTLS support\n"
@@ -1948,7 +1958,7 @@ msgstr "A vpnc-script útvonal lefoglalása nem sikerült\n"
 #: main.c:716
 #, c-format
 msgid "Override hostname '%s' to '%s'\n"
-msgstr ""
+msgstr "A(z) „%s” gépnév felülbírálása erre: „%s”\n"
 
 #: main.c:729
 #, c-format
@@ -2212,7 +2222,7 @@ msgstr "HTTP fejléc User-Agent: mező"
 
 #: main.c:807
 msgid "Use IP when connecting to HOST"
-msgstr ""
+msgstr "IP használata a GÉPHEZ való kapcsolódáskor"
 
 #: main.c:808
 msgid "OS type (linux,linux-64,win,...) to report"
@@ -2290,17 +2300,17 @@ msgstr "Nem sikerült a(z) „%s” beállítófájl megnyitása: %s\n"
 #: main.c:1114
 #, c-format
 msgid "Invalid compression mode '%s'\n"
-msgstr ""
+msgstr "Érvénytelen tömörítési mód: „%s”\n"
 
 #: main.c:1135
 #, c-format
 msgid "Missing colon in resolve option\n"
-msgstr ""
+msgstr "Hiányzó kettőspont a feloldási kapcsolóban\n"
 
 #: main.c:1140
 #, c-format
 msgid "Failed to allocate memory\n"
-msgstr ""
+msgstr "Nem sikerült memóriát lefoglalni\n"
 
 #: main.c:1219 main.c:1228
 #, c-format
@@ -2385,7 +2395,7 @@ msgstr "A DTLS beállítása nem sikerült; SSL használata helyette\n"
 #: main.c:1517
 #, c-format
 msgid "Connected %s as %s%s%s, using %s%s\n"
-msgstr ""
+msgstr "%s csatlakoztatva mint %s%s%s, %s%s használatával\n"
 
 #: main.c:1526
 msgid "No --script argument provided; DNS and routing are not configured\n"
@@ -2582,6 +2592,8 @@ msgstr "HTML NTLM hitelesítési kísérlet a proxyra (egyszeres bejelentkezés)
 #, c-format
 msgid "Attempting HTTP NTLM authentication to server '%s' (single-sign-on)\n"
 msgstr ""
+"HTTP NTLM hitelesítési kísérlet a(z) „%s” kiszolgálóra (egyszeres "
+"bejelentkezés)\n"
 
 #: ntlm.c:979
 #, c-format
@@ -2591,15 +2603,15 @@ msgstr "HTML NTLMv%d hitelesítési kísérlet a proxyra\n"
 #: ntlm.c:983
 #, c-format
 msgid "Attempting HTTP NTLMv%d authentication to server '%s'\n"
-msgstr ""
+msgstr "HTTP NTLMv%d hitelesítési kísérlet a kiszolgálóra: „%s”\n"
 
 #: oath.c:97
 msgid "Invalid base32 token string\n"
-msgstr ""
+msgstr "Érvénytelen base32 token szöveg\n"
 
 #: oath.c:105
 msgid "Failed to allocate memory to decode OATH secret\n"
-msgstr ""
+msgstr "Nem sikerült memóriát lefoglalni az OATH titok visszafejtéséhez\n"
 
 #: oath.c:208
 msgid "This version of OpenConnect was built without PSKC support\n"
@@ -2629,107 +2641,107 @@ msgstr "OATH HOTP tokenkód előállítása\n"
 #: oncp.c:56
 #, c-format
 msgid "Invalid cookie '%s'\n"
-msgstr ""
+msgstr "Érvénytelen süti: „%s”\n"
 
 #: oncp.c:176
 #, c-format
 msgid "Unexpected length %d for TLV %d/%d\n"
-msgstr ""
+msgstr "Váratlan hossz (%d) ehhez: TLV %d/%d\n"
 
 #: oncp.c:182
 #, c-format
 msgid "Received MTU %d from server\n"
-msgstr ""
+msgstr "%d. MTU érkezett a kiszolgálótól\n"
 
 #: oncp.c:191
 #, c-format
 msgid "Received DNS server %s\n"
-msgstr ""
+msgstr "DNS-kiszolgáló érkezett: %s\n"
 
 #: oncp.c:202
 #, c-format
 msgid "Received DNS search domain %.*s\n"
-msgstr ""
+msgstr "DNS keresési tartomány érkezett: %.*s\n"
 
 #: oncp.c:212
 #, c-format
 msgid "Received internal IP address %s\n"
-msgstr ""
+msgstr "Belső IP-cím érkezett: %s\n"
 
 #: oncp.c:221
 #, c-format
 msgid "Received netmask %s\n"
-msgstr ""
+msgstr "Hálózati maszk érkezett: %s\n"
 
 #: oncp.c:230
 #, c-format
 msgid "Received internal gateway address %s\n"
-msgstr ""
+msgstr "Belső átjárócím érkezett: %s\n"
 
 #: oncp.c:243
 #, c-format
 msgid "Received split include route %s\n"
-msgstr ""
+msgstr "Felosztott felvétel útvonal érkezett: %s\n"
 
 #: oncp.c:265
 #, c-format
 msgid "Received split exclude route %s\n"
-msgstr ""
+msgstr "Felosztott kizárás útvonal érkezett: %s\n"
 
 #: oncp.c:285
 #, c-format
 msgid "Received WINS server %s\n"
-msgstr ""
+msgstr "WINS kiszolgáló érkezett: %s\n"
 
 #: oncp.c:306
 #, c-format
 msgid "ESP encryption: 0x%02x (%s)\n"
-msgstr ""
+msgstr "ESP titkosítás: 0x%02x (%s)\n"
 
 #: oncp.c:323
 #, c-format
 msgid "ESP HMAC: 0x%02x (%s)\n"
-msgstr ""
+msgstr "ESP HMAC: 0x%02x (%s)\n"
 
 #: oncp.c:333
 #, c-format
 msgid "ESP compression: %d\n"
-msgstr ""
+msgstr "ESP tömörítés: %d\n"
 
 #: oncp.c:341
 #, c-format
 msgid "ESP port: %d\n"
-msgstr ""
+msgstr "ESP port: %d\n"
 
 #: oncp.c:348
 #, c-format
 msgid "ESP key lifetime: %u bytes\n"
-msgstr ""
+msgstr "ESP kulcs élettartam: %u bájt\n"
 
 #: oncp.c:356
 #, c-format
 msgid "ESP key lifetime: %u seconds\n"
-msgstr ""
+msgstr "ESP kulcs élettartam: %u másodperc\n"
 
 #: oncp.c:364
 #, c-format
 msgid "ESP to SSL fallback: %u seconds\n"
-msgstr ""
+msgstr "ESP az SSL tartalékhoz: %u másodperc\n"
 
 #: oncp.c:372
 #, c-format
 msgid "ESP replay protection: %d\n"
-msgstr ""
+msgstr "ESP ismétlési védelem: %d\n"
 
 #: oncp.c:380
 #, c-format
 msgid "ESP SPI (outbound): %x\n"
-msgstr ""
+msgstr "ESP SPI (kimenő): %x\n"
 
 #: oncp.c:388
 #, c-format
 msgid "%d bytes of ESP secrets\n"
-msgstr ""
+msgstr "Az ESP titkok %d bájtja\n"
 
 #: oncp.c:400
 #, c-format
@@ -2738,11 +2750,11 @@ msgstr ""
 
 #: oncp.c:477
 msgid "Failed to parse KMP header\n"
-msgstr ""
+msgstr "Nem sikerült feldolgozni a KMP fejlécet\n"
 
 #: oncp.c:493
 msgid "Failed to parse KMP message\n"
-msgstr ""
+msgstr "Nem sikerült feldolgozni a KMP üzenetet\n"
 
 #: oncp.c:499
 #, c-format
@@ -2817,15 +2829,15 @@ msgstr ""
 
 #: oncp.c:784
 msgid "Error negotiating ESP keys\n"
-msgstr ""
+msgstr "Hiba az ESP kulcsok egyeztetésekor\n"
 
 #: oncp.c:844
 msgid "new incoming"
-msgstr ""
+msgstr "új bejövő"
 
 #: oncp.c:845
 msgid "new outgoing"
-msgstr ""
+msgstr "új kimenő"
 
 #: oncp.c:850
 msgid "Ignoring ESP keys since ESP support not available in this build\n"
@@ -3689,6 +3701,10 @@ msgid ""
 "To configure local networking, openconnect must be running as root\n"
 "See http://www.infradead.org/openconnect/nonroot.html for more information\n"
 msgstr ""
+"A helyi hálózatkezelés beállításához az openconnect programot "
+"rendszergazdaként kell futtatni\n"
+"További információkért nézze meg a következő oldalt:\n"
+"http://www.infradead.org/openconnect/nonroot.html oldalt\n"
 
 #: tun.c:313
 #, c-format
