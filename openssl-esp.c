@@ -106,7 +106,7 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 	vpninfo->current_esp_in ^= 1;
 	esp_in = &vpninfo->esp_in[vpninfo->current_esp_in];
 
-	if (!RAND_pseudo_bytes((void *)&esp_in->spi, sizeof(esp_in->spi)) ||
+	if (!RAND_bytes((void *)&esp_in->spi, sizeof(esp_in->spi)) ||
 	    !RAND_bytes((void *)&esp_in->secrets, sizeof(esp_in->secrets))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to generate random keys for ESP:\n"));
@@ -187,7 +187,7 @@ int encrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt)
 	/* This gets much more fun if the IV is variable-length */
 	pkt->esp.spi = vpninfo->esp_out.spi;
 	pkt->esp.seq = htonl(vpninfo->esp_out.seq++);
-	if (!RAND_pseudo_bytes((void *)&pkt->esp.iv, sizeof(pkt->esp.iv))) {
+	if (!RAND_bytes((void *)&pkt->esp.iv, sizeof(pkt->esp.iv))) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to generate random IV for ESP packet:\n"));
 		openconnect_report_ssl_errors(vpninfo);
