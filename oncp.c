@@ -202,6 +202,11 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 		vpn_progress(vpninfo, PRG_DEBUG, _("Received DNS search domain %.*s\n"),
 			     attrlen, (char *)data);
 		vpninfo->ip_info.domain = add_option(vpninfo, "search", (char *)data, attrlen);
+		if (vpninfo->ip_info.domain) {
+			char *p = (char *)vpninfo->ip_info.domain;
+			while ((p = strchr(p, ',')))
+				*p = ' ';
+		}
 		break;
 
 	case GRP_ATTR(1, 1):
