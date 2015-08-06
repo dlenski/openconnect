@@ -129,18 +129,6 @@ static void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *
 		*mtu = 1280;
 }
 
-/* For OpenSSL the configure script detects DTLS 1.2 support.
- * For GnuTLS just check for v3.2.0+ */
-#if defined(DTLS_GNUTLS) && GNUTLS_VERSION_NUMBER >= 0x030200
-#define HAVE_DTLS12 1
-#endif
-
-#ifdef HAVE_DTLS12
-# define DEFAULT_CIPHER_LIST "OC-DTLS1_2-AES256-GCM:OC-DTLS1_2-AES128-GCM:AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA"
-#else
-# define DEFAULT_CIPHER_LIST "AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA"
-#endif
-
 static void append_compr_types(struct oc_text_buf *buf, const char *proto, int avail)
 {
 	if (avail) {
@@ -239,8 +227,12 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			buf_free(reqbuf);
 			return -EINVAL;
 		}
-		buf_append(reqbuf, "\r\nX-DTLS-CipherSuite: %s\r\n",
-			   vpninfo->dtls_ciphers ? : DEFAULT_CIPHER_LIST);
+		buf_append(reqbuf, "\r\nX-DTLS-CipherSuite: ");
+		if (vpninfo->dtls_ciphers)
+			buf_append(reqbuf, "%s", vpninfo->dtls_ciphers);
+		else
+			append_dtls_ciphers(vpninfo, reqbuf);
+		buf_append(reqbuf, "\r\n");
 
 		append_compr_types(reqbuf, "DTLS", vpninfo->req_compr & ~COMPR_DEFLATE);
 	}

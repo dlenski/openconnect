@@ -434,6 +434,15 @@ void dtls_shutdown(struct openconnect_info *vpninfo)
 	SSL_CTX_free(vpninfo->dtls_ctx);
 }
 
+void append_dtls_ciphers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+{
+#ifdef HAVE_DTLS12
+	buf_append(buf, "OC-DTLS1_2-AES256-GCM:OC-DTLS1_2-AES128-GCM:AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA");
+#else
+	buf_append(buf, "AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA");
+#endif
+}
+
 #elif defined(DTLS_GNUTLS)
 #include <gnutls/dtls.h>
 #include "gnutls.h"
@@ -458,6 +467,14 @@ struct {
 	  "NONE:+VERS-DTLS1.2:+COMP-NULL:+AES-256-GCM:+AEAD:+RSA:%COMPAT:+SIGN-ALL" },
 #endif
 };
+
+void append_dtls_ciphers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
+{
+	int i;
+
+	for (i = 0; i < sizeof(gnutls_dtls_ciphers) / sizeof(gnutls_dtls_ciphers[0]); i++)
+		buf_append(buf, "%s%s", i ? ":" : "", gnutls_dtls_ciphers[i].name);
+}
 
 #define DTLS_SEND gnutls_record_send
 #define DTLS_RECV gnutls_record_recv
