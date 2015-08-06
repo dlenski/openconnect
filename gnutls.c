@@ -79,6 +79,14 @@ static P11KitPin *p11kit_pin_callback(const char *pin_source, P11KitUri *pin_uri
 #include "gnutls.h"
 #include "openconnect-internal.h"
 
+/* GnuTLS 2.x lacked this. But GNUTLS_E_UNEXPECTED_PACKET_LENGTH basically
+ * does the same thing.
+ * http://lists.infradead.org/pipermail/openconnect-devel/2014-March/001726.html
+ */
+#ifndef GNUTLS_E_PREMATURE_TERMINATION
+#define GNUTLS_E_PREMATURE_TERMINATION GNUTLS_E_UNEXPECTED_PACKET_LENGTH
+#endif
+
 /* Helper functions for reading/writing lines over SSL. */
 static int openconnect_gnutls_write(struct openconnect_info *vpninfo, char *buf, size_t len)
 {
@@ -140,14 +148,12 @@ static int openconnect_gnutls_read(struct openconnect_info *vpninfo, char *buf, 
 				vpn_progress(vpninfo, PRG_ERR, _("SSL read cancelled\n"));
 				return -EINTR;
 			}
-#ifdef GNUTLS_E_PREMATURE_TERMINATION
 		} else if (done == GNUTLS_E_PREMATURE_TERMINATION) {
 			/* We've seen this with HTTP 1.0 responses followed by abrupt
 			   socket closure and no clean SSL shutdown.
 			   https://bugs.launchpad.net/bugs/1225276 */
 			vpn_progress(vpninfo, PRG_DEBUG, _("SSL socket closed uncleanly\n"));
 			return 0;
-#endif
 		} else {
 			vpn_progress(vpninfo, PRG_ERR, _("Failed to read from SSL socket: %s\n"),
 				     gnutls_strerror(done));
