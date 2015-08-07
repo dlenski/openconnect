@@ -87,6 +87,17 @@ static P11KitPin *p11kit_pin_callback(const char *pin_source, P11KitUri *pin_uri
 #define GNUTLS_E_PREMATURE_TERMINATION GNUTLS_E_UNEXPECTED_PACKET_LENGTH
 #endif
 
+
+/* Compile-time optimisable GnuTLS version check. We should never be
+ * run against a version of GnuTLS which is *older* than the one we
+ * were built again, but we might be run against a version which is
+ * newer. So some ancient compatibility code *can* be dropped at
+ * compile time. Likewise, if building against GnuTLS 2.x then we
+ * can never be running agsinst a 3.x library — the soname changed. */
+#define gtls_ver(a,b,c) ( GNUTLS_VERSION_MAJOR >= (a) &&		\
+	(GNUTLS_VERSION_NUMBER >= ( ((a) << 16) + ((b) << 8) + (c) ) || \
+	 gnutls_check_version(#a "." #b "." #c)))
+
 /* Helper functions for reading/writing lines over SSL. */
 static int openconnect_gnutls_write(struct openconnect_info *vpninfo, char *buf, size_t len)
 {
@@ -2191,8 +2202,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	 *
 	 * See comments above regarding COMPAT and DUMBFW.
 	 */
-	if (gnutls_check_version("3.2.9") &&
-	    string_is_hostname(vpninfo->hostname))
+	if (gtls_ver(3,2,9) && string_is_hostname(vpninfo->hostname))
 		gnutls_server_name_set(vpninfo->https_sess, GNUTLS_NAME_DNS,
 				       vpninfo->hostname,
 				       strlen(vpninfo->hostname));
@@ -2220,10 +2230,10 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	* 8d28901a3ebd2589d0fc9941475d50f04047f6fe
 	* 28065ce3896b1b0f87972d0bce9b17641ebb69b9
 	*/
-	if (gnutls_check_version("3.2.9")) {
+	if (gtls_ver(3,2,9)) {
 		snprintf(vpninfo->gnutls_prio, sizeof(vpninfo->gnutls_prio), DEFAULT_PRIO_3_2_9"%s", vpninfo->pfs?":-RSA":"");
 	} else {
-		if (gnutls_check_version("3.0.0")) {
+		if (gtls_ver(3,0,0)) {
 			snprintf(vpninfo->gnutls_prio, sizeof(vpninfo->gnutls_prio), DEFAULT_PRIO_3_0_0"%s", vpninfo->pfs?":-RSA":"");
 		} else {
 
