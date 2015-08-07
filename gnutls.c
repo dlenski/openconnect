@@ -2063,21 +2063,9 @@ static int verify_peer(gnutls_session_t session)
 	return err;
 }
 
-#ifndef DEFAULT_PRIO
-# define DEFAULT_PRIO_3_2_9 "NORMAL:-VERS-SSL3.0:%%COMPAT"
-# define DEFAULT_PRIO_3_0_0 "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:" \
-			    "%%COMPAT:%%DISABLE_SAFE_RENEGOTIATION:%%LATEST_RECORD_VERSION" \
-			    ":-CURVE-ALL:-ECDHE-RSA:-ECDHE-ECDSA"
-# define DEFAULT_PRIO_2_12_0 "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:" \
-			     "%%COMPAT:%%DISABLE_SAFE_RENEGOTIATION:%%LATEST_RECORD_VERSION"
-#else
-# define DEFAULT_PRIO_3_2_9 DEFAULT_PRIO":%%COMPAT"
-# define DEFAULT_PRIO_3_0_0 DEFAULT_PRIO":%%COMPAT"
-# define DEFAULT_PRIO_2_12_0 DEFAULT_PRIO":%%COMPAT"
-#endif
-
 int openconnect_open_https(struct openconnect_info *vpninfo)
 {
+	const char *default_prio;
 	int ssl_sock = -1;
 	int err;
 
@@ -2230,17 +2218,24 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	* 8d28901a3ebd2589d0fc9941475d50f04047f6fe
 	* 28065ce3896b1b0f87972d0bce9b17641ebb69b9
 	*/
-	if (gtls_ver(3,2,9)) {
-		snprintf(vpninfo->gnutls_prio, sizeof(vpninfo->gnutls_prio), DEFAULT_PRIO_3_2_9"%s", vpninfo->pfs?":-RSA":"");
-	} else {
-		if (gtls_ver(3,0,0)) {
-			snprintf(vpninfo->gnutls_prio, sizeof(vpninfo->gnutls_prio), DEFAULT_PRIO_3_0_0"%s", vpninfo->pfs?":-RSA":"");
-		} else {
 
-			snprintf(vpninfo->gnutls_prio, sizeof(vpninfo->gnutls_prio), DEFAULT_PRIO_2_12_0"%s",
-			       vpninfo->pfs?":-RSA":"");
-		}
+#ifdef DEFAULT_PRIO
+	default_prio = DEFAULT_PRIO ":%%COMPAT"
+#else
+	if (gtls_ver(3,2,9)) {
+		default_prio = "NORMAL:-VERS-SSL3.0:%%COMPAT";
+	} else if (gtls_ver(3,0,0)) {
+		default_prio = "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:" \
+			"%%COMPAT:%%DISABLE_SAFE_RENEGOTIATION:%%LATEST_RECORD_VERSION" \
+			":-CURVE-ALL:-ECDHE-RSA:-ECDHE-ECDSA";
+	} else {
+		default_prio = "NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0:"			\
+			"%%COMPAT:%%DISABLE_SAFE_RENEGOTIATION:%%LATEST_RECORD_VERSION";
 	}
+#endif
+
+	snprintf(vpninfo->gnutls_prio, sizeof(vpninfo->gnutls_prio), "%s%s",
+		 default_prio, vpninfo->pfs?":-RSA":"");
 
 	err = gnutls_priority_set_direct(vpninfo->https_sess,
 					 vpninfo->gnutls_prio, NULL);
