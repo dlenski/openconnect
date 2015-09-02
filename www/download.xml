@@ -13,7 +13,7 @@
 <p>Released versions of OpenConnect are available from the FTP site:</p>
 <ul><li><a href="ftp://ftp.infradead.org/pub/openconnect/"><tt>ftp://ftp.infradead.org/pub/openconnect/</tt></a></li></ul>
 
-<p>Release tarballs (since 3.13) are signed with the PGP key <a href="http://pgp.mit.edu:11371/pks/lookup?op=vindex&amp;search=0x63762CDA67E2F359">67E2F359</a>.</p>
+<p>Release tarballs (since 3.13) are signed with the PGP key with fingerprint <a href="https://pgp.mit.edu/pks/lookup?op=vindex&amp;search=0xBE07D9FD54809AB2C4B0FF5F63762CDA67E2F359">BE07 D9FD 5480 9AB2 C4B0  FF5F 6376 2CDA 67E2 F359</a>.</p>
 
 <p>
 <!-- latest-release-start -->
