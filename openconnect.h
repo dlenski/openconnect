@@ -127,7 +127,7 @@
  * 3) Add function to libopenconnect.map.in
  * 4) Add declaration + comments in the latter part of this file
  * 5) Add function to jni.c, then test with ./configure --with-java && make
- * 6) Add declaration to LibOpenConnect.java, then run "ant" to test
+ * 6) Add declaration to LibOpenConnect.java, then run "cd java && ant" to test
  */
 
 /* Before API version 1.4 (OpenConnect 3.19) this macro didn't exist.
