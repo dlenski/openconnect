@@ -333,6 +333,7 @@ static int dtls_try_handshake(struct openconnect_info *vpninfo)
 	int ret = SSL_do_handshake(vpninfo->dtls_ssl);
 
 	if (ret == 1) {
+		const char *c;
 		vpninfo->dtls_state = DTLS_CONNECTED;
 		vpn_progress(vpninfo, PRG_INFO,
 			     _("Established DTLS connection (using OpenSSL). Ciphersuite %s.\n"),
