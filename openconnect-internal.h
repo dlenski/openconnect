@@ -536,8 +536,14 @@ struct openconnect_info {
 
 	char *dtls_cipher;
 	char *vpnc_script;
+#ifndef _WIN32
+	uid_t uid;
+#endif
+	int tun_is_up; /* whether the tun device is setup */
+	int use_tun_script;
 	int script_tun;
 	char *ifname;
+	char *cmd_ifname;
 
 	int reqmtu, basemtu;
 	const char *banner;
@@ -1000,7 +1006,7 @@ static inline int strprefix_match(const char *str, int len, const char *match)
 }
 
 #define STRDUP(res, arg) \
-	do {							\
+	if (res != arg) {					\
 		free(res);					\
 		if (arg) {					\
 			res = strdup(arg);			\

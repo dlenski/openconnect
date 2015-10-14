@@ -971,7 +971,7 @@ int main(int argc, char **argv)
 	char *ip;
 	const char *compr = "";
 	char *proxy = getenv("https_proxy");
-	char *vpnc_script = NULL, *ifname = NULL;
+	char *vpnc_script = NULL;
 	const struct oc_ip_info *ip_info;
 	int autoproxy = 0;
 	int opt;
@@ -989,9 +989,7 @@ int main(int argc, char **argv)
 #ifndef _WIN32
 	struct sigaction sa;
 	struct utsname utsbuf;
-	uid_t uid = getuid();
 	int use_syslog = 0;
-	int script_tun = 0;
 #endif
 
 #ifdef ENABLE_NLS
@@ -1033,6 +1031,8 @@ int main(int argc, char **argv)
 #ifdef _WIN32
 	set_default_vpncscript();
 #else
+	vpninfo->use_tun_script = 0;
+	vpninfo->uid = getuid();
 	if (!uname(&utsbuf)) {
 		free(vpninfo->localname);
 		vpninfo->localname = xstrdup(utsbuf.nodename);
@@ -1053,11 +1053,11 @@ int main(int argc, char **argv)
 			use_syslog = 1;
 			break;
 		case 'S':
-			script_tun = 1;
+			vpninfo->use_tun_script = 1;
 			break;
 		case 'U': {
 			char *strend;
-			uid = strtol(config_arg, &strend, 0);
+			vpninfo->uid = strtol(config_arg, &strend, 0);
 			if (strend[0]) {
 				struct passwd *pw = getpwnam(config_arg);
 				if (!pw) {
@@ -1065,7 +1065,7 @@ int main(int argc, char **argv)
 						config_arg);
 					exit(1);
 				}
-				uid = pw->pw_uid;
+				vpninfo->uid = pw->pw_uid;
 			}
 			break;
 		}
@@ -1220,7 +1220,7 @@ int main(int argc, char **argv)
 		case 'h':
 			usage();
 		case 'i':
-			ifname = dup_config_arg();
+			vpninfo->ifname = dup_config_arg();
 			break;
 		case 'm': {
 			int mtu = atol(config_arg);
@@ -1475,31 +1475,8 @@ int main(int argc, char **argv)
 
 	if (!vpnc_script)
 		vpnc_script = xstrdup(default_vpncscript);
-#ifndef _WIN32
-	if (script_tun) {
-		if (openconnect_setup_tun_script(vpninfo, vpnc_script)) {
-			fprintf(stderr, _("Set up tun script failed\n"));
-			openconnect_vpninfo_free(vpninfo);
-			exit(1);
-		}
-	} else
-#endif
-	if (openconnect_setup_tun_device(vpninfo, vpnc_script, ifname)) {
-		fprintf(stderr, _("Set up tun device failed\n"));
-		openconnect_vpninfo_free(vpninfo);
-		exit(1);
-	}
 
-#ifndef _WIN32
-	if (uid != getuid()) {
-		if (setuid(uid)) {
-			fprintf(stderr, _("Failed to set uid %ld\n"),
-				(long)uid);
-			openconnect_vpninfo_free(vpninfo);
-			exit(1);
-		}
-	}
-#endif
+	STRDUP(vpninfo->vpnc_script, vpnc_script);
 
 	if (vpninfo->dtls_state != DTLS_DISABLED &&
 	    openconnect_setup_dtls(vpninfo, 60))
@@ -1523,7 +1500,7 @@ int main(int argc, char **argv)
 			compr = " + lz4";
 	}
 	vpn_progress(vpninfo, PRG_INFO,
-		     _("Connected %s as %s%s%s, using %s%s\n"), openconnect_get_ifname(vpninfo),
+		     _("Connected as %s%s%s, using %s%s\n"),
 		     ip_info->addr?:"",
 		     (ip_info->netmask6 && ip_info->addr) ? " + " : "",
 		     ip_info->netmask6 ? : "",
