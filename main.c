@@ -963,6 +963,37 @@ static int next_option(int argc, char **argv, char **config_arg)
 
 }
 
+#ifndef _WIN32
+static void get_uids(const char *config_arg, uid_t *uid, gid_t *gid)
+{
+	char *strend;
+	struct passwd *pw;
+	int e;
+
+	*uid = strtol(config_arg, &strend, 0);
+	if (strend[0]) {
+		pw = getpwnam(config_arg);
+		if (!pw) {
+			e = errno;
+			fprintf(stderr, _("Invalid user \"%s\": %s\n"),
+				config_arg, strerror(e));
+			exit(1);
+		}
+		*uid = pw->pw_uid;
+		*gid = pw->pw_gid;
+	} else {
+		pw = getpwuid(*uid);
+		if (!pw) {
+			e = errno;
+			fprintf(stderr, _("Invalid user ID \"%d\": %s\n"),
+				(int)*uid, strerror(e));
+			exit(1);
+		}
+		*gid = pw->pw_gid;
+	}
+}
+#endif
+
 int main(int argc, char **argv)
 {
 	struct openconnect_info *vpninfo;
@@ -1033,6 +1064,7 @@ int main(int argc, char **argv)
 #else
 	vpninfo->use_tun_script = 0;
 	vpninfo->uid = getuid();
+	vpninfo->gid = getgid();
 	if (!uname(&utsbuf)) {
 		free(vpninfo->localname);
 		vpninfo->localname = xstrdup(utsbuf.nodename);
@@ -1055,35 +1087,13 @@ int main(int argc, char **argv)
 		case 'S':
 			vpninfo->use_tun_script = 1;
 			break;
-		case 'U': {
-			char *strend;
-			vpninfo->uid = strtol(config_arg, &strend, 0);
-			if (strend[0]) {
-				struct passwd *pw = getpwnam(config_arg);
-				if (!pw) {
-					fprintf(stderr, _("Invalid user \"%s\"\n"),
-						config_arg);
-					exit(1);
-				}
-				vpninfo->uid = pw->pw_uid;
-			}
+		case 'U':
+			get_uids(config_arg, &vpninfo->uid, &vpninfo->gid);
 			break;
-		}
-		case OPT_CSD_USER: {
-			char *strend;
-			vpninfo->uid_csd = strtol(config_arg, &strend, 0);
-			if (strend[0]) {
-				struct passwd *pw = getpwnam(config_arg);
-				if (!pw) {
-					fprintf(stderr, _("Invalid user \"%s\"\n"),
-						config_arg);
-					exit(1);
-				}
-				vpninfo->uid_csd = pw->pw_uid;
-			}
+		case OPT_CSD_USER:
+			get_uids(config_arg, &vpninfo->uid_csd, &vpninfo->gid_csd);
 			vpninfo->uid_csd_given = 1;
 			break;
-		}
 		case OPT_CSD_WRAPPER:
 			vpninfo->csd_wrapper = keep_config_arg();
 			break;

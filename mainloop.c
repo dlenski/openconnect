@@ -22,6 +22,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#ifndef _WIN32
+/* for setgroups() */
+# include <sys/types.h>
+# include <grp.h>
+#endif
 
 #include "openconnect-internal.h"
 
@@ -122,9 +127,26 @@ static int setup_tun_device(struct openconnect_info *vpninfo)
 
 #ifndef _WIN32
 	if (vpninfo->uid != getuid()) {
+		int e;
+
+		if (setgid(vpninfo->gid)) {
+			e = errno;
+			fprintf(stderr, _("Failed to set gid %ld: %s\n"),
+				(long)vpninfo->gid, strerror(e));
+			return -EPERM;
+		}
+
+		if (setgroups(1, &vpninfo->gid)) {
+			e = errno;
+			fprintf(stderr, _("Failed to set groups to %ld: %s\n"),
+				(long)vpninfo->gid, strerror(e));
+			return -EPERM;
+		}
+
 		if (setuid(vpninfo->uid)) {
-			fprintf(stderr, _("Failed to set uid %ld\n"),
-				(long)vpninfo->uid);
+			e = errno;
+			fprintf(stderr, _("Failed to set uid %ld: %s\n"),
+				(long)vpninfo->uid, strerror(e));
 			return -EPERM;
 		}
 	}

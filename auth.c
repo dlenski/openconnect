@@ -30,6 +30,7 @@
 #ifndef _WIN32
 #include <sys/wait.h>
 #include <pwd.h>
+#include <grp.h>
 #endif
 
 #include <libxml/parser.h>
@@ -1067,21 +1068,40 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 
 			if (vpninfo->uid_csd_given && vpninfo->uid_csd != getuid()) {
 				struct passwd *pw;
+				int e;
 
-				if (setuid(vpninfo->uid_csd)) {
-					fprintf(stderr, _("Failed to set uid %ld\n"),
-						(long)vpninfo->uid_csd);
+				if (setgid(vpninfo->gid_csd)) {
+					e = errno;
+					fprintf(stderr, _("Failed to set gid %ld: %s\n"),
+						(long)vpninfo->uid_csd, strerror(e));
 					exit(1);
 				}
+
+				if (setgroups(1, &vpninfo->gid_csd)) {
+					e = errno;
+					fprintf(stderr, _("Failed to set groups to %ld: %s\n"),
+						(long)vpninfo->uid_csd, strerror(e));
+					exit(1);
+				}
+
+				if (setuid(vpninfo->uid_csd)) {
+					e = errno;
+					fprintf(stderr, _("Failed to set uid %ld: %s\n"),
+						(long)vpninfo->uid_csd, strerror(e));
+					exit(1);
+				}
+
 				if (!(pw = getpwuid(vpninfo->uid_csd))) {
-					fprintf(stderr, _("Invalid user uid=%ld\n"),
-						(long)vpninfo->uid_csd);
+					e = errno;
+					fprintf(stderr, _("Invalid user uid=%ld: %s\n"),
+						(long)vpninfo->uid_csd, strerror(e));
 					exit(1);
 				}
 				setenv("HOME", pw->pw_dir, 1);
 				if (chdir(pw->pw_dir)) {
+					e = errno;
 					fprintf(stderr, _("Failed to change to CSD home directory '%s': %s\n"),
-						pw->pw_dir, strerror(errno));
+						pw->pw_dir, strerror(e));
 					exit(1);
 				}
 			}

@@ -400,6 +400,7 @@ struct openconnect_info {
 	int xmlpost;
 	char *dtls_ciphers;
 	uid_t uid_csd;
+	gid_t gid_csd;
 	char *csd_wrapper;
 	int uid_csd_given;
 	int no_http_keepalive;
@@ -538,6 +539,7 @@ struct openconnect_info {
 	char *vpnc_script;
 #ifndef _WIN32
 	uid_t uid;
+	gid_t gid;
 #endif
 	int tun_is_up; /* whether the tun device is setup */
 	int use_tun_script;
