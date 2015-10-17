@@ -1255,7 +1255,7 @@ static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert
 		}
 		return 0;
 	}
-	if (X509_check_host(peer_cert, vpninfo->hostname + 1, 0, 0, &matched)) {
+	if (X509_check_host(peer_cert, vpninfo->hostname, 0, 0, &matched)) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Matched peer certificate subject name '%s'\n"),
 			     matched);
