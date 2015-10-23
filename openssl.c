@@ -272,6 +272,7 @@ struct ui_form_opt {
 	UI_STRING *uis;
 };
 
+#ifdef HAVE_ENGINE
  /* Ick. But there is no way to pass this sanely through OpenSSL */
 static struct openconnect_info *ui_vpninfo;
 
@@ -414,6 +415,7 @@ static UI_METHOD *create_openssl_ui(struct openconnect_info *vpninfo)
 
 	return ui_method;
 }
+#endif
 
 static int pem_pw_cb(char *buf, int len, int w, void *v)
 {
