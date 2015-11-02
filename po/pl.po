@@ -605,7 +605,7 @@ msgstr ""
 #: dtls.c:345 dtls.c:643
 #, c-format
 msgid "DTLS connection compression using %s.\n"
-msgstr ""
+msgstr "Kompresja połączenia DTLS używając %s.\n"
 
 #: dtls.c:371
 msgid "Your OpenSSL is older than the one you built against, so DTLS may fail!"
