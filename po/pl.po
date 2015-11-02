@@ -1352,8 +1352,8 @@ msgstr "Wczytanie certyfikatu się nie powiodło. Przerywanie.\n"
 
 #: gnutls.c:2244
 #, c-format
-msgid "Failed to set TLS priority string: %s\n"
-msgstr "Ustawienie ciągu priorytetu TLS się nie powiodło: %s\n"
+msgid "Failed to set TLS priority string (%s): %s\n"
+msgstr "Ustawienie ciągu priorytetu TLS się nie powiodło (%s): %s\n"
 
 #: gnutls.c:2256 openssl.c:1581
 #, c-format

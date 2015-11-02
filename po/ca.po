@@ -1350,8 +1350,8 @@ msgstr "La carrega del certificat ha fallat. S'està avortant.\n"
 
 #: gnutls.c:2226
 #, c-format
-msgid "Failed to set TLS priority string: %s\n"
-msgstr "Error en configurar la cadena de prioritat TLS:  %s\n"
+msgid "Failed to set TLS priority string (%s): %s\n"
+msgstr "Error en configurar la cadena de prioritat TLS (%s): %s\n"
 
 #: gnutls.c:2238 openssl.c:1538
 #, c-format

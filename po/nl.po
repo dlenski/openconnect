@@ -1319,8 +1319,8 @@ msgstr "Laden van certificaat is mislukt. Afbreken.\n"
 
 #: gnutls.c:2226
 #, c-format
-msgid "Failed to set TLS priority string: %s\n"
-msgstr "Instellen van de TLS prioriteit string mislukt: %s\n"
+msgid "Failed to set TLS priority string (%s): %s\n"
+msgstr "Instellen van de TLS prioriteit string mislukt (%s): %s\n"
 
 #: gnutls.c:2238 openssl.c:1538
 #, c-format

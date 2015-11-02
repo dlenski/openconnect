@@ -1334,8 +1334,8 @@ msgstr "Huts egin du ziurtagiria kargatzean. Bertan behera uzten.\n"
 
 #: gnutls.c:2226
 #, c-format
-msgid "Failed to set TLS priority string: %s\n"
-msgstr "Huts egin du TLS--ren lehentasunaren katea ezartzean: %s\n"
+msgid "Failed to set TLS priority string (%s): %s\n"
+msgstr "Huts egin du TLS--ren lehentasunaren katea ezartzean (%s): %s\n"
 
 #: gnutls.c:2238 openssl.c:1538
 #, c-format
