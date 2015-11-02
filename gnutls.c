@@ -2220,7 +2220,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	*/
 
 #ifdef DEFAULT_PRIO
-	default_prio = DEFAULT_PRIO ":%COMPAT"
+	default_prio = DEFAULT_PRIO ":%COMPAT";
 #else
 	if (gtls_ver(3,2,9)) {
 		default_prio = "NORMAL:-VERS-SSL3.0:%COMPAT";
