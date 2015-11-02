@@ -2241,8 +2241,8 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 					 vpninfo->gnutls_prio, NULL);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to set TLS priority string: %s\n"),
-			     gnutls_strerror(err));
+			     _("Failed to set TLS priority string (\"%s\"): %s\n"),
+			     vpninfo->gnutls_prio, gnutls_strerror(err));
 		gnutls_deinit(vpninfo->https_sess);
 		vpninfo->https_sess = NULL;
 		closesocket(ssl_sock);
