@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2015-10-22 10:41+0100\n"
+"POT-Creation-Date: 2015-11-02 10:22+0000\n"
 "PO-Revision-Date: 2011-09-22 22:31+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Swedish (http://www.transifex.net/projects/p/meego/team/sv/)\n"
@@ -951,15 +951,15 @@ msgstr "SSL send misslyckades: %s\n"
 msgid "Could not extract expiration time of certificate\n"
 msgstr "Kunde inte extrahera tidsgräns för certifikat\n"
 
-#: gnutls.c:298 openssl.c:1395
+#: gnutls.c:298 openssl.c:1397
 msgid "Client certificate has expired at"
 msgstr "Klientcertifikat har passerat tidsgränsen"
 
-#: gnutls.c:300 openssl.c:1400
+#: gnutls.c:300 openssl.c:1402
 msgid "Client certificate expires soon at"
 msgstr "Klientcertifikat passerar snart tidsgräns"
 
-#: gnutls.c:349 openssl.c:733
+#: gnutls.c:349 openssl.c:735
 #, c-format
 msgid "Failed to load item '%s' from keystore: %s\n"
 msgstr "Misslyckades med att läsa in objektet ”%s” från nyckellager: %s\n"
@@ -988,11 +988,11 @@ msgstr "Misslyckades med att läsa in certifikat till minnet: %s\n"
 msgid "Failed to setup PKCS#12 data structure: %s\n"
 msgstr "Misslyckades med att ställa in PKCS#12-datastrukturen: %s\n"
 
-#: gnutls.c:440 openssl.c:502
+#: gnutls.c:440 openssl.c:504
 msgid "Failed to decrypt PKCS#12 certificate file\n"
 msgstr "Misslyckades med att dekryptera PKCS#12-certifikatfil\n"
 
-#: gnutls.c:444 openssl.c:505
+#: gnutls.c:444 openssl.c:507
 msgid "Enter PKCS#12 pass phrase:"
 msgstr "Ange PKCS#12-lösenfras:"
 
@@ -1066,7 +1066,7 @@ msgstr "Misslyckades med att kryptera PEM-nyckel: %s\n"
 msgid "Decrypting PEM key failed\n"
 msgstr "Dekryptering av PEM-nyckel misslyckades\n"
 
-#: gnutls.c:943 gnutls.c:1469 openssl.c:428
+#: gnutls.c:943 gnutls.c:1469 openssl.c:430
 msgid "Enter PEM pass phrase:"
 msgstr "Ange PEM-lösenfras:"
 
@@ -1098,7 +1098,7 @@ msgstr "Fel vid inläsning av certifikat från PKCS#11: %s\n"
 msgid "Error loading system certificate: %s\n"
 msgstr "Fel vid inläsning av systemcertifikatet: %s\n"
 
-#: gnutls.c:1098 openssl.c:787
+#: gnutls.c:1098 openssl.c:789
 #, c-format
 msgid "Using certificate file %s\n"
 msgstr "Använder certifikatfilen %s\n"
@@ -1161,7 +1161,7 @@ msgstr "Fel vid import av PKCS#11-nyckeln till privata nyckelstrukturen: %s\n"
 msgid "Using private key file %s\n"
 msgstr "Använder privata nyckelfilen %s\n"
 
-#: gnutls.c:1390 openssl.c:613
+#: gnutls.c:1390 openssl.c:615
 msgid "This version of OpenConnect was built without TPM support\n"
 msgstr "Denna version av OpenConnect byggdes utan TPM-stöd\n"
 
@@ -1207,7 +1207,7 @@ msgstr "Fel vid validering av signatur mot certifikat: %s\n"
 msgid "No SSL certificate found to match private key\n"
 msgstr "Hittade inget SSL-certifikat som matchade privat nyckel\n"
 
-#: gnutls.c:1587 openssl.c:528 openssl.c:671
+#: gnutls.c:1587 openssl.c:530 openssl.c:673
 #, c-format
 msgid "Using client certificate '%s'\n"
 msgstr "Använder klientcertifikatet ”%s”\n"
@@ -1298,11 +1298,11 @@ msgstr "certifikat har överskridit tidsgräns"
 msgid "signature verification failed"
 msgstr "signaturverifiering misslyckades"
 
-#: gnutls.c:2049 openssl.c:1270 openssl.c:1302
+#: gnutls.c:2049 openssl.c:1272 openssl.c:1304
 msgid "certificate does not match hostname"
 msgstr "certifikat matcher inte värdnamn"
 
-#: gnutls.c:2054 openssl.c:1269 openssl.c:1306
+#: gnutls.c:2054 openssl.c:1271 openssl.c:1308
 #, c-format
 msgid "Server certificate verify failed: %s\n"
 msgstr "Verifiering av servercertifikat misslyckades: %s\n"
@@ -1321,21 +1321,21 @@ msgstr "Misslyckades med att läsa certifikat från cafile: %s\n"
 msgid "Failed to open CA file '%s': %s\n"
 msgstr "Misslyckades med att öppna CA-filen ”%s”: %s\n"
 
-#: gnutls.c:2173 openssl.c:1458
+#: gnutls.c:2173 openssl.c:1460
 msgid "Loading certificate failed. Aborting.\n"
 msgstr "Misslyckades med att läsa in certifikat. Avbryter.\n"
 
 #: gnutls.c:2244
 #, c-format
-msgid "Failed to set TLS priority string (%s): %s\n"
-msgstr "Misslyckades med att sätta TLS-prioritetssträngen (%s): %s\n"
+msgid "Failed to set TLS priority string (\"%s\"): %s\n"
+msgstr ""
 
-#: gnutls.c:2256 openssl.c:1581
+#: gnutls.c:2256 openssl.c:1583
 #, c-format
 msgid "SSL negotiation with %s\n"
 msgstr "SSL-förhandling med %s\n"
 
-#: gnutls.c:2303 openssl.c:1607
+#: gnutls.c:2303 openssl.c:1609
 msgid "SSL connection cancelled\n"
 msgstr "SSL-anslutning avbruten\n"
 
@@ -1349,7 +1349,7 @@ msgstr "SSL-anslutning misslyckades: %s\n"
 msgid "GnuTLS non-fatal return during handshake: %s\n"
 msgstr "GnuTLS icke-kritisk retur vid handskakning; %s\n"
 
-#: gnutls.c:2325 openssl.c:1632
+#: gnutls.c:2325 openssl.c:1634
 #, c-format
 msgid "Connected to HTTPS on %s\n"
 msgstr "Ansluten till HTTPS på %s\n"
@@ -1380,7 +1380,7 @@ msgstr "Bara ett fåtal försök kvar innan låsning!"
 msgid "Enter PIN:"
 msgstr "Ange PIN:"
 
-#: gnutls.c:2656 openssl.c:1760
+#: gnutls.c:2656 openssl.c:1762
 msgid "Unsupported OATH HMAC algorithm\n"
 msgstr "OATH HMAC algoritm stöds inte\n"
 
@@ -2960,7 +2960,7 @@ msgstr "Loggar in till PKCS#11-platsen ”%s”\n"
 msgid "Certificate X.509 content not fetched by libp11\n"
 msgstr "Certifikat X.509-innehåll hämtas inte med libp11\n"
 
-#: openssl-pkcs11.c:388 openssl.c:675
+#: openssl-pkcs11.c:388 openssl.c:677
 msgid "Failed to install certificate in OpenSSL context\n"
 msgstr "Misslyckades med att installera certifikat i OpenSSL-kontext\n"
 
@@ -3004,204 +3004,204 @@ msgstr "SSL-läsfel %d (server stängde antagligen anslutning), återansluter.\n
 msgid "SSL_write failed: %d\n"
 msgstr "SSL_write misslyckades: %d\n"
 
-#: openssl.c:328
+#: openssl.c:329
 #, c-format
 msgid "Unhandled SSL UI request type %d\n"
 msgstr "Ohanterad SSL UI-begärantyp %d\n"
 
-#: openssl.c:435
+#: openssl.c:437
 #, c-format
 msgid "PEM password too long (%d >= %d)\n"
 msgstr "PEM-lösenord för långt (%d >= %d)\n"
 
-#: openssl.c:466
+#: openssl.c:468
 #, c-format
 msgid "Extra cert from %s: '%s'\n"
 msgstr "Extra certifikat från %s: ”%s”\n"
 
-#: openssl.c:516
+#: openssl.c:518
 msgid "Parse PKCS#12 failed (see above errors)\n"
 msgstr "Misslyckades med att tolka PKCS#12 (se fel ovan)\n"
 
-#: openssl.c:531
+#: openssl.c:533
 msgid "PKCS#12 contained no certificate!"
 msgstr "PKCS#12-filen innehöll inget certifikat!"
 
-#: openssl.c:540
+#: openssl.c:542
 msgid "PKCS#12 contained no private key!"
 msgstr "PKCS#12 innehöll inga privata nycklar!"
 
-#: openssl.c:545
+#: openssl.c:547
 msgid "PKCS#12"
 msgstr "PKCS#12"
 
-#: openssl.c:563
+#: openssl.c:565
 msgid "Can't load TPM engine.\n"
 msgstr "Kan inte läsa in TPM-motor.\n"
 
-#: openssl.c:569
+#: openssl.c:571
 msgid "Failed to init TPM engine\n"
 msgstr "Misslyckades med att initiera TPM-motor\n"
 
-#: openssl.c:579
+#: openssl.c:581
 msgid "Failed to set TPM SRK password\n"
 msgstr "Misslyckades med att sätta TPM SRK-lösenord\n"
 
-#: openssl.c:593
+#: openssl.c:595
 msgid "Failed to load TPM private key\n"
 msgstr "Misslyckades med att läsa in TPM-privat nyckel\n"
 
-#: openssl.c:599
+#: openssl.c:601
 msgid "Add key from TPM failed\n"
 msgstr "Misslyckades med att lägga till nyckel från TPM\n"
 
-#: openssl.c:649 openssl.c:795
+#: openssl.c:651 openssl.c:797
 #, c-format
 msgid "Failed to open certificate file %s: %s\n"
 msgstr "Misslyckades med att öppna certifikatfil %s: %s\n"
 
-#: openssl.c:659
+#: openssl.c:661
 msgid "Loading certificate failed\n"
 msgstr "Misslyckades med att läsa in certifikat\n"
 
-#: openssl.c:697
+#: openssl.c:699
 msgid "Failed to process all supporting certs. Trying anyway...\n"
 msgstr "Misslyckades med att bearbeta certifikat som stöds. Försöker ändå…\n"
 
-#: openssl.c:710
+#: openssl.c:712
 msgid "PEM file"
 msgstr "PEM-fil"
 
-#: openssl.c:739
+#: openssl.c:741
 #, c-format
 msgid "Failed to create BIO for keystore item '%s'\n"
 msgstr "Misslyckades med att skapa BIO för nyckellagringsobjektet ”%s”\n"
 
-#: openssl.c:764
+#: openssl.c:766
 msgid "Loading private key failed (wrong passphrase?)\n"
 msgstr "Misslyckades med att läsa in privat nyckel (fel lösenfras)\n"
 
-#: openssl.c:770
+#: openssl.c:772
 msgid "Loading private key failed (see above errors)\n"
 msgstr "Inläsning av privat nyckel misslyckades (se fel ovan)\n"
 
-#: openssl.c:818
+#: openssl.c:820
 msgid "Failed to load X509 certificate from keystore\n"
 msgstr "Misslyckades med att läsa in X509-certifikat från nyckellager\n"
 
-#: openssl.c:824
+#: openssl.c:826
 msgid "Failed to use X509 certificate from keystore\n"
 msgstr "Misslyckades med att använda X509-certifikat från nyckellager\n"
 
-#: openssl.c:857
+#: openssl.c:859
 msgid "Failed to use private key from keystore\n"
 msgstr "Misslyckades med att använda privat nyckel från nyckellager\n"
 
-#: openssl.c:872
+#: openssl.c:874
 #, c-format
 msgid "Failed to open private key file %s: %s\n"
 msgstr "Misslyckades med att öppna privat nyckelfil %s: %s\n"
 
-#: openssl.c:892
+#: openssl.c:894
 msgid "Loading private key failed\n"
 msgstr "Misslyckades med att läsa in privat nyckel\n"
 
-#: openssl.c:913
+#: openssl.c:915
 #, c-format
 msgid "Failed to identify private key type in '%s'\n"
 msgstr "Misslyckades med att identifiera privat nyckeltyp i ”%s\n"
 
-#: openssl.c:1075
+#: openssl.c:1077
 #, c-format
 msgid "Matched DNS altname '%s'\n"
 msgstr "Matchade DNS-altname ”%s”\n"
 
-#: openssl.c:1082
+#: openssl.c:1084
 #, c-format
 msgid "No match for altname '%s'\n"
 msgstr "Ingen match för altname ”%s”\n"
 
-#: openssl.c:1096
+#: openssl.c:1098
 #, c-format
 msgid "Certificate has GEN_IPADD altname with bogus length %d\n"
 msgstr "Certifikat har GEN_IPADD altname med påhittad längd %d\n"
 
-#: openssl.c:1107 openssl.c:1252
+#: openssl.c:1109 openssl.c:1254
 #, c-format
 msgid "Matched %s address '%s'\n"
 msgstr "Matchade %s adress ”%s”\n"
 
-#: openssl.c:1114
+#: openssl.c:1116
 #, c-format
 msgid "No match for %s address '%s'\n"
 msgstr "Ingen match för %s adress ”%s”\n"
 
-#: openssl.c:1156
+#: openssl.c:1158
 #, c-format
 msgid "URI '%s' has non-empty path; ignoring\n"
 msgstr "URI ”%s” har icke-tom sökväg, ignorerar\n"
 
-#: openssl.c:1161
+#: openssl.c:1163
 #, c-format
 msgid "Matched URI '%s'\n"
 msgstr "Matchade URI ”%s”\n"
 
-#: openssl.c:1172
+#: openssl.c:1174
 #, c-format
 msgid "No match for URI '%s'\n"
 msgstr "Ingen match för URI ”%s”\n"
 
-#: openssl.c:1187
+#: openssl.c:1189
 #, c-format
 msgid "No altname in peer cert matched '%s'\n"
 msgstr "Inget altnamn i motparts certifikat matchade ”%s”\n"
 
-#: openssl.c:1195
+#: openssl.c:1197
 msgid "No subject name in peer cert!\n"
 msgstr "Inget ämnesnamn i motparts certifikat!\n"
 
-#: openssl.c:1215
+#: openssl.c:1217
 msgid "Failed to parse subject name in peer cert\n"
 msgstr "Misslyckades med att tolka ämnesnamn i motparts certifikat\n"
 
-#: openssl.c:1222
+#: openssl.c:1224
 #, c-format
 msgid "Peer cert subject mismatch ('%s' != '%s')\n"
 msgstr "Motparts certifikat matchar ej ('%s' != '%s')\n"
 
-#: openssl.c:1227 openssl.c:1260
+#: openssl.c:1229 openssl.c:1262
 #, c-format
 msgid "Matched peer certificate subject name '%s'\n"
 msgstr "Matchade motparts certifikat ämnesnamn ”%s”\n"
 
-#: openssl.c:1361
+#: openssl.c:1363
 #, c-format
 msgid "Extra cert from cafile: '%s'\n"
 msgstr "Extra certifikat från cafile: ”%s”\n"
 
-#: openssl.c:1392
+#: openssl.c:1394
 msgid "Error in client cert notAfter field\n"
 msgstr "Fel i klientcertifikat notAfter-fält\n"
 
-#: openssl.c:1405
+#: openssl.c:1407
 msgid "<error>"
 msgstr "<fel>"
 
-#: openssl.c:1504
+#: openssl.c:1506
 #, c-format
 msgid "Failed to read certs from CA file '%s'\n"
 msgstr "Misslyckades med att läsa certifikat från CA-fil ”%s”\n"
 
-#: openssl.c:1537
+#: openssl.c:1539
 #, c-format
 msgid "Failed to open CA file '%s'\n"
 msgstr "Misslyckades med att öppna CA-filen ”%s”\n"
 
-#: openssl.c:1597
+#: openssl.c:1599
 msgid "SSL connection failure\n"
 msgstr "SSL-anslutning misslyckades\n"
 
-#: openssl.c:1766
+#: openssl.c:1768
 msgid "Failed to calculate OATH HMAC\n"
 msgstr "Misslyckades med att beräknaOATH HMAC\n"
 
