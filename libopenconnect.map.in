@@ -78,6 +78,7 @@ OPENCONNECT_5_3 {
 	openconnect_override_getaddrinfo;
 	openconnect_get_cstp_compression;
 	openconnect_get_dtls_compression;
+	openconnect_disable_ipv6;
 } OPENCONNECT_5_2;
 
 OPENCONNECT_PRIVATE {

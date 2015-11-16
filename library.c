@@ -412,6 +412,11 @@ void openconnect_set_xmlsha1(struct openconnect_info *vpninfo,
 	memcpy(&vpninfo->xmlsha1, xmlsha1, size);
 }
 
+void openconnect_disable_ipv6(struct openconnect_info *vpninfo)
+{
+	vpninfo->disable_ipv6 = 1;
+}
+
 int openconnect_set_cafile(struct openconnect_info *vpninfo, const char *cafile)
 {
 	UTF8CHECK(cafile);
