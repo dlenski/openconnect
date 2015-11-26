@@ -494,7 +494,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	}
 	vpninfo->ip_info.mtu = mtu;
 
-	if (!vpninfo->ip_info.addr && !vpninfo->ip_info.addr6) {
+	if (!vpninfo->ip_info.addr && !vpninfo->ip_info.addr6 &&
+	    !vpninfo->ip_info.netmask6) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("No IP address received. Aborting\n"));
 		return -EINVAL;
