@@ -165,6 +165,10 @@ static int openconnect_gnutls_read(struct openconnect_info *vpninfo, char *buf, 
 			   https://bugs.launchpad.net/bugs/1225276 */
 			vpn_progress(vpninfo, PRG_DEBUG, _("SSL socket closed uncleanly\n"));
 			return 0;
+		} else if (done == GNUTLS_E_REHANDSHAKE) {
+			int ret = cstp_handshake(vpninfo, 0);
+			if (ret)
+				return ret;
 		} else {
 			vpn_progress(vpninfo, PRG_ERR, _("Failed to read from SSL socket: %s\n"),
 				     gnutls_strerror(done));
@@ -220,6 +224,10 @@ static int openconnect_gnutls_gets(struct openconnect_info *vpninfo, char *buf, 
 				ret = -EINTR;
 				break;
 			}
+		} else if (ret == GNUTLS_E_REHANDSHAKE) {
+			ret = cstp_handshake(vpninfo, 0);
+			if (ret)
+				return ret;
 		} else {
 			vpn_progress(vpninfo, PRG_ERR, _("Failed to read from SSL socket: %s\n"),
 				     gnutls_strerror(ret));
@@ -1955,6 +1963,24 @@ static int verify_peer(gnutls_session_t session)
 		return GNUTLS_E_CERTIFICATE_ERROR;
 	}
 
+	if (vpninfo->peer_cert) {
+		unsigned char *prev_der = NULL;
+		int der_len = openconnect_get_peer_cert_DER(vpninfo, &prev_der);
+		if (der_len < 0) {
+			vpn_progress(vpninfo, PRG_ERR, _("Error comparing server's cert on rehandshake: %s\n"),
+				     strerror(-der_len));
+			return GNUTLS_E_CERTIFICATE_ERROR;
+		}
+		if (cert_list[0].size != der_len || memcmp(cert_list[0].data, prev_der, der_len)) {
+			vpn_progress(vpninfo, PRG_ERR, _("Server presented different cert on rehandshake\n"));
+			gnutls_free(prev_der);
+			return GNUTLS_E_CERTIFICATE_ERROR;
+		}
+		gnutls_free(prev_der);
+		vpn_progress(vpninfo, PRG_TRACE, _("Server presented identical cert on rehandshake\n"));
+		return 0;
+	}
+
 	err = gnutls_x509_crt_init(&cert);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR, _("Error initialising X509 cert structure\n"));
@@ -2077,7 +2103,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		vpninfo->peer_cert = NULL;
 	}
 	free(vpninfo->peer_cert_hash);
-	vpninfo->peer_cert_hash = 0;
+	vpninfo->peer_cert_hash = NULL;
 	gnutls_free(vpninfo->cstp_cipher);
 	vpninfo->cstp_cipher = NULL;
 
