@@ -36,6 +36,10 @@
 #include <openssl/ui.h>
 #include <openssl/rsa.h>
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#define X509_up_ref(x) 	CRYPTO_add(&(x)->references, 1, CRYPTO_LOCK_X509)
+#endif
+
 int openconnect_sha1(unsigned char *result, void *data, int len)
 {
 	EVP_MD_CTX c;
@@ -466,11 +470,7 @@ static int install_extra_certs(struct openconnect_info *vpninfo, const char *sou
 					  buf, sizeof(buf));
 			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Extra cert from %s: '%s'\n"), source, buf);
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
 			X509_up_ref(cert2);
-#else
-			CRYPTO_add(&cert2->references, 1, CRYPTO_LOCK_X509);
-#endif
 			SSL_CTX_add_extra_chain_cert(vpninfo->https_ctx, cert2);
 			cert = cert2;
 			goto next;
@@ -1279,51 +1279,6 @@ static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert
 }
 #endif /* OpenSSL < 1.0.2 */
 
-static int verify_peer(struct openconnect_info *vpninfo, SSL *https_ssl)
-{
-	int ret;
-	int vfy = SSL_get_verify_result(https_ssl);
-	const char *err_string = NULL;
-
-	if (vfy != X509_V_OK)
-		err_string = X509_verify_cert_error_string(vfy);
-	else {
-		unsigned char addrbuf[sizeof(struct in6_addr)];
-		int addrlen = 0;
-
-		if (inet_pton(AF_INET, vpninfo->hostname, addrbuf) > 0)
-			addrlen = 4;
-		else if (inet_pton(AF_INET6, vpninfo->hostname, addrbuf) > 0)
-			addrlen = 16;
-		else if (vpninfo->hostname[0] == '[' &&
-			 vpninfo->hostname[strlen(vpninfo->hostname)-1] == ']') {
-			char *p = &vpninfo->hostname[strlen(vpninfo->hostname)-1];
-			*p = 0;
-			if (inet_pton(AF_INET6, vpninfo->hostname + 1, addrbuf) > 0)
-				addrlen = 16;
-			*p = ']';
-		}
-
-		if (match_cert_hostname(vpninfo, vpninfo->peer_cert, addrbuf, addrlen))
-			err_string = _("certificate does not match hostname");
-	}
-	if (err_string) {
-		vpn_progress(vpninfo, PRG_INFO,
-			     _("Server certificate verify failed: %s\n"),
-			     err_string);
-
-		if (vpninfo->validate_peer_cert)
-			ret = vpninfo->validate_peer_cert(vpninfo->cbdata,
-							  err_string);
-		else
-			ret = -EINVAL;
-	} else {
-		ret = 0;
-	}
-
-	return ret;
-}
-
 /* Before OpenSSL 1.1 we could do this directly. And needed to. */
 #ifndef SSL_CTX_get_extra_chain_certs_only
 #define SSL_CTX_get_extra_chain_certs_only(ctx, st) \
@@ -1370,17 +1325,15 @@ static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 	X509_STORE_CTX_cleanup(&ctx);
 }
 
-#if OPENSSL_VERSION_NUMBER >= 0x00908000
 static int ssl_app_verify_callback(X509_STORE_CTX *ctx, void *arg)
 {
 	struct openconnect_info *vpninfo = arg;
+	const char *err_string = NULL;
 
 	if (vpninfo->peer_cert) {
-		/* This is a *rehandshake*. The SSL is switched to
-		   SSL_VERIFY_PEER mode after the first successful
-		   handshake, so returning failure actually matters.
-		   We check that it offers *precisely* the same
-		   cert that it did the first time. */
+		/* This is a *rehandshake*. Require that the server
+		 * presents exactly the same certificate as the
+		 * first time. */
 		if (X509_cmp(ctx->cert, vpninfo->peer_cert)) {
 			vpn_progress(vpninfo, PRG_ERR, _("Server presented different cert on rehandshake\n"));
 			return 0;
@@ -1388,12 +1341,46 @@ static int ssl_app_verify_callback(X509_STORE_CTX *ctx, void *arg)
 		vpn_progress(vpninfo, PRG_TRACE, _("Server presented identical cert on rehandshake\n"));
 		return 1;
 	}
-	/* We've seen certificates in the wild which don't have the
-	   purpose fields filled in correctly */
-	X509_VERIFY_PARAM_set_purpose(ctx->param, X509_PURPOSE_ANY);
-	return X509_verify_cert(ctx);
+	vpninfo->peer_cert = ctx->cert;
+	X509_up_ref(ctx->cert);
+
+	set_peer_cert_hash(vpninfo);
+
+	if (!X509_verify_cert(ctx)) {
+		err_string = X509_verify_cert_error_string(X509_STORE_CTX_get_error(ctx));
+	} else {
+		unsigned char addrbuf[sizeof(struct in6_addr)];
+		int addrlen = 0;
+
+		if (inet_pton(AF_INET, vpninfo->hostname, addrbuf) > 0)
+			addrlen = 4;
+		else if (inet_pton(AF_INET6, vpninfo->hostname, addrbuf) > 0)
+			addrlen = 16;
+		else if (vpninfo->hostname[0] == '[' &&
+			 vpninfo->hostname[strlen(vpninfo->hostname)-1] == ']') {
+			char *p = &vpninfo->hostname[strlen(vpninfo->hostname)-1];
+			*p = 0;
+			if (inet_pton(AF_INET6, vpninfo->hostname + 1, addrbuf) > 0)
+				addrlen = 16;
+			*p = ']';
+		}
+
+		if (match_cert_hostname(vpninfo, vpninfo->peer_cert, addrbuf, addrlen))
+			err_string = _("certificate does not match hostname");
+		else
+			return 1;
+	}
+
+	vpn_progress(vpninfo, PRG_INFO,
+		     _("Server certificate verify failed: %s\n"),
+		     err_string);
+
+	if (vpninfo->validate_peer_cert &&
+	    !vpninfo->validate_peer_cert(vpninfo->cbdata, err_string))
+		return 1;
+
+	return 0;
 }
-#endif
 
 static int check_certificate_expiry(struct openconnect_info *vpninfo)
 {
@@ -1485,18 +1472,12 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			check_certificate_expiry(vpninfo);
 		}
 
-		/* We just want to do:
-		   SSL_CTX_set_purpose(vpninfo->https_ctx, X509_PURPOSE_ANY);
-		   ... but it doesn't work with OpenSSL < 0.9.8k because of
-		   problems with inheritance (fixed in v1.1.4.6 of
-		   crypto/x509/x509_vpm.c) so we have to play silly buggers
-		   instead. This trick doesn't work _either_ in < 0.9.7 but
-		   I don't know of _any_ workaround which will, and can't
-		   be bothered to find out either. */
-#if OPENSSL_VERSION_NUMBER >= 0x00908000
+		/* We've seen certificates in the wild which don't have the
+		   purpose fields filled in correctly */
+		SSL_CTX_set_purpose(vpninfo->https_ctx, X509_PURPOSE_ANY);
 		SSL_CTX_set_cert_verify_callback(vpninfo->https_ctx,
 						 ssl_app_verify_callback, vpninfo);
-#endif
+
 		if (!vpninfo->no_system_trust)
 			SSL_CTX_set_default_verify_paths(vpninfo->https_ctx);
 
@@ -1597,6 +1578,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	if (string_is_hostname(vpninfo->hostname))
 		SSL_set_tlsext_host_name(https_ssl, vpninfo->hostname);
 #endif
+	SSL_set_verify(https_ssl, SSL_VERIFY_PEER, NULL);
 
 	vpn_progress(vpninfo, PRG_INFO, _("SSL negotiation with %s\n"),
 		     vpninfo->hostname);
@@ -1632,32 +1614,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	}
 
 	vpninfo->cstp_cipher = (char *)SSL_get_cipher_name(https_ssl);
-	vpninfo->peer_cert = SSL_get_peer_certificate(https_ssl);
-	set_peer_cert_hash(vpninfo);
-
-	/* Ideally we would use SSL_set_verify(SSL_VERIFY_PEER, …) with
-	 * our own callback based on what verify_peer() does. However,
-	 * that doesn't work because OpenSSL doesn't give us any way
-	 * to pass the private 'vpninfo' structure through to our own
-	 * callback. So we have to use SSL_VERIFY_NONE and then call
-	 * verify_peer() after the fact, to check it was OK. */
-	if (verify_peer(vpninfo, https_ssl)) {
-		SSL_free(https_ssl);
-		closesocket(ssl_sock);
-		return -EINVAL;
-	}
-	/* But for a renegotiation, we *can* do it from a callback;
-	 * we can use the ssl_app_verify_callback() which *does* have
-	 * private data passed to it. And all we do in that case is
-	 * check that the server's certificate in the renegotiation
-	 * is identical to the one we saw the first time, and stored
-	 * in vpninfo->peer_cert.
-	 *
-	 * So *after* the successful first negotiation, we then set
-	 * the mode to SSL_VERIFY_PEER so that returning failure from
-	 * ssl_app_verify_callback() will actually have the desired
-	 * effect of terminating the connection. */
-	SSL_set_verify(https_ssl, SSL_VERIFY_PEER, NULL);
 
 	vpninfo->ssl_fd = ssl_sock;
 	vpninfo->https_ssl = https_ssl;
