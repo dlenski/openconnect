@@ -361,7 +361,12 @@ static int dtls_try_handshake(struct openconnect_info *vpninfo)
 		   (this is one of the areas in which Cisco's DTLS differs
 		   from the RFC4347 spec), and DPD should help us notice
 		   if *nothing* is getting through. */
-#if OPENSSL_VERSION_NUMBER >= 0x1000005fL
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+		/* OpenSSL 1.1.0 or above. Do nothing. The SSLeay() function
+		   got renamed, and it's a pointless check in this case
+		   anyway because there's *no* chance that we linked against
+		   1.1.0 and are running against something older than 1.0.0e. */
+#elif OPENSSL_VERSION_NUMBER >= 0x1000005fL
 		/* OpenSSL 1.0.0e or above doesn't resend anyway; do nothing.
 		   However, if we were *built* against 1.0.0e or newer, but at
 		   runtime we find that we are being run against an older
