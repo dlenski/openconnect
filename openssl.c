@@ -466,7 +466,11 @@ static int install_extra_certs(struct openconnect_info *vpninfo, const char *sou
 					  buf, sizeof(buf));
 			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Extra cert from %s: '%s'\n"), source, buf);
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+			X509_up_ref(cert2);
+#else
 			CRYPTO_add(&cert2->references, 1, CRYPTO_LOCK_X509);
+#endif
 			SSL_CTX_add_extra_chain_cert(vpninfo->https_ctx, cert2);
 			cert = cert2;
 			goto next;
