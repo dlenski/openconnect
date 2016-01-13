@@ -1,7 +1,7 @@
 /*
  * OpenConnect (SSL + DTLS) VPN client
  *
- * Copyright © 2008-2015 Intel Corporation.
+ * Copyright © 2008-2016 Intel Corporation.
  * Copyright © 2008 Nick Andrew <nick@nick-andrew.net>
  * Copyright © 2013 John Morrissey <jwm@horde.net>
  *
@@ -37,13 +37,18 @@
  *  - Add openconnect_get_cstp_compression().
  *  - Add openconnect_get_dtls_compression().
  *
- * API version 5.2:
+ * API version 5.2 (v7.05; 2015-03-10):
  *  - Add openconnect_set_http_auth(), openconnect_set_protocol().
  *
- * API version 5.1:
+ * API version 5.1 (v7.05; 2015-03-10):
  *  - Add openconnect_set_compression_mode(), openconnect_set_loglevel()
  *
- * API version 5.0:
+ *   (Note: API 5.1 and openconnect_set_compression_mode() were present in
+ *    this file in the v7.04 release on 2015-01-25, but the symbol versioning
+ *    for the new function was OPENCONNECT_5_0, and openconnect_set_loglevel()
+ *    was not yet present.)
+ *
+ * API version 5.0 (v7.00; 2014-11-27):
  *  - Remove OPENCONNECT_X509 and openconnect_get_peer_cert().
  *  - Change openconnect_get_cert_der() to openconnect_get_peer_cert_DER() etc.
  *  - Add openconnect_check_peer_cert_hash().
@@ -51,27 +56,27 @@
  *  - Add openconnect_has_yubioath_support() and OC_TOKEN_MODE_YUBIOATH.
  *  - Add openconnect_has_system_key_support().
  *
- * API version 4.1:
+ * API version 4.1 (v7.00; 2014-11-27):
  *  - Add openconnect_get_cstp_cipher(), openconnect_get_dtls_cipher(),
  *    openconnect_set_system_trust(), openconnect_set_csd_environ().
  *  - Change openconnect_init_ssl() to return int.
  *
- * API version 4.0:
+ * API version 4.0 (v7.00; 2014-11-27):
  *  - Change string handling to never transfer ownership of allocations.
  *  - Add openconnect_set_option_value(), openconnect_free_cert_info().
  *
- * API version 3.4:
+ * API version 3.4 (v7.00; 2014-11-27):
  *  - Add openconnect_set_token_callbacks()
  *
- * API version 3.3:
+ * API version 3.3 (v6.00; 2014-07-08):
  *  - Add openconnect_set_pfs(), openconnect_set_dpd(),
  *    openconnect_set_proxy_auth()
  *
- * API version 3.2:
+ * API version 3.2 (v5.99; 2014-03-05):
  *  - Add OC_TOKEN_MODE_HOTP and allow openconnect_has_oath_support() to
  *    return 2 to indicate that it is present.
  *
- * API version 3.1:
+ * API version 3.1 (v5.99; 2014-03-05):
  *  - Add openconnect_setup_cmd_pipe(), openconnect_mainloop(),
  *    openconnect_setup_tun_device(), openconnect_setup_tun_script(),
  *    openconnect_setup_tun_fd(), openconnect_setup_dtls(),
@@ -81,42 +86,42 @@
  *    openconnect_set_mobile_info(), openconnect_set_xmlpost(),
  *    openconnect_set_stats_handler()
  *
- * API version 3.0:
+ * API version 3.0 (v5.99; 2014-03-05):
  *  - Change oc_form_opt_select->choices to an array of pointers
  *  - Add oc_form_opt->flags
  *  - Add OC_FORM_RESULT_* and oc_auth_form->authgroup_*
  *
- * API version 2.2:
+ * API version 2.2 (v5.00; 2013-05-16):
  *  - Add openconnect_set_token_mode(), openconnect_has_oath_support()
  *  - Deprecate openconnect_set_stoken_mode()
  *
- * API version 2.1:
+ * API version 2.1 (v4.99; 2013-02-07):
  *  - Add openconnect_set_reported_os()
  *  - Add openconnect_set_stoken_mode(), openconnect_has_stoken_support()
  *
- * API version 2.0:
+ * API version 2.0 (v3.99; 2012-06-13):
  *  - OPENCONNECT_X509 is now an opaque type.
  *  - Add openconnect_has_pkcs11_support(), openconnect_has_tss_blob_support()
  *  - Rename openconnect_init_openssl() -> openconnect_init_ssl()
  *  - Rename openconnect_vpninfo_new_with_cbdata() -> openconnect_vpninfo_new()
  *    and kill the old openconnect_vpninfo_new() and its callback types.
  *
- * API version 1.5:
+ * API version 1.5 (v3.99; 2012-06-13):
  *  - Add openconnect_get_cert_details(), openconnect_get_cert_DER().
  *
- * API version 1.4:
+ * API version 1.4 (v3.19; 2012-05-17):
  *  - Add openconnect_set_cancel_fd()
  *
- * API version 1.3:
+ * API version 1.3 (v3.13; 2011-09-30):
  *  - Add openconnect_set_cert_expiry_warning() to change from default 60 days
  *
- * API version 1.2:
+ * API version 1.2 (v3.10; 2011-06-30)
  *  - Add openconnect_vpninfo_new_with_cbdata()
  *
- * API version 1.1:
+ * API version 1.1 (v3.02; 2011-04-19):
  *  - Add openconnect_vpninfo_free()
  *
- * API version 1.0:
+ * API version 1.0 (v3.00; 2011-03-09):
  *  - Initial version
  *
  * NEW LIBRARY FUNCTION CHECKLIST:
