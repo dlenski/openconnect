@@ -36,6 +36,7 @@
  *  - Add openconnect_override_getaddrinfo().
  *  - Add openconnect_get_cstp_compression().
  *  - Add openconnect_get_dtls_compression().
+ *  - Add openconnect_disable_ipv6().
  *
  * API version 5.2 (v7.05; 2015-03-10):
  *  - Add openconnect_set_http_auth(), openconnect_set_protocol().
@@ -456,6 +457,7 @@ int openconnect_get_port(struct openconnect_info *);
 const char *openconnect_get_cookie(struct openconnect_info *);
 void openconnect_clear_cookie(struct openconnect_info *);
 
+void openconnect_disable_ipv6(struct openconnect_info *vpninfo);
 void openconnect_reset_ssl(struct openconnect_info *vpninfo);
 int openconnect_parse_url(struct openconnect_info *vpninfo, const char *url);
 void openconnect_set_cert_expiry_warning(struct openconnect_info *vpninfo,
