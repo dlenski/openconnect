@@ -1,0 +1,8 @@
+Build:
+  script:
+  - git submodule update --init && autoreconf -fvi && 
+    ./configure && make -j4 && make check -j4
+  tags:
+  - gnutls3.3
+  except:
+  - tags
