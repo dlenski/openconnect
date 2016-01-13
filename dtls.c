@@ -489,6 +489,11 @@ struct {
 	  "NONE:+VERS-DTLS1.2:+COMP-NULL:+AES-256-GCM:+AEAD:+RSA:%COMPAT:+SIGN-ALL", "3.2.7" },
 	{ "OC2-DTLS1_2-CHACHA20-POLY1305", GNUTLS_DTLS1_2, GNUTLS_CIPHER_CHACHA20_POLY1305, GNUTLS_KX_PSK, GNUTLS_MAC_AEAD,
 	  "NONE:+VERS-DTLS1.2:+COMP-NULL:+CHACHA20-POLY1305:+AEAD:+PSK:%COMPAT:+SIGN-ALL", "3.4.8" },
+	/* NB. We agreed that any new cipher suites probably shouldn't use
+	 * Cisco's session resume hack (which ties us to a specific version
+	 * of DTLS). Instead, we'll use GNUTLS_KX_PSK and let it negotiate
+	 * the session properly. We might want to wait for
+	 * draft-jay-tls-psk-identity-extension before we do that. */
 };
 
 #if GNUTLS_VERSION_NUMBER < 0x030009
