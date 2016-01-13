@@ -472,22 +472,23 @@ struct {
 	const char *name;
 	gnutls_protocol_t version;
 	gnutls_cipher_algorithm_t cipher;
+	gnutls_kx_algorithm_t kx;
 	gnutls_mac_algorithm_t mac;
 	const char *prio;
 	const char *min_gnutls_version;
 } gnutls_dtls_ciphers[] = {
-	{ "AES128-SHA", GNUTLS_DTLS0_9, GNUTLS_CIPHER_AES_128_CBC, GNUTLS_MAC_SHA1,
+	{ "AES128-SHA", GNUTLS_DTLS0_9, GNUTLS_CIPHER_AES_128_CBC, GNUTLS_KX_RSA, GNUTLS_MAC_SHA1,
 	  "NONE:+VERS-DTLS0.9:+COMP-NULL:+AES-128-CBC:+SHA1:+RSA:%COMPAT", "3.0.0" },
-	{ "AES256-SHA", GNUTLS_DTLS0_9, GNUTLS_CIPHER_AES_256_CBC, GNUTLS_MAC_SHA1,
+	{ "AES256-SHA", GNUTLS_DTLS0_9, GNUTLS_CIPHER_AES_256_CBC, GNUTLS_KX_RSA, GNUTLS_MAC_SHA1,
 	  "NONE:+VERS-DTLS0.9:+COMP-NULL:+AES-256-CBC:+SHA1:+RSA:%COMPAT", "3.0.0" },
-	{ "DES-CBC3-SHA", GNUTLS_DTLS0_9, GNUTLS_CIPHER_3DES_CBC, GNUTLS_MAC_SHA1,
+	{ "DES-CBC3-SHA", GNUTLS_DTLS0_9, GNUTLS_CIPHER_3DES_CBC, GNUTLS_KX_RSA, GNUTLS_MAC_SHA1,
 	  "NONE:+VERS-DTLS0.9:+COMP-NULL:+3DES-CBC:+SHA1:+RSA:%COMPAT", "3.0.0" },
-	{ "OC-DTLS1_2-AES128-GCM", GNUTLS_DTLS1_2, GNUTLS_CIPHER_AES_128_GCM, GNUTLS_MAC_AEAD,
+	{ "OC-DTLS1_2-AES128-GCM", GNUTLS_DTLS1_2, GNUTLS_CIPHER_AES_128_GCM, GNUTLS_KX_RSA, GNUTLS_MAC_AEAD,
 	  "NONE:+VERS-DTLS1.2:+COMP-NULL:+AES-128-GCM:+AEAD:+RSA:%COMPAT:+SIGN-ALL", "3.2.7" },
-	{ "OC-DTLS1_2-AES256-GCM", GNUTLS_DTLS1_2, GNUTLS_CIPHER_AES_256_GCM, GNUTLS_MAC_AEAD,
+	{ "OC-DTLS1_2-AES256-GCM", GNUTLS_DTLS1_2, GNUTLS_CIPHER_AES_256_GCM, GNUTLS_KX_RSA, GNUTLS_MAC_AEAD,
 	  "NONE:+VERS-DTLS1.2:+COMP-NULL:+AES-256-GCM:+AEAD:+RSA:%COMPAT:+SIGN-ALL", "3.2.7" },
-	{ "OC-DTLS1_2-CHACHA20-POLY1305", GNUTLS_DTLS1_2, GNUTLS_CIPHER_CHACHA20_POLY1305, GNUTLS_MAC_AEAD,
-	  "NONE:+VERS-DTLS1.2:+COMP-NULL:+CHACHA20-POLY1305:+AEAD:+RSA:%COMPAT:+SIGN-ALL", "3.4.0" },
+	{ "OC2-DTLS1_2-CHACHA20-POLY1305", GNUTLS_DTLS1_2, GNUTLS_CIPHER_CHACHA20_POLY1305, GNUTLS_KX_PSK, GNUTLS_MAC_AEAD,
+	  "NONE:+VERS-DTLS1.2:+COMP-NULL:+CHACHA20-POLY1305:+AEAD:+PSK:%COMPAT:+SIGN-ALL", "3.4.8" },
 };
 
 #if GNUTLS_VERSION_NUMBER < 0x030009
@@ -591,7 +592,7 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 	session_id.data = vpninfo->dtls_session_id;
 	session_id.size = sizeof(vpninfo->dtls_session_id);
 	err = gnutls_session_set_premaster(dtls_ssl, GNUTLS_CLIENT, gnutls_dtls_ciphers[cipher].version,
-					   GNUTLS_KX_RSA, gnutls_dtls_ciphers[cipher].cipher,
+					   gnutls_dtls_ciphers[cipher].kx, gnutls_dtls_ciphers[cipher].cipher,
 					   gnutls_dtls_ciphers[cipher].mac, GNUTLS_COMP_NULL,
 					   &master_secret, &session_id);
 	if (err) {
