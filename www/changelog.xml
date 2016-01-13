@@ -15,6 +15,10 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
    <ul>
+       <li>Fix ChaCha20-Poly1305 cipher suite to reflect final standard.</li>
+       <li>Add ability to disable IPv6 support via library API.</li>
+       <li>Set groups appropriately when using <tt>setuid()</tt>.</li>
+       <li>Automatic DTLS MTU detection.</li>
        <li>Support SSL client certificate authentication with Juniper servers.</li>
        <li>Revamp SSL certificate validation for OpenSSL and stop supporting OpenSSL older than 0.9.8.</li>
        <li>Fix handling of multiple DNS search domains with Network Connect.</li>
