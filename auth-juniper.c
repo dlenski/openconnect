@@ -245,49 +245,6 @@ static struct oc_auth_form *parse_form_node(struct openconnect_info *vpninfo,
 	return form;
 }
 
-static int oncp_https_submit(struct openconnect_info *vpninfo,
-			     struct oc_text_buf *req_buf, xmlDocPtr *doc)
-{
-	int ret;
-	char *form_buf = NULL;
-	struct oc_text_buf *url;
-
-	if (req_buf && req_buf->pos)
-		ret =do_https_request(vpninfo, "POST",
-				      "application/x-www-form-urlencoded",
-				      req_buf, &form_buf, 2);
-	else
-		ret = do_https_request(vpninfo, "GET", NULL, NULL,
-				       &form_buf, 2);
-
-	if (ret < 0)
-		return ret;
-
-	url = buf_alloc();
-	buf_append(url, "https://%s", vpninfo->hostname);
-	if (vpninfo->port != 443)
-		buf_append(url, ":%d", vpninfo->port);
-	buf_append(url, "/");
-	if (vpninfo->urlpath)
-		buf_append(url, "%s", vpninfo->urlpath);
-
-	if (buf_error(url)) {
-		free(form_buf);
-		return buf_free(url);
-	}
-
-	*doc = htmlReadMemory(form_buf, ret, url->data, NULL,
-			     HTML_PARSE_RECOVER|HTML_PARSE_NOERROR|HTML_PARSE_NOWARNING|HTML_PARSE_NONET);
-	buf_free(url);
-	free(form_buf);
-	if (!*doc) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to parse HTML document\n"));
-		return -EINVAL;
-	}
-	return 0;
-}
-
 static xmlNodePtr find_form_node(xmlDocPtr doc)
 {
 	xmlNodePtr root, node;
@@ -494,9 +451,49 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 		return -ENOMEM;
 
 	while (1) {
-		ret = oncp_https_submit(vpninfo, resp_buf, &doc);
-		if (ret || !check_cookie_success(vpninfo))
+		char *form_buf = NULL;
+		struct oc_text_buf *url;
+
+		if (resp_buf && resp_buf->pos)
+			ret = do_https_request(vpninfo, "POST",
+					       "application/x-www-form-urlencoded",
+					       resp_buf, &form_buf, 2);
+		else
+			ret = do_https_request(vpninfo, "GET", NULL, NULL,
+					       &form_buf, 2);
+
+		if (ret < 0)
 			break;
+
+		url = buf_alloc();
+		buf_append(url, "https://%s", vpninfo->hostname);
+		if (vpninfo->port != 443)
+			buf_append(url, ":%d", vpninfo->port);
+		buf_append(url, "/");
+		if (vpninfo->urlpath)
+			buf_append(url, "%s", vpninfo->urlpath);
+
+		if (buf_error(url)) {
+			free(form_buf);
+			ret = buf_free(url);
+			break;
+		}
+
+		doc = htmlReadMemory(form_buf, ret, url->data, NULL,
+				     HTML_PARSE_RECOVER|HTML_PARSE_NOERROR|HTML_PARSE_NOWARNING|HTML_PARSE_NONET);
+		buf_free(url);
+		free(form_buf);
+		if (!doc) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to parse HTML document\n"));
+			ret = -EINVAL;
+			break;
+		}
+
+		if (!check_cookie_success(vpninfo)) {
+			ret = 0;
+			break;
+		}
 
 		buf_truncate(resp_buf);
 
