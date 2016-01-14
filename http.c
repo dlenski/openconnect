@@ -813,13 +813,13 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 	}
 
 	/*
-	 * It would be nice to use cURL for this, but we really need to guarantee
-	 * that we'll be using OpenSSL (for the TPM stuff), and it doesn't seem
-	 * to have any way to let us provide our own socket read/write functions.
-	 * We can only provide a socket _open_ function. Which would require having
-	 * a socketpair() and servicing the "other" end of it.
+	 * A long time ago, I *wanted* to use an HTTP client library like cURL
+	 * for this. But we need a *lot* of control over the underlying SSL
+	 * transport, and we also have to do horrid tricks like the Juniper NC
+	 * 'GET' request that actaully behaves like a 'CONNECT'.
 	 *
-	 * So we process the HTTP for ourselves...
+	 * So the world gained Yet Another HTTP Implementation. Sorry.
+	 *
 	 */
 	buf_truncate(buf);
 	buf_append(buf, "%s /%s HTTP/1.1\r\n", method, vpninfo->urlpath ?: "");
