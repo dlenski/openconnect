@@ -305,7 +305,8 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 	if (vpninfo->quit_reason && vpninfo->proto.vpn_close_session)
 		vpninfo->proto.vpn_close_session(vpninfo, vpninfo->quit_reason);
 
-	os_shutdown_tun(vpninfo);
+	if (vpninfo->tun_is_up)
+		os_shutdown_tun(vpninfo);
 	return ret < 0 ? ret : -EIO;
 }
 
