@@ -1,8 +1,28 @@
-Build:
+Build with gnutls:
   script:
   - git submodule update --init && autoreconf -fvi && 
     ./configure && make -j4 && make check -j4
   tags:
   - gnutls3.3
+  except:
+  - tags
+
+Build with openssl:
+  script:
+  - git submodule update --init && autoreconf -fvi && 
+    ./configure --without-openssl-version-check --with-openssl && make -j4 && make check -j4
+  tags:
+  - openssl
+  except:
+  - tags
+
+Build and Check for windows:
+  script:
+  - git submodule update --init && autoreconf -fvi && 
+    mingw32-configure && mingw32-make -j4 && mingw32-make -j4 check
+  tags:
+  - gnutls3.3
+  - wine
+  - mingw
   except:
   - tags
