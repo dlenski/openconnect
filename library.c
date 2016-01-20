@@ -466,8 +466,10 @@ int openconnect_get_ip_info(struct openconnect_info *vpninfo,
 int openconnect_setup_csd(struct openconnect_info *vpninfo, uid_t uid,
 			  int silent, const char *wrapper)
 {
+#ifndef _WIN32
 	vpninfo->uid_csd = uid;
 	vpninfo->uid_csd_given = silent ? 2 : 1;
+#endif
 	STRDUP(vpninfo->csd_wrapper, wrapper);
 
 	return 0;

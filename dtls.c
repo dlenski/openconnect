@@ -1265,6 +1265,7 @@ static int detect_mtu_ipv6(struct openconnect_info *vpninfo, unsigned char *buf)
 		break;
 	} while(max_resends-- > 0);
 
+#ifndef _WIN32
 	/* If we received back our DPD packet, do nothing; otherwise,
 	 * attempt to get MTU from the ICMP6 packet we received */
 	if (ret <= 0) {
@@ -1282,6 +1283,9 @@ static int detect_mtu_ipv6(struct openconnect_info *vpninfo, unsigned char *buf)
 			}
 		}
 	}
+#else
+ mtu6_fail:
+#endif
 
 	return cur;
  fail:

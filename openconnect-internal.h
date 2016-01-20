@@ -399,10 +399,7 @@ struct openconnect_info {
 	int nopasswd;
 	int xmlpost;
 	char *dtls_ciphers;
-	uid_t uid_csd;
-	gid_t gid_csd;
 	char *csd_wrapper;
-	int uid_csd_given;
 	int no_http_keepalive;
 	int dump_http_traffic;
 
@@ -538,6 +535,9 @@ struct openconnect_info {
 	char *dtls_cipher;
 	char *vpnc_script;
 #ifndef _WIN32
+	int uid_csd_given;
+	uid_t uid_csd;
+	gid_t gid_csd;
 	uid_t uid;
 	gid_t gid;
 #endif
