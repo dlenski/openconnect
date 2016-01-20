@@ -1067,6 +1067,8 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	return work_done;
 }
 
+#if defined(DTLS_GNUTLS)
+
 /* Old glibc doesn't define that */
 #if defined(__linux__) && !defined(IPV6_PATHMTU)
 # define IPV6_PATHMTU 61
@@ -1330,6 +1332,8 @@ static void detect_mtu(struct openconnect_info *vpninfo)
 	gnutls_record_set_timeout(vpninfo->dtls_ssl, 0);
 	free(buf);
 }
+
+#endif
 
 #else /* !HAVE_DTLS */
 #warning Your SSL library does not seem to support Cisco DTLS compatibility
