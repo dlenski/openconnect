@@ -215,6 +215,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			       vpninfo->disable_ipv6 ? "IPv4" : "IPv6,IPv4");
 	if (!vpninfo->disable_ipv6)
 		buf_append(reqbuf, "X-CSTP-Full-IPv6-Capability: true\r\n");
+#ifdef HAVE_DTLS
 	if (vpninfo->dtls_state != DTLS_DISABLED) {
 		buf_append(reqbuf, "X-DTLS-Master-Secret: ");
 		for (i = 0; i < sizeof(vpninfo->dtls_secret); i++) {
@@ -236,6 +237,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
 		append_compr_types(reqbuf, "DTLS", vpninfo->req_compr & ~COMPR_DEFLATE);
 	}
+#endif
 	buf_append(reqbuf, "\r\n");
 
 	if (buf_error(reqbuf)) {
