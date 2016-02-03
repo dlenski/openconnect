@@ -479,6 +479,13 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 			break;
 		}
 
+		if (!check_cookie_success(vpninfo)) {
+			buf_free(url);
+			free(form_buf);
+			ret = 0;
+			break;
+		}
+
 		doc = htmlReadMemory(form_buf, ret, url->data, NULL,
 				     HTML_PARSE_RECOVER|HTML_PARSE_NOERROR|HTML_PARSE_NOWARNING|HTML_PARSE_NONET);
 		buf_free(url);
@@ -487,11 +494,6 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to parse HTML document\n"));
 			ret = -EINVAL;
-			break;
-		}
-
-		if (!check_cookie_success(vpninfo)) {
-			ret = 0;
 			break;
 		}
 
