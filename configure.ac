@@ -28,7 +28,7 @@ symver_vasprintf=
 symver_win32_strerror=
 
 case $host_os in
- *linux* | *gnu*)
+ *linux* | *gnu* | *nacl*)
     AC_MSG_NOTICE([Applying feature macros for GNU build])
     AC_DEFINE(_POSIX_C_SOURCE, 200112L, [_POSIX_C_SOURCE])
     # For asprintf()
