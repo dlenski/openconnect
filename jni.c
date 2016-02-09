@@ -1262,6 +1262,7 @@ JNIEXPORT jobject JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getIP
 	    set_string(ctx, jobj, "netmask6", ip->netmask6) ||
 	    set_string(ctx, jobj, "domain", ip->domain) ||
 	    set_string(ctx, jobj, "proxyPac", ip->proxy_pac) ||
+	    set_string(ctx, jobj, "gatewayAddr", ip->gateway_addr) ||
 	    set_int(ctx, jobj, "MTU", ip->mtu))
 		return NULL;
 

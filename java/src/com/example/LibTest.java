@@ -184,6 +184,7 @@ public final class LibTest {
 		System.out.println("+-IPv6: " + ip.addr6 + " / " + ip.netmask6);
 		System.out.println("+-Domain: " + ip.domain);
 		System.out.println("+-proxy.pac: " + ip.proxyPac);
+		System.out.println("+-Gateway IP: " + ip.gatewayAddr);
 		System.out.println("+-MTU: " + ip.MTU);
 		printList("+-DNS", ip.DNS);
 		printList("+-NBNS", ip.NBNS);

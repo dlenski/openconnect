@@ -252,6 +252,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		CloseHandle(vpninfo->dtls_event);
 #endif
 	free(vpninfo->peer_addr);
+	free(vpninfo->ip_info.gateway_addr);
 	free_optlist(vpninfo->csd_env);
 	free_optlist(vpninfo->script_env);
 	free_optlist(vpninfo->cookies);
@@ -385,6 +386,8 @@ int openconnect_set_hostname(struct openconnect_info *vpninfo,
 	vpninfo->unique_hostname = NULL;
 	free(vpninfo->peer_addr);
 	vpninfo->peer_addr = NULL;
+	free(vpninfo->ip_info.gateway_addr);
+	vpninfo->ip_info.gateway_addr = NULL;
 
 	return 0;
 }
@@ -530,10 +533,12 @@ void openconnect_reset_ssl(struct openconnect_info *vpninfo)
 {
 	vpninfo->got_cancel_cmd = 0;
 	openconnect_close_https(vpninfo, 0);
-	if (vpninfo->peer_addr) {
-		free(vpninfo->peer_addr);
-		vpninfo->peer_addr = NULL;
-	}
+
+	free(vpninfo->peer_addr);
+	vpninfo->peer_addr = NULL;
+	free(vpninfo->ip_info.gateway_addr);
+	vpninfo->ip_info.gateway_addr = NULL;
+
 	openconnect_clear_cookies(vpninfo);
 }
 

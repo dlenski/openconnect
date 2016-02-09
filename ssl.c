@@ -347,12 +347,17 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 			if (!err) {
 				/* Store the peer address we actually used, so that DTLS can
 				   use it again later */
-				if (host[0])
+				free(vpninfo->ip_info.gateway_addr);
+				vpninfo->ip_info.gateway_addr = NULL;
+
+				if (host[0]) {
+					vpninfo->ip_info.gateway_addr = strdup(host);
 					vpn_progress(vpninfo, PRG_INFO, _("Connected to %s%s%s:%s\n"),
 						     rp->ai_family == AF_INET6 ? "[" : "",
 						     host,
 						     rp->ai_family == AF_INET6 ? "]" : "",
 						     port);
+				}
 
 				free(vpninfo->peer_addr);
 				vpninfo->peer_addrlen = 0;
@@ -423,6 +428,8 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 				free(vpninfo->peer_addr);
 				vpninfo->peer_addr = 0;
 				vpninfo->peer_addrlen = 0;
+				free(vpninfo->ip_info.gateway_addr);
+				vpninfo->ip_info.gateway_addr = NULL;
 			}
 		}
 		freeaddrinfo(result);

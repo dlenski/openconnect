@@ -42,6 +42,7 @@ extern "C" {
  *  - Add openconnect_get_cstp_compression().
  *  - Add openconnect_get_dtls_compression().
  *  - Add openconnect_disable_ipv6().
+ *  - Add ip_info->gateway_addr.
  *
  * API version 5.2 (v7.05; 2015-03-10):
  *  - Add openconnect_set_http_auth(), openconnect_set_protocol().
@@ -249,6 +250,11 @@ struct oc_ip_info {
 	struct oc_split_include *split_dns;
 	struct oc_split_include *split_includes;
 	struct oc_split_include *split_excludes;
+
+	/* The elements above this line come from server-provided CSTP headers,
+	 * so they should be handled with caution.  gateway_addr is generated
+	 * locally from getnameinfo(). */
+	char *gateway_addr;
 };
 
 struct oc_vpn_option {

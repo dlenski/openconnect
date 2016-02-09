@@ -232,6 +232,7 @@ public abstract class LibOpenConnect {
 		public ArrayList<String> NBNS = new ArrayList<String>();
 		public String domain;
 		public String proxyPac;
+		public String gatewayAddr;
 		public int MTU;
 
 		public ArrayList<String> splitDNS = new ArrayList<String>();

@@ -210,11 +210,8 @@ static void set_banner(struct openconnect_info *vpninfo)
 
 void prepare_script_env(struct openconnect_info *vpninfo)
 {
-	char host[80];
-	int ret = getnameinfo(vpninfo->peer_addr, vpninfo->peer_addrlen, host,
-			      sizeof(host), NULL, 0, NI_NUMERICHOST);
-	if (!ret)
-		script_setenv(vpninfo, "VPNGATEWAY", host, 0);
+	if (vpninfo->ip_info.gateway_addr)
+		script_setenv(vpninfo, "VPNGATEWAY", vpninfo->ip_info.gateway_addr, 0);
 
 	set_banner(vpninfo);
 	script_setenv(vpninfo, "CISCO_SPLIT_INC", NULL, 0);
