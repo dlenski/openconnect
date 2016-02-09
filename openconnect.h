@@ -24,6 +24,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef _WIN32
 #define uid_t unsigned
 #endif
@@ -598,5 +602,9 @@ struct addrinfo;
 typedef int (*openconnect_getaddrinfo_vfn) (void *privdata, const char *node, const char *service,
 					    const struct addrinfo *hints, struct addrinfo **res);
 void openconnect_override_getaddrinfo(struct openconnect_info *vpninfo, openconnect_getaddrinfo_vfn gai_fn);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __OPENCONNECT_H__ */
