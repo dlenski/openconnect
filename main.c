@@ -123,12 +123,12 @@ static void __attribute__ ((format(printf, 3, 4)))
 	}
 }
 #define openlog(...)  /* */
-#elif defined(_WIN32)
+#elif defined(_WIN32) || defined(__native_client__)
 /*
  * FIXME: Perhaps we could implement syslog_progress() using these APIs:
  * http://msdn.microsoft.com/en-us/library/windows/desktop/aa364148%28v=vs.85%29.aspx
  */
-#else /* !__ANDROID__ && !_WIN32 */
+#else /* !__ANDROID__ && !_WIN32 && !__native_client__ */
 #include <syslog.h>
 static void  __attribute__ ((format(printf, 3, 4)))
     syslog_progress(void *_vpninfo, int level, const char *fmt, ...)
@@ -1414,12 +1414,14 @@ int main(int argc, char **argv)
 	if (proxy && openconnect_set_http_proxy(vpninfo, strdup(proxy)))
 		exit(1);
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__native_client__)
 	if (use_syslog) {
 		openlog("openconnect", LOG_PID, LOG_DAEMON);
 		vpninfo->progress = syslog_progress;
 	}
+#endif /* !_WIN32 && !__native_client__ */
 
+#ifndef _WIN32
 	memset(&sa, 0, sizeof(sa));
 
 	sa.sa_handler = handle_signal;

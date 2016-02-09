@@ -968,9 +968,9 @@ static int fetch_config(struct openconnect_info *vpninfo)
 
 static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int buflen)
 {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__native_client__)
 	vpn_progress(vpninfo, PRG_ERR,
-		     _("Error: Running the 'Cisco Secure Desktop' trojan on Windows is not yet implemented.\n"));
+		     _("Error: Running the 'Cisco Secure Desktop' trojan on this platform is not yet implemented.\n"));
 	return -EPERM;
 #else
 	char fname[64];
@@ -1167,7 +1167,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 
 	http_add_cookie(vpninfo, "sdesktop", vpninfo->csd_token, 1);
 	return 0;
-#endif /* !_WIN32 */
+#endif /* !_WIN32 && !__native_client__ */
 }
 
 

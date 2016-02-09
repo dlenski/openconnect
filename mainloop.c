@@ -125,7 +125,7 @@ static int setup_tun_device(struct openconnect_info *vpninfo)
 		return ret;
 	}
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__native_client__)
 	if (vpninfo->uid != getuid()) {
 		int e;
 
