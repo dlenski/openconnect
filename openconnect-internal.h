@@ -151,9 +151,9 @@ struct pkt {
 #define KA_KEEPALIVE	3
 #define KA_REKEY	4
 
-#define DTLS_NOSECRET	0
-#define DTLS_SECRET	1
-#define DTLS_DISABLED	2
+#define DTLS_NOSECRET	0	/* Random secret has not been generated yet */
+#define DTLS_SECRET	1	/* Secret is present, ready to attempt DTLS */
+#define DTLS_DISABLED	2	/* DTLS was disabled on the *client* side */
 #define DTLS_SLEEPING	3	/* For ESP, sometimes sending probes */
 #define DTLS_CONNECTING	4	/* ESP probe received; must tell server */
 #define DTLS_CONNECTED	5	/* Server informed and should be sending ESP */
