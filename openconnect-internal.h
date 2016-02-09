@@ -541,7 +541,6 @@ struct openconnect_info {
 	uid_t uid;
 	gid_t gid;
 #endif
-	int tun_is_up; /* whether the tun device is setup */
 	int use_tun_script;
 	int script_tun;
 	char *ifname;
@@ -713,6 +712,14 @@ static inline int set_fd_cloexec(int fd)
 	return 0; /* Windows has O_INHERIT but... */
 #else
 	return fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) | FD_CLOEXEC);
+#endif
+}
+static inline int tun_is_up(struct openconnect_info *vpninfo)
+{
+#ifdef _WIN32
+	return vpninfo->tun_fh != NULL;
+#else
+	return vpninfo->tun_fd != -1;
 #endif
 }
 
