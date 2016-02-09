@@ -780,6 +780,12 @@ void openconnect_override_getaddrinfo(struct openconnect_info *vpninfo, openconn
 	vpninfo->getaddrinfo_override = gai_fn;
 }
 
+void openconnect_set_setup_tun_handler(struct openconnect_info *vpninfo,
+				       openconnect_setup_tun_vfn setup_tun)
+{
+	vpninfo->setup_tun = setup_tun;
+}
+
 void openconnect_set_stats_handler(struct openconnect_info *vpninfo,
 				   openconnect_stats_vfn stats_handler)
 {

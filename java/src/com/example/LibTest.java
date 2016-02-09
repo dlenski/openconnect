@@ -163,6 +163,14 @@ public final class LibTest {
 				break;
 			}
 		}
+
+		@Override
+		public void onSetupTun() {
+			System.out.println("SETUP_TUN");
+			if (setupTunDevice("/etc/vpnc/vpnc-script", null) != 0 &&
+				setupTunScript("ocproxy") != 0)
+				die("Error setting up tunnel");
+		}
 	}
 
 	private static void printList(String pfx, List<String> ss) {
@@ -232,10 +240,6 @@ public final class LibTest {
 			die("Error establishing VPN link");
 
 		printIPInfo(lib.getIPInfo());
-
-		if (lib.setupTunDevice("/etc/vpnc/vpnc-script", null) != 0 &&
-		    lib.setupTunScript("ocproxy") != 0)
-			die("Error setting up tunnel");
 
 		if (lib.setupDTLS(60) != 0)
 			die("Error setting up DTLS");

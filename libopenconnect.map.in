@@ -43,6 +43,7 @@ OPENCONNECT_5.0 {
 	openconnect_set_proxy_auth;
 	openconnect_set_reported_os;
 	openconnect_set_reqmtu;
+	openconnect_set_setup_tun_handler;
 	openconnect_set_stats_handler;
 	openconnect_set_stoken_mode;
 	openconnect_set_system_trust;

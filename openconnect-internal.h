@@ -610,6 +610,7 @@ struct openconnect_info {
 	openconnect_progress_vfn progress;
 	openconnect_protect_socket_vfn protect_socket;
 	openconnect_getaddrinfo_vfn getaddrinfo_override;
+	openconnect_setup_tun_vfn setup_tun;
 
 	int (*ssl_read)(struct openconnect_info *vpninfo, char *buf, size_t len);
 	int (*ssl_gets)(struct openconnect_info *vpninfo, char *buf, size_t len);

@@ -43,6 +43,7 @@ extern "C" {
  *  - Add openconnect_get_dtls_compression().
  *  - Add openconnect_disable_ipv6().
  *  - Add ip_info->gateway_addr.
+ *  - Add openconnect_set_setup_tun_handler().
  *
  * API version 5.2 (v7.05; 2015-03-10):
  *  - Add openconnect_set_http_auth(), openconnect_set_protocol().
@@ -608,6 +609,11 @@ struct addrinfo;
 typedef int (*openconnect_getaddrinfo_vfn) (void *privdata, const char *node, const char *service,
 					    const struct addrinfo *hints, struct addrinfo **res);
 void openconnect_override_getaddrinfo(struct openconnect_info *vpninfo, openconnect_getaddrinfo_vfn gai_fn);
+
+/* Callback for configuring the interface after MTU detection finishes. */
+typedef void (*openconnect_setup_tun_vfn) (void *privdata);
+void openconnect_set_setup_tun_handler(struct openconnect_info *vpninfo,
+				       openconnect_setup_tun_vfn setup_tun);
 
 #ifdef __cplusplus
 }

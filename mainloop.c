@@ -110,6 +110,12 @@ static int setup_tun_device(struct openconnect_info *vpninfo)
 {
 	int ret;
 
+	if (vpninfo->setup_tun) {
+		vpninfo->setup_tun(vpninfo->cbdata);
+		if (tun_is_up(vpninfo))
+			return 0;
+	}
+
 #ifndef _WIN32
 	if (vpninfo->use_tun_script) {
 		ret = openconnect_setup_tun_script(vpninfo, vpninfo->vpnc_script);

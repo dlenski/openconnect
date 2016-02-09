@@ -62,6 +62,7 @@ public abstract class LibOpenConnect {
 	public void onStatsUpdate(VPNStats stats) { }
 	public int onTokenLock() { return 0; }
 	public int onTokenUnlock(String newToken) { return 0; }
+	public void onSetupTun() { }
 
 	/* create/destroy library instances */
 
