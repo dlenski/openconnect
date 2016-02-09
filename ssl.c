@@ -575,7 +575,7 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 
 	return 0;
 }
-#else
+#elif defined(HAVE_STATFS)
 int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 {
 	char *sslkey = openconnect_utf8_to_legacy(vpninfo, vpninfo->sslkey);
@@ -600,6 +600,11 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 		free(sslkey);
 
 	return err;
+}
+#else
+int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
+{
+	return -EOPNOTSUPP;
 }
 #endif
 
