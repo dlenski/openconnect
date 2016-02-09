@@ -175,7 +175,16 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 
 	return tun_fd;
 }
-#else /* !__sun__ */
+#elif defined(__native_client__)
+
+intptr_t os_setup_tun(struct openconnect_info *vpninfo)
+{
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("tun device is unsupported on this platform\n"));
+	return -EOPNOTSUPP;
+}
+
+#else /* !__sun__ && !__native_client__ */
 
 /* MTU setting code for both Linux and BSD systems */
 static void ifreq_set_ifname(struct openconnect_info *vpninfo, struct ifreq *ifr)
