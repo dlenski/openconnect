@@ -595,7 +595,7 @@ int openconnect_has_system_key_support(void);
 int openconnect_set_protocol(struct openconnect_info *vpninfo, const char *protocol);
 
 struct addrinfo;
-typedef int (*openconnect_getaddrinfo_vfn) (void *privdata, const char *nost, const char *service,
+typedef int (*openconnect_getaddrinfo_vfn) (void *privdata, const char *node, const char *service,
 					    const struct addrinfo *hints, struct addrinfo **res);
 void openconnect_override_getaddrinfo(struct openconnect_info *vpninfo, openconnect_getaddrinfo_vfn gai_fn);
 
