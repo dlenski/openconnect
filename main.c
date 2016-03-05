@@ -186,6 +186,7 @@ enum {
 	OPT_PFS,
 	OPT_PROXY_AUTH,
 	OPT_HTTP_AUTH,
+	OPT_LOCAL_HOSTNAME,
 };
 
 #ifdef __sun__
@@ -250,6 +251,7 @@ static const struct option long_options[] = {
 	OPTION("resolve", 1, OPT_RESOLVE),
 	OPTION("key-password-from-fsid", 0, OPT_KEY_PASSWORD_FROM_FSID),
 	OPTION("useragent", 1, OPT_USERAGENT),
+	OPTION("local-hostname", 1, OPT_LOCAL_HOSTNAME),
 	OPTION("disable-ipv6", 0, OPT_DISABLE_IPV6),
 	OPTION("no-proxy", 0, OPT_NO_PROXY),
 	OPTION("libproxy", 0, OPT_LIBPROXY),
@@ -812,6 +814,7 @@ static void usage(void)
 	printf("      --reconnect-timeout         %s\n", _("Connection retry timeout in seconds"));
 	printf("      --servercert=FINGERPRINT    %s\n", _("Server's certificate SHA1 fingerprint"));
 	printf("      --useragent=STRING          %s\n", _("HTTP header User-Agent: field"));
+	printf("      --local-hostname=STRING     %s\n", _("Local hostname to advertise to server"));
 	printf("      --resolve=HOST:IP           %s\n", _("Use IP when connecting to HOST"));
 	printf("      --os=STRING                 %s\n", _("OS type (linux,linux-64,win,...) to report"));
 	printf("      --dtls-local-port=PORT      %s\n", _("Set local port for DTLS datagrams"));
@@ -1065,9 +1068,9 @@ int main(int argc, char **argv)
 	vpninfo->use_tun_script = 0;
 	vpninfo->uid = getuid();
 	vpninfo->gid = getgid();
+
 	if (!uname(&utsbuf)) {
-		free(vpninfo->localname);
-		vpninfo->localname = xstrdup(utsbuf.nodename);
+		openconnect_set_localname(vpninfo, utsbuf.nodename);
 	}
 #endif
 
@@ -1321,6 +1324,9 @@ int main(int argc, char **argv)
 		case OPT_USERAGENT:
 			free(vpninfo->useragent);
 			vpninfo->useragent = dup_config_arg();
+			break;
+		case OPT_LOCAL_HOSTNAME:
+			openconnect_set_localname(vpninfo, config_arg);
 			break;
 		case OPT_FORCE_DPD:
 			openconnect_set_dpd(vpninfo, atoi(config_arg));
