@@ -120,6 +120,7 @@ public abstract class LibOpenConnect {
 	public synchronized native void setXMLSHA1(String hash);
 	public synchronized native void setHostname(String hostname);
 	public synchronized native void setUrlpath(String urlpath);
+	public synchronized native void setLocalName(String localName);
 	public synchronized native void setCAFile(String caFile);
 	public synchronized native void setReportedOS(String os);
 	public synchronized native void setMobileInfo(String mobilePlatformVersion,

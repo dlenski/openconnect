@@ -33,6 +33,7 @@
 
 /*
  * API version 5.3:
+ *  - Add openconnect_set_localname().
  *  - Add openconnect_override_getaddrinfo().
  *  - Add openconnect_get_cstp_compression().
  *  - Add openconnect_get_dtls_compression().
@@ -382,6 +383,7 @@ const char *openconnect_get_hostname(struct openconnect_info *);
 int openconnect_set_hostname(struct openconnect_info *, const char *);
 char *openconnect_get_urlpath(struct openconnect_info *);
 int openconnect_set_urlpath(struct openconnect_info *, const char *);
+int openconnect_set_localname(struct openconnect_info *, const char *);
 
 /* Some software tokens, such as HOTP tokens, include a counter which
  * needs to be stored in persistent storage.
