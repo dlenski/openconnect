@@ -757,7 +757,7 @@ msgstr ""
 
 #: dtls.c:1085
 msgid "SSL operation cancelled\n"
-msgstr ""
+msgstr "SSL operation canceled\n"
 
 #: dtls.c:1127
 #, c-format
