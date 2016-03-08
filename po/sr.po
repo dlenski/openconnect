@@ -4006,19 +4006,3 @@ msgstr "наредба израчунавања"
 #: yubikey.c:608
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr "Непознат одговор са Јуби кључа приликом стварања кода модула\n"
-
-#~ msgid "Failed to set uid %ld\n"
-#~ msgstr "Нисам успео да подесим јиб %ld\n"
-
-#~ msgid "Invalid user uid=%ld\n"
-#~ msgstr "Неисправан кориснички јиб=%ld\n"
-
-#~ msgid "Invalid user \"%s\"\n"
-#~ msgstr "Неисправан корисник „%s“\n"
-
-#~ msgid ""
-#~ "Error: Running the 'Cisco Secure Desktop' trojan on Windows is not yet "
-#~ "implemented.\n"
-#~ msgstr ""
-#~ "Грешка: Покретање тројанца „Циско безбедне радне површи“ на Виндоузу још "
-#~ "није примењено.\n"

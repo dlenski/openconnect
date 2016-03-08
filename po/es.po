@@ -4028,19 +4028,3 @@ msgstr "calcular comando"
 #: yubikey.c:608
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr ""
-
-#~ msgid "Failed to set uid %ld\n"
-#~ msgstr "Falló al establecer el UID %ld\n"
-
-#~ msgid "Invalid user uid=%ld\n"
-#~ msgstr "uid=%ld del usuario no válido\n"
-
-#~ msgid "Invalid user \"%s\"\n"
-#~ msgstr "Usuario «%s» no válido\n"
-
-#~ msgid ""
-#~ "Error: Running the 'Cisco Secure Desktop' trojan on Windows is not yet "
-#~ "implemented.\n"
-#~ msgstr ""
-#~ "Error: todavía no está implementada la ejecución del troyano «Cisco "
-#~ "Secure Desktop» en Windows.\n"

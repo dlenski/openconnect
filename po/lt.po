@@ -4009,22 +4009,3 @@ msgstr "skaičiavimo komanda"
 #: yubikey.c:608
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr "Neatpažintas atsakymas iš Yubikey generuojant leksemos kodą\n"
-
-#~ msgid "Connected %s as %s%s%s, using %s%s\n"
-#~ msgstr "Prisijungta prie %s kaip %s%s%s, naudojant %s%s\n"
-
-#~ msgid "Invalid user \"%s\"\n"
-#~ msgstr "Netinkamas naudotojas „%s“\n"
-
-#~ msgid "Invalid user uid=%ld\n"
-#~ msgstr "Netinkamas naudotojo uid=%ld\n"
-
-#~ msgid "Failed to set uid %ld\n"
-#~ msgstr "Nepavyko nustatyti uid %ld\n"
-
-#~ msgid ""
-#~ "Error: Running the 'Cisco Secure Desktop' trojan on Windows is not yet "
-#~ "implemented.\n"
-#~ msgstr ""
-#~ "Klaida: „Cisco Secure Desktop“ trojos arklio vykdymas Windows sistemoje "
-#~ "dar nerealizuotas.\n"

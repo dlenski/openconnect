@@ -4088,22 +4088,3 @@ msgstr "ordre calcula"
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr ""
 "Resposta no reconeguda de Yubikey mentre s'està generant el codi testimoni\n"
-
-#~ msgid "Connected %s as %s%s%s, using %s%s\n"
-#~ msgstr "Connectat %s com %s%s%s, s'està utilitzant %s%s\n"
-
-#~ msgid "Invalid user \"%s\"\n"
-#~ msgstr "Usuari no vàlid «%s»\n"
-
-#~ msgid "Invalid user uid=%ld\n"
-#~ msgstr "Usuari no vàlid UID=%ld\n"
-
-#~ msgid "Failed to set uid %ld\n"
-#~ msgstr "Error en establir UID %ld\n"
-
-#~ msgid ""
-#~ "Error: Running the 'Cisco Secure Desktop' trojan on Windows is not yet "
-#~ "implemented.\n"
-#~ msgstr ""
-#~ "Error: L'execució del cavall de Troia «Cisco Secure Desktop» no està en "
-#~ "Windows encara implementada.\n"
