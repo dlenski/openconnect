@@ -55,3 +55,7 @@ Makefile
 
 /www/*.html
 /www/openconnect.8.inc
+
+test-driver
+tests/*.log
+tests/*.trs

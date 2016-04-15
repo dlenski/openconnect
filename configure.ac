@@ -993,6 +993,10 @@ if test "${build_www}" = "yes"; then
 fi
 AM_CONDITIONAL(BUILD_WWW, [test "${build_www}" = "yes"])
 
+# Checks for tests
+PKG_CHECK_MODULES([CWRAP], [uid_wrapper, socket_wrapper], have_cwrap=yes, have_cwrap=no)
+AM_CONDITIONAL(HAVE_CWRAP, test "x$have_cwrap" != xno)
+
 AC_SUBST([CONFIG_STATUS_DEPENDENCIES], ['$(top_srcdir)/po/LINGUAS $(top_srcdir)/openconnect.h ${top_srcdir}/libopenconnect.map.in'])
 RAWLINGUAS=`sed -e "/^#/d" -e "s/#.*//" "${srcdir}/po/LINGUAS"`
 # Remove newlines
@@ -1019,5 +1023,5 @@ AC_SUBST(GITVERSIONDEPS)
 
 AC_CONFIG_FILES(Makefile openconnect.pc po/Makefile www/Makefile \
 		libopenconnect.map openconnect.8 www/styles/Makefile \
-		www/inc/Makefile www/images/Makefile)
+		www/inc/Makefile www/images/Makefile tests/Makefile)
 AC_OUTPUT

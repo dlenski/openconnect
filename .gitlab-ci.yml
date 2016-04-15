@@ -4,6 +4,7 @@ Build with gnutls:
     ./configure && make -j4 && make check -j4
   tags:
   - gnutls3.3
+  - ocserv
   except:
   - tags
 
@@ -13,6 +14,7 @@ Build with openssl:
     ./configure --without-openssl-version-check --with-openssl && make -j4 && make check -j4
   tags:
   - openssl
+  - ocserv
   except:
   - tags
 
