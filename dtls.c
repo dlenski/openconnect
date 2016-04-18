@@ -1170,7 +1170,7 @@ static int detect_mtu_ipv4(struct openconnect_info *vpninfo, unsigned char *buf)
 				goto fail;
 		} while(ret == GNUTLS_E_AGAIN || ret == GNUTLS_E_INTERRUPTED);
 
-		if (ret > 0 && (buf[0] != AC_PKT_DPD_RESP || memcmp(&buf[1], id, sizeof(buf) != 0))) {
+		if (ret > 0 && (buf[0] != AC_PKT_DPD_RESP || memcmp(&buf[1], id, sizeof(id)) != 0)) {
 			vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Received unexpected packet (%.2x) in MTU detection; skipping.\n"), (unsigned)buf[0]);
 			goto reread; /* resend */
@@ -1255,7 +1255,7 @@ static int detect_mtu_ipv6(struct openconnect_info *vpninfo, unsigned char *buf)
 			continue;
 
 		/* something unexpected was received, let's ignore it */
-		if (ret > 0 && (buf[0] != AC_PKT_DPD_RESP || memcmp(&buf[1], id, sizeof(buf) != 0))) {
+		if (ret > 0 && (buf[0] != AC_PKT_DPD_RESP || memcmp(&buf[1], id, sizeof(id)) != 0)) {
 			vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Received unexpected packet (%.2x) in MTU detection; skipping.\n"), (unsigned)buf[0]);
 			goto reread;
