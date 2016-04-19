@@ -577,11 +577,10 @@ AC_ARG_WITH(lz4,
   test_for_lz4=$withval,
   test_for_lz4=yes)
 
-enable_lz4=no
-if test "$test_for_lz4" = yes;then
+if test "$test_for_lz4" = yes; then
 PKG_CHECK_MODULES([LIBLZ4], [liblz4], [
-enable_lz4=yes
-AC_DEFINE([HAVE_LZ4], [], [LZ4 was found])
+	AC_SUBST(LIBLZ4_PC, liblz4)
+	AC_DEFINE([HAVE_LZ4], [], [LZ4 was found])
 ],
 [
 	AC_MSG_WARN([[
