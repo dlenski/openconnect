@@ -107,7 +107,7 @@ static int openconnect_gnutls_write(struct openconnect_info *vpninfo, char *buf,
 		int done = gnutls_record_send(vpninfo->https_sess, buf, len);
 		if (done > 0)
 			len -= done;
-		else if (done == GNUTLS_E_AGAIN) {
+		else if (done == GNUTLS_E_AGAIN || done == GNUTLS_E_INTERRUPTED) {
 			/* Wait for something to happen on the socket, or on cmd_fd */
 			fd_set wr_set, rd_set;
 			int maxfd = vpninfo->ssl_fd;
@@ -140,7 +140,7 @@ static int openconnect_gnutls_read(struct openconnect_info *vpninfo, char *buf, 
 	int done;
 
 	while ((done = gnutls_record_recv(vpninfo->https_sess, buf, len)) < 0) {
-		if (done == GNUTLS_E_AGAIN) {
+		if (done == GNUTLS_E_AGAIN || done == GNUTLS_E_INTERRUPTED) {
 			/* Wait for something to happen on the socket, or on cmd_fd */
 			fd_set wr_set, rd_set;
 			int maxfd = vpninfo->ssl_fd;
@@ -204,7 +204,7 @@ static int openconnect_gnutls_gets(struct openconnect_info *vpninfo, char *buf, 
 				buf[i] = 0;
 				return i;
 			}
-		} else if (ret == GNUTLS_E_AGAIN) {
+		} else if (ret == GNUTLS_E_AGAIN || ret == GNUTLS_E_INTERRUPTED) {
 			/* Wait for something to happen on the socket, or on cmd_fd */
 			fd_set rd_set, wr_set;
 			int maxfd = vpninfo->ssl_fd;
@@ -247,7 +247,7 @@ int ssl_nonblock_read(struct openconnect_info *vpninfo, void *buf, int maxlen)
 	if (ret > 0)
 		return ret;
 
-	if (ret != GNUTLS_E_AGAIN) {
+	if (ret != GNUTLS_E_AGAIN && ret != GNUTLS_E_INTERRUPTED) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("SSL read error: %s; reconnecting.\n"),
 			     gnutls_strerror(ret));
@@ -264,7 +264,7 @@ int ssl_nonblock_write(struct openconnect_info *vpninfo, void *buf, int buflen)
 	if (ret > 0)
 		return ret;
 
-	if (ret == GNUTLS_E_AGAIN) {
+	if (ret == GNUTLS_E_AGAIN || ret == GNUTLS_E_INTERRUPTED) {
 		/*
 		 * Before 3.3.13, GnuTLS could return zero instead of one,
 		 * indicating that it was waiting for a read when in fact
@@ -2381,7 +2381,7 @@ int cstp_handshake(struct openconnect_info *vpninfo, unsigned init)
 	ssl_sock = (intptr_t)gnutls_transport_get_ptr(vpninfo->https_sess);
 
 	while ((err = gnutls_handshake(vpninfo->https_sess))) {
-		if (err == GNUTLS_E_AGAIN) {
+		if (err == GNUTLS_E_AGAIN || err == GNUTLS_E_INTERRUPTED) {
 			fd_set rd_set, wr_set;
 			int maxfd = ssl_sock;
 
@@ -2402,7 +2402,7 @@ int cstp_handshake(struct openconnect_info *vpninfo, unsigned init)
 				closesocket(ssl_sock);
 				return -EINTR;
 			}
-		} else if (err == GNUTLS_E_INTERRUPTED || gnutls_error_is_fatal(err)) {
+		} else if (gnutls_error_is_fatal(err)) {
 			vpn_progress(vpninfo, PRG_ERR, _("SSL connection failure: %s\n"),
 							 gnutls_strerror(err));
 			gnutls_deinit(vpninfo->https_sess);

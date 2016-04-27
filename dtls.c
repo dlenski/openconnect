@@ -680,7 +680,7 @@ static int dtls_try_handshake(struct openconnect_info *vpninfo)
 		return 0;
 	}
 
-	if (err == GNUTLS_E_AGAIN) {
+	if (err == GNUTLS_E_AGAIN || err == GNUTLS_E_INTERRUPTED) {
 		if (time(NULL) < vpninfo->new_dtls_started + 12)
 			return 0;
 		vpn_progress(vpninfo, PRG_DEBUG, _("DTLS handshake timed out\n"));
@@ -1089,7 +1089,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 #elif defined(DTLS_GNUTLS)
 		ret = gnutls_record_send(vpninfo->dtls_ssl, &send_pkt->cstp.hdr[7], send_pkt->len + 1);
 		if (ret <= 0) {
-			if (ret != GNUTLS_E_AGAIN) {
+			if (ret != GNUTLS_E_AGAIN && ret != GNUTLS_E_INTERRUPTED) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("DTLS got write error: %s. Falling back to SSL\n"),
 					     gnutls_strerror(ret));
