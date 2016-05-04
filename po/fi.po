@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2016-03-08 09:47+0000\n"
+"POT-Creation-Date: 2016-05-04 12:28+0100\n"
 "PO-Revision-Date: 2012-06-20 08:43+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Finnish <gnome-fi-laatu@lists.sourceforge.net>\n"
@@ -78,6 +78,9 @@ msgid ""
 "%s\n"
 "<--\n"
 msgstr ""
+"TNCC-vastaus: -->\n"
+"%s\n"
+"<--\n"
 
 #: auth-juniper.c:418
 #, c-format
@@ -139,7 +142,7 @@ msgstr ""
 
 #: auth.c:534
 msgid "Empty response from server\n"
-msgstr ""
+msgstr "Tyhjä vastaus palvelimelta\n"
 
 #: auth.c:545
 msgid "Failed to parse server response\n"
@@ -148,7 +151,7 @@ msgstr ""
 #: auth.c:547
 #, c-format
 msgid "Response was:%s\n"
-msgstr ""
+msgstr "Vastaus oli:%s\n"
 
 #: auth.c:569
 msgid "Received <client-cert-request> when not expected.\n"
@@ -160,7 +163,7 @@ msgstr ""
 
 #: auth.c:630
 msgid "Asked for password but '--no-passwd' set\n"
-msgstr ""
+msgstr "Kysyttiin salasanaa, mutta valitsin '--no-passwd' asetettu\n"
 
 #: auth.c:910
 msgid "Not downloading XML profile because SHA1 already matches\n"
@@ -181,7 +184,7 @@ msgstr ""
 
 #: auth.c:962
 msgid "Downloaded new XML profile\n"
-msgstr ""
+msgstr "Ladattu uusi XML-profiili\n"
 
 #: auth.c:973
 msgid ""
@@ -204,7 +207,7 @@ msgstr ""
 
 #: auth.c:996
 msgid "Trying to run Linux CSD trojan script.\n"
-msgstr ""
+msgstr "Yritetään suorittaa Linux CSD -troijalaisskripti.\n"
 
 #: auth.c:1023
 #, c-format
@@ -260,7 +263,7 @@ msgstr ""
 
 #: auth.c:1186
 msgid "Unknown response from server\n"
-msgstr ""
+msgstr "Tuntematon vastaus palvelimelta\n"
 
 #: auth.c:1316
 msgid "Server requested SSL client certificate after one was provided\n"
@@ -282,7 +285,7 @@ msgstr ""
 #: compat.c:207
 #, c-format
 msgid "(error 0x%x)"
-msgstr ""
+msgstr "(virhe 0x%x)"
 
 #: compat.c:210
 msgid "(Error while describing error!)"
@@ -310,16 +313,16 @@ msgstr ""
 
 #: cstp.c:245
 msgid "Error creating HTTPS CONNECT request\n"
-msgstr ""
+msgstr "Virhe luotaessa HTTPS CONNECT -pyyntöä\n"
 
 #: cstp.c:261 http.c:361
 msgid "Error fetching HTTPS response\n"
-msgstr ""
+msgstr "Virhe noutaessa HTTPS-vastausta\n"
 
 #: cstp.c:288
 #, c-format
 msgid "VPN service unavailable; reason: %s\n"
-msgstr ""
+msgstr "VPN-palvelu ei ole käytettävissä; syy: %s\n"
 
 #: cstp.c:293
 #, c-format
@@ -746,7 +749,7 @@ msgstr ""
 
 #: dtls.c:1085
 msgid "SSL operation cancelled\n"
-msgstr ""
+msgstr "SSL-toimenpide peruttiin\n"
 
 #: dtls.c:1127
 #, c-format
@@ -828,11 +831,11 @@ msgstr ""
 
 #: esp.c:217
 msgid "incoming"
-msgstr ""
+msgstr "saapuva"
 
 #: esp.c:218
 msgid "outgoing"
-msgstr ""
+msgstr "lähtevä"
 
 #: esp.c:220 esp.c:237
 msgid "Send ESP probes\n"
@@ -1118,12 +1121,12 @@ msgstr ""
 #: gnutls.c:1075 openssl-pkcs11.c:383
 #, c-format
 msgid "Using PKCS#11 certificate %s\n"
-msgstr ""
+msgstr "Käytetään PKCS#11-varmennetta %s\n"
 
 #: gnutls.c:1076
 #, c-format
 msgid "Using system certificate %s\n"
-msgstr ""
+msgstr "Käytetään järjestelmävarmennetta %s\n"
 
 #: gnutls.c:1094
 #, c-format
@@ -1138,7 +1141,7 @@ msgstr ""
 #: gnutls.c:1106 openssl.c:793
 #, c-format
 msgid "Using certificate file %s\n"
-msgstr ""
+msgstr "Käytetään varmennetiedostoa %s\n"
 
 #: gnutls.c:1134
 msgid "PKCS#11 file contained no certificate\n"
@@ -1317,11 +1320,11 @@ msgstr ""
 
 #: gnutls.c:2011
 msgid "certificate revoked"
-msgstr ""
+msgstr "varmenne on kumottu"
 
 #: gnutls.c:2013
 msgid "signer not found"
-msgstr ""
+msgstr "allekirjoittajaa ei löydy"
 
 #: gnutls.c:2015
 msgid "signer not a CA certificate"
@@ -1333,11 +1336,11 @@ msgstr ""
 
 #: gnutls.c:2019
 msgid "certificate not yet activated"
-msgstr ""
+msgstr "varmennetta ei ole vielä aktivoitu"
 
 #: gnutls.c:2021
 msgid "certificate expired"
-msgstr ""
+msgstr "varmenne on vanhentunut"
 
 #. If this is set and no other reason, it apparently means
 #. that signature verification failed. Not entirely sure
@@ -1385,12 +1388,12 @@ msgstr ""
 
 #: gnutls.c:2329 openssl.c:1609
 msgid "SSL connection cancelled\n"
-msgstr ""
+msgstr "SSL-yhteys peruttu\n"
 
 #: gnutls.c:2336
 #, c-format
 msgid "SSL connection failure: %s\n"
-msgstr ""
+msgstr "SSL-yhteys epäonnistui: %s\n"
 
 #: gnutls.c:2345
 #, c-format
@@ -1414,7 +1417,7 @@ msgstr ""
 
 #: gnutls.c:2541 openssl-pkcs11.c:185
 msgid "Wrong PIN"
-msgstr ""
+msgstr "Väärä PIN"
 
 #: gnutls.c:2544
 msgid "This is the final try before locking!"
@@ -1426,7 +1429,7 @@ msgstr ""
 
 #: gnutls.c:2551 openssl-pkcs11.c:189
 msgid "Enter PIN:"
-msgstr ""
+msgstr "Anna PIN:"
 
 #: gnutls.c:2682 openssl.c:1754
 msgid "Unsupported OATH HMAC algorithm\n"
@@ -1651,7 +1654,7 @@ msgstr ""
 #: http.c:371
 #, c-format
 msgid "Failed to parse HTTP response '%s'\n"
-msgstr ""
+msgstr "HTTP-vastauksen '%s' jäsentäminen epäonnistui\n"
 
 #: http.c:377
 #, c-format
@@ -1739,7 +1742,7 @@ msgstr ""
 
 #: http.c:1057
 msgid "general failure"
-msgstr ""
+msgstr "yleinen virhe"
 
 #: http.c:1058
 msgid "connection not allowed by ruleset"
@@ -1759,11 +1762,11 @@ msgstr ""
 
 #: http.c:1062
 msgid "TTL expired"
-msgstr ""
+msgstr "TTL vanheni"
 
 #: http.c:1063
 msgid "command not supported / protocol error"
-msgstr ""
+msgstr "komento ei ole tuettu / yhteyskäytännön virhe"
 
 #: http.c:1064
 msgid "address type not supported"
@@ -1911,7 +1914,7 @@ msgstr ""
 #: main.c:379
 #, c-format
 msgid "ReadConsole() failed: %s\n"
-msgstr ""
+msgstr "ReadConsole() epäonnistui: %s\n"
 
 #: main.c:393 main.c:406
 #, c-format
@@ -1946,7 +1949,7 @@ msgstr ""
 
 #: main.c:619
 msgid "using OpenSSL"
-msgstr ""
+msgstr "käytetään OpenSSL:ää"
 
 #: main.c:623
 #, c-format
@@ -2116,7 +2119,7 @@ msgstr ""
 
 #: main.c:782
 msgid "default"
-msgstr ""
+msgstr "oletus"
 
 #: main.c:784
 msgid "Pass traffic to 'script' program, not tun"
@@ -2140,7 +2143,7 @@ msgstr ""
 
 #: main.c:790
 msgid "XML config file"
-msgstr ""
+msgstr "XML-asetustiedosto"
 
 #: main.c:791
 msgid "Choose authentication login selection"
@@ -2208,7 +2211,7 @@ msgstr ""
 
 #: main.c:807
 msgid "Software token secret"
-msgstr ""
+msgstr "Ohjelmistopohjaisen tokenin salaisuus"
 
 #: main.c:809
 msgid "(NOTE: libstoken (RSA SecurID) disabled in this build)"
@@ -2366,7 +2369,7 @@ msgstr ""
 #: main.c:1390
 #, c-format
 msgid "No server specified\n"
-msgstr ""
+msgstr "Palvelinta ei ole määritetty\n"
 
 #: main.c:1406
 #, c-format
@@ -2386,7 +2389,7 @@ msgstr ""
 #: main.c:1489
 #, c-format
 msgid "Creating SSL connection failed\n"
-msgstr ""
+msgstr "SSL-yhteyden luominen epäonnistui\n"
 
 #: main.c:1501
 #, c-format
@@ -2438,7 +2441,7 @@ msgstr ""
 
 #: main.c:1598
 msgid "Unknown error; exiting.\n"
-msgstr ""
+msgstr "Tuntematon virhe, poistutaan.\n"
 
 #: main.c:1617
 #, c-format
@@ -2462,6 +2465,9 @@ msgid ""
 "Certificate from VPN server \"%s\" failed verification.\n"
 "Reason: %s\n"
 msgstr ""
+"\n"
+"Varmenne VPN-palvelimelta \"%s\" ei läpäissyt vahvistusta.\n"
+"Syy: %s\n"
 
 #: main.c:1712
 #, c-format
@@ -2470,11 +2476,11 @@ msgstr ""
 
 #: main.c:1713 main.c:1731
 msgid "no"
-msgstr ""
+msgstr "ei"
 
 #: main.c:1713 main.c:1719
 msgid "yes"
-msgstr ""
+msgstr "kyllä"
 
 #: main.c:1740
 #, c-format
@@ -2513,7 +2519,7 @@ msgstr ""
 #: main.c:2032
 #, c-format
 msgid "Can't open ~/.stokenrc file\n"
-msgstr ""
+msgstr "Tiedostoa ~/.stokenrc ei voi avata\n"
 
 #: main.c:2035
 #, c-format
@@ -2642,7 +2648,7 @@ msgstr ""
 #: oncp.c:56
 #, c-format
 msgid "Invalid cookie '%s'\n"
-msgstr ""
+msgstr "Virheellinen eväste '%s'\n"
 
 #: oncp.c:176
 #, c-format
@@ -2834,11 +2840,11 @@ msgstr ""
 
 #: oncp.c:849
 msgid "new incoming"
-msgstr ""
+msgstr "uusi saapuva"
 
 #: oncp.c:850
 msgid "new outgoing"
-msgstr ""
+msgstr "uusi lähtevä"
 
 #: oncp.c:855
 msgid "Ignoring ESP keys since ESP support not available in this build\n"
@@ -2940,15 +2946,15 @@ msgstr ""
 
 #: openssl-pkcs11.c:252
 msgid "PIN locked\n"
-msgstr ""
+msgstr "PIN lukittu\n"
 
 #: openssl-pkcs11.c:255
 msgid "PIN expired\n"
-msgstr ""
+msgstr "PIN vanhentunut\n"
 
 #: openssl-pkcs11.c:258
 msgid "Another user already logged in\n"
-msgstr ""
+msgstr "Toinen käyttäjä on jo kirjautuneena\n"
 
 #: openssl-pkcs11.c:262
 msgid "Unknown error logging in to PKCS#11 token\n"
@@ -3029,7 +3035,7 @@ msgstr ""
 #: openssl.c:259
 #, c-format
 msgid "SSL_write failed: %d\n"
-msgstr ""
+msgstr "SSL_write epäonnistui: %d\n"
 
 #: openssl.c:333
 #, c-format
@@ -3060,7 +3066,7 @@ msgstr ""
 
 #: openssl.c:551
 msgid "PKCS#12"
-msgstr ""
+msgstr "PKCS#12"
 
 #: openssl.c:569
 msgid "Can't load TPM engine.\n"
@@ -3097,7 +3103,7 @@ msgstr ""
 
 #: openssl.c:716
 msgid "PEM file"
-msgstr ""
+msgstr "PEM-tiedosto"
 
 #: openssl.c:745
 #, c-format
@@ -3226,7 +3232,7 @@ msgstr ""
 
 #: openssl.c:1599
 msgid "SSL connection failure\n"
-msgstr ""
+msgstr "SSL-yhteys epäonnistui\n"
 
 #: openssl.c:1760
 msgid "Failed to calculate OATH HMAC\n"
@@ -3344,7 +3350,7 @@ msgstr ""
 
 #: ssl.c:687
 msgid "No error"
-msgstr ""
+msgstr "Ei virhettä"
 
 #: ssl.c:688
 msgid "Keystore locked"
@@ -3368,7 +3374,7 @@ msgstr ""
 
 #: ssl.c:693
 msgid "Key not found"
-msgstr ""
+msgstr "Avainta ei löytynyt"
 
 #: ssl.c:694
 msgid "Value corrupted"
@@ -3380,11 +3386,11 @@ msgstr ""
 
 #: ssl.c:699
 msgid "Wrong password"
-msgstr ""
+msgstr "Väärä salasana"
 
 #: ssl.c:700
 msgid "Unknown error"
-msgstr ""
+msgstr "Tuntematon virhe"
 
 #: ssl.c:889
 #, c-format
@@ -3464,7 +3470,7 @@ msgstr ""
 #: sspi.c:313
 #, c-format
 msgid "EncryptMessage() failed: %lx\n"
-msgstr ""
+msgstr "EncryptMessage() epäonnistui: %lx\n"
 
 #: sspi.c:325
 #, c-format
@@ -3507,11 +3513,11 @@ msgstr ""
 
 #: stoken.c:82
 msgid "Device ID:"
-msgstr ""
+msgstr "Laitetunniste:"
 
 #: stoken.c:89
 msgid "Password:"
-msgstr ""
+msgstr "Salasana:"
 
 #: stoken.c:118
 msgid "User bypassed soft token.\n"
@@ -3519,7 +3525,7 @@ msgstr ""
 
 #: stoken.c:124 stoken.c:209
 msgid "All fields are required; try again.\n"
-msgstr ""
+msgstr "Kaikki kentät vaaditaan, yritä uudelleen.\n"
 
 #: stoken.c:134 stoken.c:301
 msgid "General failure in libstoken.\n"
@@ -3535,19 +3541,19 @@ msgstr ""
 
 #: stoken.c:185
 msgid "Enter software token PIN."
-msgstr ""
+msgstr "Anna ohjelmistopohjaisen tokenin PIN."
 
 #: stoken.c:189
 msgid "PIN:"
-msgstr ""
+msgstr "PIN:"
 
 #: stoken.c:216
 msgid "Invalid PIN format; try again.\n"
-msgstr ""
+msgstr "Virheellinen PIN-muoto, yritä uudelleen.\n"
 
 #: stoken.c:296
 msgid "Generating RSA token code\n"
-msgstr ""
+msgstr "Luodaan RSA-tokenin koodia\n"
 
 #: tun-win32.c:75
 msgid "Error accessing registry key for network adapters\n"

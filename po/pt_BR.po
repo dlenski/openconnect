@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2016-03-08 09:47+0000\n"
+"POT-Creation-Date: 2016-05-04 12:28+0100\n"
 "PO-Revision-Date: 2013-01-18 22:04+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Portuguese (Brazil) <l10n-pt-br@meego.org.br>\n"
@@ -20,17 +20,17 @@ msgstr ""
 #: auth-juniper.c:128
 #, c-format
 msgid "Ignoring unknown form submit item '%s'\n"
-msgstr ""
+msgstr "Ignorando item submetido de formulário desconhecido \"%s\"\n"
 
 #: auth-juniper.c:141
 #, c-format
 msgid "Ignoring unknown form input type '%s'\n"
-msgstr ""
+msgstr "Ignorando item de entrada de formulário desconhecido \"%s\"\n"
 
 #: auth-juniper.c:151
 #, c-format
 msgid "Discarding duplicate option '%s'\n"
-msgstr ""
+msgstr "Descartando opção duplicada \"%s\"\n"
 
 #: auth-juniper.c:224 auth.c:408
 #, c-format
@@ -39,36 +39,36 @@ msgstr "Não foi possível lidar com method=\"%s\" e action=\"%s\" da forma\n"
 
 #: auth-juniper.c:308
 msgid "TNCC support not implemented yet on Windows\n"
-msgstr ""
+msgstr "Suporte a TNCC não foi implementado ainda no Windows\n"
 
 #: auth-juniper.c:330
 msgid "No DSPREAUTH cookie; not attempting TNCC\n"
-msgstr ""
+msgstr "Nenhum cookie DSPREAUTH; não tentar TNCC\n"
 
 #: auth-juniper.c:341
 msgid "Failed to allocate memory for communication with TNCC\n"
-msgstr ""
+msgstr "Falha ao alocar memória para comunicação com TNCC\n"
 
 #: auth-juniper.c:376
 #, c-format
 msgid "Failed to exec TNCC script %s: %s\n"
-msgstr ""
+msgstr "Falha ao executar script TNCC %s: %s\n"
 
 #: auth-juniper.c:385
 msgid "Failed to send start command to TNCC\n"
-msgstr ""
+msgstr "Falha ao enviar comando de início para TNCC\n"
 
 #: auth-juniper.c:392
 msgid "Sent start; waiting for response from TNCC\n"
-msgstr ""
+msgstr "Início enviado; esperando por uma resposta do TNCC\n"
 
 #: auth-juniper.c:397
 msgid "Failed to read response from TNCC\n"
-msgstr ""
+msgstr "Falha ao ler resposta de TNCC\n"
 
 #: auth-juniper.c:408
 msgid "Received invalid response from TNCC\n"
-msgstr ""
+msgstr "Recebida resposta inválida de TNCC\n"
 
 #: auth-juniper.c:410
 #, c-format
@@ -77,38 +77,41 @@ msgid ""
 "%s\n"
 "<--\n"
 msgstr ""
+"Resposta TNCC: -->\n"
+"%s\n"
+"<--\n"
 
 #: auth-juniper.c:418
 #, c-format
 msgid "Received unsuccessful %s response from TNCC\n"
-msgstr ""
+msgstr "Recebida resposta de %s malsucedida de TNCC\n"
 
 #: auth-juniper.c:431
 #, c-format
 msgid "Got new DSPREAUTH cookie from TNCC: %s\n"
-msgstr ""
+msgstr "Obteve novo cookie DSPREAUTH do TNCC: %s\n"
 
 #: auth-juniper.c:495
 msgid "Failed to parse HTML document\n"
-msgstr ""
+msgstr "Falha ao analisar documento HTTP\n"
 
 #: auth-juniper.c:512
 msgid "Failed to find or parse web form in login page\n"
-msgstr ""
+msgstr "Falha ao localizar ou analisar formulário web na página de login\n"
 
 #: auth-juniper.c:520
 msgid "Encountered form with no ID\n"
-msgstr ""
+msgstr "Encontrada formulário com nenhum ID\n"
 
 #: auth-juniper.c:545
 #, c-format
 msgid "Unknown form ID '%s'\n"
-msgstr ""
+msgstr "ID de formulário desconhecido \"%s\"\n"
 
 #: auth-juniper.c:548
 #, c-format
 msgid "Dumping unknown HTML form:\n"
-msgstr ""
+msgstr "Despejando formulário HTML desconhecido:\n"
 
 #: auth-juniper.c:562 auth.c:661
 msgid "Failed to generate OTP tokencode; disabling token\n"
@@ -187,6 +190,8 @@ msgid ""
 "Error: Running the 'Cisco Secure Desktop' trojan on this platform is not yet "
 "implemented.\n"
 msgstr ""
+"Erro: A execução do trojan \"Cisco Secure Desktop\" nesta plataforma não "
+"está implementada ainda.\n"
 
 #: auth.c:982
 msgid ""
@@ -229,22 +234,22 @@ msgstr "Falhou ao escrever arquivo de script CSD temporário: %s\n"
 #: auth.c:1075 mainloop.c:140
 #, c-format
 msgid "Failed to set gid %ld: %s\n"
-msgstr ""
+msgstr "Falha ao definir gid %ld: %s\n"
 
 #: auth.c:1082 mainloop.c:147
 #, c-format
 msgid "Failed to set groups to %ld: %s\n"
-msgstr ""
+msgstr "Falha ao definir grupos para %ld: %s\n"
 
 #: auth.c:1089 mainloop.c:154
 #, c-format
 msgid "Failed to set uid %ld: %s\n"
-msgstr ""
+msgstr "Falha ao definir uid %ld: %s\n"
 
 #: auth.c:1096
 #, c-format
 msgid "Invalid user uid=%ld: %s\n"
-msgstr ""
+msgstr "Usuário de uid=%ld inválido: %s\n"
 
 #: auth.c:1103
 #, c-format
@@ -360,7 +365,7 @@ msgstr "X-DTLS-Session-ID não tem 64 caracteres - tem: \"%s\"\n"
 #: cstp.c:385
 #, c-format
 msgid "Unknown DTLS-Content-Encoding %s\n"
-msgstr ""
+msgstr "DTLS-Content-Encoding desconhecido %s\n"
 
 #: cstp.c:421
 #, c-format
@@ -425,21 +430,21 @@ msgstr "falhou ao inflar\n"
 #: cstp.c:720
 #, c-format
 msgid "LZS decompression failed: %s\n"
-msgstr ""
+msgstr "Descompressão LZS falhou: %s\n"
 
 #: cstp.c:733
 msgid "LZ4 decompression failed\n"
-msgstr ""
+msgstr "Descompressão LZ4 falhou\n"
 
 #: cstp.c:740
 #, c-format
 msgid "Unknown compression type %d\n"
-msgstr ""
+msgstr "Tipo de compressão desconhecida %d\n"
 
 #: cstp.c:745
 #, c-format
 msgid "Received %s compressed data packet of %d bytes (was %d)\n"
-msgstr ""
+msgstr "Recebeu o pacote de dados comprimido %s de %d bytes (era %d)\n"
 
 #: cstp.c:765
 #, c-format
@@ -448,12 +453,12 @@ msgstr "deflate falhou %d\n"
 
 #: cstp.c:835 dtls.c:872 dtls.c:1308 esp.c:255 mainloop.c:67 oncp.c:930
 msgid "Allocation failed\n"
-msgstr ""
+msgstr "Alocação falhou\n"
 
 #: cstp.c:846
 #, c-format
 msgid "Short packet received (%d bytes)\n"
-msgstr ""
+msgstr "Pacote curto recebido (%d bytes)\n"
 
 #: cstp.c:859
 #, c-format
@@ -484,7 +489,7 @@ msgstr "Recebeu desconexão do servidor: %02x \"%s\"\n"
 
 #: cstp.c:909
 msgid "Received server disconnect\n"
-msgstr ""
+msgstr "Recebeu desconexão do servidor\n"
 
 #: cstp.c:917
 msgid "Compressed packet received in !deflate mode\n"
@@ -534,7 +539,7 @@ msgstr "Enviar keepalive CSTP\n"
 #: cstp.c:1079
 #, c-format
 msgid "Sending compressed data packet of %d bytes (was %d)\n"
-msgstr ""
+msgstr "Enviando pacote de dados comprimido de %d bytes (era %d)\n"
 
 #: cstp.c:1090 oncp.c:1248
 #, c-format
@@ -553,16 +558,16 @@ msgstr "Tentando autenticação Digest ao proxy\n"
 #: digest.c:257
 #, c-format
 msgid "Attempting Digest authentication to server '%s'\n"
-msgstr ""
+msgstr "Tentando autenticação Digest ao servidor \"%s\"\n"
 
 #: dtls.c:180
 #, c-format
 msgid "Failed to create SSL_SESSION ASN.1 for OpenSSL: %s\n"
-msgstr ""
+msgstr "Falha ao criar ASN.1 de SL_SESSION para OpenSSL: %s\n"
 
 #: dtls.c:191
 msgid "OpenSSL failed to parse SSL_SESSION ASN.1\n"
-msgstr ""
+msgstr "Falha do OpenSSL ao analisar ASN.1 de SL_SESSION\n"
 
 #: dtls.c:205
 msgid "Initialise DTLSv1 session failed\n"
@@ -601,7 +606,7 @@ msgstr "Conexão DTLS estabelecida (usando OpenSSL). Ciphersuite %s.\n"
 #: dtls.c:345 dtls.c:656
 #, c-format
 msgid "DTLS connection compression using %s.\n"
-msgstr ""
+msgstr "Compressão de conexão DTLS usando %s.\n"
 
 #: dtls.c:376
 msgid "Your OpenSSL is older than the one you built against, so DTLS may fail!"
@@ -716,6 +721,7 @@ msgstr "Obteve keepalive DTLS\n"
 #: dtls.c:917
 msgid "Compressed DTLS packet received when compression not enabled\n"
 msgstr ""
+"O pacote comprimido DTLS recebido quando a compressão não está habilitada\n"
 
 #: dtls.c:925
 #, c-format
@@ -767,208 +773,208 @@ msgstr "Enviou pacote DTLS de %d bytes - Envio de DTLS retornou %d\n"
 
 #: dtls.c:1085
 msgid "SSL operation cancelled\n"
-msgstr ""
+msgstr "Operação SSL cancelada\n"
 
 #: dtls.c:1127
 #, c-format
 msgid "Initiating IPv4 MTU detection (min=%d, max=%d)\n"
-msgstr ""
+msgstr "Iniciando detecção de MTU de IPv4 (min=%d, máx=%d)\n"
 
 #: dtls.c:1132
 msgid "Too long time in MTU detect loop; bailing out.\n"
-msgstr ""
+msgstr "Tempo muito longo no loop de detecção de MTU; desistindo.\n"
 
 #: dtls.c:1155 dtls.c:1234
 #, c-format
 msgid "Failed to send DPD request (%d): %s\n"
-msgstr ""
+msgstr "Falha ao enviar requisição DPD (%d): %s\n"
 
 #: dtls.c:1175 dtls.c:1260
 #, c-format
 msgid "Received unexpected packet (%.2x) in MTU detection; skipping.\n"
-msgstr ""
+msgstr "Recebido pacote (%.2x) inesperado na detecção de MTU; ignorando.\n"
 
 #: dtls.c:1181 dtls.c:1276
 #, c-format
 msgid "Failed to recv DPD request (%d): %s\n"
-msgstr ""
+msgstr "Falha ao receber requisição DPD (%d): %s\n"
 
 #: dtls.c:1214
 msgid "Initiating IPv6 MTU detection\n"
-msgstr ""
+msgstr "Iniciando detecção MTU de IPv6\n"
 
 #: dtls.c:1329
 #, c-format
 msgid "Detected MTU of %d bytes (was %d)\n"
-msgstr ""
+msgstr "Detectado MTU de %d bytes (era %d)\n"
 
 #: dtls.c:1332
 #, c-format
 msgid "No change in MTU after detection (was %d)\n"
-msgstr ""
+msgstr "Nenhuma alteração no MTU após detecção (era %d)\n"
 
 #: esp.c:57
 #, c-format
 msgid "Accepting expected ESP packet with seq %u\n"
-msgstr ""
+msgstr "Aceitando pacote ESP esperado com seq %u\n"
 
 #: esp.c:63
 #, c-format
 msgid "Discarding ancient ESP packet with seq %u (expected %u)\n"
-msgstr ""
+msgstr "Descartando pacote ESP antigo com seq %u (esperava %u)\n"
 
 #: esp.c:72
 #, c-format
 msgid "Accepting out-of-order ESP packet with seq %u (expected %u)\n"
-msgstr ""
+msgstr "Aceitando pacote ESP problemático com seq %u (esperava %u)\n"
 
 #: esp.c:78
 #, c-format
 msgid "Discarding replayed ESP packet with seq %u\n"
-msgstr ""
+msgstr "Descartando replay de pacote ESP com seq %u\n"
 
 #: esp.c:107
 #, c-format
 msgid "Accepting later-than-expected ESP packet with seq %u (expected %u)\n"
-msgstr ""
+msgstr "Aceitando pacote ESP depois do esperado com seq %u (esperava %u)\n"
 
 #: esp.c:152
 #, c-format
 msgid "Parameters for %s ESP: SPI 0x%08x\n"
-msgstr ""
+msgstr "Parâmetros para ESP %s: SPI 0x%08x\n"
 
 #: esp.c:155
 #, c-format
 msgid "ESP encryption type %s key 0x%s\n"
-msgstr ""
+msgstr "Criptografia ESP tipo %s chave 0x%s\n"
 
 #: esp.c:158
 #, c-format
 msgid "ESP authentication type %s key 0x%s\n"
-msgstr ""
+msgstr "Autenticação ESP tipo %s com chave 0x%s\n"
 
 #: esp.c:217
 msgid "incoming"
-msgstr ""
+msgstr "entrada"
 
 #: esp.c:218
 msgid "outgoing"
-msgstr ""
+msgstr "saída"
 
 #: esp.c:220 esp.c:237
 msgid "Send ESP probes\n"
-msgstr ""
+msgstr "Enviar sondas ESP\n"
 
 #: esp.c:264
 #, c-format
 msgid "Received ESP packet of %d bytes\n"
-msgstr ""
+msgstr "Recebido pacote ESP de %d bytes\n"
 
 #: esp.c:280
 #, c-format
 msgid "Consider SPI 0x%x, seq %u against outgoing ESP setup\n"
-msgstr ""
+msgstr "Considerar SPI 0x%x, seq %u contra configuração ESP de saída\n"
 
 #: esp.c:286
 #, c-format
 msgid "Received ESP packet with invalid SPI 0x%08x\n"
-msgstr ""
+msgstr "Recebido pacote ESP com SPI 0x%08x inválido\n"
 
 #: esp.c:294
 #, c-format
 msgid "Received ESP packet with unrecognised payload type %02x\n"
-msgstr ""
+msgstr "Recebido pacote ESP com tipo de carga não reconhecida %02x\n"
 
 #: esp.c:301
 #, c-format
 msgid "Invalid padding length %02x in ESP\n"
-msgstr ""
+msgstr "Comprimento de preenchimento %02x inválido no ESP\n"
 
 #: esp.c:313
 msgid "Invalid padding bytes in ESP\n"
-msgstr ""
+msgstr "Bytes de preenchimento inválidos em ESP\n"
 
 #: esp.c:321
 msgid "ESP session established with server\n"
-msgstr ""
+msgstr "Sessão ESP estabelecida com o servidor\n"
 
 #: esp.c:332
 msgid "Failed to allocate memory to decrypt ESP packet\n"
-msgstr ""
+msgstr "Falha ao alocar memória para descriptografar pacote ESP\n"
 
 #: esp.c:338
 msgid "LZO decompression of ESP packet failed\n"
-msgstr ""
+msgstr "Descompressão LZO de pacote ESP falhou\n"
 
 #: esp.c:344
 #, c-format
 msgid "LZO decompressed %d bytes into %d\n"
-msgstr ""
+msgstr "LZO descomprimiu %d bytes em %d\n"
 
 #: esp.c:358
 msgid "Rekey not implemented for ESP\n"
-msgstr ""
+msgstr "Renovação de chave não implementada para ESP\n"
 
 #: esp.c:362
 msgid "ESP detected dead peer\n"
-msgstr ""
+msgstr "ESP detectou par morto\n"
 
 #: esp.c:369
 msgid "Send ESP probes for DPD\n"
-msgstr ""
+msgstr "Enviar sondas ESP para DPD\n"
 
 #: esp.c:375
 msgid "Keepalive not implemented for ESP\n"
-msgstr ""
+msgstr "Keepalive não implementado para ESP\n"
 
 #: esp.c:398
 #, c-format
 msgid "Failed to send ESP packet: %s\n"
-msgstr ""
+msgstr "Falha ao enviar pacote ESP: %s\n"
 
 #: esp.c:404
 #, c-format
 msgid "Sent ESP packet of %d bytes\n"
-msgstr ""
+msgstr "Enviado pacote ESP de %d bytes\n"
 
 #: gnutls-esp.c:56
 #, c-format
 msgid "Failed to initialise ESP cipher: %s\n"
-msgstr ""
+msgstr "Falha ao inicializar cifra ESP: %s\n"
 
 #: gnutls-esp.c:66
 #, c-format
 msgid "Failed to initialize ESP HMAC: %s\n"
-msgstr ""
+msgstr "Falha ao inicializar HMAC ESP: %s\n"
 
 #: gnutls-esp.c:116
 #, c-format
 msgid "Failed to generate random keys for ESP: %s\n"
-msgstr ""
+msgstr "Falha ao gerar chaves aleatórias para ESP: %s\n"
 
 #: gnutls-esp.c:146 gnutls-esp.c:212
 #, c-format
 msgid "Failed to calculate HMAC for ESP packet: %s\n"
-msgstr ""
+msgstr "Falha ao calcular HMAC para pacote ESP: %s\n"
 
 #: gnutls-esp.c:153 openssl-esp.c:148
 msgid "Received ESP packet with invalid HMAC\n"
-msgstr ""
+msgstr "Recebido pacote ESP com HMAC inválido\n"
 
 #: gnutls-esp.c:169
 #, c-format
 msgid "Decrypting ESP packet failed: %s\n"
-msgstr ""
+msgstr "Descriptografia de pacote ESP falhou: %s\n"
 
 #: gnutls-esp.c:189
 #, c-format
 msgid "Failed to generate ESP packet IV: %s\n"
-msgstr ""
+msgstr "Falha ao gerar pacote IV ESP: %s\n"
 
 #: gnutls-esp.c:204
 #, c-format
 msgid "Failed to encrypt ESP packet: %s\n"
-msgstr ""
+msgstr "Falha ao criptografar pacote ESP: %s\n"
 
 #: gnutls.c:126 openssl.c:128
 msgid "SSL write cancelled\n"
@@ -1313,15 +1319,15 @@ msgstr "O servidor apresentou nenhum certificado\n"
 #: gnutls.c:1970
 #, c-format
 msgid "Error comparing server's cert on rehandshake: %s\n"
-msgstr ""
+msgstr "Erro na comparação do certificado do servidor na re-negociação: %s\n"
 
 #: gnutls.c:1975 openssl.c:1338
 msgid "Server presented different cert on rehandshake\n"
-msgstr ""
+msgstr "O servidor apresentou um certificado diferente na re-negociação\n"
 
 #: gnutls.c:1980 openssl.c:1341
 msgid "Server presented identical cert on rehandshake\n"
-msgstr ""
+msgstr "O servidor apresentou um certificado idêntico na re-negociação\n"
 
 #: gnutls.c:1986
 msgid "Error initialising X509 cert structure\n"
@@ -1400,7 +1406,7 @@ msgstr "Carregamento do certificado falhou. Abortando.\n"
 #: gnutls.c:2270
 #, c-format
 msgid "Failed to set TLS priority string (\"%s\"): %s\n"
-msgstr ""
+msgstr "Falha ao definir string de prioridade TLS (\"%s\"): %s\n"
 
 #: gnutls.c:2282 openssl.c:1583
 #, c-format
@@ -1454,12 +1460,12 @@ msgstr "Insira o PIN:"
 
 #: gnutls.c:2682 openssl.c:1754
 msgid "Unsupported OATH HMAC algorithm\n"
-msgstr ""
+msgstr "Algoritmo HMAC de OATH sem suporte\n"
 
 #: gnutls.c:2691
 #, c-format
 msgid "Failed to calculate OATH HMAC: %s\n"
-msgstr ""
+msgstr "Falha ao calcular HMAC de OATH: %s\n"
 
 #: gnutls_tpm.c:84
 #, c-format
@@ -1563,7 +1569,7 @@ msgstr "Tentando autenticação GSSAPI ao proxy\n"
 #: gssapi.c:148
 #, c-format
 msgid "Attempting GSSAPI authentication to server '%s'\n"
-msgstr ""
+msgstr "Tentando autenticação GSSAPI ao servidor \"%s\"\n"
 
 #: gssapi.c:200 gssapi.c:256 sspi.c:191 sspi.c:249
 msgid "GSSAPI authentication completed\n"
@@ -1651,7 +1657,7 @@ msgstr "Tentando autenticação Básica de HTTP para o proxy\n"
 #: http-auth.c:186
 #, c-format
 msgid "Attempting HTTP Basic authentication to server '%s'\n"
-msgstr ""
+msgstr "Tentando autenticação Básica de HTTP ao servidor \"%s\"\n"
 
 #: http-auth.c:200 http.c:1200
 msgid "This version of OpenConnect was built without GSSAPI support\n"
@@ -1667,6 +1673,8 @@ msgstr ""
 msgid ""
 "Server '%s' requested Basic authentication which is disabled by default\n"
 msgstr ""
+"O servidor \"%s\" requisitou autenticação Básica, a qual está desabilitada "
+"por padrão\n"
 
 #: http-auth.c:256
 msgid "No more authentication methods to try\n"
@@ -1909,7 +1917,7 @@ msgstr "Somente proxy http ou socks(5) são suportados\n"
 #: library.c:139
 #, c-format
 msgid "Unknown VPN protocol '%s'\n"
-msgstr ""
+msgstr "Protocolo VPN desconhecido \"%s\"\n"
 
 #: library.c:160
 msgid "Built against SSL library with no Cisco DTLS support\n"
@@ -2006,7 +2014,7 @@ msgstr "Alocação para caminho de vpnc-script falhou\n"
 #: main.c:726
 #, c-format
 msgid "Override hostname '%s' to '%s'\n"
-msgstr ""
+msgstr "Substituição hostname \"%s\" com \"%s\"\n"
 
 #: main.c:739
 #, c-format
@@ -2270,11 +2278,11 @@ msgstr "Campo User-Agent: do cabeçalho de HTTP"
 
 #: main.c:817
 msgid "Local hostname to advertise to server"
-msgstr ""
+msgstr "Hostname local a ser anunciado ao servidor"
 
 #: main.c:818
 msgid "Use IP when connecting to HOST"
-msgstr ""
+msgstr "Usar IP ao conectar ao HOST"
 
 #: main.c:819
 msgid "OS type (linux,linux-64,win,...) to report"
@@ -2312,12 +2320,12 @@ msgstr "Opção \"%s\" requer um argumento na linha %d\n"
 #: main.c:981
 #, c-format
 msgid "Invalid user \"%s\": %s\n"
-msgstr ""
+msgstr "Usuário inválido \"%s\": %s\n"
 
 #: main.c:991
 #, c-format
 msgid "Invalid user ID \"%d\": %s\n"
-msgstr ""
+msgstr "ID de usuário inválido \"%d\": %s\n"
 
 #: main.c:1043
 #, c-format
@@ -2357,17 +2365,17 @@ msgstr "Não foi possível usar o arquivo de configuração \"%s\": %s\n"
 #: main.c:1135
 #, c-format
 msgid "Invalid compression mode '%s'\n"
-msgstr ""
+msgstr "Modo de compressão \"%s\" inválido\n"
 
 #: main.c:1156
 #, c-format
 msgid "Missing colon in resolve option\n"
-msgstr ""
+msgstr "Faltando dois-pontos na opção de resolução\n"
 
 #: main.c:1161
 #, c-format
 msgid "Failed to allocate memory\n"
-msgstr ""
+msgstr "Falha ao alocar memória\n"
 
 #: main.c:1241 main.c:1250
 #, c-format
@@ -2443,7 +2451,7 @@ msgstr "A configuração de DTLS falhou - usando SSL em vez disso\n"
 #: main.c:1521
 #, c-format
 msgid "Connected as %s%s%s, using %s%s\n"
-msgstr ""
+msgstr "Conectado como %s%s%s, usando %s%s\n"
 
 #: main.c:1530
 msgid "No --script argument provided; DNS and routing are not configured\n"
@@ -2649,7 +2657,7 @@ msgstr "Tentando autenticação HTTP NTLM para o proxy (sigle-sign-on)\n"
 #: ntlm.c:268
 #, c-format
 msgid "Attempting HTTP NTLM authentication to server '%s' (single-sign-on)\n"
-msgstr ""
+msgstr "Tentando autenticação HTTP NTLM ao servidor \"%s\" (sigle-sign-on)\n"
 
 #: ntlm.c:978
 #, c-format
@@ -2659,15 +2667,15 @@ msgstr "Tentando autenticação HTTP NTLMv%d para o proxy\n"
 #: ntlm.c:982
 #, c-format
 msgid "Attempting HTTP NTLMv%d authentication to server '%s'\n"
-msgstr ""
+msgstr "Tentando autenticação HTTP NTLMv%d ao servidor \"%s\"\n"
 
 #: oath.c:97
 msgid "Invalid base32 token string\n"
-msgstr ""
+msgstr "String de token base32 inválida\n"
 
 #: oath.c:105
 msgid "Failed to allocate memory to decode OATH secret\n"
-msgstr ""
+msgstr "Falha ao alocar memória para decodificar segredo OATH\n"
 
 #: oath.c:208
 msgid "This version of OpenConnect was built without PSKC support\n"
@@ -2698,256 +2706,259 @@ msgstr "Gerando código de token HOTP OATH\n"
 #: oncp.c:56
 #, c-format
 msgid "Invalid cookie '%s'\n"
-msgstr ""
+msgstr "Cookie inválido \"%s\"\n"
 
 #: oncp.c:176
 #, c-format
 msgid "Unexpected length %d for TLV %d/%d\n"
-msgstr ""
+msgstr "Comprimento %d inesperado para TLV %d/%d\n"
 
 #: oncp.c:182
 #, c-format
 msgid "Received MTU %d from server\n"
-msgstr ""
+msgstr "Recebido MTU %d do servidor\n"
 
 #: oncp.c:191
 #, c-format
 msgid "Received DNS server %s\n"
-msgstr ""
+msgstr "Recebido servidor DNS %s\n"
 
 #: oncp.c:202
 #, c-format
 msgid "Received DNS search domain %.*s\n"
-msgstr ""
+msgstr "Recebido domínio de pesquisa DNS %.*s\n"
 
 #: oncp.c:217
 #, c-format
 msgid "Received internal IP address %s\n"
-msgstr ""
+msgstr "Recebido endereço IP interno %s\n"
 
 #: oncp.c:226
 #, c-format
 msgid "Received netmask %s\n"
-msgstr ""
+msgstr "Recebida máscara de rede %s\n"
 
 #: oncp.c:235
 #, c-format
 msgid "Received internal gateway address %s\n"
-msgstr ""
+msgstr "Recebido endereço de gateway interno %s\n"
 
 #: oncp.c:248
 #, c-format
 msgid "Received split include route %s\n"
-msgstr ""
+msgstr "Recebida rota de inclusão de split %s\n"
 
 #: oncp.c:270
 #, c-format
 msgid "Received split exclude route %s\n"
-msgstr ""
+msgstr "Recebida rota de exclusão de split %s\n"
 
 #: oncp.c:290
 #, c-format
 msgid "Received WINS server %s\n"
-msgstr ""
+msgstr "Recebido servidor WINS %s\n"
 
 #: oncp.c:311
 #, c-format
 msgid "ESP encryption: 0x%02x (%s)\n"
-msgstr ""
+msgstr "Criptografia ESP: 0x%02x (%s)\n"
 
 #: oncp.c:328
 #, c-format
 msgid "ESP HMAC: 0x%02x (%s)\n"
-msgstr ""
+msgstr "HMAC ESP: 0x%02x (%s)\n"
 
 #: oncp.c:338
 #, c-format
 msgid "ESP compression: %d\n"
-msgstr ""
+msgstr "Compressão ESP: %d\n"
 
 #: oncp.c:346
 #, c-format
 msgid "ESP port: %d\n"
-msgstr ""
+msgstr "Porta ESP: %d\n"
 
 #: oncp.c:353
 #, c-format
 msgid "ESP key lifetime: %u bytes\n"
-msgstr ""
+msgstr "Tempo de vida de chave ESP: %u bytes\n"
 
 #: oncp.c:361
 #, c-format
 msgid "ESP key lifetime: %u seconds\n"
-msgstr ""
+msgstr "Tempo de vida de chave ESP: %u segundos\n"
 
 #: oncp.c:369
 #, c-format
 msgid "ESP to SSL fallback: %u seconds\n"
-msgstr ""
+msgstr "Fallback ESP para SSL: %u segundos\n"
 
 #: oncp.c:377
 #, c-format
 msgid "ESP replay protection: %d\n"
-msgstr ""
+msgstr "Proteção de replay ESP: %d\n"
 
 #: oncp.c:385
 #, c-format
 msgid "ESP SPI (outbound): %x\n"
-msgstr ""
+msgstr "SPI de ESP (saída): %x\n"
 
 #: oncp.c:393
 #, c-format
 msgid "%d bytes of ESP secrets\n"
-msgstr ""
+msgstr "%d bytes de segredos ESP\n"
 
 #: oncp.c:405
 #, c-format
 msgid "Unknown TLV group %d attr %d len %d:%s\n"
-msgstr ""
+msgstr "TLV desconhecido com grupo %d, atributo %d, tamanho %d:%s\n"
 
 #: oncp.c:482
 msgid "Failed to parse KMP header\n"
-msgstr ""
+msgstr "Falha ao analisar cabeçalho KMP\n"
 
 #: oncp.c:498
 msgid "Failed to parse KMP message\n"
-msgstr ""
+msgstr "Falha ao analisar mensagem KMP\n"
 
 #: oncp.c:504
 #, c-format
 msgid "Got KMP message %d of size %d\n"
-msgstr ""
+msgstr "Obteve mensagem KMP %d de tamanho %d\n"
 
 #: oncp.c:520
 #, c-format
 msgid "Received non-ESP TLVs (group %d) in ESP negotiation KMP\n"
-msgstr ""
+msgstr "Recebido TLVs (grupo %d) não-ESP em KMP de negociação ESP\n"
 
 #: oncp.c:568 oncp.c:612 oncp.c:644 oncp.c:770
 msgid "Error creating oNCP negotiation request\n"
-msgstr ""
+msgstr "Erro ao criar requisição de negociação oNCP\n"
 
 #: oncp.c:653 oncp.c:804
 msgid "Short write in oNCP negotiation\n"
-msgstr ""
+msgstr "Escrita curta em negociação oNCP\n"
 
 #: oncp.c:665 oncp.c:689
 #, c-format
 msgid "Read %d bytes of SSL record\n"
-msgstr ""
+msgstr "Lidos %d bytes de registro SSL\n"
 
 #: oncp.c:669
 #, c-format
 msgid "Unexpected response of size %d after hostname packet\n"
-msgstr ""
+msgstr "Resposta inesperada de tamanho %d após pacote de hostname\n"
 
 #: oncp.c:676
 #, c-format
 msgid "Server response to hostname packet is error 0x%02x\n"
-msgstr ""
+msgstr "Resposta do servidor ao pacote do hostname é erro 0x%02x\n"
 
 #: oncp.c:693
 msgid "Invalid packet waiting for KMP 301\n"
-msgstr ""
+msgstr "Pacote inválido, esperando por KMP 301\n"
 
 #: oncp.c:706
 #, c-format
 msgid "Expected KMP message 301 from server but got %d\n"
-msgstr ""
+msgstr "Esperava mensagem KMP 301 do servidor, mas obteve %d\n"
 
 #: oncp.c:715
 #, c-format
 msgid "KMP message 301 from server too large (%d bytes)\n"
-msgstr ""
+msgstr "Mensagem KMP 301 do servidor muito grande (%d bytes)\n"
 
 #: oncp.c:721
 #, c-format
 msgid "Got KMP message 301 of length %d\n"
-msgstr ""
+msgstr "Obteve mensagem KMP 301 de comprimento %d\n"
 
 #: oncp.c:728
 msgid "Failed to read continuation record length\n"
-msgstr ""
+msgstr "Falha ao ler tamanho de registro de continuação\n"
 
 #: oncp.c:734
 #, c-format
 msgid "Record of additional %d bytes too large; would make %d\n"
-msgstr ""
+msgstr "Registro de %d bytes adicionais muito grande; resultaria em %d\n"
 
 #: oncp.c:743
 #, c-format
 msgid "Failed to read continuation record of length %d\n"
-msgstr ""
+msgstr "Falha ao ler registro de continuação de tamanho %d\n"
 
 #: oncp.c:749
 #, c-format
 msgid "Read additional %d bytes of KMP 301 message\n"
-msgstr ""
+msgstr "Lidos %d bytes adicionais de mensagem KMP 301\n"
 
 #: oncp.c:789
 msgid "Error negotiating ESP keys\n"
-msgstr ""
+msgstr "Erro ao negociar chaves ESP\n"
 
 #: oncp.c:849
 msgid "new incoming"
-msgstr ""
+msgstr "nova entrada"
 
 #: oncp.c:850
 msgid "new outgoing"
-msgstr ""
+msgstr "nova saída"
 
 #: oncp.c:855
 msgid "Ignoring ESP keys since ESP support not available in this build\n"
 msgstr ""
+"Ignorando chaves ESP já que suporte a ESP não está disponível nesta "
+"compilação\n"
 
 #: oncp.c:875
 msgid "Read only 1 byte of oNCP length field\n"
-msgstr ""
+msgstr "Lido apenas 1 byte de campo de comprimento oNCP\n"
 
 #: oncp.c:884
 msgid "Server terminated connection (session expired)\n"
-msgstr ""
+msgstr "Servidor terminou a conexão (sessão expirou)\n"
 
 #: oncp.c:888
 #, c-format
 msgid "Server terminated connection (reason: %d)\n"
-msgstr ""
+msgstr "Servidor terminou a conexão (motivo: %d)\n"
 
 #: oncp.c:894
 msgid "Server sent zero-length oNCP record\n"
-msgstr ""
+msgstr "Servidor enviou registro oNCP de comprimento zero\n"
 
 #: oncp.c:985
 #, c-format
 msgid "Incoming KMP message %d of size %d (got %d)\n"
-msgstr ""
+msgstr "Recebendo mensagem KMP %d de tamanho %d (obteve %d)\n"
 
 #: oncp.c:988
 #, c-format
 msgid "Continuing to process KMP message %d now size %d (got %d)\n"
 msgstr ""
+"Continuando a processar mensagem KMP %d agora com tamanho %d (obteve %d)\n"
 
 #: oncp.c:1007
 msgid "Unrecognised data packet\n"
-msgstr ""
+msgstr "Pacote de dados não reconhecido\n"
 
 #: oncp.c:1069
 #, c-format
 msgid "Unknown KMP message %d of size %d:\n"
-msgstr ""
+msgstr "Mensagem KMP desconhecida %d de tamanho %d:\n"
 
 #: oncp.c:1074
 #, c-format
 msgid ".... + %d more bytes unreceived\n"
-msgstr ""
+msgstr ".... + mais %d bytes não recebidos\n"
 
 #: oncp.c:1089
 msgid "Packet outgoing:\n"
-msgstr ""
+msgstr "Pacote de saída:\n"
 
 #: oncp.c:1153
 msgid "Sent ESP enable control packet\n"
-msgstr ""
+msgstr "Enviado pacote de controle com capacidade de ESP\n"
 
 #: openconnect-internal.h:1030 openconnect-internal.h:1038
 #, c-format
@@ -2956,92 +2967,92 @@ msgstr "ERRO: %s() chamado com UTF-8 inválido para \"%s\" argumento\n"
 
 #: openssl-esp.c:51
 msgid "Failed to initialise ESP cipher:\n"
-msgstr ""
+msgstr "Erro ao inicializar cifra ESP:\n"
 
 #: openssl-esp.c:61
 msgid "Failed to initialize ESP HMAC\n"
-msgstr ""
+msgstr "Erro ao inicializar HMAC de ESP\n"
 
 #: openssl-esp.c:112
 msgid "Failed to generate random keys for ESP:\n"
-msgstr ""
+msgstr "Falha ao gerar chaves aleatórias para ESP:\n"
 
 #: openssl-esp.c:163
 msgid "Failed to set up decryption context for ESP packet:\n"
-msgstr ""
+msgstr "Falha ao configurar contexto de descriptografia para pacote ESP:\n"
 
 #: openssl-esp.c:171
 msgid "Failed to decrypt ESP packet:\n"
-msgstr ""
+msgstr "Falha ao descriptografar pacote ESP:\n"
 
 #: openssl-esp.c:192
 msgid "Failed to generate random IV for ESP packet:\n"
-msgstr ""
+msgstr "Falha ao gerar IV aleatório para pacote ESP:\n"
 
 #: openssl-esp.c:206
 msgid "Failed to set up encryption context for ESP packet:\n"
-msgstr ""
+msgstr "Falha ao configurar contexto de criptografia para pacote ESP:\n"
 
 #: openssl-esp.c:215
 msgid "Failed to encrypt ESP packet:\n"
-msgstr ""
+msgstr "Falha ao criptografar pacote ESP:\n"
 
 #: openssl-pkcs11.c:42
 msgid "Failed to establish libp11 PKCS#11 context:\n"
-msgstr ""
+msgstr "Falha ao estabelecer contexto PKCS#11 de libp11:\n"
 
 #: openssl-pkcs11.c:48
 msgid "Failed to load PKCS#11 provider module (p11-kit-proxy.so):\n"
-msgstr ""
+msgstr "Falha ao carregar módulo provedor de PKCS#11 (p11-kit-proxy.so):\n"
 
 #: openssl-pkcs11.c:252
 msgid "PIN locked\n"
-msgstr ""
+msgstr "PIN travado\n"
 
 #: openssl-pkcs11.c:255
 msgid "PIN expired\n"
-msgstr ""
+msgstr "PIN expirou\n"
 
 #: openssl-pkcs11.c:258
 msgid "Another user already logged in\n"
-msgstr ""
+msgstr "Um outro usuário já está conectado\n"
 
 #: openssl-pkcs11.c:262
 msgid "Unknown error logging in to PKCS#11 token\n"
-msgstr ""
+msgstr "Erro desconhecido ao conectar ao token PKCS#11\n"
 
 #: openssl-pkcs11.c:269
 #, c-format
 msgid "Logged in to PKCS#11 slot '%s'\n"
-msgstr ""
+msgstr "Conectado ao slot PKCS#11 \"%s\"\n"
 
 #: openssl-pkcs11.c:283
 #, c-format
 msgid "Failed to enumerate certs in PKCS#11 slot '%s'\n"
-msgstr ""
+msgstr "Falha ao enumerar certificados no slot PKCS#11 \"%s\"\n"
 
 #: openssl-pkcs11.c:289
 #, c-format
 msgid "Found %d certs in slot '%s'\n"
-msgstr ""
+msgstr "Encontrada %d certificados no slot \"%s\"\n"
 
 #: openssl-pkcs11.c:321 openssl-pkcs11.c:473
 #, c-format
 msgid "Failed to parse PKCS#11 URI '%s'\n"
-msgstr ""
+msgstr "Falha ao analisar URI PKCS#11 \"%s\"\n"
 
 #: openssl-pkcs11.c:328 openssl-pkcs11.c:483
 msgid "Failed to enumerate PKCS#11 slots\n"
-msgstr ""
+msgstr "Falha ao enumerar slots PKCS#11\n"
 
 #: openssl-pkcs11.c:362 openssl-pkcs11.c:525
 #, c-format
 msgid "Logging in to PKCS#11 slot '%s'\n"
-msgstr ""
+msgstr "Conectando ao slot PKCS#11 \"%s\"\n"
 
 #: openssl-pkcs11.c:377
 msgid "Certificate X.509 content not fetched by libp11\n"
-msgstr ""
+msgstr "Conteúdo de certificado X.509 não obtido por libp11\n"
 
 #: openssl-pkcs11.c:388 openssl.c:681
 msgid "Failed to install certificate in OpenSSL context\n"
@@ -3050,24 +3061,24 @@ msgstr "Falhou ao instalar certificado em contexto OpenSSL\n"
 #: openssl-pkcs11.c:434
 #, c-format
 msgid "Failed to enumerate keys in PKCS#11 slot '%s'\n"
-msgstr ""
+msgstr "Falha ao enumerar chaves no slot PKCS#11 \"%s\"\n"
 
 #: openssl-pkcs11.c:440
 #, c-format
 msgid "Found %d keys in slot '%s'\n"
-msgstr ""
+msgstr "Encontradas %d chaves no slot \"%s\"\n"
 
 #: openssl-pkcs11.c:554
 msgid "Failed to instantiated private key from PKCS#11\n"
-msgstr ""
+msgstr "Falha ao instanciar chave privada de PKCS#11\n"
 
 #: openssl-pkcs11.c:561
 msgid "Add key from PKCS#11 failed\n"
-msgstr ""
+msgstr "Adição de chave de PKCS#11 falhou\n"
 
 #: openssl-pkcs11.c:593 openssl-pkcs11.c:599
 msgid "This version of OpenConnect was built without PKCS#11 support\n"
-msgstr ""
+msgstr "Essa versão do OpenConnect foi compilada sem suporte a PKCS#11\n"
 
 #: openssl.c:121
 msgid "Failed to write to SSL socket\n"
@@ -3290,7 +3301,7 @@ msgstr "Falha de conexão SSL\n"
 
 #: openssl.c:1760
 msgid "Failed to calculate OATH HMAC\n"
-msgstr ""
+msgstr "Falha ao calcular HMAC de OATH\n"
 
 #: script.c:96
 #, c-format
@@ -3324,12 +3335,12 @@ msgstr "Conexão de socket cancelada\n"
 #: ssl.c:208
 #, c-format
 msgid "Failed to reconnect to proxy %s: %s\n"
-msgstr ""
+msgstr "Falha ao reconectar ao proxy %s: %s\n"
 
 #: ssl.c:212
 #, c-format
 msgid "Failed to reconnect to host %s: %s\n"
-msgstr ""
+msgstr "Falha ao reconectar ao host %s: %s\n"
 
 #: ssl.c:282
 #, c-format
@@ -3359,7 +3370,7 @@ msgstr "Tentando conectar ao servidor %s%s%s:%s\n"
 #: ssl.c:355
 #, c-format
 msgid "Connected to %s%s%s:%s\n"
-msgstr ""
+msgstr "Conectado a %s%s%s:%s\n"
 
 #: ssl.c:367
 msgid "Failed to allocate sockaddr storage\n"
@@ -3368,7 +3379,7 @@ msgstr "Falhou ao alocar armazenamento de sockaddr\n"
 #: ssl.c:409
 #, c-format
 msgid "Failed to connect to %s%s%s:%s: %s\n"
-msgstr ""
+msgstr "Falha ao conectar a %s%s%s:%s: %s\n"
 
 #: ssl.c:427
 msgid "Forgetting non-functional previous peer address\n"
@@ -3457,23 +3468,26 @@ msgstr "openconnect_fopen_utf8() usado como modo sem suporte \"%s\"\n"
 #, c-format
 msgid "Unknown protocol family %d. Cannot create UDP server address\n"
 msgstr ""
+"Família %d de protocolo desconhecido. Não foi possível criar endereço de "
+"servidor UDP\n"
 
 #: ssl.c:932
 msgid "Open UDP socket"
-msgstr ""
+msgstr "Socket UDP aberto"
 
 #: ssl.c:963
 #, c-format
 msgid "Unknown protocol family %d. Cannot use UDP transport\n"
 msgstr ""
+"Família %d de protocolo desconhecido. Não foi possível usar transporte UDP\n"
 
 #: ssl.c:971
 msgid "Bind UDP socket"
-msgstr ""
+msgstr "Socket UDP alocado"
 
 #: ssl.c:978
 msgid "Connect UDP socket\n"
-msgstr ""
+msgstr "Conectar ao socket UDP\n"
 
 #: ssl.c:1011
 msgid "Cookie is no longer valid, ending session\n"
@@ -3729,7 +3743,7 @@ msgstr "Falhou ao colocar descritor de arquivo tun no modo message-discard"
 
 #: tun.c:183
 msgid "tun device is unsupported on this platform\n"
-msgstr ""
+msgstr "dispositivo tun sem suporte nesta plataforma\n"
 
 #: tun.c:205
 msgid "open net"
@@ -3747,13 +3761,15 @@ msgstr "Falhou ao abrir dispositivo tun: %s\n"
 #: tun.c:253
 #, c-format
 msgid "Failed to bind local tun device (TUNSETIFF): %s\n"
-msgstr ""
+msgstr "Falha ao alocar dispositivo tun local (TUNSETIFF): %s\n"
 
 #: tun.c:257
 msgid ""
 "To configure local networking, openconnect must be running as root\n"
 "See http://www.infradead.org/openconnect/nonroot.html for more information\n"
 msgstr ""
+"Para configurar a rede local, openconnect deve ser executado como root\n"
+"Veja http://www.infradead.org/openconnect/nonroot.html para mais informação\n"
 
 #: tun.c:322
 #, c-format
@@ -3933,6 +3949,7 @@ msgstr "comando unlock"
 #: yubikey.c:289
 msgid "Trying truncated-char PBKBF2 variant of Yubikey PIN\n"
 msgstr ""
+"Tentando uma variante de PBKBF2 com caractere truncado de PIN de Yubikey\n"
 
 #: yubikey.c:328
 #, c-format

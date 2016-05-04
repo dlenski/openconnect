@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2016-03-08 09:47+0000\n"
+"POT-Creation-Date: 2016-05-04 12:28+0100\n"
 "PO-Revision-Date: 2011-09-22 22:31+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Hungarian (http://www.transifex.net/projects/p/meego/team/"
@@ -193,6 +193,8 @@ msgid ""
 "Error: Running the 'Cisco Secure Desktop' trojan on this platform is not yet "
 "implemented.\n"
 msgstr ""
+"Hiba: A „Cisco Secure Desktop” trójai futtatása még nincs megvalósítva ezen "
+"a platformon.\n"
 
 #: auth.c:982
 msgid ""
@@ -235,22 +237,22 @@ msgstr "Nem sikerült írni az átmeneti CSD parancsfájlt: %s\n"
 #: auth.c:1075 mainloop.c:140
 #, c-format
 msgid "Failed to set gid %ld: %s\n"
-msgstr ""
+msgstr "A(z) %ld gid beállítása nem sikerült: %s\n"
 
 #: auth.c:1082 mainloop.c:147
 #, c-format
 msgid "Failed to set groups to %ld: %s\n"
-msgstr ""
+msgstr "A csoportok beállítása nem sikerült erre: %ld: %s\n"
 
 #: auth.c:1089 mainloop.c:154
 #, c-format
 msgid "Failed to set uid %ld: %s\n"
-msgstr ""
+msgstr "A(z) %ld uid beállítása nem sikerült: %s\n"
 
 #: auth.c:1096
 #, c-format
 msgid "Invalid user uid=%ld: %s\n"
-msgstr ""
+msgstr "Érvénytelen felhasználó uid=%ld: %s\n"
 
 #: auth.c:1103
 #, c-format
@@ -609,7 +611,7 @@ msgstr ""
 #: dtls.c:345 dtls.c:656
 #, c-format
 msgid "DTLS connection compression using %s.\n"
-msgstr ""
+msgstr "DTLS kapcsolattömörítés %s használatával.\n"
 
 #: dtls.c:376
 msgid "Your OpenSSL is older than the one you built against, so DTLS may fail!"
@@ -778,45 +780,45 @@ msgstr "%d bájt DTLS csomag küldése; a DTLS küldés visszatérése: %d\n"
 
 #: dtls.c:1085
 msgid "SSL operation cancelled\n"
-msgstr ""
+msgstr "Az SSL művelet megszakítva\n"
 
 #: dtls.c:1127
 #, c-format
 msgid "Initiating IPv4 MTU detection (min=%d, max=%d)\n"
-msgstr ""
+msgstr "IPv4 MTU észlelés előkészítése (min=%d, max=%d)\n"
 
 #: dtls.c:1132
 msgid "Too long time in MTU detect loop; bailing out.\n"
-msgstr ""
+msgstr "Túl sok idő telt az MTU észlelési ciklusban; kiugrás.\n"
 
 #: dtls.c:1155 dtls.c:1234
 #, c-format
 msgid "Failed to send DPD request (%d): %s\n"
-msgstr ""
+msgstr "Nem sikerült a DPD kérés (%d) küldése: %s\n"
 
 #: dtls.c:1175 dtls.c:1260
 #, c-format
 msgid "Received unexpected packet (%.2x) in MTU detection; skipping.\n"
-msgstr ""
+msgstr "Váratlan csomag (%.2x) érkezett az MTU észlelésnél; kihagyás.\n"
 
 #: dtls.c:1181 dtls.c:1276
 #, c-format
 msgid "Failed to recv DPD request (%d): %s\n"
-msgstr ""
+msgstr "Nem sikerült a DPD kérés (%d) fogadása: %s\n"
 
 #: dtls.c:1214
 msgid "Initiating IPv6 MTU detection\n"
-msgstr ""
+msgstr "IPv6 MTU észlelés előkészítése\n"
 
 #: dtls.c:1329
 #, c-format
 msgid "Detected MTU of %d bytes (was %d)\n"
-msgstr ""
+msgstr "%d bájtos MTU észlelve (%d volt)\n"
 
 #: dtls.c:1332
 #, c-format
 msgid "No change in MTU after detection (was %d)\n"
-msgstr ""
+msgstr "Nincs változás az MTU-ban az észlelés után (%d volt)\n"
 
 #: esp.c:57
 #, c-format
@@ -881,78 +883,81 @@ msgstr "%d bájt ESP csomag érkezett\n"
 #, c-format
 msgid "Consider SPI 0x%x, seq %u against outgoing ESP setup\n"
 msgstr ""
+"Fontolja meg az 0x%x SPI-t, %u sorszámmal, a kimenő ESP beállítással "
+"szemben\n"
 
 #: esp.c:286
 #, c-format
 msgid "Received ESP packet with invalid SPI 0x%08x\n"
-msgstr ""
+msgstr "ESP csomag érkezett, érvénytelen 0x%08x SPI-vel\n"
 
 #: esp.c:294
 #, c-format
 msgid "Received ESP packet with unrecognised payload type %02x\n"
-msgstr ""
+msgstr "ESP csomag érkezett, nem felismert %02x adattípussal\n"
 
 #: esp.c:301
 #, c-format
 msgid "Invalid padding length %02x in ESP\n"
-msgstr ""
+msgstr "Érvénytelen kitöltő hossz (%02x) az ESP-ben\n"
 
 #: esp.c:313
 msgid "Invalid padding bytes in ESP\n"
-msgstr ""
+msgstr "Érvénytelen kitöltő bájtok az ESP-ben\n"
 
 #: esp.c:321
 msgid "ESP session established with server\n"
-msgstr ""
+msgstr "ESP munkamenet létrehozva a kiszolgálóval\n"
 
 #: esp.c:332
 msgid "Failed to allocate memory to decrypt ESP packet\n"
 msgstr ""
+"Nem sikerült memóriát lefoglalni az ESP csomag titkosításának feloldásához\n"
 
 #: esp.c:338
 msgid "LZO decompression of ESP packet failed\n"
-msgstr ""
+msgstr "Az ESP csomag kibontása LZO-val sikertelen\n"
 
 #: esp.c:344
 #, c-format
 msgid "LZO decompressed %d bytes into %d\n"
-msgstr ""
+msgstr "%d bájt kibontása LZO-val ide: %d\n"
 
 #: esp.c:358
 msgid "Rekey not implemented for ESP\n"
-msgstr ""
+msgstr "Az újrabeírás nincs megvalósítva az ESP-khez\n"
 
 #: esp.c:362
 msgid "ESP detected dead peer\n"
-msgstr ""
+msgstr "Az ESP halott csomópontot észlelt\n"
 
 #: esp.c:369
 msgid "Send ESP probes for DPD\n"
-msgstr ""
+msgstr "ESP szondák küldése a DPD-hez\n"
 
 #: esp.c:375
 msgid "Keepalive not implemented for ESP\n"
-msgstr ""
+msgstr "Az életben tartás nincs megvalósítva az ESP-khez\n"
 
 #: esp.c:398
 #, c-format
 msgid "Failed to send ESP packet: %s\n"
-msgstr ""
+msgstr "Nem sikerült az ESP csomag küldése: %s\n"
 
 #: esp.c:404
 #, c-format
 msgid "Sent ESP packet of %d bytes\n"
-msgstr ""
+msgstr "%d bájtos ESP csomag elküldve\n"
 
 #: gnutls-esp.c:56
 #, c-format
 msgid "Failed to initialise ESP cipher: %s\n"
-msgstr ""
+msgstr "Az ESP titkosító előkészítése sikertelen: %s\n"
 
 #: gnutls-esp.c:66
 #, c-format
 msgid "Failed to initialize ESP HMAC: %s\n"
-msgstr ""
+msgstr "Az ESP HMAC előkészítése sikertelen: %s\n"
 
 #: gnutls-esp.c:116
 #, c-format
@@ -962,26 +967,26 @@ msgstr "Nem sikerült a véletlen kulcsok előállítása az ESP-hez: %s\n"
 #: gnutls-esp.c:146 gnutls-esp.c:212
 #, c-format
 msgid "Failed to calculate HMAC for ESP packet: %s\n"
-msgstr ""
+msgstr "Az ESP csomag HMAC kódjának kiszámítása sikertelen: %s\n"
 
 #: gnutls-esp.c:153 openssl-esp.c:148
 msgid "Received ESP packet with invalid HMAC\n"
-msgstr ""
+msgstr "Érvénytelen HMAC kódú ESP csomag érkezett\n"
 
 #: gnutls-esp.c:169
 #, c-format
 msgid "Decrypting ESP packet failed: %s\n"
-msgstr ""
+msgstr "Az ESP csomag titkosításának feloldása sikertelen: %s\n"
 
 #: gnutls-esp.c:189
 #, c-format
 msgid "Failed to generate ESP packet IV: %s\n"
-msgstr ""
+msgstr "Az ESP csomag kezdeti értékének (IV) előállítása sikertelen: %s\n"
 
 #: gnutls-esp.c:204
 #, c-format
 msgid "Failed to encrypt ESP packet: %s\n"
-msgstr ""
+msgstr "Az ESP csomag titkosítása sikertelen: %s\n"
 
 #: gnutls.c:126 openssl.c:128
 msgid "SSL write cancelled\n"
@@ -1329,14 +1334,17 @@ msgstr "A kiszolgáló nem mutatott be tanúsítványt\n"
 #, c-format
 msgid "Error comparing server's cert on rehandshake: %s\n"
 msgstr ""
+"Hiba a kiszolgáló tanúsítványának újbóli kézfogáskor történő "
+"összehasonlításakor: %s\n"
 
 #: gnutls.c:1975 openssl.c:1338
 msgid "Server presented different cert on rehandshake\n"
 msgstr ""
+"A kiszolgáló különböző tanúsítványt mutatott be az újbóli kézfogáskor\n"
 
 #: gnutls.c:1980 openssl.c:1341
 msgid "Server presented identical cert on rehandshake\n"
-msgstr ""
+msgstr "A kiszolgáló azonos tanúsítványt mutatott be az újbóli kézfogáskor\n"
 
 #: gnutls.c:1986
 msgid "Error initialising X509 cert structure\n"
@@ -1419,7 +1427,7 @@ msgstr "A tanúsítvány betöltése nem sikerült. Megszakítás.\n"
 #: gnutls.c:2270
 #, c-format
 msgid "Failed to set TLS priority string (\"%s\"): %s\n"
-msgstr ""
+msgstr "A TLS prioritás szöveg („%s”) beállítása sikertelen: %s\n"
 
 #: gnutls.c:2282 openssl.c:1583
 #, c-format
@@ -2290,7 +2298,7 @@ msgstr "HTTP fejléc User-Agent: mező"
 
 #: main.c:817
 msgid "Local hostname to advertise to server"
-msgstr ""
+msgstr "A kiszolgáló felé hirdetett helyi gépnév"
 
 #: main.c:818
 msgid "Use IP when connecting to HOST"
@@ -2332,12 +2340,12 @@ msgstr "A(z) „%s” kapcsolóhoz argumentum szükséges a(z) %d. sorban\n"
 #: main.c:981
 #, c-format
 msgid "Invalid user \"%s\": %s\n"
-msgstr ""
+msgstr "Érvénytelen felhasználó „%s”: %s\n"
 
 #: main.c:991
 #, c-format
 msgid "Invalid user ID \"%d\": %s\n"
-msgstr ""
+msgstr "Érvénytelen felhasználóazonosító „%d”: %s\n"
 
 #: main.c:1043
 #, c-format
@@ -2462,7 +2470,7 @@ msgstr "A DTLS beállítása nem sikerült; SSL használata helyette\n"
 #: main.c:1521
 #, c-format
 msgid "Connected as %s%s%s, using %s%s\n"
-msgstr ""
+msgstr "Csatlakozva mint %s%s%s, %s%s használatával\n"
 
 #: main.c:1530
 msgid "No --script argument provided; DNS and routing are not configured\n"
@@ -2823,7 +2831,7 @@ msgstr "Az ESP titkok %d bájtja\n"
 #: oncp.c:405
 #, c-format
 msgid "Unknown TLV group %d attr %d len %d:%s\n"
-msgstr ""
+msgstr "Ismeretlen TLV csoport: %d, attribútum: %d, hossz: %d:%s\n"
 
 #: oncp.c:482
 msgid "Failed to parse KMP header\n"
@@ -2836,73 +2844,73 @@ msgstr "Nem sikerült feldolgozni a KMP üzenetet\n"
 #: oncp.c:504
 #, c-format
 msgid "Got KMP message %d of size %d\n"
-msgstr ""
+msgstr "%2$d méretű, %1$d KMP üzenet érkezett\n"
 
 #: oncp.c:520
 #, c-format
 msgid "Received non-ESP TLVs (group %d) in ESP negotiation KMP\n"
-msgstr ""
+msgstr "Nem ESP TLV-k (%d. csoport) érkeztek az ESP egyeztetési KMP-ben\n"
 
 #: oncp.c:568 oncp.c:612 oncp.c:644 oncp.c:770
 msgid "Error creating oNCP negotiation request\n"
-msgstr ""
+msgstr "Hiba az oNCP egyeztetési kérés létrehozásakor\n"
 
 #: oncp.c:653 oncp.c:804
 msgid "Short write in oNCP negotiation\n"
-msgstr ""
+msgstr "Rövid írás az oCNP egyeztetésben\n"
 
 #: oncp.c:665 oncp.c:689
 #, c-format
 msgid "Read %d bytes of SSL record\n"
-msgstr ""
+msgstr "%d bájt kiolvasva az SSL rekordból\n"
 
 #: oncp.c:669
 #, c-format
 msgid "Unexpected response of size %d after hostname packet\n"
-msgstr ""
+msgstr "%d méretű ismeretlen válasz a gépnév csomag után\n"
 
 #: oncp.c:676
 #, c-format
 msgid "Server response to hostname packet is error 0x%02x\n"
-msgstr ""
+msgstr "A kiszolgáló válasza a gépnév csomagra: 0x%02x hiba\n"
 
 #: oncp.c:693
 msgid "Invalid packet waiting for KMP 301\n"
-msgstr ""
+msgstr "Érvénytelen várakozó csomag a KMP 301-hez\n"
 
 #: oncp.c:706
 #, c-format
 msgid "Expected KMP message 301 from server but got %d\n"
-msgstr ""
+msgstr "KMP 301 üzenet várva, de %d érkezett a kiszolgálótól\n"
 
 #: oncp.c:715
 #, c-format
 msgid "KMP message 301 from server too large (%d bytes)\n"
-msgstr ""
+msgstr "A szervertől érkező KMP 301 üzenet túl nagy (%d bájt)\n"
 
 #: oncp.c:721
 #, c-format
 msgid "Got KMP message 301 of length %d\n"
-msgstr ""
+msgstr "%d hosszú KMP 301 üzenet érkezett\n"
 
 #: oncp.c:728
 msgid "Failed to read continuation record length\n"
-msgstr ""
+msgstr "A folytatási rekord hosszának olvasása sikertelen\n"
 
 #: oncp.c:734
 #, c-format
 msgid "Record of additional %d bytes too large; would make %d\n"
-msgstr ""
+msgstr "A további %d bájtos rekord túl nagy; %d lenne\n"
 
 #: oncp.c:743
 #, c-format
 msgid "Failed to read continuation record of length %d\n"
-msgstr ""
+msgstr "A(z) %d hosszú folytatási rekord olvasása sikertelen\n"
 
 #: oncp.c:749
 #, c-format
 msgid "Read additional %d bytes of KMP 301 message\n"
-msgstr ""
+msgstr "A KMP 301 üzenet további %d bájtja beolvasva\n"
 
 #: oncp.c:789
 msgid "Error negotiating ESP keys\n"
@@ -2919,55 +2927,58 @@ msgstr "új kimenő"
 #: oncp.c:855
 msgid "Ignoring ESP keys since ESP support not available in this build\n"
 msgstr ""
+"Az ESP kulcsok figyelmen kívül hagyása, mivel az ESP támogatás nem elérhető "
+"ebben a verzióban\n"
 
 #: oncp.c:875
 msgid "Read only 1 byte of oNCP length field\n"
-msgstr ""
+msgstr "Az oNCP hossz mezőjének csak 1 bájtja olvasva\n"
 
 #: oncp.c:884
 msgid "Server terminated connection (session expired)\n"
-msgstr ""
+msgstr "A kiszolgáló megszakította a kapcsolatot (munkamenet lejárt)\n"
 
 #: oncp.c:888
 #, c-format
 msgid "Server terminated connection (reason: %d)\n"
-msgstr ""
+msgstr "A kiszolgáló megszakította a kapcsolatot (ok: %d)\n"
 
 #: oncp.c:894
 msgid "Server sent zero-length oNCP record\n"
-msgstr ""
+msgstr "A kiszolgáló nulla hosszú oNCP rekordot küldött\n"
 
 #: oncp.c:985
 #, c-format
 msgid "Incoming KMP message %d of size %d (got %d)\n"
-msgstr ""
+msgstr "Bejövő, %2$d méretű, KMP %1$d. üzenet (kapott: %3$d)\n"
 
 #: oncp.c:988
 #, c-format
 msgid "Continuing to process KMP message %d now size %d (got %d)\n"
 msgstr ""
+"A KMP %d üzenet feldolgozásának folytatása, mérete most: %d (kapott: %d)\n"
 
 #: oncp.c:1007
 msgid "Unrecognised data packet\n"
-msgstr ""
+msgstr "Nem felismert adatcsomag\n"
 
 #: oncp.c:1069
 #, c-format
 msgid "Unknown KMP message %d of size %d:\n"
-msgstr ""
+msgstr "Ismeretlen, %2$d méretű, KMP %1$d üzenet:\n"
 
 #: oncp.c:1074
 #, c-format
 msgid ".... + %d more bytes unreceived\n"
-msgstr ""
+msgstr ".... + %d további, nem fogadott bájt\n"
 
 #: oncp.c:1089
 msgid "Packet outgoing:\n"
-msgstr ""
+msgstr "Kimenő csomag:\n"
 
 #: oncp.c:1153
 msgid "Sent ESP enable control packet\n"
-msgstr ""
+msgstr "ESP engedélyezési vezérlőcsomag elküldve\n"
 
 #: openconnect-internal.h:1030 openconnect-internal.h:1038
 #, c-format
@@ -2977,35 +2988,38 @@ msgstr ""
 
 #: openssl-esp.c:51
 msgid "Failed to initialise ESP cipher:\n"
-msgstr ""
+msgstr "Nem sikerült előkészíteni az ESP titkosítót:\n"
 
 #: openssl-esp.c:61
 msgid "Failed to initialize ESP HMAC\n"
-msgstr ""
+msgstr "Nem sikerült előkészíteni az ESP HMAC kódot\n"
 
 #: openssl-esp.c:112
 msgid "Failed to generate random keys for ESP:\n"
-msgstr ""
+msgstr "Nem sikerült a véletlenszerű kulcsok előállítása az ESP-hez:\n"
 
 #: openssl-esp.c:163
 msgid "Failed to set up decryption context for ESP packet:\n"
 msgstr ""
+"Nem sikerült beállítani a titkosításfeloldási környezetet az ESP csomaghoz:\n"
 
 #: openssl-esp.c:171
 msgid "Failed to decrypt ESP packet:\n"
-msgstr ""
+msgstr "Nem sikerült feloldani az ESP csomag titkosítását: %s\n"
 
 #: openssl-esp.c:192
 msgid "Failed to generate random IV for ESP packet:\n"
 msgstr ""
+"Nem sikerült a véletlenszerű kezdeti érték (IV) előállítása az ESP "
+"csomaghoz:\n"
 
 #: openssl-esp.c:206
 msgid "Failed to set up encryption context for ESP packet:\n"
-msgstr ""
+msgstr "Nem sikerült beállítani a titkosítási környezetet az ESP csomaghoz:\n"
 
 #: openssl-esp.c:215
 msgid "Failed to encrypt ESP packet:\n"
-msgstr ""
+msgstr "Nem sikerült az ESP csomag titkosítása:\n"
 
 #: openssl-pkcs11.c:42
 msgid "Failed to establish libp11 PKCS#11 context:\n"
@@ -3316,7 +3330,7 @@ msgstr "Az SSL kapcsolat meghiúsult\n"
 
 #: openssl.c:1760
 msgid "Failed to calculate OATH HMAC\n"
-msgstr ""
+msgstr "Nem sikerült kiszámítani a OATH HMAC kódot\n"
 
 #: script.c:96
 #, c-format
@@ -3350,12 +3364,12 @@ msgstr "Foglalat-csatlakozás megszakítva\n"
 #: ssl.c:208
 #, c-format
 msgid "Failed to reconnect to proxy %s: %s\n"
-msgstr ""
+msgstr "Nem sikerült újracsatlakozni a(z) %s proxyhoz: %s\n"
 
 #: ssl.c:212
 #, c-format
 msgid "Failed to reconnect to host %s: %s\n"
-msgstr ""
+msgstr "Nem sikerült újracsatlakozni a(z) %s géphez: %s\n"
 
 #: ssl.c:282
 #, c-format
@@ -3386,7 +3400,7 @@ msgstr "Kapcsolódási kísérlet a következő kiszolgálóhoz: %s%s%s:%s\n"
 #: ssl.c:355
 #, c-format
 msgid "Connected to %s%s%s:%s\n"
-msgstr ""
+msgstr "Csatlakozva ide: %s%s%s:%s\n"
 
 #: ssl.c:367
 msgid "Failed to allocate sockaddr storage\n"
@@ -3395,7 +3409,7 @@ msgstr "Nem sikerült lefoglalni a sockaddr tárolót\n"
 #: ssl.c:409
 #, c-format
 msgid "Failed to connect to %s%s%s:%s: %s\n"
-msgstr ""
+msgstr "Nem sikerült ide kapcsolódni: %s%s%s:%s: %s\n"
 
 #: ssl.c:427
 msgid "Forgetting non-functional previous peer address\n"
@@ -3483,24 +3497,24 @@ msgstr ""
 #: ssl.c:918
 #, c-format
 msgid "Unknown protocol family %d. Cannot create UDP server address\n"
-msgstr ""
+msgstr "Ismeretlen protokollcsalád: %d. Nem hozható létre UDP kiszolgálócím\n"
 
 #: ssl.c:932
 msgid "Open UDP socket"
-msgstr ""
+msgstr "UDP foglalat megnyitása"
 
 #: ssl.c:963
 #, c-format
 msgid "Unknown protocol family %d. Cannot use UDP transport\n"
-msgstr ""
+msgstr "Ismeretlen protokollcsalád: %d. Nem használható az UDP átvitel\n"
 
 #: ssl.c:971
 msgid "Bind UDP socket"
-msgstr ""
+msgstr "UDP foglalat kötése"
 
 #: ssl.c:978
 msgid "Connect UDP socket\n"
-msgstr ""
+msgstr "UDP foglalat kapcsolódása\n"
 
 #: ssl.c:1011
 msgid "Cookie is no longer valid, ending session\n"
@@ -3757,7 +3771,7 @@ msgstr "Nem sikerült a tun fájlleíró átállítása message-discard módba"
 
 #: tun.c:183
 msgid "tun device is unsupported on this platform\n"
-msgstr ""
+msgstr "A tun eszköz nem támogatott ezen a platformon\n"
 
 #: tun.c:205
 msgid "open net"
@@ -3775,7 +3789,7 @@ msgstr "Nem sikerült megnyitni a tun eszközt: %s\n"
 #: tun.c:253
 #, c-format
 msgid "Failed to bind local tun device (TUNSETIFF): %s\n"
-msgstr ""
+msgstr "Nem sikerült kötni a helyi tun eszközt (TUNSETIFF): %s\n"
 
 #: tun.c:257
 msgid ""
@@ -3961,7 +3975,7 @@ msgstr "feloldási parancs"
 
 #: yubikey.c:289
 msgid "Trying truncated-char PBKBF2 variant of Yubikey PIN\n"
-msgstr ""
+msgstr "A Yubikey PIN csonkolt karakteres PBKBF2 változatának kipróbálása\n"
 
 #: yubikey.c:328
 #, c-format

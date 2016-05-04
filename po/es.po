@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2016-03-08 09:47+0000\n"
+"POT-Creation-Date: 2016-05-04 12:28+0100\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Spanish (Castilian) (http://www.transifex.net/projects/p/"
 "meego/language/es/)\n"
@@ -20,17 +20,17 @@ msgstr ""
 #: auth-juniper.c:128
 #, c-format
 msgid "Ignoring unknown form submit item '%s'\n"
-msgstr ""
+msgstr "Ignorando formulario de envío desconocido del elemento «%s»\n"
 
 #: auth-juniper.c:141
 #, c-format
 msgid "Ignoring unknown form input type '%s'\n"
-msgstr ""
+msgstr "Ignorando formulario de entrada desconocido del tipo «%s»\n"
 
 #: auth-juniper.c:151
 #, c-format
 msgid "Discarding duplicate option '%s'\n"
-msgstr ""
+msgstr "Descartando opcion duplicada «%s»\n"
 
 #: auth-juniper.c:224 auth.c:408
 #, c-format
@@ -47,16 +47,16 @@ msgstr "Ninguna cookie DSPREAUTH; no intentar TNCC\n"
 
 #: auth-juniper.c:341
 msgid "Failed to allocate memory for communication with TNCC\n"
-msgstr ""
+msgstr "Falló al asignar memoria para la comunicación con TNCC\n"
 
 #: auth-juniper.c:376
 #, c-format
 msgid "Failed to exec TNCC script %s: %s\n"
-msgstr ""
+msgstr "Falló al ejecutar el script TNCC %s: %s\n"
 
 #: auth-juniper.c:385
 msgid "Failed to send start command to TNCC\n"
-msgstr ""
+msgstr "Falló al enviar el comando de inicio a TNCC\n"
 
 #: auth-juniper.c:392
 msgid "Sent start; waiting for response from TNCC\n"
@@ -64,7 +64,7 @@ msgstr "Envío iniciado; esperando respuesta por parte de TNCC\n"
 
 #: auth-juniper.c:397
 msgid "Failed to read response from TNCC\n"
-msgstr ""
+msgstr "Falló al leer la respuesta de TNCC\n"
 
 #: auth-juniper.c:408
 msgid "Received invalid response from TNCC\n"
@@ -98,6 +98,8 @@ msgstr "Falló al analizar el documento HTML\n"
 #: auth-juniper.c:512
 msgid "Failed to find or parse web form in login page\n"
 msgstr ""
+"Falló al encontrar o analizar el formulario web en la página de inicio de "
+"sesión\n"
 
 #: auth-juniper.c:520
 msgid "Encountered form with no ID\n"
@@ -106,7 +108,7 @@ msgstr "Encontrado formulario sin ID\n"
 #: auth-juniper.c:545
 #, c-format
 msgid "Unknown form ID '%s'\n"
-msgstr ""
+msgstr "ID de formulario desconocido «%s»\n"
 
 #: auth-juniper.c:548
 #, c-format
@@ -191,6 +193,8 @@ msgid ""
 "Error: Running the 'Cisco Secure Desktop' trojan on this platform is not yet "
 "implemented.\n"
 msgstr ""
+"Error: La ejecución del «Cisco Secure Desktop» para troyano en esta "
+"plataforma no se ha implementado.\n"
 
 #: auth.c:982
 msgid ""
@@ -233,17 +237,17 @@ msgstr "Falló al escribir el archivo temporal del script CSD: %s\n"
 #: auth.c:1075 mainloop.c:140
 #, c-format
 msgid "Failed to set gid %ld: %s\n"
-msgstr ""
+msgstr "Falló al establecer gid %ld: %s\n"
 
 #: auth.c:1082 mainloop.c:147
 #, c-format
 msgid "Failed to set groups to %ld: %s\n"
-msgstr ""
+msgstr "Falló al establecer grupos de %ld: %s\n"
 
 #: auth.c:1089 mainloop.c:154
 #, c-format
 msgid "Failed to set uid %ld: %s\n"
-msgstr ""
+msgstr "Falló al establecer uid %ld: %s\n"
 
 #: auth.c:1096
 #, c-format
@@ -364,7 +368,7 @@ msgstr "X-DTLS-Session no es de 64 caracteres; es: «%s»\n"
 #: cstp.c:385
 #, c-format
 msgid "Unknown DTLS-Content-Encoding %s\n"
-msgstr ""
+msgstr "DTLS-Content-Encoding %s desconocido\n"
 
 #: cstp.c:421
 #, c-format
@@ -444,7 +448,7 @@ msgstr "Tipo de compresión %d desconocido\n"
 #: cstp.c:745
 #, c-format
 msgid "Received %s compressed data packet of %d bytes (was %d)\n"
-msgstr ""
+msgstr "Paquete de datos comprimidos %s de %d bytes recibido (eran %d)\n"
 
 #: cstp.c:765
 #, c-format
@@ -540,7 +544,7 @@ msgstr "Enviar CSTP Keepalive\n"
 #: cstp.c:1079
 #, c-format
 msgid "Sending compressed data packet of %d bytes (was %d)\n"
-msgstr ""
+msgstr "Enviando paquete de datos comprimidos de %d bytes (eran %d)\n"
 
 #: cstp.c:1090 oncp.c:1248
 #, c-format
@@ -559,12 +563,12 @@ msgstr "Intentando la autenticación Digest en el proxy\n"
 #: digest.c:257
 #, c-format
 msgid "Attempting Digest authentication to server '%s'\n"
-msgstr ""
+msgstr "Intentando la autenticación Digest al servidor «%s»\n"
 
 #: dtls.c:180
 #, c-format
 msgid "Failed to create SSL_SESSION ASN.1 for OpenSSL: %s\n"
-msgstr ""
+msgstr "Falló al crear SSL_SESSION ASN.1 para OpenSSL: %s\n"
 
 #: dtls.c:191
 msgid "OpenSSL failed to parse SSL_SESSION ASN.1\n"
@@ -607,7 +611,7 @@ msgstr "Establecida la conexíon DTLS (usando OpenSSL). Ciphersuite %s.\n"
 #: dtls.c:345 dtls.c:656
 #, c-format
 msgid "DTLS connection compression using %s.\n"
-msgstr ""
+msgstr "Compresión de la conexión DTLS utilizando %s.\n"
 
 #: dtls.c:376
 msgid "Your OpenSSL is older than the one you built against, so DTLS may fail!"
@@ -723,6 +727,7 @@ msgstr "Obtenido Keepalive DTLS\n"
 #: dtls.c:917
 msgid "Compressed DTLS packet received when compression not enabled\n"
 msgstr ""
+"Paquete DTLS comprimido recibido cuando la compresión no estaba activada\n"
 
 #: dtls.c:925
 #, c-format
@@ -788,7 +793,7 @@ msgstr "Demasiado tiempo en detectar el bucle MTU; liberando.\n"
 #: dtls.c:1155 dtls.c:1234
 #, c-format
 msgid "Failed to send DPD request (%d): %s\n"
-msgstr ""
+msgstr "Falló al enviar la solicitud DPD (%d): %s\n"
 
 #: dtls.c:1175 dtls.c:1260
 #, c-format
@@ -799,7 +804,7 @@ msgstr ""
 #: dtls.c:1181 dtls.c:1276
 #, c-format
 msgid "Failed to recv DPD request (%d): %s\n"
-msgstr ""
+msgstr "Falló al recibir la solicitud DPD (%d): %s\n"
 
 #: dtls.c:1214
 msgid "Initiating IPv6 MTU detection\n"
@@ -808,7 +813,7 @@ msgstr "Iniciando detección de MTU IPv6\n"
 #: dtls.c:1329
 #, c-format
 msgid "Detected MTU of %d bytes (was %d)\n"
-msgstr ""
+msgstr "Detectado MTU de %d bytes (eran %d)\n"
 
 #: dtls.c:1332
 #, c-format
@@ -851,12 +856,12 @@ msgstr "Parametros para %s ESP: SPI 0x%08x\n"
 #: esp.c:155
 #, c-format
 msgid "ESP encryption type %s key 0x%s\n"
-msgstr ""
+msgstr "Tipo de cifrado ESP %s clave 0x%s\n"
 
 #: esp.c:158
 #, c-format
 msgid "ESP authentication type %s key 0x%s\n"
-msgstr ""
+msgstr "Tipo de autenticación ESP %s clave 0x%s\n"
 
 #: esp.c:217
 msgid "incoming"
@@ -873,7 +878,7 @@ msgstr "Enviar pruebas ESP\n"
 #: esp.c:264
 #, c-format
 msgid "Received ESP packet of %d bytes\n"
-msgstr ""
+msgstr "Paquete ESP recibido de %d bytes\n"
 
 #: esp.c:280
 #, c-format
@@ -907,11 +912,11 @@ msgstr "Sesión ESP establecida con el servidor\n"
 
 #: esp.c:332
 msgid "Failed to allocate memory to decrypt ESP packet\n"
-msgstr ""
+msgstr "Falló al asignar memoria para descifrar el paquete ESP\n"
 
 #: esp.c:338
 msgid "LZO decompression of ESP packet failed\n"
-msgstr ""
+msgstr "Falló la descompresión LZO del paquete ESP\n"
 
 #: esp.c:344
 #, c-format
@@ -947,22 +952,22 @@ msgstr "Enviando paquete ESP de %d bytes\n"
 #: gnutls-esp.c:56
 #, c-format
 msgid "Failed to initialise ESP cipher: %s\n"
-msgstr ""
+msgstr "Falló al inicializar el cifrado ESP: %s\n"
 
 #: gnutls-esp.c:66
 #, c-format
 msgid "Failed to initialize ESP HMAC: %s\n"
-msgstr ""
+msgstr "Falló al inicializar ESP HMAC: %s\n"
 
 #: gnutls-esp.c:116
 #, c-format
 msgid "Failed to generate random keys for ESP: %s\n"
-msgstr ""
+msgstr "Falló al generar las claves aleatorias para ESP: %s\n"
 
 #: gnutls-esp.c:146 gnutls-esp.c:212
 #, c-format
 msgid "Failed to calculate HMAC for ESP packet: %s\n"
-msgstr ""
+msgstr "Falló al calcular HMAC para el paquete ESP: %s\n"
 
 #: gnutls-esp.c:153 openssl-esp.c:148
 msgid "Received ESP packet with invalid HMAC\n"
@@ -971,7 +976,7 @@ msgstr "Paquete ESP recibido con HMAC no válida\n"
 #: gnutls-esp.c:169
 #, c-format
 msgid "Decrypting ESP packet failed: %s\n"
-msgstr ""
+msgstr "Falló al descifrar el paquete ESP: %s\n"
 
 #: gnutls-esp.c:189
 #, c-format
@@ -2294,7 +2299,7 @@ msgstr "Cabecera HTTP User_Agent: campo"
 
 #: main.c:817
 msgid "Local hostname to advertise to server"
-msgstr ""
+msgstr "Nombre del servidor local para anunciar al servidor"
 
 #: main.c:818
 msgid "Use IP when connecting to HOST"
@@ -2628,7 +2633,7 @@ msgstr ""
 #: main.c:2073
 #, c-format
 msgid "General Yubikey failure: %s\n"
-msgstr ""
+msgstr "Fallo general de Yubikey: %s\n"
 
 #: mainloop.c:123
 #, c-format
@@ -2918,42 +2923,45 @@ msgstr "Error al negociar las claves ESP\n"
 
 #: oncp.c:849
 msgid "new incoming"
-msgstr ""
+msgstr "nueva entrada"
 
 #: oncp.c:850
 msgid "new outgoing"
-msgstr ""
+msgstr "nueva salida"
 
 #: oncp.c:855
 msgid "Ignoring ESP keys since ESP support not available in this build\n"
 msgstr ""
+"Ignorando las claves ESP ya que el soporte ESP no está disponible en esta "
+"versión\n"
 
 #: oncp.c:875
 msgid "Read only 1 byte of oNCP length field\n"
-msgstr ""
+msgstr "Sólo lectura de 1 byte del campo de longitud oNCP\n"
 
 #: oncp.c:884
 msgid "Server terminated connection (session expired)\n"
-msgstr ""
+msgstr "El servidor terminó la conexión (la sesión ha finalizado)\n"
 
 #: oncp.c:888
 #, c-format
 msgid "Server terminated connection (reason: %d)\n"
-msgstr ""
+msgstr "El servidor terminó la conexión (razón: %d)\n"
 
 #: oncp.c:894
 msgid "Server sent zero-length oNCP record\n"
-msgstr ""
+msgstr "El servidor envió longitud cero al registro oNCP\n"
 
 #: oncp.c:985
 #, c-format
 msgid "Incoming KMP message %d of size %d (got %d)\n"
-msgstr ""
+msgstr "Mensaje KMP entrante %d de tamaño %d (tiene %d)\n"
 
 #: oncp.c:988
 #, c-format
 msgid "Continuing to process KMP message %d now size %d (got %d)\n"
 msgstr ""
+"Continuar para procesar el mensaje KMP %d ahora el tamaño es %d (tiene %d)\n"
 
 #: oncp.c:1007
 msgid "Unrecognised data packet\n"
@@ -2962,7 +2970,7 @@ msgstr "Paquete de datos no reconocido\n"
 #: oncp.c:1069
 #, c-format
 msgid "Unknown KMP message %d of size %d:\n"
-msgstr ""
+msgstr "Mensaje KMP desconocido %d de tamaño %d:\n"
 
 #: oncp.c:1074
 #, c-format
@@ -2975,7 +2983,7 @@ msgstr "Paquete saliente:\n"
 
 #: oncp.c:1153
 msgid "Sent ESP enable control packet\n"
-msgstr ""
+msgstr "Enviado paquete de control de activación\n"
 
 #: openconnect-internal.h:1030 openconnect-internal.h:1038
 #, c-format
@@ -2997,6 +3005,7 @@ msgstr ""
 #: openssl-esp.c:163
 msgid "Failed to set up decryption context for ESP packet:\n"
 msgstr ""
+"Falló al establecer el contexto para el descifrado de el paquete ESP:\n"
 
 #: openssl-esp.c:171
 msgid "Failed to decrypt ESP packet:\n"
@@ -3008,7 +3017,7 @@ msgstr ""
 
 #: openssl-esp.c:206
 msgid "Failed to set up encryption context for ESP packet:\n"
-msgstr ""
+msgstr "Falló al establecer el contexto de cifrado para el paquete ESP:\n"
 
 #: openssl-esp.c:215
 msgid "Failed to encrypt ESP packet:\n"
@@ -3032,7 +3041,7 @@ msgstr "PIN caducado\n"
 
 #: openssl-pkcs11.c:258
 msgid "Another user already logged in\n"
-msgstr ""
+msgstr "Otro usuario ya ha iniciado sesión\n"
 
 #: openssl-pkcs11.c:262
 msgid "Unknown error logging in to PKCS#11 token\n"
@@ -3487,7 +3496,7 @@ msgstr ""
 
 #: ssl.c:932
 msgid "Open UDP socket"
-msgstr ""
+msgstr "Abrir socket UDP"
 
 #: ssl.c:963
 #, c-format
@@ -3944,7 +3953,7 @@ msgstr ""
 
 #: yubikey.c:206
 msgid "PIN required for Yubikey OATH applet"
-msgstr ""
+msgstr "PIN requerido por la miniaplicación Yubikey OATH"
 
 #: yubikey.c:211
 msgid "Yubikey PIN:"
