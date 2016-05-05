@@ -1001,8 +1001,16 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 	key_is_p11 = !strncmp(vpninfo->sslkey, "pkcs11:", 7);
 	cert_is_p11 = !strncmp(vpninfo->cert, "pkcs11:", 7);
+
+#ifdef HAVE_GNUTLS_URL_IS_SUPPORTED
+	/* GnuTLS returns true for pkcs11:, tpmkey:, system:, and custom URLs. */
+	key_is_sys = !key_is_p11 && gnutls_url_is_supported(vpninfo->sslkey);
+	cert_is_sys = !cert_is_p11 && gnutls_url_is_supported(vpninfo->cert);
+#else
+	/* Fallback for GnuTLS < 3.1.0. */
 	key_is_sys = !strncmp(vpninfo->sslkey, "system:", 7);
 	cert_is_sys = !strncmp(vpninfo->cert, "system:", 7);
+#endif
 
 #ifndef HAVE_GNUTLS_SYSTEM_KEYS
 	if (key_is_sys || cert_is_sys) {
