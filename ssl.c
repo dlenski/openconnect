@@ -806,7 +806,7 @@ void check_cmd_fd(struct openconnect_info *vpninfo, fd_set *fds)
 int is_cancel_pending(struct openconnect_info *vpninfo, fd_set *fds)
 {
 	check_cmd_fd(vpninfo, fds);
-	return vpninfo->got_cancel_cmd;
+	return vpninfo->got_cancel_cmd || vpninfo->got_pause_cmd;
 }
 
 void poll_cmd_fd(struct openconnect_info *vpninfo, int timeout)
