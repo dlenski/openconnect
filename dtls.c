@@ -18,6 +18,8 @@
 #include <config.h>
 
 #include <errno.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -1069,11 +1071,6 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 #if defined(DTLS_GNUTLS)
 
-/* Old glibc doesn't define that */
-#if defined(__linux__) && !defined(IPV6_PATHMTU)
-# define IPV6_PATHMTU 61
-#endif
-
 static int is_cancelled(struct openconnect_info *vpninfo)
 {
 	fd_set rd_set;
@@ -1195,6 +1192,13 @@ static int detect_mtu_ipv4(struct openconnect_info *vpninfo, unsigned char *buf)
 }
 
 #if defined(IPPROTO_IPV6)
+
+/* This symbol is missing in glibc < 2.22 (bug 18643). */
+#if defined(__linux__) && !defined(HAVE_IPV6_PATHMTU)
+# define HAVE_IPV6_PATHMTU 1
+# define IPV6_PATHMTU 61
+#endif
+
 /* Verifies whether current MTU is ok, or detects new MTU using IPv6's ICMP6 messages
  * @buf: is preallocated with MTU size
  * @id: a unique ID for our DPD exchange
@@ -1265,7 +1269,7 @@ static int detect_mtu_ipv6(struct openconnect_info *vpninfo, unsigned char *buf)
 		break;
 	} while(max_resends-- > 0);
 
-#ifndef _WIN32
+#ifdef HAVE_IPV6_PATHMTU
 	/* If we received back our DPD packet, do nothing; otherwise,
 	 * attempt to get MTU from the ICMP6 packet we received */
 	if (ret <= 0) {

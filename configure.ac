@@ -183,6 +183,16 @@ if test "$have_inet_aton" = "yes"; then
    AC_DEFINE(HAVE_INET_ATON, 1, [Have inet_aton()])
 fi
 
+AC_MSG_CHECKING([for IPV6_PATHMTU socket option])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
+		  #include <netinet/in.h>
+		  #include <sys/socket.h>
+		  #include <sys/types.h>],[
+		  int foo = IPV6_PATHMTU; (void)foo;])],
+		  [AC_DEFINE(HAVE_IPV6_PATHMTU, 1, [Have IPV6_PATHMTU socket option])
+		   AC_MSG_RESULT([yes])],
+		  [AC_MSG_RESULT([no])])
+
 AC_CHECK_FUNC(__android_log_vprint, [], AC_CHECK_LIB(log, __android_log_vprint, [], []))
 
 AC_ENABLE_SHARED
