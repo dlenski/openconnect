@@ -1325,6 +1325,48 @@ static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 	X509_STORE_CTX_cleanup(&ctx);
 }
 
+int openconnect_get_peer_cert_chain(struct openconnect_info *vpninfo,
+				    struct oc_cert **chainp)
+{
+	struct oc_cert *chain, *p;
+	X509_STORE_CTX *ctx = vpninfo->cert_list_handle;
+	int i, cert_list_size;
+
+	if (!ctx)
+		return -EINVAL;
+
+	cert_list_size = sk_X509_num(ctx->untrusted);
+	if (!cert_list_size)
+		return -EIO;
+
+	p = chain = calloc(cert_list_size, sizeof(struct oc_cert));
+	if (!chain)
+		return -ENOMEM;
+
+	for (i = 0; i < cert_list_size; i++, p++) {
+		X509 *cert = sk_X509_value(ctx->untrusted, i);
+
+		p->der_len = i2d_X509(cert, &p->der_data);
+		if (p->der_len < 0) {
+			openconnect_free_peer_cert_chain(vpninfo, chain);
+			return -ENOMEM;
+		}
+	}
+
+	*chainp = chain;
+	return cert_list_size;
+}
+
+void openconnect_free_peer_cert_chain(struct openconnect_info *vpninfo,
+				      struct oc_cert *chain)
+{
+	int i;
+
+	for (i = 0; i < vpninfo->cert_list_size; i++)
+		OPENSSL_free(chain[i].der_data);
+	free(chain);
+}
+
 static int ssl_app_verify_callback(X509_STORE_CTX *ctx, void *arg)
 {
 	struct openconnect_info *vpninfo = arg;
@@ -1375,9 +1417,16 @@ static int ssl_app_verify_callback(X509_STORE_CTX *ctx, void *arg)
 		     _("Server certificate verify failed: %s\n"),
 		     err_string);
 
-	if (vpninfo->validate_peer_cert &&
-	    !vpninfo->validate_peer_cert(vpninfo->cbdata, err_string))
-		return 1;
+	if (vpninfo->validate_peer_cert) {
+		int ret;
+
+		vpninfo->cert_list_handle = ctx;
+		ret = vpninfo->validate_peer_cert(vpninfo->cbdata, err_string);
+		vpninfo->cert_list_handle = NULL;
+
+		if (!ret)
+			return 1;
+	}
 
 	return 0;
 }

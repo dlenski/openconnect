@@ -77,9 +77,11 @@ OPENCONNECT_5_2 {
 OPENCONNECT_5_3 {
  global:
 	openconnect_override_getaddrinfo;
+	openconnect_free_peer_cert_chain;
 	openconnect_get_cstp_compression;
 	openconnect_get_dnsname;
 	openconnect_get_dtls_compression;
+	openconnect_get_peer_cert_chain;
 	openconnect_disable_ipv6;
 	openconnect_set_localname;
 	openconnect_set_reconnected_handler;

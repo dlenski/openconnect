@@ -46,6 +46,8 @@ extern "C" {
  *  - Add openconnect_set_setup_tun_handler().
  *  - Add openconnect_set_reconnected_handler().
  *  - Add openconnect_get_dnsname().
+ *  - Add openconnect_get_peer_cert_chain() and
+ *        openconnect_free_peer_cert_chain().
  *
  * API version 5.2 (v7.05; 2015-03-10):
  *  - Add openconnect_set_http_auth(), openconnect_set_protocol().
@@ -273,6 +275,12 @@ struct oc_stats {
 	uint64_t rx_bytes;
 };
 
+struct oc_cert {
+	int der_len;
+	unsigned char *der_data;
+	void *reserved;
+};
+
 /****************************************************************************/
 
 #define PRG_ERR		0
@@ -367,6 +375,16 @@ int openconnect_get_peer_cert_DER(struct openconnect_info *vpninfo,
 				  unsigned char **buf);
 void openconnect_free_cert_info(struct openconnect_info *vpninfo,
 				void *buf);
+
+/* Creates a list of all certs in the peer's chain, returning the
+   number of certs in the chain (or <0 on error). Only valid inside the
+   validate_peer_cert callback. The caller should free the chain,
+   but should not modify the contents. */
+int openconnect_get_peer_cert_chain(struct openconnect_info *vpninfo,
+				    struct oc_cert **chain);
+void openconnect_free_peer_cert_chain(struct openconnect_info *vpninfo,
+				      struct oc_cert *chain);
+
 /* Contains a comma-separated list of authentication methods to enabled.
    Currently supported: Negotiate,NTLM,Digest,Basic */
 int openconnect_set_http_auth(struct openconnect_info *vpninfo,

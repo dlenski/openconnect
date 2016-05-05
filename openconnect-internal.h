@@ -443,6 +443,8 @@ struct openconnect_info {
 
 	void *peer_cert;
 	char *peer_cert_hash;
+	void *cert_list_handle;
+	int cert_list_size;
 
 	char *cookie; /* Pointer to within cookies list */
 	struct oc_vpn_option *cookies;

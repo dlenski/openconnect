@@ -49,6 +49,8 @@ public final class LibTest {
 
 			byte der[] = getPeerCertDER();
 			System.out.println("DER is " + der.length + " bytes long");
+			byte chain[][] = getPeerCertChain();
+			System.out.println("Chain has " + chain.length + " certs");
 
 			System.out.print("\nAccept this certificate? [n] ");
 			String s = getline();

@@ -785,6 +785,55 @@ JNIEXPORT jbyteArray JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_ge
 	return jresult;
 }
 
+/* special handling: callee-allocated, caller-freed binary buffer */
+JNIEXPORT jbyteArray JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getPeerCertChain(
+	JNIEnv *jenv, jobject jobj)
+{
+	struct libctx *ctx = getctx(jenv, jobj);
+	struct oc_cert *chain = NULL, *p;
+	int cert_list_size, i;
+	jobjectArray jresult = NULL;
+	jclass jcls;
+
+	if (!ctx)
+		goto err;
+	cert_list_size = openconnect_get_peer_cert_chain(ctx->vpninfo, &chain);
+	if (cert_list_size <= 0)
+		goto err;
+
+	jcls = (*ctx->jenv)->FindClass(ctx->jenv, "[B");
+	if (!jcls)
+		goto err;
+
+	jresult = (*ctx->jenv)->NewObjectArray(ctx->jenv, cert_list_size, jcls, NULL);
+	if (!jresult)
+		goto err;
+
+	if ((*ctx->jenv)->PushLocalFrame(ctx->jenv, 256) < 0)
+		goto err;
+
+	for (i = 0, p = chain; i < cert_list_size; i++, p++) {
+		jbyteArray cert = (*ctx->jenv)->NewByteArray(ctx->jenv, p->der_len);
+		if (!cert)
+			goto err2;
+		(*ctx->jenv)->SetByteArrayRegion(ctx->jenv, cert, 0, p->der_len, (jbyte *)p->der_data);
+		(*ctx->jenv)->SetObjectArrayElement(ctx->jenv, jresult, i, cert);
+	}
+
+	(*ctx->jenv)->PopLocalFrame(ctx->jenv, NULL);
+	openconnect_free_peer_cert_chain(ctx->vpninfo, chain);
+	return jresult;
+
+err2:
+	(*ctx->jenv)->PopLocalFrame(ctx->jenv, NULL);
+err:
+	if (jresult)
+		(*ctx->jenv)->DeleteLocalRef(ctx->jenv, jresult);
+	if (chain)
+		openconnect_free_peer_cert_chain(ctx->vpninfo, chain);
+	return NULL;
+}
+
 /* special handling: two string arguments */
 JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setClientCert(
 	JNIEnv *jenv, jobject jobj, jstring jcert, jstring jsslkey)

@@ -156,6 +156,7 @@ public abstract class LibOpenConnect {
 	public synchronized native String getPeerCertHash();
 	public synchronized native String getPeerCertDetails();
 	public synchronized native byte[] getPeerCertDER();
+	public synchronized native byte[][] getPeerCertChain();
 
 	/* library info */
 
