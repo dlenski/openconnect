@@ -139,6 +139,7 @@ public abstract class LibOpenConnect {
 	/* connection info */
 
 	public synchronized native String getHostname();
+	public synchronized native String getDNSName();
 	public synchronized native String getUrlpath();
 	public synchronized native int getPort();
 	public synchronized native String getCookie();

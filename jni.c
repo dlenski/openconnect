@@ -1084,6 +1084,14 @@ JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getHo
 	RETURN_STRING_END
 }
 
+JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getDNSName(
+	JNIEnv *jenv, jobject jobj)
+{
+	RETURN_STRING_START
+	buf = openconnect_get_dnsname(ctx->vpninfo);
+	RETURN_STRING_END
+}
+
 JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getUrlpath(
 	JNIEnv *jenv, jobject jobj)
 {

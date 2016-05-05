@@ -45,6 +45,7 @@ extern "C" {
  *  - Add ip_info->gateway_addr.
  *  - Add openconnect_set_setup_tun_handler().
  *  - Add openconnect_set_reconnected_handler().
+ *  - Add openconnect_get_dnsname().
  *
  * API version 5.2 (v7.05; 2015-03-10):
  *  - Add openconnect_set_http_auth(), openconnect_set_protocol().
@@ -391,7 +392,20 @@ const char *openconnect_get_dtls_cipher(struct openconnect_info *);
 const char *openconnect_get_cstp_compression(struct openconnect_info *);
 const char *openconnect_get_dtls_compression(struct openconnect_info *);
 
+/* Returns the IP address of the exact host to which the connection
+ * was made. In --cookieonly mode or in any other scenario involving
+ * a "two stage" connection, it is important to reconnect by IP because
+ * the server side may be using DNS trickery for load balancing.
+ *
+ * If the IP address is unavailable due to the use of a proxy, this will
+ * fall back to returning the DNS name. */
 const char *openconnect_get_hostname(struct openconnect_info *);
+
+/* Returns the hostname parsed out of the server name URL. This is
+ * intended to be used by the validate_peer_cert callback to check that
+ * the certificate matches the server name. */
+const char *openconnect_get_dnsname(struct openconnect_info *);
+
 int openconnect_set_hostname(struct openconnect_info *, const char *);
 char *openconnect_get_urlpath(struct openconnect_info *);
 int openconnect_set_urlpath(struct openconnect_info *, const char *);

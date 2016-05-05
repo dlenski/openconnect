@@ -376,6 +376,11 @@ const char *openconnect_get_hostname(struct openconnect_info *vpninfo)
 	return vpninfo->unique_hostname?:vpninfo->hostname;
 }
 
+const char *openconnect_get_dnsname(struct openconnect_info *vpninfo)
+{
+	return vpninfo->hostname;
+}
+
 int openconnect_set_hostname(struct openconnect_info *vpninfo,
 			     const char *hostname)
 {
