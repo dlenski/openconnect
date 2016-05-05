@@ -63,6 +63,7 @@ public abstract class LibOpenConnect {
 	public int onTokenLock() { return 0; }
 	public int onTokenUnlock(String newToken) { return 0; }
 	public void onSetupTun() { }
+	public void onReconnected() { }
 
 	/* create/destroy library instances */
 

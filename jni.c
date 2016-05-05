@@ -309,6 +309,21 @@ static void setup_tun_cb(void *privdata)
 	(*ctx->jenv)->PopLocalFrame(ctx->jenv, NULL);
 }
 
+static void reconnected_cb(void *privdata)
+{
+	struct libctx *ctx = privdata;
+	jmethodID mid;
+
+	if ((*ctx->jenv)->PushLocalFrame(ctx->jenv, 256) < 0)
+		return;
+
+	mid = get_obj_mid(ctx, ctx->jobj, "onReconnected", "()V");
+	if (mid)
+		(*ctx->jenv)->CallVoidMethod(ctx->jenv, ctx->jobj, mid);
+
+	(*ctx->jenv)->PopLocalFrame(ctx->jenv, NULL);
+}
+
 static jobject new_auth_form(struct libctx *ctx, struct oc_auth_form *form)
 {
 	jmethodID mid;
@@ -625,6 +640,7 @@ JNIEXPORT jlong JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_init(
 	openconnect_set_protect_socket_handler(ctx->vpninfo, protect_socket_cb);
 	openconnect_set_stats_handler(ctx->vpninfo, stats_cb);
 	openconnect_set_setup_tun_handler(ctx->vpninfo, setup_tun_cb);
+	openconnect_set_reconnected_handler(ctx->vpninfo, reconnected_cb);
 
 	ctx->cmd_fd = openconnect_setup_cmd_pipe(ctx->vpninfo);
 	if (ctx->cmd_fd < 0)

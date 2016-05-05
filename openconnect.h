@@ -44,6 +44,7 @@ extern "C" {
  *  - Add openconnect_disable_ipv6().
  *  - Add ip_info->gateway_addr.
  *  - Add openconnect_set_setup_tun_handler().
+ *  - Add openconnect_set_reconnected_handler().
  *
  * API version 5.2 (v7.05; 2015-03-10):
  *  - Add openconnect_set_http_auth(), openconnect_set_protocol().
@@ -614,6 +615,11 @@ void openconnect_override_getaddrinfo(struct openconnect_info *vpninfo, openconn
 typedef void (*openconnect_setup_tun_vfn) (void *privdata);
 void openconnect_set_setup_tun_handler(struct openconnect_info *vpninfo,
 				       openconnect_setup_tun_vfn setup_tun);
+
+/* Callback for indicating that a TCP reconnection succeeded. */
+typedef void (*openconnect_reconnected_vfn) (void *privdata);
+void openconnect_set_reconnected_handler(struct openconnect_info *vpninfo,
+				         openconnect_reconnected_vfn reconnected_fn);
 
 #ifdef __cplusplus
 }

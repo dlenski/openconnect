@@ -786,6 +786,12 @@ void openconnect_set_setup_tun_handler(struct openconnect_info *vpninfo,
 	vpninfo->setup_tun = setup_tun;
 }
 
+void openconnect_set_reconnected_handler(struct openconnect_info *vpninfo,
+				         openconnect_reconnected_vfn reconnected)
+{
+	vpninfo->reconnected = reconnected;
+}
+
 void openconnect_set_stats_handler(struct openconnect_info *vpninfo,
 				   openconnect_stats_vfn stats_handler)
 {

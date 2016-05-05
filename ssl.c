@@ -1024,6 +1024,10 @@ int ssl_reconnect(struct openconnect_info *vpninfo)
 		if (interval > RECONNECT_INTERVAL_MAX)
 			interval = RECONNECT_INTERVAL_MAX;
 	}
+
 	script_config_tun(vpninfo, "reconnect");
+	if (vpninfo->reconnected)
+		vpninfo->reconnected(vpninfo->cbdata);
+
 	return 0;
 }

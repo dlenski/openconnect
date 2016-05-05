@@ -81,6 +81,7 @@ OPENCONNECT_5_3 {
 	openconnect_get_dtls_compression;
 	openconnect_disable_ipv6;
 	openconnect_set_localname;
+	openconnect_set_reconnected_handler;
 } OPENCONNECT_5_2;
 
 OPENCONNECT_PRIVATE {
