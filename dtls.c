@@ -18,8 +18,6 @@
 #include <config.h>
 
 #include <errno.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -27,6 +25,10 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+#ifndef _WIN32
+#include <netinet/in.h>
+#include <sys/socket.h>
+#endif
 
 #include "openconnect-internal.h"
 
