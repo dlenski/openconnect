@@ -1003,7 +1003,7 @@ int ssl_reconnect(struct openconnect_info *vpninfo)
 	free(vpninfo->tun_pkt);
 	vpninfo->tun_pkt = NULL;
 
-	while ((ret = vpninfo->proto.tcp_connect(vpninfo))) {
+	while ((ret = vpninfo->proto->tcp_connect(vpninfo))) {
 		if (timeout <= 0)
 			return ret;
 		if (ret == -EPERM) {

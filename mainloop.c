@@ -213,7 +213,7 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 				}
 			}
 
-			ret = vpninfo->proto.udp_mainloop(vpninfo, &timeout);
+			ret = vpninfo->proto->udp_mainloop(vpninfo, &timeout);
 			if (vpninfo->quit_reason)
 				break;
 			did_work += ret;
@@ -225,7 +225,7 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 				break;
 		}
 
-		ret = vpninfo->proto.tcp_mainloop(vpninfo, &timeout);
+		ret = vpninfo->proto->tcp_mainloop(vpninfo, &timeout);
 		if (vpninfo->quit_reason)
 			break;
 		did_work += ret;
@@ -252,7 +252,7 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 			   openconnect_mainloop() again */
 			openconnect_close_https(vpninfo, 0);
 			if (vpninfo->dtls_state > DTLS_DISABLED) {
-				vpninfo->proto.udp_close(vpninfo);
+				vpninfo->proto->udp_close(vpninfo);
 				vpninfo->dtls_state = DTLS_SLEEPING;
 				vpninfo->new_dtls_started = 0;
 			}
@@ -303,8 +303,8 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 #endif
 	}
 
-	if (vpninfo->quit_reason && vpninfo->proto.vpn_close_session)
-		vpninfo->proto.vpn_close_session(vpninfo, vpninfo->quit_reason);
+	if (vpninfo->quit_reason && vpninfo->proto->vpn_close_session)
+		vpninfo->proto->vpn_close_session(vpninfo, vpninfo->quit_reason);
 
 	if (tun_is_up(vpninfo))
 		os_shutdown_tun(vpninfo);

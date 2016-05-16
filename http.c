@@ -831,8 +831,8 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 		/* Forget existing challenges */
 		clear_auth_states(vpninfo, vpninfo->http_auth, 0);
 	}
-	if (vpninfo->proto.add_http_headers)
-		vpninfo->proto.add_http_headers(vpninfo, buf);
+	if (vpninfo->proto->add_http_headers)
+		vpninfo->proto->add_http_headers(vpninfo, buf);
 
 	if (request_body_type) {
 		rlen = request_body->pos;

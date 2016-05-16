@@ -245,6 +245,7 @@ struct http_auth_state {
 };
 
 struct vpn_proto {
+	const char *name;
 	int (*vpn_close_session)(struct openconnect_info *vpninfo, const char *reason);
 
 	/* This does the full authentication, calling back as appropriate */
@@ -326,7 +327,7 @@ struct esp {
 };
 
 struct openconnect_info {
-	struct vpn_proto proto;
+	const struct vpn_proto *proto;
 
 #ifdef HAVE_ICONV
 	iconv_t ic_legacy_to_utf8;
