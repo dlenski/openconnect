@@ -57,6 +57,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-\-no\-xmlpost
 .OP \-\-non\-inter
 .OP \-\-passwd\-on\-stdin
+.OP \-\-protocol proto
 .OP \-\-token\-mode mode
 .OP \-\-token\-secret {secret\fR[\fI,counter\fR]|@\fIfile\fR}
 .OP \-\-reconnect\-timeout
@@ -421,6 +422,17 @@ Do not expect user input; exit if it is required.
 .TP
 .B \-\-passwd\-on\-stdin
 Read password from standard input
+.TP
+.B \-\-protocol=PROTO
+Select VPN protocol
+.I PROTO
+to be used for the connection. Supported protocols are
+.I anyconnect
+for Cisco AnyConnect (the default), and
+.I nc
+for experimental support for Juniper Network Connect (also supported
+by Junos Pulse servers).
+
 .TP
 .B \-\-token\-mode=MODE
 Enable one-time password generation using the

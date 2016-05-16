@@ -187,6 +187,7 @@ enum {
 	OPT_PROXY_AUTH,
 	OPT_HTTP_AUTH,
 	OPT_LOCAL_HOSTNAME,
+	OPT_PROTOCOL,
 };
 
 #ifdef __sun__
@@ -266,6 +267,7 @@ static const struct option long_options[] = {
 	OPTION("no-xmlpost", 0, OPT_NO_XMLPOST),
 	OPTION("dump-http-traffic", 0, OPT_DUMP_HTTP),
 	OPTION("no-system-trust", 0, OPT_NO_SYSTEM_TRUST),
+	OPTION("protocol", 1, OPT_PROTOCOL),
 #ifdef OPENCONNECT_GNUTLS
 	OPTION("gnutls-debug", 1, OPT_GNUTLS_DEBUG),
 #endif
@@ -1101,6 +1103,10 @@ int main(int argc, char **argv)
 			vpninfo->csd_wrapper = keep_config_arg();
 			break;
 #endif /* !_WIN32 */
+		case OPT_PROTOCOL:
+			if (openconnect_set_protocol(vpninfo, config_arg))
+				exit(1);
+			break;
 		case OPT_JUNIPER:
 			fprintf(stderr, "WARNING: Juniper Network Connect support is experimental.\n");
 			fprintf(stderr, "It will probably be superseded by Junos Pulse support.\n");
