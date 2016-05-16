@@ -15,6 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
    <ul>
+       <li>Add <tt>--protocol</tt> option.</li>
        <li>Fix ChaCha20-Poly1305 cipher suite to reflect final standard.</li>
        <li>Add ability to disable IPv6 support via library API.</li>
        <li>Set groups appropriately when using <tt>setuid()</tt>.</li>
