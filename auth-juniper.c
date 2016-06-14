@@ -123,15 +123,19 @@ static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_for
 		}
 	} else if (!strcasecmp(type, "submit")) {
 		xmlnode_get_prop(node, "name", &opt->name);
-		if (!opt->name || strcmp(opt->name, submit_button)) {
+		if (opt->name && (!strcmp(opt->name, submit_button) ||
+				  !strcmp(opt->name, "sn-postauth-proceed"))) {
+			/* Use this as the 'Submit' action for the form, by
+			   implicitly adding it as a hidden option. */
+			xmlnode_get_prop(node, "value", &opt->_value);
+			opt->type = OC_FORM_OPT_HIDDEN;
+		} else {
 			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Ignoring unknown form submit item '%s'\n"),
 				     opt->name);
 			ret = -EINVAL;
 			goto out;
 		}
-		xmlnode_get_prop(node, "value", &opt->_value);
-		opt->type = OC_FORM_OPT_HIDDEN;
 	} else if (!strcasecmp(type, "checkbox")) {
 		opt->type = OC_FORM_OPT_HIDDEN;
 		xmlnode_get_prop(node, "name", &opt->name);
@@ -240,6 +244,20 @@ static struct oc_auth_form *parse_form_node(struct openconnect_info *vpninfo,
 			/* Skip its children */
 			while (child->children)
 				child = child->last;
+		} else if (!strcasecmp((char *)child->name, "textarea")) {
+			/* display the post sign-in message, if any */
+			char *fieldname = (char *)xmlGetProp(child, (unsigned char *)"name");
+			if (fieldname && !!strcasecmp(fieldname, "sn-postauth-text")) {
+				char *postauth_msg = (char *)xmlNodeGetContent(child);
+				if (postauth_msg) {
+					free(form->banner);
+					form->banner = postauth_msg;
+				}
+			} else {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Unknown textarea field: '%s'\n"), fieldname);
+			}
+			free(fieldname);
 		}
 	}
 	return form;
