@@ -826,7 +826,7 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	   and add POLLOUT. As it is, though, it'll just chew CPU time in that
 	   fairly unlikely situation, until the write backlog clears. */
 	while (1) {
-		int len = vpninfo->deflate_pkt_size ? : vpninfo->ip_info.mtu;
+		int len = MAX(16384, vpninfo->deflate_pkt_size ? : vpninfo->ip_info.mtu);
 		int payload_len;
 
 		if (!vpninfo->cstp_pkt) {
