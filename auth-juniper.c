@@ -247,7 +247,7 @@ static struct oc_auth_form *parse_form_node(struct openconnect_info *vpninfo,
 		} else if (!strcasecmp((char *)child->name, "textarea")) {
 			/* display the post sign-in message, if any */
 			char *fieldname = (char *)xmlGetProp(child, (unsigned char *)"name");
-			if (fieldname && !!strcasecmp(fieldname, "sn-postauth-text")) {
+			if (fieldname && !strcasecmp(fieldname, "sn-postauth-text")) {
 				char *postauth_msg = (char *)xmlNodeGetContent(child);
 				if (postauth_msg) {
 					free(form->banner);
