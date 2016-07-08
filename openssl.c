@@ -40,24 +40,36 @@
 #define X509_up_ref(x) 	CRYPTO_add(&(x)->references, 1, CRYPTO_LOCK_X509)
 #endif
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#define EVP_MD_CTX_new EVP_MD_CTX_create
+#define EVP_MD_CTX_free EVP_MD_CTX_destroy
+#define X509_STORE_CTX_get0_chain(ctx) ((ctx)->chain)
+#define X509_STORE_CTX_get0_untrusted(ctx) ((ctx)->untrusted)
+#define X509_STORE_CTX_get0_cert(ctx) ((ctx)->cert)
+#endif
+
 int openconnect_sha1(unsigned char *result, void *data, int len)
 {
-	EVP_MD_CTX c;
+	EVP_MD_CTX *c = EVP_MD_CTX_new();
 
-	EVP_MD_CTX_init(&c);
+	if (!c)
+		return -ENOMEM;
+
 	EVP_Digest(data, len, result, NULL, EVP_sha1(), NULL);
-	EVP_MD_CTX_cleanup(&c);
+	EVP_MD_CTX_free(c);
 
 	return 0;
 }
 
 int openconnect_md5(unsigned char *result, void *data, int len)
 {
-	EVP_MD_CTX c;
+	EVP_MD_CTX *c = EVP_MD_CTX_new();
 
-	EVP_MD_CTX_init(&c);
+	if (!c)
+		return -ENOMEM;
+
 	EVP_Digest(data, len, result, NULL, EVP_md5(), NULL);
-	EVP_MD_CTX_cleanup(&c);
+	EVP_MD_CTX_free(c);
 
 	return 0;
 }
@@ -1288,15 +1300,18 @@ static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert
 static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 					     SSL *ssl)
 {
-	/* OpenSSL has problems with certificate chains -- if there are
+	/* OpenSSL has problems with certificate chains — if there are
 	   multiple certs with the same name, it doesn't necessarily
-	   choose the _right_ one. (RT#1942)
-	   Pick the right ones for ourselves and add them manually. */
+	   choose the _right_ one. (RT#1942). This affects some servers,
+	   and we can work around it by picking the right ones ourselves
+	   and adding them manually on the wire. */
 	X509 *cert = SSL_get_certificate(ssl);
 	X509 *cert2;
 	X509_STORE *store = SSL_CTX_get_cert_store(vpninfo->https_ctx);
-	X509_STORE_CTX ctx;
+	X509_STORE_CTX *ctx;
 	void *extra_certs;
+	STACK_OF(X509) *chain;
+	int i;
 
 	if (!cert || !store)
 		return;
@@ -1306,11 +1321,22 @@ static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 	if (extra_certs)
 		return;
 
-	if (!X509_STORE_CTX_init(&ctx, store, NULL, NULL))
+	ctx = X509_STORE_CTX_new();
+	if (!ctx)
 		return;
+	if (X509_STORE_CTX_init(ctx, store, NULL, NULL))
+		goto out;
 
-	while (ctx.get_issuer(&cert2, &ctx, cert) == 1) {
+	X509_STORE_CTX_set_cert(ctx, cert);
+
+	/* We only really want it to build the chain; we don't really
+	   care if it's trusted */
+	(void)X509_verify_cert(ctx);
+
+	chain = X509_STORE_CTX_get0_chain(ctx);
+	for (i = 1; i < sk_X509_num(chain); i++) {
 		char buf[200];
+		cert2 = sk_X509_value(chain, i);
 		if (cert2 == cert)
 			break;
 		if (X509_check_issued(cert2, cert2) == X509_V_OK)
@@ -1320,9 +1346,11 @@ static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 				  buf, sizeof(buf));
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Extra cert from cafile: '%s'\n"), buf);
+		X509_up_ref(cert);
 		SSL_CTX_add_extra_chain_cert(vpninfo->https_ctx, cert);
 	}
-	X509_STORE_CTX_cleanup(&ctx);
+out:
+	X509_STORE_CTX_free(ctx);
 }
 
 int openconnect_get_peer_cert_chain(struct openconnect_info *vpninfo,
@@ -1330,12 +1358,13 @@ int openconnect_get_peer_cert_chain(struct openconnect_info *vpninfo,
 {
 	struct oc_cert *chain, *p;
 	X509_STORE_CTX *ctx = vpninfo->cert_list_handle;
+	STACK_OF(X509) *untrusted = X509_STORE_CTX_get0_untrusted(ctx);
 	int i, cert_list_size;
 
 	if (!ctx)
 		return -EINVAL;
 
-	cert_list_size = sk_X509_num(ctx->untrusted);
+	cert_list_size = sk_X509_num(untrusted);
 	if (!cert_list_size)
 		return -EIO;
 
@@ -1344,7 +1373,7 @@ int openconnect_get_peer_cert_chain(struct openconnect_info *vpninfo,
 		return -ENOMEM;
 
 	for (i = 0; i < cert_list_size; i++, p++) {
-		X509 *cert = sk_X509_value(ctx->untrusted, i);
+		X509 *cert = sk_X509_value(untrusted, i);
 
 		p->der_len = i2d_X509(cert, &p->der_data);
 		if (p->der_len < 0) {
@@ -1371,20 +1400,21 @@ static int ssl_app_verify_callback(X509_STORE_CTX *ctx, void *arg)
 {
 	struct openconnect_info *vpninfo = arg;
 	const char *err_string = NULL;
+	X509 *cert = X509_STORE_CTX_get0_cert(ctx);
 
 	if (vpninfo->peer_cert) {
 		/* This is a *rehandshake*. Require that the server
 		 * presents exactly the same certificate as the
 		 * first time. */
-		if (X509_cmp(ctx->cert, vpninfo->peer_cert)) {
+		if (X509_cmp(cert, vpninfo->peer_cert)) {
 			vpn_progress(vpninfo, PRG_ERR, _("Server presented different cert on rehandshake\n"));
 			return 0;
 		}
 		vpn_progress(vpninfo, PRG_TRACE, _("Server presented identical cert on rehandshake\n"));
 		return 1;
 	}
-	vpninfo->peer_cert = ctx->cert;
-	X509_up_ref(ctx->cert);
+	vpninfo->peer_cert = cert;
+	X509_up_ref(cert);
 
 	set_peer_cert_hash(vpninfo);
 
