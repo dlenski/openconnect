@@ -45,7 +45,8 @@ static PKCS11_CTX *pkcs11_ctx(struct openconnect_info *vpninfo)
 		}
 		if (PKCS11_CTX_load(ctx, DEFAULT_PKCS11_MODULE) < 0) {
 			vpn_progress(vpninfo, PRG_ERR,
-				     _("Failed to load PKCS#11 provider module (p11-kit-proxy.so):\n"));
+				     _("Failed to load PKCS#11 provider module (%s):\n"),
+				     DEFAULT_PKCS11_MODULE);
 			openconnect_report_ssl_errors(vpninfo);
 			PKCS11_CTX_free(ctx);
 			return NULL;

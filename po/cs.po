@@ -2998,8 +2998,8 @@ msgid "Failed to establish libp11 PKCS#11 context:\n"
 msgstr "Vytvoření kontextu libp11 PKCS#11 selhalo:\n"
 
 #: openssl-pkcs11.c:48
-msgid "Failed to load PKCS#11 provider module (p11-kit-proxy.so):\n"
-msgstr "Selhalo načtení modulu PKCS#11 poskytovatele (p11-kit-proxy.so):\n"
+msgid "Failed to load PKCS#11 provider module (%s):\n"
+msgstr "Selhalo načtení modulu PKCS#11 poskytovatele (%s):\n"
 
 #: openssl-pkcs11.c:252
 msgid "PIN locked\n"

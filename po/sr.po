@@ -2997,8 +2997,8 @@ msgid "Failed to establish libp11 PKCS#11 context:\n"
 msgstr "Нисам успео да успоставим либп11 ПКЦС#11 контекст:\n"
 
 #: openssl-pkcs11.c:48
-msgid "Failed to load PKCS#11 provider module (p11-kit-proxy.so):\n"
-msgstr "Нисам успео да учитам модул ПКЦС#11 достављача (p11-kit-proxy.so):\n"
+msgid "Failed to load PKCS#11 provider module (%s):\n"
+msgstr "Нисам успео да учитам модул ПКЦС#11 достављача (%s):\n"
 
 #: openssl-pkcs11.c:252
 msgid "PIN locked\n"

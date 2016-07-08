@@ -3026,9 +3026,9 @@ msgid "Failed to establish libp11 PKCS#11 context:\n"
 msgstr "Nem sikerült libp11 PKCS#11 környezetet létesíteni:\n"
 
 #: openssl-pkcs11.c:48
-msgid "Failed to load PKCS#11 provider module (p11-kit-proxy.so):\n"
+msgid "Failed to load PKCS#11 provider module (%s):\n"
 msgstr ""
-"Nem sikerült betölteni a PKCS#11-et biztosító modult (p11-kit-proxy.so):\n"
+"Nem sikerült betölteni a PKCS#11-et biztosító modult (%s):\n"
 
 #: openssl-pkcs11.c:252
 msgid "PIN locked\n"

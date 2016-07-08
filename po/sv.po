@@ -2982,9 +2982,9 @@ msgid "Failed to establish libp11 PKCS#11 context:\n"
 msgstr "Misslyckades med att etablera libp11 PKCS#11-kontext:\n"
 
 #: openssl-pkcs11.c:48
-msgid "Failed to load PKCS#11 provider module (p11-kit-proxy.so):\n"
+msgid "Failed to load PKCS#11 provider module (%s):\n"
 msgstr ""
-"Misslyckades med att läsa in PKCS#11-leverantörsmodul (p11-kit-proxy.so):\n"
+"Misslyckades med att läsa in PKCS#11-leverantörsmodul (%s):\n"
 
 #: openssl-pkcs11.c:252
 msgid "PIN locked\n"
