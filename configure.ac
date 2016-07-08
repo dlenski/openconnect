@@ -465,7 +465,7 @@ if test "$with_openssl" = "yes" || test "$with_openssl" = "" || test "$ssl_libra
         ssl_library=openssl
     fi
 elif test "$with_openssl" != "no" ; then
-    OPENSSL_CFLAGS="-I${with_openssl}/include"
+    OPENSSL_CFLAGS="-I${with_openssl}/include ${OPENSSL_CFLAGS}"
     OPENSSL_LIBS="${with_openssl}/libssl.a ${with_openssl}/libcrypto.a -ldl -lz"
     AC_SUBST(OPENSSL_CFLAGS)
     AC_SUBST(OPENSSL_LIBS)
