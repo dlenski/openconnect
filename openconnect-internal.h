@@ -318,8 +318,8 @@ struct esp {
 	gnutls_cipher_hd_t cipher;
 	gnutls_hmac_hd_t hmac;
 #elif defined(ESP_OPENSSL)
-	HMAC_CTX hmac;
-	EVP_CIPHER_CTX cipher;
+	HMAC_CTX *hmac, *pkt_hmac;
+	EVP_CIPHER_CTX *cipher;
 #endif
 	uint32_t seq;
 	uint32_t seq_backlog;
