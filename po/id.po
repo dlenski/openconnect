@@ -2991,7 +2991,7 @@ msgstr "Gagal menjalin konteks PKCS#11 libp11:\n"
 #: openssl-pkcs11.c:48
 #, c-format
 msgid "Failed to load PKCS#11 provider module (%s):\n"
-msgstr ""
+msgstr "Gagal memuat modul penyedia PKCS#11 (%s):\n"
 
 #: openssl-pkcs11.c:253
 msgid "PIN locked\n"
