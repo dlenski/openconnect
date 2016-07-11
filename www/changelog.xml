@@ -15,6 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
    <ul>
+       <li>More fixes for OpenSSL 1.1 build.</li>
        <li>Support Juniper "Post Sign-in Message".</li>
        <li>Add <tt>--protocol</tt> option.</li>
        <li>Fix ChaCha20-Poly1305 cipher suite to reflect final standard.</li>
