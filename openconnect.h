@@ -36,7 +36,7 @@ extern "C" {
 #define OPENCONNECT_API_VERSION_MINOR 3
 
 /*
- * API version 5.3:
+ * API version 5.3 (v7.07; 2016-07-11):
  *  - Add openconnect_set_localname().
  *  - Add openconnect_override_getaddrinfo().
  *  - Add openconnect_get_cstp_compression().

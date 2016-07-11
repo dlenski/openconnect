@@ -17,14 +17,23 @@
 
 <p>
 <!-- latest-release-start -->
-The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.06.tar.gz">OpenConnect v7.06</a>
-<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.06.tar.gz.asc">PGP signature</a>)</i>,
-released on 2015-03-17 with the following changelog:</p>
-     <ul>
-       <li>Fix <tt>openconnect.pc</tt> breakage after liboath removal.</li>
-       <li>Refactor Juniper Network Connect receive loop.</li>
-       <li>Fix some memory leaks.</li>
-       <li>Add Bosnian translation.</li>
+The latest release is <a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.07.tar.gz">OpenConnect v7.07</a>
+<i>(<a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.07.tar.gz.asc">PGP signature</a>)</i>,
+released on 2016-07-11 with the following changelog:</p>
+   <ul>
+       <li>More fixes for OpenSSL 1.1 build.</li>
+       <li>Support Juniper "Post Sign-in Message".</li>
+       <li>Add <tt>--protocol</tt> option.</li>
+       <li>Fix ChaCha20-Poly1305 cipher suite to reflect final standard.</li>
+       <li>Add ability to disable IPv6 support via library API.</li>
+       <li>Set groups appropriately when using <tt>setuid()</tt>.</li>
+       <li>Automatic DTLS MTU detection.</li>
+       <li>Support SSL client certificate authentication with Juniper servers.</li>
+       <li>Revamp SSL certificate validation for OpenSSL and stop supporting OpenSSL older than 0.9.8.</li>
+       <li>Fix handling of multiple DNS search domains with Network Connect.</li>
+       <li>Fix handling of large configuration packets for Network Connect.</li>
+       <li>Enable SNI when built with OpenSSL <i>(1.0.1g or later)</i>.</li>
+       <li>Add <tt>--resolve</tt> and <tt>--local-hostname</tt> options to command line.</li>
      </ul>
 <!-- latest-release-end -->
 

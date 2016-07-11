@@ -1,4 +1,4 @@
-AC_INIT(openconnect, 7.06)
+AC_INIT(openconnect, 7.07)
 AC_CONFIG_HEADERS([config.h])
 
 PKG_PROG_PKG_CONFIG
