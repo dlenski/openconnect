@@ -160,7 +160,7 @@ enabled. By setting the mode to
 stateful algorithms (currently only zlib deflate) can be enabled. Or all
 compression can be disabled by setting the mode to
 .I "none".
-
+.TP
 .B \-\-force\-dpd=INTERVAL
 Use
 .I INTERVAL
