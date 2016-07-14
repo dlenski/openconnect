@@ -124,7 +124,8 @@ static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_for
 	} else if (!strcasecmp(type, "submit")) {
 		xmlnode_get_prop(node, "name", &opt->name);
 		if (opt->name && (!strcmp(opt->name, submit_button) ||
-				  !strcmp(opt->name, "sn-postauth-proceed"))) {
+				  !strcmp(opt->name, "sn-postauth-proceed") ||
+				  !strcmp(opt->name, "sn-preauth-proceed"))) {
 			/* Use this as the 'Submit' action for the form, by
 			   implicitly adding it as a hidden option. */
 			xmlnode_get_prop(node, "value", &opt->_value);
@@ -247,7 +248,8 @@ static struct oc_auth_form *parse_form_node(struct openconnect_info *vpninfo,
 		} else if (!strcasecmp((char *)child->name, "textarea")) {
 			/* display the post sign-in message, if any */
 			char *fieldname = (char *)xmlGetProp(child, (unsigned char *)"name");
-			if (fieldname && !strcasecmp(fieldname, "sn-postauth-text")) {
+			if (fieldname && (!strcasecmp(fieldname, "sn-postauth-text") ||
+					  !strcasecmp(fieldname, "sn-preauth-text"))) {
 				char *postauth_msg = (char *)xmlNodeGetContent(child);
 				if (postauth_msg) {
 					free(form->banner);
