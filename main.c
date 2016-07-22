@@ -188,6 +188,7 @@ enum {
 	OPT_HTTP_AUTH,
 	OPT_LOCAL_HOSTNAME,
 	OPT_PROTOCOL,
+	OPT_PASSTOS,
 };
 
 #ifdef __sun__
@@ -227,6 +228,7 @@ static const struct option long_options[] = {
 	OPTION("base-mtu", 1, OPT_BASEMTU),
 	OPTION("script", 1, 's'),
 	OPTION("timestamp", 0, OPT_TIMESTAMP),
+	OPTION("passtos", 0, OPT_PASSTOS),
 	OPTION("key-password", 1, 'p'),
 	OPTION("proxy", 1, 'P'),
 	OPTION("proxy-auth", 1, OPT_PROXY_AUTH),
@@ -761,6 +763,7 @@ static void usage(void)
 	printf("  -l, --syslog                    %s\n", _("Use syslog for progress messages"));
 #endif
 	printf("      --timestamp                 %s\n", _("Prepend timestamp to progress messages"));
+	printf("      --passtos                   %s\n", _("copy TOS / TCLASS when using DTLS"));
 #ifndef _WIN32
 	printf("  -U, --setuid=USER               %s\n", _("Drop privileges after connecting"));
 	printf("      --csd-user=USER             %s\n", _("Drop privileges during CSD execution"));
@@ -1371,6 +1374,9 @@ int main(int argc, char **argv)
 					dup_config_arg(),
 					xstrdup("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
 			}
+			break;
+		case OPT_PASSTOS:
+			openconnect_set_pass_tos(vpninfo, 1);
 			break;
 		case OPT_TIMESTAMP:
 			timestamp = 1;

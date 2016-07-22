@@ -586,6 +586,10 @@ struct openconnect_info {
 	int ssl_fd;
 	int dtls_fd;
 
+	int dtls_tos_current;
+	int dtls_pass_tos;
+	int dtls_tos_proto, dtls_tos_optname;
+
 	int cmd_fd;
 	int cmd_fd_write;
 	int got_cancel_cmd;
@@ -674,7 +678,7 @@ struct openconnect_info {
 	if ((_v)->verbose >= (lvl))					\
 		(_v)->progress((_v)->cbdata, lvl, __VA_ARGS__);	\
 	} while(0)
-#define vpn_perror(vpninfo, msg) vpn_progress((vpninfo), PRG_ERR, "%s: %s\n", (msg), strerror(errno));
+#define vpn_perror(vpninfo, msg) vpn_progress((vpninfo), PRG_ERR, "%s: %s\n", (msg), strerror(errno))
 
 /****************************************************************************/
 /* Oh Solaris how we hate thee! */

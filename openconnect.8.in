@@ -21,6 +21,7 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-i,\-\-interface ifname
 .OP \-l,\-\-syslog
 .OP \-\-timestamp
+.OP \-\-passtos
 .OP \-U,\-\-setuid user
 .OP \-\-csd\-user user
 .OP \-m,\-\-mtu mtu
@@ -193,6 +194,9 @@ Use syslog for progress messages
 .TP
 .B \-\-timestamp
 Prepend a timestamp to each progress message
+.TP
+.B \-\-passtos
+Copy TOS / TCLASS of payload packet into DTLS packets.
 .TP
 .B \-U,\-\-setuid=USER
 Drop privileges after connecting, to become user

@@ -1020,6 +1020,38 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		struct pkt *send_pkt = this;
 		int ret;
 
+		/* If TOS optname is set, we want to copy the TOS/TCLASS header
+		   to the outer UDP packet */
+		if (vpninfo->dtls_tos_optname) {
+			int valid=1;
+			int tos;
+
+			switch(this->data[0] >> 4) {
+				case 4:
+					tos = this->data[1];
+					break;
+				case 6:
+					tos = (load_be16(this->data) >> 4) & 0xff;
+					break;
+				default:
+					vpn_progress(vpninfo, PRG_ERR,
+						     _("Unknown packet (len %d) received: %02x %02x %02x %02x...\n"),
+						     this->len, this->data[0], this->data[1], this->data[2], this->data[3]);
+					valid = 0;
+			}
+
+			/* set the actual value */
+			if (valid && tos != vpninfo->dtls_tos_current) {
+				vpn_progress(vpninfo, PRG_DEBUG, _("TOS this: %d, TOS last: %d\n"),
+					     tos, vpninfo->dtls_tos_current);
+				if (setsockopt(vpninfo->dtls_fd, vpninfo->dtls_tos_proto,
+					       vpninfo->dtls_tos_optname, &tos, sizeof(tos)))
+					vpn_perror(vpninfo, _("UDP setsockopt"));
+				else
+					vpninfo->dtls_tos_current = tos;
+			}
+		}
+
 		/* One byte of header */
 		this->cstp.hdr[7] = AC_PKT_DATA;
 

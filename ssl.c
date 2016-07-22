@@ -908,15 +908,24 @@ int udp_sockaddr(struct openconnect_info *vpninfo, int port)
 	if (vpninfo->peer_addr->sa_family == AF_INET) {
 		struct sockaddr_in *sin = (void *)vpninfo->dtls_addr;
 		sin->sin_port = htons(port);
+		vpninfo->dtls_tos_proto = IPPROTO_IP;
+		vpninfo->dtls_tos_optname = IP_TOS;
 	} else if (vpninfo->peer_addr->sa_family == AF_INET6) {
 		struct sockaddr_in6 *sin = (void *)vpninfo->dtls_addr;
 		sin->sin6_port = htons(port);
+		vpninfo->dtls_tos_proto = IPPROTO_IPV6;
+		vpninfo->dtls_tos_optname = IPV6_TCLASS;
 	} else {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unknown protocol family %d. Cannot create UDP server address\n"),
 			     vpninfo->peer_addr->sa_family);
 		return -EINVAL;
 	}
+
+	/* in case DTLS TOS copy is disabled, reset the optname value */
+	/* so that the copy won't be applied in dtls.c / dtls_mainloop() */
+	if (!vpninfo->dtls_pass_tos)
+		vpninfo->dtls_tos_optname = 0;
 
 	return 0;
 }

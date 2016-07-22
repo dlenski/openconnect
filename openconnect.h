@@ -33,9 +33,12 @@ extern "C" {
 #endif
 
 #define OPENCONNECT_API_VERSION_MAJOR 5
-#define OPENCONNECT_API_VERSION_MINOR 3
+#define OPENCONNECT_API_VERSION_MINOR 4
 
 /*
+ * API version 5.4:
+ *  - Add openconnect_set_pass_tos()
+ *
  * API version 5.3 (v7.07; 2016-07-11):
  *  - Add openconnect_set_localname().
  *  - Add openconnect_override_getaddrinfo().
@@ -612,8 +615,9 @@ typedef void (*openconnect_protect_socket_vfn) (void *privdata, int fd);
 void openconnect_set_protect_socket_handler(struct openconnect_info *vpninfo,
 					    openconnect_protect_socket_vfn protect_socket);
 
-void openconnect_set_loglevel(struct openconnect_info *vpninfo,
-			      int level);
+void openconnect_set_loglevel(struct openconnect_info *vpninfo, int level);
+
+void openconnect_set_pass_tos(struct openconnect_info *vpninfo, int enable);
 
 /* Callback for obtaining traffic stats via OC_CMD_STATS.
  */

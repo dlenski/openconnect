@@ -68,6 +68,8 @@ struct openconnect_info *openconnect_vpninfo_new(const char *useragent,
 	init_pkt_queue(&vpninfo->incoming_queue);
 	init_pkt_queue(&vpninfo->outgoing_queue);
 	init_pkt_queue(&vpninfo->oncp_control_queue);
+	vpninfo->dtls_tos_current = 0;
+	vpninfo->dtls_pass_tos = 0;
 	vpninfo->ssl_fd = vpninfo->dtls_fd = -1;
 	vpninfo->cmd_fd = vpninfo->cmd_fd_write = -1;
 	vpninfo->tncc_fd = -1;
@@ -153,8 +155,12 @@ int openconnect_set_protocol(struct openconnect_info *vpninfo, const char *proto
 	return -EINVAL;
 }
 
-void openconnect_set_loglevel(struct openconnect_info *vpninfo,
-			      int level)
+void openconnect_set_pass_tos(struct openconnect_info *vpninfo, int enable)
+{
+	vpninfo->dtls_pass_tos = enable;
+}
+
+void openconnect_set_loglevel(struct openconnect_info *vpninfo, int level)
 {
 	vpninfo->verbose = level;
 }
@@ -551,6 +557,7 @@ void openconnect_reset_ssl(struct openconnect_info *vpninfo)
 
 	free(vpninfo->peer_addr);
 	vpninfo->peer_addr = NULL;
+	vpninfo->dtls_tos_optname = 0;
 	free(vpninfo->ip_info.gateway_addr);
 	vpninfo->ip_info.gateway_addr = NULL;
 
