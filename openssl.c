@@ -46,6 +46,9 @@
 #define X509_STORE_CTX_get0_chain(ctx) ((ctx)->chain)
 #define X509_STORE_CTX_get0_untrusted(ctx) ((ctx)->untrusted)
 #define X509_STORE_CTX_get0_cert(ctx) ((ctx)->cert)
+typedef int (*X509_STORE_CTX_get_issuer_fn)(X509 **issuer,
+					    X509_STORE_CTX *ctx, X509 *x);
+#define X509_STORE_CTX_get_get_issuer(ctx) ((ctx)->get_issuer)
 #endif
 
 int openconnect_sha1(unsigned char *result, void *data, int len)
@@ -1300,18 +1303,16 @@ static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert
 static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 					     SSL *ssl)
 {
-	/* OpenSSL has problems with certificate chains — if there are
+	/* OpenSSL has problems with certificate chains -- if there are
 	   multiple certs with the same name, it doesn't necessarily
-	   choose the _right_ one. (RT#1942). This affects some servers,
-	   and we can work around it by picking the right ones ourselves
-	   and adding them manually on the wire. */
+	   choose the _right_ one. (RT#1942)
+	   Pick the right ones for ourselves and add them manually. */
 	X509 *cert = SSL_get_certificate(ssl);
 	X509 *cert2;
 	X509_STORE *store = SSL_CTX_get_cert_store(vpninfo->https_ctx);
 	X509_STORE_CTX *ctx;
 	void *extra_certs;
-	STACK_OF(X509) *chain;
-	int i;
+	X509_STORE_CTX_get_issuer_fn issuer_fn;
 
 	if (!cert || !store)
 		return;
@@ -1327,16 +1328,10 @@ static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 	if (X509_STORE_CTX_init(ctx, store, NULL, NULL))
 		goto out;
 
-	X509_STORE_CTX_set_cert(ctx, cert);
+	issuer_fn = X509_STORE_CTX_get_get_issuer(ctx);
 
-	/* We only really want it to build the chain; we don't really
-	   care if it's trusted */
-	(void)X509_verify_cert(ctx);
-
-	chain = X509_STORE_CTX_get0_chain(ctx);
-	for (i = 1; i < sk_X509_num(chain); i++) {
+	while (issuer_fn(&cert2, ctx, cert) == 1) {
 		char buf[200];
-		cert2 = sk_X509_value(chain, i);
 		if (cert2 == cert)
 			break;
 		if (X509_check_issued(cert2, cert2) == X509_V_OK)
@@ -1346,10 +1341,9 @@ static void workaround_openssl_certchain_bug(struct openconnect_info *vpninfo,
 				  buf, sizeof(buf));
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Extra cert from cafile: '%s'\n"), buf);
-		X509_up_ref(cert);
 		SSL_CTX_add_extra_chain_cert(vpninfo->https_ctx, cert);
 	}
-out:
+ out:
 	X509_STORE_CTX_free(ctx);
 }
 
