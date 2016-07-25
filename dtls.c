@@ -155,7 +155,7 @@ static void buf_append_OCTET_STRING(struct oc_text_buf *buf, void *data, int len
 }
 
 static SSL_SESSION *generate_dtls_session(struct openconnect_info *vpninfo,
-					  int dtlsver, SSL_CIPHER *cipher)
+					  int dtlsver, const SSL_CIPHER *cipher)
 {
 	struct oc_text_buf *buf = buf_alloc();
 	SSL_SESSION *dtls_session;
@@ -201,7 +201,7 @@ static SSL_SESSION *generate_dtls_session(struct openconnect_info *vpninfo,
 }
 #else /* OpenSSL before 1.1 */
 static SSL_SESSION *generate_dtls_session(struct openconnect_info *vpninfo,
-					  int dtlsver, SSL_CIPHER *cipher)
+					  int dtlsver, const SSL_CIPHER *cipher)
 {
 	SSL_SESSION *dtls_session = SSL_SESSION_new();
 	if (!dtls_session) {
