@@ -175,6 +175,8 @@ struct pkt {
 #endif
 #define COMPR_ALL	(COMPR_STATELESS | COMPR_DEFLATE)
 
+#define DTLS_APP_ID_EXT 48018
+
 struct keepalive_info {
 	int dpd;
 	int keepalive;
@@ -483,6 +485,7 @@ struct openconnect_info {
 #elif defined(OPENCONNECT_GNUTLS)
 	gnutls_session_t https_sess;
 	gnutls_certificate_credentials_t https_cred;
+	gnutls_psk_client_credentials_t psk_cred;
 	char local_cert_md5[MD5_SIZE * 2 + 1]; /* For CSD */
 	char gnutls_prio[256];
 #ifdef HAVE_TROUSERS
@@ -546,6 +549,8 @@ struct openconnect_info {
 	struct keepalive_info dtls_times;
 	unsigned char dtls_session_id[32];
 	unsigned char dtls_secret[48];
+	unsigned char dtls_app_id[32];
+	unsigned dtls_app_id_size;
 
 	char *dtls_cipher;
 	char *vpnc_script;
@@ -663,6 +668,11 @@ struct openconnect_info {
 
 #define read_fd_monitored(_v, _n) FD_ISSET(_v->_n##_fd, &_v->_select_rfds)
 #endif
+
+/* Key material for DTLS-PSK */
+#define PSK_LABEL "EXPORTER-openconnect-psk"
+#define PSK_LABEL_SIZE sizeof(PSK_LABEL)-1
+#define PSK_KEY_SIZE 32
 
 /* Packet types */
 

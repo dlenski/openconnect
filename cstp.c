@@ -188,6 +188,26 @@ static void append_mobile_headers(struct openconnect_info *vpninfo, struct oc_te
 	}
 }
 
+static int parse_hex_val(const char *str, unsigned char *storage, unsigned int max_storage_len, int *changed)
+{
+	int len = strlen(str);
+	unsigned i;
+
+	if (len % 2 == 1 || len > 2*max_storage_len) {
+		return -EINVAL;
+	}
+
+	for (i = 0; i < len; i += 2) {
+		unsigned char c = unhex(str + i);
+		if (storage[i/2] != c) {
+			storage[i/2] = c;
+			*changed = 1;
+		}
+	}
+
+	return len/2;
+}
+
 static int start_cstp_connection(struct openconnect_info *vpninfo)
 {
 	struct oc_text_buf *reqbuf;
@@ -242,6 +262,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		buf_append(reqbuf, "X-CSTP-Full-IPv6-Capability: true\r\n");
 #ifdef HAVE_DTLS
 	if (vpninfo->dtls_state != DTLS_DISABLED) {
+		/* The X-DTLS-Master-Secret is only used for the legacy protocol negotation
+		 * which required the client to send explicitly the secret. In the PSK-NEGOTIATE
+		 * method, the master secret is implicitly agreed on */
 		buf_append(reqbuf, "X-DTLS-Master-Secret: ");
 		for (i = 0; i < sizeof(vpninfo->dtls_secret); i++) {
 			buf_append(reqbuf, "%02X", vpninfo->dtls_secret[i]);
@@ -381,24 +404,38 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 					mtu = dtlsmtu;
 			} else if (!strcmp(buf + 7, "Session-ID")) {
 				int dtls_sessid_changed = 0;
+				int vsize;
 
-				if (strlen(colon) != 64) {
+				vsize = parse_hex_val(colon, vpninfo->dtls_session_id, sizeof(vpninfo->dtls_session_id), &dtls_sessid_changed);
+				if (vsize != 32) {
 					vpn_progress(vpninfo, PRG_ERR,
-						     _("X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"),
-						     colon);
+					     _("X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"),
+					     	colon);
 					vpninfo->dtls_attempt_period = 0;
 					return -EINVAL;
 				}
-				for (i = 0; i < 64; i += 2) {
-					unsigned char c = unhex(colon + i);
-					if (vpninfo->dtls_session_id[i/2] != c) {
-						vpninfo->dtls_session_id[i/2] = c;
-						dtls_sessid_changed = 1;
-					}
-				}
+
 				sessid_found = 1;
 
 				if (dtls_sessid_changed && vpninfo->dtls_state > DTLS_SLEEPING)
+					vpninfo->dtls_need_reconnect = 1;
+			} else if (!strcmp(buf + 7, "App-ID")) {
+				int dtls_appid_changed = 0;
+				int vsize;
+
+				vsize = parse_hex_val(colon, vpninfo->dtls_app_id, sizeof(vpninfo->dtls_app_id), &dtls_appid_changed);
+				if (vsize <= 0) {
+					vpn_progress(vpninfo, PRG_ERR,
+					     _("X-DTLS-Session-ID is invalid; is: \"%s\"\n"),
+					     	colon);
+					vpninfo->dtls_attempt_period = 0;
+					return -EINVAL;
+				}
+
+				vpninfo->dtls_app_id_size = vsize;
+				sessid_found = 1;
+
+				if (dtls_appid_changed && vpninfo->dtls_state > DTLS_SLEEPING)
 					vpninfo->dtls_need_reconnect = 1;
 			} else if (!strcmp(buf + 7, "Content-Encoding")) {
 				if (!strcmp(colon, "lzs"))

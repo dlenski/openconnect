@@ -2539,6 +2539,117 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 	}
 }
 
+#if GNUTLS_VERSION_NUMBER >= 0x030400
+static int ext_recv_client(gnutls_session_t sess, const unsigned char *buf, size_t buflen)
+{
+	/* we shouldn't have received that */
+	return 0;
+}
+
+static int ext_send_client(gnutls_session_t sess, gnutls_buffer_t extdata)
+{
+	struct openconnect_info *vpninfo = gnutls_session_get_ptr(sess);
+
+	if (vpninfo->dtls_ssl != sess)
+		return 0;
+
+	if (vpninfo->dtls_app_id_size > 0) {
+		uint8_t size = vpninfo->dtls_app_id_size;
+		int ret;
+
+		ret = gnutls_buffer_append_data(extdata, &size, 1);
+		if (ret < 0)
+			return ret;
+
+		ret = gnutls_buffer_append_data(extdata, vpninfo->dtls_app_id, vpninfo->dtls_app_id_size);
+		if (ret < 0)
+			return ret;
+
+		return vpninfo->dtls_app_id_size + 1;
+	}
+
+	return 0;
+}
+#else
+
+/* previously to 3.4.0 we can only use internal-but-exported APIs
+ */
+typedef int (*gnutls_ext_recv_func) (gnutls_session_t session,
+				     const unsigned char *data,
+				     size_t len);
+typedef int (*gnutls_ext_send_func) (gnutls_session_t session,
+				     void* extdata);
+int _gnutls_buffer_append_data(void *, const void *data, size_t data_size);
+
+typedef struct {
+	const char *name;
+	uint16_t type;
+	int parse_type;
+
+	/* this function must return 0 when Not Applicable
+	 * size of extension data if ok
+	 * < 0 on other error.
+	 */
+	gnutls_ext_recv_func recv_func;
+
+	/* this function must return 0 when Not Applicable
+	 * size of extension data if ok
+	 * GNUTLS_E_INT_RET_0 if extension data size is zero
+	 * < 0 on other error.
+	 */
+	gnutls_ext_send_func send_func;
+
+	void *deinit_func;	/* this will be called to deinitialize
+							 * internal data 
+							 */
+	void *pack_func;	/* packs internal data to machine independent format */
+	void *unpack_func;	/* unpacks internal data */
+	void *epoch_func;	/* called after the handshake is finished */
+} extension_entry_st;
+
+int _gnutls_ext_register(extension_entry_st *);
+
+static int ext_recv_client(gnutls_session_t sess, const unsigned char *buf, size_t buflen)
+{
+	/* we shouldn't have received that */
+	return 0;
+}
+static int ext_send_client(gnutls_session_t sess, void *extdata)
+{
+	struct openconnect_info *vpninfo = gnutls_session_get_ptr(sess);
+
+	if (vpninfo->dtls_ssl != sess)
+		return 0;
+
+	if (vpninfo->dtls_app_id_size > 0) {
+		uint8_t size = vpninfo->dtls_app_id_size;
+		int ret;
+
+		ret = _gnutls_buffer_append_data(extdata, &size, 1);
+		if (ret < 0)
+			return ret;
+		ret = _gnutls_buffer_append_data(extdata, vpninfo->dtls_app_id, vpninfo->dtls_app_id_size);
+		if (ret < 0)
+			return ret;
+
+		return vpninfo->dtls_app_id_size + 1;
+	}
+
+	return 0;
+}
+
+extension_entry_st ext_app_id  = {
+	.name = "app-id",
+	.type = DTLS_APP_ID_EXT,
+	.parse_type = 2,
+	.recv_func = ext_recv_client,
+	.send_func = ext_send_client,
+	.pack_func = NULL,
+	.unpack_func = NULL,
+	.deinit_func = NULL
+};
+#endif
+
 int openconnect_init_ssl(void)
 {
 #ifdef _WIN32
@@ -2548,6 +2659,12 @@ int openconnect_init_ssl(void)
 #endif
 	if (gnutls_global_init())
 		return -EIO;
+
+#if GNUTLS_VERSION_NUMBER >= 0x030400
+	gnutls_ext_register("APP-ID", DTLS_APP_ID_EXT, GNUTLS_EXT_TLS, ext_recv_client, ext_send_client, NULL, NULL, NULL);
+#else
+	_gnutls_ext_register(&ext_app_id);
+#endif
 
 	return 0;
 }

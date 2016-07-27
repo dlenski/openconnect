@@ -176,6 +176,58 @@ static SSL_SESSION *generate_dtls_session(struct openconnect_info *vpninfo,
 }
 #endif
 
+#if defined (HAVE_DTLS12) && !defined(OPENSSL_NO_PSK)
+static unsigned int psk_callback(SSL *ssl, const char *hint, char *identity,
+				 unsigned int max_identity_len, unsigned char *psk,
+				 unsigned int max_psk_len)
+{
+	struct openconnect_info *vpninfo = SSL_get_app_data(ssl);
+
+	if (!vpninfo || max_identity_len < 4 || max_psk_len < PSK_KEY_SIZE)
+		return 0;
+	vpn_progress(vpninfo, PRG_TRACE, _("PSK callback\n"));
+
+	snprintf(identity, max_psk_len, "psk");
+
+	memcpy(psk, vpninfo->dtls_secret, PSK_KEY_SIZE);
+	return PSK_KEY_SIZE;
+}
+
+static int pskident_add(SSL *s, unsigned int ext_type, const unsigned char **out, size_t *outlen,
+			int *al, void *add_arg)
+{
+	struct openconnect_info *vpninfo = add_arg;
+	unsigned char *buf;
+
+	buf = malloc(vpninfo->dtls_app_id_size + 1);
+	if (!buf) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to create app-identity extension for OpenSSL\n"));
+		return 0;
+	}
+
+	buf[0] = vpninfo->dtls_app_id_size;
+	memcpy(&buf[1], vpninfo->dtls_app_id, vpninfo->dtls_app_id_size);
+
+	*out = buf;
+	*outlen = vpninfo->dtls_app_id_size + 1;
+
+	return 1;
+}
+
+static void pskident_free(SSL *s, unsigned int ext_type, const unsigned char *out, void *add_arg)
+{
+	free((void *)out);
+}
+
+static int pskident_parse(SSL *s, unsigned int ext_type, const unsigned char *in, size_t inlen,
+			  int *al, void *parse_arg)
+{
+	return 1;
+}
+
+#endif
+
 int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 {
 	STACK_OF(SSL_CIPHER) *ciphers;
@@ -193,6 +245,10 @@ int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 	} else if (!strcmp(cipher, "OC-DTLS1_2-AES256-GCM")) {
 		dtlsver = DTLS1_2_VERSION;
 		cipher = "AES256-GCM-SHA384";
+#ifndef OPENSSL_NO_PSK
+	} else if (!strcmp(cipher, "PSK-NEGOTIATE")) {
+		dtlsver = 0; /* Let it negotiate */
+#endif
 	}
 #endif
 
@@ -215,22 +271,45 @@ int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 			vpninfo->dtls_attempt_period = 0;
 			return -EINVAL;
 		}
+		if (dtlsver) {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-		if (dtlsver == DTLS1_BAD_VER)
-			SSL_CTX_set_options(vpninfo->dtls_ctx, SSL_OP_CISCO_ANYCONNECT);
+			if (dtlsver == DTLS1_BAD_VER)
+				SSL_CTX_set_options(vpninfo->dtls_ctx, SSL_OP_CISCO_ANYCONNECT);
 #else
-		if (!SSL_CTX_set_min_proto_version(vpninfo->dtls_ctx, dtlsver) ||
-		    !SSL_CTX_set_max_proto_version(vpninfo->dtls_ctx, dtlsver)) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Set DTLS CTX version failed\n"));
-			openconnect_report_ssl_errors(vpninfo);
-			SSL_CTX_free(vpninfo->dtls_ctx);
-			vpninfo->dtls_ctx = NULL;
-			vpninfo->dtls_attempt_period = 0;
-			return -EINVAL;
-		}
+			if (!SSL_CTX_set_min_proto_version(vpninfo->dtls_ctx, dtlsver) ||
+			    !SSL_CTX_set_max_proto_version(vpninfo->dtls_ctx, dtlsver)) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Set DTLS CTX version failed\n"));
+				openconnect_report_ssl_errors(vpninfo);
+				SSL_CTX_free(vpninfo->dtls_ctx);
+				vpninfo->dtls_ctx = NULL;
+				vpninfo->dtls_attempt_period = 0;
+				return -EINVAL;
+			}
 #endif
-
+#if defined (HAVE_DTLS12) && !defined(OPENSSL_NO_PSK)
+		} else {
+			SSL_CTX_set_psk_client_callback(vpninfo->dtls_ctx, psk_callback);
+			/* For PSK we override the DTLS master secret with one derived
+			 * from the HTTPS session. */
+			if (!SSL_export_keying_material(vpninfo->https_ssl,
+							vpninfo->dtls_secret, PSK_KEY_SIZE,
+							PSK_LABEL, PSK_LABEL_SIZE, NULL, 0, 0)) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to generate DTLS key\n"));
+				openconnect_report_ssl_errors(vpninfo);
+				SSL_CTX_free(vpninfo->dtls_ctx);
+				vpninfo->dtls_ctx = NULL;
+				vpninfo->dtls_attempt_period = 0;
+				return -EINVAL;
+			}
+			SSL_CTX_add_client_custom_ext(vpninfo->dtls_ctx, DTLS_APP_ID_EXT,
+						      pskident_add, pskident_free, vpninfo,
+						      pskident_parse, vpninfo);
+			/* For SSL_CTX_set_cipher_list() */
+			cipher = "PSK";
+#endif
+		}
 		/* If we don't readahead, then we do short reads and throw
 		   away the tail of data packets. */
 		SSL_CTX_set_read_ahead(vpninfo->dtls_ctx, 1);
@@ -247,9 +326,10 @@ int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 
 	dtls_ssl = SSL_new(vpninfo->dtls_ctx);
 	SSL_set_connect_state(dtls_ssl);
+	SSL_set_app_data(dtls_ssl, vpninfo);
 
 	ciphers = SSL_get_ciphers(dtls_ssl);
-	if (sk_SSL_CIPHER_num(ciphers) != 1) {
+	if (dtlsver != 0 && sk_SSL_CIPHER_num(ciphers) != 1) {
 		vpn_progress(vpninfo, PRG_ERR, _("Not precisely one DTLS cipher\n"));
 		SSL_CTX_free(vpninfo->dtls_ctx);
 		SSL_free(dtls_ssl);
@@ -257,6 +337,17 @@ int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 		vpninfo->dtls_attempt_period = 0;
 		return -EINVAL;
 	}
+
+#if defined (HAVE_DTLS12) && !defined(OPENSSL_NO_PSK)
+	/* In the PSK case, OpenSSL 1.1+ will negotiate properly regardless of
+	 * this. But OpenSSL = 1.0.2 will do precisely the version requested
+	 * here. Which we don't want because we *want* it to negotiate. The
+	 * session we're pretending to resume is *only* to let the server know
+	 * who we are, since draft-jay-tls-psk-identify-extension isn't here
+	 * yet. */
+	if (!dtlsver)
+		dtlsver = DTLS1_2_VERSION;
+#endif
 
 	/* We're going to "resume" a session which never existed. Fake it... */
 	dtls_session = generate_dtls_session(vpninfo, dtlsver,
@@ -418,15 +509,18 @@ void dtls_shutdown(struct openconnect_info *vpninfo)
 
 void dtls_ssl_free(struct openconnect_info *vpninfo)
 {
+	/* We are only ever called when this is non-NULL */
 	SSL_free(vpninfo->dtls_ssl);
 }
 
 void append_dtls_ciphers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
 {
 #ifdef HAVE_DTLS12
-	buf_append(buf, "OC-DTLS1_2-AES256-GCM:OC-DTLS1_2-AES128-GCM:AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA");
-#else
-	buf_append(buf, "AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA");
+#ifndef OPENSSL_NO_PSK
+	buf_append(buf, "PSK-NEGOTIATE:");
 #endif
+	buf_append(buf, "OC-DTLS1_2-AES256-GCM:OC-DTLS1_2-AES128-GCM:");
+#endif
+	buf_append(buf, "AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA");
 }
 

@@ -101,6 +101,9 @@ void append_dtls_ciphers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 	gnutls_priority_t cache;
 	uint32_t used = 0;
 
+	buf_append(buf, "PSK-NEGOTIATE");
+	first = 0;
+
 	ret = gnutls_priority_init(&cache, vpninfo->gnutls_prio, NULL);
 	if (ret < 0) {
 		buf->error = -EIO;
@@ -133,12 +136,122 @@ void append_dtls_ciphers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 }
 #endif
 
+/* This enables a DTLS protocol negotiation. The new negotiation is as follows:
+ *
+ * If the client's X-DTLS-CipherSuite contains the "PSK-NEGOTIATE" keyword,
+ * the server will reply with "X-DTLS-CipherSuite: PSK-NEGOTIATE" and will
+ * enable DTLS-PSK negotiation on the DTLS channel. This allows the protocol
+ * to use new DTLS versions, as well as new DTLS ciphersuites, as long as
+ * they are also permitted by the system crypto policy in use.
+ *
+ * That change still requires to client to pretend it is resuming by setting
+ * in the TLS ClientHello the session ID provided by the X-DTLS-Session-ID
+ * header. That is, because there is no TLS extension we can use to set an
+ * identifier in the client hello (draft-jay-tls-psk-identity-extension
+ * could be used in the future). The session is not actually resumed.
+ */
+static int start_dtls_psk_handshake(struct openconnect_info *vpninfo, int dtls_fd)
+{
+	gnutls_session_t dtls_ssl;
+	gnutls_datum_t key;
+	struct oc_text_buf *prio;
+	int err;
+
+	prio = buf_alloc();
+	buf_append(prio, "%s:-VERS-TLS-ALL:+VERS-DTLS-ALL:-KX-ALL:+PSK", vpninfo->gnutls_prio);
+	if (buf_error(prio)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to generate DTLS priority string\n"));
+		vpninfo->dtls_attempt_period = 0;
+		return buf_free(prio);
+	}
+
+
+	err = gnutls_init(&dtls_ssl, GNUTLS_CLIENT|GNUTLS_DATAGRAM|GNUTLS_NONBLOCK);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to initialize DTLS: %s\n"),
+			     gnutls_strerror(err));
+		goto fail;
+	}
+	gnutls_session_set_ptr(dtls_ssl, (void *) vpninfo);
+
+	err = gnutls_priority_set_direct(dtls_ssl, prio->data, NULL);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to set DTLS priority: '%s': %s\n"),
+			     prio->data, gnutls_strerror(err));
+		goto fail;
+	}
+
+	gnutls_transport_set_ptr(dtls_ssl,
+				 (gnutls_transport_ptr_t)(intptr_t)dtls_fd);
+
+	/* set PSK credentials */
+	err = gnutls_psk_allocate_client_credentials(&vpninfo->psk_cred);
+	if (err < 0) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to allocate credentials: %s\n"),
+			     gnutls_strerror(err));
+		goto fail;
+	}
+
+	/* generate key */
+	/* we should have used gnutls_prf_rfc5705() but since we don't use
+	 * the RFC5705 context, the output is identical with gnutls_prf(). The
+	 * latter is available in much earlier versions of gnutls. */
+	err = gnutls_prf(vpninfo->https_sess, PSK_LABEL_SIZE, PSK_LABEL,
+			 0, 0, 0, PSK_KEY_SIZE, (char*)vpninfo->dtls_secret);
+	if (err < 0) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to generate DTLS key: %s\n"),
+			     gnutls_strerror(err));
+		goto fail;
+	}
+
+	key.data = vpninfo->dtls_secret;
+	key.size = PSK_KEY_SIZE;
+
+	/* we set an arbitrary username here. We cannot take advantage of the
+	 * username field to send our ID to the server, since the username in TLS-PSK
+	 * is sent after the server-hello. */
+	err = gnutls_psk_set_client_credentials(vpninfo->psk_cred, "psk", &key, 0);
+	if (err < 0) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to set DTLS key: %s\n"),
+			     gnutls_strerror(err));
+		goto fail;
+	}
+
+	err = gnutls_credentials_set(dtls_ssl, GNUTLS_CRD_PSK, vpninfo->psk_cred);
+	if (err) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to set DTLS PSK credentials: %s\n"),
+			     gnutls_strerror(err));
+		goto fail;
+	}
+
+	buf_free(prio);
+	vpninfo->dtls_ssl = dtls_ssl;
+	return 0;
+ fail:
+	buf_free(prio);
+	gnutls_deinit(dtls_ssl);
+	gnutls_psk_free_client_credentials(vpninfo->psk_cred);
+	vpninfo->psk_cred = NULL;
+	vpninfo->dtls_attempt_period = 0;
+	return -EINVAL;
+}
+
 int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 {
 	gnutls_session_t dtls_ssl;
 	gnutls_datum_t master_secret, session_id;
 	int err;
 	int cipher;
+
+	if (strcmp(vpninfo->dtls_cipher, "PSK-NEGOTIATE") == 0)
+		return start_dtls_psk_handshake(vpninfo, dtls_fd);
 
 	for (cipher = 0; cipher < sizeof(gnutls_dtls_ciphers)/sizeof(gnutls_dtls_ciphers[0]); cipher++) {
 		if (gnutls_check_version(gnutls_dtls_ciphers[cipher].min_gnutls_version) == NULL)
@@ -154,6 +267,8 @@ int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 
  found_cipher:
 	gnutls_init(&dtls_ssl, GNUTLS_CLIENT|GNUTLS_DATAGRAM|GNUTLS_NONBLOCK);
+	gnutls_session_set_ptr(dtls_ssl, (void *) vpninfo);
+
 	err = gnutls_priority_set_direct(dtls_ssl,
 					 gnutls_dtls_ciphers[cipher].prio,
 					 NULL);
@@ -266,4 +381,9 @@ void dtls_shutdown(struct openconnect_info *vpninfo)
 void dtls_ssl_free(struct openconnect_info *vpninfo)
 {
 	gnutls_deinit(vpninfo->dtls_ssl);
+
+	if (vpninfo->psk_cred) {
+		gnutls_psk_free_client_credentials(vpninfo->psk_cred);
+		vpninfo->psk_cred = NULL;
+	}
 }
