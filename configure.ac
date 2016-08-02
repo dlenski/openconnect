@@ -564,6 +564,17 @@ See http://rt.openssl.org/Ticket/Display.html?id=3703&user=guest&pass=guest
 and http://rt.openssl.org/Ticket/Display.html?id=3711&user=guest&pass=guest
 Add --without-openssl-version-check to configure args to avoid this check, or
 perhaps consider building with GnuTLS instead.])])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],[#if \
+				    (OPENSSL_VERSION_NUMBER >= 0x10002050L && OPENSSL_VERSION_NUMBER <= 0x10002090L)
+				#error Bad OpenSSL
+				#endif
+				])],
+			  [],
+			  [AC_MSG_RESULT(yes)
+			   AC_ERROR([This version of OpenSSL is known to be broken with Cisco DTLS.
+See http://rt.openssl.org/Ticket/Display.html?id=4631&user=guest&pass=guest
+Add --without-openssl-version-check to configure args to avoid this check, or
+perhaps consider building with GnuTLS instead.])])
 	AC_MSG_RESULT(no)
 fi
 if test "$esp" = "openssl"; then
