@@ -766,7 +766,7 @@ static void usage(void)
 	printf("      --csd-user=USER             %s\n", _("Drop privileges during CSD execution"));
 	printf("      --csd-wrapper=SCRIPT        %s\n", _("Run SCRIPT instead of CSD binary"));
 #endif
-	printf("  -m, --mtu=MTU                   %s\n", _("Request MTU from server"));
+	printf("  -m, --mtu=MTU                   %s\n", _("Request MTU from server (legacy servers only)"));
 	printf("      --base-mtu=MTU              %s\n", _("Indicate path MTU to/from server"));
 	printf("  -p, --key-password=PASS         %s\n", _("Set key passphrase or TPM SRK PIN"));
 	printf("      --key-password-from-fsid    %s\n", _("Key passphrase is fsid of file system"));
