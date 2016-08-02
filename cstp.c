@@ -32,6 +32,11 @@
 #include <lz4.h>
 #endif
 
+#if defined(__linux__)
+/* For TCP_INFO */
+# include <linux/tcp.h>
+#endif
+
 #include "openconnect-internal.h"
 
 /*
@@ -68,9 +73,13 @@ static const struct pkt dpd_resp_pkt = {
 	{ .cstp.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_RESP, 0 } }
 };
 
+#define UDP_HEADER_SIZE 8
+#define IPV4_HEADER_SIZE 20
+#define IPV6_HEADER_SIZE 40
+
 /* Calculate MTU to request. Old servers simply use the X-CSTP-MTU: header,
  * which represents the tunnel MTU, while new servers do calculations on the
- * X-CSTP-Base-MTU: header which represents the cleartext MTU between client
+ * X-CSTP-Base-MTU: header which represents the link MTU between client
  * and server.
  *
  * If possible, the legacy MTU value should be the TCP MSS less 5 bytes of
@@ -99,34 +108,47 @@ static void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *
 			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"),
 				     ti.tcpi_rcv_mss, ti.tcpi_snd_mss, ti.tcpi_advmss, ti.tcpi_pmtu);
-			if (!*base_mtu)
+
+			if (!*base_mtu) {
 				*base_mtu = ti.tcpi_pmtu;
-			if (!*mtu) {
+			}
+
+			if (!*base_mtu) {
 				if (ti.tcpi_rcv_mss < ti.tcpi_snd_mss)
-					*mtu = ti.tcpi_rcv_mss - 13;
+					*base_mtu = ti.tcpi_rcv_mss - 13;
 				else
-					*mtu = ti.tcpi_snd_mss - 13;
+					*base_mtu = ti.tcpi_snd_mss - 13;
 			}
 		}
 	}
 #endif
 #ifdef TCP_MAXSEG
-	if (!*mtu) {
+	if (!*base_mtu) {
 		int mss;
 		socklen_t mss_size = sizeof(mss);
 		if (!getsockopt(vpninfo->ssl_fd, IPPROTO_TCP, TCP_MAXSEG,
 				&mss, &mss_size)) {
 			vpn_progress(vpninfo, PRG_DEBUG, _("TCP_MAXSEG %d\n"), mss);
-			*mtu = mss - 13;
+			*base_mtu = mss - 13;
 		}
 	}
 #endif
-	if (!*mtu) {
+	if (!*base_mtu) {
 		/* Default */
-		*mtu = 1406;
+		*base_mtu = 1406;
 	}
-	if (*mtu < 1280)
-		*mtu = 1280;
+
+	if (*base_mtu < 1280)
+		*base_mtu = 1280;
+
+	if (!*mtu) {
+		/* remove IP/UDP and DTLS overhead from base MTU to calculate tunnel MTU */
+		*mtu = *base_mtu - DTLS_OVERHEAD - UDP_HEADER_SIZE;
+		if (vpninfo->peer_addr->sa_family == AF_INET6)
+			*mtu -= IPV6_HEADER_SIZE;
+		else
+			*mtu -= IPV4_HEADER_SIZE;
+	}
 }
 
 static void append_compr_types(struct oc_text_buf *buf, const char *proto, int avail)
@@ -181,7 +203,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	const char *old_netmask = vpninfo->ip_info.netmask;
 	const char *old_addr6 = vpninfo->ip_info.addr6;
 	const char *old_netmask6 = vpninfo->ip_info.netmask6;
-	int base_mtu, mtu;
+	int base_mtu = 0, mtu = 0;
 
 	/* Clear old options which will be overwritten */
 	vpninfo->ip_info.addr = vpninfo->ip_info.netmask = NULL;
@@ -211,9 +233,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	append_mobile_headers(vpninfo, reqbuf);
 	append_compr_types(reqbuf, "CSTP", vpninfo->req_compr);
 
-	if (base_mtu)
-		buf_append(reqbuf, "X-CSTP-Base-MTU: %d\r\n", base_mtu);
-	buf_append(reqbuf, "X-CSTP-MTU: %d\r\n", mtu);
+	buf_append(reqbuf, "X-CSTP-Base-MTU: %d\r\n", base_mtu);
+	if (mtu)
+		buf_append(reqbuf, "X-CSTP-MTU: %d\r\n", mtu);
 	buf_append(reqbuf, "X-CSTP-Address-Type: %s\r\n",
 			       vpninfo->disable_ipv6 ? "IPv4" : "IPv6,IPv4");
 	if (!vpninfo->disable_ipv6)

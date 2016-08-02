@@ -654,11 +654,7 @@ static int dtls_try_handshake(struct openconnect_info *vpninfo)
 		   We only support AES128-CBC and DES-CBC3-SHA anyway, so
 		   working out the worst case isn't hard. */
 		gnutls_dtls_set_mtu(vpninfo->dtls_ssl,
-				    vpninfo->ip_info.mtu + 1 /* packet + header */
-				    + 13 /* DTLS header */
-				    + 20 /* biggest supported MAC (SHA1) */
-				    + 16 /* biggest supported IV (AES-128) */
-				    + 16 /* max padding */);
+				    vpninfo->ip_info.mtu + DTLS_OVERHEAD);
 #endif
 
 		vpninfo->dtls_state = DTLS_CONNECTED;
