@@ -247,13 +247,16 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 #endif
 
 	if (!vpninfo->dtls_ctx) {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 #ifdef HAVE_DTLS12
 		if (dtlsver == DTLS1_2_VERSION)
 			dtls_method = DTLSv1_2_client_method();
 		else
 #endif
 			dtls_method = DTLSv1_client_method();
-
+#else
+		dtls_method = DTLS_client_method();
+#endif
 		vpninfo->dtls_ctx = SSL_CTX_new(dtls_method);
 		if (!vpninfo->dtls_ctx) {
 			vpn_progress(vpninfo, PRG_ERR,
@@ -262,6 +265,21 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 			vpninfo->dtls_attempt_period = 0;
 			return -EINVAL;
 		}
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+		if (dtlsver == DTLS1_BAD_VER)
+			SSL_CTX_set_options(vpninfo->dtls_ctx, SSL_OP_CISCO_ANYCONNECT);
+#else
+		if (!SSL_CTX_set_min_proto_version(vpninfo->dtls_ctx, dtlsver) ||
+		    !SSL_CTX_set_max_proto_version(vpninfo->dtls_ctx, dtlsver)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Set DTLS CTX version failed\n"));
+			openconnect_report_ssl_errors(vpninfo);
+			SSL_CTX_free(vpninfo->dtls_ctx);
+			vpninfo->dtls_ctx = NULL;
+			vpninfo->dtls_attempt_period = 0;
+			return -EINVAL;
+		}
+#endif
 
 		/* If we don't readahead, then we do short reads and throw
 		   away the tail of data packets. */
@@ -323,9 +341,6 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 	/* Set non-blocking */
 	BIO_set_nbio(dtls_bio, 1);
 	SSL_set_bio(dtls_ssl, dtls_bio, dtls_bio);
-
-	if (dtlsver == DTLS1_BAD_VER)
-		SSL_set_options(dtls_ssl, SSL_OP_CISCO_ANYCONNECT);
 
 	vpninfo->dtls_ssl = dtls_ssl;
 

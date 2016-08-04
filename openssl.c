@@ -1501,7 +1501,6 @@ static int check_certificate_expiry(struct openconnect_info *vpninfo)
 
 int openconnect_open_https(struct openconnect_info *vpninfo)
 {
-	method_const SSL_METHOD *ssl3_method;
 	SSL *https_ssl;
 	BIO *https_bio;
 	int ssl_sock;
@@ -1522,9 +1521,24 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	if (ssl_sock < 0)
 		return ssl_sock;
 
-	ssl3_method = TLSv1_client_method();
 	if (!vpninfo->https_ctx) {
-		vpninfo->https_ctx = SSL_CTX_new(ssl3_method);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+		vpninfo->https_ctx = SSL_CTX_new(TLSv1_client_method());
+#else
+		vpninfo->https_ctx = SSL_CTX_new(TLS_client_method());
+		if (vpninfo->https_ctx &&
+		    (!SSL_CTX_set_min_proto_version(vpninfo->https_ctx, TLS1_VERSION) ||
+		     !SSL_CTX_set_max_proto_version(vpninfo->https_ctx, TLS1_VERSION))) {
+			SSL_CTX_free(vpninfo->https_ctx);
+			vpninfo->https_ctx = NULL;
+		}
+#endif
+		if (!vpninfo->https_ctx) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Create TLSv1 CTX failed\n"));
+			openconnect_report_ssl_errors(vpninfo);
+			return -EINVAL;
+		}
 
 		/* Some servers (or their firewalls) really don't like seeing
 		   extensions. */
