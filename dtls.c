@@ -219,7 +219,7 @@ static SSL_SESSION *generate_dtls_session(struct openconnect_info *vpninfo,
 	memcpy(dtls_session->session_id, vpninfo->dtls_session_id,
 	       sizeof(vpninfo->dtls_session_id));
 
-	dtls_session->cipher = cipher;
+	dtls_session->cipher = (SSL_CIPHER *)cipher;
 	dtls_session->cipher_id = cipher->id;
 
 	return dtls_session;
