@@ -526,6 +526,8 @@ case "$ssl_library" in
 	;;
 esac
 
+AM_CONDITIONAL(DTLS_OPENSSL,  [ test "$check_openssl_dtls" = "yes" ])
+
 AC_ARG_WITH([openssl-version-check],
 	AS_HELP_STRING([--without-openssl-version-check],
 	[Do not check for known-broken OpenSSL versions]))

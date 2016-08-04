@@ -8,3 +8,12 @@ TESTS = $(dist_check_SCRIPTS)
 
 TESTS_ENVIRONMENT = srcdir="$(srcdir)" \
 	top_builddir="$(top_builddir)"
+
+if DTLS_OPENSSL
+TESTS += bad_dtls_test
+
+noinst_PROGRAMS = bad_dtls_test
+bad_dtls_test_SOURCES = bad_dtls_test.c
+bad_dtls_test_CFLAGS = $(OPENSSL_CFLAGS)
+bad_dtls_test_LDADD = $(OPENSSL_LIBS)
+endif
