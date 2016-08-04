@@ -485,7 +485,7 @@ case "$ssl_library" in
 	AC_SUBST(SSL_LIBS, ['$(GNUTLS_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
 	check_openssl_dtls=no
-	if test "$have_gnutls_dtls" = "yes"; then
+	if test "$have_gnutls_esp" = "yes"; then
 	   esp=gnutls
 	fi
 	;;
@@ -515,7 +515,7 @@ case "$ssl_library" in
 	AC_SUBST(DTLS_SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(DTLS_SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
 	check_openssl_dtls=yes
-	if test "$have_gnutls_dtls" = "yes"; then
+	if test "$have_gnutls_esp" = "yes"; then
 	    esp=gnutls
 	else
 	    esp=openssl
