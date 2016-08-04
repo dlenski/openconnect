@@ -565,7 +565,8 @@ and http://rt.openssl.org/Ticket/Display.html?id=3711&user=guest&pass=guest
 Add --without-openssl-version-check to configure args to avoid this check, or
 perhaps consider building with GnuTLS instead.])])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],[#if \
-				    (OPENSSL_VERSION_NUMBER >= 0x10002050L && OPENSSL_VERSION_NUMBER <= 0x10002090L)
+				    ((OPENSSL_VERSION_NUMBER >= 0x10001110L && OPENSSL_VERSION_NUMBER <= 0x10001150L) || \
+				     (OPENSSL_VERSION_NUMBER >= 0x10002050L && OPENSSL_VERSION_NUMBER <= 0x10002090L))
 				#error Bad OpenSSL
 				#endif
 				])],
