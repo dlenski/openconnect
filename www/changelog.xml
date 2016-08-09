@@ -15,6 +15,8 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>For OpenSSL >= 1.0.2, fix certificate validation when only an
+          intermediate CA is specified with the <tt>--cafile</tt> option.</li>
        <li>Support Juniper "Pre Sign-in Message".</li>
      </ul><br/>
   </li>

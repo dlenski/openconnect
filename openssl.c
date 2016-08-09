@@ -1395,6 +1395,9 @@ static int ssl_app_verify_callback(X509_STORE_CTX *ctx, void *arg)
 	struct openconnect_info *vpninfo = arg;
 	const char *err_string = NULL;
 	X509 *cert = X509_STORE_CTX_get0_cert(ctx);
+#ifdef X509_V_FLAG_PARTIAL_CHAIN
+	X509_VERIFY_PARAM *param;
+#endif
 
 	if (vpninfo->peer_cert) {
 		/* This is a *rehandshake*. Require that the server
@@ -1412,6 +1415,11 @@ static int ssl_app_verify_callback(X509_STORE_CTX *ctx, void *arg)
 
 	set_peer_cert_hash(vpninfo);
 
+#ifdef X509_V_FLAG_PARTIAL_CHAIN
+	param = X509_STORE_CTX_get0_param(ctx);
+	if (param)
+		X509_VERIFY_PARAM_set_flags(param, X509_V_FLAG_PARTIAL_CHAIN);
+#endif
 	if (!X509_verify_cert(ctx)) {
 		err_string = X509_verify_cert_error_string(X509_STORE_CTX_get_error(ctx));
 	} else {
