@@ -97,6 +97,19 @@ static inline int PACKET_buf_init(PACKET *pkt,
 }
 
 /*
+ * Returns 1 if the packet has length |num| and its contents equal the |num|
+ * bytes read from |ptr|. Returns 0 otherwise (lengths or contents not equal).
+ * If lengths are equal, performs the comparison in constant time.
+ */
+static inline int PACKET_equal(const PACKET *pkt, const void *ptr,
+                                           size_t num)
+{
+    if (PACKET_remaining(pkt) != num)
+        return 0;
+    return CRYPTO_memcmp(pkt->curr, ptr, num) == 0;
+}
+
+/*
  * Peek ahead at 2 bytes in network order from |pkt| and store the value in
  * |*data|
  */
@@ -148,6 +161,42 @@ static inline int PACKET_get_1(PACKET *pkt, unsigned int *data)
     return 1;
 }
 
+/*
+ * Peek ahead at |len| bytes from the |pkt| and store a pointer to them in
+ * |*data|. This just points at the underlying buffer that |pkt| is using. The
+ * caller should not free this data directly (it will be freed when the
+ * underlying buffer gets freed
+ */
+static inline int PACKET_peek_bytes(const PACKET *pkt,
+                                                const unsigned char **data,
+                                                size_t len)
+{
+    if (PACKET_remaining(pkt) < len)
+        return 0;
+
+    *data = pkt->curr;
+
+    return 1;
+}
+
+/*
+ * Read |len| bytes from the |pkt| and store a pointer to them in |*data|. This
+ * just points at the underlying buffer that |pkt| is using. The caller should
+ * not free this data directly (it will be freed when the underlying buffer gets
+ * freed
+ */
+static inline int PACKET_get_bytes(PACKET *pkt,
+                                               const unsigned char **data,
+                                               size_t len)
+{
+    if (!PACKET_peek_bytes(pkt, data, len))
+        return 0;
+
+    packet_forward(pkt, len);
+
+    return 1;
+}
+
 /* Peek ahead at |len| bytes from |pkt| and copy them to |data| */
 static inline int PACKET_peek_copy_bytes(const PACKET *pkt,
                                                      unsigned char *data,
@@ -189,19 +238,30 @@ static inline int PACKET_forward(PACKET *pkt, size_t len)
     return 1;
 }
 
-
-static inline int PACKET_starts(PACKET *pkt, const void *ptr,
-                                size_t num)
+/*
+ * Reads a variable-length vector prefixed with a one-byte length, and stores
+ * the contents in |subpkt|. |pkt| can equal |subpkt|.
+ * Data is not copied: the |subpkt| packet will share its underlying buffer with
+ * the original |pkt|, so data wrapped by |pkt| must outlive the |subpkt|.
+ * Upon failure, the original |pkt| and |subpkt| are not modified.
+ */
+static inline int PACKET_get_length_prefixed_1(PACKET *pkt,
+                                                           PACKET *subpkt)
 {
-    if (PACKET_remaining(pkt) < num)
+    unsigned int length;
+    const unsigned char *data;
+    PACKET tmp = *pkt;
+    if (!PACKET_get_1(&tmp, &length) ||
+        !PACKET_get_bytes(&tmp, &data, (size_t)length)) {
         return 0;
-    if (CRYPTO_memcmp(pkt->curr, ptr, num) != 0)
-        return 0;
+    }
 
-    packet_forward(pkt, num);
+    *pkt = tmp;
+    subpkt->curr = data;
+    subpkt->remaining = length;
+
     return 1;
 }
-
 
 #define OSSL_NELEM(x)    (sizeof(x)/sizeof(x[0]))
 
@@ -344,7 +404,7 @@ static SSL_SESSION *client_session(void)
 /* Returns 1 for initial ClientHello, 2 for ClientHello with cookie */
 static int validate_client_hello(BIO *wbio)
 {
-    PACKET pkt;
+    PACKET pkt, pkt2;
     long len;
     unsigned char *data;
     int cookie_found = 0;
@@ -380,16 +440,15 @@ static int validate_client_hello(BIO *wbio)
         return 0;
 
     /* Check session id length and content */
-    if (!PACKET_get_1(&pkt, &u))
-        return 0;
-    if (u != sizeof(session_id) || !PACKET_starts(&pkt, session_id, u))
+    if (!PACKET_get_length_prefixed_1(&pkt, &pkt2) ||
+        !PACKET_equal(&pkt2, session_id, sizeof(session_id)))
         return 0;
 
     /* Check cookie */
-    if (!PACKET_get_1(&pkt, &u))
+    if (!PACKET_get_length_prefixed_1(&pkt, &pkt2))
         return 0;
-    if (u) {
-        if (u != sizeof(cookie) || !PACKET_starts(&pkt, cookie, u))
+    if (PACKET_remaining(&pkt2)) {
+        if (!PACKET_equal(&pkt2, cookie, sizeof(cookie)))
             return 0;
         cookie_found = 1;
     }
