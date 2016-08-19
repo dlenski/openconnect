@@ -38,9 +38,7 @@
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 #define X509_up_ref(x) 	CRYPTO_add(&(x)->references, 1, CRYPTO_LOCK_X509)
-#endif
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#define X509_get0_notAfter(x) X509_get_notAfter(x)
 #define EVP_MD_CTX_new EVP_MD_CTX_create
 #define EVP_MD_CTX_free EVP_MD_CTX_destroy
 #define X509_STORE_CTX_get0_chain(ctx) ((ctx)->chain)
@@ -1465,7 +1463,7 @@ static int ssl_app_verify_callback(X509_STORE_CTX *ctx, void *arg)
 
 static int check_certificate_expiry(struct openconnect_info *vpninfo)
 {
-	ASN1_TIME *notAfter;
+	method_const ASN1_TIME *notAfter;
 	const char *reason = NULL;
 	time_t t;
 	int i;
@@ -1474,7 +1472,7 @@ static int check_certificate_expiry(struct openconnect_info *vpninfo)
 		return 0;
 
 	t = time(NULL);
-	notAfter = X509_get_notAfter(vpninfo->cert_x509);
+	notAfter = X509_get0_notAfter(vpninfo->cert_x509);
 	i = X509_cmp_time(notAfter, &t);
 	if (!i) {
 		vpn_progress(vpninfo, PRG_ERR,
