@@ -2,6 +2,8 @@
 SUBDIRS =
 if HAVE_CWRAP
 SUBDIRS += tests
+# We kind of want openconnect to be built before we try to test it
+check-recursive: openconnect$(EXEEXT)
 endif
 if BUILD_WWW
 SUBDIRS += www
