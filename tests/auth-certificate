@@ -30,9 +30,16 @@ launch_simple_sr_server -d 1 -f -c ${CONFIG}
 PID=$!
 wait_server $PID
 
-echo -n "Connecting to obtain cookie (with certificate)... "
-( echo "test" | LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q $ADDRESS:443 --sslkey ${certdir}/user-key.pem -c ${certdir}/user-cert.pem -u test --servercert=d66b507ae074d03b02eafca40d35f87dd81049d3 --cookieonly ) ||
-	fail $PID "Could not connect with certificate!"
+for CERT in pkcs1 pkcs1-aes128 pkcs8 pkcs8-pbes2-sha256 pkcs8-pbes2-sha1 pkcs12; do
+    echo -n "Connecting to obtain cookie (with $CERT certificate)... "
+    if [ "$CERT" = "pkcs12" ]; then
+	CERTARGS="-c ${certdir}/user-cert-key.p12 --key-password password"
+    else
+	CERTARGS="--sslkey ${certdir}/user-key-${CERT}.pem --key-password password -c ${certdir}/user-cert.pem "
+    fi
+    ( echo "test" | LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q $ADDRESS:443 -u test $CERTARGS --servercert=d66b507ae074d03b02eafca40d35f87dd81049d3 --cookieonly --passwd-on-stdin ) ||
+	fail $PID "Could not connect with $CERT certificate!"
+done
 
 echo ok
 
