@@ -921,8 +921,8 @@ static int import_openssl_pem(struct openconnect_info *vpninfo,
 			}
 			keylen += ofs;
 
-			/* If there appears to be more padding than required, fail */
-			if (b64_data.size - keylen >= blocksize)
+			/* If there appears to be more or less padding than required, fail */
+			if (b64_data.size - keylen > blocksize || b64_data.size < keylen + 1)
 				goto fail;
 
 			/* If the padding bytes aren't all equal to the amount of padding, fail */
