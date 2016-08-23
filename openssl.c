@@ -889,7 +889,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	if (!f) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to open private key file %s: %s\n"),
-			     vpninfo->cert, strerror(errno));
+			     vpninfo->sslkey, strerror(errno));
 		return -ENOENT;
 	}
 
