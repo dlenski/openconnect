@@ -1490,12 +1490,37 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		}
 		free(pass);
 		vpninfo->cert_password = NULL;
+	} else if (!gnutls_x509_privkey_import(key, &fdata, GNUTLS_X509_FMT_DER)) {
+		/* Unencrypted DER (PKCS#1 or PKCS#8) */
 	} else {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to determine type of private key %s\n"),
-			     vpninfo->sslkey);
-		ret = -EINVAL;
-		goto out;
+		/* Last chance: try encrypted PKCS#8 DER. And give up if it's not that */
+		char *pass = vpninfo->cert_password;
+
+		while ((err = gnutls_x509_privkey_import_pkcs8(key, &fdata,
+							       GNUTLS_X509_FMT_DER,
+							       pass?:"", 0))) {
+			if (err != GNUTLS_E_DECRYPTION_FAILED) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to determine type of private key %s\n"),
+					     vpninfo->sslkey);
+				ret = -EINVAL;
+				goto out;
+			}
+			vpninfo->cert_password = NULL;
+			if (pass) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to decrypt PKCS#8 certificate file\n"));
+				free(pass);
+			}
+			err = request_passphrase(vpninfo, "openconnect_pem",
+						 &pass, _("Enter PKCS#8 pass phrase:"));
+			if (err) {
+				ret = -EINVAL;
+				goto out;
+			}
+		}
+		free(pass);
+		vpninfo->cert_password = NULL;
 	}
 
 	/* Now attempt to make sure we use the *correct* certificate, to match
