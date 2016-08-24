@@ -23,6 +23,8 @@ top_builddir=${top_builddir:-..}
 
 . `dirname $0`/common.sh
 
+key_list=${key_list:-${certdir}/user-key-pkcs1.pem}
+
 echo "Testing certificate auth... "
 
 update_config test-user-cert.config
@@ -30,15 +32,15 @@ launch_simple_sr_server -d 1 -f -c ${CONFIG}
 PID=$!
 wait_server $PID
 
-for CERT in pkcs1 pkcs1-aes128 pkcs8 pkcs8-pbes2-sha256 pkcs8-pbes2-sha1 pkcs12; do
-    echo -n "Connecting to obtain cookie (with $CERT certificate)... "
-    if [ "$CERT" = "pkcs12" ]; then
-	CERTARGS="-c ${certdir}/user-cert-key.p12 --key-password password"
+for KEY in ${key_list}; do
+    echo -n "Connecting to obtain cookie (with key ${KEY##*/})... "
+    if [ "${KEY%%.p12}" != "${KEY}" ]; then
+	CERTARGS="-c ${KEY} --key-password password"
     else
-	CERTARGS="--sslkey ${certdir}/user-key-${CERT}.pem --key-password password -c ${certdir}/user-cert.pem "
+	CERTARGS="--sslkey ${KEY} --key-password password -c ${certdir}/user-cert.pem "
     fi
     ( echo "test" | LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q $ADDRESS:443 -u test $CERTARGS --servercert=d66b507ae074d03b02eafca40d35f87dd81049d3 --cookieonly --passwd-on-stdin ) ||
-	fail $PID "Could not connect with $CERT certificate!"
+	fail $PID "Could not connect with key ${KEY##*/}!"
 done
 
 echo ok
