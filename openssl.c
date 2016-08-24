@@ -792,6 +792,7 @@ static int is_pem_password_error(struct openconnect_info *vpninfo)
 
 static int load_certificate(struct openconnect_info *vpninfo)
 {
+	EVP_PKEY *key;
 	FILE *f;
 	char buf[256];
 
@@ -857,7 +858,6 @@ static int load_certificate(struct openconnect_info *vpninfo)
  got_cert:
 #ifdef ANDROID_KEYSTORE
 	if (!strncmp(vpninfo->sslkey, "keystore:", 9)) {
-		EVP_PKEY *key;
 		BIO *b;
 
 	again_android:
@@ -879,6 +879,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			vpninfo->cert_x509 = NULL;
 			return -EINVAL;
 		}
+		EVP_PKEY_free(key);
 		return 0;
 	}
 #endif /* ANDROID_KEYSTORE */
@@ -902,7 +903,6 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			   !strcmp(buf, "-----BEGIN DSA PRIVATE KEY-----\n") ||
 			   !strcmp(buf, "-----BEGIN ENCRYPTED PRIVATE KEY-----\n") ||
 			   !strcmp(buf, "-----BEGIN PRIVATE KEY-----\n")) {
-			RSA *key;
 			BIO *b = BIO_new_fp(f, BIO_CLOSE);
 
 			if (!b) {
@@ -913,21 +913,95 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			}
 		again:
 			fseek(f, 0, SEEK_SET);
-			key = PEM_read_bio_RSAPrivateKey(b, NULL, pem_pw_cb, vpninfo);
+			key = PEM_read_bio_PrivateKey(b, NULL, pem_pw_cb, vpninfo);
 			if (!key) {
 				if (is_pem_password_error(vpninfo))
 					goto again;
 				BIO_free(b);
 				return -EINVAL;
 			}
-			SSL_CTX_use_RSAPrivateKey(vpninfo->https_ctx, key);
-			RSA_free(key);
+			SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key);
+			EVP_PKEY_free(key);
 			BIO_free(b);
 			return 0;
 		}
 	}
-	fclose(f);
 
+	/* Not PEM? Try DER... */
+	fseek(f, 0, SEEK_SET);
+
+	/* This will catch PKCS#1 and unencrypted PKCS#8
+	 * (except in OpenSSL 0.9.8 where it doesn't handle
+	 * the latter but nobody cares about 0.9.8 any more. */
+	key = d2i_PrivateKey_fp(f, NULL);
+	if (key) {
+		SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key);
+		EVP_PKEY_free(key);
+		fclose(f);
+		return 0;
+	} else {
+		/* Encrypted PKCS#8 DER */
+		X509_SIG *p8;
+
+		fseek(f, 0, SEEK_SET);
+		p8 = d2i_PKCS8_fp(f, NULL);
+
+		if (p8) {
+			PKCS8_PRIV_KEY_INFO *p8inf;
+			char *pass = vpninfo->cert_password;
+
+			fclose(f);
+
+			while (!(p8inf = PKCS8_decrypt(p8, pass ? : "", pass ? strlen(pass) : 0))) {
+				unsigned long err = ERR_peek_error();
+
+				if (ERR_GET_LIB(err) == ERR_LIB_EVP &&
+				    ERR_GET_FUNC(err) == EVP_F_EVP_DECRYPTFINAL_EX &&
+				    ERR_GET_REASON(err) == EVP_R_BAD_DECRYPT) {
+					ERR_clear_error();
+
+					if (pass) {
+						vpn_progress(vpninfo, PRG_ERR,
+							     _("Failed to decrypt PKCS#8 certificate file\n"));
+						free(pass);
+						pass = NULL;
+					}
+
+					if (request_passphrase(vpninfo, "openconnect_pkcs8", &pass,
+							       _("Enter PKCS#8 pass phrase:")) >= 0)
+						continue;
+				} else {
+					vpn_progress(vpninfo, PRG_ERR,
+						     _("Failed to decrypt PKCS#8 certificate file\n"));
+					openconnect_report_ssl_errors(vpninfo);
+				}
+
+				free(pass);
+				vpninfo->cert_password = NULL;
+
+				X509_SIG_free(p8);
+				return -EINVAL;
+			}
+			free(pass);
+			vpninfo->cert_password = NULL;
+
+			key = EVP_PKCS82PKEY(p8inf);
+
+			PKCS8_PRIV_KEY_INFO_free(p8inf);
+			X509_SIG_free(p8);
+
+			if (key == NULL) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to convert PKCS#8 to OpenSSL EVP_PKEY\n"));
+				return -EIO;
+			}
+			SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key);
+			EVP_PKEY_free(key);
+			return 0;
+		}
+	}
+
+	fclose(f);
 	vpn_progress(vpninfo, PRG_ERR,
 		     _("Failed to identify private key type in '%s'\n"),
 		     vpninfo->sslkey);
