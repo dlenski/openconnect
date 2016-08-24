@@ -4,10 +4,11 @@ USER_KEYS = \
 	$(srcdir)/certs/user-key-pkcs8.pem $(srcdir)/certs/user-key-pkcs8.der \
 	$(srcdir)/certs/user-key-pkcs8-pbes1-sha1-3des.pem $(srcdir)/certs/user-key-pkcs8-pbes1-sha1-3des.der \
 	$(srcdir)/certs/user-key-pkcs8-pbes2-sha1.pem $(srcdir)/certs/user-key-pkcs8-pbes2-sha1.der \
-	$(srcdir)/certs/user-cert-key.p12
+	$(srcdir)/certs/user-key-sha1-3des-sha1.p12 $(srcdir)/certs/user-key-sha1-3des-sha256.p12
 
 # We know GnuTLS doesn't support these for now. https://bugzilla.redhat.com/1369484
 if OPENCONNECT_OPENSSL
+USER_KEYS += $(srcdir)/certs/user-key-md5-des-sha1.p12
 USER_KEYS += $(srcdir)/certs/user-key-pkcs8-pbes2-sha256.pem $(srcdir)/certs/user-key-pkcs8-pbes2-sha256.der
 USER_KEYS += $(srcdir)/certs/user-key-pkcs8-pbes1-md5-des.pem $(srcdir)/certs/user-key-pkcs8-pbes1-md5-des.der
 endif
@@ -67,8 +68,17 @@ $(srcdir)/certs/user-key-pkcs8-pbes2-sha1.pem: certs/user-key-pkcs1.pem
 $(srcdir)/certs/user-key-pkcs8-pbes2-sha256.pem: certs/user-key-pkcs1.pem
 	$(OPENSSL) pkcs8 $(OSSLARGS) -topk8 -v2 aes256 -v2prf hmacWithSHA256
 
-$(srcdir)/certs/user-cert-key.p12: certs/user-key-pkcs1.pem
-	$(OPENSSL) pkcs12 $(OSSLARGSP12) -export
+$(srcdir)/certs/user-key-sha1-3des-sha1.p12: certs/user-key-pkcs1.pem
+	$(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA1 \
+		-certpbe pbeWithSHA1And3-KeyTripleDES-CBC -keypbe pbeWithSHA1And3-KeyTripleDES-CBC
+
+$(srcdir)/certs/user-key-sha1-3des-sha256.p12: certs/user-key-pkcs1.pem
+	$(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA256 \
+		-certpbe pbeWithSHA1And3-KeyTripleDES-CBC -keypbe pbeWithSHA1And3-KeyTripleDES-CBC
+
+$(srcdir)/certs/user-key-md5-des-sha1.p12: certs/user-key-pkcs1.pem
+	$(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA1 \
+		-certpbe pbeWithMD5AndDES-CBC -keypbe pbeWithMD5AndDES-CBC
 
 %.der: %.pem
 	grep -v -- ^----- $< | base64 -d > $@
