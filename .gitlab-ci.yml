@@ -1,7 +1,7 @@
 Build with gnutls:
   script:
   - git submodule update --init && autoreconf -fvi && 
-    ./configure && make -j4 && make check -j4
+    ./configure && make -j4 && make check VERBOSE=1 -j4
   tags:
   - gnutls3.3
   - ocserv
@@ -11,7 +11,7 @@ Build with gnutls:
 Build with openssl:
   script:
   - git submodule update --init && autoreconf -fvi && 
-    ./configure --without-openssl-version-check --with-openssl && make -j4 && make check -j4
+    ./configure --without-openssl-version-check --with-openssl && make -j4 && make check VERBOSE=1 -j4
   tags:
   - openssl
   - ocserv
@@ -21,7 +21,7 @@ Build with openssl:
 Build and Check for windows:
   script:
   - git submodule update --init && autoreconf -fvi && 
-    mingw32-configure && mingw32-make -j4 && mingw32-make -j4 check
+    mingw32-configure && mingw32-make -j4 && mingw32-make -j4 check VERBOSE=1
   tags:
   - gnutls3.3
   - wine
