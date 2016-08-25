@@ -478,11 +478,13 @@ esp=none
 case "$ssl_library" in
     gnutls)
 	AC_DEFINE(OPENCONNECT_GNUTLS, 1, [Using GnuTLS])
-	AC_DEFINE(DTLS_GNUTLS, 1, [Using GnuTLS for DTLS])
 	AC_SUBST(SSL_DTLS_PC, [gnutls])
 	AC_SUBST(SSL_LIBS, ['$(GNUTLS_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
-	dtls_lib=gnutls
+	if test "$have_gnutls_dtls" = "yes"; then
+	    AC_DEFINE(DTLS_GNUTLS, 1, [Using GnuTLS for DTLS])
+	    dtls_lib=gnutls
+	fi
 	if test "$have_gnutls_esp" = "yes"; then
 	   esp=gnutls
 	fi
