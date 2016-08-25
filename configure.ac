@@ -408,8 +408,11 @@ if test "$with_gnutls" = "yes"; then
 	fi
     fi
     AC_CHECK_FUNC(gnutls_pkcs11_add_provider,
-		 [PKG_CHECK_MODULES(P11KIT, p11-kit-1, [AC_DEFINE(HAVE_P11KIT, 1, [Have. P11. Kit.])
-    			      		  AC_SUBST(P11KIT_PC, p11-kit-1)], [:])], [])
+		  [PKG_CHECK_MODULES(P11KIT, p11-kit-1,
+				     [AC_DEFINE(HAVE_P11KIT, 1, [Have. P11. Kit.])
+				      pkcs11_support=GnuTLS
+				      AC_SUBST(P11KIT_PC, p11-kit-1)],
+				     [:])], [])
     LIBS="$oldlibs -ltspi"
     AC_MSG_CHECKING([for tss library])
     AC_LINK_IFELSE([AC_LANG_PROGRAM([
@@ -479,7 +482,7 @@ case "$ssl_library" in
 	AC_SUBST(SSL_DTLS_PC, [gnutls])
 	AC_SUBST(SSL_LIBS, ['$(GNUTLS_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
-	check_openssl_dtls=no
+	dtls_lib=gnutls
 	if test "$have_gnutls_esp" = "yes"; then
 	   esp=gnutls
 	fi
@@ -490,6 +493,7 @@ case "$ssl_library" in
 			[AC_DEFINE(HAVE_LIBP11, 1, [Have libp11 and p11-kit for OpenSSL])
 			 AC_SUBST(P11KIT_PC, ["libp11 p11-kit-1"])
 			 proxy_module="`$PKG_CONFIG --variable=proxy_module p11-kit-1`"
+			 pkcs11_support="libp11"
 			 AC_DEFINE_UNQUOTED([DEFAULT_PKCS11_MODULE], "${proxy_module}", [p11-kit proxy])],
 			[:])], [:])
 	AC_DEFINE(OPENCONNECT_OPENSSL, 1, [Using OpenSSL])
@@ -497,7 +501,7 @@ case "$ssl_library" in
 	AC_SUBST(SSL_DTLS_PC, [openssl])
 	AC_SUBST(SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
-	check_openssl_dtls=yes
+	dtls_lib=openssl
 	esp=openssl
 	;;
     both)
@@ -509,7 +513,7 @@ case "$ssl_library" in
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
 	AC_SUBST(DTLS_SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(DTLS_SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
-	check_openssl_dtls=yes
+	dtls_lib=openssl
 	if test "$have_gnutls_esp" = "yes"; then
 	    esp=gnutls
 	else
@@ -525,11 +529,8 @@ AC_ARG_ENABLE([dtls-test],
 	AS_HELP_STRING([--disable-dtls-test], [Only for gitlab CI. Do not disable]),
 	[], [enable_dtls_unit_test=yes])
 
-# The test is OpenSSL-only for now. This happens before the setting for
-# --without-openssl-version-check is processed, because that option is
-# supposed to mean "I fixed OpenSSL even though it's an old version". And
-# that is the *most* important case for the unit test.
-if test "$check_openssl_dtls" = "no"; then
+# The test is OpenSSL-only for now.
+if test "$dtls_lib" != "openssl"; then
    enable_dtls_unit_test=no
 fi
 AM_CONDITIONAL(CHECK_DTLS, [ test "$enable_dtls_unit_test" = "yes" ])
@@ -537,15 +538,12 @@ AM_CONDITIONAL(CHECK_DTLS, [ test "$enable_dtls_unit_test" = "yes" ])
 AC_ARG_WITH([openssl-version-check],
 	AS_HELP_STRING([--without-openssl-version-check],
 	[Do not check for known-broken OpenSSL versions]))
-if test "$with_openssl_version_check" = "no"; then
-   check_openssl_dtls=no
-fi
 
 oldLIBS="${LIBS}"
 oldCFLAGS="${CFLAGS}"
 LIBS="${LIBS} ${OPENSSL_LIBS}"
 CFLAGS="${CFLAGS} ${OPENSSL_CFLAGS}"
-if test "$check_openssl_dtls" = "yes"; then
+if test "$dtls_lib" = "openssl" -a "$with_openssl_version_check" != "no"; then
 	AC_MSG_CHECKING([for known-broken versions of OpenSSL])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],[#if \
 				    (OPENSSL_VERSION_NUMBER == 0x10002000L || \
@@ -609,10 +607,12 @@ AC_ARG_WITH(lz4,
   test_for_lz4=$withval,
   test_for_lz4=yes)
 
+lz4_pkg=no
 if test "$test_for_lz4" = yes; then
 PKG_CHECK_MODULES([LIBLZ4], [liblz4], [
 	AC_SUBST(LIBLZ4_PC, liblz4)
 	AC_DEFINE([HAVE_LZ4], [], [LZ4 was found])
+	lz4_pkg=yes
 ],
 [
 	AC_MSG_WARN([[
@@ -676,12 +676,14 @@ if (test "$libproxy_pkg" = "no"); then
 			   [(void)px_proxy_factory_new();])],
 	  [AC_MSG_RESULT(yes (with libproxy.h))
 	   AC_DEFINE([LIBPROXY_HDR], ["libproxy.h"])
-	   AC_SUBST([LIBPROXY_LIBS], [-lproxy])],
+	   AC_SUBST([LIBPROXY_LIBS], [-lproxy])
+	   libproxy_pkg=yes],
 	  [AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <proxy.h>],
 				  [(void)px_proxy_factory_new();])],
 		  [AC_MSG_RESULT(yes (with proxy.h))
 		   AC_DEFINE([LIBPROXY_HDR], ["proxy.h"])
-		   AC_SUBST([LIBPROXY_LIBS], [-lproxy])],
+		   AC_SUBST([LIBPROXY_LIBS], [-lproxy])
+		   libproxy_pkg=yes],
 		   [AC_MSG_RESULT(no)])])
    LIBS="$oldLIBS"
 fi
@@ -1045,3 +1047,44 @@ AC_CONFIG_FILES(Makefile openconnect.pc po/Makefile www/Makefile \
 		libopenconnect.map openconnect.8 www/styles/Makefile \
 		www/inc/Makefile www/images/Makefile tests/Makefile)
 AC_OUTPUT
+
+AC_DEFUN([SUMMARY],
+	 [pretty="$2"
+	 if test "$pretty" = "openssl" -o "$pretty" = "both"; then
+	     pretty=OpenSSL
+	 elif test "$pretty" = "gnutls"; then
+	     pretty=GnuTLS
+	 elif test "$pretty" = ""; then
+	     pretty=no
+	 fi
+	 echo "AS_HELP_STRING([$1:],[$pretty])"])
+
+echo "BUILD OPTIONS:"
+SUMMARY([SSL library], [$ssl_library])
+SUMMARY([PKCS#11 support], [$pkcs11_support])
+SUMMARY([DTLS support], [$dtls_lib])
+SUMMARY([ESP support], [$esp])
+SUMMARY([libproxy support], [$libproxy_pkg])
+SUMMARY([RSA SecurID support], [$libstoken_pkg])
+SUMMARY([PSKC OATH file support], [$libpskc_pkg])
+SUMMARY([GSSAPI support], [$linked_gssapi])
+SUMMARY([Yubikey support], [$libpskc_pkg])
+SUMMARY([LZ4 compression], [$lz4_pkg])
+SUMMARY([Java bindings], [$with_java])
+SUMMARY([Build docs], [$build_www])
+SUMMARY([Unit tests], [$have_cwrap])
+
+if test "$enable_dtls_unit_test" = "yes"; then
+    echo
+    if test "$have_cwrap" != "yes"; then
+	AC_MSG_WARN([[
+***
+*** OpenSSL DTLS support may be broken, and unit tests not available
+*** ]])
+    else
+	AC_MSG_WARN([[
+***
+*** Be sure to run "make check" to verify OpenSSL DTLS support
+*** ]])
+    fi
+fi
