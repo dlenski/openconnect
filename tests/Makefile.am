@@ -19,20 +19,22 @@ EXTRA_DIST = certs/ca.pem certs/ca-key.pem certs/user-cert.pem $(USER_KEYS) \
 
 dist_check_SCRIPTS = auth-username-pass auth-certificate
 
-TESTS = $(dist_check_SCRIPTS)
-
 TESTS_ENVIRONMENT = srcdir="$(srcdir)" \
 	top_builddir="$(top_builddir)" \
 	key_list="$(USER_KEYS)"
 
-if CHECK_DTLS
-TESTS += bad_dtls_test
 
-noinst_PROGRAMS = bad_dtls_test
+noinst_PROGRAMS = lzstest
+
+if CHECK_DTLS
+noinst_PROGRAMS += bad_dtls_test
 bad_dtls_test_SOURCES = bad_dtls_test.c
 bad_dtls_test_CFLAGS = $(OPENSSL_CFLAGS)
 bad_dtls_test_LDADD = $(OPENSSL_LIBS)
 endif
+
+TESTS = $(dist_check_SCRIPTS) $(noinst_PROGRAMS)
+
 
 # Nothing actually *depends* on the cert files; they are created manually
 # and considered part of the sources, committed to the git tree. But for

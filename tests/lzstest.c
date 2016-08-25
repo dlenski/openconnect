@@ -24,7 +24,7 @@ struct oc_packed_uint16_t {
 int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
 int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
 
-#include "lzs.c"
+#include "../lzs.c"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,7 +49,7 @@ int main(void)
 		fprintf(stderr, "RAND_MAX 0x%x is smaller than we expect\n", RAND_MAX);
 		exit(1);
 	}
-		
+
 	for (i = 0; i < NR_PKTS; i++) {
 		if (i)
 			pktlen = (random() % MAX_PKT) + 1;
@@ -62,7 +62,7 @@ int main(void)
 			r <<= 8;
 #endif
 			*(int *)(pktbuf + j) = r;
-		}		
+		}
 
 		ret = lzs_compress(comprbuf, sizeof(comprbuf), pktbuf, pktlen);
 		if (ret < 0) {
