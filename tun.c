@@ -554,12 +554,17 @@ int os_write_tun(struct openconnect_info *vpninfo, struct pkt *pkt)
 			vpninfo->quit_reason = "Client connection terminated";
 			return -1;
 		}
+		/* The tun device in the Linux kernel returns -ENOMEM when
+		 * the queue is full, so theoretically we could check for
+		 * that and retry too.  But it doesn't let us poll() for
+		 * the no-longer-full situation, so let's not bother. */
+		if (errno == ENOBUFS || errno == EAGAIN || errno == EWOULDBLOCK) {
+			monitor_write_fd(vpninfo, tun);
+			return -1;
+		}
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to write incoming packet: %s\n"),
 			     strerror(errno));
-		/* The kernel returns -ENOMEM when the queue is full, so theoretically
-		   we could handle that and retry... but it doesn't let us poll() for
-		   the no-longer-full situation, so let's not bother. */
 	}
 	return 0;
 

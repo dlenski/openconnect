@@ -92,6 +92,8 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 	while ((this = dequeue_packet(&vpninfo->incoming_queue))) {
 
+		unmonitor_write_fd(vpninfo, tun);
+
 		if (os_write_tun(vpninfo, this)) {
 			requeue_packet(&vpninfo->incoming_queue, this);
 			break;
