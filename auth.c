@@ -772,29 +772,25 @@ static int xmlpost_initial_req(struct openconnect_info *vpninfo,
 {
 	xmlNodePtr root, node;
 	xmlDocPtr doc = xmlpost_new_query(vpninfo, "init", &root);
-	char *url;
-	int result;
+	struct oc_text_buf *url_buf;
 
 	if (!doc)
 		return -ENOMEM;
 
-	if (vpninfo->urlpath) {
-		if (vpninfo->port != 443)
-			result = asprintf(&url, "https://%s:%d/%s", vpninfo->hostname, vpninfo->port, vpninfo->urlpath);
-		else
-			result = asprintf(&url, "https://%s/%s", vpninfo->hostname, vpninfo->urlpath);
-	}
-	else {
-		if (vpninfo->port != 443)
-			result = asprintf(&url, "https://%s:%d", vpninfo->hostname, vpninfo->port);
-		else
-			result = asprintf(&url, "https://%s", vpninfo->hostname);
-	}
+	url_buf = buf_alloc();
+	buf_append(url_buf, "https://%s", vpninfo->hostname);
+	if (vpninfo->port != 443)
+		buf_append(url_buf, ":%d", vpninfo->port);
+	/* Do we *need* to omit the trailing / here when no path? */
+	if (vpninfo->urlpath)
+		buf_append(url_buf, "/%s", vpninfo->urlpath);
 
-	if (result == -1)
+	if (buf_error(url_buf)) {
+		buf_free(url_buf);
 		goto bad;
-	node = xmlNewTextChild(root, NULL, XCAST("group-access"), XCAST(url));
-	free(url);
+	}
+	node = xmlNewTextChild(root, NULL, XCAST("group-access"), XCAST(url_buf->data));
+	buf_free(url_buf);
 	if (!node)
 		goto bad;
 	if (cert_fail) {
@@ -810,6 +806,7 @@ static int xmlpost_initial_req(struct openconnect_info *vpninfo,
 	return xmlpost_complete(doc, request_body);
 
 bad:
+	buf_free(url_buf);
 	xmlpost_complete(doc, NULL);
 	return -ENOMEM;
 }
