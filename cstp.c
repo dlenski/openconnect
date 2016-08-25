@@ -199,7 +199,10 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
 	reqbuf = buf_alloc();
 	buf_append(reqbuf, "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
-	buf_append(reqbuf, "Host: %s\r\n", vpninfo->hostname);
+	if (vpninfo->port != 443)
+		buf_append(reqbuf, "Host: %s:%d\r\n", vpninfo->hostname, vpninfo->port);
+	else
+		buf_append(reqbuf, "Host: %s\r\n", vpninfo->hostname);
 	buf_append(reqbuf, "User-Agent: %s\r\n", vpninfo->useragent);
 	buf_append(reqbuf, "Cookie: webvpn=%s\r\n", vpninfo->cookie);
 	buf_append(reqbuf, "X-CSTP-Version: 1\r\n");

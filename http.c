@@ -1295,7 +1295,10 @@ static int process_http_proxy(struct openconnect_info *vpninfo)
  retry:
 	reqbuf = buf_alloc();
 	buf_append(reqbuf, "CONNECT %s:%d HTTP/1.1\r\n", vpninfo->hostname, vpninfo->port);
-	buf_append(reqbuf, "Host: %s\r\n", vpninfo->hostname);
+	if (vpninfo->port == 443)
+		buf_append(reqbuf, "Host: %s\r\n", vpninfo->hostname);
+	else
+		buf_append(reqbuf, "Host: %s:%d\r\n", vpninfo->hostname, vpninfo->port);
 	buf_append(reqbuf, "User-Agent: %s\r\n", vpninfo->useragent);
 	buf_append(reqbuf, "Proxy-Connection: keep-alive\r\n");
 	buf_append(reqbuf, "Connection: keep-alive\r\n");
@@ -1428,7 +1431,10 @@ void http_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 {
 	struct oc_vpn_option *opt;
 
-	buf_append(buf, "Host: %s\r\n", vpninfo->hostname);
+	if (vpninfo->port == 443)
+		buf_append(buf, "Host: %s\r\n", vpninfo->hostname);
+	else
+		buf_append(buf, "Host: %s:%d\r\n", vpninfo->hostname, vpninfo->port);
 	buf_append(buf, "User-Agent: %s\r\n", vpninfo->useragent);
 
 	if (vpninfo->cookies) {

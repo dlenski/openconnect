@@ -778,10 +778,18 @@ static int xmlpost_initial_req(struct openconnect_info *vpninfo,
 	if (!doc)
 		return -ENOMEM;
 
-	if (vpninfo->urlpath)
-		result = asprintf(&url, "https://%s/%s", vpninfo->hostname, vpninfo->urlpath);
-	else
-		result = asprintf(&url, "https://%s", vpninfo->hostname);
+	if (vpninfo->urlpath) {
+		if (vpninfo->port != 443)
+			result = asprintf(&url, "https://%s:%d/%s", vpninfo->hostname, vpninfo->port, vpninfo->urlpath);
+		else
+			result = asprintf(&url, "https://%s/%s", vpninfo->hostname, vpninfo->urlpath);
+	}
+	else {
+		if (vpninfo->port != 443)
+			result = asprintf(&url, "https://%s:%d", vpninfo->hostname, vpninfo->port);
+		else
+			result = asprintf(&url, "https://%s", vpninfo->hostname);
+	}
 
 	if (result == -1)
 		goto bad;
@@ -919,7 +927,11 @@ static int fetch_config(struct openconnect_info *vpninfo)
 	}
 
 	buf = buf_alloc();
-	buf_append(buf, "GET %s HTTP/1.1\r\n", vpninfo->profile_url);
+
+	if (vpninfo->port != 443)
+		buf_append(buf, "GET %s:%d HTTP/1.1\r\n", vpninfo->profile_url, vpninfo->port);
+	else
+		buf_append(buf, "GET %s HTTP/1.1\r\n", vpninfo->profile_url);
 	cstp_common_headers(vpninfo, buf);
 	if (vpninfo->xmlpost)
 		buf_append(buf, "Cookie: webvpn=%s\r\n", vpninfo->cookie);
