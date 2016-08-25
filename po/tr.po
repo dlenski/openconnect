@@ -1254,7 +1254,7 @@ msgstr "%s özel anahtarının türü tespit edilemedi\n"
 
 #: gnutls.c:1518 openssl.c:971
 msgid "Enter PKCS#8 pass phrase:"
-msgstr ""
+msgstr "PKCS#8 anahtar parolası girin:"
 
 #: gnutls.c:1534
 #, c-format

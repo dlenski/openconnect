@@ -1269,7 +1269,7 @@ msgstr "Falha ao determinar tipo de chave privada %s\n"
 
 #: gnutls.c:1518 openssl.c:971
 msgid "Enter PKCS#8 pass phrase:"
-msgstr ""
+msgstr "Insira a frase-passe de PKCS#8:"
 
 #: gnutls.c:1534
 #, c-format

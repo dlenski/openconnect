@@ -1265,7 +1265,7 @@ msgstr "Ni mogoče določiti vrste zasebnega ključa %s\n"
 
 #: gnutls.c:1518 openssl.c:971
 msgid "Enter PKCS#8 pass phrase:"
-msgstr ""
+msgstr "Vnos šifrirnega gesla PKCS#8:"
 
 #: gnutls.c:1534
 #, c-format

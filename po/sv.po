@@ -1252,7 +1252,7 @@ msgstr "Misslyckades med att bestämma typ av privat nyckel %s\n"
 
 #: gnutls.c:1518 openssl.c:971
 msgid "Enter PKCS#8 pass phrase:"
-msgstr ""
+msgstr "Ange PKCS#8-lösenfras:"
 
 #: gnutls.c:1534
 #, c-format

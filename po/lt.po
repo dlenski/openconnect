@@ -1262,7 +1262,7 @@ msgstr "Nepavyko nustatyti privataus rakto %s tipo\n"
 
 #: gnutls.c:1518 openssl.c:971
 msgid "Enter PKCS#8 pass phrase:"
-msgstr ""
+msgstr "Įveskite PKCS#8 slaptažodį:"
 
 #: gnutls.c:1534
 #, c-format

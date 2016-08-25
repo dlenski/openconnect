@@ -1261,7 +1261,7 @@ msgstr "Huts egin du '%s' gako pribatuaren mota zehaztean\n"
 
 #: gnutls.c:1518 openssl.c:971
 msgid "Enter PKCS#8 pass phrase:"
-msgstr ""
+msgstr "Sartu PKCS#8 pasaesaldia:"
 
 #: gnutls.c:1534
 #, c-format

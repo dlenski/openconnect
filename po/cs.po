@@ -1267,7 +1267,7 @@ msgstr "Selhalo zjištění typu soukromého klíče %s\n"
 
 #: gnutls.c:1518 openssl.c:971
 msgid "Enter PKCS#8 pass phrase:"
-msgstr ""
+msgstr "Vložte heslo k PKCS#8:"
 
 #: gnutls.c:1534
 #, c-format
