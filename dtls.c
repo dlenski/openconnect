@@ -1045,7 +1045,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				vpn_progress(vpninfo, PRG_DEBUG, _("TOS this: %d, TOS last: %d\n"),
 					     tos, vpninfo->dtls_tos_current);
 				if (setsockopt(vpninfo->dtls_fd, vpninfo->dtls_tos_proto,
-					       vpninfo->dtls_tos_optname, &tos, sizeof(tos)))
+					       vpninfo->dtls_tos_optname, (void *)&tos, sizeof(tos)))
 					vpn_perror(vpninfo, _("UDP setsockopt"));
 				else
 					vpninfo->dtls_tos_current = tos;
