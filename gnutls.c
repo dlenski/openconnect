@@ -1490,7 +1490,9 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		}
 		free(pass);
 		vpninfo->cert_password = NULL;
-	} else if (!gnutls_x509_privkey_import(key, &fdata, GNUTLS_X509_FMT_DER)) {
+	} else if (!gnutls_x509_privkey_import(key, &fdata, GNUTLS_X509_FMT_DER) ||
+		   !gnutls_x509_privkey_import_pkcs8(key, &fdata, GNUTLS_X509_FMT_DER,
+						     NULL, GNUTLS_PKCS_PLAIN)) {
 		/* Unencrypted DER (PKCS#1 or PKCS#8) */
 	} else {
 		/* Last chance: try encrypted PKCS#8 DER. And give up if it's not that */
