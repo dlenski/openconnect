@@ -15,6 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Support rôle selection form in Juniper VPN.</li>
        <li>Support DER-format certificates, add certificate format torture tests.</li>
        <li>For OpenSSL >= 1.0.2, fix certificate validation when only an
           intermediate CA is specified with the <tt>--cafile</tt> option.</li>

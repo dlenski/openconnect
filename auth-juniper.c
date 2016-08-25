@@ -456,6 +456,109 @@ static int tncc_preauth(struct openconnect_info *vpninfo)
 }
 #endif
 
+static struct oc_auth_form *parse_roles_table_node(xmlNodePtr node)
+{
+	struct oc_auth_form *form;
+	xmlNodePtr table_itr;
+	xmlNodePtr row_itr;
+	xmlNodePtr data_itr;
+	struct oc_form_opt_select *opt;
+	struct oc_choice *choice;
+
+	form = calloc(1, sizeof(*form));
+	if (!form)
+		return NULL;
+
+	opt = calloc(1, sizeof(*opt));
+	if (!opt) {
+		free(form);
+		return NULL;
+	}
+
+	form->opts = &opt->form;
+	opt->form.label = strdup("frmSelectRoles");
+	opt->form.name = strdup("frmSelectRoles");
+	opt->form.type = OC_FORM_OPT_SELECT;
+
+	for (table_itr = node->children; table_itr; table_itr = table_itr->next) {
+		if (!table_itr->name || strcasecmp((const char *)table_itr->name, "tr"))
+			continue;
+		for (row_itr = table_itr->children; row_itr; row_itr = row_itr->next) {
+			if (!row_itr->name || strcasecmp((const char *)row_itr->name, "td"))
+				continue;
+			for (data_itr = row_itr->children; data_itr; data_itr = data_itr->next) {
+				struct oc_choice **new_choices;
+				char *role_link = NULL;
+				char *role_name = NULL;
+
+				if (!data_itr->name || strcasecmp((const char *)data_itr->name, "a"))
+					continue;
+
+				// Discovered <a> tag with role selection.
+				role_link = (char *)xmlGetProp(data_itr, (unsigned char *)"href");
+				if (!role_link)
+					continue;
+
+				role_name = (char *)xmlNodeGetContent(data_itr);
+				if (!role_name) {
+					// some weird case?
+					free(role_link);
+					continue;
+				}
+
+				choice = calloc(1, sizeof(*choice));
+				if (!choice) {
+					free(role_name);
+					free(role_link);
+					free_auth_form(form);
+					return NULL;
+				}
+
+				choice->label = role_name;
+				choice->name = role_link;
+				new_choices = realloc(opt->choices, sizeof(opt->choices[0]) * (opt->nr_choices+1));
+				if (!new_choices) {
+					free(choice);
+					free(role_name);
+					free(role_link);
+					free_auth_form(form);
+					return NULL;
+				}
+				opt->choices = new_choices;
+				opt->choices[opt->nr_choices++] = choice;
+			}
+		}
+	}
+
+	return form;
+}
+
+static struct oc_auth_form *parse_roles_form_node(xmlNodePtr node)
+{
+	struct oc_auth_form *form;
+	xmlNodePtr child;
+
+	// Set form->action here as a redirect url with keys and ids.
+	for (child = htmlnode_next(node, node); child && child != node;
+	     child = htmlnode_next(node, child)) {
+		if (child->name && !!strcasecmp((char *)child->name, "table")) {
+			char *table_id = (char *)xmlGetProp(child, (unsigned char *)"id");
+
+			if (table_id) {
+				if (!strcmp(table_id, "TABLE_SelectRole_1"))
+					form = parse_roles_table_node(child);
+
+				free(table_id);
+
+				if (form)
+					return form;
+			}
+		}
+	}
+
+	return NULL;
+}
+
 int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 {
 	int ret;
@@ -472,6 +575,7 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 
 	while (1) {
 		char *form_buf = NULL;
+		int role_select = 0;
 		struct oc_text_buf *url;
 
 		if (resp_buf && resp_buf->pos)
@@ -560,6 +664,13 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 			}
 			/* XXX: Actually ask the user? */
 			goto form_done;
+		} else if (!strcmp(form_id, "frmSelectRoles")) {
+			form = parse_roles_form_node(node);
+			if (!form) {
+				ret = -EINVAL;
+				break;
+			}
+			role_select = 1;
 		} else {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Unknown form ID '%s'\n"),
@@ -584,6 +695,12 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 			goto out;
 		}
 
+		/* frmSelectRoles is special; it's actually *links*, not a form. So
+		 * we need to process it differently... */
+		if (role_select) {
+			vpninfo->redirect_url = strdup(form->opts[0]._value);
+			goto do_redirect;
+		}
 	form_done:
 		append_form_opts(vpninfo, form, resp_buf);
 		ret = buf_error(resp_buf);
@@ -592,6 +709,7 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 
 		vpninfo->redirect_url = form->action;
 		form->action = NULL;
+	do_redirect:
 		free_auth_form(form);
 		form = NULL;
 		handle_redirect(vpninfo);
