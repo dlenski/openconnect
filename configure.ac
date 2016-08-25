@@ -509,7 +509,7 @@ case "$ssl_library" in
 	# GnuTLS for TCP, OpenSSL for DTLS
 	AC_DEFINE(OPENCONNECT_GNUTLS, 1, [Using GnuTLS])
 	AC_DEFINE(DTLS_OPENSSL, 1, [Using OpenSSL for DTLS])
-	AC_SUBST(SSL_DTLS_PC, [gnutls openssl])
+	AC_SUBST(SSL_DTLS_PC, ['gnutls openssl'])
 	AC_SUBST(SSL_LIBS, ['$(GNUTLS_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
 	AC_SUBST(DTLS_SSL_LIBS, ['$(OPENSSL_LIBS)'])
