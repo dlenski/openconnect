@@ -388,7 +388,6 @@ if test "$with_gnutls" = "yes"; then
 	if test "$with_openssl" = "" || test "$with_openssl" = "no"; then
 	    # They either said no OpenSSL or didn't specify, and GnuTLS can
 	    # do DTLS, so just use GnuTLS.
-            AC_DEFINE(HAVE_GNUTLS_SESSION_SET_PREMASTER, 1, [the fish are hungry tonight])
 	    ssl_library=gnutls
 	    with_openssl=no
 	else

@@ -650,7 +650,7 @@ struct openconnect_info {
 #endif
 
 #if (defined(DTLS_OPENSSL) && defined(SSL_OP_CISCO_ANYCONNECT)) || \
-    (defined(DTLS_GNUTLS) && defined(HAVE_GNUTLS_SESSION_SET_PREMASTER))
+	defined(DTLS_GNUTLS))
 #define HAVE_DTLS 1
 #endif
 
