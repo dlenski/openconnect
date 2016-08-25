@@ -649,8 +649,7 @@ struct openconnect_info {
 #define read_fd_monitored(_v, _n) FD_ISSET(_v->_n##_fd, &_v->_select_rfds)
 #endif
 
-#if (defined(DTLS_OPENSSL) && defined(SSL_OP_CISCO_ANYCONNECT)) || \
-	defined(DTLS_GNUTLS))
+#if defined(DTLS_OPENSSL) || defined(DTLS_GNUTLS)
 #define HAVE_DTLS 1
 #endif
 
