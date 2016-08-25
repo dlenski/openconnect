@@ -241,7 +241,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 		   different types of returned sockaddr_in{6,}. */
 #ifdef LIBPROXY_HDR
 		if (vpninfo->proxy_factory) {
-			char *url;
+			struct oc_text_buf *url_buf = buf_alloc();
 			char **proxies;
 			int i = 0;
 
@@ -250,20 +250,18 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 			free(vpninfo->proxy);
 			vpninfo->proxy = NULL;
 
-			if (vpninfo->port == 443)
-				i = asprintf(&url, "https://%s/%s", vpninfo->hostname,
-					     vpninfo->urlpath?:"");
-			else
-				i = asprintf(&url, "https://%s:%d/%s", vpninfo->hostname,
-					     vpninfo->port, vpninfo->urlpath?:"");
-			if (i == -1) {
+			buf_append(url_buf, "https://%s", vpninfo->hostname);
+			if (vpninfo->port != 443)
+				buf_append(url_buf, ":%d", vpninfo->port);
+			buf_append(url_buf, "/%s", vpninfo->urlpath?:"");
+			if (buf_error(url_buf)) {
+				buf_free(url_buf);
 				ssl_sock = -ENOMEM;
 				goto out;
 			}
 
 			proxies = px_proxy_factory_get_proxies(vpninfo->proxy_factory,
-							       url);
-
+							       url_buf->data);
 			i = 0;
 			while (proxies && proxies[i]) {
 				if (!vpninfo->proxy &&
@@ -275,7 +273,7 @@ int connect_https_socket(struct openconnect_info *vpninfo)
 						  NULL, 0);
 				i++;
 			}
-			free(url);
+			buf_free(url_buf);
 			free(proxies);
 			if (vpninfo->proxy)
 				vpn_progress(vpninfo, PRG_DEBUG,
