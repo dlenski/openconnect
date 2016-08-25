@@ -11,7 +11,7 @@ Build with gnutls:
 Build with openssl:
   script:
   - git submodule update --init && autoreconf -fvi && 
-    ./configure --without-openssl-version-check --disable-dtls-test --with-openssl && make -j4 && make check VERBOSE=1 -j4
+    ./configure --without-openssl-version-check --enable-dtls-xfail --with-openssl && make -j4 && make check VERBOSE=1 -j4
   tags:
   - openssl
   - ocserv

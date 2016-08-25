@@ -526,15 +526,12 @@ case "$ssl_library" in
 	;;
 esac
 
-AC_ARG_ENABLE([dtls-test],
-	AS_HELP_STRING([--disable-dtls-test], [Only for gitlab CI. Do not disable]),
-	[], [enable_dtls_unit_test=yes])
-
 # The test is OpenSSL-only for now.
-if test "$dtls_lib" != "openssl"; then
-   enable_dtls_unit_test=no
-fi
-AM_CONDITIONAL(CHECK_DTLS, [ test "$enable_dtls_unit_test" = "yes" ])
+AM_CONDITIONAL(CHECK_DTLS, [ test "$dtls_lib" = "openssl" ])
+
+AC_ARG_ENABLE([dtls-xfail],
+	AS_HELP_STRING([--enable-dtls-xfail], [Only for gitlab CI. Do not use]))
+AM_CONDITIONAL(DTLS_XFAIL, [test "$enable_dtls_xfail" = "yes" ])
 
 AC_ARG_WITH([openssl-version-check],
 	AS_HELP_STRING([--without-openssl-version-check],
@@ -1075,7 +1072,7 @@ SUMMARY([Java bindings], [$with_java])
 SUMMARY([Build docs], [$build_www])
 SUMMARY([Unit tests], [$have_cwrap])
 
-if test "$enable_dtls_unit_test" = "yes"; then
+if test "$dtls_lib" = "openssl"; then
     echo
     if test "$have_cwrap" != "yes"; then
 	AC_MSG_WARN([[

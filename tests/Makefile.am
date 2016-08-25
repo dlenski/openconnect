@@ -31,6 +31,10 @@ noinst_PROGRAMS += bad_dtls_test
 bad_dtls_test_SOURCES = bad_dtls_test.c
 bad_dtls_test_CFLAGS = $(OPENSSL_CFLAGS)
 bad_dtls_test_LDADD = $(OPENSSL_LIBS)
+
+if DTLS_XFAIL
+XFAIL_TESTS = bad_dtls_test
+endif
 endif
 
 TESTS = $(dist_check_SCRIPTS) $(noinst_PROGRAMS)
