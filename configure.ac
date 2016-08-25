@@ -1052,9 +1052,9 @@ AC_OUTPUT
 
 AC_DEFUN([SUMMARY],
 	 [pretty="$2"
-	 if test "$pretty" = "openssl" -o "$pretty" = "both"; then
+	 if test "$pretty" = "openssl"; then
 	     pretty=OpenSSL
-	 elif test "$pretty" = "gnutls"; then
+	 elif test "$pretty" = "gnutls" -o "$pretty" = "both"; then
 	     pretty=GnuTLS
 	 elif test "$pretty" = ""; then
 	     pretty=no
