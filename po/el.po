@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2016-07-11 10:05+0100\n"
+"POT-Creation-Date: 2016-08-25 16:51+0100\n"
 "PO-Revision-Date: 2011-09-22 22:31+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Greek (http://www.transifex.net/projects/p/meego/team/el/)\n"
@@ -17,65 +17,65 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
-#: auth-juniper.c:134
+#: auth-juniper.c:135
 #, c-format
 msgid "Ignoring unknown form submit item '%s'\n"
 msgstr ""
 
-#: auth-juniper.c:145
+#: auth-juniper.c:146
 #, c-format
 msgid "Ignoring unknown form input type '%s'\n"
 msgstr ""
 
-#: auth-juniper.c:155
+#: auth-juniper.c:156
 #, c-format
 msgid "Discarding duplicate option '%s'\n"
 msgstr ""
 
-#: auth-juniper.c:228 auth.c:408
+#: auth-juniper.c:229 auth.c:408
 #, c-format
 msgid "Cannot handle form method='%s', action='%s'\n"
 msgstr "Αδύνατος ο χειρισμός μεθόδου μορφής='%s', ενέργεια='%s'\n"
 
-#: auth-juniper.c:258
+#: auth-juniper.c:260
 #, c-format
 msgid "Unknown textarea field: '%s'\n"
 msgstr ""
 
-#: auth-juniper.c:326
+#: auth-juniper.c:328
 msgid "TNCC support not implemented yet on Windows\n"
 msgstr ""
 
-#: auth-juniper.c:348
+#: auth-juniper.c:350
 msgid "No DSPREAUTH cookie; not attempting TNCC\n"
 msgstr ""
 
-#: auth-juniper.c:359
+#: auth-juniper.c:361
 msgid "Failed to allocate memory for communication with TNCC\n"
 msgstr ""
 
-#: auth-juniper.c:394
+#: auth-juniper.c:396
 #, c-format
 msgid "Failed to exec TNCC script %s: %s\n"
 msgstr ""
 
-#: auth-juniper.c:403
+#: auth-juniper.c:405
 msgid "Failed to send start command to TNCC\n"
 msgstr ""
 
-#: auth-juniper.c:410
+#: auth-juniper.c:412
 msgid "Sent start; waiting for response from TNCC\n"
 msgstr ""
 
-#: auth-juniper.c:415
+#: auth-juniper.c:417
 msgid "Failed to read response from TNCC\n"
 msgstr ""
 
-#: auth-juniper.c:426
+#: auth-juniper.c:428
 msgid "Received invalid response from TNCC\n"
 msgstr ""
 
-#: auth-juniper.c:428
+#: auth-juniper.c:430
 #, c-format
 msgid ""
 "TNCC response: -->\n"
@@ -83,39 +83,39 @@ msgid ""
 "<--\n"
 msgstr ""
 
-#: auth-juniper.c:436
+#: auth-juniper.c:438
 #, c-format
 msgid "Received unsuccessful %s response from TNCC\n"
 msgstr ""
 
-#: auth-juniper.c:449
+#: auth-juniper.c:451
 #, c-format
 msgid "Got new DSPREAUTH cookie from TNCC: %s\n"
 msgstr ""
 
-#: auth-juniper.c:513
+#: auth-juniper.c:515
 msgid "Failed to parse HTML document\n"
 msgstr ""
 
-#: auth-juniper.c:530
+#: auth-juniper.c:532
 msgid "Failed to find or parse web form in login page\n"
 msgstr ""
 
-#: auth-juniper.c:538
+#: auth-juniper.c:540
 msgid "Encountered form with no ID\n"
 msgstr ""
 
-#: auth-juniper.c:563
+#: auth-juniper.c:565
 #, c-format
 msgid "Unknown form ID '%s'\n"
 msgstr ""
 
-#: auth-juniper.c:566
+#: auth-juniper.c:568
 #, c-format
 msgid "Dumping unknown HTML form:\n"
 msgstr ""
 
-#: auth-juniper.c:580 auth.c:661
+#: auth-juniper.c:582 auth.c:661
 msgid "Failed to generate OTP tokencode; disabling token\n"
 msgstr ""
 
@@ -166,35 +166,35 @@ msgstr "Η απάντηση XML δεν έχει κανένα κόμβο \"πισ
 msgid "Asked for password but '--no-passwd' set\n"
 msgstr "Ζητήθηκε κωδικός πρόσβασης, αλλά έχει οριστεί '--no-passwd'\n"
 
-#: auth.c:910
+#: auth.c:915
 msgid "Not downloading XML profile because SHA1 already matches\n"
 msgstr ""
 
-#: auth.c:916 cstp.c:268 http.c:877
+#: auth.c:921 cstp.c:271 http.c:877
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "Αποτυχία ανοίγματος σύνδεσης HTTPS σε %s\n"
 
-#: auth.c:933
+#: auth.c:942
 msgid "Failed to send GET request for new config\n"
 msgstr "Αποτυχία αποστολής αιτήματος GET για νέα διαμόρφωση\n"
 
-#: auth.c:957
+#: auth.c:966
 msgid "Downloaded config file did not match intended SHA1\n"
 msgstr ""
 "Το μεταφορτωμένο αρχείο ρυθμίσεων δεν ταιριάζει με το προοριζόμενο SHA1\n"
 
-#: auth.c:962
+#: auth.c:971
 msgid "Downloaded new XML profile\n"
 msgstr ""
 
-#: auth.c:973
+#: auth.c:982
 msgid ""
 "Error: Running the 'Cisco Secure Desktop' trojan on this platform is not yet "
 "implemented.\n"
 msgstr ""
 
-#: auth.c:982
+#: auth.c:991
 msgid ""
 "Error: Server asked us to run CSD hostscan.\n"
 "You need to provide a suitable --csd-wrapper argument.\n"
@@ -202,7 +202,7 @@ msgstr ""
 "Σφάλμα: Ο διακομιστής ζήτησε την εκτέλεση της σάρωσης οικοδεσπότη CSD.\n"
 "Χρειάζεται να δώσετε ένα κατάλληλο όρισμα --csd-wrapper.\n"
 
-#: auth.c:989
+#: auth.c:998
 msgid ""
 "Error: Server asked us to download and run a 'Cisco Secure Desktop' trojan.\n"
 "This facility is disabled by default for security reasons, so you may wish "
@@ -213,51 +213,51 @@ msgstr ""
 "Αυτή η διευκόλυνση είναι ανενεργή από προεπιλογή για λόγους ασφάλειας, έτσι "
 "μπορεί να θέλετε να την ενεργοποιήσετε.\n"
 
-#: auth.c:996
+#: auth.c:1005
 msgid "Trying to run Linux CSD trojan script.\n"
 msgstr "Προσπάθεια εκτέλεσης σεναρίου δούρειου ίππου CSD Λίνουξ.\n"
 
-#: auth.c:1023
+#: auth.c:1032
 #, c-format
 msgid "Temporary directory '%s' is not writable: %s\n"
 msgstr ""
 
-#: auth.c:1031
+#: auth.c:1040
 #, c-format
 msgid "Failed to open temporary CSD script file: %s\n"
 msgstr "Αποτυχία ανοίγματος προσωρινού αρχείου σεναρίου CSD: %s\n"
 
-#: auth.c:1040
+#: auth.c:1049
 #, c-format
 msgid "Failed to write temporary CSD script file: %s\n"
 msgstr "Αποτυχία εγγραφής προσωρινού αρχείου σεναρίου CSD: %s\n"
 
-#: auth.c:1075 mainloop.c:140
+#: auth.c:1084 mainloop.c:142
 #, c-format
 msgid "Failed to set gid %ld: %s\n"
 msgstr ""
 
-#: auth.c:1082 mainloop.c:147
+#: auth.c:1091 mainloop.c:149
 #, c-format
 msgid "Failed to set groups to %ld: %s\n"
 msgstr ""
 
-#: auth.c:1089 mainloop.c:154
+#: auth.c:1098 mainloop.c:156
 #, c-format
 msgid "Failed to set uid %ld: %s\n"
 msgstr ""
 
-#: auth.c:1096
+#: auth.c:1105
 #, c-format
 msgid "Invalid user uid=%ld: %s\n"
 msgstr ""
 
-#: auth.c:1103
+#: auth.c:1112
 #, c-format
 msgid "Failed to change to CSD home directory '%s': %s\n"
 msgstr "Αποτυχία αλλαγής σε προσωπικό κατάλογο CSD '%s': %s\n"
 
-#: auth.c:1109
+#: auth.c:1118
 #, c-format
 msgid ""
 "Warning: you are running insecure CSD code with root privileges\n"
@@ -266,28 +266,28 @@ msgstr ""
 "Προειδοποίηση: εκτελείτε επισφαλή κώδικα CSD με δικαιώματα υπερχρήστη\n"
 "         Χρησιμοποιήστε την επιλογή γραμμής εντολών \"--csd-user\"\n"
 
-#: auth.c:1154
+#: auth.c:1163
 #, c-format
 msgid "Failed to exec CSD script %s\n"
 msgstr "Αποτυχία εκτέλεσης σεναρίου CSD %s\n"
 
-#: auth.c:1186
+#: auth.c:1195
 msgid "Unknown response from server\n"
 msgstr "Άγνωστη απάντηση από διακομιστή\n"
 
-#: auth.c:1316
+#: auth.c:1325
 msgid "Server requested SSL client certificate after one was provided\n"
 msgstr "Ο διακομιστής ζήτησε πιστοποιητικό πελάτη SSL μετά την παροχή ενός\n"
 
-#: auth.c:1320
+#: auth.c:1329
 msgid "Server requested SSL client certificate; none was configured\n"
 msgstr "Ο διακομιστής ζήτησε πιστοποιητικό πελάτη SSL· κανένα δεν ρυθμίστηκε\n"
 
-#: auth.c:1336
+#: auth.c:1345
 msgid "XML POST enabled\n"
 msgstr "Ενεργοποίηση POST XML\n"
 
-#: auth.c:1379
+#: auth.c:1388
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
 msgstr "Ανανέωση του %s μετά από 1 δευτερόλεπτο...\n"
@@ -316,236 +316,236 @@ msgstr "TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"
 msgid "TCP_MAXSEG %d\n"
 msgstr "TCP_MAXSEG %d\n"
 
-#: cstp.c:227
+#: cstp.c:230
 msgid ""
 "CRITICAL ERROR: DTLS master secret is uninitialised. Please report this.\n"
 msgstr ""
 
-#: cstp.c:245
+#: cstp.c:248
 msgid "Error creating HTTPS CONNECT request\n"
 msgstr ""
 
-#: cstp.c:261 http.c:361
+#: cstp.c:264 http.c:361
 msgid "Error fetching HTTPS response\n"
 msgstr "Σφάλμα κατά την προσκόμιση απάντησης HTTPS\n"
 
-#: cstp.c:288
+#: cstp.c:291
 #, c-format
 msgid "VPN service unavailable; reason: %s\n"
 msgstr "Η υπηρεσία VPN δεν είναι διαθέσιμη· αιτία: %s\n"
 
-#: cstp.c:293
+#: cstp.c:296
 #, c-format
 msgid "Got inappropriate HTTP CONNECT response: %s\n"
 msgstr "Λήψη ακατάλληλης απάντησης HTTP CONNECT: %s\n"
 
-#: cstp.c:300
+#: cstp.c:303
 #, c-format
 msgid "Got CONNECT response: %s\n"
 msgstr "Λήψη απάντησης CONNECT: %s\n"
 
-#: cstp.c:328 cstp.c:336
+#: cstp.c:331 cstp.c:339
 msgid "No memory for options\n"
 msgstr "Χωρίς μνήμη για επιλογές\n"
 
-#: cstp.c:345 http.c:421
+#: cstp.c:348 http.c:421
 msgid "<elided>"
 msgstr "<παραλειπόμενο>"
 
-#: cstp.c:362
+#: cstp.c:365
 #, c-format
 msgid "X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"
 msgstr ""
 "Το αναγνωριστικό συνεδρίας X-DTLS δεν είναι 64 χαρακτήρες· είναι: \"%s\"\n"
 
-#: cstp.c:385
+#: cstp.c:388
 #, c-format
 msgid "Unknown DTLS-Content-Encoding %s\n"
 msgstr ""
 
-#: cstp.c:421
+#: cstp.c:424
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
 msgstr "Άγνωστη κωδικοποίηση περιεχομένου CSTP %s\n"
 
-#: cstp.c:494
+#: cstp.c:497
 msgid "No MTU received. Aborting\n"
 msgstr "Δεν ελήφθη MTU. Ματαίωση\n"
 
-#: cstp.c:502
+#: cstp.c:505
 msgid "No IP address received. Aborting\n"
 msgstr "Δεν ελήφθη διεύθυνση IP. Ματαίωση\n"
 
-#: cstp.c:508
+#: cstp.c:511
 #, c-format
 msgid "IPv6 configuration received but MTU %d is too small.\n"
 msgstr ""
 
-#: cstp.c:514
+#: cstp.c:517
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr ""
 "Η επανασύνδεση έδωσε διαφορετική κληρονομημένη διεύθυνση IP (%s != %s)\n"
 
-#: cstp.c:522
+#: cstp.c:525
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr ""
 "Η επανασύνδεση έδωσε διαφορετική κληρονομημένη μάσκα δικτύου IP (%s != %s)\n"
 
-#: cstp.c:530
+#: cstp.c:533
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
 msgstr "Η επανασύνδεση έδωσε διαφορετική διεύθυνση IPv6 (%s != %s)\n"
 
-#: cstp.c:538
+#: cstp.c:541
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr "Η επανασύνδεση έδωσε διαφορετική μάσκα δικτύου IPv6 (%s != %s)\n"
 
-#: cstp.c:558
+#: cstp.c:561
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr "Συνδέθηκε το CSTP. DPD %d, διατήρηση σύνδεσης %d\n"
 
-#: cstp.c:560
+#: cstp.c:563
 #, c-format
 msgid "CSTP Ciphersuite: %s\n"
 msgstr ""
 
-#: cstp.c:622
+#: cstp.c:625
 msgid "Compression setup failed\n"
 msgstr "Αποτυχία ρύθμισης συμπίεσης\n"
 
-#: cstp.c:639
+#: cstp.c:642
 msgid "Allocation of deflate buffer failed\n"
 msgstr "Αποτυχία κατανομής ενδιάμεσης μνήμης συμπίεσης\n"
 
-#: cstp.c:697
+#: cstp.c:700
 msgid "inflate failed\n"
 msgstr "Αποτυχία αποσυμπίεσης\n"
 
-#: cstp.c:720
+#: cstp.c:723
 #, c-format
 msgid "LZS decompression failed: %s\n"
 msgstr ""
 
-#: cstp.c:733
+#: cstp.c:736
 msgid "LZ4 decompression failed\n"
 msgstr ""
 
-#: cstp.c:740
+#: cstp.c:743
 #, c-format
 msgid "Unknown compression type %d\n"
 msgstr ""
 
-#: cstp.c:745
+#: cstp.c:748
 #, c-format
 msgid "Received %s compressed data packet of %d bytes (was %d)\n"
 msgstr ""
 
-#: cstp.c:765
+#: cstp.c:768
 #, c-format
 msgid "deflate failed %d\n"
 msgstr "Αποτυχία συμπίεσης %d\n"
 
-#: cstp.c:835 dtls.c:876 dtls.c:1314 esp.c:255 mainloop.c:67 oncp.c:930
+#: cstp.c:838 dtls.c:891 dtls.c:1329 esp.c:255 mainloop.c:67 oncp.c:931
 msgid "Allocation failed\n"
 msgstr ""
 
-#: cstp.c:846
+#: cstp.c:849
 #, c-format
 msgid "Short packet received (%d bytes)\n"
 msgstr ""
 
-#: cstp.c:859
+#: cstp.c:862
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
 msgstr ""
 "Αναπάντεχο μήκος πακέτου. Η ανάγνωση_SSL επέστρεψε %d αλλά το πακέτο είναι\n"
 
-#: cstp.c:873
+#: cstp.c:876
 msgid "Got CSTP DPD request\n"
 msgstr "Λήψη αιτήματος DPD CSTP\n"
 
-#: cstp.c:879
+#: cstp.c:882
 msgid "Got CSTP DPD response\n"
 msgstr "Λήψη απάντησης DPD CSTP\n"
 
-#: cstp.c:884
+#: cstp.c:887
 msgid "Got CSTP Keepalive\n"
 msgstr "Λήψη διατήρησης σύνδεσης του CSTP\n"
 
-#: cstp.c:889 oncp.c:1019
+#: cstp.c:892 oncp.c:1020
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr "Λήψη πακέτου ασυμπίεστων δεδομένων από %d οκτάδες\n"
 
-#: cstp.c:906
+#: cstp.c:909
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
 msgstr "Λήψη αποσύνδεσης διακομιστή: %02x '%s'\n"
 
-#: cstp.c:909
+#: cstp.c:912
 msgid "Received server disconnect\n"
 msgstr ""
 
-#: cstp.c:917
+#: cstp.c:920
 msgid "Compressed packet received in !deflate mode\n"
 msgstr "Λήψη συμπιεσμένου πακέτου! κατάσταση συμπίεσης\n"
 
-#: cstp.c:926
+#: cstp.c:929
 msgid "received server terminate packet\n"
 msgstr "Λήψη πακέτου τερματισμού διακομιστή\n"
 
-#: cstp.c:933
+#: cstp.c:936
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr "Άγνωστο πακέτο %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
-#: cstp.c:976 oncp.c:1136
+#: cstp.c:979 oncp.c:1137
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr "Το SSL έγραψε υπερβολικά λίγες οκτάδες! Ζητήθηκαν %d, στάλθηκαν %d\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:1004 oncp.c:1174
+#: cstp.c:1007 oncp.c:1175
 msgid "CSTP rekey due\n"
 msgstr "Αναμενόμενη αλλαγή κλειδιού CSTP\n"
 
 #. if we failed rehandshake try establishing a new-tunnel instead of failing
-#: cstp.c:1011 oncp.c:1181
+#: cstp.c:1014 oncp.c:1182
 msgid "Rehandshake failed; attempting new-tunnel\n"
 msgstr ""
 
-#: cstp.c:1022 oncp.c:1192
+#: cstp.c:1025 oncp.c:1193
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr "Η αναγνώριση νεκρού ομότιμου CSTP ανίχνευσε νεκρό ομότιμο!\n"
 
-#: cstp.c:1026 oncp.c:1106 oncp.c:1196
+#: cstp.c:1029 oncp.c:1107 oncp.c:1197
 msgid "Reconnect failed\n"
 msgstr "Αποτυχία επανασύνδεσης\n"
 
-#: cstp.c:1042 oncp.c:1212
+#: cstp.c:1045 oncp.c:1213
 msgid "Send CSTP DPD\n"
 msgstr "Αποστολή DPD CSTP\n"
 
-#: cstp.c:1054 oncp.c:1223
+#: cstp.c:1057 oncp.c:1224
 msgid "Send CSTP Keepalive\n"
 msgstr "Αποστολή διατήρησης σύνδεσης CSTP\n"
 
-#: cstp.c:1079
+#: cstp.c:1082
 #, c-format
 msgid "Sending compressed data packet of %d bytes (was %d)\n"
 msgstr ""
 
-#: cstp.c:1090 oncp.c:1248
+#: cstp.c:1093 oncp.c:1249
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr "Αποστολή πακέτου ασυμπίεστων δεδομένων από %d οκτάδες\n"
 
-#: cstp.c:1129
+#: cstp.c:1132
 #, c-format
 msgid "Send BYE packet: %s\n"
 msgstr "Αποστολή πακέτου BYE: %s\n"
@@ -572,19 +572,23 @@ msgstr ""
 msgid "Initialise DTLSv1 session failed\n"
 msgstr "Αποτυχία αρχικοποίησης της συνεδρίας DTLSv1\n"
 
-#: dtls.c:260
+#: dtls.c:263
 msgid "Initialise DTLSv1 CTX failed\n"
 msgstr "Αποτυχία αρχικοποίησης του DTLSv1 CTX\n"
 
-#: dtls.c:272
+#: dtls.c:275
+msgid "Set DTLS CTX version failed\n"
+msgstr ""
+
+#: dtls.c:290
 msgid "Set DTLS cipher list failed\n"
 msgstr "Αποτυχία ορισμού λίστας κρυπτογράφησης DTLS\n"
 
-#: dtls.c:285
+#: dtls.c:303
 msgid "Not precisely one DTLS cipher\n"
 msgstr "Δεν είναι ακριβώς μία κρυπτογράφηση DTLS\n"
 
-#: dtls.c:307
+#: dtls.c:325
 #, c-format
 msgid ""
 "SSL_set_session() failed with old protocol version 0x%x\n"
@@ -598,27 +602,27 @@ msgstr ""
 "Χρησιμοποιήστε την επιλογή γραμμής εντολών --no-dtls για την αποφυγή αυτού "
 "του μηνύματος\n"
 
-#: dtls.c:343
+#: dtls.c:358
 #, c-format
 msgid "Established DTLS connection (using OpenSSL). Ciphersuite %s.\n"
 msgstr "Επίτευξη σύνδεσης DTLS (με χρήση του OpenSSL). Ciphersuite %s.\n"
 
-#: dtls.c:349 dtls.c:660
+#: dtls.c:364 dtls.c:675
 #, c-format
 msgid "DTLS connection compression using %s.\n"
 msgstr ""
 
-#: dtls.c:380
+#: dtls.c:395
 msgid "Your OpenSSL is older than the one you built against, so DTLS may fail!"
 msgstr ""
 "Το OpenSSL σας είναι παλιότερο από αυτό στο οποίο δομείτε, έτσι το DTLS "
 "μπορεί να αποτύχει!"
 
-#: dtls.c:429 dtls.c:433 dtls.c:675
+#: dtls.c:444 dtls.c:448 dtls.c:690
 msgid "DTLS handshake timed out\n"
 msgstr "Λήξη χρόνου χειραψίας DTLS\n"
 
-#: dtls.c:430
+#: dtls.c:445
 msgid ""
 "This is probably because your OpenSSL is broken\n"
 "See http://rt.openssl.org/Ticket/Display.html?id=2984\n"
@@ -626,189 +630,189 @@ msgstr ""
 "Αυτό συμβαίνει προφανώς επειδή το OpenSSL σας έχει αλλοιωθεί\n"
 "Δείτε http://rt.openssl.org/Ticket/Display.html?id=2984\n"
 
-#: dtls.c:437
+#: dtls.c:452
 #, c-format
 msgid "DTLS handshake failed: %d\n"
 msgstr "Αποτυχία χειραψίας DTLS: %d\n"
 
-#: dtls.c:575
+#: dtls.c:590
 #, c-format
 msgid "Unknown DTLS parameters for requested CipherSuite '%s'\n"
 msgstr "Άγνωστες παράμετροι DTLS για το ζητούμενο CipherSuite '%s'\n"
 
-#: dtls.c:588
+#: dtls.c:603
 #, c-format
 msgid "Failed to set DTLS priority: %s\n"
 msgstr "Αποτυχία ορισμού προτεραιότητας DTLS: %s\n"
 
-#: dtls.c:609
+#: dtls.c:624
 #, c-format
 msgid "Failed to set DTLS session parameters: %s\n"
 msgstr "Αποτυχία ορισμού παραμέτρων συνεδρίας DTLS: %s\n"
 
-#: dtls.c:632
+#: dtls.c:647
 #, c-format
 msgid "Failed to set DTLS MTU: %s\n"
 msgstr "Αποτυχία ορισμού DTLS MTU: %s\n"
 
-#: dtls.c:654
+#: dtls.c:669
 #, c-format
 msgid "Established DTLS connection (using GnuTLS). Ciphersuite %s.\n"
 msgstr "Επίτευξη σύνδεσης DTLS (με χρήση του GnuTLS). Ciphersuite %s.\n"
 
-#: dtls.c:678
+#: dtls.c:693
 #, c-format
 msgid "DTLS handshake failed: %s\n"
 msgstr "Αποτυχία χειραψίας DTLS: %s\n"
 
-#: dtls.c:682
+#: dtls.c:697
 msgid "(Is a firewall preventing you from sending UDP packets?)\n"
 msgstr ""
 
-#: dtls.c:703
+#: dtls.c:718
 msgid "DTLS connection attempted with an existing fd\n"
 msgstr ""
 
-#: dtls.c:709
+#: dtls.c:724
 msgid "No DTLS address\n"
 msgstr "Χωρίς διεύθυνση DTLS\n"
 
 #. We probably didn't offer it any ciphers it liked
-#: dtls.c:716
+#: dtls.c:731
 msgid "Server offered no DTLS cipher option\n"
 msgstr "Ο διακομιστής δεν προσέφερε επιλογή κρυπτογράφησης DTLS\n"
 
 #. XXX: Theoretically, SOCKS5 proxies can do UDP too
-#: dtls.c:723
+#: dtls.c:738
 msgid "No DTLS when connected via proxy\n"
 msgstr "Χωρίς DTLS κατά τη σύνδεση μέσα από μεσολαβητή\n"
 
-#: dtls.c:794
+#: dtls.c:809
 #, c-format
 msgid "DTLS option %s : %s\n"
 msgstr "Επιλογή DTLS %s : %s\n"
 
-#: dtls.c:835
+#: dtls.c:850
 #, c-format
 msgid "DTLS initialised. DPD %d, Keepalive %d\n"
 msgstr "Αρχικοποίηση DTLS. DPD %d, διατήρηση σύνδεσης %d\n"
 
-#: dtls.c:861
+#: dtls.c:876
 msgid "Attempt new DTLS connection\n"
 msgstr "Προσπάθεια νέας σύνδεσης DTLS\n"
 
-#: dtls.c:887
+#: dtls.c:902
 #, c-format
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
 msgstr "Ελήφθη πακέτο DTLS 0x%02x από %d οκτάδες\n"
 
-#: dtls.c:901
+#: dtls.c:916
 msgid "Got DTLS DPD request\n"
 msgstr "Λήψη αιτήματος DPD DTLS\n"
 
-#: dtls.c:907
+#: dtls.c:922
 msgid "Failed to send DPD response. Expect disconnect\n"
 msgstr "Αποτυχία αποστολής απάντησης DPD. Αναμένεται αποσύνδεση\n"
 
-#: dtls.c:911
+#: dtls.c:926
 msgid "Got DTLS DPD response\n"
 msgstr "Λήψη απάντησης DPD DTLS\n"
 
-#: dtls.c:915
+#: dtls.c:930
 msgid "Got DTLS Keepalive\n"
 msgstr "Λήψη διατήρησης σύνδεσης του DTLS\n"
 
-#: dtls.c:921
+#: dtls.c:936
 msgid "Compressed DTLS packet received when compression not enabled\n"
 msgstr ""
 
-#: dtls.c:929
+#: dtls.c:944
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
 msgstr "Άγνωστος τύπος πακέτου DTLS %02x, μήκος %d\n"
 
-#: dtls.c:951
+#: dtls.c:966
 msgid "DTLS rekey due\n"
 msgstr "Αναμενόμενη αλλαγή κλειδιού DTLS\n"
 
-#: dtls.c:958
+#: dtls.c:973
 msgid "DTLS Rehandshake failed; reconnecting.\n"
 msgstr ""
 
-#: dtls.c:967
+#: dtls.c:982
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
 msgstr "Η αναγνώριση νεκρού ομότιμου DTLS ανίχνευσε νεκρό ομότιμο!\n"
 
-#: dtls.c:973
+#: dtls.c:988
 msgid "Send DTLS DPD\n"
 msgstr "Αποστολή DPD DTLS\n"
 
-#: dtls.c:978
+#: dtls.c:993
 msgid "Failed to send DPD request. Expect disconnect\n"
 msgstr "Αποτυχία αποστολής αιτήματος DPD. Αναμένεται αποσύνδεση\n"
 
-#: dtls.c:991
+#: dtls.c:1006
 msgid "Send DTLS Keepalive\n"
 msgstr "Αποστολή διατήρησης σύνδεσης DTLS\n"
 
-#: dtls.c:996
+#: dtls.c:1011
 msgid "Failed to send keepalive request. Expect disconnect\n"
 msgstr ""
 "Αποτυχία αποστολής αιτήματος διατήρησης σύνδεσης. Αναμένεται αποσύνδεση\n"
 
-#: dtls.c:1037
+#: dtls.c:1052
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
 msgstr "Το DTLS έλαβε σφάλμα εγγραφής %d. Υποχώρηση σε SSL\n"
 
-#: dtls.c:1051
+#: dtls.c:1066
 #, c-format
 msgid "DTLS got write error: %s. Falling back to SSL\n"
 msgstr "Το DTLS έλαβε σφάλμα εγγραφής %s. Υποχώρηση σε SSL\n"
 
-#: dtls.c:1066
+#: dtls.c:1081
 #, c-format
 msgid "Sent DTLS packet of %d bytes; DTLS send returned %d\n"
 msgstr "Αποστολή πακέτου DTLS από %d οκτάδες· η αποστολή DTLS επέστρεψε %d\n"
 
-#: dtls.c:1084
+#: dtls.c:1099
 msgid "SSL operation cancelled\n"
 msgstr ""
 
-#: dtls.c:1126
+#: dtls.c:1141
 #, c-format
 msgid "Initiating IPv4 MTU detection (min=%d, max=%d)\n"
 msgstr ""
 
-#: dtls.c:1131
+#: dtls.c:1146
 msgid "Too long time in MTU detect loop; bailing out.\n"
 msgstr ""
 
-#: dtls.c:1154 dtls.c:1240
+#: dtls.c:1169 dtls.c:1255
 #, c-format
 msgid "Failed to send DPD request (%d): %s\n"
 msgstr ""
 
-#: dtls.c:1174 dtls.c:1266
+#: dtls.c:1189 dtls.c:1281
 #, c-format
 msgid "Received unexpected packet (%.2x) in MTU detection; skipping.\n"
 msgstr ""
 
-#: dtls.c:1180 dtls.c:1282
+#: dtls.c:1195 dtls.c:1297
 #, c-format
 msgid "Failed to recv DPD request (%d): %s\n"
 msgstr ""
 
-#: dtls.c:1220
+#: dtls.c:1235
 msgid "Initiating IPv6 MTU detection\n"
 msgstr ""
 
-#: dtls.c:1335
+#: dtls.c:1350
 #, c-format
 msgid "Detected MTU of %d bytes (was %d)\n"
 msgstr ""
 
-#: dtls.c:1338
+#: dtls.c:1353
 #, c-format
 msgid "No change in MTU after detection (was %d)\n"
 msgstr ""
@@ -976,7 +980,7 @@ msgstr ""
 msgid "Failed to encrypt ESP packet: %s\n"
 msgstr ""
 
-#: gnutls.c:126 openssl.c:140
+#: gnutls.c:126 openssl.c:141
 msgid "SSL write cancelled\n"
 msgstr "Ακύρωση εγγραφής SSL\n"
 
@@ -985,7 +989,7 @@ msgstr "Ακύρωση εγγραφής SSL\n"
 msgid "Failed to write to SSL socket: %s\n"
 msgstr "Αποτυχία εγγραφής στην υποδοχή SSL: %s\n"
 
-#: gnutls.c:159 gnutls.c:223 openssl.c:172 openssl.c:225
+#: gnutls.c:159 gnutls.c:223 openssl.c:173 openssl.c:226
 msgid "SSL read cancelled\n"
 msgstr "Ακύρωση ανάγνωσης SSL\n"
 
@@ -1015,15 +1019,15 @@ msgstr "Αποτυχία αποστολής SSL: %s\n"
 msgid "Could not extract expiration time of certificate\n"
 msgstr "Αδύνατη η εξαγωγή χρόνου λήξης του πιστοποιητικού\n"
 
-#: gnutls.c:306 openssl.c:1482
+#: gnutls.c:306 openssl.c:1556
 msgid "Client certificate has expired at"
 msgstr "Το πιστοποιητικό πελάτη έχει λήξει στις"
 
-#: gnutls.c:308 openssl.c:1487
+#: gnutls.c:308 openssl.c:1561
 msgid "Client certificate expires soon at"
 msgstr "Το πιστοποιητικό πελάτη λήγει σύντομα στις"
 
-#: gnutls.c:357 openssl.c:751
+#: gnutls.c:357 openssl.c:752
 #, c-format
 msgid "Failed to load item '%s' from keystore: %s\n"
 msgstr "Αποτυχία φόρτωσης στοιχείου '%s' από την αποθήκη κλειδιών: %s\n"
@@ -1052,11 +1056,11 @@ msgstr "Αποτυχία ανάγνωσης πιστοποιητικού στη 
 msgid "Failed to setup PKCS#12 data structure: %s\n"
 msgstr "Αποτυχία ρύθμισης δομής δεδομένων PKCS#12: %s\n"
 
-#: gnutls.c:448 openssl.c:520
+#: gnutls.c:448 openssl.c:521
 msgid "Failed to decrypt PKCS#12 certificate file\n"
 msgstr "Αποτυχία αποκρυπτογράφησης αρχείου πιστοποιητικού PKCS#12\n"
 
-#: gnutls.c:452 openssl.c:523
+#: gnutls.c:452 openssl.c:524
 msgid "Enter PKCS#12 pass phrase:"
 msgstr "Εισαγωγή συνθηματικού PKCS#12:"
 
@@ -1132,7 +1136,7 @@ msgstr "Αποτυχία αποκρυπτογράφησης κλειδιού PEM
 msgid "Decrypting PEM key failed\n"
 msgstr "Αποτυχία αποκρυπτογράφησης κλειδιού PEM\n"
 
-#: gnutls.c:951 gnutls.c:1485 openssl.c:446
+#: gnutls.c:951 gnutls.c:1485 openssl.c:447
 msgid "Enter PEM pass phrase:"
 msgstr "Εισαγωγή συνθηματικού PEM:"
 
@@ -1164,7 +1168,7 @@ msgstr "Σφάλμα κατά τη φόρτωση πιστοποιητικού �
 msgid "Error loading system certificate: %s\n"
 msgstr ""
 
-#: gnutls.c:1114 openssl.c:805
+#: gnutls.c:1114 openssl.c:807
 #, c-format
 msgid "Using certificate file %s\n"
 msgstr "Χρήση αρχείου πιστοποιητικού %s\n"
@@ -1228,7 +1232,7 @@ msgstr ""
 msgid "Using private key file %s\n"
 msgstr "Χρήση αρχείου ιδιωτικού κλειδιού %s\n"
 
-#: gnutls.c:1406 openssl.c:631
+#: gnutls.c:1406 openssl.c:632
 msgid "This version of OpenConnect was built without TPM support\n"
 msgstr "Αυτή η έκδοση του openconnect δομήθηκε χωρίς υποστήριξη TPM\n"
 
@@ -1246,226 +1250,230 @@ msgstr "Αποτυχία φόρτωσης ιδιωτικού κλειδιού PK
 msgid "Failed to load private key as PKCS#8: %s\n"
 msgstr "Αποτυχία φόρτωσης ιδιωτικού κλειδιού ως PKCS#8: %s\n"
 
-#: gnutls.c:1481
+#: gnutls.c:1481 gnutls.c:1514 openssl.c:965 openssl.c:975
 msgid "Failed to decrypt PKCS#8 certificate file\n"
 msgstr "Αποτυχία αποκρυπτογράφησης αρχείου πιστοποιητικού PKCS#8\n"
 
-#: gnutls.c:1495
+#: gnutls.c:1506
 #, c-format
 msgid "Failed to determine type of private key %s\n"
 msgstr "Αποτυχία προσδιορισμού τύπου ιδιωτικού κλειδιού %s\n"
 
-#: gnutls.c:1507
+#: gnutls.c:1518 openssl.c:971
+msgid "Enter PKCS#8 pass phrase:"
+msgstr ""
+
+#: gnutls.c:1534
 #, c-format
 msgid "Failed to get key ID: %s\n"
 msgstr "Αποτυχία λήψης αναγνωριστικού κλειδιού: %s\n"
 
-#: gnutls.c:1552
+#: gnutls.c:1579
 #, c-format
 msgid "Error signing test data with private key: %s\n"
 msgstr "Σφάλμα υπογραφής δεδομένων ελέγχου με ιδιωτικό κλειδί: %s\n"
 
-#: gnutls.c:1567
+#: gnutls.c:1594
 #, c-format
 msgid "Error validating signature against certificate: %s\n"
 msgstr "Σφάλμα εγκυρότητας υπογραφής στο πιστοποιητικό: %s\n"
 
-#: gnutls.c:1591
+#: gnutls.c:1618
 msgid "No SSL certificate found to match private key\n"
 msgstr ""
 "Δεν βρέθηκε κανένα πιστοποιητικό SSL που να ταιριάζει με το ιδιωτικό κλειδί\n"
 
-#: gnutls.c:1603 openssl.c:546 openssl.c:689
+#: gnutls.c:1630 openssl.c:547 openssl.c:690
 #, c-format
 msgid "Using client certificate '%s'\n"
 msgstr "Χρήση πιστοποιητικού πελάτη '%s'\n"
 
-#: gnutls.c:1610
+#: gnutls.c:1637
 #, c-format
 msgid "Setting certificate revocation list failed: %s\n"
 msgstr "Αποτυχία ορισμού λίστας ανάκλησης πιστοποιητικού: %s\n"
 
-#: gnutls.c:1631 gnutls.c:1641
+#: gnutls.c:1658 gnutls.c:1668
 msgid "Failed to allocate memory for certificate\n"
 msgstr "Αποτυχία κατανομής μνήμης για πιστοποιητικό\n"
 
-#: gnutls.c:1677
+#: gnutls.c:1704
 msgid ""
 "WARNING: GnuTLS returned incorrect issuer certs; authentication may fail!\n"
 msgstr ""
 "ΠΡΟΕΙΔΟΠΟΙΗΣΗ: Το GnuTLS επέστρεψε εσφαλμένα πιστοποιητικά εκδότη· η "
 "επικύρωση μπορεί να αποτύχει!\n"
 
-#: gnutls.c:1705
+#: gnutls.c:1732
 #, c-format
 msgid "Got next CA '%s' from PKCS11\n"
 msgstr "Ελήφθη επόμενο CA '%s' από το PKCS11\n"
 
-#: gnutls.c:1731
+#: gnutls.c:1758
 msgid "Failed to allocate memory for supporting certificates\n"
 msgstr "Αποτυχία κατανομής μνήμης για υποστήριξη πιστοποιητικών\n"
 
-#: gnutls.c:1754
+#: gnutls.c:1781
 #, c-format
 msgid "Adding supporting CA '%s'\n"
 msgstr "Προσθήκη υποστήριξης CA '%s'\n"
 
-#: gnutls.c:1782
+#: gnutls.c:1809
 #, c-format
 msgid "Setting certificate failed: %s\n"
 msgstr "Αποτυχία ορισμού πιστοποιητικού: %s\n"
 
-#: gnutls.c:2002
+#: gnutls.c:2029
 msgid "Server presented no certificate\n"
 msgstr "Ο διακομιστής δεν παρουσίασε κανένα πιστοποιητικό\n"
 
-#: gnutls.c:2010
+#: gnutls.c:2037
 #, c-format
 msgid "Error comparing server's cert on rehandshake: %s\n"
 msgstr ""
 
-#: gnutls.c:2015 openssl.c:1410
+#: gnutls.c:2042 openssl.c:1479
 msgid "Server presented different cert on rehandshake\n"
 msgstr ""
 
-#: gnutls.c:2020 openssl.c:1413
+#: gnutls.c:2047 openssl.c:1482
 msgid "Server presented identical cert on rehandshake\n"
 msgstr ""
 
-#: gnutls.c:2026
+#: gnutls.c:2053
 msgid "Error initialising X509 cert structure\n"
 msgstr "Σφάλμα αρχικοποίησης δομής πιστοποιητικού X509\n"
 
-#: gnutls.c:2032
+#: gnutls.c:2059
 msgid "Error importing server's cert\n"
 msgstr "Σφάλμα εισαγωγής πιστοποιητικού διακομιστή\n"
 
-#: gnutls.c:2041 main.c:1687
+#: gnutls.c:2068 main.c:1687
 msgid "Could not calculate hash of server's certificate\n"
 msgstr ""
 
-#: gnutls.c:2046
+#: gnutls.c:2073
 msgid "Error checking server cert status\n"
 msgstr "Σφάλμα ελέγχου κατάστασης πιστοποιητικού διακομιστή\n"
 
-#: gnutls.c:2051
+#: gnutls.c:2078
 msgid "certificate revoked"
 msgstr "Το πιστοποιητικό ανακλήθηκε"
 
-#: gnutls.c:2053
+#: gnutls.c:2080
 msgid "signer not found"
 msgstr "Ο υπογράφων δεν βρέθηκε"
 
-#: gnutls.c:2055
+#: gnutls.c:2082
 msgid "signer not a CA certificate"
 msgstr "Ο υπογράφων δεν έχει πιστοποιητικό CA"
 
-#: gnutls.c:2057
+#: gnutls.c:2084
 msgid "insecure algorithm"
 msgstr "Επισφαλής αλγόριθμος"
 
-#: gnutls.c:2059
+#: gnutls.c:2086
 msgid "certificate not yet activated"
 msgstr "Το πιστοποιητικό δεν έχει ακόμη ενεργοποιηθεί"
 
-#: gnutls.c:2061
+#: gnutls.c:2088
 msgid "certificate expired"
 msgstr "Το πιστοποιητικό έληξε"
 
 #. If this is set and no other reason, it apparently means
 #. that signature verification failed. Not entirely sure
 #. why we don't just set a bit for that too.
-#: gnutls.c:2066
+#: gnutls.c:2093
 msgid "signature verification failed"
 msgstr "Αποτυχία επιβεβαίωσης υπογραφής"
 
-#: gnutls.c:2115 openssl.c:1288 openssl.c:1441
+#: gnutls.c:2142 openssl.c:1363 openssl.c:1515
 msgid "certificate does not match hostname"
 msgstr "Το πιστοποιητικό δεν ταιριάζει με το όνομα του οικοδεσπότη."
 
-#: gnutls.c:2120 openssl.c:1287 openssl.c:1447
+#: gnutls.c:2147 openssl.c:1362 openssl.c:1521
 #, c-format
 msgid "Server certificate verify failed: %s\n"
 msgstr "Αποτυχία επιβεβαίωσης πιστοποιητικού διακομιστή: %s\n"
 
-#: gnutls.c:2192
+#: gnutls.c:2219
 msgid "Failed to allocate memory for cafile certs\n"
 msgstr "Αποτυχία κατανομής μνήμης για πιστοποιητικά αρχείου ca\n"
 
-#: gnutls.c:2213
+#: gnutls.c:2240
 #, c-format
 msgid "Failed to read certs from cafile: %s\n"
 msgstr "Αποτυχία ανάγνωσης πιστοποιητικών από αρχείο ca: %s\n"
 
-#: gnutls.c:2229
+#: gnutls.c:2256
 #, c-format
 msgid "Failed to open CA file '%s': %s\n"
 msgstr "Αποτυχία ανοίγματος αρχείου CA '%s': %s\n"
 
-#: gnutls.c:2242 openssl.c:1545
+#: gnutls.c:2269 openssl.c:1633
 msgid "Loading certificate failed. Aborting.\n"
 msgstr "Αποτυχία φόρτωσης πιστοποιητικού. Ματαίωση.\n"
 
-#: gnutls.c:2313
+#: gnutls.c:2340
 #, c-format
 msgid "Failed to set TLS priority string (\"%s\"): %s\n"
 msgstr ""
 
-#: gnutls.c:2325 openssl.c:1662
+#: gnutls.c:2352 openssl.c:1750
 #, c-format
 msgid "SSL negotiation with %s\n"
 msgstr "Διαπραγμάτευση SSL με %s\n"
 
-#: gnutls.c:2372 openssl.c:1688
+#: gnutls.c:2399 openssl.c:1776
 msgid "SSL connection cancelled\n"
 msgstr "Ακύρωση σύνδεσης SSL\n"
 
-#: gnutls.c:2379
+#: gnutls.c:2406
 #, c-format
 msgid "SSL connection failure: %s\n"
 msgstr "Αποτυχία σύνδεσης SSL: %s\n"
 
-#: gnutls.c:2388
+#: gnutls.c:2415
 #, c-format
 msgid "GnuTLS non-fatal return during handshake: %s\n"
 msgstr "GnuTLS μη μοιραία επιστροφή κατά τη διάρκεια χειραψίας: %s\n"
 
-#: gnutls.c:2394 openssl.c:1705
+#: gnutls.c:2421 openssl.c:1793
 #, c-format
 msgid "Connected to HTTPS on %s\n"
 msgstr "Σύνδεση με HTTPS στο %s\n"
 
-#: gnutls.c:2397
+#: gnutls.c:2424
 #, c-format
 msgid "Renegotiated SSL on %s\n"
 msgstr "Διαπραγμάτευση SSL με %s\n"
 
-#: gnutls.c:2580 openssl-pkcs11.c:183
+#: gnutls.c:2607 openssl-pkcs11.c:183
 #, c-format
 msgid "PIN required for %s"
 msgstr "Απαιτείται PIN για το %s"
 
-#: gnutls.c:2584 openssl-pkcs11.c:186
+#: gnutls.c:2611 openssl-pkcs11.c:186
 msgid "Wrong PIN"
 msgstr "Εσφαλμένο PIN"
 
-#: gnutls.c:2587
+#: gnutls.c:2614
 msgid "This is the final try before locking!"
 msgstr "Αυτή είναι η τελική προσπάθεια πριν το κλείδωμα!"
 
-#: gnutls.c:2589
+#: gnutls.c:2616
 msgid "Only a few tries left before locking!"
 msgstr "Μόνο λίγες προσπάθειες έμειναν πριν το κλείδωμα!"
 
-#: gnutls.c:2594 openssl-pkcs11.c:190
+#: gnutls.c:2621 openssl-pkcs11.c:190
 msgid "Enter PIN:"
 msgstr "Εισαγωγή PIN:"
 
-#: gnutls.c:2725 openssl.c:1833
+#: gnutls.c:2752 openssl.c:1921
 msgid "Unsupported OATH HMAC algorithm\n"
 msgstr ""
 
-#: gnutls.c:2734
+#: gnutls.c:2761
 #, c-format
 msgid "Failed to calculate OATH HMAC: %s\n"
 msgstr ""
@@ -1762,7 +1770,7 @@ msgstr "Αδύνατη η παρακολούθηση ανακατεύθυνση�
 msgid "Allocating new path for relative redirect failed: %s\n"
 msgstr "Αποτυχία κατανομής νέας διαδρομής για σχετική ανακατεύθυνση: %s\n"
 
-#: http.c:929 oncp.c:590 oncp.c:626
+#: http.c:929 oncp.c:591 oncp.c:627
 #, c-format
 msgid "Unexpected %d result from server\n"
 msgstr "Αναπάντεχο αποτέλεσμα %d από διακομιστή\n"
@@ -1895,22 +1903,22 @@ msgstr "Αναπάντεχος τύπος διεύθυνσης %02x σε απά�
 msgid "Requesting HTTP proxy connection to %s:%d\n"
 msgstr "Αίτημα σύνδεσης μεσολαβητή HTTP στο %s:%d\n"
 
-#: http.c:1324
+#: http.c:1327
 #, c-format
 msgid "Sending proxy request failed: %s\n"
 msgstr "Αποτυχία αιτήματος αποστολής μεσολαβητή: %s\n"
 
-#: http.c:1347
+#: http.c:1350
 #, c-format
 msgid "Proxy CONNECT request failed: %d\n"
 msgstr ""
 
-#: http.c:1366
+#: http.c:1369
 #, c-format
 msgid "Unknown proxy type '%s'\n"
 msgstr "Άγνωστος τύπος μεσολαβητή '%s'\n"
 
-#: http.c:1415
+#: http.c:1418
 msgid "Only http or socks(5) proxies supported\n"
 msgstr "Υποστηρίζονται μόνο μεσολαβητές http ή socks(5)\n"
 
@@ -2605,26 +2613,26 @@ msgstr ""
 msgid "General Yubikey failure: %s\n"
 msgstr ""
 
-#: mainloop.c:123
+#: mainloop.c:125
 #, c-format
 msgid "Set up tun script failed\n"
 msgstr "Αποτυχία ρύθμισης δέσμης ενεργειών tun\n"
 
-#: mainloop.c:130
+#: mainloop.c:132
 #, c-format
 msgid "Set up tun device failed\n"
 msgstr "Αποτυχία εγκατάστασης συσκευής tun\n"
 
-#: mainloop.c:261
+#: mainloop.c:263
 msgid "Caller paused the connection\n"
 msgstr "Ο καλών διέκοψε τη σύνδεση\n"
 
-#: mainloop.c:269
+#: mainloop.c:271
 #, c-format
 msgid "No work to do; sleeping for %d ms...\n"
 msgstr "Χωρίς εργασία· ύπνος για %d ms...\n"
 
-#: mainloop.c:290
+#: mainloop.c:292
 #, c-format
 msgid "WaitForMultipleObjects failed: %s\n"
 msgstr ""
@@ -2806,151 +2814,151 @@ msgstr ""
 msgid "Unknown TLV group %d attr %d len %d:%s\n"
 msgstr ""
 
-#: oncp.c:482
+#: oncp.c:483
 msgid "Failed to parse KMP header\n"
 msgstr ""
 
-#: oncp.c:498
+#: oncp.c:499
 msgid "Failed to parse KMP message\n"
 msgstr ""
 
-#: oncp.c:504
+#: oncp.c:505
 #, c-format
 msgid "Got KMP message %d of size %d\n"
 msgstr ""
 
-#: oncp.c:520
+#: oncp.c:521
 #, c-format
 msgid "Received non-ESP TLVs (group %d) in ESP negotiation KMP\n"
 msgstr ""
 
-#: oncp.c:568 oncp.c:612 oncp.c:644 oncp.c:770
+#: oncp.c:569 oncp.c:613 oncp.c:645 oncp.c:771
 msgid "Error creating oNCP negotiation request\n"
 msgstr ""
 
-#: oncp.c:653 oncp.c:804
+#: oncp.c:654 oncp.c:805
 msgid "Short write in oNCP negotiation\n"
 msgstr ""
 
-#: oncp.c:665 oncp.c:689
+#: oncp.c:666 oncp.c:690
 #, c-format
 msgid "Read %d bytes of SSL record\n"
 msgstr ""
 
-#: oncp.c:669
+#: oncp.c:670
 #, c-format
 msgid "Unexpected response of size %d after hostname packet\n"
 msgstr ""
 
-#: oncp.c:676
+#: oncp.c:677
 #, c-format
 msgid "Server response to hostname packet is error 0x%02x\n"
 msgstr ""
 
-#: oncp.c:693
+#: oncp.c:694
 msgid "Invalid packet waiting for KMP 301\n"
 msgstr ""
 
-#: oncp.c:706
+#: oncp.c:707
 #, c-format
 msgid "Expected KMP message 301 from server but got %d\n"
 msgstr ""
 
-#: oncp.c:715
+#: oncp.c:716
 #, c-format
 msgid "KMP message 301 from server too large (%d bytes)\n"
 msgstr ""
 
-#: oncp.c:721
+#: oncp.c:722
 #, c-format
 msgid "Got KMP message 301 of length %d\n"
 msgstr ""
 
-#: oncp.c:728
+#: oncp.c:729
 msgid "Failed to read continuation record length\n"
 msgstr ""
 
-#: oncp.c:734
+#: oncp.c:735
 #, c-format
 msgid "Record of additional %d bytes too large; would make %d\n"
 msgstr ""
 
-#: oncp.c:743
+#: oncp.c:744
 #, c-format
 msgid "Failed to read continuation record of length %d\n"
 msgstr ""
 
-#: oncp.c:749
+#: oncp.c:750
 #, c-format
 msgid "Read additional %d bytes of KMP 301 message\n"
 msgstr ""
 
-#: oncp.c:789
+#: oncp.c:790
 msgid "Error negotiating ESP keys\n"
 msgstr ""
 
-#: oncp.c:849
+#: oncp.c:850
 msgid "new incoming"
 msgstr ""
 
-#: oncp.c:850
+#: oncp.c:851
 msgid "new outgoing"
 msgstr ""
 
-#: oncp.c:855
+#: oncp.c:856
 msgid "Ignoring ESP keys since ESP support not available in this build\n"
 msgstr ""
 
-#: oncp.c:875
+#: oncp.c:876
 msgid "Read only 1 byte of oNCP length field\n"
 msgstr ""
 
-#: oncp.c:884
+#: oncp.c:885
 msgid "Server terminated connection (session expired)\n"
 msgstr ""
 
-#: oncp.c:888
+#: oncp.c:889
 #, c-format
 msgid "Server terminated connection (reason: %d)\n"
 msgstr ""
 
-#: oncp.c:894
+#: oncp.c:895
 msgid "Server sent zero-length oNCP record\n"
 msgstr ""
 
-#: oncp.c:985
+#: oncp.c:986
 #, c-format
 msgid "Incoming KMP message %d of size %d (got %d)\n"
 msgstr ""
 
-#: oncp.c:988
+#: oncp.c:989
 #, c-format
 msgid "Continuing to process KMP message %d now size %d (got %d)\n"
 msgstr ""
 
-#: oncp.c:1007
+#: oncp.c:1008
 msgid "Unrecognised data packet\n"
 msgstr ""
 
-#: oncp.c:1069
+#: oncp.c:1070
 #, c-format
 msgid "Unknown KMP message %d of size %d:\n"
 msgstr ""
 
-#: oncp.c:1074
+#: oncp.c:1075
 #, c-format
 msgid ".... + %d more bytes unreceived\n"
 msgstr ""
 
-#: oncp.c:1089
+#: oncp.c:1090
 msgid "Packet outgoing:\n"
 msgstr ""
 
-#: oncp.c:1153
+#: oncp.c:1154
 msgid "Sent ESP enable control packet\n"
 msgstr ""
 
-#: openconnect-internal.h:1035 openconnect-internal.h:1043
+#: openconnect-internal.h:1034 openconnect-internal.h:1042
 #, c-format
 msgid "ERROR: %s() called with invalid UTF-8 for '%s' argument\n"
 msgstr ""
@@ -3045,7 +3053,7 @@ msgstr ""
 msgid "Certificate X.509 content not fetched by libp11\n"
 msgstr ""
 
-#: openssl-pkcs11.c:393 openssl.c:693
+#: openssl-pkcs11.c:393 openssl.c:694
 msgid "Failed to install certificate in OpenSSL context\n"
 msgstr ""
 
@@ -3071,225 +3079,233 @@ msgstr ""
 msgid "This version of OpenConnect was built without PKCS#11 support\n"
 msgstr ""
 
-#: openssl.c:133
+#: openssl.c:134
 msgid "Failed to write to SSL socket\n"
 msgstr "Αποτυχία εγγραφής στην υποδοχή SSL\n"
 
-#: openssl.c:165 openssl.c:217
+#: openssl.c:166 openssl.c:218
 msgid "Failed to read from SSL socket\n"
 msgstr "Αποτυχία ανάγνωσης από την υποδοχή SSL\n"
 
-#: openssl.c:246
+#: openssl.c:247
 #, c-format
 msgid "SSL read error %d (server probably closed connection); reconnecting.\n"
 msgstr ""
 "Σφάλμα ανάγνωσης SSL %d (ο διακομιστής προφανώς έκλεισε τη σύνδεση)· "
 "επανασυνδέεται.\n"
 
-#: openssl.c:271
+#: openssl.c:272
 #, c-format
 msgid "SSL_write failed: %d\n"
 msgstr "Αποτυχία εγγραφής_SSL: %d\n"
 
-#: openssl.c:345
+#: openssl.c:346
 #, c-format
 msgid "Unhandled SSL UI request type %d\n"
 msgstr ""
 
-#: openssl.c:453
+#: openssl.c:454
 #, c-format
 msgid "PEM password too long (%d >= %d)\n"
 msgstr "Ο κωδικός πρόσβασης PEM είναι υπερβολικά μεγάλος (%d >= %d)\n"
 
-#: openssl.c:484
+#: openssl.c:485
 #, c-format
 msgid "Extra cert from %s: '%s'\n"
 msgstr "Πρόσθετο πιστοποιητικό από το %s: '%s'\n"
 
-#: openssl.c:534
+#: openssl.c:535
 msgid "Parse PKCS#12 failed (see above errors)\n"
 msgstr "Αποτυχία ανάλυσης PKCS#12 (δείτε παραπάνω σφάλματα)\n"
 
-#: openssl.c:549
+#: openssl.c:550
 msgid "PKCS#12 contained no certificate!"
 msgstr "Το PKCS#12 δεν περιείχε κανένα πιστοποιητικό!"
 
-#: openssl.c:558
+#: openssl.c:559
 msgid "PKCS#12 contained no private key!"
 msgstr "Το PKCS#12 δεν περιείχε κανένα ιδιωτικό κλειδί!"
 
-#: openssl.c:563
+#: openssl.c:564
 msgid "PKCS#12"
 msgstr ""
 
-#: openssl.c:581
+#: openssl.c:582
 msgid "Can't load TPM engine.\n"
 msgstr "Αδύνατη η φόρτωση μηχανής TPM.\n"
 
-#: openssl.c:587
+#: openssl.c:588
 msgid "Failed to init TPM engine\n"
 msgstr "Αποτυχία αρχικοποίησης μηχανής TPM\n"
 
-#: openssl.c:597
+#: openssl.c:598
 msgid "Failed to set TPM SRK password\n"
 msgstr "Αποτυχία ορισμού κωδικού πρόσβασης TPM SRK\n"
 
-#: openssl.c:611
+#: openssl.c:612
 msgid "Failed to load TPM private key\n"
 msgstr "Αποτυχία φόρτωσης ιδιωτικού κλειδιού TPM\n"
 
-#: openssl.c:617
+#: openssl.c:618
 msgid "Add key from TPM failed\n"
 msgstr "Αποτυχία προσθήκης κλειδιού από το TPM\n"
 
-#: openssl.c:667 openssl.c:813
+#: openssl.c:668 openssl.c:815
 #, c-format
 msgid "Failed to open certificate file %s: %s\n"
 msgstr "Αποτυχία ανοίγματος αρχείου πιστοποιητικού %s: %s\n"
 
-#: openssl.c:677
+#: openssl.c:678
 msgid "Loading certificate failed\n"
 msgstr "Αποτυχία φόρτωσης πιστοποιητικού\n"
 
-#: openssl.c:715
+#: openssl.c:716
 msgid "Failed to process all supporting certs. Trying anyway...\n"
 msgstr ""
 
-#: openssl.c:728
+#: openssl.c:729
 msgid "PEM file"
 msgstr ""
 
-#: openssl.c:757
+#: openssl.c:758
 #, c-format
 msgid "Failed to create BIO for keystore item '%s'\n"
 msgstr "Αποτυχία δημιουργίας BIO για το στοιχείο αποθήκης κλειδιών '%s'\n"
 
-#: openssl.c:782
+#: openssl.c:783
 msgid "Loading private key failed (wrong passphrase?)\n"
 msgstr "Η φόρτωση ιδιωτικού κλειδιού απέτυχε (εσφαλμένο συνθηματικό;)\n"
 
-#: openssl.c:788
+#: openssl.c:789
 msgid "Loading private key failed (see above errors)\n"
 msgstr "Αποτυχία φόρτωσης ιδιωτικού κλειδιού (δείτε τα παραπάνω σφάλματα)\n"
 
-#: openssl.c:836
+#: openssl.c:838
 msgid "Failed to load X509 certificate from keystore\n"
 msgstr "Αποτυχία φόρτωσης πιστοποιητικού X509 από την αποθήκη κλειδιών\n"
 
-#: openssl.c:842
+#: openssl.c:844
 msgid "Failed to use X509 certificate from keystore\n"
 msgstr "Αποτυχία χρησιμοποίησης πιστοποιητικού X509 από την αποθήκη κλειδιών\n"
 
-#: openssl.c:875
+#: openssl.c:876
 msgid "Failed to use private key from keystore\n"
 msgstr "Αποτυχία χρήσης ιδιωτικού κλειδιού από την αποθήκη κλειδιών\n"
 
-#: openssl.c:890
+#: openssl.c:892
 #, c-format
 msgid "Failed to open private key file %s: %s\n"
 msgstr "Αποτυχία ανοίγματος αρχείου ιδιωτικού κλειδιού %s: %s\n"
 
-#: openssl.c:910
+#: openssl.c:911
 msgid "Loading private key failed\n"
 msgstr ""
 
-#: openssl.c:931
+#: openssl.c:995
+msgid "Failed to convert PKCS#8 to OpenSSL EVP_PKEY\n"
+msgstr ""
+
+#: openssl.c:1006
 #, c-format
 msgid "Failed to identify private key type in '%s'\n"
 msgstr "Αποτυχία ταυτοποίησης τύπου ιδιωτικού κλειδιού στο '%s'\n"
 
-#: openssl.c:1093
+#: openssl.c:1168
 #, c-format
 msgid "Matched DNS altname '%s'\n"
 msgstr "Το εναλλακτικό όνομα του DNS '%s' συμφώνησε\n"
 
-#: openssl.c:1100
+#: openssl.c:1175
 #, c-format
 msgid "No match for altname '%s'\n"
 msgstr "Χωρίς συμφωνία για το εναλλακτικό όνομα '%s'\n"
 
-#: openssl.c:1114
+#: openssl.c:1189
 #, c-format
 msgid "Certificate has GEN_IPADD altname with bogus length %d\n"
 msgstr "Το πιστοποιητικό έχει εναλλακτικό όνομα GEN_IPADD με πλαστό μήκος %d\n"
 
-#: openssl.c:1125 openssl.c:1270
+#: openssl.c:1200 openssl.c:1345
 #, c-format
 msgid "Matched %s address '%s'\n"
 msgstr "Συμφωνία με %s διεύθυνση '%s'\n"
 
-#: openssl.c:1132
+#: openssl.c:1207
 #, c-format
 msgid "No match for %s address '%s'\n"
 msgstr "Χωρίς συμφωνία για τη διεύθυνση %s '%s'\n"
 
-#: openssl.c:1174
+#: openssl.c:1249
 #, c-format
 msgid "URI '%s' has non-empty path; ignoring\n"
 msgstr "Το URI '%s' έχει μη κενή διαδρομή· παράβλεψη\n"
 
-#: openssl.c:1179
+#: openssl.c:1254
 #, c-format
 msgid "Matched URI '%s'\n"
 msgstr "Συμφωνία με URI '%s'\n"
 
-#: openssl.c:1190
+#: openssl.c:1265
 #, c-format
 msgid "No match for URI '%s'\n"
 msgstr "Χωρίς συμφωνία για το URI '%s'\n"
 
-#: openssl.c:1205
+#: openssl.c:1280
 #, c-format
 msgid "No altname in peer cert matched '%s'\n"
 msgstr ""
 "Κανένα εναλλακτικό όνομα στο πιστοποιητικό ομότιμου δεν ταίριαξε με το '%s'\n"
 
-#: openssl.c:1213
+#: openssl.c:1288
 msgid "No subject name in peer cert!\n"
 msgstr "Χωρίς όνομα θέματος στο πιστοποιητικό ομότιμου!\n"
 
-#: openssl.c:1233
+#: openssl.c:1308
 msgid "Failed to parse subject name in peer cert\n"
 msgstr "Αποτυχία ανάλυσης ονόματος θέματος στο πιστοποιητικό ομότιμου\n"
 
-#: openssl.c:1240
+#: openssl.c:1315
 #, c-format
 msgid "Peer cert subject mismatch ('%s' != '%s')\n"
 msgstr "Ασυμφωνία θέματος πιστοποιητικού ομότιμου ('%s' != '%s')\n"
 
-#: openssl.c:1245 openssl.c:1278
+#: openssl.c:1320 openssl.c:1353
 #, c-format
 msgid "Matched peer certificate subject name '%s'\n"
 msgstr "Συμφωνία ονόματος θέματος πιστοποιητικού ομότιμου '%s'\n"
 
-#: openssl.c:1348
+#: openssl.c:1415
 #, c-format
 msgid "Extra cert from cafile: '%s'\n"
 msgstr "Πρόσθετο πιστοποιητικό από το cafile: '%s'\n"
 
-#: openssl.c:1479
+#: openssl.c:1553
 msgid "Error in client cert notAfter field\n"
 msgstr "Σφάλμα στο πεδίο πιστοποιητικού πελάτη notAfter\n"
 
-#: openssl.c:1492
+#: openssl.c:1566
 msgid "<error>"
 msgstr "<σφάλμα>"
 
-#: openssl.c:1585
+#: openssl.c:1618
+msgid "Create TLSv1 CTX failed\n"
+msgstr ""
+
+#: openssl.c:1673
 #, c-format
 msgid "Failed to read certs from CA file '%s'\n"
 msgstr "Αποτυχία ανάγνωσης πιστοποιητικών από το αρχείο CA '%s'\n"
 
-#: openssl.c:1618
+#: openssl.c:1706
 #, c-format
 msgid "Failed to open CA file '%s'\n"
 msgstr "Αποτυχία ανοίγματος αρχείου CA '%s'\n"
 
-#: openssl.c:1678
+#: openssl.c:1766
 msgid "SSL connection failure\n"
 msgstr "Αποτυχία σύνδεσης SSL\n"
 
-#: openssl.c:1839
+#: openssl.c:1927
 msgid "Failed to calculate OATH HMAC\n"
 msgstr ""
 
@@ -3332,153 +3348,153 @@ msgstr ""
 msgid "Failed to reconnect to host %s: %s\n"
 msgstr ""
 
-#: ssl.c:282
+#: ssl.c:280
 #, c-format
 msgid "Proxy from libproxy: %s://%s:%d/\n"
 msgstr "Μεσολαβητής από libproxy: %s://%s:%d/\n"
 
-#: ssl.c:310
+#: ssl.c:308
 #, c-format
 msgid "getaddrinfo failed for host '%s': %s\n"
 msgstr "Αποτυχία getaddrinfo για οικοδεσπότη '%s': %s\n"
 
-#: ssl.c:319 ssl.c:444
+#: ssl.c:317 ssl.c:442
 msgid "Reconnecting to DynDNS server using previously cached IP address\n"
 msgstr ""
 
-#: ssl.c:334
+#: ssl.c:332
 #, c-format
 msgid "Attempting to connect to proxy %s%s%s:%s\n"
 msgstr "Προσπάθεια σύνδεσης στον μεσολαβητή %s%s%s:%s\n"
 
-#: ssl.c:335
+#: ssl.c:333
 #, c-format
 msgid "Attempting to connect to server %s%s%s:%s\n"
 msgstr "Προσπάθεια σύνδεσης στον μεσολαβητή %s%s%s:%s\n"
 
-#: ssl.c:355
+#: ssl.c:353
 #, c-format
 msgid "Connected to %s%s%s:%s\n"
 msgstr ""
 
-#: ssl.c:367
+#: ssl.c:365
 msgid "Failed to allocate sockaddr storage\n"
 msgstr "Αποτυχία κατανομής αποθήκευσης sockaddr\n"
 
-#: ssl.c:409
+#: ssl.c:407
 #, c-format
 msgid "Failed to connect to %s%s%s:%s: %s\n"
 msgstr ""
 
-#: ssl.c:427
+#: ssl.c:425
 msgid "Forgetting non-functional previous peer address\n"
 msgstr ""
 
-#: ssl.c:439
+#: ssl.c:437
 #, c-format
 msgid "Failed to connect to host %s\n"
 msgstr "Αποτυχία σύνδεσης με τον οικοδεσπότη %s\n"
 
-#: ssl.c:458
+#: ssl.c:456
 #, c-format
 msgid "Reconnecting to proxy %s\n"
 msgstr ""
 
-#: ssl.c:529
+#: ssl.c:527
 #, c-format
 msgid "statvfs: %s\n"
 msgstr "statvfs: %s\n"
 
-#: ssl.c:557
+#: ssl.c:555
 msgid "Could not obtain file system ID for passphrase\n"
 msgstr ""
 
-#: ssl.c:568
+#: ssl.c:566
 #, c-format
 msgid "Failed to open private key file '%s': %s\n"
 msgstr ""
 
-#: ssl.c:596
+#: ssl.c:594
 #, c-format
 msgid "statfs: %s\n"
 msgstr "statfs: %s\n"
 
-#: ssl.c:687
+#: ssl.c:685
 msgid "No error"
 msgstr "Χωρίς σφάλμα"
 
-#: ssl.c:688
+#: ssl.c:686
 msgid "Keystore locked"
 msgstr "Η αποθήκη κλειδιών κλειδώθηκε"
 
-#: ssl.c:689
+#: ssl.c:687
 msgid "Keystore uninitialized"
 msgstr "Η αποθήκη κλειδιών δεν αρχικοποιήθηκε"
 
-#: ssl.c:690
+#: ssl.c:688
 msgid "System error"
 msgstr "Σφάλμα συστήματος"
 
-#: ssl.c:691
+#: ssl.c:689
 msgid "Protocol error"
 msgstr "Σφάλμα πρωτοκόλλου"
 
-#: ssl.c:692
+#: ssl.c:690
 msgid "Permission denied"
 msgstr "Άρνηση πρόσβασης"
 
-#: ssl.c:693
+#: ssl.c:691
 msgid "Key not found"
 msgstr "Δεν βρέθηκε κλειδί"
 
-#: ssl.c:694
+#: ssl.c:692
 msgid "Value corrupted"
 msgstr "Αλλοιωμένη τιμή"
 
-#: ssl.c:695
+#: ssl.c:693
 msgid "Undefined action"
 msgstr "Αόριστη ενέργεια"
 
-#: ssl.c:699
+#: ssl.c:697
 msgid "Wrong password"
 msgstr "Εσφαλμένος κωδικός πρόσβασης"
 
-#: ssl.c:700
+#: ssl.c:698
 msgid "Unknown error"
 msgstr "Άγνωστο σφάλμα"
 
-#: ssl.c:889
+#: ssl.c:887
 #, c-format
 msgid "openconnect_fopen_utf8() used with unsupported mode '%s'\n"
 msgstr ""
 
-#: ssl.c:918
+#: ssl.c:916
 #, c-format
 msgid "Unknown protocol family %d. Cannot create UDP server address\n"
 msgstr ""
 
-#: ssl.c:932
+#: ssl.c:930
 msgid "Open UDP socket"
 msgstr ""
 
-#: ssl.c:963
+#: ssl.c:961
 #, c-format
 msgid "Unknown protocol family %d. Cannot use UDP transport\n"
 msgstr ""
 
-#: ssl.c:971
+#: ssl.c:969
 msgid "Bind UDP socket"
 msgstr ""
 
-#: ssl.c:978
+#: ssl.c:976
 msgid "Connect UDP socket\n"
 msgstr ""
 
-#: ssl.c:1011
+#: ssl.c:1009
 msgid "Cookie is no longer valid, ending session\n"
 msgstr "Το μπισκότο δεν είναι πια έγκυρο, τερματισμός συνεδρίας\n"
 
-#: ssl.c:1015
+#: ssl.c:1013
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
 msgstr "ύπνος %ds, όριο χρόνου που απομένει %ds\n"
@@ -3822,7 +3838,7 @@ msgstr "(σενάριο)"
 msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
 msgstr "Λήψη άγνωστου πακέτου (μήκους %d): %02x %02x %02x %02x...\n"
 
-#: tun.c:558
+#: tun.c:566
 #, c-format
 msgid "Failed to write incoming packet: %s\n"
 msgstr "Αποτυχία εγγραφής εισερχόμενου πακέτου: %s\n"
