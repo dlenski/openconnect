@@ -25,7 +25,7 @@ TESTS_ENVIRONMENT = srcdir="$(srcdir)" \
 	top_builddir="$(top_builddir)" \
 	key_list="$(USER_KEYS)"
 
-if DTLS_OPENSSL
+if CHECK_DTLS
 TESTS += bad_dtls_test
 
 noinst_PROGRAMS = bad_dtls_test

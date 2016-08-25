@@ -526,7 +526,18 @@ case "$ssl_library" in
 	;;
 esac
 
-AM_CONDITIONAL(DTLS_OPENSSL,  [ test "$check_openssl_dtls" = "yes" ])
+AC_ARG_ENABLE([dtls-test],
+	AS_HELP_STRING([--disable-dtls-test], [Only for gitlab CI. Do not disable]),
+	[], [enable_dtls_unit_test=yes])
+
+# The test is OpenSSL-only for now. This happens before the setting for
+# --without-openssl-version-check is processed, because that option is
+# supposed to mean "I fixed OpenSSL even though it's an old version". And
+# that is the *most* important case for the unit test.
+if test "$check_openssl_dtls" = "no"; then
+   enable_dtls_unit_test=no
+fi
+AM_CONDITIONAL(CHECK_DTLS, [ test "$enable_dtls_unit_test" = "yes" ])
 
 AC_ARG_WITH([openssl-version-check],
 	AS_HELP_STRING([--without-openssl-version-check],
