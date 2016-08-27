@@ -3064,11 +3064,11 @@ msgid "Parse PKCS#12 failed (see above errors)\n"
 msgstr ""
 
 #: openssl.c:550
-msgid "PKCS#12 contained no certificate!"
+msgid "PKCS#12 contained no certificate!\n"
 msgstr ""
 
 #: openssl.c:559
-msgid "PKCS#12 contained no private key!"
+msgid "PKCS#12 contained no private key!\n"
 msgstr ""
 
 #: openssl.c:564

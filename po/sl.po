@@ -3126,12 +3126,12 @@ msgstr ""
 "Razčlenjevanje Parse PKCS#12 je spodletelo (napaka je navedena zgoraj)\n"
 
 #: openssl.c:550
-msgid "PKCS#12 contained no certificate!"
-msgstr "PKCS#12 ne vsebuje potrdil!"
+msgid "PKCS#12 contained no certificate!\n"
+msgstr "PKCS#12 ne vsebuje potrdil!\n"
 
 #: openssl.c:559
-msgid "PKCS#12 contained no private key!"
-msgstr "PKCS#12 ne vsebuje osebnega ključa!"
+msgid "PKCS#12 contained no private key!\n"
+msgstr "PKCS#12 ne vsebuje osebnega ključa!\n"
 
 #: openssl.c:564
 msgid "PKCS#12"

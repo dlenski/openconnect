@@ -3119,12 +3119,12 @@ msgid "Parse PKCS#12 failed (see above errors)\n"
 msgstr "Αποτυχία ανάλυσης PKCS#12 (δείτε παραπάνω σφάλματα)\n"
 
 #: openssl.c:550
-msgid "PKCS#12 contained no certificate!"
-msgstr "Το PKCS#12 δεν περιείχε κανένα πιστοποιητικό!"
+msgid "PKCS#12 contained no certificate!\n"
+msgstr "Το PKCS#12 δεν περιείχε κανένα πιστοποιητικό!\n"
 
 #: openssl.c:559
-msgid "PKCS#12 contained no private key!"
-msgstr "Το PKCS#12 δεν περιείχε κανένα ιδιωτικό κλειδί!"
+msgid "PKCS#12 contained no private key!\n"
+msgstr "Το PKCS#12 δεν περιείχε κανένα ιδιωτικό κλειδί!\n"
 
 #: openssl.c:564
 msgid "PKCS#12"

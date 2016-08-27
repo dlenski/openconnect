@@ -549,7 +549,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 			     _("Using client certificate '%s'\n"), buf);
 	} else {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("PKCS#12 contained no certificate!"));
+			     _("PKCS#12 contained no certificate!\n"));
 		ret = -EINVAL;
 	}
 
@@ -558,7 +558,7 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 		EVP_PKEY_free(pkey);
 	} else {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("PKCS#12 contained no private key!"));
+			     _("PKCS#12 contained no private key!\n"));
 		ret = -EINVAL;
 	}
 

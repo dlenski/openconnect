@@ -3180,12 +3180,12 @@ msgid "Parse PKCS#12 failed (see above errors)\n"
 msgstr "Verarbeiten von PKCS#12 ist fehlgeschlagen (siehe obere Fehler)\n"
 
 #: openssl.c:550
-msgid "PKCS#12 contained no certificate!"
-msgstr "PKCS#12 enthält kein Zertifikat!"
+msgid "PKCS#12 contained no certificate!\n"
+msgstr "PKCS#12 enthält kein Zertifikat!\n"
 
 #: openssl.c:559
-msgid "PKCS#12 contained no private key!"
-msgstr "PKCS#12 enthält keinen privaten Schlüssel!"
+msgid "PKCS#12 contained no private key!\n"
+msgstr "PKCS#12 enthält keinen privaten Schlüssel!\n"
 
 #: openssl.c:564
 msgid "PKCS#12"

@@ -3115,12 +3115,12 @@ msgid "Parse PKCS#12 failed (see above errors)\n"
 msgstr "PKCS#12 ayrıştırma başarısız oldu (yukarıdaki hataları bakın)\n"
 
 #: openssl.c:550
-msgid "PKCS#12 contained no certificate!"
-msgstr "PKCS#12 sertifika içermiyor!"
+msgid "PKCS#12 contained no certificate!\n"
+msgstr "PKCS#12 sertifika içermiyor!\n"
 
 #: openssl.c:559
-msgid "PKCS#12 contained no private key!"
-msgstr "PKCS#12 hiçbir özel anahtar içermiyor!"
+msgid "PKCS#12 contained no private key!\n"
+msgstr "PKCS#12 hiçbir özel anahtar içermiyor!\n"
 
 #: openssl.c:564
 msgid "PKCS#12"
