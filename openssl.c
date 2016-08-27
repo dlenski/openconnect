@@ -468,6 +468,8 @@ static int install_extra_certs(struct openconnect_info *vpninfo, const char *sou
 	X509 *cert = vpninfo->cert_x509;
 	int i;
 
+	if (!cert)
+		return -EINVAL;
  next:
 	for (i = 0; i < sk_X509_num(ca); i++) {
 		X509 *cert2 = sk_X509_value(ca, i);
