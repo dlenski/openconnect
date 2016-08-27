@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: F 677-CF0E\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2016-08-25 16:51+0100\n"
+"POT-Creation-Date: 2016-08-27 21:30+0100\n"
 "PO-Revision-Date: 2011-05-15 20:01+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <gnom@prevod.org>\n"
@@ -39,7 +39,7 @@ msgstr "Не могу да радим са начином=„%s“ обрасц�
 #: auth-juniper.c:260
 #, c-format
 msgid "Unknown textarea field: '%s'\n"
-msgstr ""
+msgstr "Непознато поље текстуалне области: „%s“\n"
 
 #: auth-juniper.c:328
 msgid "TNCC support not implemented yet on Windows\n"
@@ -95,30 +95,30 @@ msgstr "Примих безуспешан %s одговор од ТНЦЦ-а\n"
 msgid "Got new DSPREAUTH cookie from TNCC: %s\n"
 msgstr "Добих нови „DSPREAUTH“ колачић од ТНЦЦ-а: %s\n"
 
-#: auth-juniper.c:515
+#: auth-juniper.c:619
 msgid "Failed to parse HTML document\n"
 msgstr "Нисам успео да обрадим ХТМЛ документ\n"
 
-#: auth-juniper.c:532
+#: auth-juniper.c:636
 msgid "Failed to find or parse web form in login page\n"
 msgstr ""
 "Нисам успео да нађем или да обрадим образац веба на страници пријављивања\n"
 
-#: auth-juniper.c:540
+#: auth-juniper.c:644
 msgid "Encountered form with no ID\n"
 msgstr "Наиђох на образац без ИБ-а\n"
 
-#: auth-juniper.c:565
+#: auth-juniper.c:676
 #, c-format
 msgid "Unknown form ID '%s'\n"
 msgstr "Непознати ИБ обрасца „%s“\n"
 
-#: auth-juniper.c:568
+#: auth-juniper.c:679
 #, c-format
 msgid "Dumping unknown HTML form:\n"
 msgstr "Избацујем непознати ХТМЛ образац:\n"
 
-#: auth-juniper.c:582 auth.c:661
+#: auth-juniper.c:693 auth.c:661
 msgid "Failed to generate OTP tokencode; disabling token\n"
 msgstr "Нисам успео да створим ОТП код модула; искључујем модул\n"
 
@@ -173,7 +173,7 @@ msgstr "Затражена ми је лозинка али је поставље
 msgid "Not downloading XML profile because SHA1 already matches\n"
 msgstr "Не преузимам ИксМЛ профил јер СХА1 већ одговара\n"
 
-#: auth.c:921 cstp.c:271 http.c:877
+#: auth.c:921 cstp.c:293 http.c:877
 #, c-format
 msgid "Failed to open HTTPS connection to %s\n"
 msgstr "Нисам успео да отворим ХТТПС везу са „%s“\n"
@@ -312,244 +312,244 @@ msgstr "(Грешка приликом описивања грешке!)"
 msgid "ERROR: Cannot initialize sockets\n"
 msgstr "ГРЕШКА: Не могу да покренем прикључнице\n"
 
-#: cstp.c:100
+#: cstp.c:109
 #, c-format
 msgid "TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"
 msgstr "ТЦП_ИНФО прим пор %d, посл пор %d, пор огл %d, пмту %d\n"
 
-#: cstp.c:119
+#: cstp.c:131
 #, c-format
 msgid "TCP_MAXSEG %d\n"
 msgstr "ТЦП_МАХСЕГ %d\n"
 
-#: cstp.c:230
+#: cstp.c:252
 msgid ""
 "CRITICAL ERROR: DTLS master secret is uninitialised. Please report this.\n"
 msgstr ""
 "КРИТИЧНА ГРЕШКА: Главна тајна ДТЛС-а није покренута. Известите о овоме.\n"
 
-#: cstp.c:248
+#: cstp.c:270
 msgid "Error creating HTTPS CONNECT request\n"
 msgstr "Грешка стварања захтева за ХТТПС ПОВЕЗИВАЊЕ\n"
 
-#: cstp.c:264 http.c:361
+#: cstp.c:286 http.c:361
 msgid "Error fetching HTTPS response\n"
 msgstr "Грешка довлачења ХТТПС одговора\n"
 
-#: cstp.c:291
+#: cstp.c:313
 #, c-format
 msgid "VPN service unavailable; reason: %s\n"
 msgstr "ВПН услуга није доступна; разлог: %s\n"
 
-#: cstp.c:296
+#: cstp.c:318
 #, c-format
 msgid "Got inappropriate HTTP CONNECT response: %s\n"
 msgstr "Добих неодговарајући одговор ХТТП ПОВЕЗИВАЊА: %s\n"
 
-#: cstp.c:303
+#: cstp.c:325
 #, c-format
 msgid "Got CONNECT response: %s\n"
 msgstr "Добих одговор ПОВЕЗИВАЊА: %s\n"
 
-#: cstp.c:331 cstp.c:339
+#: cstp.c:353 cstp.c:361
 msgid "No memory for options\n"
 msgstr "Нема меморије за опције\n"
 
-#: cstp.c:348 http.c:421
+#: cstp.c:370 http.c:421
 msgid "<elided>"
 msgstr "<elided>"
 
-#: cstp.c:365
+#: cstp.c:387
 #, c-format
 msgid "X-DTLS-Session-ID not 64 characters; is: \"%s\"\n"
 msgstr "ИБ сесије Х-ДТЛС-а није 64 знака; већ: „%s“\n"
 
-#: cstp.c:388
+#: cstp.c:410
 #, c-format
 msgid "Unknown DTLS-Content-Encoding %s\n"
 msgstr "Непознато кодирање ДТЛС садржаја %s\n"
 
-#: cstp.c:424
+#: cstp.c:446
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
 msgstr "Непознато кодирање ЦСТП садржаја %s\n"
 
-#: cstp.c:497
+#: cstp.c:519
 msgid "No MTU received. Aborting\n"
 msgstr "МТУ није примљен. Прекидам\n"
 
-#: cstp.c:505
+#: cstp.c:527
 msgid "No IP address received. Aborting\n"
 msgstr "Није примљена ИП адреса. Прекидам\n"
 
-#: cstp.c:511
+#: cstp.c:533
 #, c-format
 msgid "IPv6 configuration received but MTU %d is too small.\n"
 msgstr "Примљено је ИПв6 подешавање али МТУ %d је премали.\n"
 
-#: cstp.c:517
+#: cstp.c:539
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr "Поновно повезивање је дало другачију Стару ИП адресу (%s != %s)\n"
 
-#: cstp.c:525
+#: cstp.c:547
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr ""
 "Поновно повезивање је дало другачију Стару ИП мрежну маску (%s != %s)\n"
 
-#: cstp.c:533
+#: cstp.c:555
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
 msgstr "Поновно повезивање је дало другачију ИПв6 адресу (%s != %s)\n"
 
-#: cstp.c:541
+#: cstp.c:563
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr "Поновно повезивање је дало другачију ИПв6 мрежну маску (%s != %s)\n"
 
-#: cstp.c:561
+#: cstp.c:583
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr "ЦСТП је повезан. ДПД %d, Одржи живим %d\n"
 
-#: cstp.c:563
+#: cstp.c:585
 #, c-format
 msgid "CSTP Ciphersuite: %s\n"
 msgstr "ЦСТП комплет шифрера: %s\n"
 
-#: cstp.c:625
+#: cstp.c:647
 msgid "Compression setup failed\n"
 msgstr "Подешавање паковања није успело\n"
 
-#: cstp.c:642
+#: cstp.c:664
 msgid "Allocation of deflate buffer failed\n"
 msgstr "Додела међумеморије издувавања није успела\n"
 
-#: cstp.c:700
+#: cstp.c:722
 msgid "inflate failed\n"
 msgstr "надувавање није успело\n"
 
-#: cstp.c:723
+#: cstp.c:745
 #, c-format
 msgid "LZS decompression failed: %s\n"
 msgstr "Није успело ЛЗС распакивање: %s\n"
 
-#: cstp.c:736
+#: cstp.c:758
 msgid "LZ4 decompression failed\n"
 msgstr "Није успело ЛЗ4 распакивање\n"
 
-#: cstp.c:743
+#: cstp.c:765
 #, c-format
 msgid "Unknown compression type %d\n"
 msgstr "Непозната врста паковања „%d“\n"
 
-#: cstp.c:748
+#: cstp.c:770
 #, c-format
 msgid "Received %s compressed data packet of %d bytes (was %d)\n"
 msgstr "Примих %s запаковани пакет података од %d бајта (беше %d)\n"
 
-#: cstp.c:768
+#: cstp.c:790
 #, c-format
 msgid "deflate failed %d\n"
 msgstr "издувавање није успело %d\n"
 
-#: cstp.c:838 dtls.c:891 dtls.c:1329 esp.c:255 mainloop.c:67 oncp.c:931
+#: cstp.c:860 dtls.c:887 dtls.c:1357 esp.c:255 mainloop.c:67 oncp.c:931
 msgid "Allocation failed\n"
 msgstr "Није успела расподела\n"
 
-#: cstp.c:849
+#: cstp.c:871
 #, c-format
 msgid "Short packet received (%d bytes)\n"
 msgstr "Примљен је кратак пакет (%d бајта)\n"
 
-#: cstp.c:862
+#: cstp.c:884
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
 msgstr "Неочекивана дужина пакета. ССЛ_читање је дало %d али пакет је\n"
 
-#: cstp.c:876
+#: cstp.c:898
 msgid "Got CSTP DPD request\n"
 msgstr "Добих ЦСТП ДПД захтев\n"
 
-#: cstp.c:882
+#: cstp.c:904
 msgid "Got CSTP DPD response\n"
 msgstr "Добих ЦСТП ДПД одговор\n"
 
-#: cstp.c:887
+#: cstp.c:909
 msgid "Got CSTP Keepalive\n"
 msgstr "Добих ЦСТП Одржи живим\n"
 
-#: cstp.c:892 oncp.c:1020
+#: cstp.c:914 oncp.c:1020
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr "Примих пакет незапакованих података од %d бајта\n"
 
-#: cstp.c:909
+#: cstp.c:931
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
 msgstr "Примих прекид везе са сервера: %02x „%s“\n"
 
-#: cstp.c:912
+#: cstp.c:934
 msgid "Received server disconnect\n"
 msgstr "Примих прекид везе са сервера\n"
 
-#: cstp.c:920
+#: cstp.c:942
 msgid "Compressed packet received in !deflate mode\n"
 msgstr "Сажети пакет је примљен у „!deflate“ режиму\n"
 
-#: cstp.c:929
+#: cstp.c:951
 msgid "received server terminate packet\n"
 msgstr "примљен је серверов пакет окончавања\n"
 
-#: cstp.c:936
+#: cstp.c:958
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr "Непознат пакет %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
-#: cstp.c:979 oncp.c:1137
+#: cstp.c:1001 oncp.c:1137
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr "ССЛ је записао премало бајтова! Тражио је %d, послао је %d\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:1007 oncp.c:1175
+#: cstp.c:1029 oncp.c:1175
 msgid "CSTP rekey due\n"
 msgstr "Истек промене кључа ЦСТП-а\n"
 
 #. if we failed rehandshake try establishing a new-tunnel instead of failing
-#: cstp.c:1014 oncp.c:1182
+#: cstp.c:1036 oncp.c:1182
 msgid "Rehandshake failed; attempting new-tunnel\n"
 msgstr "Поновно руковање није успело; покушавам нови тунел\n"
 
-#: cstp.c:1025 oncp.c:1193
+#: cstp.c:1047 oncp.c:1193
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr "Откривање мртвог парњака ЦСТП-а је открило мртвог парњака!\n"
 
-#: cstp.c:1029 oncp.c:1107 oncp.c:1197
+#: cstp.c:1051 oncp.c:1107 oncp.c:1197
 msgid "Reconnect failed\n"
 msgstr "Поновно повезивање није успело\n"
 
-#: cstp.c:1045 oncp.c:1213
+#: cstp.c:1067 oncp.c:1213
 msgid "Send CSTP DPD\n"
 msgstr "Послах ЦСТП ДПД\n"
 
-#: cstp.c:1057 oncp.c:1224
+#: cstp.c:1079 oncp.c:1224
 msgid "Send CSTP Keepalive\n"
 msgstr "Послах ЦСТП Одржи живим\n"
 
-#: cstp.c:1082
+#: cstp.c:1104
 #, c-format
 msgid "Sending compressed data packet of %d bytes (was %d)\n"
 msgstr "Шаљем пакет запакованих података од %d бајта (беше %d)\n"
 
-#: cstp.c:1093 oncp.c:1249
+#: cstp.c:1115 oncp.c:1249
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr "Шаљем пакет незапакованих података од %d бајта\n"
 
-#: cstp.c:1132
+#: cstp.c:1154
 #, c-format
 msgid "Send BYE packet: %s\n"
 msgstr "Послах пакет ОДЛСКА: %s\n"
@@ -582,7 +582,7 @@ msgstr "Није успело покретање ДТЛСв1 ЦТХ-а\n"
 
 #: dtls.c:275
 msgid "Set DTLS CTX version failed\n"
-msgstr ""
+msgstr "Подешавање ДТЛС ЦТИкс издања није успело\n"
 
 #: dtls.c:290
 msgid "Set DTLS cipher list failed\n"
@@ -611,7 +611,7 @@ msgid "Established DTLS connection (using OpenSSL). Ciphersuite %s.\n"
 msgstr ""
 "Успостављена је ДТЛС веза (користим Отворени ССЛ). Комплет шифрера %s.\n"
 
-#: dtls.c:364 dtls.c:675
+#: dtls.c:364 dtls.c:671
 #, c-format
 msgid "DTLS connection compression using %s.\n"
 msgstr "Запакивање ДТЛС везе са „%s“.\n"
@@ -622,7 +622,7 @@ msgstr ""
 "Ваш Отворени ССЛ је старији од оног који сте изградили с њим, тако да ДТЛС "
 "можда неће успети!"
 
-#: dtls.c:444 dtls.c:448 dtls.c:690
+#: dtls.c:444 dtls.c:448 dtls.c:686
 msgid "DTLS handshake timed out\n"
 msgstr "Истекло је време ДТЛС руковања\n"
 
@@ -659,163 +659,177 @@ msgstr "Нисам успео да поставим параметре ДТЛС 
 msgid "Failed to set DTLS MTU: %s\n"
 msgstr "Нисам успео да поставим ДТЛС МТУ: %s\n"
 
-#: dtls.c:669
+#: dtls.c:665
 #, c-format
 msgid "Established DTLS connection (using GnuTLS). Ciphersuite %s.\n"
 msgstr "Успостављена је ДТЛС веза (користим ГнуТЛС). Комплет шифрера %s.\n"
 
-#: dtls.c:693
+#: dtls.c:689
 #, c-format
 msgid "DTLS handshake failed: %s\n"
 msgstr "Није успело ДТЛС руковање: %s\n"
 
-#: dtls.c:697
+#: dtls.c:693
 msgid "(Is a firewall preventing you from sending UDP packets?)\n"
 msgstr "(Да ли вас мрежна баријера спречава да пошаљете УДП пакете?)\n"
 
-#: dtls.c:718
+#: dtls.c:714
 msgid "DTLS connection attempted with an existing fd\n"
 msgstr "ДТЛС веза је покушана са постојећим фд-ом\n"
 
-#: dtls.c:724
+#: dtls.c:720
 msgid "No DTLS address\n"
 msgstr "Нема ДТЛС адресе\n"
 
 #. We probably didn't offer it any ciphers it liked
-#: dtls.c:731
+#: dtls.c:727
 msgid "Server offered no DTLS cipher option\n"
 msgstr "Сервер је није понудио опцију ДТЛС шифрера\n"
 
 #. XXX: Theoretically, SOCKS5 proxies can do UDP too
-#: dtls.c:738
+#: dtls.c:734
 msgid "No DTLS when connected via proxy\n"
 msgstr "Нема ДТЛС-а када сте повезани путем посредника\n"
 
-#: dtls.c:809
+#: dtls.c:805
 #, c-format
 msgid "DTLS option %s : %s\n"
 msgstr "Опција ДТЛС-а „%s“: %s\n"
 
-#: dtls.c:850
+#: dtls.c:846
 #, c-format
 msgid "DTLS initialised. DPD %d, Keepalive %d\n"
 msgstr "ДТЛС је покренут. ДПД %d, Одржи живим %d\n"
 
-#: dtls.c:876
+#: dtls.c:872
 msgid "Attempt new DTLS connection\n"
 msgstr "Покушај нову ДТЛС везу\n"
 
-#: dtls.c:902
+#: dtls.c:898
 #, c-format
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
 msgstr "Примљен је ДТЛС пакет 0x%02x од %d бајта\n"
 
-#: dtls.c:916
+#: dtls.c:912
 msgid "Got DTLS DPD request\n"
 msgstr "Добих ДТЛС ДПД захтев\n"
 
-#: dtls.c:922
+#: dtls.c:918
 msgid "Failed to send DPD response. Expect disconnect\n"
 msgstr "Нисам успео да пошаљем ДПД одговор. Очекујте прекид везе\n"
 
-#: dtls.c:926
+#: dtls.c:922
 msgid "Got DTLS DPD response\n"
 msgstr "Добих ДТЛС ДПД одговор\n"
 
-#: dtls.c:930
+#: dtls.c:926
 msgid "Got DTLS Keepalive\n"
 msgstr "Добих ДТЛС Одржи живим\n"
 
-#: dtls.c:936
+#: dtls.c:932
 msgid "Compressed DTLS packet received when compression not enabled\n"
 msgstr "Запаковани ДТЛС пакет је примљен када запакивање није укључено\n"
 
-#: dtls.c:944
+#: dtls.c:940
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
 msgstr "Непозната врста ДТЛС пакета %02x, дужина %d\n"
 
-#: dtls.c:966
+#: dtls.c:962
 msgid "DTLS rekey due\n"
 msgstr "Истек промене кључа ДТЛС-а\n"
 
-#: dtls.c:973
+#: dtls.c:969
 msgid "DTLS Rehandshake failed; reconnecting.\n"
 msgstr "Није успело поновно ДТЛС руковање; пново се повезујем.\n"
 
-#: dtls.c:982
+#: dtls.c:978
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
 msgstr "Откривање мртвог парњака ДТЛС-а је открило мртвог парњака!\n"
 
-#: dtls.c:988
+#: dtls.c:984
 msgid "Send DTLS DPD\n"
 msgstr "Послах ДТЛС ДПД\n"
 
-#: dtls.c:993
+#: dtls.c:989
 msgid "Failed to send DPD request. Expect disconnect\n"
 msgstr "Нисам успео да пошаљем ДПД захтев. Очекујте прекид везе\n"
 
-#: dtls.c:1006
+#: dtls.c:1002
 msgid "Send DTLS Keepalive\n"
 msgstr "Послах ДТЛС Одржи живим\n"
 
-#: dtls.c:1011
+#: dtls.c:1007
 msgid "Failed to send keepalive request. Expect disconnect\n"
 msgstr "Нисам успео да пошаљем захтев одржи живим. Очекујте прекид везе\n"
 
-#: dtls.c:1052
+#: dtls.c:1038 tun.c:541
+#, c-format
+msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
+msgstr "Примљен је непознат пакет (дужине %d): %02x %02x %02x %02x...\n"
+
+#: dtls.c:1045
+#, c-format
+msgid "TOS this: %d, TOS last: %d\n"
+msgstr ""
+
+#: dtls.c:1049
+msgid "UDP setsockopt"
+msgstr ""
+
+#: dtls.c:1080
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
 msgstr "ДТЛС је добио грешку писања %d. Пребацујем се на ССЛ\n"
 
-#: dtls.c:1066
+#: dtls.c:1094
 #, c-format
 msgid "DTLS got write error: %s. Falling back to SSL\n"
 msgstr "ДТЛС је добио грешку писања: %s. Пребацујем се на ССЛ\n"
 
-#: dtls.c:1081
+#: dtls.c:1109
 #, c-format
 msgid "Sent DTLS packet of %d bytes; DTLS send returned %d\n"
 msgstr "Послао сам ДТЛС пакет од %d бајта; ДТЛС-ово слање је дало %d\n"
 
-#: dtls.c:1099
+#: dtls.c:1127
 msgid "SSL operation cancelled\n"
 msgstr "ССЛ радња је отказана\n"
 
-#: dtls.c:1141
+#: dtls.c:1169
 #, c-format
 msgid "Initiating IPv4 MTU detection (min=%d, max=%d)\n"
 msgstr "Покрећем ИПв4 МТУ откривање (најм.=%d, најв.=%d)\n"
 
-#: dtls.c:1146
+#: dtls.c:1174
 msgid "Too long time in MTU detect loop; bailing out.\n"
 msgstr "Предуго време у петљи МТУ откривања; извлачим се.\n"
 
-#: dtls.c:1169 dtls.c:1255
+#: dtls.c:1197 dtls.c:1283
 #, c-format
 msgid "Failed to send DPD request (%d): %s\n"
 msgstr "Нисам успео да пошаљем ДПД захтев (%d): %s\n"
 
-#: dtls.c:1189 dtls.c:1281
+#: dtls.c:1217 dtls.c:1309
 #, c-format
 msgid "Received unexpected packet (%.2x) in MTU detection; skipping.\n"
 msgstr "Примих неочекивани пакет (%.2x) у МТУ откривању; прескачем.\n"
 
-#: dtls.c:1195 dtls.c:1297
+#: dtls.c:1223 dtls.c:1325
 #, c-format
 msgid "Failed to recv DPD request (%d): %s\n"
 msgstr "Нисам успео да примим ДПД захтев (%d): %s\n"
 
-#: dtls.c:1235
+#: dtls.c:1263
 msgid "Initiating IPv6 MTU detection\n"
 msgstr "Покрећем ИПв4 МТУ откривање\n"
 
-#: dtls.c:1350
+#: dtls.c:1378
 #, c-format
 msgid "Detected MTU of %d bytes (was %d)\n"
 msgstr "Отрио сам МТУ од %d бајта (беше %d)\n"
 
-#: dtls.c:1353
+#: dtls.c:1381
 #, c-format
 msgid "No change in MTU after detection (was %d)\n"
 msgstr "Нема промене у МТУ након откривања (беше %d)\n"
@@ -1022,15 +1036,15 @@ msgstr "Није успело ССЛ слање: %s\n"
 msgid "Could not extract expiration time of certificate\n"
 msgstr "Не могу да извучем време истека уверења\n"
 
-#: gnutls.c:306 openssl.c:1556
+#: gnutls.c:306 openssl.c:1558
 msgid "Client certificate has expired at"
 msgstr "Уверење клијента је истекло у"
 
-#: gnutls.c:308 openssl.c:1561
+#: gnutls.c:308 openssl.c:1563
 msgid "Client certificate expires soon at"
 msgstr "Уверење клијента ускоро истиче"
 
-#: gnutls.c:357 openssl.c:752
+#: gnutls.c:357 openssl.c:754
 #, c-format
 msgid "Failed to load item '%s' from keystore: %s\n"
 msgstr "Нисам успео да учитам „%s“ из смештаја кључа: %s\n"
@@ -1059,11 +1073,11 @@ msgstr "Нисам успео да учитам уверење у мемориј
 msgid "Failed to setup PKCS#12 data structure: %s\n"
 msgstr "Нисам успео да поставим структуру ПКЦС#12 података: %s\n"
 
-#: gnutls.c:448 openssl.c:521
+#: gnutls.c:448 openssl.c:523
 msgid "Failed to decrypt PKCS#12 certificate file\n"
 msgstr "Нисам успео да дешифрујем датотеку ПКЦС#12 уверења\n"
 
-#: gnutls.c:452 openssl.c:524
+#: gnutls.c:452 openssl.c:526
 msgid "Enter PKCS#12 pass phrase:"
 msgstr "Унесите ПКЦС#12 лозинку:"
 
@@ -1169,7 +1183,7 @@ msgstr "Грешка учитавања уверења из ПКЦС#11: %s\n"
 msgid "Error loading system certificate: %s\n"
 msgstr "Грешка учитавања системског уверења: %s\n"
 
-#: gnutls.c:1114 openssl.c:807
+#: gnutls.c:1114 openssl.c:809
 #, c-format
 msgid "Using certificate file %s\n"
 msgstr "Користим датотеку уверења „%s“\n"
@@ -1232,7 +1246,7 @@ msgstr "Грешка увоза ПКЦС#11 кључа у структуру л�
 msgid "Using private key file %s\n"
 msgstr "Користим датотеку личног кључа „%s“\n"
 
-#: gnutls.c:1406 openssl.c:632
+#: gnutls.c:1406 openssl.c:634
 msgid "This version of OpenConnect was built without TPM support\n"
 msgstr "Ово издање Отвореног повезивања је изграђено без ТПМ подршке\n"
 
@@ -1250,7 +1264,7 @@ msgstr "Нисам успео да учитам ПКЦС#1 лични кључ: 
 msgid "Failed to load private key as PKCS#8: %s\n"
 msgstr "Нисам успео да учитам лични кључ као ПКЦС#8: %s\n"
 
-#: gnutls.c:1481 gnutls.c:1514 openssl.c:965 openssl.c:975
+#: gnutls.c:1481 gnutls.c:1514 openssl.c:967 openssl.c:977
 msgid "Failed to decrypt PKCS#8 certificate file\n"
 msgstr "Нисам успео да дешифрујем датотеку ПКЦС#8 уверења\n"
 
@@ -1259,7 +1273,7 @@ msgstr "Нисам успео да дешифрујем датотеку ПКЦ�
 msgid "Failed to determine type of private key %s\n"
 msgstr "Нисам успео да одредим врсту личног кључа „%s“\n"
 
-#: gnutls.c:1518 openssl.c:971
+#: gnutls.c:1518 openssl.c:973
 msgid "Enter PKCS#8 pass phrase:"
 msgstr "Унесите ПКЦС#8 лозинку:"
 
@@ -1282,7 +1296,7 @@ msgstr "Грешка потврђивања потписа наспрам уве
 msgid "No SSL certificate found to match private key\n"
 msgstr "Нисам нашао ССЛ уверење које одговара личном кључу\n"
 
-#: gnutls.c:1630 openssl.c:547 openssl.c:690
+#: gnutls.c:1630 openssl.c:549 openssl.c:692
 #, c-format
 msgid "Using client certificate '%s'\n"
 msgstr "Користим уверење клијента „%s“\n"
@@ -1331,11 +1345,11 @@ msgstr "Сервер није представио ниједно уверење
 msgid "Error comparing server's cert on rehandshake: %s\n"
 msgstr "Грешка упоређивања уверења сервера при поновном руковању: %s\n"
 
-#: gnutls.c:2042 openssl.c:1479
+#: gnutls.c:2042 openssl.c:1481
 msgid "Server presented different cert on rehandshake\n"
 msgstr "Сервер је представио другачије уверење при поновном руковању\n"
 
-#: gnutls.c:2047 openssl.c:1482
+#: gnutls.c:2047 openssl.c:1484
 msgid "Server presented identical cert on rehandshake\n"
 msgstr "Сервер је представио исто уверење при поновном руковању\n"
 
@@ -1347,7 +1361,7 @@ msgstr "Грешка покретања структуре X509 уверења\n
 msgid "Error importing server's cert\n"
 msgstr "Грешка увоза серверског уверења\n"
 
-#: gnutls.c:2068 main.c:1687
+#: gnutls.c:2068 main.c:1693
 msgid "Could not calculate hash of server's certificate\n"
 msgstr "Не могу да израчунам хеш серверског уверења\n"
 
@@ -1386,11 +1400,11 @@ msgstr "уверење је истекло"
 msgid "signature verification failed"
 msgstr "провера потписа није успела"
 
-#: gnutls.c:2142 openssl.c:1363 openssl.c:1515
+#: gnutls.c:2142 openssl.c:1365 openssl.c:1517
 msgid "certificate does not match hostname"
 msgstr "уверење не одговара називу домаћина"
 
-#: gnutls.c:2147 openssl.c:1362 openssl.c:1521
+#: gnutls.c:2147 openssl.c:1364 openssl.c:1523
 #, c-format
 msgid "Server certificate verify failed: %s\n"
 msgstr "Није успела провера уверења сервера: %s\n"
@@ -1409,7 +1423,7 @@ msgstr "Нисам успео да прочитам уверења из дато
 msgid "Failed to open CA file '%s': %s\n"
 msgstr "Нисам успео да отворим датотеку издавача уверења „%s“: %s\n"
 
-#: gnutls.c:2269 openssl.c:1633
+#: gnutls.c:2269 openssl.c:1635
 msgid "Loading certificate failed. Aborting.\n"
 msgstr "Нисам успео да учитам уверење. Прекидам.\n"
 
@@ -1418,12 +1432,12 @@ msgstr "Нисам успео да учитам уверење. Прекидам
 msgid "Failed to set TLS priority string (\"%s\"): %s\n"
 msgstr "Нисам успео да поставим ниску хитности ТЛС-а (%s): %s\n"
 
-#: gnutls.c:2352 openssl.c:1750
+#: gnutls.c:2352 openssl.c:1752
 #, c-format
 msgid "SSL negotiation with %s\n"
 msgstr "ССЛ преговарање са „%s“\n"
 
-#: gnutls.c:2399 openssl.c:1776
+#: gnutls.c:2399 openssl.c:1778
 msgid "SSL connection cancelled\n"
 msgstr "ССЛ веза је отказана\n"
 
@@ -1437,7 +1451,7 @@ msgstr "Неуспех ССЛ везе: %s\n"
 msgid "GnuTLS non-fatal return during handshake: %s\n"
 msgstr "Не-кобни резултат ГнуТЛС-а за време руковања: %s\n"
 
-#: gnutls.c:2421 openssl.c:1793
+#: gnutls.c:2421 openssl.c:1795
 #, c-format
 msgid "Connected to HTTPS on %s\n"
 msgstr "Повезани сте на ХТТПС са „%s“\n"
@@ -1468,7 +1482,7 @@ msgstr "Остало је само неколико покушаја пре за
 msgid "Enter PIN:"
 msgstr "Унесите ПИН:"
 
-#: gnutls.c:2752 openssl.c:1921
+#: gnutls.c:2752 openssl.c:1923
 msgid "Unsupported OATH HMAC algorithm\n"
 msgstr "Неподржани ОАТХ ХМАЦ алгоритам\n"
 
@@ -1926,54 +1940,54 @@ msgstr "Непозната врста посредника „%s“\n"
 msgid "Only http or socks(5) proxies supported\n"
 msgstr "Подржани су само хттп или соцкс(5) посредници\n"
 
-#: library.c:152
+#: library.c:154
 #, c-format
 msgid "Unknown VPN protocol '%s'\n"
 msgstr "Непознати ВПН протокол „%s“\n"
 
-#: library.c:170
+#: library.c:176
 msgid "Built against SSL library with no Cisco DTLS support\n"
 msgstr "Изграђено је ССЛ библиотеком без Циско ДТЛС подршке\n"
 
-#: library.c:576
+#: library.c:583
 #, c-format
 msgid "Failed to parse server URL '%s'\n"
 msgstr "Нисам успео да обрадим адресу сервера „%s“\n"
 
-#: library.c:582
+#: library.c:589
 msgid "Only https:// permitted for server URL\n"
 msgstr "Дозвољено је само „https://“ за адресу сервера\n"
 
-#: library.c:1005
+#: library.c:1012
 msgid "No form handler; cannot authenticate.\n"
 msgstr "Нема руковаоца обрасцем; не могу да потврдим идентитет.\n"
 
-#: main.c:332
+#: main.c:334
 #, c-format
 msgid "CommandLineToArgvW() failed: %s\n"
 msgstr "Није успела функција линије наредби у аргумент: %s\n"
 
-#: main.c:345
+#: main.c:347
 #, c-format
 msgid "Fatal error in command line handling\n"
 msgstr "Кобна грешка у раду са линијом наредби\n"
 
-#: main.c:381
+#: main.c:383
 #, c-format
 msgid "ReadConsole() failed: %s\n"
 msgstr "Није успела функција читања конзоле: %s\n"
 
-#: main.c:395 main.c:408
+#: main.c:397 main.c:410
 #, c-format
 msgid "Error converting console input: %s\n"
 msgstr "Грешка претварања улаза конзоле: %s\n"
 
-#: main.c:402 main.c:638
+#: main.c:404 main.c:640
 #, c-format
 msgid "Allocation failure for string from stdin\n"
 msgstr "Неуспех додељвања за ниску са стандардног улаза\n"
 
-#: main.c:569
+#: main.c:571
 #, c-format
 msgid ""
 "For assistance with OpenConnect, please see the web page at\n"
@@ -1982,25 +1996,25 @@ msgstr ""
 "За испомоћ са Отвореним повезивањем, погледајте веб страницу на\n"
 "  „http://www.infradead.org/openconnect/mail.html“\n"
 
-#: main.c:578
+#: main.c:580
 #, c-format
 msgid "Using OpenSSL. Features present:"
 msgstr "Користим ОпенССЛ. Присутне функције:"
 
-#: main.c:580
+#: main.c:582
 #, c-format
 msgid "Using GnuTLS. Features present:"
 msgstr "Користим ГнуТЛС. Присутне функције:"
 
-#: main.c:589
+#: main.c:591
 msgid "OpenSSL ENGINE not present"
 msgstr "Није присутан ПОГОН ОтвореногССЛ-а"
 
-#: main.c:621
+#: main.c:623
 msgid "using OpenSSL"
 msgstr "користим ОтворениССЛ"
 
-#: main.c:625
+#: main.c:627
 #, c-format
 msgid ""
 "\n"
@@ -2009,31 +2023,31 @@ msgstr ""
 "\n"
 "УПОЗОРЕЊЕ: Нема ДТЛС подршке у овој извршној. Делотворност ће бити умањена.\n"
 
-#: main.c:662
+#: main.c:664
 msgid "fgets (stdin)"
 msgstr "fgets (стдул)"
 
-#: main.c:702
+#: main.c:704
 #, c-format
 msgid "Cannot process this executable path \"%s\""
 msgstr "Не могу да обрадим путању ове извршне „%s“"
 
-#: main.c:708
+#: main.c:710
 #, c-format
 msgid "Allocation for vpnc-script path failed\n"
 msgstr "Додела за путању впнц-скрипте није успела\n"
 
-#: main.c:728
+#: main.c:730
 #, c-format
 msgid "Override hostname '%s' to '%s'\n"
 msgstr "Преписује назив домаћина „%s“ са „%s“\n"
 
-#: main.c:741
+#: main.c:743
 #, c-format
 msgid "Usage:  openconnect [options] <server>\n"
 msgstr "Употреба:  openconnect [опције] <сервер>\n"
 
-#: main.c:742
+#: main.c:744
 #, c-format
 msgid ""
 "Open client for Cisco AnyConnect VPN, version %s\n"
@@ -2042,303 +2056,307 @@ msgstr ""
 "Отворени клијент за Циско Ени Конект ВПН, издање %s\n"
 "\n"
 
-#: main.c:744
+#: main.c:746
 msgid "Read options from config file"
 msgstr "Чита опције из датотеке подешавања"
 
-#: main.c:746
+#: main.c:748
 msgid "Continue in background after startup"
 msgstr "Наставља у позадини након покретања"
 
-#: main.c:747
+#: main.c:749
 msgid "Write the daemon's PID to this file"
 msgstr "Пише ПИБ позадинца у ову датотеку"
 
-#: main.c:749
+#: main.c:751
 msgid "Use SSL client certificate CERT"
 msgstr "Користи уверење УВЕР ССЛ клијента"
 
-#: main.c:750
+#: main.c:752
 msgid "Warn when certificate lifetime < DAYS"
 msgstr "Упозорава када је животни век уверења < ДАНА"
 
-#: main.c:751
+#: main.c:753
 msgid "Use SSL private key file KEY"
 msgstr "Користи КЉУЧ датотеке личног кључа ССЛ-а"
 
-#: main.c:752
+#: main.c:754
 msgid "Use WebVPN cookie COOKIE"
 msgstr "Користи колачић КОЛАЧИЋ ВебВПН-а"
 
-#: main.c:753
+#: main.c:755
 msgid "Read cookie from standard input"
 msgstr "Чита колачић са стандардног улаза"
 
-#: main.c:754
+#: main.c:756
 msgid "Enable compression (default)"
 msgstr "Укључује сажимање (основно)"
 
-#: main.c:755
+#: main.c:757
 msgid "Disable compression"
 msgstr "Искључује сажимање"
 
-#: main.c:756
+#: main.c:758
 msgid "Set minimum Dead Peer Detection interval"
 msgstr "Подешава најмањи период откривања неактивних парњака"
 
-#: main.c:757
+#: main.c:759
 msgid "Set login usergroup"
 msgstr "Подешава корисничку групу пријављивања"
 
-#: main.c:758
+#: main.c:760
 msgid "Display help text"
 msgstr "Приказује текст помоћи"
 
-#: main.c:759
+#: main.c:761
 msgid "Use IFNAME for tunnel interface"
 msgstr "Користи АКОНАЗИВ за уређај тунела"
 
-#: main.c:761
+#: main.c:763
 msgid "Use syslog for progress messages"
 msgstr "Користи системски дневник за поруке напредовања"
 
-#: main.c:763
+#: main.c:765
 msgid "Prepend timestamp to progress messages"
 msgstr "Додаје датум и време порукама напредовања"
 
-#: main.c:765
+#: main.c:766
+msgid "copy TOS / TCLASS when using DTLS"
+msgstr ""
+
+#: main.c:768
 msgid "Drop privileges after connecting"
 msgstr "Одбацује овлашћења након повезивања"
 
-#: main.c:766
+#: main.c:769
 msgid "Drop privileges during CSD execution"
 msgstr "Одбацује овлашћења за време извршавања ЦСД-а"
 
-#: main.c:767
+#: main.c:770
 msgid "Run SCRIPT instead of CSD binary"
 msgstr "Покреће СКРИПТУ уместо ЦСД извршне"
 
-#: main.c:769
-msgid "Request MTU from server"
-msgstr "Захтева МТУ са сервера"
+#: main.c:772
+msgid "Request MTU from server (legacy servers only)"
+msgstr ""
 
-#: main.c:770
+#: main.c:773
 msgid "Indicate path MTU to/from server"
 msgstr "Указује на МТУ путању до/од сервера"
 
-#: main.c:771
+#: main.c:774
 msgid "Set key passphrase or TPM SRK PIN"
 msgstr "Подешава лозинку кључа или ТПМ СРК ПИН"
 
-#: main.c:772
+#: main.c:775
 msgid "Key passphrase is fsid of file system"
 msgstr "Лозинка кључа је иб система датотека или систем датотека"
 
-#: main.c:773
+#: main.c:776
 msgid "Set proxy server"
 msgstr "Подешава посреднички сервер"
 
-#: main.c:774
+#: main.c:777
 msgid "Set proxy authentication methods"
 msgstr "Подешава начине потврђивања идентитета посредника"
 
-#: main.c:775
+#: main.c:778
 msgid "Disable proxy"
 msgstr "Искључује посредника"
 
-#: main.c:776
+#: main.c:779
 msgid "Use libproxy to automatically configure proxy"
 msgstr "Користи „libproxy“ да самостално подеси посредника"
 
-#: main.c:778
+#: main.c:781
 msgid "(NOTE: libproxy disabled in this build)"
 msgstr "(НАПОМЕНА: „libproxy“ је искључена у овој изградњи)"
 
-#: main.c:780
+#: main.c:783
 msgid "Require perfect forward secrecy"
 msgstr "Захтева савршену тајност прослеђивања"
 
-#: main.c:781
+#: main.c:784
 msgid "Less output"
 msgstr "Мање излаза"
 
-#: main.c:782
+#: main.c:785
 msgid "Set packet queue limit to LEN pkts"
 msgstr "Подешава ограничење реда пакета на ДУЖИНУ пакета"
 
-#: main.c:783
+#: main.c:786
 msgid "Shell command line for using a vpnc-compatible config script"
 msgstr "Линија наредбе шкољке за коришћење впнц-сагласне скрипте подешавања"
 
-#: main.c:784
+#: main.c:787
 msgid "default"
 msgstr "основно"
 
-#: main.c:786
+#: main.c:789
 msgid "Pass traffic to 'script' program, not tun"
 msgstr "Прослеђујем саобраћај програму „script“, а не туну"
 
-#: main.c:788
+#: main.c:791
 msgid "Set login username"
 msgstr "Подешава корисничко име пријављивања"
 
-#: main.c:789
+#: main.c:792
 msgid "Report version number"
 msgstr "Извештава о броју издања"
 
-#: main.c:790
+#: main.c:793
 msgid "More output"
 msgstr "Више излаза"
 
-#: main.c:791
+#: main.c:794
 msgid "Dump HTTP authentication traffic (implies --verbose"
 msgstr ""
 "Исписује саобраћај ХТТП потврђивања идентитета (подразумева „--verbose“)"
 
-#: main.c:792
+#: main.c:795
 msgid "XML config file"
 msgstr "ИксМЛ датотека подешавања"
 
-#: main.c:793
+#: main.c:796
 msgid "Choose authentication login selection"
 msgstr "Бира избор пријаве потврђивања идентитета"
 
-#: main.c:794
+#: main.c:797
 msgid "Authenticate only and print login info"
 msgstr "Само потврђује идентитет и исписује податке о пријави"
 
-#: main.c:795
+#: main.c:798
 msgid "Fetch webvpn cookie only; don't connect"
 msgstr "Само добавља вебвпн колачић; не повезује се"
 
-#: main.c:796
+#: main.c:799
 msgid "Print webvpn cookie before connecting"
 msgstr "Испсиује вебвпн колачић пре повезивања"
 
-#: main.c:797
+#: main.c:800
 msgid "Cert file for server verification"
 msgstr "Датотека уверења за проверу сервера"
 
-#: main.c:798
+#: main.c:801
 msgid "Do not ask for IPv6 connectivity"
 msgstr "Не тражи ИПв6 повезивост"
 
-#: main.c:799
+#: main.c:802
 msgid "OpenSSL ciphers to support for DTLS"
 msgstr "Шифрери ОтвореногССЛ-а за подршку ДТЛС-а"
 
-#: main.c:800
+#: main.c:803
 msgid "Disable DTLS"
 msgstr "Искључује ДТЛС"
 
-#: main.c:801
+#: main.c:804
 msgid "Disable HTTP connection re-use"
 msgstr "Искључује поновно коришћење ХТТП везе"
 
-#: main.c:802
+#: main.c:805
 msgid "Disable password/SecurID authentication"
 msgstr "Искључује потврђивање идентитета лозинком/Безбедним ИБ-ом"
 
-#: main.c:803
+#: main.c:806
 msgid "Do not require server SSL cert to be valid"
 msgstr "Не захтева да ССЛ уверење сервера буде исправно"
 
-#: main.c:804
+#: main.c:807
 msgid "Disable default system certificate authorities"
 msgstr "Искључује основне системске издаваче уверења"
 
-#: main.c:805
+#: main.c:808
 msgid "Do not attempt XML POST authentication"
 msgstr "Не покушава ИксМЛ ПОСТ потврђивање идентитета"
 
-#: main.c:806
+#: main.c:809
 msgid "Do not expect user input; exit if it is required"
 msgstr "Не очекује кориснички унос; излази ако је затражен"
 
-#: main.c:807
+#: main.c:810
 msgid "Read password from standard input"
 msgstr "Чита лозинку са стандардног улаза"
 
-#: main.c:808
+#: main.c:811
 msgid "Software token type: rsa, totp or hotp"
 msgstr "Врста софтверског модула: „rsa“, „totp“ или „hotp“"
 
-#: main.c:809
+#: main.c:812
 msgid "Software token secret"
 msgstr "Тајна софтверског модула"
 
-#: main.c:811
+#: main.c:814
 msgid "(NOTE: libstoken (RSA SecurID) disabled in this build)"
 msgstr "(НАПОМЕНА: „libstoken“ (РСА Безбедни ИБ) је искључена у овој изградњи)"
 
-#: main.c:814
+#: main.c:817
 msgid "(NOTE: Yubikey OATH disabled in this build)"
 msgstr "(НАПОМЕНА: „Yubikey“ ОАТХ је искључен у овој изградњи)"
 
-#: main.c:816
+#: main.c:819
 msgid "Connection retry timeout in seconds"
 msgstr "Временски рок поновног повезивања у секундама"
 
-#: main.c:817
+#: main.c:820
 msgid "Server's certificate SHA1 fingerprint"
 msgstr "СХА1 отисак серверског уверења"
 
-#: main.c:818
+#: main.c:821
 msgid "HTTP header User-Agent: field"
 msgstr "Корисник-Агент ХТТП заглавља: није успело"
 
-#: main.c:819
+#: main.c:822
 msgid "Local hostname to advertise to server"
 msgstr "Назив домаћина за обавештавање сервера"
 
-#: main.c:820
+#: main.c:823
 msgid "Use IP when connecting to HOST"
 msgstr "Користи ИП приликом повезивања са ДОМАЋИНОМ"
 
-#: main.c:821
+#: main.c:824
 msgid "OS type (linux,linux-64,win,...) to report"
 msgstr "Врста оперативног система (linux,linux-64,win,...) за извештавање"
 
-#: main.c:822
+#: main.c:825
 msgid "Set local port for DTLS datagrams"
 msgstr "Подешава месни прикључник за ДТЛС датаграме"
 
-#: main.c:843
+#: main.c:846
 #, c-format
 msgid "Failed to allocate string\n"
 msgstr "Нисам успео да доделим ниску\n"
 
-#: main.c:904
+#: main.c:907
 #, c-format
 msgid "Failed to get line from config file: %s\n"
 msgstr "Нисам успео да добавим ред из датотеке подешавања: %s\n"
 
-#: main.c:944
+#: main.c:947
 #, c-format
 msgid "Unrecognised option at line %d: '%s'\n"
 msgstr "Непозната опција у %d. реду: „%s“\n"
 
-#: main.c:954
+#: main.c:957
 #, c-format
 msgid "Option '%s' does not take an argument at line %d\n"
 msgstr "Опција „%s“ не узима аргумент у %d. реду\n"
 
-#: main.c:958
+#: main.c:961
 #, c-format
 msgid "Option '%s' requires an argument at line %d\n"
 msgstr "Опција „%s“ захтева аргумент у %d. реду\n"
 
-#: main.c:983
+#: main.c:986
 #, c-format
 msgid "Invalid user \"%s\": %s\n"
 msgstr "Неисправан корисник „%s“: %s\n"
 
-#: main.c:993
+#: main.c:996
 #, c-format
 msgid "Invalid user ID \"%d\": %s\n"
 msgstr "Неисправан ИБ корисника „%d“: %s\n"
 
-#: main.c:1045
+#: main.c:1048
 #, c-format
 msgid ""
 "WARNING: This version of openconnect was built without iconv\n"
@@ -2349,7 +2367,7 @@ msgstr ""
 "         подршке али изгледа да користите наслеђени знак\n"
 "         подесите „%s“. Очекујте неочекивано.\n"
 
-#: main.c:1052
+#: main.c:1055
 #, c-format
 msgid ""
 "WARNING: This version of openconnect is %s but\n"
@@ -2358,42 +2376,42 @@ msgstr ""
 "УПОЗОРЕЊЕ: Ово издање „openconnect“-а је %s али\n"
 "         библиотека „libopenconnect“ је %s\n"
 
-#: main.c:1062
+#: main.c:1065
 #, c-format
 msgid "Failed to allocate vpninfo structure\n"
 msgstr "Нисам успео да доделим структуру впнподатака\n"
 
-#: main.c:1117
+#: main.c:1120
 #, c-format
 msgid "Cannot use 'config' option inside config file\n"
 msgstr "Не можете користити опцију „config“ унутар датотеке подешавања\n"
 
-#: main.c:1125
+#: main.c:1128
 #, c-format
 msgid "Cannot open config file '%s': %s\n"
 msgstr "Не могу да отворим датотеку подешавања „%s“: %s\n"
 
-#: main.c:1141
+#: main.c:1144
 #, c-format
 msgid "Invalid compression mode '%s'\n"
 msgstr "Неисправан режим запакивања „%s“\n"
 
-#: main.c:1162
+#: main.c:1165
 #, c-format
 msgid "Missing colon in resolve option\n"
 msgstr "Недостаје двотачка у опцији решавања\n"
 
-#: main.c:1167
+#: main.c:1170
 #, c-format
 msgid "Failed to allocate memory\n"
 msgstr "Нисам успео да доделим меморију\n"
 
-#: main.c:1247 main.c:1256
+#: main.c:1250 main.c:1259
 #, c-format
 msgid "MTU %d too small\n"
 msgstr "МТУ %d је премало\n"
 
-#: main.c:1286
+#: main.c:1289
 #, c-format
 msgid ""
 "Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
@@ -2404,126 +2422,126 @@ msgstr ""
 "Ако ово помогне, известите о томе на „<openconnect-devel@lists.infradead."
 "org>“.\n"
 
-#: main.c:1306
+#: main.c:1309
 #, c-format
 msgid "Queue length zero not permitted; using 1\n"
 msgstr "Нулта дужина реда није дозвољена; користим 1\n"
 
-#: main.c:1320
+#: main.c:1323
 #, c-format
 msgid "OpenConnect version %s\n"
 msgstr "Отворено повезивање издање %s\n"
 
-#: main.c:1353
+#: main.c:1356
 #, c-format
 msgid "Invalid software token mode \"%s\"\n"
 msgstr "Неисправан режим софтверског модула „%s“\n"
 
-#: main.c:1363
+#: main.c:1366
 #, c-format
 msgid "Invalid OS identity \"%s\"\n"
 msgstr "Неисправан одредник ОС-а „%s“\n"
 
-#: main.c:1393
+#: main.c:1399
 #, c-format
 msgid "Too many arguments on command line\n"
 msgstr "Превише аргумената на линији наредби\n"
 
-#: main.c:1396
+#: main.c:1402
 #, c-format
 msgid "No server specified\n"
 msgstr "Није наведен сервер\n"
 
-#: main.c:1412
+#: main.c:1418
 #, c-format
 msgid "This version of openconnect was built without libproxy support\n"
 msgstr ""
 "Ово издање отвореног повезивања је изграђено без подршке библиотеке "
 "посредника\n"
 
-#: main.c:1441
+#: main.c:1447
 #, c-format
 msgid "Error opening cmd pipe\n"
 msgstr "Грешка отварања спојке наредбе\n"
 
-#: main.c:1474
+#: main.c:1480
 #, c-format
 msgid "Failed to obtain WebVPN cookie\n"
 msgstr "Нисам успео да добијем ВебВПН колачић\n"
 
-#: main.c:1495
+#: main.c:1501
 #, c-format
 msgid "Creating SSL connection failed\n"
 msgstr "Није успело стварање ССЛ везе\n"
 
-#: main.c:1507
+#: main.c:1513
 #, c-format
 msgid "Set up DTLS failed; using SSL instead\n"
 msgstr "Није успело подешавање ДТЛС-а; користим ССЛ\n"
 
-#: main.c:1527
+#: main.c:1533
 #, c-format
 msgid "Connected as %s%s%s, using %s%s\n"
 msgstr "Повезан сам као %s%s%s, користим „%s%s“\n"
 
-#: main.c:1536
+#: main.c:1542
 msgid "No --script argument provided; DNS and routing are not configured\n"
 msgstr "Није достављен аргумент „--script“; ДНС и упућивање нису подешени\n"
 
-#: main.c:1538
+#: main.c:1544
 msgid "See http://www.infradead.org/openconnect/vpnc-script.html\n"
 msgstr "Погледајте „http://www.infradead.org/openconnect/vpnc-script.html“\n"
 
-#: main.c:1551
+#: main.c:1557
 #, c-format
 msgid "Failed to open '%s' for write: %s\n"
 msgstr "Нисам успео да отворим „%s“ ради уписа: %s\n"
 
-#: main.c:1563
+#: main.c:1569
 #, c-format
 msgid "Continuing in background; pid %d\n"
 msgstr "Настављам рад у позадини, пиб %d\n"
 
-#: main.c:1580
+#: main.c:1586
 msgid "User requested reconnect\n"
 msgstr "Корисник је затражио поновно повезивање\n"
 
-#: main.c:1588
+#: main.c:1594
 msgid "Cookie was rejected on reconnection; exiting.\n"
 msgstr "Колачић је одбачен при поновном повезивању; излазим.\n"
 
-#: main.c:1592
+#: main.c:1598
 msgid "Session terminated by server; exiting.\n"
 msgstr "Сервер је окончао сесију; излазим.\n"
 
-#: main.c:1596
+#: main.c:1602
 msgid "User cancelled (SIGINT); exiting.\n"
 msgstr "Корисник је отказао (SIGINT); излазим.\n"
 
-#: main.c:1600
+#: main.c:1606
 msgid "User detached from session (SIGHUP); exiting.\n"
 msgstr "Корисник се откачио са сесије (SIGHUP); излазим.\n"
 
-#: main.c:1604
+#: main.c:1610
 msgid "Unknown error; exiting.\n"
 msgstr "Непозната грешка; излазим.\n"
 
-#: main.c:1623
+#: main.c:1629
 #, c-format
 msgid "Failed to open %s for write: %s\n"
 msgstr "Нисам успео да отворим „%s“ ради уписа: %s\n"
 
-#: main.c:1631
+#: main.c:1637
 #, c-format
 msgid "Failed to write config to %s: %s\n"
 msgstr "Нисам успео да упишем подешавања у „%s“: %s\n"
 
-#: main.c:1690
+#: main.c:1696
 #, c-format
 msgid "Server SSL certificate didn't match: %s\n"
 msgstr "Серверско ССЛ уверење не одговара: %s\n"
 
-#: main.c:1712
+#: main.c:1718
 #, c-format
 msgid ""
 "\n"
@@ -2534,90 +2552,90 @@ msgstr ""
 "Није успело потврђивање уверења са ВПН сервера „%s“.\n"
 "Разлог: %s\n"
 
-#: main.c:1718
+#: main.c:1724
 #, c-format
 msgid "Enter '%s' to accept, '%s' to abort; anything else to view: "
 msgstr ""
 "Унесите „%s“ да прихватите, „%s“ да прекинете; било шта друго да прегледате: "
 
-#: main.c:1719 main.c:1737
+#: main.c:1725 main.c:1743
 msgid "no"
 msgstr "не"
 
-#: main.c:1719 main.c:1725
+#: main.c:1725 main.c:1731
 msgid "yes"
 msgstr "да"
 
-#: main.c:1746
+#: main.c:1752
 #, c-format
 msgid "Server key hash: %s\n"
 msgstr "Хеш серверског кључа: %s\n"
 
-#: main.c:1780
+#: main.c:1786
 #, c-format
 msgid "Auth choice \"%s\" matches multiple options\n"
 msgstr "Избор потврђивања идентитета „%s“ се поклапа са више опција\n"
 
-#: main.c:1783
+#: main.c:1789
 #, c-format
 msgid "Auth choice \"%s\" not available\n"
 msgstr "Избор потврђивања „%s“ није доступан\n"
 
-#: main.c:1804
+#: main.c:1810
 msgid "User input required in non-interactive mode\n"
 msgstr "Кориснички улаз је затражен у немеђудејственом режиму\n"
 
-#: main.c:1981
+#: main.c:1987
 #, c-format
 msgid "Failed to open token file for write: %s\n"
 msgstr "Нисам успео да отворим датотеку модула ради уписа: %s\n"
 
-#: main.c:1989
+#: main.c:1995
 #, c-format
 msgid "Failed to write token: %s\n"
 msgstr "Нисам успео да запишем модул: %s\n"
 
-#: main.c:2035 main.c:2056
+#: main.c:2041 main.c:2062
 #, c-format
 msgid "Soft token string is invalid\n"
 msgstr "Ниска софтверског модула је неисправна\n"
 
-#: main.c:2038
+#: main.c:2044
 #, c-format
 msgid "Can't open ~/.stokenrc file\n"
 msgstr "Не могу да отворим датотеку „~/.stokenrc“\n"
 
-#: main.c:2041
+#: main.c:2047
 #, c-format
 msgid "OpenConnect was not built with libstoken support\n"
 msgstr "Отворено повезивање није изграђено са подршком „libstoken“-а\n"
 
-#: main.c:2044
+#: main.c:2050
 #, c-format
 msgid "General failure in libstoken\n"
 msgstr "Општи неуспех у „libstoken“-у\n"
 
-#: main.c:2059
+#: main.c:2065
 #, c-format
 msgid "OpenConnect was not built with liboath support\n"
 msgstr "Отворено повезивање није изграђено са подршком „liboath“-а\n"
 
-#: main.c:2062
+#: main.c:2068
 #, c-format
 msgid "General failure in liboath\n"
 msgstr "Општи неуспех у „liboath“-у\n"
 
-#: main.c:2073
+#: main.c:2079
 #, c-format
 msgid "Yubikey token not found\n"
 msgstr "Нисам нашао модул Јуби кључа\n"
 
-#: main.c:2076
+#: main.c:2082
 #, c-format
 msgid "OpenConnect was not built with Yubikey support\n"
 msgstr "Отворено повезивање није изграђено са подршком Јуби кључа\n"
 
-#: main.c:2079
+#: main.c:2085
 #, c-format
 msgid "General Yubikey failure: %s\n"
 msgstr "Општи неуспех Јуби кључа: %s\n"
@@ -2968,7 +2986,7 @@ msgstr "Одлазни пакет:\n"
 msgid "Sent ESP enable control packet\n"
 msgstr "Послах контролни пакет ЕСП укључивања\n"
 
-#: openconnect-internal.h:1034 openconnect-internal.h:1042
+#: openconnect-internal.h:1045 openconnect-internal.h:1053
 #, c-format
 msgid "ERROR: %s() called with invalid UTF-8 for '%s' argument\n"
 msgstr "ГРЕШКА: „%s()“ је позвано са неисправним УТФ-8 за аргумент „%s“\n"
@@ -3063,7 +3081,7 @@ msgstr "Пријављујем се на ПКЦС#11 прикључак „%s“
 msgid "Certificate X.509 content not fetched by libp11\n"
 msgstr "либп11 није довукла садржај Х.509 уверења\n"
 
-#: openssl-pkcs11.c:393 openssl.c:694
+#: openssl-pkcs11.c:393 openssl.c:696
 msgid "Failed to install certificate in OpenSSL context\n"
 msgstr "Нисам успео да инсталирам уверење у ОпенССЛ контекст\n"
 
@@ -3119,202 +3137,202 @@ msgstr "Непозната врста захтева КС ССЛ-а %d\n"
 msgid "PEM password too long (%d >= %d)\n"
 msgstr "ПЕМ лозинка је предуга (%d >= %d)\n"
 
-#: openssl.c:485
+#: openssl.c:487
 #, c-format
 msgid "Extra cert from %s: '%s'\n"
 msgstr "Додатно уверење из „%s“: %s\n"
 
-#: openssl.c:535
+#: openssl.c:537
 msgid "Parse PKCS#12 failed (see above errors)\n"
 msgstr "Није успела обрада ПКЦС#12 (видите грешке изнад)\n"
 
-#: openssl.c:550
+#: openssl.c:552
 msgid "PKCS#12 contained no certificate!\n"
 msgstr "ПКЦС#12 не садржи уверење!\n"
 
-#: openssl.c:559
+#: openssl.c:561
 msgid "PKCS#12 contained no private key!\n"
 msgstr "ПКЦС#12 не садржи лични кључ!\n"
 
-#: openssl.c:564
+#: openssl.c:566
 msgid "PKCS#12"
 msgstr "ПКЦС#12"
 
-#: openssl.c:582
+#: openssl.c:584
 msgid "Can't load TPM engine.\n"
 msgstr "Не могу да учитам ТПМ погон.\n"
 
-#: openssl.c:588
+#: openssl.c:590
 msgid "Failed to init TPM engine\n"
 msgstr "Нисам успео да покренем ТПМ погон\n"
 
-#: openssl.c:598
+#: openssl.c:600
 msgid "Failed to set TPM SRK password\n"
 msgstr "Нисам успео да подесим ТПМ СРК лозинку\n"
 
-#: openssl.c:612
+#: openssl.c:614
 msgid "Failed to load TPM private key\n"
 msgstr "Нисам успео да учитам ТПМ лични кључ\n"
 
-#: openssl.c:618
+#: openssl.c:620
 msgid "Add key from TPM failed\n"
 msgstr "Додавање кључа из ТПМ-а није успело\n"
 
-#: openssl.c:668 openssl.c:815
+#: openssl.c:670 openssl.c:817
 #, c-format
 msgid "Failed to open certificate file %s: %s\n"
 msgstr "Нисам успео да отворим датотеку уверења „%s“: %s\n"
 
-#: openssl.c:678
+#: openssl.c:680
 msgid "Loading certificate failed\n"
 msgstr "Нисам успео да учитам уверење\n"
 
-#: openssl.c:716
+#: openssl.c:718
 msgid "Failed to process all supporting certs. Trying anyway...\n"
 msgstr "Нисам успео да обрадим сва подржавајућа уверења. Ипак покушавам...\n"
 
-#: openssl.c:729
+#: openssl.c:731
 msgid "PEM file"
 msgstr "ПЕМ датотека"
 
-#: openssl.c:758
+#: openssl.c:760
 #, c-format
 msgid "Failed to create BIO for keystore item '%s'\n"
 msgstr "Нисам успео да направим БИО за ставку смештаја кључева „%s“\n"
 
-#: openssl.c:783
+#: openssl.c:785
 msgid "Loading private key failed (wrong passphrase?)\n"
 msgstr "Учитавање личног кључа није успело (погрешна лозинка?)\n"
 
-#: openssl.c:789
+#: openssl.c:791
 msgid "Loading private key failed (see above errors)\n"
 msgstr "Учитавање личног кључа није успело (видите грешке изнад)\n"
 
-#: openssl.c:838
+#: openssl.c:840
 msgid "Failed to load X509 certificate from keystore\n"
 msgstr "Нисам успео да учитам Х509 уверење из смештаја кључа\n"
 
-#: openssl.c:844
+#: openssl.c:846
 msgid "Failed to use X509 certificate from keystore\n"
 msgstr "Нисам успео да користим Х509 уверење из смештаја кључа\n"
 
-#: openssl.c:876
+#: openssl.c:878
 msgid "Failed to use private key from keystore\n"
 msgstr "Нисам успео да користим лични кључ из смештаја кључа\n"
 
-#: openssl.c:892
+#: openssl.c:894
 #, c-format
 msgid "Failed to open private key file %s: %s\n"
 msgstr "Нисам успео да отворим датотеку личног кључа „%s“: %s\n"
 
-#: openssl.c:911
+#: openssl.c:913
 msgid "Loading private key failed\n"
 msgstr "Учитавање личног кључа није успело\n"
 
-#: openssl.c:995
+#: openssl.c:997
 msgid "Failed to convert PKCS#8 to OpenSSL EVP_PKEY\n"
-msgstr ""
+msgstr "Нисам успео да претворим ПКЦС#8 у ОпенССЛ ЕВП_ПКЉУЧ\n"
 
-#: openssl.c:1006
+#: openssl.c:1008
 #, c-format
 msgid "Failed to identify private key type in '%s'\n"
 msgstr "Нисам успео да одредим врсту личног кључа у „%s“\n"
 
-#: openssl.c:1168
+#: openssl.c:1170
 #, c-format
 msgid "Matched DNS altname '%s'\n"
 msgstr "Поклопих ДНС заменски назив „%s“\n"
 
-#: openssl.c:1175
+#: openssl.c:1177
 #, c-format
 msgid "No match for altname '%s'\n"
 msgstr "Нема поклапања за заменски назив „%s“\n"
 
-#: openssl.c:1189
+#: openssl.c:1191
 #, c-format
 msgid "Certificate has GEN_IPADD altname with bogus length %d\n"
 msgstr "Уверење има заменски назив „GEN_IPADD“ са привидном дужином %d\n"
 
-#: openssl.c:1200 openssl.c:1345
+#: openssl.c:1202 openssl.c:1347
 #, c-format
 msgid "Matched %s address '%s'\n"
 msgstr "Поклопљена је %s адреса „%s“\n"
 
-#: openssl.c:1207
+#: openssl.c:1209
 #, c-format
 msgid "No match for %s address '%s'\n"
 msgstr "Нема поклапања за %s адресу „%s“\n"
 
-#: openssl.c:1249
+#: openssl.c:1251
 #, c-format
 msgid "URI '%s' has non-empty path; ignoring\n"
 msgstr "Путања „%s“ има не-празну путању; занемарујем\n"
 
-#: openssl.c:1254
+#: openssl.c:1256
 #, c-format
 msgid "Matched URI '%s'\n"
 msgstr "Одговарајућа путања „%s“\n"
 
-#: openssl.c:1265
+#: openssl.c:1267
 #, c-format
 msgid "No match for URI '%s'\n"
 msgstr "Нема поклапања за путању „%s“\n"
 
-#: openssl.c:1280
+#: openssl.c:1282
 #, c-format
 msgid "No altname in peer cert matched '%s'\n"
 msgstr "Нема одговарајућег заменског назива у уверењу парњака „%s“\n"
 
-#: openssl.c:1288
+#: openssl.c:1290
 msgid "No subject name in peer cert!\n"
 msgstr "Нема назива теме у уверењу парњака!\n"
 
-#: openssl.c:1308
+#: openssl.c:1310
 msgid "Failed to parse subject name in peer cert\n"
 msgstr "Нисам успео да обрадим назив теме у уверењу парњака\n"
 
-#: openssl.c:1315
+#: openssl.c:1317
 #, c-format
 msgid "Peer cert subject mismatch ('%s' != '%s')\n"
 msgstr "Тема уверења парњака не одговара ('%s' != '%s')\n"
 
-#: openssl.c:1320 openssl.c:1353
+#: openssl.c:1322 openssl.c:1355
 #, c-format
 msgid "Matched peer certificate subject name '%s'\n"
 msgstr "Одговарајући назив теме уверења парњака „%s“\n"
 
-#: openssl.c:1415
+#: openssl.c:1417
 #, c-format
 msgid "Extra cert from cafile: '%s'\n"
 msgstr "Додатно уверење из датотеке издавача уверења: %s\n"
 
-#: openssl.c:1553
+#: openssl.c:1555
 msgid "Error in client cert notAfter field\n"
 msgstr "Грешка у пољу није_након у уверењу клијента\n"
 
-#: openssl.c:1566
+#: openssl.c:1568
 msgid "<error>"
 msgstr "<грешка>"
 
-#: openssl.c:1618
+#: openssl.c:1620
 msgid "Create TLSv1 CTX failed\n"
-msgstr ""
+msgstr "Стварање ТЛСв1 ЦТИкс-а није успело\n"
 
-#: openssl.c:1673
+#: openssl.c:1675
 #, c-format
 msgid "Failed to read certs from CA file '%s'\n"
 msgstr "Нисам успео да прочитам уверења из датотеке издавача уверења „%s“\n"
 
-#: openssl.c:1706
+#: openssl.c:1708
 #, c-format
 msgid "Failed to open CA file '%s'\n"
 msgstr "Нисам успео да отворим датотеку издавача уверења „%s“\n"
 
-#: openssl.c:1766
+#: openssl.c:1768
 msgid "SSL connection failure\n"
 msgstr "Неуспех ССЛ везе\n"
 
-#: openssl.c:1927
+#: openssl.c:1929
 msgid "Failed to calculate OATH HMAC\n"
 msgstr "Нисам успео да израчунам ОАТХ ХМАЦ\n"
 
@@ -3479,34 +3497,34 @@ msgstr "Непозната грешка"
 msgid "openconnect_fopen_utf8() used with unsupported mode '%s'\n"
 msgstr "„openconnect_fopen_utf8()“ је коришћено са неподржаним режимом „%s“\n"
 
-#: ssl.c:916
+#: ssl.c:920
 #, c-format
 msgid "Unknown protocol family %d. Cannot create UDP server address\n"
 msgstr ""
 "Непозната породица протокола %d. Не могу да направим адресу УДП сервера\n"
 
-#: ssl.c:930
+#: ssl.c:939
 msgid "Open UDP socket"
 msgstr "Отварам УДП прикључницу"
 
-#: ssl.c:961
+#: ssl.c:970
 #, c-format
 msgid "Unknown protocol family %d. Cannot use UDP transport\n"
 msgstr "Непозната породица протокола %d. Не могу да користим УДП пренос\n"
 
-#: ssl.c:969
+#: ssl.c:978
 msgid "Bind UDP socket"
 msgstr "Свезујем УДП прикључницу"
 
-#: ssl.c:976
+#: ssl.c:985
 msgid "Connect UDP socket\n"
 msgstr "Повезујем УДП прикључницу\n"
 
-#: ssl.c:1009
+#: ssl.c:1018
 msgid "Cookie is no longer valid, ending session\n"
 msgstr "Колачић није више исправан, завршавам сесију\n"
 
-#: ssl.c:1013
+#: ssl.c:1022
 #, c-format
 msgid "sleep %ds, remaining timeout %ds\n"
 msgstr "спавам %d сек., преостало време истека %d сек.\n"
@@ -3849,11 +3867,6 @@ msgstr "execl"
 msgid "(script)"
 msgstr "(скрипта)"
 
-#: tun.c:541
-#, c-format
-msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
-msgstr "Примљен је непознат пакет (дужине %d): %02x %02x %02x %02x...\n"
-
 #: tun.c:566
 #, c-format
 msgid "Failed to write incoming packet: %s\n"
@@ -4030,3 +4043,6 @@ msgstr "наредба израчунавања"
 #: yubikey.c:608
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr "Непознат одговор са Јуби кључа приликом стварања кода модула\n"
+
+#~ msgid "Request MTU from server"
+#~ msgstr "Захтева МТУ са сервера"
