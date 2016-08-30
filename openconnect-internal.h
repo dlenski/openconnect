@@ -330,7 +330,7 @@ struct esp {
 	EVP_CIPHER_CTX *cipher;
 #endif
 	uint64_t seq_backlog;
-	uint32_t seq;
+	uint64_t seq;
 	uint32_t spi; /* Stored network-endian */
 	unsigned char secrets[0x40];
 };

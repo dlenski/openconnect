@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <stdint.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <errno.h>
 
@@ -48,15 +49,20 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 	if (seq == esp->seq) {
 		/* The common case. This is the packet we expected next. */
 		esp->seq_backlog <<= 1;
+
+		/* This might reach a value higher than the 32-bit ESP sequence
+		 * numbers can actually reach. Which is fine. When that
+		 * happens, we'll do the right thing. someone needs to start
+		 * a new epoch. */
 		esp->seq++;
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("Accepting expected ESP packet with seq %u\n"),
 			     seq);
 		return 0;
-	} else if (esp->seq > 65 && seq < esp->seq - 65) {
+	} else if ((uint64_t)seq + 65 < esp->seq) {
 		/* Too old. We can't know if it's a replay. */
 		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("Discarding ancient ESP packet with seq %u (expected %u)\n"),
+			     _("Discarding ancient ESP packet with seq %u (expected %" PRIu64 ")\n"),
 			     seq, esp->seq);
 		return -EINVAL;
 	} else if (seq < esp->seq) {
@@ -65,7 +71,7 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 
 		if (esp->seq_backlog & mask) {
 			vpn_progress(vpninfo, PRG_TRACE,
-				     _("Accepting out-of-order ESP packet with seq %u (expected %u)\n"),
+				     _("Accepting out-of-order ESP packet with seq %u (expected %" PRIu64 ")\n"),
 				     seq, esp->seq);
 			esp->seq_backlog &= ~mask;
 			return 0;
@@ -100,9 +106,9 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 			esp->seq_backlog |= (1ULL<<delta) - 1;
 		}
 		vpn_progress(vpninfo, PRG_TRACE,
-			     _("Accepting later-than-expected ESP packet with seq %u (expected %u)\n"),
+			     _("Accepting later-than-expected ESP packet with seq %u (expected %" PRIu64 ")\n"),
 			     seq, esp->seq);
-		esp->seq = seq + 1;
+		esp->seq = (uint64_t)seq + 1;
 		return 0;
 	}
 }
