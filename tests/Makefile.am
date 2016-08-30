@@ -5,12 +5,12 @@ USER_KEYS = \
 	$(srcdir)/certs/user-key-pkcs8-pbes1-sha1-3des.pem $(srcdir)/certs/user-key-pkcs8-pbes1-sha1-3des.der \
 	$(srcdir)/certs/user-key-pkcs8-pbes2-sha1.pem $(srcdir)/certs/user-key-pkcs8-pbes2-sha1.der \
 	$(srcdir)/certs/user-key-sha1-3des-sha1.p12 $(srcdir)/certs/user-key-sha1-3des-sha256.p12 \
-	$(srcdir)/certs/user-key-aes256-cbc-sha256.p12 \
-	$(srcdir)/certs/user-key-aes256-cbc-md5-des-sha256.p12
+	$(srcdir)/certs/user-key-aes256-cbc-sha256.p12
 
 # We know GnuTLS doesn't support these for now. https://bugzilla.redhat.com/1369484
 if OPENCONNECT_OPENSSL
 USER_KEYS += $(srcdir)/certs/user-key-md5-des-sha1.p12
+USER_KEYS += $(srcdir)/certs/user-key-aes256-cbc-md5-des-sha256.p12
 USER_KEYS += $(srcdir)/certs/user-key-pkcs8-pbes2-sha256.pem $(srcdir)/certs/user-key-pkcs8-pbes2-sha256.der
 USER_KEYS += $(srcdir)/certs/user-key-pkcs8-pbes1-md5-des.pem $(srcdir)/certs/user-key-pkcs8-pbes1-md5-des.der
 endif
