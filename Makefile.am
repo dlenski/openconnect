@@ -37,7 +37,7 @@ lib_srcs_yubikey = yubikey.c
 lib_srcs_stoken = stoken.c
 
 POTFILES = $(openconnect_SOURCES) $(lib_srcs_cisco) $(lib_srcs_juniper) \
-	   gnutls-esp.c openssl-esp.c esp.c \
+	   gnutls-esp.c openssl-esp.c esp.c esp-seqno.c \
 	   $(lib_srcs_openssl) $(lib_srcs_gnutls) $(library_srcs) \
 	   $(lib_srcs_win32) $(lib_srcs_posix) $(lib_srcs_gssapi) $(lib_srcs_iconv) \
 	   $(lib_srcs_oath) $(lib_srcs_yubikey) $(lib_srcs_stoken) openconnect-internal.h
@@ -56,10 +56,10 @@ if OPENCONNECT_GNUTLS
 library_srcs += $(lib_srcs_gnutls)
 endif
 if ESP_GNUTLS
-lib_srcs_juniper += gnutls-esp.c esp.c
+lib_srcs_juniper += gnutls-esp.c esp.c esp-seqno.c
 endif
 if ESP_OPENSSL
-lib_srcs_juniper += openssl-esp.c esp.c
+lib_srcs_juniper += openssl-esp.c esp.c esp-seqno.c
 endif
 if OPENCONNECT_OPENSSL
 library_srcs += $(lib_srcs_openssl)
