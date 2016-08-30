@@ -535,7 +535,7 @@ static struct oc_auth_form *parse_roles_table_node(xmlNodePtr node)
 
 static struct oc_auth_form *parse_roles_form_node(xmlNodePtr node)
 {
-	struct oc_auth_form *form;
+	struct oc_auth_form *form = NULL;
 	xmlNodePtr child;
 
 	// Set form->action here as a redirect url with keys and ids.
@@ -551,12 +551,12 @@ static struct oc_auth_form *parse_roles_form_node(xmlNodePtr node)
 				free(table_id);
 
 				if (form)
-					return form;
+					break;
 			}
 		}
 	}
 
-	return NULL;
+	return form;
 }
 
 int oncp_obtain_cookie(struct openconnect_info *vpninfo)
