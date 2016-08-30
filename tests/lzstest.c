@@ -44,25 +44,14 @@ int main(void)
 
 	srand(0xdeadbeef);
 
-	/* Just because we're lazy and fill the buffer three bytes at a time. */
-	if (RAND_MAX < 0x1000000) {
-		fprintf(stderr, "RAND_MAX 0x%x is smaller than we expect\n", RAND_MAX);
-		exit(1);
-	}
-
 	for (i = 0; i < NR_PKTS; i++) {
 		if (i)
-			pktlen = (random() % MAX_PKT) + 1;
+			pktlen = (rand() % MAX_PKT) + 1;
 		else
 			pktlen = MAX_PKT;
 
-		for (j = 0; j < pktlen; j+= 3) {
-			int r = rand();
-#if __BYTE_ORDER == __BIG_ENDIAN
-			r <<= 8;
-#endif
-			*(int *)(pktbuf + j) = r;
-		}
+		for (j = 0; j < pktlen; j++)
+			pktbuf[j] = rand();
 
 		ret = lzs_compress(comprbuf, sizeof(comprbuf), pktbuf, pktlen);
 		if (ret < 0) {
