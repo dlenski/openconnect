@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: F 677-CF0E\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2016-08-27 21:30+0100\n"
+"POT-Creation-Date: 2016-08-30 21:03+0100\n"
 "PO-Revision-Date: 2011-05-15 20:01+0200\n"
 "Last-Translator: Miroslav Nikolić <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <gnom@prevod.org>\n"
@@ -454,7 +454,7 @@ msgstr "Primih %s zapakovani paket podataka od %d bajta (beše %d)\n"
 msgid "deflate failed %d\n"
 msgstr "izduvavanje nije uspelo %d\n"
 
-#: cstp.c:860 dtls.c:887 dtls.c:1357 esp.c:255 mainloop.c:67 oncp.c:931
+#: cstp.c:860 dtls.c:887 dtls.c:1357 esp.c:171 mainloop.c:67 oncp.c:931
 msgid "Allocation failed\n"
 msgstr "Nije uspela raspodela\n"
 
@@ -834,126 +834,128 @@ msgstr "Otrio sam MTU od %d bajta (beše %d)\n"
 msgid "No change in MTU after detection (was %d)\n"
 msgstr "Nema promene u MTU nakon otkrivanja (beše %d)\n"
 
-#: esp.c:57
+#: esp-seqno.c:59
 #, c-format
 msgid "Accepting expected ESP packet with seq %u\n"
 msgstr "Prihvatam očekivani ESP paket sa nizom %u\n"
 
-#: esp.c:63
+#: esp-seqno.c:65
 #, c-format
 msgid "Discarding ancient ESP packet with seq %u (expected %<PRIu64>)\n"
 msgstr "Odbacujem stari ESP paket sa nizom %u (očekivah %<PRIu64>)\n"
 
-#: esp.c:72
+#: esp-seqno.c:74
 #, c-format
 msgid "Accepting out-of-order ESP packet with seq %u (expected %<PRIu64>)\n"
 msgstr "Prihvatam ESP paket bez najave sa nizom %u (očekivah %<PRIu64>)\n"
 
-#: esp.c:78
+#: esp-seqno.c:80
 #, c-format
 msgid "Discarding replayed ESP packet with seq %u\n"
 msgstr "Odbacujem odgovoreni ESP paket sa nizom %u\n"
 
-#: esp.c:107
+#: esp-seqno.c:109
 #, c-format
-msgid "Accepting later-than-expected ESP packet with seq %u (expected %<PRIu64>)\n"
-msgstr "Prihvatam ESP paket kasnije-nego-očekivano sa nizom %u (očekivah %<PRIu64>)\n"
+msgid ""
+"Accepting later-than-expected ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr ""
+"Prihvatam ESP paket kasnije-nego-očekivano sa nizom %u (očekivah %<PRIu64>)\n"
 
-#: esp.c:152
+#: esp.c:68
 #, c-format
 msgid "Parameters for %s ESP: SPI 0x%08x\n"
 msgstr "Parametri za %s ESP: SPI 0x%08x\n"
 
-#: esp.c:155
+#: esp.c:71
 #, c-format
 msgid "ESP encryption type %s key 0x%s\n"
 msgstr "Vrsta „%s“ ESP šifrovanja ključ 0x%s\n"
 
-#: esp.c:158
+#: esp.c:74
 #, c-format
 msgid "ESP authentication type %s key 0x%s\n"
 msgstr "Vrsta „%s“ ESP prijavljivanja ključ 0x%s\n"
 
-#: esp.c:217
+#: esp.c:133
 msgid "incoming"
 msgstr "dolazno"
 
-#: esp.c:218
+#: esp.c:134
 msgid "outgoing"
 msgstr "odlazno"
 
-#: esp.c:220 esp.c:237
+#: esp.c:136 esp.c:153
 msgid "Send ESP probes\n"
 msgstr "Poslah ESP probe\n"
 
-#: esp.c:264
+#: esp.c:180
 #, c-format
 msgid "Received ESP packet of %d bytes\n"
 msgstr "Primih ESP paket od %d bajta\n"
 
-#: esp.c:280
+#: esp.c:196
 #, c-format
 msgid "Consider SPI 0x%x, seq %u against outgoing ESP setup\n"
 msgstr "Razmatram SPI 0x%x, niz %u naspram odlaznog podešavanja ESP\n"
 
-#: esp.c:286
+#: esp.c:202
 #, c-format
 msgid "Received ESP packet with invalid SPI 0x%08x\n"
 msgstr "Primih ESP paket sa neispravnim SPI-em 0x%08x\n"
 
-#: esp.c:294
+#: esp.c:210
 #, c-format
 msgid "Received ESP packet with unrecognised payload type %02x\n"
 msgstr "Primih ESP paket sa nepoznatom vrstom utovara %02x\n"
 
-#: esp.c:301
+#: esp.c:217
 #, c-format
 msgid "Invalid padding length %02x in ESP\n"
 msgstr "Neispravna dužina popune %02x U ESP-u\n"
 
-#: esp.c:313
+#: esp.c:229
 msgid "Invalid padding bytes in ESP\n"
 msgstr "Neispravni bitovi popune U ESP-u\n"
 
-#: esp.c:321
+#: esp.c:237
 msgid "ESP session established with server\n"
 msgstr "ESP sesija je uspostavljena sa serverom\n"
 
-#: esp.c:332
+#: esp.c:248
 msgid "Failed to allocate memory to decrypt ESP packet\n"
 msgstr "Nisam uspeo da dodelim memoriju za dešifrovanje ESP paketa\n"
 
-#: esp.c:338
+#: esp.c:254
 msgid "LZO decompression of ESP packet failed\n"
 msgstr "LZO raspakivanje ESP paketa nije uspelo\n"
 
-#: esp.c:344
+#: esp.c:260
 #, c-format
 msgid "LZO decompressed %d bytes into %d\n"
 msgstr "LZO je raspakovao %d bajta u %d\n"
 
-#: esp.c:358
+#: esp.c:274
 msgid "Rekey not implemented for ESP\n"
 msgstr "Ponovno stvaranje ključa nije primenjeno za ESP\n"
 
-#: esp.c:362
+#: esp.c:278
 msgid "ESP detected dead peer\n"
 msgstr "ESP je otkrio mrtvog parnjaka\n"
 
-#: esp.c:369
+#: esp.c:285
 msgid "Send ESP probes for DPD\n"
 msgstr "Poslah ESP probe za DPD\n"
 
-#: esp.c:375
+#: esp.c:291
 msgid "Keepalive not implemented for ESP\n"
 msgstr "Održi živim nije primenjeno za ESP\n"
 
-#: esp.c:398
+#: esp.c:314
 #, c-format
 msgid "Failed to send ESP packet: %s\n"
 msgstr "Nisam uspeo da pošaljem ESP paket: %s\n"
 
-#: esp.c:404
+#: esp.c:320
 #, c-format
 msgid "Sent ESP packet of %d bytes\n"
 msgstr "Poslah ESP paket od %d bajta\n"
@@ -2994,7 +2996,7 @@ msgstr "Odlazni paket:\n"
 msgid "Sent ESP enable control packet\n"
 msgstr "Poslah kontrolni paket ESP uključivanja\n"
 
-#: openconnect-internal.h:1045 openconnect-internal.h:1053
+#: openconnect-internal.h:1046 openconnect-internal.h:1054
 #, c-format
 msgid "ERROR: %s() called with invalid UTF-8 for '%s' argument\n"
 msgstr "GREŠKA: „%s()“ je pozvano sa neispravnim UTF-8 za argument „%s“\n"
@@ -4052,6 +4054,3 @@ msgstr "naredba izračunavanja"
 #: yubikey.c:608
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr "Nepoznat odgovor sa Jubi ključa prilikom stvaranja koda modula\n"
-
-#~ msgid "Request MTU from server"
-#~ msgstr "Zahteva MTU sa servera"

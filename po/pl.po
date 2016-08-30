@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2016-08-27 21:30+0100\n"
+"POT-Creation-Date: 2016-08-30 21:03+0100\n"
 "PO-Revision-Date: 2011-09-22 22:31+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Polish (http://www.transifex.net/projects/p/meego/team/pl/)\n"
@@ -459,7 +459,7 @@ msgstr ""
 msgid "deflate failed %d\n"
 msgstr "%d „deflate” się nie powiodło\n"
 
-#: cstp.c:860 dtls.c:887 dtls.c:1357 esp.c:255 mainloop.c:67 oncp.c:931
+#: cstp.c:860 dtls.c:887 dtls.c:1357 esp.c:171 mainloop.c:67 oncp.c:931
 msgid "Allocation failed\n"
 msgstr "Przydzielenie się nie powiodło\n"
 
@@ -848,129 +848,131 @@ msgstr "Wykryto MTU o rozmiarze %d bajtów (wynosił %d)\n"
 msgid "No change in MTU after detection (was %d)\n"
 msgstr "Brak zmian w MTU po wykrywaniu (wynosił %d)\n"
 
-#: esp.c:57
+#: esp-seqno.c:59
 #, c-format
 msgid "Accepting expected ESP packet with seq %u\n"
 msgstr "Przyjmowanie oczekiwanego pakietu ESP z sekwencją %u\n"
 
-#: esp.c:63
+#: esp-seqno.c:65
 #, c-format
 msgid "Discarding ancient ESP packet with seq %u (expected %<PRIu64>)\n"
 msgstr "Odrzucanie starego pakietu ESP z sekwencją %u (oczekiwano %<PRIu64>)\n"
 
-#: esp.c:72
+#: esp-seqno.c:74
 #, c-format
 msgid "Accepting out-of-order ESP packet with seq %u (expected %<PRIu64>)\n"
 msgstr ""
-"Przyjmowanie pakietu ESP poza kolejnością z sekwencją %u (oczekiwano %<PRIu64>)\n"
+"Przyjmowanie pakietu ESP poza kolejnością z sekwencją %u (oczekiwano "
+"%<PRIu64>)\n"
 
-#: esp.c:78
+#: esp-seqno.c:80
 #, c-format
 msgid "Discarding replayed ESP packet with seq %u\n"
 msgstr "Odrzucanie powtórzonego pakietu ESP z sekwencją %u\n"
 
-#: esp.c:107
+#: esp-seqno.c:109
 #, c-format
-msgid "Accepting later-than-expected ESP packet with seq %u (expected %<PRIu64>)\n"
+msgid ""
+"Accepting later-than-expected ESP packet with seq %u (expected %<PRIu64>)\n"
 msgstr ""
 "Przyjmowanie pakietu ESP późniejszego niż oczekiwano z sekwencją %u "
 "(oczekiwano %<PRIu64>)\n"
 
-#: esp.c:152
+#: esp.c:68
 #, c-format
 msgid "Parameters for %s ESP: SPI 0x%08x\n"
 msgstr "Parametry dla ESP %s: SPI 0x%08x\n"
 
-#: esp.c:155
+#: esp.c:71
 #, c-format
 msgid "ESP encryption type %s key 0x%s\n"
 msgstr "Szyfrowanie ESP typu %s klucz 0x%s\n"
 
-#: esp.c:158
+#: esp.c:74
 #, c-format
 msgid "ESP authentication type %s key 0x%s\n"
 msgstr "Uwierzytelnienie ESP typu %s klucz 0x%s\n"
 
-#: esp.c:217
+#: esp.c:133
 msgid "incoming"
 msgstr "przychodzące"
 
-#: esp.c:218
+#: esp.c:134
 msgid "outgoing"
 msgstr "wychodzące"
 
-#: esp.c:220 esp.c:237
+#: esp.c:136 esp.c:153
 msgid "Send ESP probes\n"
 msgstr "Wysłanie próbek ESP\n"
 
-#: esp.c:264
+#: esp.c:180
 #, c-format
 msgid "Received ESP packet of %d bytes\n"
 msgstr "Otrzymano pakiet ESP o rozmiarze %d bajtów\n"
 
-#: esp.c:280
+#: esp.c:196
 #, c-format
 msgid "Consider SPI 0x%x, seq %u against outgoing ESP setup\n"
 msgstr "Rozważenie SPI 0x%x, sekwencja %u z wychodzącymi ustawieniami ESP\n"
 
-#: esp.c:286
+#: esp.c:202
 #, c-format
 msgid "Received ESP packet with invalid SPI 0x%08x\n"
 msgstr "Otrzymano pakiet ESP z nieprawidłowym SPI 0x%08x\n"
 
-#: esp.c:294
+#: esp.c:210
 #, c-format
 msgid "Received ESP packet with unrecognised payload type %02x\n"
 msgstr "Otrzymano pakiet ESP z nierozpoznanym typem ładunku %02x\n"
 
-#: esp.c:301
+#: esp.c:217
 #, c-format
 msgid "Invalid padding length %02x in ESP\n"
 msgstr "Nieprawidłowa długość wypełnienia %02x w ESP\n"
 
-#: esp.c:313
+#: esp.c:229
 msgid "Invalid padding bytes in ESP\n"
 msgstr "Nieprawidłowe bajty wypełnienia w ESP\n"
 
-#: esp.c:321
+#: esp.c:237
 msgid "ESP session established with server\n"
 msgstr "Nawiązano sesję ESP z serwerem\n"
 
-#: esp.c:332
+#: esp.c:248
 msgid "Failed to allocate memory to decrypt ESP packet\n"
 msgstr "Przydzielenie pamięci do odszyfrowania pakietu ESP się nie powiodło\n"
 
-#: esp.c:338
+#: esp.c:254
 msgid "LZO decompression of ESP packet failed\n"
 msgstr "Dekompresja LZO pakietu ESP się nie powiodła\n"
 
-#: esp.c:344
+#: esp.c:260
 #, c-format
 msgid "LZO decompressed %d bytes into %d\n"
 msgstr "LZO zdekompresowało %d bajtów do %d\n"
 
-#: esp.c:358
+#: esp.c:274
 msgid "Rekey not implemented for ESP\n"
 msgstr "„rekey” nie jest zaimplementowane dla ESP\n"
 
-#: esp.c:362
+#: esp.c:278
 msgid "ESP detected dead peer\n"
 msgstr "ESP wykryło martwego partnera\n"
 
-#: esp.c:369
+#: esp.c:285
 msgid "Send ESP probes for DPD\n"
 msgstr "Wysłanie próbek ESP dla DPD\n"
 
-#: esp.c:375
+#: esp.c:291
 msgid "Keepalive not implemented for ESP\n"
 msgstr "„Keepalive” nie jest zaimplementowane dla ESP\n"
 
-#: esp.c:398
+#: esp.c:314
 #, c-format
 msgid "Failed to send ESP packet: %s\n"
 msgstr "Wysłanie pakietu ESP się nie powiodło: %s\n"
 
-#: esp.c:404
+#: esp.c:320
 #, c-format
 msgid "Sent ESP packet of %d bytes\n"
 msgstr "Wysłano pakiet ESP o rozmiarze %d bajtów\n"
@@ -3028,7 +3030,7 @@ msgstr "Wychodzący pakiet:\n"
 msgid "Sent ESP enable control packet\n"
 msgstr "Wysłano pakiet kontroli włączenia ESP\n"
 
-#: openconnect-internal.h:1045 openconnect-internal.h:1053
+#: openconnect-internal.h:1046 openconnect-internal.h:1054
 #, c-format
 msgid "ERROR: %s() called with invalid UTF-8 for '%s' argument\n"
 msgstr ""
@@ -4102,6 +4104,3 @@ msgstr "polecenie obliczania"
 #: yubikey.c:608
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr "Nierozpoznana odpowiedź z Yubikey podczas tworzenia kodu tokena\n"
-
-#~ msgid "Request MTU from server"
-#~ msgstr "Żąda MTU z serwera"
