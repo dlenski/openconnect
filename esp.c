@@ -40,9 +40,9 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 	 * Since it must always be true that packet esp->seq-1 has been
 	 * received, so there's no need to explicitly record that.
 	 *
-	 * So the backlog bitmap covers the 32 packets prior to that,
+	 * So the backlog bitmap covers the 64 packets prior to that,
 	 * with the LSB representing packet (esp->seq - 2), and the MSB
-	 * representing (esp->seq - 33). A received packet is represented
+	 * representing (esp->seq - 65). A received packet is represented
 	 * by a zero bit, and a missing packet is represented by a one.
 	 *
 	 * Thus we can allow out-of-order reception of packets that are
@@ -57,7 +57,7 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 			     _("Accepting expected ESP packet with seq %u\n"),
 			     seq);
 		return 0;
-	} else if (esp->seq > 33 && seq < esp->seq - 33) {
+	} else if (esp->seq > 65 && seq < esp->seq - 65) {
 		/* Too old. We can't know if it's a replay. */
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Discarding ancient ESP packet with seq %u (expected %u)\n"),
@@ -65,7 +65,7 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 		return -EINVAL;
 	} else if (seq < esp->seq) {
 		/* Within the backlog window, so we remember whether we've seen it or not. */
-		uint32_t mask = 1 << (esp->seq - seq - 2);
+		uint64_t mask = 1ULL << (esp->seq - seq - 2);
 
 		if (esp->seq_backlog & mask) {
 			vpn_progress(vpninfo, PRG_TRACE,
@@ -80,18 +80,18 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 		return -EINVAL;
 	} else {
 		/* The packet we were expecting has gone missing; this one is newer. */
-		uint32_t delta = seq - esp->seq;
+		uint64_t delta = seq - esp->seq;
 
-		if (delta >= 32) {
+		if (delta >= 64) {
 			/* We jumped a long way into the future. We have not seen
 			 * any of the previous 32 packets so set the backlog bitmap
 			 * to all ones. */
-			esp->seq_backlog = 0xffffffff;
-		} else if (delta == 31) {
-			/* Avoid undefined behaviour that shifting by 32 would incur.
+			esp->seq_backlog = 0xffffffffffffffffULL;
+		} else if (delta == 63) {
+			/* Avoid undefined behaviour that shifting by 64 would incur.
 			 * The (clear) top bit represents the packet which is currently
 			 * esp->seq - 1, which we know was already received. */
-			esp->seq_backlog = 0x7fffffff;
+			esp->seq_backlog = 0x7fffffffffffffffULL;
 		} else {
 			/* We have missed (delta) packets. Shift the backlog by that
 			 * amount *plus* the one we would have shifted it anyway if
@@ -101,7 +101,7 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 			 * (1<<delta). Then we set all the bits lower than that, which
 			 * represent the missing packets. */
 			esp->seq_backlog <<= delta + 1;
-			esp->seq_backlog |= (1<<delta) - 1;
+			esp->seq_backlog |= (1ULL<<delta) - 1;
 		}
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("Accepting later-than-expected ESP packet with seq %u (expected %u)\n"),
