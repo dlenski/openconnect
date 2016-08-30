@@ -864,7 +864,7 @@ msgstr ""
 msgid "Accepting out-of-order ESP packet with seq %u (expected %<PRIu64>)\n"
 msgstr ""
 "S'està acceptant el paquet ESP fora de rang amb seqüència %u (s'esperava "
-"%u)\n"
+"%<PRIu64>)\n"
 
 #: esp-seqno.c:80
 #, c-format
