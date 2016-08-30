@@ -57,7 +57,7 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 			     _("Accepting expected ESP packet with seq %u\n"),
 			     seq);
 		return 0;
-	} else if (seq + 33 < esp->seq) {
+	} else if (esp->seq > 33 && seq < esp->seq - 33) {
 		/* Too old. We can't know if it's a replay. */
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("Discarding ancient ESP packet with seq %u (expected %u)\n"),
@@ -80,7 +80,7 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 		return -EINVAL;
 	} else {
 		/* The packet we were expecting has gone missing; this one is newer. */
-		int delta = seq - esp->seq;
+		uint32_t delta = seq - esp->seq;
 
 		if (delta >= 32) {
 			/* We jumped a long way into the future. We have not seen
