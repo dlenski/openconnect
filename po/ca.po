@@ -839,13 +839,13 @@ msgstr "S'està acceptant el paquet esperat ESP amb seqüència %u\n"
 
 #: esp.c:63
 #, c-format
-msgid "Discarding ancient ESP packet with seq %u (expected %u)\n"
+msgid "Discarding ancient ESP packet with seq %u (expected %<PRIu64>)\n"
 msgstr ""
-"S'està descartant el paquet antic ESP amb seqüència %u (s'esperava %u)\n"
+"S'està descartant el paquet antic ESP amb seqüència %u (s'esperava %<PRIu64>)\n"
 
 #: esp.c:72
 #, c-format
-msgid "Accepting out-of-order ESP packet with seq %u (expected %u)\n"
+msgid "Accepting out-of-order ESP packet with seq %u (expected %<PRIu64>)\n"
 msgstr ""
 "S'està acceptant el paquet ESP fora de rang amb seqüència %u (s'esperava "
 "%u)\n"
@@ -857,10 +857,10 @@ msgstr "S'està descartant el paquet repetit ESP amb seqüència %u\n"
 
 #: esp.c:107
 #, c-format
-msgid "Accepting later-than-expected ESP packet with seq %u (expected %u)\n"
+msgid "Accepting later-than-expected ESP packet with seq %u (expected %<PRIu64>)\n"
 msgstr ""
 "S'està acceptant el paquet ESP més tard del que s'esperava amb seqüència %u "
-"(s'esperava %u)\n"
+"(s'esperava %<PRIu64>)\n"
 
 #: esp.c:152
 #, c-format

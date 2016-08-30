@@ -828,13 +828,13 @@ msgstr "Tikimasi ESP paketo su seq %u\n"
 
 #: esp.c:63
 #, c-format
-msgid "Discarding ancient ESP packet with seq %u (expected %u)\n"
-msgstr "Išmetamas senas ESP paketas su seq %u (laukta %u)\n"
+msgid "Discarding ancient ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Išmetamas senas ESP paketas su seq %u (laukta %<PRIu64>)\n"
 
 #: esp.c:72
 #, c-format
-msgid "Accepting out-of-order ESP packet with seq %u (expected %u)\n"
-msgstr "Priimamas ne eilės tvarkos ESP paketas su seq %u (laukta %u)\n"
+msgid "Accepting out-of-order ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Priimamas ne eilės tvarkos ESP paketas su seq %u (laukta %<PRIu64>)\n"
 
 #: esp.c:78
 #, c-format
@@ -843,8 +843,8 @@ msgstr "Išmetamas ESP atsakymo paketas su seq %u\n"
 
 #: esp.c:107
 #, c-format
-msgid "Accepting later-than-expected ESP packet with seq %u (expected %u)\n"
-msgstr "Priimamas pavėlavęs ESP paketas su seq %u (laukta %u)\n"
+msgid "Accepting later-than-expected ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Priimamas pavėlavęs ESP paketas su seq %u (laukta %<PRIu64>)\n"
 
 #: esp.c:152
 #, c-format

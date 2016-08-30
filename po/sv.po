@@ -818,13 +818,13 @@ msgstr "Accepterar förväntat ESP-paket med seq %u\n"
 
 #: esp.c:63
 #, c-format
-msgid "Discarding ancient ESP packet with seq %u (expected %u)\n"
-msgstr "Förkastar föråldrat ESP-paket med seq %u (förväntade %u)\n"
+msgid "Discarding ancient ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Förkastar föråldrat ESP-paket med seq %u (förväntade %<PRIu64>)\n"
 
 #: esp.c:72
 #, c-format
-msgid "Accepting out-of-order ESP packet with seq %u (expected %u)\n"
-msgstr "Accepterar ESP-paket i oordning med seq %u (förväntade %u)\n"
+msgid "Accepting out-of-order ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Accepterar ESP-paket i oordning med seq %u (förväntade %<PRIu64>)\n"
 
 #: esp.c:78
 #, c-format
@@ -833,8 +833,8 @@ msgstr "Förkastar återuppspelat ESP-paket med seq %u\n"
 
 #: esp.c:107
 #, c-format
-msgid "Accepting later-than-expected ESP packet with seq %u (expected %u)\n"
-msgstr "Accepterar senare-än-väntat ESP-paket med seq %u (förväntade %u)\n"
+msgid "Accepting later-than-expected ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Accepterar senare-än-väntat ESP-paket med seq %u (förväntade %<PRIu64>)\n"
 
 #: esp.c:152
 #, c-format

@@ -841,13 +841,13 @@ msgstr "Прихватам очекивани ЕСП пакет са низом 
 
 #: esp.c:63
 #, c-format
-msgid "Discarding ancient ESP packet with seq %u (expected %u)\n"
-msgstr "Одбацујем стари ЕСП пакет са низом %u (очекивах %u)\n"
+msgid "Discarding ancient ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Одбацујем стари ЕСП пакет са низом %u (очекивах %<PRIu64>)\n"
 
 #: esp.c:72
 #, c-format
-msgid "Accepting out-of-order ESP packet with seq %u (expected %u)\n"
-msgstr "Прихватам ЕСП пакет без најаве са низом %u (очекивах %u)\n"
+msgid "Accepting out-of-order ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Прихватам ЕСП пакет без најаве са низом %u (очекивах %<PRIu64>)\n"
 
 #: esp.c:78
 #, c-format
@@ -856,8 +856,8 @@ msgstr "Одбацујем одговорени ЕСП пакет са низо�
 
 #: esp.c:107
 #, c-format
-msgid "Accepting later-than-expected ESP packet with seq %u (expected %u)\n"
-msgstr "Прихватам ЕСП пакет касније-него-очекивано са низом %u (очекивах %u)\n"
+msgid "Accepting later-than-expected ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Прихватам ЕСП пакет касније-него-очекивано са низом %u (очекивах %<PRIu64>)\n"
 
 #: esp.c:152
 #, c-format

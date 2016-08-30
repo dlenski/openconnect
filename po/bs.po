@@ -822,13 +822,13 @@ msgstr "Prihvatam očekivani ESP paket sa seq %u\n"
 
 #: esp.c:63
 #, c-format
-msgid "Discarding ancient ESP packet with seq %u (expected %u)\n"
-msgstr "Odbacujem stari ESP paket s seq %u (očekivano %u)\n"
+msgid "Discarding ancient ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Odbacujem stari ESP paket s seq %u (očekivano %<PRIu64>)\n"
 
 #: esp.c:72
 #, c-format
-msgid "Accepting out-of-order ESP packet with seq %u (expected %u)\n"
-msgstr "Prihvatam prekoredni ESP paket sa seq %u (očekivano %u)\n"
+msgid "Accepting out-of-order ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Prihvatam prekoredni ESP paket sa seq %u (očekivano %<PRIu64>)\n"
 
 #: esp.c:78
 #, c-format
@@ -837,8 +837,8 @@ msgstr "Odbacujem ponovljeni ESP paket sa seq %u\n"
 
 #: esp.c:107
 #, c-format
-msgid "Accepting later-than-expected ESP packet with seq %u (expected %u)\n"
-msgstr "Prihvatam kasnije od očekivanog ESP paket sa seq %u (očekivano %u)\n"
+msgid "Accepting later-than-expected ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Prihvatam kasnije od očekivanog ESP paket sa seq %u (očekivano %<PRIu64>)\n"
 
 #: esp.c:152
 #, c-format

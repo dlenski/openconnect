@@ -855,14 +855,14 @@ msgstr "Przyjmowanie oczekiwanego pakietu ESP z sekwencją %u\n"
 
 #: esp.c:63
 #, c-format
-msgid "Discarding ancient ESP packet with seq %u (expected %u)\n"
-msgstr "Odrzucanie starego pakietu ESP z sekwencją %u (oczekiwano %u)\n"
+msgid "Discarding ancient ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Odrzucanie starego pakietu ESP z sekwencją %u (oczekiwano %<PRIu64>)\n"
 
 #: esp.c:72
 #, c-format
-msgid "Accepting out-of-order ESP packet with seq %u (expected %u)\n"
+msgid "Accepting out-of-order ESP packet with seq %u (expected %<PRIu64>)\n"
 msgstr ""
-"Przyjmowanie pakietu ESP poza kolejnością z sekwencją %u (oczekiwano %u)\n"
+"Przyjmowanie pakietu ESP poza kolejnością z sekwencją %u (oczekiwano %<PRIu64>)\n"
 
 #: esp.c:78
 #, c-format
@@ -871,10 +871,10 @@ msgstr "Odrzucanie powtórzonego pakietu ESP z sekwencją %u\n"
 
 #: esp.c:107
 #, c-format
-msgid "Accepting later-than-expected ESP packet with seq %u (expected %u)\n"
+msgid "Accepting later-than-expected ESP packet with seq %u (expected %<PRIu64>)\n"
 msgstr ""
 "Przyjmowanie pakietu ESP późniejszego niż oczekiwano z sekwencją %u "
-"(oczekiwano %u)\n"
+"(oczekiwano %<PRIu64>)\n"
 
 #: esp.c:152
 #, c-format

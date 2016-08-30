@@ -826,13 +826,13 @@ msgstr "Menerima paket ESP yang diharapkan dengan seq %u\n"
 
 #: esp.c:63
 #, c-format
-msgid "Discarding ancient ESP packet with seq %u (expected %u)\n"
-msgstr "Membuang paket ESP kuno dengan seq %u (diharapkan %u)\n"
+msgid "Discarding ancient ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Membuang paket ESP kuno dengan seq %u (diharapkan %<PRIu64>)\n"
 
 #: esp.c:72
 #, c-format
-msgid "Accepting out-of-order ESP packet with seq %u (expected %u)\n"
-msgstr "Menerima paket ESP diluar urutan dengan seq %u (diharapkan %u)\n"
+msgid "Accepting out-of-order ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Menerima paket ESP diluar urutan dengan seq %u (diharapkan %<PRIu64>)\n"
 
 #: esp.c:78
 #, c-format
@@ -841,10 +841,10 @@ msgstr "Membuang paket ESP yang terkirim ulang dengan seq %u\n"
 
 #: esp.c:107
 #, c-format
-msgid "Accepting later-than-expected ESP packet with seq %u (expected %u)\n"
+msgid "Accepting later-than-expected ESP packet with seq %u (expected %<PRIu64>)\n"
 msgstr ""
 "Menerima paket ESP yang lebih lambat dari yang diharapkan dengan seq %u "
-"(diharapkan %u)\n"
+"(diharapkan %<PRIu64>)\n"
 
 #: esp.c:152
 #, c-format

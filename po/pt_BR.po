@@ -829,13 +829,13 @@ msgstr "Aceitando pacote ESP esperado com seq %u\n"
 
 #: esp.c:63
 #, c-format
-msgid "Discarding ancient ESP packet with seq %u (expected %u)\n"
-msgstr "Descartando pacote ESP antigo com seq %u (esperava %u)\n"
+msgid "Discarding ancient ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Descartando pacote ESP antigo com seq %u (esperava %<PRIu64>)\n"
 
 #: esp.c:72
 #, c-format
-msgid "Accepting out-of-order ESP packet with seq %u (expected %u)\n"
-msgstr "Aceitando pacote ESP problemático com seq %u (esperava %u)\n"
+msgid "Accepting out-of-order ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Aceitando pacote ESP problemático com seq %u (esperava %<PRIu64>)\n"
 
 #: esp.c:78
 #, c-format
@@ -844,8 +844,8 @@ msgstr "Descartando replay de pacote ESP com seq %u\n"
 
 #: esp.c:107
 #, c-format
-msgid "Accepting later-than-expected ESP packet with seq %u (expected %u)\n"
-msgstr "Aceitando pacote ESP depois do esperado com seq %u (esperava %u)\n"
+msgid "Accepting later-than-expected ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Aceitando pacote ESP depois do esperado com seq %u (esperava %<PRIu64>)\n"
 
 #: esp.c:152
 #, c-format

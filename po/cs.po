@@ -831,13 +831,13 @@ msgstr "Přijímá se očekávaný ESP paket se sekv. č. %u\n"
 
 #: esp.c:63
 #, c-format
-msgid "Discarding ancient ESP packet with seq %u (expected %u)\n"
-msgstr "Zahazuje se starý ESP paket se sekv. č. %u (očekáváno %u)\n"
+msgid "Discarding ancient ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Zahazuje se starý ESP paket se sekv. č. %u (očekáváno %<PRIu64>)\n"
 
 #: esp.c:72
 #, c-format
-msgid "Accepting out-of-order ESP packet with seq %u (expected %u)\n"
-msgstr "Přijímá se ESP paket mimo pořadí se sekv. č. %u (očekáváno %u)\n"
+msgid "Accepting out-of-order ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr "Přijímá se ESP paket mimo pořadí se sekv. č. %u (očekáváno %<PRIu64>)\n"
 
 #: esp.c:78
 #, c-format
@@ -846,9 +846,9 @@ msgstr "Zahazuje se opakovaný ESP paket se sekv. č. %u\n"
 
 #: esp.c:107
 #, c-format
-msgid "Accepting later-than-expected ESP packet with seq %u (expected %u)\n"
+msgid "Accepting later-than-expected ESP packet with seq %u (expected %<PRIu64>)\n"
 msgstr ""
-"Přijímá se novější než očekávaný ESP paket se sekv. č. %u (očekáváno %u)\n"
+"Přijímá se novější než očekávaný ESP paket se sekv. č. %u (očekáváno %<PRIu64>)\n"
 
 #: esp.c:152
 #, c-format
