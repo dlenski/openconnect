@@ -784,11 +784,11 @@ msgstr "Otrzymano nieznany pakiet (len %d): %02x %02x %02x %02x...\n"
 #: dtls.c:1045
 #, c-format
 msgid "TOS this: %d, TOS last: %d\n"
-msgstr ""
+msgstr "Ten TOS: %d, ostatni TOS: %d\n"
 
 #: dtls.c:1049
 msgid "UDP setsockopt"
-msgstr ""
+msgstr "setsockopt UDP"
 
 #: dtls.c:1080
 #, c-format
@@ -2157,7 +2157,7 @@ msgstr "Poprzedza komunikaty postępu czasem"
 
 #: main.c:766
 msgid "copy TOS / TCLASS when using DTLS"
-msgstr ""
+msgstr "kopiuje TOS/TCLASS podczas używania DTLS"
 
 #: main.c:768
 msgid "Drop privileges after connecting"
@@ -2173,7 +2173,7 @@ msgstr "Wykonuje SKRYPT zamiast pliku binarnego CSD"
 
 #: main.c:772
 msgid "Request MTU from server (legacy servers only)"
-msgstr ""
+msgstr "Żąda MTU z serwera (tylko przestarzałe serwery)"
 
 #: main.c:773
 msgid "Indicate path MTU to/from server"

@@ -587,7 +587,7 @@ msgstr "A DTLSv1 CTX előkészítése nem sikerült\n"
 
 #: dtls.c:275
 msgid "Set DTLS CTX version failed\n"
-msgstr ""
+msgstr "A DTLS CTX verzió beállítása sikertelen\n"
 
 #: dtls.c:290
 msgid "Set DTLS cipher list failed\n"
@@ -780,11 +780,11 @@ msgstr "Ismeretlen csomag (hossz: %d) érkezett: %02x %02x %02x %02x…\n"
 #: dtls.c:1045
 #, c-format
 msgid "TOS this: %d, TOS last: %d\n"
-msgstr ""
+msgstr "TOS ez: %d, TOS utolsó: %d\n"
 
 #: dtls.c:1049
 msgid "UDP setsockopt"
-msgstr ""
+msgstr "UDP setsockopt"
 
 #: dtls.c:1080
 #, c-format
@@ -2146,7 +2146,7 @@ msgstr "Időbélyeg eléfűzése az üzenetek múlásához"
 
 #: main.c:766
 msgid "copy TOS / TCLASS when using DTLS"
-msgstr ""
+msgstr "TOS / TCLASS másolása DTLS használata esetén"
 
 #: main.c:768
 msgid "Drop privileges after connecting"
@@ -2162,7 +2162,7 @@ msgstr "SCRIPT futtatása a CSD program helyett"
 
 #: main.c:772
 msgid "Request MTU from server (legacy servers only)"
-msgstr ""
+msgstr "MTU kérése a kiszolgálótól (csak örökölt kiszolgálóknál)"
 
 #: main.c:773
 msgid "Indicate path MTU to/from server"
@@ -3267,7 +3267,7 @@ msgstr "A személyes kulcs betöltése nem sikerült\n"
 
 #: openssl.c:997
 msgid "Failed to convert PKCS#8 to OpenSSL EVP_PKEY\n"
-msgstr ""
+msgstr "A PKCS#8 átalakítása OpenSSL EVP_PKEY kulcsra sikertelen\n"
 
 #: openssl.c:1008
 #, c-format
@@ -3354,7 +3354,7 @@ msgstr "<hiba>"
 
 #: openssl.c:1620
 msgid "Create TLSv1 CTX failed\n"
-msgstr ""
+msgstr "TLSv1 CTX létrehozása sikertelen\n"
 
 #: openssl.c:1675
 #, c-format
