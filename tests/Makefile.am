@@ -26,7 +26,7 @@ TESTS_ENVIRONMENT = srcdir="$(srcdir)" \
 	key_list="$(USER_KEYS)"
 
 
-noinst_PROGRAMS = lzstest
+noinst_PROGRAMS = lzstest seqtest
 
 if CHECK_DTLS
 noinst_PROGRAMS += bad_dtls_test
