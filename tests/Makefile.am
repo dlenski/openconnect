@@ -1,23 +1,41 @@
+
+certsdir=$(srcdir)/certs
+
 USER_KEYS = \
-	$(srcdir)/certs/user-key-pkcs1.pem $(srcdir)/certs/user-key-pkcs1.der \
-	$(srcdir)/certs/user-key-pkcs1-aes128.pem \
-	$(srcdir)/certs/user-key-pkcs8.pem $(srcdir)/certs/user-key-pkcs8.der \
-	$(srcdir)/certs/user-key-pkcs8-pbes1-sha1-3des.pem $(srcdir)/certs/user-key-pkcs8-pbes1-sha1-3des.der \
-	$(srcdir)/certs/user-key-pkcs8-pbes2-sha1.pem $(srcdir)/certs/user-key-pkcs8-pbes2-sha1.der \
-	$(srcdir)/certs/user-key-sha1-3des-sha1.p12 $(srcdir)/certs/user-key-sha1-3des-sha256.p12 \
-	$(srcdir)/certs/user-key-aes256-cbc-sha256.p12
+	$(certsdir)/user-key-pkcs1.pem $(certsdir)/user-key-pkcs1.der \
+	$(certsdir)/user-key-pkcs1-aes128.pem \
+	$(certsdir)/user-key-pkcs8.pem $(certsdir)/user-key-pkcs8.der \
+	$(certsdir)/user-key-pkcs8-pbes1-sha1-3des.pem $(certsdir)/user-key-pkcs8-pbes1-sha1-3des.der \
+	$(certsdir)/user-key-pkcs8-pbes2-sha1.pem $(certsdir)/user-key-pkcs8-pbes2-sha1.der \
+	$(certsdir)/user-key-sha1-3des-sha1.p12 $(certsdir)/user-key-sha1-3des-sha256.p12 \
+	$(certsdir)/user-key-aes256-cbc-sha256.p12
 
 # We know GnuTLS doesn't support these for now. https://bugzilla.redhat.com/1369484
 if OPENCONNECT_OPENSSL
-USER_KEYS += $(srcdir)/certs/user-key-md5-des-sha1.p12
-USER_KEYS += $(srcdir)/certs/user-key-aes256-cbc-md5-des-sha256.p12
-USER_KEYS += $(srcdir)/certs/user-key-pkcs8-pbes2-sha256.pem $(srcdir)/certs/user-key-pkcs8-pbes2-sha256.der
-USER_KEYS += $(srcdir)/certs/user-key-pkcs8-pbes1-md5-des.pem $(srcdir)/certs/user-key-pkcs8-pbes1-md5-des.der
+USER_KEYS += $(certsdir)/user-key-md5-des-sha1.p12
+USER_KEYS += $(certsdir)/user-key-aes256-cbc-md5-des-sha256.p12
+USER_KEYS += $(certsdir)/user-key-pkcs8-pbes2-sha256.pem $(certsdir)/user-key-pkcs8-pbes2-sha256.der
+USER_KEYS += $(certsdir)/user-key-pkcs8-pbes1-md5-des.pem $(certsdir)/user-key-pkcs8-pbes1-md5-des.der
 endif
+
+USER_KEYS += $(certsdir)/dsa-key-pkcs1.pem $(certsdir)/dsa-key-pkcs1.der \
+	$(certsdir)/dsa-key-pkcs1-aes128.pem \
+	$(certsdir)/dsa-key-pkcs8.pem $(certsdir)/dsa-key-pkcs8.der \
+	$(certsdir)/dsa-key-pkcs8-pbes2-sha1.pem $(certsdir)/dsa-key-pkcs8-pbes2-sha1.der \
+	$(certsdir)/dsa-key-aes256-cbc-sha256.p12
+
+USER_KEYS += $(certsdir)/ec-key-pkcs1.pem $(certsdir)/ec-key-pkcs1.der \
+	$(certsdir)/ec-key-pkcs1-aes128.pem \
+	$(certsdir)/ec-key-pkcs8.pem $(certsdir)/ec-key-pkcs8.der \
+	$(certsdir)/ec-key-pkcs8-pbes2-sha1.pem $(certsdir)/ec-key-pkcs8-pbes2-sha1.der \
+	$(certsdir)/ec-key-aes256-cbc-sha256.p12
+
+USER_CERTS = $(certsdir)/user-cert.pem $(certsdir)/dsa-cert.pem $(certsdir)/ec-cert.pem
 
 EXTRA_DIST = certs/ca.pem certs/ca-key.pem certs/user-cert.pem $(USER_KEYS) \
 	certs/server-cert.pem certs/server-key.pem configs/test1.passwd \
-	common.sh configs/test-user-cert.config configs/test-user-pass.config
+	common.sh configs/test-user-cert.config configs/test-user-pass.config \
+	configs/user-cert.prm
 
 if HAVE_CWRAP
 dist_check_SCRIPTS = auth-username-pass auth-certificate
@@ -48,56 +66,79 @@ TESTS = $(dist_check_SCRIPTS) $(noinst_PROGRAMS)
 # and considered part of the sources, committed to the git tree. But for
 # reference, the commands used to generate them are here...
 
-# certs/user-key-pkcs1.pem:
-keyfiles: $(USER_KEYS)
+keyfiles: $(USER_KEYS) $(USER_CERTS)
 
 
 OPENSSL = openssl
 OSSLARGS = -in $< -out $@ -passout pass:password
-OSSLARGSP12 = -inkey $< -out $@ -in $(srcdir)/certs/user-cert.pem -passout pass:password
+OSSLARGSP12 = -inkey $< -out $@ -in $${KEYFILE%-key-pkcs8.pem}-cert.pem -passout pass:password
+
+# Strictly speaking this is only PKCS#1 for RSA. For EC it's probably
+# best described as RFC5915§4, and no idea what defines it for DSA.
+$(certsdir)/user-key-pkcs1.pem:
+	$(OPENSSL) genrsa -out $@ 2432
+
+$(certsdir)/dsa-key-pkcs1.pem:
+	$(OPENSSL) dsaparam -genkey 2048 -out $@
+
+$(certsdir)/ec-key-pkcs1.pem:
+	$(OPENSSL) ecparam -genkey -out $@ -name prime256v1
 
 # Even in OpenSSL 1.1, this creates the old encrypted PEM format.
-$(srcdir)/certs/user-key-pkcs1-aes128.pem: certs/user-key-pkcs1.pem
+$(certsdir)/user-key-pkcs1-aes128.pem: certs/user-key-pkcs1.pem
 	$(OPENSSL) rsa $(OSSLARGS) -aes128
 
+$(certsdir)/dsa-key-pkcs1-aes128.pem: certs/dsa-key-pkcs1.pem
+	$(OPENSSL) dsa $(OSSLARGS) -aes128
+
+$(certsdir)/ec-key-pkcs1-aes128.pem: certs/ec-key-pkcs1.pem
+	$(OPENSSL) ec $(OSSLARGS) -aes128
+
 # Plain unencrypted PKCS#8
-$(srcdir)/certs/user-key-pkcs8.pem: certs/user-key-pkcs1.pem
+%-key-pkcs8.pem: %-key-pkcs1.pem
 	$(OPENSSL) pkcs8 $(OSSLARGS) -topk8 -nocrypt
 
-$(srcdir)/certs/user-key-pkcs8-pbes1-sha1-3des.pem: certs/user-key-pkcs1.pem
+%-key-pkcs8-pbes1-sha1-3des.pem: %-key-pkcs8.pem
 	$(OPENSSL) pkcs8 $(OSSLARGS) -topk8 -v1 pbeWithSHA1And3-KeyTripleDES-CBC
 
 # This is the default created by OpenSSL 1.0.2 with -topk8
-$(srcdir)/certs/user-key-pkcs8-pbes1-md5-des.pem: certs/user-key-pkcs1.pem
+%-key-pkcs8-pbes1-md5-des.pem: %-key-pkcs8.pem
 	$(OPENSSL) pkcs8 $(OSSLARGS) -topk8 -v1 pbeWithMD5AndDES-CBC
 
-$(srcdir)/certs/user-key-pkcs8-pbes2-sha1.pem: certs/user-key-pkcs1.pem
+%-key-pkcs8-pbes2-sha1.pem: %-key-pkcs8.pem
 	$(OPENSSL) pkcs8 $(OSSLARGS) -topk8 -v2 aes256 -v2prf hmacWithSHA1
 
 # This is the default created by OpenSSL 1.1 with -topk8
-$(srcdir)/certs/user-key-pkcs8-pbes2-sha256.pem: certs/user-key-pkcs1.pem
+%-key-pkcs8-pbes2-sha256.pem: %-key-pkcs8.pem
 	$(OPENSSL) pkcs8 $(OSSLARGS) -topk8 -v2 aes256 -v2prf hmacWithSHA256
 
-$(srcdir)/certs/user-key-sha1-3des-sha1.p12: certs/user-key-pkcs1.pem
-	$(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA1 \
+%-key-sha1-3des-sha1.p12: %-key-pkcs8.pem %-cert.pem
+	KEYFILE="$<"; $(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA1 \
 		-certpbe pbeWithSHA1And3-KeyTripleDES-CBC -keypbe pbeWithSHA1And3-KeyTripleDES-CBC
 
-$(srcdir)/certs/user-key-sha1-3des-sha256.p12: certs/user-key-pkcs1.pem
-	$(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA256 \
+%-key-sha1-3des-sha256.p12: %-key-pkcs8.pem %-cert.pem
+	KEYFILE="$<"; $(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA256 \
 		-certpbe pbeWithSHA1And3-KeyTripleDES-CBC -keypbe pbeWithSHA1And3-KeyTripleDES-CBC
 
-$(srcdir)/certs/user-key-md5-des-sha1.p12: certs/user-key-pkcs1.pem
-	$(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA1 \
+%-key-md5-des-sha1.p12: %-key-pkcs8.pem %-cert.pem
+	KEYFILE="$<"; $(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA1 \
 		-certpbe pbeWithMD5AndDES-CBC -keypbe pbeWithMD5AndDES-CBC
 
-$(srcdir)/certs/user-key-aes256-cbc-sha256.p12: certs/user-key-pkcs1.pem
-	$(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA256 \
+%-key-aes256-cbc-sha256.p12: %-key-pkcs8.pem %-cert.pem
+	KEYFILE="$<"; $(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA256 \
 		-certpbe AES-256-CBC -keypbe AES-256-CBC
 
 # This one makes GnuTLS behave strangely...
-$(srcdir)/certs/user-key-aes256-cbc-md5-des-sha256.p12: certs/user-key-pkcs1.pem
-	$(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA256 \
+%-key-aes256-cbc-md5-des-sha256.p12: %-key-pkcs8.pem %-cert.pem
+	KEYFILE="$<"; $(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA256 \
 		-certpbe AES-256-CBC -keypbe pbeWithMD5AndDES-CBC
 
 %.der: %.pem
-	grep -v -- ^----- $< | base64 -d > $@
+	sed -e '0,/^-----BEGIN.*KEY-----/d' -e '/^-----END.*KEY-----/,$$d' $< | base64 -d > $@
+
+%-cert.csr: %-key-pkcs8.pem
+	$(OPENSSL) req -new -config $(srcdir)/configs/user-cert.prm -key $< -out $@
+
+%.pem: %.csr
+	$(OPENSSL) x509 -days 3650 -CA $(certsdir)/ca.pem -CAkey $(certsdir)/ca-key.pem \
+		-set_serial $(shell date +%s) -req -out $@ -in $<

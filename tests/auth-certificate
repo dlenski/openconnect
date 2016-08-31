@@ -23,7 +23,7 @@ top_builddir=${top_builddir:-..}
 
 . `dirname $0`/common.sh
 
-key_list=${key_list:-`echo ${certdir}/user-key-*.{pem,der,p12}`}
+key_list=${key_list:-`echo ${certdir}/*-key-*.{pem,der,p12}`}
 
 echo "Testing certificate auth... "
 
@@ -37,7 +37,7 @@ for KEY in ${key_list}; do
     if [ "${KEY%%.p12}" != "${KEY}" ]; then
 	CERTARGS="-c ${KEY} --key-password password"
     else
-	CERTARGS="--sslkey ${KEY} --key-password password -c ${certdir}/user-cert.pem "
+	CERTARGS="--sslkey ${KEY} --key-password password -c ${KEY%%-*}-cert.pem "
     fi
     ( echo "test" | LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q $ADDRESS:443 -u test $CERTARGS --servercert=d66b507ae074d03b02eafca40d35f87dd81049d3 --cookieonly --passwd-on-stdin ) ||
 	fail $PID "Could not connect with key ${KEY##*/}!"
