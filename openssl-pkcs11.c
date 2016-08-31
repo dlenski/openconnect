@@ -176,6 +176,11 @@ static int request_pin(struct openconnect_info *vpninfo, struct pin_cache *cache
 	if (!vpninfo || !vpninfo->process_auth_form)
 		return -EINVAL;
 
+	if (vpninfo->cert_password) {
+		cache->pin = vpninfo->cert_password;
+		vpninfo->cert_password = NULL;
+		return 0;
+	}
 	memset(&f, 0, sizeof(f));
 	f.auth_id = (char *)"pkcs11_pin";
 	f.opts = &o;
