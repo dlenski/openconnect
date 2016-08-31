@@ -1,0 +1,22 @@
+extensions = x509v3
+[ x509v3 ]
+#keyUsage        = keyEncipherment,digitalSignature,keyAgreement
+extendedKeyUsage = clientAuth
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid
+basicConstraints = CA:false
+[ req ]
+default_bits                    = 2432
+distinguished_name              = req_DN
+default_md                      = sha256
+string_mask                     = utf8only
+[ req_DN ]
+commonName                      = "Common Name"
+commonName_value              = "A user"
+userId = "User ID"
+userId_value = "test"
+
+[something]
+# The key
+# the certificate
+# some dhparam
