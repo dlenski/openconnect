@@ -23,7 +23,7 @@ top_builddir=${top_builddir:-..}
 
 . `dirname $0`/common.sh
 
-key_list=${key_list:-${certdir}/user-key-pkcs1.pem}
+key_list=${key_list:-`echo ${certdir}/user-key-*.{pem,der,p12}`}
 
 echo "Testing certificate auth... "
 
