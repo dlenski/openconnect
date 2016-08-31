@@ -1080,16 +1080,8 @@ SUMMARY([Build docs], [$build_www])
 SUMMARY([Unit tests], [$have_cwrap])
 
 if test "$dtls_lib" = "openssl"; then
-    echo
-    if test "$have_cwrap" != "yes"; then
-	AC_MSG_WARN([[
-***
-*** OpenSSL DTLS support may be broken, and unit tests not available
-*** ]])
-    else
-	AC_MSG_WARN([[
+    AC_MSG_WARN([[
 ***
 *** Be sure to run "make check" to verify OpenSSL DTLS support
 *** ]])
-    fi
 fi
