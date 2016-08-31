@@ -36,6 +36,14 @@
 				    HMAC_CTX_cleanup(c);	\
 				    free(c); } while (0)
 #define HMAC_CTX_reset HMAC_CTX_cleanup
+
+static inline HMAC_CTX *HMAC_CTX_new(void)
+{
+	HMAC_CTX *ret = malloc(sizeof(*ret));
+	if (ret)
+		HMAC_CTX_init(ret);
+	return ret;
+}
 #endif
 
 void destroy_esp_ciphers(struct esp *esp)
@@ -85,22 +93,12 @@ static int init_esp_ciphers(struct openconnect_info *vpninfo, struct esp *esp,
 	}
 	EVP_CIPHER_CTX_set_padding(esp->cipher, 0);
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	esp->hmac = malloc(sizeof(*esp->hmac));
-	esp->pkt_hmac = malloc(sizeof(*esp->pkt_hmac));
-	if (!esp->hmac || &esp->pkt_hmac) {
-		destroy_esp_ciphers(esp);
-		return -ENOMEM;
-	}
-	HMAC_CTX_init(esp->hmac);
-#else
 	esp->hmac = HMAC_CTX_new();
 	esp->pkt_hmac = HMAC_CTX_new();
 	if (!esp->hmac || !esp->pkt_hmac) {
 		destroy_esp_ciphers(esp);
 		return -ENOMEM;
 	}
-#endif
 	if (!HMAC_Init_ex(esp->hmac, esp->secrets + EVP_CIPHER_key_length(encalg),
 			  EVP_MD_size(macalg), macalg, NULL)) {
 		vpn_progress(vpninfo, PRG_ERR,
