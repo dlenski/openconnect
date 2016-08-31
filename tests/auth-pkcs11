@@ -1,0 +1,48 @@
+#!/bin/sh
+#
+# Copyright (C) 2016 Red Hat, Inc.
+#
+# This file is part of openconnect.
+#
+# This is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public License
+# as published by the Free Software Foundation; either version 2.1 of
+# the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>
+
+SERV="${SERV:-../src/ocserv}"
+srcdir=${srcdir:-.}
+top_builddir=${top_builddir:-..}
+
+. `dirname $0`/common.sh
+
+echo "keys: $pkcs11_keys"
+pkcs11_keys=${pkcs11_keys:-object=RSA object=DSA object=EC id=%01 id=%02 id=%03}
+
+echo "Testing PKCS#11 auth... "
+
+update_config test-user-cert.config
+launch_simple_sr_server -d 1 -f -c ${CONFIG}
+PID=$!
+wait_server $PID
+
+for KEY in ${pkcs11_keys}; do
+    echo -n "Connecting to obtain cookie (with key ${KEY##*/})... "
+    CERTURI="pkcs11:token=openconnect-test;${KEY};pin-value=1234"
+    ( echo "test" | HOME=${srcdir} SOFTHSM2_CONF=softhsm2.conf LD_PRELOAD=libsocket_wrapper.so \
+	$OPENCONNECT -q $ADDRESS:443 -u test -c \"${CERTURI}\" --key-password 1234 --servercert=d66b507ae074d03b02eafca40d35f87dd81049d3 --cookieonly --passwd-on-stdin ) ||
+	fail $PID "Could not connect with key ${KEY##*/}!"
+done
+
+echo ok
+
+cleanup
+
+exit 0
