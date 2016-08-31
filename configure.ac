@@ -541,6 +541,15 @@ LIBS="${LIBS} ${OPENSSL_LIBS}"
 CFLAGS="${CFLAGS} ${OPENSSL_CFLAGS}"
 if test "$dtls_lib" = "openssl" -a "$with_openssl_version_check" != "no"; then
 	AC_MSG_CHECKING([for known-broken versions of OpenSSL])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],
+				[#if defined(LIBRESSL_VERSION_NUMBER)
+				#error Bad OpenSSL
+				#endif
+				])],
+			  [],
+			  [AC_MSG_RESULT(yes)
+			   AC_ERROR([LibreSSL does not support Cisco DTLS.
+Build with OpenSSL or GnuTLS instead.])])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],[#if \
 				    (OPENSSL_VERSION_NUMBER == 0x10002000L || \
 				    (OPENSSL_VERSION_NUMBER >= 0x100000b0L && OPENSSL_VERSION_NUMBER <= 0x100000c0L) || \
