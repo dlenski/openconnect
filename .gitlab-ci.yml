@@ -46,7 +46,7 @@ Build and Check for windows:
 Build and Check for FreeBSD:
   script:
   - git submodule update --init && autoreconf -fvi &&
-    ./configure && make -j4 && make check VERBOSE=1 -j4
+    ./configure --with-vpnc-script=/bin/true && make -j4 && make check VERBOSE=1 -j4
   tags:
   - freebsd
   except:
