@@ -903,6 +903,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			return load_tpm_certificate(vpninfo);
 		} else if (!strcmp(buf, "-----BEGIN RSA PRIVATE KEY-----\n") ||
 			   !strcmp(buf, "-----BEGIN DSA PRIVATE KEY-----\n") ||
+			   !strcmp(buf, "-----BEGIN EC PRIVATE KEY-----\n") ||
 			   !strcmp(buf, "-----BEGIN ENCRYPTED PRIVATE KEY-----\n") ||
 			   !strcmp(buf, "-----BEGIN PRIVATE KEY-----\n")) {
 			BIO *b = BIO_new_fp(f, BIO_CLOSE);
