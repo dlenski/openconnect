@@ -44,9 +44,9 @@ Build and Check for windows:
   - tags
 
 Build and Check for FreeBSD:
- script:
- - git submodule update --init && autoreconf -fvi &&
-   ./configure && make -j44 && make check VERBOSE=1 -j4
+  script:
+  - git submodule update --init && autoreconf -fvi &&
+    ./configure && make -j4 && make check VERBOSE=1 -j4
   tags:
   - freebsd
   except:
