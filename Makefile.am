@@ -110,7 +110,9 @@ EXTRA_DIST += $(shell cd "$(top_srcdir)" && \
 
 DISTCLEANFILES = $(pkgconfig_DATA)
 
-main.o: version.c
+# main.c includes version.c
+openconnect-main.o: version.c
+
 version.c: $(library_srcs) $(lib_openssl_srcs) $(lib_gnutls_srcs) \
 	   $(openconnect_SOURCES) Makefile.am configure.ac \
 	   openconnect.h openconnect-internal.h version.sh @GITVERSIONDEPS@
