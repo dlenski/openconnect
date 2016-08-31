@@ -42,3 +42,12 @@ Build and Check for windows:
   - mingw
   except:
   - tags
+
+Build and Check for FreeBSD:
+ script:
+ - git submodule update --init && autoreconf -fvi &&
+   ./configure && make -j44 && make check VERBOSE=1 -j4
+  tags:
+  - freebsd
+  except:
+  - tags
