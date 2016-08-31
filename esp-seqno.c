@@ -24,6 +24,8 @@
 
 #include "openconnect-internal.h"
 
+#define DTLS_EMPTY_BITMAP		(0xFFFFFFFFFFFFFFFFULL)
+
 /* Eventually we're going to have to have more than one incoming ESP
    context at a time, to allow for the overlap period during a rekey.
    So pass the 'esp' even though for now it's redundant. */
@@ -52,8 +54,8 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 
 		/* This might reach a value higher than the 32-bit ESP sequence
 		 * numbers can actually reach. Which is fine. When that
-		 * happens, we'll do the right thing. someone needs to start
-		 * a new epoch. */
+		 * happens, we'll do the right thing and just not accept any
+		 * newer packets. Someone needs to start a new epoch. */
 		esp->seq++;
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("Accepting expected ESP packet with seq %u\n"),
@@ -69,17 +71,18 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 		/* Within the backlog window, so we remember whether we've seen it or not. */
 		uint64_t mask = 1ULL << (esp->seq - seq - 2);
 
-		if (esp->seq_backlog & mask) {
-			vpn_progress(vpninfo, PRG_TRACE,
-				     _("Accepting out-of-order ESP packet with seq %u (expected %" PRIu64 ")\n"),
-				     seq, esp->seq);
-			esp->seq_backlog &= ~mask;
-			return 0;
+		if (!(esp->seq_backlog & mask)) {
+			vpn_progress(vpninfo, PRG_DEBUG,
+				     _("Discarding replayed ESP packet with seq %u\n"),
+				     seq);
+			return -EINVAL;
 		}
-		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("Discarding replayed ESP packet with seq %u\n"),
-			     seq);
-		return -EINVAL;
+
+		esp->seq_backlog &= ~mask;
+		vpn_progress(vpninfo, PRG_TRACE,
+			     _("Accepting out-of-order ESP packet with seq %u (expected %" PRIu64 ")\n"),
+			     seq, esp->seq);
+		return 0;
 	} else {
 		/* The packet we were expecting has gone missing; this one is newer. */
 		uint64_t delta = seq - esp->seq;
@@ -88,12 +91,12 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 			/* We jumped a long way into the future. We have not seen
 			 * any of the previous 32 packets so set the backlog bitmap
 			 * to all ones. */
-			esp->seq_backlog = 0xffffffffffffffffULL;
+			esp->seq_backlog = DTLS_EMPTY_BITMAP;
 		} else if (delta == 63) {
 			/* Avoid undefined behaviour that shifting by 64 would incur.
 			 * The (clear) top bit represents the packet which is currently
 			 * esp->seq - 1, which we know was already received. */
-			esp->seq_backlog = 0x7fffffffffffffffULL;
+			esp->seq_backlog = DTLS_EMPTY_BITMAP >> 1;
 		} else {
 			/* We have missed (delta) packets. Shift the backlog by that
 			 * amount *plus* the one we would have shifted it anyway if
@@ -103,7 +106,7 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 			 * (1<<delta). Then we set all the bits lower than that, which
 			 * represent the missing packets. */
 			esp->seq_backlog <<= delta + 1;
-			esp->seq_backlog |= (1ULL<<delta) - 1;
+			esp->seq_backlog |= (1ULL << delta) - 1;
 		}
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("Accepting later-than-expected ESP packet with seq %u (expected %" PRIu64 ")\n"),
