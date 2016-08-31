@@ -46,7 +46,7 @@ if TEST_PKCS11
 dist_check_SCRIPTS += auth-pkcs11
 PKCS11_KEYS = object=RSA id=%01
 #PKCS11_KEYS += object=DSA id=%02
-#PKCS11_KEYS += object=EC id=%03
+PKCS11_KEYS += object=EC id=%03
 endif
 
 TESTS_ENVIRONMENT = srcdir="$(srcdir)" \
