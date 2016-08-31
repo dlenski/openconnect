@@ -44,6 +44,11 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
 
+/* LibreSSL lacks this. Let it fail on testing, not building. */
+#ifndef DTLS1_BAD_VER
+#define DTLS1_BAD_VER 0x100
+#endif
+
 /* PACKET functions lifted from OpenSSL 1.1's ssl/packet_locl.h. Permisson
  * requested in https://github.com/openssl/openssl/pull/1296 for reuse here
  * as an OpenConnect test case. */
@@ -285,7 +290,7 @@ static unsigned char key_block[104];
 static EVP_MD_CTX *handshake_md5;
 static EVP_MD_CTX *handshake_sha1;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static inline HMAC_CTX *HMAC_CTX_new(void) {
     HMAC_CTX *ret = malloc(sizeof(*ret));
     HMAC_CTX_init(ret);
@@ -771,7 +776,7 @@ int main(int argc, char *argv[])
         goto end;
     }
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
     ctx = SSL_CTX_new(DTLSv1_client_method());
     if (ctx == NULL) {
         printf("Failed to allocate SSL_CTX\n");

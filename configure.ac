@@ -461,7 +461,14 @@ if test "$with_openssl" = "yes" || test "$with_openssl" = "" || test "$ssl_libra
     fi
 elif test "$with_openssl" != "no" ; then
     OPENSSL_CFLAGS="-I${with_openssl}/include ${OPENSSL_CFLAGS}"
-    OPENSSL_LIBS="${with_openssl}/libssl.a ${with_openssl}/libcrypto.a -ldl -lz"
+    if test -r "${with_openssl}/libssl.a" -a -r "${with_openssl}/libcrypto.a";  then
+	OPENSSL_LIBS="${with_openssl}/libssl.a ${with_openssl}/libcrypto.a -ldl -lz"
+    elif test -r "${with_openssl}/crypto/.libs/libcrypto.a" -a \
+	      -r "${with_openssl}/ssl/.libs/libssl.a"; then
+	OPENSSL_LIBS="${with_openssl}/ssl/.libs/libssl.a ${with_openssl}/crypto/.libs/libcrypto.a -ldl -lz"
+    else
+	AC_ERROR([Could not found OpenSSL libraries]);
+    fi
     AC_SUBST(OPENSSL_CFLAGS)
     AC_SUBST(OPENSSL_LIBS)
     enable_static=yes
