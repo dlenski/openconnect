@@ -37,13 +37,22 @@ EXTRA_DIST = certs/ca.pem certs/ca-key.pem certs/user-cert.pem $(USER_KEYS) \
 	common.sh configs/test-user-cert.config configs/test-user-pass.config \
 	configs/user-cert.prm
 
+dist_check_SCRIPTS =
+
 if HAVE_CWRAP
-dist_check_SCRIPTS = auth-username-pass auth-certificate
+dist_check_SCRIPTS += auth-username-pass auth-certificate auth-pkcs11
+endif
+if TEST_PKCS11
+dist_check_SCRIPTS += auth-pkcs11
+PKCS11_KEYS = object=RSA id=%01
+#PKCS11_KEYS += object=DSA id=%02
+#PKCS11_KEYS += object=EC id=%03
 endif
 
 TESTS_ENVIRONMENT = srcdir="$(srcdir)" \
 	top_builddir="$(top_builddir)" \
-	key_list="$(USER_KEYS)"
+	key_list="$(USER_KEYS)" \
+	pkcs11_keys="$(PKCS11_KEYS)"
 
 
 noinst_PROGRAMS = lzstest seqtest
@@ -142,3 +151,30 @@ $(certsdir)/ec-key-pkcs1-aes128.pem: certs/ec-key-pkcs1.pem
 %.pem: %.csr
 	$(OPENSSL) x509 -days 3650 -CA $(certsdir)/ca.pem -CAkey $(certsdir)/ca-key.pem \
 		-set_serial $(shell date +%s) -req -out $@ -in $<
+
+SHM2_UTIL=HOME=$(srcdir) SOFTHSM2_CONF=softhsm2.conf softhsm2-util
+P11TOOL=HOME=$(srcdir) SOFTHSM2_CONF=softhsm2.conf p11tool
+
+softhsm-setup:
+	$(SHM2_UTIL) --show-slots
+	$(SHM2_UTIL) --init-token --slot 0 --label openconnect-test \
+		--so-pin 12345678 --pin 1234
+	$(P11TOOL) --load-privkey $(certsdir)/user-key-pkcs8.pem \
+		   --label RSA --id 01 --set-pin 1234 --login \
+		   --write "pkcs11:token=openconnect-test;pin-value=1234"
+	$(P11TOOL) --load-certificate $(certsdir)/user-cert.pem --no-mark-private \
+		   --label RSA --id 01 --set-pin 1234 --login \
+		   --write "pkcs11:token=openconnect-test;pin-value=1234"
+	$(P11TOOL) --load-privkey $(certsdir)/dsa-key-pkcs8.pem \
+		   --label DSA --id 02 --set-pin 1234 --login \
+		   --write "pkcs11:token=openconnect-test;pin-value=1234"
+	$(P11TOOL) --load-certificate $(certsdir)/dsa-cert.pem --no-mark-private \
+		   --label DSA --id 02 --set-pin 1234 --login \
+		   --write "pkcs11:token=openconnect-test;pin-value=1234"
+	$(P11TOOL) --load-privkey $(certsdir)/ec-key-pkcs8.pem \
+		   --label EC --id 03 --set-pin 1234 --login \
+		   --write "pkcs11:token=openconnect-test;pin-value=1234"
+	$(P11TOOL) --load-certificate $(certsdir)/ec-cert.pem --no-mark-private \
+		   --label EC --id 03 --set-pin 1234 --login \
+		   --write "pkcs11:token=openconnect-test;pin-value=1234"
+

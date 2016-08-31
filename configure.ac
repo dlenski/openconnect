@@ -531,6 +531,13 @@ case "$ssl_library" in
 	;;
 esac
 
+
+test_pkcs11=no
+if test "$pkcs11_support" != ""; then
+   AC_CHECK_PROG(test_pkcs11, softhsm2-util, yes)
+fi
+AM_CONDITIONAL(TEST_PKCS11, [ test "$test_pkcs11" != "yes" ])
+
 # The test is OpenSSL-only for now.
 AM_CONDITIONAL(CHECK_DTLS, [ test "$dtls_lib" = "openssl" ])
 
@@ -1057,7 +1064,8 @@ AC_SUBST(GITVERSIONDEPS)
 
 AC_CONFIG_FILES(Makefile openconnect.pc po/Makefile www/Makefile \
 		libopenconnect.map openconnect.8 www/styles/Makefile \
-		www/inc/Makefile www/images/Makefile tests/Makefile)
+		www/inc/Makefile www/images/Makefile tests/Makefile \
+		tests/softhsm2.conf)
 AC_OUTPUT
 
 AC_DEFUN([SUMMARY],
