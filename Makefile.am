@@ -111,7 +111,7 @@ EXTRA_DIST += $(shell cd "$(top_srcdir)" && \
 DISTCLEANFILES = $(pkgconfig_DATA)
 
 # main.c includes version.c
-openconnect-main.o: version.c
+openconnect-main.$(OBJEXT): version.c
 
 version.c: $(library_srcs) $(lib_openssl_srcs) $(lib_gnutls_srcs) \
 	   $(openconnect_SOURCES) Makefile.am configure.ac \
