@@ -108,7 +108,7 @@ int RAND_bytes(char *buf, int len)
 extern void dtls1_stop_timer(SSL *);
 #endif
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 /* Since OpenSSL 1.1, the SSL_SESSION structure is opaque and we can't
  * just fill it in directly. So we have to generate the OpenSSL ASN.1
  * representation of the SSL_SESSION, and use d2i_SSL_SESSION() to
@@ -247,7 +247,7 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 #endif
 
 	if (!vpninfo->dtls_ctx) {
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 #ifdef HAVE_DTLS12
 		if (dtlsver == DTLS1_2_VERSION)
 			dtls_method = DTLSv1_2_client_method();
@@ -265,7 +265,7 @@ static int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 			vpninfo->dtls_attempt_period = 0;
 			return -EINVAL;
 		}
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 		if (dtlsver == DTLS1_BAD_VER)
 			SSL_CTX_set_options(vpninfo->dtls_ctx, SSL_OP_CISCO_ANYCONNECT);
 #else

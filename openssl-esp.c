@@ -27,7 +27,7 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 
 #define EVP_CIPHER_CTX_free(c) do {				\
 				    EVP_CIPHER_CTX_cleanup(c);	\
@@ -69,7 +69,7 @@ static int init_esp_ciphers(struct openconnect_info *vpninfo, struct esp *esp,
 
 	destroy_esp_ciphers(esp);
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	esp->cipher = malloc(sizeof(*esp->cipher));
 	if (!esp->cipher)
 		return -ENOMEM;
