@@ -117,7 +117,10 @@
 #define SHA1_SIZE 20
 #define MD5_SIZE 16
 
+/* FreeBSD provides this in <sys/param.h>  */
+#ifndef MAX
 #define MAX(x,y) ((x)>(y))?(x):(y)
+#endif
 /****************************************************************************/
 
 struct pkt {
