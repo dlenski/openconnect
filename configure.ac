@@ -536,7 +536,7 @@ test_pkcs11=no
 if test "$pkcs11_support" != ""; then
    AC_CHECK_PROG(test_pkcs11, softhsm2-util, yes)
 fi
-AM_CONDITIONAL(TEST_PKCS11, [ test "$test_pkcs11" != "yes" ])
+AM_CONDITIONAL(TEST_PKCS11, [ test "$test_pkcs11" = "yes" ])
 
 # The test is OpenSSL-only for now.
 AM_CONDITIONAL(CHECK_DTLS, [ test "$dtls_lib" = "openssl" ])
