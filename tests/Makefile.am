@@ -16,13 +16,13 @@ USER_KEYS += $(certsdir)/user-key-md5-des-sha1.p12
 USER_KEYS += $(certsdir)/user-key-aes256-cbc-md5-des-sha256.p12
 USER_KEYS += $(certsdir)/user-key-pkcs8-pbes2-sha256.pem $(certsdir)/user-key-pkcs8-pbes2-sha256.der
 USER_KEYS += $(certsdir)/user-key-pkcs8-pbes1-md5-des.pem $(certsdir)/user-key-pkcs8-pbes1-md5-des.der
-endif
 
 USER_KEYS += $(certsdir)/dsa-key-pkcs1.pem $(certsdir)/dsa-key-pkcs1.der \
 	$(certsdir)/dsa-key-pkcs1-aes128.pem \
 	$(certsdir)/dsa-key-pkcs8.pem $(certsdir)/dsa-key-pkcs8.der \
 	$(certsdir)/dsa-key-pkcs8-pbes2-sha1.pem $(certsdir)/dsa-key-pkcs8-pbes2-sha1.der \
 	$(certsdir)/dsa-key-aes256-cbc-sha256.p12
+endif
 
 USER_KEYS += $(certsdir)/ec-key-pkcs1.pem $(certsdir)/ec-key-pkcs1.der \
 	$(certsdir)/ec-key-pkcs1-aes128.pem \
