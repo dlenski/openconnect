@@ -532,7 +532,7 @@ case "$ssl_library" in
 esac
 
 
-test_pkcs11=no
+test_pkcs11=
 if test "$pkcs11_support" != ""; then
    AC_CHECK_PROG(test_pkcs11, softhsm2-util, yes)
 fi
