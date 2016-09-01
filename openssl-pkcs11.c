@@ -323,7 +323,7 @@ int load_pkcs11_certificate(struct openconnect_info *vpninfo)
 {
 	PKCS11_CTX *ctx;
 	PKCS11_TOKEN *match_tok = NULL;
-	PKCS11_CERT *cert;
+	PKCS11_CERT *cert = NULL;
 	char *cert_label = NULL;
 	unsigned char *cert_id = NULL;
 	size_t cert_id_len = 0;
