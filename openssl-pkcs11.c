@@ -101,7 +101,7 @@ static int parse_uri_attr(const char *attr, int attrlen, unsigned char **field,
 
 static int parse_pkcs11_uri(const char *uri, PKCS11_TOKEN **p_tok,
 			    unsigned char **id, size_t *id_len,
-			    char **label)
+			    char **label, char **pin)
 {
 	PKCS11_TOKEN *tok;
 	char *newlabel = NULL;
@@ -149,6 +149,16 @@ static int parse_pkcs11_uri(const char *uri, PKCS11_TOKEN **p_tok,
 			} else
 				ret = -EINVAL;
 			/* Ignore object type for now. */
+		} else if (!strncmp(p, "pin-value=", 10)) {
+			/* XXX We could do better than this but it'll cover all sane
+			   use cases. */
+			char *pinvalue = NULL;
+			p += 10;
+			ret = parse_uri_attr(p, end - p, (void *)&pinvalue, NULL);
+			if (pinvalue) {
+				free(*pin);
+				*pin = pinvalue;
+			}
 		} else {
 			ret = -EINVAL;
 		}
@@ -326,7 +336,7 @@ int load_pkcs11_certificate(struct openconnect_info *vpninfo)
 		return -EIO;
 
 	if (parse_pkcs11_uri(vpninfo->cert, &match_tok, &cert_id,
-			     &cert_id_len, &cert_label) < 0) {
+			     &cert_id_len, &cert_label, &vpninfo->cert_password) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to parse PKCS#11 URI '%s'\n"),
 			     vpninfo->cert);
@@ -482,7 +492,7 @@ int load_pkcs11_key(struct openconnect_info *vpninfo)
 		return -EIO;
 
 	if (parse_pkcs11_uri(vpninfo->sslkey, &match_tok, &key_id,
-			     &key_id_len, &key_label) < 0) {
+			     &key_id_len, &key_label, &vpninfo->cert_password) < 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to parse PKCS#11 URI '%s'\n"),
 			     vpninfo->sslkey);
