@@ -15,6 +15,13 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Support for final OpenSSL 1.1 release.</li>
+       <li>Fix polling/retry on "tun" socket when buffers full.</li>
+       <li>Fix AnyConnect server-side MTU setting.</li>
+       <li>Fix ESP replay detection.</li>
+       <li>Allow build with LibreSSL <i>(for fetishists only; do not use this as DTLS is broken)</i>.</li>
+       <li>Add certificate torture test suite.</li>
+       <li>Support PKCS#11 PIN via <tt>pin-value=</tt> and <tt>--key-password</tt> for OpenSSL.</li>
        <li>Fix integer overflow issues with ESP packet replay detection.</li>
        <li>Add <tt>--pass-tos</tt> option as in OpenVPN.</li>
        <li>Support rôle selection form in Juniper VPN.</li>
