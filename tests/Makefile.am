@@ -40,7 +40,7 @@ EXTRA_DIST = certs/ca.pem certs/ca-key.pem certs/user-cert.pem $(USER_KEYS) \
 dist_check_SCRIPTS =
 
 if HAVE_CWRAP
-dist_check_SCRIPTS += auth-username-pass auth-certificate auth-pkcs11
+dist_check_SCRIPTS += auth-username-pass auth-certificate
 endif
 if TEST_PKCS11
 dist_check_SCRIPTS += auth-pkcs11
