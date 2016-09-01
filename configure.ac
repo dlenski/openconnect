@@ -5,7 +5,7 @@ PKG_PROG_PKG_CONFIG
 AC_LANG_C
 AC_CANONICAL_HOST
 AM_MAINTAINER_MODE([enable])
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([foreign tar-ustar])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_PREREQ([2.62], [], [AC_SUBST([localedir], ['$(datadir)/locale'])])
