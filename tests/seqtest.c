@@ -72,13 +72,14 @@ int main(void)
 	    !verify_packet_seqno(NULL, &esptest, 270) ||
 	    verify_packet_seqno(NULL, &esptest, 0xfffffffd) ||
 	    !verify_packet_seqno(NULL, &esptest, 1) ||
-	    verify_packet_seqno(NULL, &esptest, 0xffffffc0) ||
+	    verify_packet_seqno(NULL, &esptest, 0xffffffc1) ||
 	    verify_packet_seqno(NULL, &esptest, 0xfffffffc) ||
 	    verify_packet_seqno(NULL, &esptest, 0xffffffff) ||
-	    !verify_packet_seqno(NULL, &esptest, 1) ||
+	    !verify_packet_seqno(NULL, &esptest, 0) ||
 	    !verify_packet_seqno(NULL, &esptest, 0xffffffbe) ||
 	    verify_packet_seqno(NULL, &esptest, 0xffffffbf) ||
-	    !verify_packet_seqno(NULL, &esptest, 0xffffffc0))
+	    !verify_packet_seqno(NULL, &esptest, 0xffffffc1) ||
+	    verify_packet_seqno(NULL, &esptest, 0xffffffc0))
 		return 1;
 
 	return 0;

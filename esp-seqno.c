@@ -61,34 +61,10 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 			     _("Accepting expected ESP packet with seq %u\n"),
 			     seq);
 		return 0;
-	} else if ((uint64_t)seq + 65 < esp->seq) {
-		/* Too old. We can't know if it's a replay. */
-		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("Discarding ancient ESP packet with seq %u (expected %" PRIu64 ")\n"),
-			     seq, esp->seq);
-		return -EINVAL;
-	} else if (seq == esp->seq - 1) {
-		/* This is a repeat of the latest packet we already received. */
-	replayed:
-		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("Discarding replayed ESP packet with seq %u\n"),
-			     seq);
-		return -EINVAL;
-	} else if (seq < esp->seq) {
-		/* Within the backlog window, so we remember whether we've seen it or not. */
-		uint64_t mask = 1ULL << (esp->seq - seq - 2);
-
-		if (!(esp->seq_backlog & mask))
-			goto replayed;
-
-		esp->seq_backlog &= ~mask;
-		vpn_progress(vpninfo, PRG_TRACE,
-			     _("Accepting out-of-order ESP packet with seq %u (expected %" PRIu64 ")\n"),
-			     seq, esp->seq);
-		return 0;
-	} else {
-		/* The packet we were expecting has gone missing; this one is newer. */
-		uint64_t delta = seq - esp->seq;
+	} else if (seq > esp->seq) {
+		/* The packet we were expecting has gone missing; this one is newer.
+		 * We always advance the window to accommodate it. */
+		uint32_t delta = seq - esp->seq;
 
 		if (delta >= 64) {
 			/* We jumped a long way into the future. We have not seen
@@ -116,6 +92,37 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 			     seq, esp->seq);
 		esp->seq = (uint64_t)seq + 1;
 		return 0;
+	} else {
+		/* This packet is older than the one we were expecting. By how much...? */
+		uint32_t delta = esp->seq - seq;
+
+		/* delta==0 is the overflow case where esp->seq is 0x100000000 and seq is 0 */
+		if (delta > 65 || delta == 0) {
+			/* Too old. We can't know if it's a replay. */
+			vpn_progress(vpninfo, PRG_DEBUG,
+				     _("Discarding ancient ESP packet with seq %u (expected %" PRIu64 ")\n"),
+				     seq, esp->seq);
+			return -EINVAL;
+		} else if (delta == 1) {
+			/* This is a repeat of the latest packet we already received. */
+		replayed:
+			vpn_progress(vpninfo, PRG_DEBUG,
+				     _("Discarding replayed ESP packet with seq %u\n"),
+				     seq);
+			return -EINVAL;
+		} else {
+			/* Within the backlog window, so we remember whether we've seen it or not. */
+			uint64_t mask = 1ULL << delta - 2;
+
+			if (!(esp->seq_backlog & mask))
+				goto replayed;
+
+			esp->seq_backlog &= ~mask;
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("Accepting out-of-order ESP packet with seq %u (expected %" PRIu64 ")\n"),
+				     seq, esp->seq);
+			return 0;
+		}
 	}
 }
 
