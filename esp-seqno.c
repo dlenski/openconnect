@@ -104,7 +104,7 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 				     seq, esp->seq);
 			return -EINVAL;
 		} else if (delta == 1) {
-			/* This is a repeat of the latest packet we already received. */
+			/* Not in the bitmask since it is by definition already received. */
 		replayed:
 			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Discarding replayed ESP packet with seq %u\n"),
