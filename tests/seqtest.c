@@ -45,9 +45,11 @@ int main(void)
 	    !verify_packet_seqno(NULL, &esptest, 0) ||
 	    verify_packet_seqno(NULL, &esptest, 64) ||
 	    verify_packet_seqno(NULL, &esptest, 65) ||
+	    !verify_packet_seqno(NULL, &esptest, 65) ||
 	    verify_packet_seqno(NULL, &esptest, 66) ||
 	    verify_packet_seqno(NULL, &esptest, 67) ||
 	    verify_packet_seqno(NULL, &esptest, 68) ||
+	    !verify_packet_seqno(NULL, &esptest, 68) ||
 	    !verify_packet_seqno(NULL, &esptest, 2) ||
 	    !verify_packet_seqno(NULL, &esptest, 3) ||
 	    verify_packet_seqno(NULL, &esptest, 4) ||

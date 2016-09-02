@@ -67,16 +67,19 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 			     _("Discarding ancient ESP packet with seq %u (expected %" PRIu64 ")\n"),
 			     seq, esp->seq);
 		return -EINVAL;
+	} else if (seq == esp->seq - 1) {
+		/* This is a repeat of the latest packet we already received. */
+	replayed:
+		vpn_progress(vpninfo, PRG_DEBUG,
+			     _("Discarding replayed ESP packet with seq %u\n"),
+			     seq);
+		return -EINVAL;
 	} else if (seq < esp->seq) {
 		/* Within the backlog window, so we remember whether we've seen it or not. */
 		uint64_t mask = 1ULL << (esp->seq - seq - 2);
 
-		if (!(esp->seq_backlog & mask)) {
-			vpn_progress(vpninfo, PRG_DEBUG,
-				     _("Discarding replayed ESP packet with seq %u\n"),
-				     seq);
-			return -EINVAL;
-		}
+		if (!(esp->seq_backlog & mask))
+			goto replayed;
 
 		esp->seq_backlog &= ~mask;
 		vpn_progress(vpninfo, PRG_TRACE,
