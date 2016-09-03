@@ -1,53 +1,182 @@
-Build with gnutls:
-  script:
-  - git submodule update --init && autoreconf -fvi && 
-    ./configure && make -j4 && make check VERBOSE=1 -j4
-  tags:
-  - gnutls3.3
-  - ocserv
-  except:
-  - tags
+image: fedora:24
 
-Build with openssl and gnutls:
+Build with GnuTLS:
   script:
-  - git submodule update --init && autoreconf -fvi && 
-    ./configure --without-openssl-version-check --enable-dtls-xfail --with-openssl &&
-    make -j4 && make check VERBOSE=1 -j4
+  - dnf install -y git autoconf automake libtool python gettext
+    'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
+    'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
+    'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
+    ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
+    vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
+    java-devel-openjdk
+  - ./autogen.sh
+  - ./configure --with-java
+  - make -j4
+  - make VERBOSE=1 -j4 check
   tags:
-  - gnutls3.3
-  - openssl
-  - ocserv
+  - shared
   except:
   - tags
+  artifacts:
+    expire_in: 1 week
+    when: on_failure
+    paths:
+      - tests/*.log
 
-Build with openssl:
+Build with GnuTLS and clang:
   script:
-  - git submodule update --init && autoreconf -fvi && 
-    ./configure --without-gnutls --with-openssl --without-openssl-version-check --enable-dtls-xfail &&
-    make -j4 && make check VERBOSE=1 -j4
+  - dnf install -y git autoconf automake libtool python gettext
+    'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
+    'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
+    'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
+    ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
+    vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
+    java-devel-openjdk clang
+  - ./autogen.sh
+  - ./configure --with-java CC=clang
+  - make -j4
+  - make VERBOSE=1 -j4 check
   tags:
-  - openssl
-  - ocserv
+  - shared
   except:
   - tags
+  artifacts:
+    expire_in: 1 week
+    when: on_failure
+    paths:
+      - tests/*.log
 
-Build and Check for windows:
+Build with OpenSSL:
   script:
-  - git submodule update --init && autoreconf -fvi && 
-    mingw32-configure && mingw32-make -j4 &&
-    mingw32-make -j4 check VERBOSE=1
+  - dnf install -y git autoconf automake libtool python gettext
+    'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
+    'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
+    'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
+    ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
+    vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
+    java-devel-openjdk 'pkgconfig(libp11)' koji
+  - koji download-build --arch=x86_64 libp11-0.4.0-1.fc24
+  - rpm -Fhv libp11*0.4.0-1.fc24.x86_64.rpm
+  - ./autogen.sh
+  - ./configure --without-gnutls --with-openssl --without-openssl-version-check
+  - make -j4
+  - make VERBOSE=1 -j4 check
   tags:
-  - gnutls3.3
-  - wine
-  - mingw
+  - shared
   except:
   - tags
+  artifacts:
+    expire_in: 1 week
+    when: on_failure
+    paths:
+      - tests/*.log
 
-Build and Check for FreeBSD:
+Build with OpenSSL and clang:
   script:
-  - git submodule update --init && autoreconf -fvi &&
-    ./configure --with-vpnc-script=/bin/true && make -j4 && make check VERBOSE=1 -j4
+  - dnf install -y git autoconf automake libtool python gettext
+    'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
+    'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
+    'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
+    ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
+    vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
+    java-devel-openjdk 'pkgconfig(libp11)' clang koji
+  - koji download-build --arch=x86_64 libp11-0.4.0-1.fc24
+  - rpm -Fhv libp11*0.4.0-1.fc24.x86_64.rpm
+  - ./autogen.sh
+  - ./configure CC=clang --without-gnutls --with-openssl --without-openssl-version-check
+  - make -j4
+  - make VERBOSE=1 -j4 check
   tags:
-  - freebsd
+  - shared
   except:
   - tags
+  artifacts:
+    expire_in: 1 week
+    when: on_failure
+    paths:
+      - tests/*.log
+
+Build with MinGW32 and GnuTLS:
+  script:
+  - dnf install -y git autoconf automake libtool python gettext
+    mingw32-gnutls mingw32-openssl mingw32-libxml2 mingw32-zlib
+    mingw32-gcc wine.i686 make
+  - mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+  - echo ':DOSWin:M::MZ::/usr/bin/wine:' > /proc/sys/fs/binfmt_misc/register
+  - ./autogen.sh
+  - mingw32-configure
+  - make -j4
+  - make VERBOSE=1 -j4 check
+  tags:
+  - shared
+  except:
+  - tags
+  artifacts:
+    expire_in: 1 week
+    when: on_failure
+    paths:
+      - tests/*.log
+
+Build with MinGW32 and OpenSSL:
+  script:
+  - dnf install -y git autoconf automake libtool python gettext
+    mingw32-gnutls mingw32-openssl mingw32-libxml2 mingw32-zlib
+    mingw32-gcc wine.i686 make
+  - mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+  - echo ':DOSWin:M::MZ::/usr/bin/wine:' > /proc/sys/fs/binfmt_misc/register
+  - ./autogen.sh
+  - mingw32-configure --without-gnutls --with-openssl --without-openssl-version-check
+  - make -j4
+  - make VERBOSE=1 -j4 check
+  tags:
+  - shared
+  except:
+  - tags
+  artifacts:
+    expire_in: 1 week
+    when: on_failure
+    paths:
+      - tests/*.log
+
+Build with MinGW64 and GnuTLS:
+  script:
+  - dnf install -y git autoconf automake libtool python gettext
+    mingw64-gnutls mingw64-openssl mingw64-libxml2 mingw64-zlib
+    mingw64-gcc wine.i686 make
+  - mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+  - echo ':DOSWin:M::MZ::/usr/bin/wine:' > /proc/sys/fs/binfmt_misc/register
+  - ./autogen.sh
+  - mingw64-configure
+  - make -j4
+  - make VERBOSE=1 -j4 check
+  tags:
+  - shared
+  except:
+  - tags
+  artifacts:
+    expire_in: 1 week
+    when: on_failure
+    paths:
+      - tests/*.log
+
+Build with MinGW64 and OpenSSL:
+  script:
+  - dnf install -y git autoconf automake libtool python gettext
+    mingw64-gnutls mingw64-openssl mingw64-libxml2 mingw64-zlib
+    mingw64-gcc wine.x86_64 make
+  - mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
+  - echo ':DOSWin:M::MZ::/usr/bin/wine:' > /proc/sys/fs/binfmt_misc/register
+  - ./autogen.sh
+  - mingw64-configure --without-gnutls --with-openssl --without-openssl-version-check
+  - make -j4
+  - make VERBOSE=1 -j4 check
+  tags:
+  - shared
+  except:
+  - tags
+  artifacts:
+    expire_in: 1 week
+    when: on_failure
+    paths:
+      - tests/*.log
+

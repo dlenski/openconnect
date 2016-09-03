@@ -45,6 +45,7 @@ dist_check_SCRIPTS += auth-username-pass auth-certificate
 if TEST_PKCS11
 dist_check_SCRIPTS += auth-pkcs11
 PKCS11_KEYS = object=RSA id=%01
+# Neither GnuTLS or libp11 support this
 #PKCS11_KEYS += object=DSA id=%02
 PKCS11_KEYS += object=EC id=%03
 endif
