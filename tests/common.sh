@@ -50,7 +50,7 @@ update_config() {
 }
 
 launch_simple_sr_server() {
-       LD_PRELOAD=libsocket_wrapper.so:libuid_wrapper.so UID_WRAPPER=1 UID_WRAPPER_ROOT=1 $OCSERV $* >/dev/null 2>&1 &
+       LD_PRELOAD=libsocket_wrapper.so:libuid_wrapper.so UID_WRAPPER=1 UID_WRAPPER_ROOT=1 $OCSERV $* &
 }
 
 wait_server() {
