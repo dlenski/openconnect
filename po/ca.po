@@ -306,8 +306,8 @@ msgstr "S'està refrescant %s després d'1 segon ...\n"
 
 #: compat.c:207
 #, c-format
-msgid "(error 0x%x)"
-msgstr "(Error 0x%x)"
+msgid "(error 0x%lx)"
+msgstr "(Error 0x%lx)"
 
 #: compat.c:210
 msgid "(Error while describing error!)"

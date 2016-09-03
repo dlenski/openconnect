@@ -294,7 +294,7 @@ msgstr "Ανανέωση του %s μετά από 1 δευτερόλεπτο...
 
 #: compat.c:207
 #, c-format
-msgid "(error 0x%x)"
+msgid "(error 0x%lx)"
 msgstr ""
 
 #: compat.c:210

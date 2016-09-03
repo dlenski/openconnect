@@ -300,8 +300,8 @@ msgstr "Освежавам „%s“ након 1 секунде...\n"
 
 #: compat.c:207
 #, c-format
-msgid "(error 0x%x)"
-msgstr "(грешка 0х%x)"
+msgid "(error 0x%lx)"
+msgstr "(грешка 0х%lx)"
 
 #: compat.c:210
 msgid "(Error while describing error!)"

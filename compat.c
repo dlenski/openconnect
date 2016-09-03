@@ -204,7 +204,7 @@ char *openconnect__win32_strerror(DWORD err)
 			    NULL, err,
 			    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 			    (LPWSTR)&msgw, 0, NULL)) {
-		if (asprintf(&msgutf8, _("(error 0x%x)"), err) != -1)
+		if (asprintf(&msgutf8, _("(error 0x%lx)"), err) != -1)
 			return msgutf8;
 	fail:
 		return strdup(_("(Error while describing error!)"));

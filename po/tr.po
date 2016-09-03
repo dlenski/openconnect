@@ -295,8 +295,8 @@ msgstr "1 saniye sonra %s tazelenecek...\n"
 
 #: compat.c:207
 #, c-format
-msgid "(error 0x%x)"
-msgstr "(hata 0x%x)"
+msgid "(error 0x%lx)"
+msgstr "(hata 0x%lx)"
 
 #: compat.c:210
 msgid "(Error while describing error!)"

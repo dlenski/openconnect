@@ -305,8 +305,8 @@ msgstr "Actualizando %s tras 1 segundo…\n"
 
 #: compat.c:207
 #, c-format
-msgid "(error 0x%x)"
-msgstr "(error 0x%x)"
+msgid "(error 0x%lx)"
+msgstr "(error 0x%lx)"
 
 #: compat.c:210
 msgid "(Error while describing error!)"

@@ -287,7 +287,7 @@ msgstr ""
 
 #: compat.c:207
 #, c-format
-msgid "(error 0x%x)"
+msgid "(error 0x%lx)"
 msgstr ""
 
 #: compat.c:210

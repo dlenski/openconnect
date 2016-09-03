@@ -296,8 +296,8 @@ msgstr "Osvježavanje %s poslije 1 sekundi...\n"
 
 #: compat.c:207
 #, c-format
-msgid "(error 0x%x)"
-msgstr "(greška 0h%x)"
+msgid "(error 0x%lx)"
+msgstr "(greška 0h%lx)"
 
 #: compat.c:210
 msgid "(Error while describing error!)"
