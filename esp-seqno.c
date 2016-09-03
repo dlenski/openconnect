@@ -112,7 +112,7 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 			return -EINVAL;
 		} else {
 			/* Within the backlog window, so we remember whether we've seen it or not. */
-			uint64_t mask = 1ULL << delta - 2;
+			uint64_t mask = 1ULL << (delta - 2);
 
 			if (!(esp->seq_backlog & mask))
 				goto replayed;
