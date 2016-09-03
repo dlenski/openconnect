@@ -36,19 +36,6 @@ OPENCONNECT="eval LD_PRELOAD=libsocket_wrapper.so ${top_builddir}/openconnect"
 certdir="${srcdir}/certs"
 confdir="${srcdir}/configs"
 
-update_config() {
-	file=$1
-	cp "${confdir}/${file}" "$file.tmp"
-	username=$(whoami)
-	group=$(groups|cut -f 1 -d ' ')
-	sed -i 's|@SRCDIR@|'${srcdir}'|g' "$file.tmp"
-	sed -i 's|@CERTDIR@|'${certdir}'|g' "$file.tmp"
-	sed -i 's|@CONFDIR@|'${confdir}'|g' "$file.tmp"
-	sed -i 's|@USERNAME@|'${username}'|g' "$file.tmp"
-	sed -i 's|@GROUP@|'${group}'|g' "$file.tmp"
-	CONFIG="$file.tmp"
-}
-
 launch_simple_sr_server() {
        LD_PRELOAD=libsocket_wrapper.so:libuid_wrapper.so UID_WRAPPER=1 UID_WRAPPER_ROOT=1 $OCSERV $* &
 }
@@ -66,7 +53,6 @@ cleanup() {
 	fi
 	wait
 	test -n "$SOCKDIR" && rm -rf $SOCKDIR
-	rm -f ${CONFIG}
 	return $ret
 }
 
@@ -76,7 +62,6 @@ fail() {
 	echo "Failure: $1" >&2
 	kill $PID
 	test -n "$SOCKDIR" && rm -rf $SOCKDIR
-	rm -f ${CONFIG}
 	exit 1
 }
 

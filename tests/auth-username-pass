@@ -25,8 +25,7 @@ top_builddir=${top_builddir:-..}
 
 echo "Testing certificate auth... "
 
-update_config test-user-pass.config
-launch_simple_sr_server -d 1 -f -c ${CONFIG}
+launch_simple_sr_server -d 1 -f -c configs/test-user-pass.config
 PID=$!
 wait_server $PID
 

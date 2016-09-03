@@ -1,8 +1,8 @@
 # User authentication method. Could be set multiple times and in that case
 # all should succeed.
 # Options: certificate, pam. 
-#auth = "certificate"
-auth = "plain[@CONFDIR@/test1.passwd]"
+auth = "certificate"
+auth = "plain[@abs_top_srcdir@/tests/configs/test1.passwd]"
 #auth = "pam"
 
 # A banner to be displayed on clients
@@ -20,6 +20,10 @@ max-clients = 16
 # Limit the number of client connections to one every X milliseconds 
 # (X is the provided value). Set to zero for no limit.
 #rate-limit-ms = 100
+
+# Do not ban clients for excessive connection attempts. We kind of expect
+# that in the certificate test.
+ban-points-connection = 0
 
 # Limit the number of identical clients (i.e., users connecting multiple times)
 # Unset or set to zero for unlimited.
@@ -45,8 +49,8 @@ try-mtu-discovery = false
 #
 # There may be multiple certificate and key pairs and each key
 # should correspond to the preceding certificate.
-server-cert = @CERTDIR@/server-cert.pem
-server-key = @CERTDIR@/server-key.pem
+server-cert = @abs_top_srcdir@/tests/certs/server-cert.pem
+server-key = @abs_top_srcdir@/tests/certs/server-key.pem
 
 # Diffie-Hellman parameters. Only needed if you require support
 # for the DHE ciphersuites (by default this server supports ECDHE).
@@ -72,7 +76,7 @@ server-key = @CERTDIR@/server-key.pem
 # The Certificate Authority that will be used
 # to verify clients if certificate authentication
 # is set.
-ca-cert = @CERTDIR@/ca.pem
+ca-cert = @abs_top_srcdir@/tests/certs/ca.pem
 
 # The object identifier that will be used to read the user ID in the client certificate.
 # The object identifier should be part of the certificate's DN
@@ -133,8 +137,8 @@ socket-file = ./ocserv-socket
 
 # The user the worker processes will be run as. It should be
 # unique (no other services run as this user).
-run-as-user = @USERNAME@
-run-as-group = @GROUP@
+run-as-user = @OCSERV_USER@
+run-as-group = @OCSERV_GROUP@
 
 # Network settings
 

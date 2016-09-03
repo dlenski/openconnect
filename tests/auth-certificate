@@ -27,8 +27,7 @@ key_list=${key_list:-`echo ${certdir}/*-key-*.{pem,der,p12}`}
 
 echo "Testing certificate auth... "
 
-update_config test-user-cert.config
-launch_simple_sr_server -d 1 -f -c ${CONFIG}
+launch_simple_sr_server -d 1 -f -c configs/test-user-cert.config
 PID=$!
 wait_server $PID
 

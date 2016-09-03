@@ -28,8 +28,7 @@ pkcs11_keys=${pkcs11_keys:-object=RSA object=DSA object=EC id=%01 id=%02 id=%03}
 
 echo "Testing PKCS#11 auth... "
 
-update_config test-user-cert.config
-launch_simple_sr_server -d 1 -f -c ${CONFIG}
+launch_simple_sr_server -d 1 -f -c configs/test-user-cert.config
 PID=$!
 wait_server $PID
 
