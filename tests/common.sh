@@ -26,7 +26,7 @@ fi
 
 OCSERV=/usr/sbin/ocserv
 
-SOCKDIR="${srcdir}/sockwrap.$$.tmp"
+SOCKDIR="./sockwrap.$$.tmp"
 mkdir -p $SOCKDIR
 export SOCKET_WRAPPER_DIR=$SOCKDIR
 export SOCKET_WRAPPER_DEFAULT_IFACE=2
