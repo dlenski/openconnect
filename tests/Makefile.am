@@ -197,12 +197,12 @@ softhsm-setup1:
 	$(SHM2_UTIL) --init-token --slot 1 --label openconnect-test1 \
 		--so-pin 12345678 --pin 1234
 
-	$(P11TOOL) --load-certificate $(certsdir)/user-cert.pem \
+	$(P11TOOL) --load-certificate $(certsdir)/user-cert.pem --no-mark-private \
 		   --load-privkey $(certsdir)/user-key-pkcs8.pem \
 		   --label RSA --id 01 --login \
 		   --write "pkcs11:token=openconnect-test1;pin-value=1234"
 
-	$(P11TOOL) --load-certificate $(certsdir)/dsa-cert.pem \
+	$(P11TOOL) --load-certificate $(certsdir)/dsa-cert.pem --no-mark-private \
 		   --load-privkey $(certsdir)/dsa-key-pkcs8.pem \
 		   --label DSA --id 02 --login \
 		   --write "pkcs11:token=openconnect-test1;pin-value=1234"
