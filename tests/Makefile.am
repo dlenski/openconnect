@@ -55,7 +55,9 @@ PKCS11_KEYS += object=EC id=%03
 if OPENCONNECT_GNUTLS
 # OpenSSL fails test1 with a SEGV on the EC key:
 # https://github.com/openssl/openssl/issues/1532
-PKCS11_TOKENS += openconnect-test1
+# We fail test2 because PKCS11_enumerate_certs() still doesn't seem to return
+# the certs after we log in. Perhaps it's cached the results?
+PKCS11_TOKENS += openconnect-test1 openconnect-test2
 endif # OPENCONNECT_GNUTLS
 endif # TEST_PKCS11
 endif # HAVE_CWRAP
@@ -211,3 +213,24 @@ softhsm-setup1:
 		   --load-privkey $(certsdir)/ec-key-pkcs8.pem \
 		   --label EC --id 03 --login \
 		   --write "pkcs11:token=openconnect-test1;pin-value=1234"
+
+# Third test: CKA_PRIVATE on certificates
+softhsm-setup2:
+	$(SHM2_UTIL) --show-slots
+	$(SHM2_UTIL) --init-token --slot 2 --label openconnect-test2 \
+		--so-pin 12345678 --pin 1234
+
+	$(P11TOOL) --load-certificate $(certsdir)/user-cert.pem \
+		   --load-privkey $(certsdir)/user-key-pkcs8.pem \
+		   --label RSA --id 01 --login \
+		   --write "pkcs11:token=openconnect-test2;pin-value=1234"
+
+	$(P11TOOL) --load-certificate $(certsdir)/dsa-cert.pem \
+		   --load-privkey $(certsdir)/dsa-key-pkcs8.pem \
+		   --label DSA --id 02 --login \
+		   --write "pkcs11:token=openconnect-test2;pin-value=1234"
+
+	$(P11TOOL) --load-certificate $(certsdir)/ec-cert.pem \
+		   --load-privkey $(certsdir)/ec-key-pkcs8.pem \
+		   --label EC --id 03 --login \
+		   --write "pkcs11:token=openconnect-test2;pin-value=1234"
