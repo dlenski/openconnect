@@ -44,17 +44,27 @@ dist_check_SCRIPTS += auth-username-pass auth-certificate
 
 if TEST_PKCS11
 dist_check_SCRIPTS += auth-pkcs11
+
+PKCS11_TOKENS = openconnect-test
+
 PKCS11_KEYS = object=RSA id=%01
 # Neither GnuTLS or libp11 support this
 #PKCS11_KEYS += object=DSA id=%02
 PKCS11_KEYS += object=EC id=%03
-endif
-endif
+
+if OPENCONNECT_GNUTLS
+# OpenSSL fails test1 with a SEGV on the EC key:
+# https://github.com/openssl/openssl/issues/1532
+PKCS11_TOKENS += openconnect-test1
+endif # OPENCONNECT_GNUTLS
+endif # TEST_PKCS11
+endif # HAVE_CWRAP
 
 TESTS_ENVIRONMENT = srcdir="$(srcdir)" \
 	top_builddir="$(top_builddir)" \
 	key_list="$(USER_KEYS)" \
-	pkcs11_keys="$(PKCS11_KEYS)"
+	pkcs11_keys="$(PKCS11_KEYS)" \
+	pkcs11_tokens="$(PKCS11_TOKENS)"
 
 
 noinst_PROGRAMS = lzstest seqtest
@@ -157,7 +167,8 @@ $(certsdir)/ec-key-pkcs1-aes128.pem: certs/ec-key-pkcs1.pem
 SHM2_UTIL=HOME=$(srcdir) SOFTHSM2_CONF=softhsm2.conf softhsm2-util
 P11TOOL=HOME=$(srcdir) SOFTHSM2_CONF=softhsm2.conf p11tool
 
-softhsm-setup:
+# Nice and simple: Certs visible without login, public keys present in token
+softhsm-setup0:
 	$(SHM2_UTIL) --show-slots
 	$(SHM2_UTIL) --init-token --slot 0 --label openconnect-test \
 		--so-pin 12345678 --pin 1234
@@ -180,3 +191,23 @@ softhsm-setup:
 		   --label EC --id 03 --set-pin 1234 --login \
 		   --write "pkcs11:token=openconnect-test;pin-value=1234"
 
+# Second test: Import keys with GnuTLS so public key is absent
+softhsm-setup1:
+	$(SHM2_UTIL) --show-slots
+	$(SHM2_UTIL) --init-token --slot 1 --label openconnect-test1 \
+		--so-pin 12345678 --pin 1234
+
+	$(P11TOOL) --load-certificate $(certsdir)/user-cert.pem \
+		   --load-privkey $(certsdir)/user-key-pkcs8.pem \
+		   --label RSA --id 01 --login \
+		   --write "pkcs11:token=openconnect-test1;pin-value=1234"
+
+	$(P11TOOL) --load-certificate $(certsdir)/dsa-cert.pem \
+		   --load-privkey $(certsdir)/dsa-key-pkcs8.pem \
+		   --label DSA --id 02 --login \
+		   --write "pkcs11:token=openconnect-test1;pin-value=1234"
+
+	$(P11TOOL) --load-certificate $(certsdir)/ec-cert.pem --no-mark-private \
+		   --load-privkey $(certsdir)/ec-key-pkcs8.pem \
+		   --label EC --id 03 --login \
+		   --write "pkcs11:token=openconnect-test1;pin-value=1234"
