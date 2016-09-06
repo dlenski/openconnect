@@ -797,6 +797,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	EVP_PKEY *key;
 	FILE *f;
 	char buf[256];
+	int ret;
 
 	if (!strncmp(vpninfo->cert, "pkcs11:", 7)) {
 		int ret = load_pkcs11_certificate(vpninfo);
@@ -923,10 +924,16 @@ static int load_certificate(struct openconnect_info *vpninfo)
 				BIO_free(b);
 				return -EINVAL;
 			}
-			SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key);
+			ret = 0;
+			if (!SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key)) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Loading private key failed\n"));
+				openconnect_report_ssl_errors(vpninfo);
+				ret = -EINVAL;
+			}
 			EVP_PKEY_free(key);
 			BIO_free(b);
-			return 0;
+			return ret;
 		}
 	}
 
@@ -938,10 +945,16 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	 * the latter but nobody cares about 0.9.8 any more. */
 	key = d2i_PrivateKey_fp(f, NULL);
 	if (key) {
-		SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key);
+		ret = 0;
+		if (!SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Loading private key failed\n"));
+			openconnect_report_ssl_errors(vpninfo);
+			ret = -EINVAL;
+		}
 		EVP_PKEY_free(key);
 		fclose(f);
-		return 0;
+		return ret;
 	} else {
 		/* Encrypted PKCS#8 DER */
 		X509_SIG *p8;
@@ -998,9 +1011,15 @@ static int load_certificate(struct openconnect_info *vpninfo)
 					     _("Failed to convert PKCS#8 to OpenSSL EVP_PKEY\n"));
 				return -EIO;
 			}
-			SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key);
+			ret = 0;
+			if (!SSL_CTX_use_PrivateKey(vpninfo->https_ctx, key)) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Loading private key failed\n"));
+				openconnect_report_ssl_errors(vpninfo);
+				ret = -EINVAL;
+			}
 			EVP_PKEY_free(key);
-			return 0;
+			return ret;
 		}
 	}
 
