@@ -388,6 +388,9 @@ int load_pkcs11_certificate(struct openconnect_info *vpninfo)
 		}
 	}
 	ret = -EINVAL;
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Failed to find PKCS#11 cert '%s'\n"),
+		     vpninfo->cert);
  got_cert:
 	if (cert) {
 		/* This happens if the cert is too large for the fixed buffer
@@ -566,11 +569,14 @@ int load_pkcs11_key(struct openconnect_info *vpninfo)
 		}
 	}
 	ret = -EINVAL;
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Failed to find PKCS#11 key '%s'\n"),
+		     vpninfo->sslkey);
 
  got_key:
 	if (key) {
 		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("Using PKCS#11 key %s\n"), vpninfo->cert);
+			     _("Using PKCS#11 key %s\n"), vpninfo->sslkey);
 
 		pkey = PKCS11_get_private_key(key);
 		if (!pkey) {
