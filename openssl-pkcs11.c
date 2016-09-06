@@ -479,6 +479,9 @@ static PKCS11_KEY *slot_find_key(struct openconnect_info *vpninfo, PKCS11_CTX *c
 }
 
 #ifndef OPENSSL_NO_EC
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#define EVP_PKEY_id(k) ((k)->type)
+#endif
 static int validate_ecdsa_key(struct openconnect_info *vpninfo, EC_KEY *priv_ec)
 {
 	EVP_PKEY *pub_pkey;
@@ -660,7 +663,7 @@ int load_pkcs11_key(struct openconnect_info *vpninfo)
 		 * a signature and validating it against the cert, then
 		 * copying the EC_POINT public key information from the cert.
 		 */
-		if (pkey->type == EVP_PKEY_EC) {
+		if (EVP_PKEY_id(pkey) == EVP_PKEY_EC) {
 			EC_KEY *priv_ec = EVP_PKEY_get1_EC_KEY(pkey);
 
 			ret = 0;
