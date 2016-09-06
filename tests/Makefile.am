@@ -45,7 +45,7 @@ dist_check_SCRIPTS += auth-username-pass auth-certificate
 if TEST_PKCS11
 dist_check_SCRIPTS += auth-pkcs11
 
-PKCS11_TOKENS = openconnect-test
+PKCS11_TOKENS = openconnect-test openconnect-test1
 
 PKCS11_KEYS = object=RSA id=%01
 # Neither GnuTLS or libp11 support this
@@ -53,11 +53,9 @@ PKCS11_KEYS = object=RSA id=%01
 PKCS11_KEYS += object=EC id=%03
 
 if OPENCONNECT_GNUTLS
-# OpenSSL fails test1 with a SEGV on the EC key:
-# https://github.com/openssl/openssl/issues/1532
 # We fail test2 because PKCS11_enumerate_certs() still doesn't seem to return
 # the certs after we log in. Perhaps it's cached the results?
-PKCS11_TOKENS += openconnect-test1 openconnect-test2
+PKCS11_TOKENS += openconnect-test2
 endif # OPENCONNECT_GNUTLS
 endif # TEST_PKCS11
 endif # HAVE_CWRAP

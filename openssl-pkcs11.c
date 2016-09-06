@@ -23,6 +23,7 @@
 #include <ctype.h>
 
 #include "openconnect-internal.h"
+#include <openssl/rand.h>
 
 #ifdef HAVE_LIBP11 /* And p11-kit */
 
@@ -477,6 +478,67 @@ static PKCS11_KEY *slot_find_key(struct openconnect_info *vpninfo, PKCS11_CTX *c
 	return NULL;
 }
 
+#ifndef OPENSSL_NO_EC
+static int validate_ecdsa_key(struct openconnect_info *vpninfo, EC_KEY *priv_ec)
+{
+	EVP_PKEY *pub_pkey;
+	EC_KEY *pub_ec;
+	unsigned char rdata[SHA1_SIZE];
+	unsigned int siglen = ECDSA_size(priv_ec);
+	unsigned char *sig;
+	int ret = -EINVAL;
+
+	pub_pkey = X509_get_pubkey(vpninfo->cert_x509);
+	if (!pub_pkey) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Certificate has no public key\n"));
+		goto out;
+	}
+	pub_ec = EVP_PKEY_get1_EC_KEY(pub_pkey);
+	if (!pub_ec) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Certificate does not match private key\n"));
+		goto out_pkey;
+	}
+	vpn_progress(vpninfo, PRG_TRACE, _("Checking EC key matches cert\n"));
+	sig = malloc(siglen);
+	if (!sig) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to allocate signature buffer\n"));
+		ret = -ENOMEM;
+		goto out_pubec;
+	}
+	if (!RAND_bytes(rdata, sizeof(rdata))) {
+		/* Actually, who cares? */
+	}
+	if (!ECDSA_sign(NID_sha1, rdata, sizeof(rdata),
+			sig, &siglen, priv_ec)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Failed to sign dummy data to validate EC key\n"));
+		openconnect_report_ssl_errors(vpninfo);
+		goto out_sig;
+	}
+	if (!ECDSA_verify(NID_sha1, rdata, sizeof(rdata), sig, siglen, pub_ec)) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Certificate does not match private key\n"));
+		goto out_sig;
+	}
+
+	/* Finally, copy the public EC_POINT data now that we know it really did match */
+	EC_KEY_set_public_key(priv_ec, EC_KEY_get0_public_key(pub_ec));
+	ret = 0;
+
+ out_sig:
+	free(sig);
+ out_pubec:
+	EC_KEY_free(pub_ec);
+ out_pkey:
+	EVP_PKEY_free(pub_pkey);
+ out:
+	return ret;
+}
+#endif
+
 int load_pkcs11_key(struct openconnect_info *vpninfo)
 {
 	PKCS11_CTX *ctx;
@@ -587,6 +649,28 @@ int load_pkcs11_key(struct openconnect_info *vpninfo)
 			goto out;
 		}
 
+#ifndef OPENSSL_NO_EC
+		/*
+		 * If an EC EVP_PKEY has no public key, OpenSSL will crash
+		 * when trying to check it matches the certificate:
+		 * https://github.com/openssl/openssl/issues/1532
+		 *
+		 * Work around this by detecting this condition, manually
+		 * checking that the certificate *does* match by performing
+		 * a signature and validating it against the cert, then
+		 * copying the EC_POINT public key information from the cert.
+		 */
+		if (pkey->type == EVP_PKEY_EC) {
+			EC_KEY *priv_ec = EVP_PKEY_get1_EC_KEY(pkey);
+
+			ret = 0;
+			if (!EC_KEY_get0_public_key(priv_ec))
+				ret = validate_ecdsa_key(vpninfo, priv_ec);
+			EC_KEY_free(priv_ec);
+			if (ret)
+				goto out;
+		}
+#endif
 		if (!SSL_CTX_use_PrivateKey(vpninfo->https_ctx, pkey)) {
 			vpn_progress(vpninfo, PRG_ERR, _("Add key from PKCS#11 failed\n"));
 			openconnect_report_ssl_errors(vpninfo);
