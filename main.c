@@ -1718,6 +1718,9 @@ static int validate_peer_cert(void *_vpninfo, const char *reason)
 		fprintf(stderr, _("\nCertificate from VPN server \"%s\" failed verification.\n"
 			 "Reason: %s\n"), vpninfo->hostname, reason);
 
+		fprintf(stderr, _("To trust this server in future, perhaps add this to your command line:\n"));
+		fprintf(stderr, _("    --servercert %s\n"), fingerprint);
+
 		if (non_inter)
 			return -EINVAL;
 
