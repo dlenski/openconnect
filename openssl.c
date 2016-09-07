@@ -1650,6 +1650,11 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 		if (vpninfo->cert) {
 			err = load_certificate(vpninfo);
+			if (!err && !SSL_CTX_check_private_key(vpninfo->https_ctx)) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("SSL certificate and key do not match\n"));
+				err = -EINVAL;
+			}
 			if (err) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Loading certificate failed. Aborting.\n"));
