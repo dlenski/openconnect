@@ -15,6 +15,8 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Remove <tt>--no-cert-check</tt> option. It was being (mis)used.</li>
+       <li>Fix OpenSSL support for PKCS#11 EC keys without public key.</li>
        <li>Support for final OpenSSL 1.1 release.</li>
        <li>Fix polling/retry on "tun" socket when buffers full.</li>
        <li>Fix AnyConnect server-side MTU setting.</li>

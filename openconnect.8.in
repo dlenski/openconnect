@@ -49,7 +49,6 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .OP \-\-dtls\-ciphers list
 .OP \-\-dtls\-local\-port port
 .OP \-\-dump\-http\-traffic
-.OP \-\-no\-cert\-check
 .OP \-\-no\-system\-trust
 .OP \-\-pfs
 .OP \-\-no\-dtls
@@ -354,15 +353,6 @@ as the local port for DTLS datagrams
 .B \-\-dump\-http\-traffic
 Enable verbose output of all HTTP requests and the bodies of all responses
 received from the server.
-.TP
-.B \-\-no\-cert\-check
-Do not require server SSL certificate to be valid. Checks will still happen
-and failures will cause a warning message, but the connection will continue
-anyway. You should not need to use this option \- if your servers have SSL
-certificates which are not signed by a trusted Certificate Authority, you can
-still add them (or your private CA) to a local file and use that file with the
-.B \-\-cafile
-option.
 .TP
 .B \-\-no\-system\-trust
 Do not trust the system default certificate authorities. If this option is

@@ -82,7 +82,6 @@ static int verbose = PRG_INFO;
 static int timestamp;
 int background;
 static int do_passphrase_from_fsid;
-static int nocertcheck;
 static int non_inter;
 static int cookieonly;
 static int allow_stdin_read;
@@ -1291,7 +1290,10 @@ int main(int argc, char **argv)
 			vpninfo->no_http_keepalive = 1;
 			break;
 		case OPT_NO_CERT_CHECK:
-			nocertcheck = 1;
+			fprintf(stderr,
+				_("The --no-cert-check option was insecure and has been removed.\n"
+				  "Fix your server's certificate or use --servercert to trust it.\n"));
+			exit(1);
 			break;
 		case 's':
 			vpnc_script = dup_config_arg();
@@ -1698,9 +1700,6 @@ static int validate_peer_cert(void *_vpninfo, const char *reason)
 
 		return -EINVAL;
 	}
-
-	if (nocertcheck)
-		return 0;
 
 	fingerprint = openconnect_get_peer_cert_hash(vpninfo);
 
