@@ -1723,8 +1723,8 @@ static int load_certificate(struct openconnect_info *vpninfo)
 					gnutls_free(t.data);
 				}
 				if (err) {
-					vpn_progress(vpninfo, PRG_ERR,
-						     "Got no issuer from PKCS#11\n");
+					vpn_progress(vpninfo, PRG_TRACE,
+						     _("Got no issuer from PKCS#11\n"));
 				} else {
 					get_cert_name(issuer, name, sizeof(name));
 
