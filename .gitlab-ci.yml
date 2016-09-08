@@ -1,6 +1,82 @@
 image: fedora:24
 
-Build with GnuTLS:
+CentOS7/GnuTLS:
+  image: centos:7
+  script:
+  - rpm -i http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-8.noarch.rpm
+  - yum install -y git autoconf automake libtool python gettext
+    'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
+    'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
+    'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
+    ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
+    vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
+    java-devel-openjdk
+  - ./autogen.sh
+  - ./configure --with-java
+  - make -j4
+  # XFAIL the auth-pkcs11 test because GnuTLS 3.3.8 doesn't support pin-value
+  - make VERBOSE=1 -j4 check XFAIL_TESTS="auth-pkcs11"
+  tags:
+  - shared
+  except:
+  - tags
+  artifacts:
+    expire_in: 1 week
+    when: on_failure
+    paths:
+      - tests/*.log
+
+CentOS7/OpenSSL:
+  image: centos:7
+  script:
+  - rpm -i http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-8.noarch.rpm
+  - yum install -y git autoconf automake libtool python gettext
+    'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
+    'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
+    'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
+    ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
+    vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
+    java-devel-openjdk 'pkgconfig(libp11)'
+  - ./autogen.sh
+  - ./configure --without-gnutls --with-openssl --with-java --without-openssl-version-check --enable-dtls-xfail --disable-dsa-tests
+  - make -j4
+  - make VERBOSE=1 -j4 check
+  tags:
+  - shared
+  except:
+  - tags
+  artifacts:
+    expire_in: 1 week
+    when: on_failure
+    paths:
+      - tests/*.log
+
+CentOS6/OpenSSL:
+  image: centos:6
+  script:
+  - rpm -i http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+  - yum install -y git autoconf automake libtool python gettext
+    'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
+    'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
+    'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
+    ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
+    vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
+    java-devel-openjdk vpnc 'pkgconfig(libp11)' 'pkgconfig(p11-kit-1)'
+  - ./autogen.sh
+  - ./configure --with-java --with-vpnc-script=/bin/true --without-openssl-version-check --enable-dtls-xfail
+  - make -j4
+  - make VERBOSE=1 -j4 check
+  tags:
+  - shared
+  except:
+  - tags
+  artifacts:
+    expire_in: 1 week
+    when: on_failure
+    paths:
+      - tests/*.log
+
+Fedora/GnuTLS:
   script:
   - dnf install -y git autoconf automake libtool python gettext
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
@@ -23,7 +99,7 @@ Build with GnuTLS:
     paths:
       - tests/*.log
 
-Build with GnuTLS and clang:
+Fedora/GnuTLS/clang:
   script:
   - dnf install -y git autoconf automake libtool python gettext
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
@@ -46,7 +122,7 @@ Build with GnuTLS and clang:
     paths:
       - tests/*.log
 
-Build with OpenSSL:
+Fedora/GnuTLS/OpenSSL:
   script:
   - dnf install -y git autoconf automake libtool python gettext
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
@@ -55,8 +131,8 @@ Build with OpenSSL:
     ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
     java-devel-openjdk 'pkgconfig(libp11)' koji
-  - koji download-build --arch=x86_64 libp11-0.4.0-1.fc24
-  - rpm -Fhv libp11*0.4.0-1.fc24.x86_64.rpm
+  - koji download-build --arch=x86_64 libp11-0.4.0-2.fc24
+  - rpm -Fhv libp11*0.4.0-2.fc24.x86_64.rpm
   - ./autogen.sh
   - ./configure --without-gnutls --with-openssl --without-openssl-version-check
   - make -j4
@@ -71,7 +147,7 @@ Build with OpenSSL:
     paths:
       - tests/*.log
 
-Build with OpenSSL and clang:
+Fedora/OpenSSL/clang:
   script:
   - dnf install -y git autoconf automake libtool python gettext
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
@@ -80,8 +156,8 @@ Build with OpenSSL and clang:
     ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
     java-devel-openjdk 'pkgconfig(libp11)' clang koji
-  - koji download-build --arch=x86_64 libp11-0.4.0-1.fc24
-  - rpm -Fhv libp11*0.4.0-1.fc24.x86_64.rpm
+  - koji download-build --arch=x86_64 libp11-0.4.0-2.fc24
+  - rpm -Fhv libp11*0.4.0-2.fc24.x86_64.rpm
   - ./autogen.sh
   - ./configure CC=clang --without-gnutls --with-openssl --without-openssl-version-check
   - make -j4
@@ -96,7 +172,7 @@ Build with OpenSSL and clang:
     paths:
       - tests/*.log
 
-Build with MinGW32 and GnuTLS:
+MinGW32/GnuTLS:
   script:
   - dnf install -y git autoconf automake libtool python gettext
     mingw32-gnutls mingw32-openssl mingw32-libxml2 mingw32-zlib
@@ -117,7 +193,7 @@ Build with MinGW32 and GnuTLS:
     paths:
       - tests/*.log
 
-Build with MinGW32 and OpenSSL:
+MinGW32/OpenSSL:
   script:
   - dnf install -y git autoconf automake libtool python gettext
     mingw32-gnutls mingw32-openssl mingw32-libxml2 mingw32-zlib
@@ -138,7 +214,7 @@ Build with MinGW32 and OpenSSL:
     paths:
       - tests/*.log
 
-Build with MinGW64 and GnuTLS:
+MinGW64/GnuTLS:
   script:
   - dnf install -y git autoconf automake libtool python gettext
     mingw64-gnutls mingw64-openssl mingw64-libxml2 mingw64-zlib
@@ -159,7 +235,7 @@ Build with MinGW64 and GnuTLS:
     paths:
       - tests/*.log
 
-Build with MinGW64 and OpenSSL:
+MinGW64/OpenSSL:
   script:
   - dnf install -y git autoconf automake libtool python gettext
     mingw64-gnutls mingw64-openssl mingw64-libxml2 mingw64-zlib
