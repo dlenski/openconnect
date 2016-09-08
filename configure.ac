@@ -545,6 +545,11 @@ AC_ARG_ENABLE([dtls-xfail],
 	AS_HELP_STRING([--enable-dtls-xfail], [Only for gitlab CI. Do not use]))
 AM_CONDITIONAL(DTLS_XFAIL, [test "$enable_dtls_xfail" = "yes" ])
 
+AC_ARG_ENABLE([dsa-tests],
+	AS_HELP_STRING([--disable-dsa-tests], [Disable DSA keys in self-test]),
+	[], [enable_dsa_tests=yes])
+AM_CONDITIONAL(TEST_DSA, [test "$enable_dsa_tests" = "yes"])
+
 AC_ARG_WITH([openssl-version-check],
 	AS_HELP_STRING([--without-openssl-version-check],
 	[Do not check for known-broken OpenSSL versions]))
