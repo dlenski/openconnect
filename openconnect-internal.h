@@ -807,6 +807,9 @@ void dtls_close(struct openconnect_info *vpninfo);
 void dtls_shutdown(struct openconnect_info *vpninfo);
 void append_dtls_ciphers(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
 
+int openconnect_dtls_read(struct openconnect_info *vpninfo, void *buf, size_t len, unsigned ms);
+int openconnect_dtls_write(struct openconnect_info *vpninfo, void *buf, size_t len);
+
 /* cstp.c */
 void cstp_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
 int cstp_connect(struct openconnect_info *vpninfo);

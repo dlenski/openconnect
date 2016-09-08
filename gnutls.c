@@ -99,26 +99,26 @@ static P11KitPin *p11kit_pin_callback(const char *pin_source, P11KitUri *pin_uri
 	 gnutls_check_version(#a "." #b "." #c)))
 
 /* Helper functions for reading/writing lines over SSL. */
-static int openconnect_gnutls_write(struct openconnect_info *vpninfo, char *buf, size_t len)
+static int _openconnect_gnutls_write(gnutls_session_t ses, int fd, struct openconnect_info *vpninfo, char *buf, size_t len)
 {
 	size_t orig_len = len;
 
 	while (len) {
-		int done = gnutls_record_send(vpninfo->https_sess, buf, len);
+		int done = gnutls_record_send(ses, buf, len);
 		if (done > 0)
 			len -= done;
 		else if (done == GNUTLS_E_AGAIN || done == GNUTLS_E_INTERRUPTED) {
 			/* Wait for something to happen on the socket, or on cmd_fd */
 			fd_set wr_set, rd_set;
-			int maxfd = vpninfo->ssl_fd;
+			int maxfd = fd;
 
 			FD_ZERO(&wr_set);
 			FD_ZERO(&rd_set);
 
-			if (gnutls_record_get_direction(vpninfo->https_sess))
-				FD_SET(vpninfo->ssl_fd, &wr_set);
+			if (gnutls_record_get_direction(ses))
+				FD_SET(fd, &wr_set);
 			else
-				FD_SET(vpninfo->ssl_fd, &rd_set);
+				FD_SET(fd, &rd_set);
 
 			cmd_fd_set(vpninfo, &rd_set, &maxfd);
 			select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
@@ -135,48 +135,93 @@ static int openconnect_gnutls_write(struct openconnect_info *vpninfo, char *buf,
 	return orig_len;
 }
 
-static int openconnect_gnutls_read(struct openconnect_info *vpninfo, char *buf, size_t len)
+static int openconnect_gnutls_write(struct openconnect_info *vpninfo, char *buf, size_t len)
 {
-	int done;
+	return _openconnect_gnutls_write(vpninfo->https_sess, vpninfo->ssl_fd, vpninfo, buf, len);
+}
 
-	while ((done = gnutls_record_recv(vpninfo->https_sess, buf, len)) < 0) {
+int openconnect_dtls_write(struct openconnect_info *vpninfo, void *buf, size_t len)
+{
+	return _openconnect_gnutls_write(vpninfo->dtls_ssl, vpninfo->dtls_fd, vpninfo, buf, len);
+}
+
+static int _openconnect_gnutls_read(gnutls_session_t ses, int fd, struct openconnect_info *vpninfo, char *buf, size_t len, unsigned ms)
+{
+	int done, ret;
+	struct timeval timeout, *tv = NULL;
+
+	if (ms) {
+		timeout.tv_sec = ms/1000;
+		timeout.tv_usec = (ms%1000)*1000;
+		tv = &timeout;
+	}
+
+	while ((done = gnutls_record_recv(ses, buf, len)) < 0) {
 		if (done == GNUTLS_E_AGAIN || done == GNUTLS_E_INTERRUPTED) {
 			/* Wait for something to happen on the socket, or on cmd_fd */
 			fd_set wr_set, rd_set;
-			int maxfd = vpninfo->ssl_fd;
+			int maxfd = fd;
 
 			FD_ZERO(&wr_set);
 			FD_ZERO(&rd_set);
 
-			if (gnutls_record_get_direction(vpninfo->https_sess))
-				FD_SET(vpninfo->ssl_fd, &wr_set);
+			if (gnutls_record_get_direction(ses))
+				FD_SET(fd, &wr_set);
 			else
-				FD_SET(vpninfo->ssl_fd, &rd_set);
+				FD_SET(fd, &rd_set);
 
 			cmd_fd_set(vpninfo, &rd_set, &maxfd);
-			select(maxfd + 1, &rd_set, &wr_set, NULL, NULL);
+			ret = select(maxfd + 1, &rd_set, &wr_set, NULL, tv);
 			if (is_cancel_pending(vpninfo, &rd_set)) {
 				vpn_progress(vpninfo, PRG_ERR, _("SSL read cancelled\n"));
-				return -EINTR;
+				done = -EINTR;
+				goto cleanup;
+			}
+
+			if (ret == 0) {
+				done = -ETIMEDOUT;
+				goto cleanup;
 			}
 		} else if (done == GNUTLS_E_PREMATURE_TERMINATION) {
 			/* We've seen this with HTTP 1.0 responses followed by abrupt
 			   socket closure and no clean SSL shutdown.
 			   https://bugs.launchpad.net/bugs/1225276 */
 			vpn_progress(vpninfo, PRG_DEBUG, _("SSL socket closed uncleanly\n"));
-			return 0;
+			done = 0;
+			goto cleanup;
 		} else if (done == GNUTLS_E_REHANDSHAKE) {
 			int ret = cstp_handshake(vpninfo, 0);
-			if (ret)
-				return ret;
+			if (ret) {
+				done = ret;
+				goto cleanup;
+			}
 		} else {
 			vpn_progress(vpninfo, PRG_ERR, _("Failed to read from SSL socket: %s\n"),
 				     gnutls_strerror(done));
-			return -EIO;
+			if (done == GNUTLS_E_TIMEDOUT) {
+				done = -ETIMEDOUT;
+				goto cleanup;
+			} else {
+				done = -EIO;
+				goto cleanup;
+			}
 		}
 
 	}
+
+ cleanup:
 	return done;
+
+}
+
+static int openconnect_gnutls_read(struct openconnect_info *vpninfo, char *buf, size_t len)
+{
+	return _openconnect_gnutls_read(vpninfo->https_sess, vpninfo->ssl_fd, vpninfo, buf, len, 0);
+}
+
+int openconnect_dtls_read(struct openconnect_info *vpninfo, void *buf, size_t len, unsigned ms)
+{
+	return _openconnect_gnutls_read(vpninfo->dtls_ssl, vpninfo->dtls_fd, vpninfo, buf, len, ms);
 }
 
 static int openconnect_gnutls_gets(struct openconnect_info *vpninfo, char *buf, size_t len)
