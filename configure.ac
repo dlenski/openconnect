@@ -1085,7 +1085,7 @@ AC_DEFUN([SUMMARY],
 
 echo "BUILD OPTIONS:"
 SUMMARY([SSL library], [$ssl_library])
-SUMMARY([PKCS#11 support], [$pkcs11_support])
+SUMMARY([[PKCS#11 support]], [$pkcs11_support])
 SUMMARY([DTLS support], [$dtls_lib])
 SUMMARY([ESP support], [$esp])
 SUMMARY([libproxy support], [$libproxy_pkg])
