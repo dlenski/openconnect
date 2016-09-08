@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2016-08-30 21:03+0100\n"
+"POT-Creation-Date: 2016-09-08 12:49+0100\n"
 "PO-Revision-Date: 2011-09-22 22:31+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Catalan (http://www.transifex.net/projects/p/meego/team/ca/)\n"
@@ -40,7 +40,7 @@ msgstr "No es pot gestionar el mètode = «%s» al formulari, acció = «%s»\n"
 #: auth-juniper.c:260
 #, c-format
 msgid "Unknown textarea field: '%s'\n"
-msgstr ""
+msgstr "Camp desconegut d'àrea de text: «%s»\n"
 
 #: auth-juniper.c:328
 msgid "TNCC support not implemented yet on Windows\n"
@@ -590,7 +590,7 @@ msgstr "La inicialització de CTX DTLSv1 ha fallat\n"
 
 #: dtls.c:275
 msgid "Set DTLS CTX version failed\n"
-msgstr ""
+msgstr "L'establiment de la versió DTLS CTX ha fallat\n"
 
 #: dtls.c:290
 msgid "Set DTLS cipher list failed\n"
@@ -781,11 +781,11 @@ msgstr ""
 #: dtls.c:1045
 #, c-format
 msgid "TOS this: %d, TOS last: %d\n"
-msgstr ""
+msgstr "TOS aquest: %d, TOS últim: %d\n"
 
 #: dtls.c:1049
 msgid "UDP setsockopt"
-msgstr ""
+msgstr "UDP setsockopt"
 
 #: dtls.c:1080
 #, c-format
@@ -847,37 +847,37 @@ msgstr "S'ha detectat MTP de %d bytes (era %d)\n"
 msgid "No change in MTU after detection (was %d)\n"
 msgstr "Cap canvi al MTU després de la detecció (era %d)\n"
 
-#: esp-seqno.c:59
+#: esp-seqno.c:61
 #, c-format
 msgid "Accepting expected ESP packet with seq %u\n"
 msgstr "S'està acceptant el paquet esperat ESP amb seqüència %u\n"
 
-#: esp-seqno.c:65
-#, c-format
-msgid "Discarding ancient ESP packet with seq %u (expected %<PRIu64>)\n"
-msgstr ""
-"S'està descartant el paquet antic ESP amb seqüència %u (s'esperava "
-"%<PRIu64>)\n"
-
-#: esp-seqno.c:74
-#, c-format
-msgid "Accepting out-of-order ESP packet with seq %u (expected %<PRIu64>)\n"
-msgstr ""
-"S'està acceptant el paquet ESP fora de rang amb seqüència %u (s'esperava "
-"%<PRIu64>)\n"
-
-#: esp-seqno.c:80
-#, c-format
-msgid "Discarding replayed ESP packet with seq %u\n"
-msgstr "S'està descartant el paquet repetit ESP amb seqüència %u\n"
-
-#: esp-seqno.c:109
+#: esp-seqno.c:91
 #, c-format
 msgid ""
 "Accepting later-than-expected ESP packet with seq %u (expected %<PRIu64>)\n"
 msgstr ""
 "S'està acceptant el paquet ESP més tard del que s'esperava amb seqüència %u "
 "(s'esperava %<PRIu64>)\n"
+
+#: esp-seqno.c:103
+#, c-format
+msgid "Discarding ancient ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr ""
+"S'està descartant el paquet antic ESP amb seqüència %u (s'esperava "
+"%<PRIu64>)\n"
+
+#: esp-seqno.c:110
+#, c-format
+msgid "Discarding replayed ESP packet with seq %u\n"
+msgstr "S'està descartant el paquet repetit ESP amb seqüència %u\n"
+
+#: esp-seqno.c:122
+#, c-format
+msgid "Accepting out-of-order ESP packet with seq %u (expected %<PRIu64>)\n"
+msgstr ""
+"S'està acceptant el paquet ESP fora de rang amb seqüència %u (s'esperava "
+"%<PRIu64>)\n"
 
 #: esp.c:68
 #, c-format
@@ -998,7 +998,7 @@ msgstr "Error en generar claus aleatòries per a ESP: %s\n"
 msgid "Failed to calculate HMAC for ESP packet: %s\n"
 msgstr "Error en calcular HMAC per al paquet ESP: %s\n"
 
-#: gnutls-esp.c:153 openssl-esp.c:193
+#: gnutls-esp.c:153 openssl-esp.c:191
 msgid "Received ESP packet with invalid HMAC\n"
 msgstr "S'ha rebut el paquet ESP amb una HMAC no vàlida\n"
 
@@ -1056,11 +1056,11 @@ msgstr "Ha fallat l'enviament SSL: %s\n"
 msgid "Could not extract expiration time of certificate\n"
 msgstr "No es pot extraure el temps caducitat del certificat\n"
 
-#: gnutls.c:306 openssl.c:1558
+#: gnutls.c:306 openssl.c:1578
 msgid "Client certificate has expired at"
 msgstr "El certificat ha caducat a"
 
-#: gnutls.c:308 openssl.c:1563
+#: gnutls.c:308 openssl.c:1583
 msgid "Client certificate expires soon at"
 msgstr "El certificat del client caducarà aviat a"
 
@@ -1183,7 +1183,7 @@ msgstr "Aquest binari està muntat sense suport de claus de sistema\n"
 msgid "This binary built without PKCS#11 support\n"
 msgstr "Aquest binari està muntat sense suport de PKCS#11\n"
 
-#: gnutls.c:1083 openssl-pkcs11.c:388
+#: gnutls.c:1083 openssl-pkcs11.c:407
 #, c-format
 msgid "Using PKCS#11 certificate %s\n"
 msgstr "S'està utilitzant el certificat %s PKCS#11\n"
@@ -1203,7 +1203,7 @@ msgstr "Error en carregar el certificat de PKCS#11: %s\n"
 msgid "Error loading system certificate: %s\n"
 msgstr "Error en carregar el certificat de sistema: %s\n"
 
-#: gnutls.c:1114 openssl.c:809
+#: gnutls.c:1114 openssl.c:810
 #, c-format
 msgid "Using certificate file %s\n"
 msgstr "S'està usant el certificat del fitxer %s\n"
@@ -1251,7 +1251,7 @@ msgstr "Error inicialitzant PKCS#11 d'estructura de clau: %s\n"
 msgid "Error importing PKCS#11 URL %s: %s\n"
 msgstr "Error en importar  PKCS#11 URL %s: %s\n"
 
-#: gnutls.c:1352 openssl-pkcs11.c:558
+#: gnutls.c:1352 openssl-pkcs11.c:644
 #, c-format
 msgid "Using PKCS#11 key %s\n"
 msgstr "S'està usant PKCS#11 clau %s\n"
@@ -1285,7 +1285,7 @@ msgstr "Error en carregar la clau privada PKCS#1: %s\n"
 msgid "Failed to load private key as PKCS#8: %s\n"
 msgstr "Error en carregar la clau privada com PKCS#8: %s\n"
 
-#: gnutls.c:1481 gnutls.c:1514 openssl.c:967 openssl.c:977
+#: gnutls.c:1481 gnutls.c:1514 openssl.c:981 openssl.c:991
 msgid "Failed to decrypt PKCS#8 certificate file\n"
 msgstr "Error en desxifrar el fitxer del certificat PKCS#8\n"
 
@@ -1294,7 +1294,7 @@ msgstr "Error en desxifrar el fitxer del certificat PKCS#8\n"
 msgid "Failed to determine type of private key %s\n"
 msgstr "Error en determinar el tipus de clau privada %s\n"
 
-#: gnutls.c:1518 openssl.c:973
+#: gnutls.c:1518 openssl.c:987
 msgid "Enter PKCS#8 pass phrase:"
 msgstr "Introduïu la contrasenya PKCS#8:"
 
@@ -1369,11 +1369,11 @@ msgstr ""
 "S'ha produït un error quan s'estava comparant el certificat del servidor a "
 "la reencaixada: %s\n"
 
-#: gnutls.c:2042 openssl.c:1481
+#: gnutls.c:2042 openssl.c:1501
 msgid "Server presented different cert on rehandshake\n"
 msgstr "El servidor ha presentat un certificat diferent a la reencaixada\n"
 
-#: gnutls.c:2047 openssl.c:1484
+#: gnutls.c:2047 openssl.c:1504
 msgid "Server presented identical cert on rehandshake\n"
 msgstr "El servidor ha presentat un certificat idèntic a la reencaixada\n"
 
@@ -1385,7 +1385,7 @@ msgstr "Error en inicialitzar l'estructura de certificat X509\n"
 msgid "Error importing server's cert\n"
 msgstr "Error en importar el certificat del servidor\n"
 
-#: gnutls.c:2068 main.c:1693
+#: gnutls.c:2068 main.c:1695
 msgid "Could not calculate hash of server's certificate\n"
 msgstr "No es pot calcular el resum del certificat del servidor\n"
 
@@ -1424,11 +1424,11 @@ msgstr "certificat expirat"
 msgid "signature verification failed"
 msgstr "la verificació de la signatura ha fallat"
 
-#: gnutls.c:2142 openssl.c:1365 openssl.c:1517
+#: gnutls.c:2142 openssl.c:1385 openssl.c:1537
 msgid "certificate does not match hostname"
 msgstr "el certificat no concorda amb el nom de l'amfitrió"
 
-#: gnutls.c:2147 openssl.c:1364 openssl.c:1523
+#: gnutls.c:2147 openssl.c:1384 openssl.c:1543
 #, c-format
 msgid "Server certificate verify failed: %s\n"
 msgstr "La verificació del certificat el servidor ha fallat: %s\n"
@@ -1447,7 +1447,7 @@ msgstr "Error en llegir certificats del fitxer CA: %s\n"
 msgid "Failed to open CA file '%s': %s\n"
 msgstr "Error en obrir el fitxer CA «%s»: %s\n"
 
-#: gnutls.c:2269 openssl.c:1635
+#: gnutls.c:2269 openssl.c:1660
 msgid "Loading certificate failed. Aborting.\n"
 msgstr "La carrega del certificat ha fallat. S'està avortant.\n"
 
@@ -1457,12 +1457,12 @@ msgid "Failed to set TLS priority string (\"%s\"): %s\n"
 msgstr ""
 "No s'ha pogut establir la cadena de caràcters de prioritat TLS («%s»): %s\n"
 
-#: gnutls.c:2352 openssl.c:1752
+#: gnutls.c:2352 openssl.c:1777
 #, c-format
 msgid "SSL negotiation with %s\n"
 msgstr "Negociació SSL amb %s\n"
 
-#: gnutls.c:2399 openssl.c:1778
+#: gnutls.c:2399 openssl.c:1803
 msgid "SSL connection cancelled\n"
 msgstr "Connexió SSL cancel·lada\n"
 
@@ -1476,7 +1476,7 @@ msgstr "Connexió SSL fallada: %s\n"
 msgid "GnuTLS non-fatal return during handshake: %s\n"
 msgstr "GnuTLS retorna no fatal durant la reencaixada:  %s\n"
 
-#: gnutls.c:2421 openssl.c:1795
+#: gnutls.c:2421 openssl.c:1820
 #, c-format
 msgid "Connected to HTTPS on %s\n"
 msgstr "S'ha connectat a HTTPS en %s\n"
@@ -1486,12 +1486,12 @@ msgstr "S'ha connectat a HTTPS en %s\n"
 msgid "Renegotiated SSL on %s\n"
 msgstr "S'ha renegociat SSL en %s\n"
 
-#: gnutls.c:2607 openssl-pkcs11.c:183
+#: gnutls.c:2607 openssl-pkcs11.c:199
 #, c-format
 msgid "PIN required for %s"
 msgstr "Cal PIN en %s"
 
-#: gnutls.c:2611 openssl-pkcs11.c:186
+#: gnutls.c:2611 openssl-pkcs11.c:202
 msgid "Wrong PIN"
 msgstr "PIN dolent"
 
@@ -1503,11 +1503,11 @@ msgstr "Aquest és l'últim intent abans de bloquejar-ho!"
 msgid "Only a few tries left before locking!"
 msgstr "Només alguns intents abans de bloquejar-ho!"
 
-#: gnutls.c:2621 openssl-pkcs11.c:190
+#: gnutls.c:2621 openssl-pkcs11.c:206
 msgid "Enter PIN:"
 msgstr "Entreu el PIN:"
 
-#: gnutls.c:2752 openssl.c:1923
+#: gnutls.c:2752 openssl.c:1948
 msgid "Unsupported OATH HMAC algorithm\n"
 msgstr "Algoritme HMAC OATH no suportat\n"
 
@@ -2015,32 +2015,32 @@ msgstr "Sols està permès https:// per la URL servidor\n"
 msgid "No form handler; cannot authenticate.\n"
 msgstr "Sense formulari gestor; no es pot autenticar.\n"
 
-#: main.c:334
+#: main.c:333
 #, c-format
 msgid "CommandLineToArgvW() failed: %s\n"
 msgstr "CommandLineToArgvW() ha fallat: %s\n"
 
-#: main.c:347
+#: main.c:346
 #, c-format
 msgid "Fatal error in command line handling\n"
 msgstr "Error fatal en la gestió de la línia d'ordres\n"
 
-#: main.c:383
+#: main.c:382
 #, c-format
 msgid "ReadConsole() failed: %s\n"
 msgstr "ReadConsole() ha fallat: %s\n"
 
-#: main.c:397 main.c:410
+#: main.c:396 main.c:409
 #, c-format
 msgid "Error converting console input: %s\n"
 msgstr "Error en convertir l'entrada de consola: %s\n"
 
-#: main.c:404 main.c:640
+#: main.c:403 main.c:639
 #, c-format
 msgid "Allocation failure for string from stdin\n"
 msgstr "Assignació errònia de la cadena de l'entrada estàndard\n"
 
-#: main.c:571
+#: main.c:570
 #, c-format
 msgid ""
 "For assistance with OpenConnect, please see the web page at\n"
@@ -2049,25 +2049,25 @@ msgstr ""
 "Per assistència amb OpenConnect, mireu la pàgina web a\n"
 "  http://www.infradead.org/openconnect/mail.html\n"
 
-#: main.c:580
+#: main.c:579
 #, c-format
 msgid "Using OpenSSL. Features present:"
 msgstr "S'està utilitzant OpenSSL. Característiques presents:"
 
-#: main.c:582
+#: main.c:581
 #, c-format
 msgid "Using GnuTLS. Features present:"
 msgstr "S'està utilitzant GnuTLS. Característiques presents:"
 
-#: main.c:591
+#: main.c:590
 msgid "OpenSSL ENGINE not present"
 msgstr "L'OpenSSL ENGINE no està present"
 
-#: main.c:623
+#: main.c:622
 msgid "using OpenSSL"
 msgstr "s'està usant OpenSSL"
 
-#: main.c:627
+#: main.c:626
 #, c-format
 msgid ""
 "\n"
@@ -2076,31 +2076,31 @@ msgstr ""
 "\n"
 "AVÍS: Sense suport DTLS en aquest binari. Es veurà perjudicat el rendiment.\n"
 
-#: main.c:664
+#: main.c:663
 msgid "fgets (stdin)"
 msgstr "fgets (stdin)"
 
-#: main.c:704
+#: main.c:703
 #, c-format
 msgid "Cannot process this executable path \"%s\""
 msgstr "No es pot processar aquest camí executable «%s»"
 
-#: main.c:710
+#: main.c:709
 #, c-format
 msgid "Allocation for vpnc-script path failed\n"
 msgstr "L'assignació del camí per a vpnc-script ha fallat\n"
 
-#: main.c:730
+#: main.c:729
 #, c-format
 msgid "Override hostname '%s' to '%s'\n"
 msgstr "Sobreescriu el nom de l'ordinador de «%s» a «%s»\n"
 
-#: main.c:743
+#: main.c:742
 #, c-format
 msgid "Usage:  openconnect [options] <server>\n"
 msgstr "Ús:  openconnect [opcions] <server>\n"
 
-#: main.c:744
+#: main.c:743
 #, c-format
 msgid ""
 "Open client for Cisco AnyConnect VPN, version %s\n"
@@ -2109,309 +2109,309 @@ msgstr ""
 "Client obert per a Cisco AnyConnect VPN, versió %s\n"
 "\n"
 
-#: main.c:746
+#: main.c:745
 msgid "Read options from config file"
 msgstr "Llegeix les opcions del fitxer de configuració"
 
-#: main.c:748
+#: main.c:747
 msgid "Continue in background after startup"
 msgstr "Continua al fons després de l'inici"
 
-#: main.c:749
+#: main.c:748
 msgid "Write the daemon's PID to this file"
 msgstr "Escriu els PID dels dimonis per aquest fitxer"
 
-#: main.c:751
+#: main.c:750
 msgid "Use SSL client certificate CERT"
 msgstr "Usa el certificat CERT del client SSL"
 
-#: main.c:752
+#: main.c:751
 msgid "Warn when certificate lifetime < DAYS"
 msgstr "Avisa quan la vida del certificat < DAYS"
 
-#: main.c:753
+#: main.c:752
 msgid "Use SSL private key file KEY"
 msgstr "Usa la clau privada SSL al fitxer KEY"
 
-#: main.c:754
+#: main.c:753
 msgid "Use WebVPN cookie COOKIE"
 msgstr "Usa WebVPN galeta COOKIE"
 
-#: main.c:755
+#: main.c:754
 msgid "Read cookie from standard input"
 msgstr "Llegeix la galeta de l'entrada estàndard"
 
-#: main.c:756
+#: main.c:755
 msgid "Enable compression (default)"
 msgstr "Habilita la compressió (per defecte)"
 
-#: main.c:757
+#: main.c:756
 msgid "Disable compression"
 msgstr "Deshabilita la compressió"
 
-#: main.c:758
+#: main.c:757
 msgid "Set minimum Dead Peer Detection interval"
 msgstr "Configura l'interval mínim de detecció de parells morts"
 
-#: main.c:759
+#: main.c:758
 msgid "Set login usergroup"
 msgstr "Configura l'entrada del grup d'usuaris"
 
-#: main.c:760
+#: main.c:759
 msgid "Display help text"
 msgstr "Mostra text d'ajuda"
 
-#: main.c:761
+#: main.c:760
 msgid "Use IFNAME for tunnel interface"
 msgstr "Usa IFNAME per la interfície de túnel"
 
-#: main.c:763
+#: main.c:762
 msgid "Use syslog for progress messages"
 msgstr "Usa registres de sistema per al progrés dels missatges"
 
-#: main.c:765
+#: main.c:764
 msgid "Prepend timestamp to progress messages"
 msgstr "Avantposa la marca horària per al progrés dels missatges"
 
-#: main.c:766
+#: main.c:765
 msgid "copy TOS / TCLASS when using DTLS"
-msgstr ""
+msgstr "copia TOS / TCLASS quan s'usa DTLS"
 
-#: main.c:768
+#: main.c:767
 msgid "Drop privileges after connecting"
 msgstr "Descarta els privilegis després de la connexió"
 
-#: main.c:769
+#: main.c:768
 msgid "Drop privileges during CSD execution"
 msgstr "Descarta els privilegis durant l'execució CSD"
 
-#: main.c:770
+#: main.c:769
 msgid "Run SCRIPT instead of CSD binary"
 msgstr "Executa SCRIPT en lloc de binari CSD"
 
-#: main.c:772
+#: main.c:771
 msgid "Request MTU from server (legacy servers only)"
-msgstr ""
+msgstr "Demana del MTU al servidor (sols servidors antics)"
 
-#: main.c:773
+#: main.c:772
 msgid "Indicate path MTU to/from server"
 msgstr "Indica el camí MTU a / des del servidor"
 
-#: main.c:774
+#: main.c:773
 msgid "Set key passphrase or TPM SRK PIN"
 msgstr "Configura la contrasenya de la clau o PIN SRK TPM"
 
-#: main.c:775
+#: main.c:774
 msgid "Key passphrase is fsid of file system"
 msgstr "La contrasenya de la clau és fsid del sistema de fitxers"
 
-#: main.c:776
+#: main.c:775
 msgid "Set proxy server"
 msgstr "Configura el servidor intermediari"
 
-#: main.c:777
+#: main.c:776
 msgid "Set proxy authentication methods"
 msgstr "Configura els mètodes d'autenticació del servidor intermediari"
 
-#: main.c:778
+#: main.c:777
 msgid "Disable proxy"
 msgstr "Deshabilita el servidor intermediari"
 
-#: main.c:779
+#: main.c:778
 msgid "Use libproxy to automatically configure proxy"
 msgstr ""
 "Utilitza libproxy per configurar de forma automàtica el servidor intermediari"
 
-#: main.c:781
+#: main.c:780
 msgid "(NOTE: libproxy disabled in this build)"
 msgstr "(NOTA: libproxy deshabilitat en aquest muntatge)"
 
-#: main.c:783
+#: main.c:782
 msgid "Require perfect forward secrecy"
 msgstr "Requerida confidencialitat directa perfecta"
 
-#: main.c:784
+#: main.c:783
 msgid "Less output"
 msgstr "Menys sortida"
 
-#: main.c:785
+#: main.c:784
 msgid "Set packet queue limit to LEN pkts"
 msgstr "Configura el límit de la cua del paquet a LEN pkts"
 
-#: main.c:786
+#: main.c:785
 msgid "Shell command line for using a vpnc-compatible config script"
 msgstr ""
 "Terminal de la línia d'ordres per utilitzar un vpnc compatible amb el script "
 "de configuració"
 
-#: main.c:787
+#: main.c:786
 msgid "default"
 msgstr "per defecte"
 
-#: main.c:789
+#: main.c:788
 msgid "Pass traffic to 'script' program, not tun"
 msgstr "Passa el trafic al «script» del programa, no al controlador de xarxa"
 
-#: main.c:791
+#: main.c:790
 msgid "Set login username"
 msgstr "Configura el nom d'usuari d'entrada"
 
-#: main.c:792
+#: main.c:791
 msgid "Report version number"
 msgstr "Informa del nombre de versió"
 
-#: main.c:793
+#: main.c:792
 msgid "More output"
 msgstr "Més sortida"
 
-#: main.c:794
+#: main.c:793
 msgid "Dump HTTP authentication traffic (implies --verbose"
 msgstr "Bolca el trafic d'autenticació HTTP (implica --verbose"
 
-#: main.c:795
+#: main.c:794
 msgid "XML config file"
 msgstr "Fitxer de configuració XML"
 
-#: main.c:796
+#: main.c:795
 msgid "Choose authentication login selection"
 msgstr "Trieu la selecció d'autenticació de l'entrada de sessió"
 
-#: main.c:797
+#: main.c:796
 msgid "Authenticate only and print login info"
 msgstr "Autentica sols i imprimeix la informació de l'entrada de sessió"
 
-#: main.c:798
+#: main.c:797
 msgid "Fetch webvpn cookie only; don't connect"
 msgstr "Recupereu sols la galeta webvpn; no connecteu"
 
-#: main.c:799
+#: main.c:798
 msgid "Print webvpn cookie before connecting"
 msgstr "Imprimiu la galeta webvpn abans de connectar-vos"
 
-#: main.c:800
+#: main.c:799
 msgid "Cert file for server verification"
 msgstr "Fitxer CERT per la verificació del servidor"
 
-#: main.c:801
+#: main.c:800
 msgid "Do not ask for IPv6 connectivity"
 msgstr "No pregunteu per la connectivitat IPv6"
 
-#: main.c:802
+#: main.c:801
 msgid "OpenSSL ciphers to support for DTLS"
 msgstr "Xifrat OpenSSL per suportar a DTLS"
 
-#: main.c:803
+#: main.c:802
 msgid "Disable DTLS"
 msgstr "Deshabilita DTLS"
 
-#: main.c:804
+#: main.c:803
 msgid "Disable HTTP connection re-use"
 msgstr "Deshabilita la reutilització de la connexió HTTP"
 
-#: main.c:805
+#: main.c:804
 msgid "Disable password/SecurID authentication"
 msgstr "Deshabilita l'autenticació de la contrasenya/SecurID"
 
-#: main.c:806
+#: main.c:805
 msgid "Do not require server SSL cert to be valid"
 msgstr "No es requereix el certificat SSL del servidor per validar-se"
 
-#: main.c:807
+#: main.c:806
 msgid "Disable default system certificate authorities"
 msgstr "Deshabilita per defecte els certificats d'autoritats del sistema"
 
-#: main.c:808
+#: main.c:807
 msgid "Do not attempt XML POST authentication"
 msgstr "No intentis l'autenticació POST XML"
 
-#: main.c:809
+#: main.c:808
 msgid "Do not expect user input; exit if it is required"
 msgstr "No esperis entrada de l'usuari; surt si aquesta és requerida"
 
-#: main.c:810
+#: main.c:809
 msgid "Read password from standard input"
 msgstr "Llegeix la contrasenya de l'entrada estàndard"
 
-#: main.c:811
+#: main.c:810
 msgid "Software token type: rsa, totp or hotp"
 msgstr "Tipus de testimoni de programari: rsa, totp o hotp"
 
-#: main.c:812
+#: main.c:811
 msgid "Software token secret"
 msgstr "Testimoni secret de programari"
 
-#: main.c:814
+#: main.c:813
 msgid "(NOTE: libstoken (RSA SecurID) disabled in this build)"
 msgstr "(NOTA: libstoken (RSA SecurID) deshabilitada en aquest muntatge)"
 
-#: main.c:817
+#: main.c:816
 msgid "(NOTE: Yubikey OATH disabled in this build)"
 msgstr "(NOTA: Yubikey OATH deshabilitada en aquest muntatge)"
 
-#: main.c:819
+#: main.c:818
 msgid "Connection retry timeout in seconds"
 msgstr "Temps d'espera en segons per reintentar la connexió"
 
-#: main.c:820
+#: main.c:819
 msgid "Server's certificate SHA1 fingerprint"
 msgstr "Empremta SHA1 del certificat del servidor"
 
-#: main.c:821
+#: main.c:820
 msgid "HTTP header User-Agent: field"
 msgstr "Capçalera HTTP de l'usuari-agent: camp"
 
-#: main.c:822
+#: main.c:821
 msgid "Local hostname to advertise to server"
 msgstr "Nom d'amfitrió local per publicitar al servidor"
 
-#: main.c:823
+#: main.c:822
 msgid "Use IP when connecting to HOST"
 msgstr "Usa l'IP quan et connectis a HOST"
 
-#: main.c:824
+#: main.c:823
 msgid "OS type (linux,linux-64,win,...) to report"
 msgstr "Tipus de sistema operatiu (linux,linux-64,win,...) per l'informe"
 
-#: main.c:825
+#: main.c:824
 msgid "Set local port for DTLS datagrams"
 msgstr "Configura el port per als datagrames DTLS"
 
-#: main.c:846
+#: main.c:845
 #, c-format
 msgid "Failed to allocate string\n"
 msgstr "Error en assignar la cadena\n"
 
-#: main.c:907
+#: main.c:906
 #, c-format
 msgid "Failed to get line from config file: %s\n"
 msgstr "Error en obtindre la línia del fitxer de configuració: %s\n"
 
-#: main.c:947
+#: main.c:946
 #, c-format
 msgid "Unrecognised option at line %d: '%s'\n"
 msgstr "Opció no reconeguda a la línia %d: «%s»\n"
 
-#: main.c:957
+#: main.c:956
 #, c-format
 msgid "Option '%s' does not take an argument at line %d\n"
 msgstr "L'opció «%s» no té argument a la línia %d\n"
 
-#: main.c:961
+#: main.c:960
 #, c-format
 msgid "Option '%s' requires an argument at line %d\n"
 msgstr "L'opció «%s» requereix un argument a la línia %d\n"
 
-#: main.c:986
+#: main.c:985
 #, c-format
 msgid "Invalid user \"%s\": %s\n"
 msgstr "Usuari no vàlid «%s»: %s\n"
 
-#: main.c:996
+#: main.c:995
 #, c-format
 msgid "Invalid user ID \"%d\": %s\n"
 msgstr "ID d'usuari no vàlid «%d»: %s\n"
 
-#: main.c:1048
+#: main.c:1047
 #, c-format
 msgid ""
 "WARNING: This version of openconnect was built without iconv\n"
@@ -2422,7 +2422,7 @@ msgstr ""
 "          per iconv però sembla que esteu utilitzant un caràcter antic\n"
 "         establert com «%s». S'esperen coses estranyes.\n"
 
-#: main.c:1055
+#: main.c:1054
 #, c-format
 msgid ""
 "WARNING: This version of openconnect is %s but\n"
@@ -2431,42 +2431,42 @@ msgstr ""
 "AVÍS: Aquesta versió d'openconnect és %s però\n"
 "         la llibreria libopenconnect és %s\n"
 
-#: main.c:1065
+#: main.c:1064
 #, c-format
 msgid "Failed to allocate vpninfo structure\n"
 msgstr "Error en assignar l'estructura vpninfo\n"
 
-#: main.c:1120
+#: main.c:1119
 #, c-format
 msgid "Cannot use 'config' option inside config file\n"
 msgstr "No es pot utilitzar l'opció «config» dins del fitxer de configuració\n"
 
-#: main.c:1128
+#: main.c:1127
 #, c-format
 msgid "Cannot open config file '%s': %s\n"
 msgstr "No es pot obrir el fitxer de configuració  «%s»: %s\n"
 
-#: main.c:1144
+#: main.c:1143
 #, c-format
 msgid "Invalid compression mode '%s'\n"
 msgstr "Mode de compressió no vàlid «%s»\n"
 
-#: main.c:1165
+#: main.c:1164
 #, c-format
 msgid "Missing colon in resolve option\n"
 msgstr "Falten els dos punts a l'opció resolve\n"
 
-#: main.c:1170
+#: main.c:1169
 #, c-format
 msgid "Failed to allocate memory\n"
 msgstr "No s'ha pogut assignar memòria\n"
 
-#: main.c:1250 main.c:1259
+#: main.c:1249 main.c:1258
 #, c-format
 msgid "MTU %d too small\n"
 msgstr "MTU %d massa petit\n"
 
-#: main.c:1289
+#: main.c:1288
 #, c-format
 msgid ""
 "Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
@@ -2476,126 +2476,133 @@ msgstr ""
 "l'opció --no-http-keepalive. Si això ajuda informeu a <openconnect-"
 "devel@lists.infradead.org>.\n"
 
-#: main.c:1309
+#: main.c:1294
+#, c-format
+msgid ""
+"The --no-cert-check option was insecure and has been removed.\n"
+"Fix your server's certificate or use --servercert to trust it.\n"
+msgstr ""
+
+#: main.c:1311
 #, c-format
 msgid "Queue length zero not permitted; using 1\n"
 msgstr "Longitud de cua zero no permesa; s'està usant 1\n"
 
-#: main.c:1323
+#: main.c:1325
 #, c-format
 msgid "OpenConnect version %s\n"
 msgstr "Versió d'OpenConnect %s\n"
 
-#: main.c:1356
+#: main.c:1358
 #, c-format
 msgid "Invalid software token mode \"%s\"\n"
 msgstr "Mode de testimoni de programari «%s»  no vàlid\n"
 
-#: main.c:1366
+#: main.c:1368
 #, c-format
 msgid "Invalid OS identity \"%s\"\n"
 msgstr "Identitat del sistema operatiu «%s» no vàlida\n"
 
-#: main.c:1399
+#: main.c:1401
 #, c-format
 msgid "Too many arguments on command line\n"
 msgstr "Massa arguments a la línia d'ordres\n"
 
-#: main.c:1402
+#: main.c:1404
 #, c-format
 msgid "No server specified\n"
 msgstr "No heu especificat servidor\n"
 
-#: main.c:1418
+#: main.c:1420
 #, c-format
 msgid "This version of openconnect was built without libproxy support\n"
 msgstr ""
 "Aquesta versió d'openconnect ha estat muntada sense suport per libproxy\n"
 
-#: main.c:1447
+#: main.c:1449
 #, c-format
 msgid "Error opening cmd pipe\n"
 msgstr "Error en obrir el conducte «cmd»\n"
 
-#: main.c:1480
+#: main.c:1482
 #, c-format
 msgid "Failed to obtain WebVPN cookie\n"
 msgstr "Error per a obtenir la galeta WebVPN\n"
 
-#: main.c:1501
+#: main.c:1503
 #, c-format
 msgid "Creating SSL connection failed\n"
 msgstr "La creació de la connexió SSL ha fallat\n"
 
-#: main.c:1513
+#: main.c:1515
 #, c-format
 msgid "Set up DTLS failed; using SSL instead\n"
 msgstr "La configuració de DTLS ha fallat; s'està usant SSL al seu lloc\n"
 
-#: main.c:1533
+#: main.c:1535
 #, c-format
 msgid "Connected as %s%s%s, using %s%s\n"
 msgstr "Connectat com a %s%s%s, s'està utilitzant %s%s\n"
 
-#: main.c:1542
+#: main.c:1544
 msgid "No --script argument provided; DNS and routing are not configured\n"
 msgstr ""
 "Cap argument --script proporcionat; DNS i encaminament no estan configurats\n"
 
-#: main.c:1544
+#: main.c:1546
 msgid "See http://www.infradead.org/openconnect/vpnc-script.html\n"
 msgstr "Mireu http://www.infradead.org/openconnect/vpnc-script.html\n"
 
-#: main.c:1557
+#: main.c:1559
 #, c-format
 msgid "Failed to open '%s' for write: %s\n"
 msgstr "Errada per a obrir «%s» per escriure: %s\n"
 
-#: main.c:1569
+#: main.c:1571
 #, c-format
 msgid "Continuing in background; pid %d\n"
 msgstr "S'està continuant al fons; PID %d\n"
 
-#: main.c:1586
+#: main.c:1588
 msgid "User requested reconnect\n"
 msgstr "Torna a connectar la sol·licitud de l'usuari\n"
 
-#: main.c:1594
+#: main.c:1596
 msgid "Cookie was rejected on reconnection; exiting.\n"
 msgstr "La galeta ha estat rebutjada en la reconnexió; s'està sortint.\n"
 
-#: main.c:1598
+#: main.c:1600
 msgid "Session terminated by server; exiting.\n"
 msgstr "Sessió acabada pel servidor; s'està sortint.\n"
 
-#: main.c:1602
+#: main.c:1604
 msgid "User cancelled (SIGINT); exiting.\n"
 msgstr "Usuari cancel·lat (SIGINT); s'està sortint.\n"
 
-#: main.c:1606
+#: main.c:1608
 msgid "User detached from session (SIGHUP); exiting.\n"
 msgstr "Usuari desconnectat de la sessió (SIGHUP); s'està sortint.\n"
 
-#: main.c:1610
+#: main.c:1612
 msgid "Unknown error; exiting.\n"
 msgstr "Error desconegut; s'està sortint.\n"
 
-#: main.c:1629
+#: main.c:1631
 #, c-format
 msgid "Failed to open %s for write: %s\n"
 msgstr "Error per a obrir %s per escriure: %s\n"
 
-#: main.c:1637
+#: main.c:1639
 #, c-format
 msgid "Failed to write config to %s: %s\n"
 msgstr "Error en escriure a config %s: %s\n"
 
-#: main.c:1696
+#: main.c:1698
 #, c-format
 msgid "Server SSL certificate didn't match: %s\n"
 msgstr "El certificat del servidor SSL no concorda: %s\n"
 
-#: main.c:1718
+#: main.c:1717
 #, c-format
 msgid ""
 "\n"
@@ -2606,90 +2613,101 @@ msgstr ""
 "El certificat del servidor VPN  «%s» ha fallat la verificació.\n"
 "Motiu: %s\n"
 
-#: main.c:1724
+#: main.c:1720
+#, c-format
+msgid ""
+"To trust this server in future, perhaps add this to your command line:\n"
+msgstr ""
+
+#: main.c:1721
+#, c-format
+msgid "    --servercert %s\n"
+msgstr ""
+
+#: main.c:1726
 #, c-format
 msgid "Enter '%s' to accept, '%s' to abort; anything else to view: "
 msgstr ""
 "Entreu «%s» per acceptar, «%s» per avortar; qualsevol altra cosa per mostrar:"
 
-#: main.c:1725 main.c:1743
+#: main.c:1727 main.c:1745
 msgid "no"
 msgstr "No"
 
-#: main.c:1725 main.c:1731
+#: main.c:1727 main.c:1733
 msgid "yes"
 msgstr "Sí"
 
-#: main.c:1752
+#: main.c:1754
 #, c-format
 msgid "Server key hash: %s\n"
 msgstr "Resum de la clau del servidor: %s\n"
 
-#: main.c:1786
+#: main.c:1788
 #, c-format
 msgid "Auth choice \"%s\" matches multiple options\n"
 msgstr "La tria d'autenticació «%s» concorda amb múltiples opcions\n"
 
-#: main.c:1789
+#: main.c:1791
 #, c-format
 msgid "Auth choice \"%s\" not available\n"
 msgstr "La tria d'autenticació «%s» no està disponible\n"
 
-#: main.c:1810
+#: main.c:1812
 msgid "User input required in non-interactive mode\n"
 msgstr "L'entrada de l'usuari és requerida en mode no interactiu\n"
 
-#: main.c:1987
+#: main.c:1989
 #, c-format
 msgid "Failed to open token file for write: %s\n"
 msgstr "Error en obrir el fitxer testimoni per escriptura: %s\n"
 
-#: main.c:1995
+#: main.c:1997
 #, c-format
 msgid "Failed to write token: %s\n"
 msgstr "Error en escriure el testimoni: %s\n"
 
-#: main.c:2041 main.c:2062
+#: main.c:2043 main.c:2064
 #, c-format
 msgid "Soft token string is invalid\n"
 msgstr "El testimoni tou de la cadena és no vàlid\n"
 
-#: main.c:2044
+#: main.c:2046
 #, c-format
 msgid "Can't open ~/.stokenrc file\n"
 msgstr "No es pot obrir el fitxer ~/.stokenrc\n"
 
-#: main.c:2047
+#: main.c:2049
 #, c-format
 msgid "OpenConnect was not built with libstoken support\n"
 msgstr "OpenConnect ha sigut muntat sense suport per libstoken\n"
 
-#: main.c:2050
+#: main.c:2052
 #, c-format
 msgid "General failure in libstoken\n"
 msgstr "Errada general en libstoken\n"
 
-#: main.c:2065
+#: main.c:2067
 #, c-format
 msgid "OpenConnect was not built with liboath support\n"
 msgstr "OpenConnect ha sigut muntat sense suport per liboath\n"
 
-#: main.c:2068
+#: main.c:2070
 #, c-format
 msgid "General failure in liboath\n"
 msgstr "Errada general en liboath\n"
 
-#: main.c:2079
+#: main.c:2081
 #, c-format
 msgid "Yubikey token not found\n"
 msgstr "El testimoni Yubikey no s'ha trobat\n"
 
-#: main.c:2082
+#: main.c:2084
 #, c-format
 msgid "OpenConnect was not built with Yubikey support\n"
 msgstr "OpenConnect ha sigut muntat sense suport per Yubikey\n"
 
-#: main.c:2085
+#: main.c:2087
 #, c-format
 msgid "General Yubikey failure: %s\n"
 msgstr "Errada general en Yubikey: %s\n"
@@ -3049,124 +3067,154 @@ msgstr "Paquet de sortida:\n"
 msgid "Sent ESP enable control packet\n"
 msgstr "S'ha enviat habilitació ESP de control de paquets\n"
 
-#: openconnect-internal.h:1046 openconnect-internal.h:1054
+#: openconnect-internal.h:1049 openconnect-internal.h:1057
 #, c-format
 msgid "ERROR: %s() called with invalid UTF-8 for '%s' argument\n"
 msgstr "ERROR: %s() cridada amb UTF-8 no vàlida de l'argument «%s»\n"
 
-#: openssl-esp.c:82
+#: openssl-esp.c:90
 msgid "Failed to initialise ESP cipher:\n"
 msgstr "Error en inicialitzar el xifrat ESP:\n"
 
-#: openssl-esp.c:107
+#: openssl-esp.c:105
 msgid "Failed to initialize ESP HMAC\n"
 msgstr "Error en inicialitzar HMAC ESP\n"
 
-#: openssl-esp.c:158
+#: openssl-esp.c:156
 msgid "Failed to generate random keys for ESP:\n"
 msgstr "Error en generar claus aleatòries per a ESP:\n"
 
-#: openssl-esp.c:208
+#: openssl-esp.c:206
 msgid "Failed to set up decryption context for ESP packet:\n"
 msgstr "Error en configurar el context de desxifrat per al paquet ESP:\n"
 
-#: openssl-esp.c:216
+#: openssl-esp.c:214
 msgid "Failed to decrypt ESP packet:\n"
 msgstr "Error en desxifrar el paquet ESP:\n"
 
-#: openssl-esp.c:236
+#: openssl-esp.c:234
 msgid "Failed to generate random IV for ESP packet:\n"
 msgstr "Error en generar aleatori IV per al paquet ESP:\n"
 
-#: openssl-esp.c:250
+#: openssl-esp.c:248
 msgid "Failed to set up encryption context for ESP packet:\n"
 msgstr "Error en configurar el context de xifrat per al paquet ESP:\n"
 
-#: openssl-esp.c:259
+#: openssl-esp.c:257
 msgid "Failed to encrypt ESP packet:\n"
 msgstr "Error en xifrar el paquet ESP:\n"
 
-#: openssl-pkcs11.c:42
+#: openssl-pkcs11.c:43
 msgid "Failed to establish libp11 PKCS#11 context:\n"
 msgstr "Error en establir el context PKCS#11 libp11:\n"
 
-#: openssl-pkcs11.c:48
+#: openssl-pkcs11.c:49
 #, c-format
 msgid "Failed to load PKCS#11 provider module (%s):\n"
 msgstr "Error en carregar el mòdul que proporciona PKCS#11 (%s):\n"
 
-#: openssl-pkcs11.c:253
+#: openssl-pkcs11.c:269
 msgid "PIN locked\n"
 msgstr "PIN bloquejat\n"
 
-#: openssl-pkcs11.c:256
+#: openssl-pkcs11.c:272
 msgid "PIN expired\n"
 msgstr "PIN caducat\n"
 
-#: openssl-pkcs11.c:259
+#: openssl-pkcs11.c:275
 msgid "Another user already logged in\n"
 msgstr "Un altre usuari està realment connectat\n"
 
-#: openssl-pkcs11.c:263
+#: openssl-pkcs11.c:279
 msgid "Unknown error logging in to PKCS#11 token\n"
 msgstr "Error desconegut al registrar-se al testimoni PKCS#11\n"
 
-#: openssl-pkcs11.c:270
+#: openssl-pkcs11.c:286
 #, c-format
 msgid "Logged in to PKCS#11 slot '%s'\n"
 msgstr "Registrat en PKCS#11 ranura «%s»\n"
 
-#: openssl-pkcs11.c:284
+#: openssl-pkcs11.c:300
 #, c-format
 msgid "Failed to enumerate certs in PKCS#11 slot '%s'\n"
 msgstr "Error en enumerar certificats de PKCS#11 ranura «%s»\n"
 
-#: openssl-pkcs11.c:290
+#: openssl-pkcs11.c:306
 #, c-format
 msgid "Found %d certs in slot '%s'\n"
 msgstr "S'han trobat %d certificats a la ranura «%s»\n"
 
-#: openssl-pkcs11.c:326 openssl-pkcs11.c:482
+#: openssl-pkcs11.c:342 openssl-pkcs11.c:565
 #, c-format
 msgid "Failed to parse PKCS#11 URI '%s'\n"
 msgstr "Error en analitzar PKCS#11 URI «%s»\n"
 
-#: openssl-pkcs11.c:333 openssl-pkcs11.c:492
+#: openssl-pkcs11.c:349 openssl-pkcs11.c:575
 msgid "Failed to enumerate PKCS#11 slots\n"
 msgstr "Error en enumerar les ranures PKCS#11\n"
 
-#: openssl-pkcs11.c:367 openssl-pkcs11.c:534
+#: openssl-pkcs11.c:383 openssl-pkcs11.c:617
 #, c-format
 msgid "Logging in to PKCS#11 slot '%s'\n"
 msgstr "S'està registrant en PKCS#11 ranura «%s»\n"
 
-#: openssl-pkcs11.c:382
+#: openssl-pkcs11.c:393
+#, c-format
+msgid "Failed to find PKCS#11 cert '%s'\n"
+msgstr ""
+
+#: openssl-pkcs11.c:401
 msgid "Certificate X.509 content not fetched by libp11\n"
 msgstr "Contingut del certificat X.509 no recuperat per libp11\n"
 
-#: openssl-pkcs11.c:393 openssl.c:696
+#: openssl-pkcs11.c:412 openssl.c:696
 msgid "Failed to install certificate in OpenSSL context\n"
 msgstr "Error en instal·lar el certificat al context OpenSSL\n"
 
-#: openssl-pkcs11.c:439
+#: openssl-pkcs11.c:458
 #, c-format
 msgid "Failed to enumerate keys in PKCS#11 slot '%s'\n"
 msgstr "Error en enumerar les claus al PKCS#11 ranura «%s»\n"
 
-#: openssl-pkcs11.c:445
+#: openssl-pkcs11.c:464
 #, c-format
 msgid "Found %d keys in slot '%s'\n"
 msgstr "S'han trobat %d claus a la ranura «%s»\n"
 
-#: openssl-pkcs11.c:563
+#: openssl-pkcs11.c:497
+msgid "Certificate has no public key\n"
+msgstr ""
+
+#: openssl-pkcs11.c:503 openssl-pkcs11.c:526
+msgid "Certificate does not match private key\n"
+msgstr ""
+
+#: openssl-pkcs11.c:506
+msgid "Checking EC key matches cert\n"
+msgstr ""
+
+#: openssl-pkcs11.c:510
+msgid "Failed to allocate signature buffer\n"
+msgstr ""
+
+#: openssl-pkcs11.c:520
+msgid "Failed to sign dummy data to validate EC key\n"
+msgstr ""
+
+#: openssl-pkcs11.c:638
+#, c-format
+msgid "Failed to find PKCS#11 key '%s'\n"
+msgstr ""
+
+#: openssl-pkcs11.c:649
 msgid "Failed to instantiated private key from PKCS#11\n"
 msgstr "Error en instanciar la clau privada de PKCS#11\n"
 
-#: openssl-pkcs11.c:570
+#: openssl-pkcs11.c:678
 msgid "Add key from PKCS#11 failed\n"
 msgstr "L'afegit de la clau de PKCS#11 ha fallat\n"
 
-#: openssl-pkcs11.c:602 openssl-pkcs11.c:608
+#: openssl-pkcs11.c:710 openssl-pkcs11.c:716
 msgid "This version of OpenConnect was built without PKCS#11 support\n"
 msgstr "Aquesta versió d'OpenConnect ha sigut muntada sense suport PKCS#11\n"
 
@@ -3241,7 +3289,7 @@ msgstr "Error en carregar la clau privada TPM\n"
 msgid "Add key from TPM failed\n"
 msgstr "L'afegit de la clau de TPM a fallat\n"
 
-#: openssl.c:670 openssl.c:817
+#: openssl.c:670 openssl.c:818
 #, c-format
 msgid "Failed to open certificate file %s: %s\n"
 msgstr "Error en obrir el fitxer certificat %s: %s\n"
@@ -3273,132 +3321,136 @@ msgstr "La carrega de la clau privada ha fallat (contrasenya dolenta? )\n"
 msgid "Loading private key failed (see above errors)\n"
 msgstr "La carrega de la clau privada ha fallat (mireu amunt els errors)\n"
 
-#: openssl.c:840
+#: openssl.c:841
 msgid "Failed to load X509 certificate from keystore\n"
 msgstr "Error en carregar el certificat X509 del magatzem de claus\n"
 
-#: openssl.c:846
+#: openssl.c:847
 msgid "Failed to use X509 certificate from keystore\n"
 msgstr "Error en utilitzar el certificat X509 del magatzem de claus\n"
 
-#: openssl.c:878
+#: openssl.c:879
 msgid "Failed to use private key from keystore\n"
 msgstr "Error en utilitzar la clau privativa del magatzem de claus\n"
 
-#: openssl.c:894
+#: openssl.c:895
 #, c-format
 msgid "Failed to open private key file %s: %s\n"
 msgstr "Error en obrir el fitxer %s de la clau privativa: %s\n"
 
-#: openssl.c:913
+#: openssl.c:915 openssl.c:930 openssl.c:951 openssl.c:1017
 msgid "Loading private key failed\n"
 msgstr "La carrega de la clau privativa ha fallat\n"
 
-#: openssl.c:997
+#: openssl.c:1011
 msgid "Failed to convert PKCS#8 to OpenSSL EVP_PKEY\n"
-msgstr ""
+msgstr "No s'ha pogut convertir PKCS#8 a OpenSSL EVP_PKEY\n"
 
-#: openssl.c:1008
+#: openssl.c:1028
 #, c-format
 msgid "Failed to identify private key type in '%s'\n"
 msgstr "Errada en identificar el tipus de clau privativa en «%s»\n"
 
-#: openssl.c:1170
+#: openssl.c:1190
 #, c-format
 msgid "Matched DNS altname '%s'\n"
 msgstr "Coincideix el nom alternatiu DNS «%s»\n"
 
-#: openssl.c:1177
+#: openssl.c:1197
 #, c-format
 msgid "No match for altname '%s'\n"
 msgstr "No hi ha concordances per al nom alternatiu «%s»\n"
 
-#: openssl.c:1191
+#: openssl.c:1211
 #, c-format
 msgid "Certificate has GEN_IPADD altname with bogus length %d\n"
 msgstr ""
 "El certificat té un nom alternatiu GEN_IPADD amb la longitud amb errors %d\n"
 
-#: openssl.c:1202 openssl.c:1347
+#: openssl.c:1222 openssl.c:1367
 #, c-format
 msgid "Matched %s address '%s'\n"
 msgstr "Coincideix %s amb l'adreça «%s»\n"
 
-#: openssl.c:1209
+#: openssl.c:1229
 #, c-format
 msgid "No match for %s address '%s'\n"
 msgstr "No hi ha concordances per l'adreça %s amb «%s»\n"
 
-#: openssl.c:1251
+#: openssl.c:1271
 #, c-format
 msgid "URI '%s' has non-empty path; ignoring\n"
 msgstr "URI «%s» no té un camí buit;  s'està ignorant\n"
 
-#: openssl.c:1256
+#: openssl.c:1276
 #, c-format
 msgid "Matched URI '%s'\n"
 msgstr "Coincideix URI «%s»\n"
 
-#: openssl.c:1267
+#: openssl.c:1287
 #, c-format
 msgid "No match for URI '%s'\n"
 msgstr "No hi ha concordances per URI «%s»\n"
 
-#: openssl.c:1282
+#: openssl.c:1302
 #, c-format
 msgid "No altname in peer cert matched '%s'\n"
 msgstr "No hi ha nom alternatiu al certificat parell trobat «%s»\n"
 
-#: openssl.c:1290
+#: openssl.c:1310
 msgid "No subject name in peer cert!\n"
 msgstr "No hi ha nom de l'assumpte al certificat del parell!\n"
 
-#: openssl.c:1310
+#: openssl.c:1330
 msgid "Failed to parse subject name in peer cert\n"
 msgstr "Error en analitzar el nom de l'assumpte al certificat del parell\n"
 
-#: openssl.c:1317
+#: openssl.c:1337
 #, c-format
 msgid "Peer cert subject mismatch ('%s' != '%s')\n"
 msgstr "L'assumpte del certificat del parell no coincideix ('%s' != '%s')\n"
 
-#: openssl.c:1322 openssl.c:1355
+#: openssl.c:1342 openssl.c:1375
 #, c-format
 msgid "Matched peer certificate subject name '%s'\n"
 msgstr "El nom de l'assumpte del certificat del parell coincideix «%s»\n"
 
-#: openssl.c:1417
+#: openssl.c:1437
 #, c-format
 msgid "Extra cert from cafile: '%s'\n"
 msgstr "Extra cert del certificat del fitxer: «%s»\n"
 
-#: openssl.c:1555
+#: openssl.c:1575
 msgid "Error in client cert notAfter field\n"
 msgstr "Error al camp notAfter del certificat del client\n"
 
-#: openssl.c:1568
+#: openssl.c:1588
 msgid "<error>"
 msgstr "<error>"
 
-#: openssl.c:1620
+#: openssl.c:1640
 msgid "Create TLSv1 CTX failed\n"
+msgstr "Ha fallat la creació de TLSv1 CTX\n"
+
+#: openssl.c:1655
+msgid "SSL certificate and key do not match\n"
 msgstr ""
 
-#: openssl.c:1675
+#: openssl.c:1700
 #, c-format
 msgid "Failed to read certs from CA file '%s'\n"
 msgstr "Error en llegir certificats del fitxer CA «%s»\n"
 
-#: openssl.c:1708
+#: openssl.c:1733
 #, c-format
 msgid "Failed to open CA file '%s'\n"
 msgstr "Error en obrir el fitxer CA «%s»\n"
 
-#: openssl.c:1768
+#: openssl.c:1793
 msgid "SSL connection failure\n"
 msgstr "La connexió SSL ha fallat\n"
 
-#: openssl.c:1929
+#: openssl.c:1954
 msgid "Failed to calculate OATH HMAC\n"
 msgstr "Error en calcular HMAC OATH\n"
 
