@@ -1362,7 +1362,8 @@ static int match_cert_hostname(struct openconnect_info *vpninfo, X509 *peer_cert
 			else
 				family = AF_INET6;
 
-			inet_ntop(family, ipaddr, host, sizeof(host));
+			/* In Windows, the 'src' argument of inet_ntop() isn't const */
+			inet_ntop(family, (void *)ipaddr, host, sizeof(host));
 			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("Matched %s address '%s'\n"),
 				     (family == AF_INET6) ? "IPv6" : "IPv4",
