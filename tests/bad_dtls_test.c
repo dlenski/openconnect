@@ -314,7 +314,6 @@ static int tls1_P_hash(const EVP_MD *md,
     unsigned char A1[EVP_MAX_MD_SIZE];
     HMAC_CTX *ctx = HMAC_CTX_new();
     unsigned int chunk;
-    int j;
     int i = 0;
 
     HMAC_Init_ex(ctx, sec, sec_len, md, NULL);
