@@ -33,6 +33,7 @@ lib_srcs_iconv = iconv.c
 lib_srcs_oath = oath.c
 lib_srcs_yubikey = yubikey.c
 lib_srcs_stoken = stoken.c
+lib_srcs_esp = esp.c esp-seqno.c
 
 POTFILES = $(openconnect_SOURCES) $(lib_srcs_cisco) $(lib_srcs_juniper) \
 	   gnutls-esp.c openssl-esp.c esp.c esp-seqno.c \
@@ -52,15 +53,14 @@ library_srcs += $(lib_srcs_gssapi)
 endif
 if OPENCONNECT_GNUTLS
 library_srcs += $(lib_srcs_gnutls)
-endif
-if ESP_GNUTLS
-lib_srcs_juniper += gnutls-esp.c esp.c esp-seqno.c
-endif
-if ESP_OPENSSL
-lib_srcs_juniper += openssl-esp.c esp.c esp-seqno.c
+lib_srcs_esp += gnutls-esp.c
 endif
 if OPENCONNECT_OPENSSL
 library_srcs += $(lib_srcs_openssl)
+lib_srcs_esp += openssl-esp.c
+endif
+if OPENCONNECT_ESP
+lib_srcs_juniper += $(lib_srcs_esp)
 endif
 if OPENCONNECT_ICONV
 library_srcs += $(lib_srcs_iconv)

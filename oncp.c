@@ -433,7 +433,7 @@ static const unsigned char data_hdr[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 					  0x01, 0x2c, 0x01, 0x00, 0x00, 0x00,
 					  0x01, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-#if defined(ESP_GNUTLS) || defined(ESP_OPENSSL)
+#ifdef HAVE_ESP
 static const unsigned char esp_kmp_hdr[] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x2e,
 	0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, /* KMP header */
@@ -775,7 +775,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	put_len32(reqbuf, group);
 	put_len16(reqbuf, kmp);
 
-#if defined(ESP_GNUTLS) || defined(ESP_OPENSSL)
+#ifdef HAVE_ESP
 	if (!setup_esp_keys(vpninfo)) {
 		struct esp *esp = &vpninfo->esp_in[vpninfo->current_esp_in];
 		/* Since we'll want to do this in the oncp_mainloop too, where it's easier
@@ -824,7 +824,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 
 static int oncp_receive_espkeys(struct openconnect_info *vpninfo, int len)
 {
-#if defined(ESP_GNUTLS) || defined(ESP_OPENSSL)
+#ifdef HAVE_ESP
 	int ret;
 
 	ret = parse_conf_pkt(vpninfo, vpninfo->cstp_pkt->oncp.kmp, len + 20, 301);
@@ -1099,7 +1099,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			/* XXX: Do we have to do this or can we leave it open?
 			 * Perhaps we could even reconnect asynchronously while
 			 * the ESP is still running? */
-#if defined(ESP_GNUTLS) || defined(ESP_OPENSSL)
+#ifdef HAVE_ESP
 			esp_shutdown(vpninfo);
 #endif
 			ret = ssl_reconnect(vpninfo);

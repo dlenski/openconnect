@@ -127,7 +127,7 @@ const struct vpn_proto openconnect_protos[] = {
 		.tcp_mainloop = oncp_mainloop,
 		.add_http_headers = oncp_common_headers,
 		.obtain_cookie = oncp_obtain_cookie,
-#if defined(ESP_GNUTLS) || defined(ESP_OPENSSL)
+#ifdef HAVE_ESP
 		.udp_setup = esp_setup,
 		.udp_mainloop = esp_mainloop,
 		.udp_close = esp_close,

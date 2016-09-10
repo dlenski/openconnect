@@ -266,6 +266,7 @@ AC_ARG_WITH([openssl],
     AS_HELP_STRING([--with-openssl], [Location of OpenSSL build dir]))
 
 ssl_library=
+esp=
 
 if test "$with_openssl" != "" -a "$with_openssl" != "no"; then
     if test "$with_gnutls" = ""; then
@@ -439,9 +440,8 @@ case "$ssl_library" in
 		       [AC_MSG_RESULT(no)])
 
 	AC_CHECK_FUNC(HMAC_CTX_copy,
-		      [esp=openssl],
-		      [esp=none
-		       AC_MSG_WARN([ESP support will be disabled])])
+		      [esp=yes],
+		      [AC_MSG_WARN([ESP support will be disabled])])
 
 	LIBS="${oldLIBS}"
 	CFLAGS="${oldCFLAGS}"
@@ -499,7 +499,7 @@ case "$ssl_library" in
 	    AC_DEFINE_UNQUOTED([DEFAULT_SYSTEM_CAFILE], ["$with_system_cafile"], [Location of System CA trust file])
 	fi
 	AC_CHECK_FUNC(gnutls_cipher_set_iv,
-		      [esp=gnutls], [esp=none])
+		      [esp=yes], [])
 	AC_CHECK_FUNC(gnutls_pkcs12_simple_parse,
 		      [AC_DEFINE(HAVE_GNUTLS_PKCS12_SIMPLE_PARSE, 1, [From GnuTLS 3.1.0])], [])
 	AC_CHECK_FUNC(gnutls_certificate_set_key,
@@ -541,9 +541,6 @@ case "$ssl_library" in
 	AC_SUBST(SSL_PC, [gnutls])
 	AC_SUBST(SSL_LIBS, ['$(GNUTLS_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
-	if test "$have_gnutls_esp" = "yes"; then
-	    esp=gnutls
-	fi
 	;;
 
     *)
@@ -572,12 +569,10 @@ AM_CONDITIONAL(TEST_DSA, [test "$enable_dsa_tests" = "yes"])
 
 AM_CONDITIONAL(OPENCONNECT_GNUTLS,  [ test "$ssl_library" = "GnuTLS" ])
 AM_CONDITIONAL(OPENCONNECT_OPENSSL, [ test "$ssl_library" = "OpenSSL" ])
-AM_CONDITIONAL(ESP_GNUTLS, [ test "$esp" = "gnutls" ])
-AM_CONDITIONAL(ESP_OPENSSL, [ test "$esp" = "openssl" ])
-if test "$esp" = "gnutls"; then
-    AC_DEFINE(ESP_GNUTLS, 1, [Using GnuTLS for ESP])
-elif test "$esp" = "openssl"; then
-    AC_DEFINE(ESP_OPENSSL, 1, [Using OpenSSL for ESP])
+AM_CONDITIONAL(OPENCONNECT_ESP, [ test "$esp" != "" ])
+
+if test "$esp" != ""; then
+    AC_DEFINE(HAVE_ESP, 1, [Build with ESP support])
 fi
 
 

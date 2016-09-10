@@ -323,12 +323,12 @@ static inline void init_pkt_queue(struct pkt_q *q)
 
 #define LINK_TO_TUNNEL_MTU(linkmtu) \
 	(linkmtu - DTLS_OVERHEAD)
-	
+
 struct esp {
-#if defined(ESP_GNUTLS)
+#if defined(OPENCONNECT_GNUTLS)
 	gnutls_cipher_hd_t cipher;
 	gnutls_hmac_hd_t hmac;
-#elif defined(ESP_OPENSSL)
+#elif defined(OPENCONNECT_OPENSSL)
 	HMAC_CTX *hmac, *pkt_hmac;
 	EVP_CIPHER_CTX *cipher;
 #endif
