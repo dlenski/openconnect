@@ -22,7 +22,7 @@ openconnect_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFL
 openconnect_LDADD = libopenconnect.la $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(INTL_LIBS) $(ICONV_LIBS)
 
 library_srcs = ssl.c http.c http-auth.c auth-common.c library.c compat.c lzs.c mainloop.c script.c ntlm.c digest.c
-lib_srcs_cisco = auth.c cstp.c dtls.c
+lib_srcs_cisco = auth.c cstp.c
 lib_srcs_juniper = oncp.c lzo.c auth-juniper.c
 lib_srcs_gnutls = gnutls.c gnutls_pkcs12.c gnutls_tpm.c
 lib_srcs_openssl = openssl.c openssl-pkcs11.c
@@ -58,6 +58,9 @@ endif
 if OPENCONNECT_OPENSSL
 library_srcs += $(lib_srcs_openssl)
 lib_srcs_esp += openssl-esp.c
+endif
+if OPENCONNECT_DTLS
+lib_srcs_cisco += dtls.c
 endif
 if OPENCONNECT_ESP
 lib_srcs_juniper += $(lib_srcs_esp)

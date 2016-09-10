@@ -41,7 +41,7 @@
 
 #include "openconnect.h"
 
-#if defined(OPENCONNECT_OPENSSL) || defined(DTLS_OPENSSL)
+#if defined(OPENCONNECT_OPENSSL)
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 /* Ick */
@@ -528,10 +528,10 @@ struct openconnect_info {
 	int reconnect_interval;
 	int dtls_attempt_period;
 	time_t new_dtls_started;
-#if defined(DTLS_OPENSSL)
+#if defined(OPENCONNECT_OPENSSL)
 	SSL_CTX *dtls_ctx;
 	SSL *dtls_ssl;
-#elif defined(DTLS_GNUTLS)
+#elif defined(OPENCONNECT_GNUTLS)
 	/* Call this dtls_ssl rather than dtls_sess because it's just a
 	   pointer, and generic code in dtls.c wants to check if it's
 	   NULL or not or pass it to DTLS_SEND/DTLS_RECV. This way we
@@ -662,10 +662,6 @@ struct openconnect_info {
 	} while (0)
 
 #define read_fd_monitored(_v, _n) FD_ISSET(_v->_n##_fd, &_v->_select_rfds)
-#endif
-
-#if defined(DTLS_OPENSSL) || defined(DTLS_GNUTLS)
-#define HAVE_DTLS 1
 #endif
 
 /* Packet types */

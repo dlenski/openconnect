@@ -267,6 +267,7 @@ AC_ARG_WITH([openssl],
 
 ssl_library=
 esp=
+dtls=
 
 if test "$with_openssl" != "" -a "$with_openssl" != "no"; then
     if test "$with_gnutls" = ""; then
@@ -446,8 +447,8 @@ case "$ssl_library" in
 	LIBS="${oldLIBS}"
 	CFLAGS="${oldCFLAGS}"
 
+	dtls=yes
 	AC_DEFINE(OPENCONNECT_OPENSSL, 1, [Using OpenSSL])
-	AC_DEFINE(DTLS_OPENSSL, 1, [Using OpenSSL for DTLS])
 	AC_SUBST(SSL_PC, [openssl])
 	AC_SUBST(SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
@@ -515,7 +516,7 @@ case "$ssl_library" in
 	AC_CHECK_FUNC(gnutls_system_key_add_x509,
 		      [AC_DEFINE(HAVE_GNUTLS_SYSTEM_KEYS, 1, [From GnuTLS 3.4.0])], [])
 	AC_CHECK_FUNC(gnutls_session_set_premaster,
-		      [AC_DEFINE(DTLS_GNUTLS, 1, [Using GnuTLS for DTLS])])
+		      [dtls=yes], [])
 	AC_CHECK_FUNC(gnutls_pkcs11_add_provider,
 		      [PKG_CHECK_MODULES(P11KIT, p11-kit-1,
 					 [AC_DEFINE(HAVE_P11KIT, 1, [Have. P11. Kit.])
@@ -570,11 +571,14 @@ AM_CONDITIONAL(TEST_DSA, [test "$enable_dsa_tests" = "yes"])
 AM_CONDITIONAL(OPENCONNECT_GNUTLS,  [ test "$ssl_library" = "GnuTLS" ])
 AM_CONDITIONAL(OPENCONNECT_OPENSSL, [ test "$ssl_library" = "OpenSSL" ])
 AM_CONDITIONAL(OPENCONNECT_ESP, [ test "$esp" != "" ])
+AM_CONDITIONAL(OPENCONNECT_DTLS, [ test "$dtls" != "" ])
 
 if test "$esp" != ""; then
     AC_DEFINE(HAVE_ESP, 1, [Build with ESP support])
 fi
-
+if test "$dtls" != ""; then
+    AC_DEFINE(HAVE_DTLS, 1, [Build with DTLS support])
+fi
 
 AC_ARG_WITH(lz4,
   AS_HELP_STRING([--without-lz4], [disable support for LZ4 compression]),
@@ -1016,6 +1020,7 @@ AC_DEFUN([SUMMARY],
 echo "BUILD OPTIONS:"
 SUMMARY([SSL library], [$ssl_library])
 SUMMARY([[PKCS#11 support]], [$pkcs11_support])
+SUMMARY([DTLS support], [$dtls])
 SUMMARY([ESP support], [$esp])
 SUMMARY([libproxy support], [$libproxy_pkg])
 SUMMARY([RSA SecurID support], [$libstoken_pkg])

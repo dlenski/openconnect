@@ -91,7 +91,7 @@ int RAND_bytes(char *buf, int len)
  * their clients use anyway.
  */
 
-#if defined(DTLS_OPENSSL)
+#if defined(OPENCONNECT_OPENSSL)
 #define DTLS_SEND SSL_write
 #define DTLS_RECV SSL_read
 #define DTLS_FREE SSL_free
@@ -489,7 +489,7 @@ void append_dtls_ciphers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 #endif
 }
 
-#elif defined(DTLS_GNUTLS)
+#elif defined(OPENCONNECT_GNUTLS)
 #include <gnutls/dtls.h>
 #include "gnutls.h"
 
@@ -811,15 +811,6 @@ int dtls_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 	if (!dtls_attempt_period)
 		return 0;
 
-#if defined(OPENCONNECT_GNUTLS) && defined(DTLS_OPENSSL)
-	/* If we're using GnuTLS for authentication but OpenSSL for DTLS,
-	   we'll need to initialise OpenSSL now... */
-	SSL_library_init();
-	ERR_clear_error();
-	SSL_load_error_strings();
-	OpenSSL_add_all_algorithms();
-#endif
-
 	while (dtls_opt) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 			     _("DTLS option %s : %s\n"),
@@ -1085,7 +1076,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				send_pkt->cstp.hdr[7] = AC_PKT_COMPRESSED;
 		}
 
-#if defined(DTLS_OPENSSL)
+#ifdef OPENCONNECT_OPENSSL
 		ret = SSL_write(vpninfo->dtls_ssl, &send_pkt->cstp.hdr[7], send_pkt->len + 1);
 		if (ret <= 0) {
 			ret = SSL_get_error(vpninfo->dtls_ssl, ret);
@@ -1106,7 +1097,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			}
 			return work_done;
 		}
-#elif defined(DTLS_GNUTLS)
+#else /* GnuTLS */
 		ret = gnutls_record_send(vpninfo->dtls_ssl, &send_pkt->cstp.hdr[7], send_pkt->len + 1);
 		if (ret <= 0) {
 			if (ret != GNUTLS_E_AGAIN && ret != GNUTLS_E_INTERRUPTED) {

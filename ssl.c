@@ -613,7 +613,7 @@ int openconnect_passphrase_from_fsid(struct openconnect_info *vpninfo)
 }
 #endif
 
-#if defined(OPENCONNECT_OPENSSL) || defined(DTLS_OPENSSL)
+#if defined(OPENCONNECT_OPENSSL)
 /* We put this here rather than in openssl.c because it might be needed
    for OpenSSL DTLS support even when GnuTLS is being used for HTTPS */
 int openconnect_print_err_cb(const char *str, size_t len, void *ptr)

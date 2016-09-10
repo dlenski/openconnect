@@ -290,9 +290,9 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 	free(vpninfo->dtls_cipher);
 #ifdef OPENCONNECT_GNUTLS
 	gnutls_free(vpninfo->cstp_cipher); /* In OpenSSL this is const */
-#endif
-#ifdef DTLS_GNUTLS
+#ifdef HAVE_DTLS
 	gnutls_free(vpninfo->gnutls_dtls_cipher);
+#endif
 #endif
 	free(vpninfo->dtls_addr);
 
@@ -873,7 +873,7 @@ const char *openconnect_get_dtls_compression(struct openconnect_info * vpninfo)
 
 const char *openconnect_get_dtls_cipher(struct openconnect_info *vpninfo)
 {
-#if defined(DTLS_GNUTLS)
+#if defined(OPENCONNECT_GNUTLS)
 	if (vpninfo->dtls_state != DTLS_CONNECTED) {
 		gnutls_free(vpninfo->gnutls_dtls_cipher);
 		vpninfo->gnutls_dtls_cipher = NULL;

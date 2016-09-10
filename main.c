@@ -617,11 +617,7 @@ static void print_build_opts(void)
 	}
 
 #ifdef HAVE_DTLS
-	printf("%sDTLS", sep);
-#if defined(OPENCONNECT_GNUTLS) && defined(DTLS_OPENSSL)
-	printf(" (%s)", _("using OpenSSL"));
-#endif
-	printf("\n");
+	printf("%sDTLS\n", sep);
 #else
 	printf(_("\nWARNING: No DTLS support in this binary. Performance will be impaired.\n"));
 #endif
