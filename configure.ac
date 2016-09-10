@@ -1032,7 +1032,7 @@ SUMMARY([Java bindings], [$with_java])
 SUMMARY([Build docs], [$build_www])
 SUMMARY([Unit tests], [$have_cwrap])
 
-if test "$ssl_library" = "openssl"; then
+if test "$ssl_library" = "OpenSSL"; then
     AC_MSG_WARN([[
 ***
 *** Be sure to run "make check" to verify OpenSSL DTLS support
