@@ -796,13 +796,18 @@ int os_read_tun(struct openconnect_info *vpninfo, struct pkt *pkt);
 int os_write_tun(struct openconnect_info *vpninfo, struct pkt *pkt);
 intptr_t os_setup_tun(struct openconnect_info *vpninfo);
 
+/* {gnutls,openssl}-dtls.c */
+int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd);
+int dtls_try_handshake(struct openconnect_info *vpninfo);
+unsigned dtls_set_mtu(struct openconnect_info *vpninfo, unsigned mtu);
+
 /* dtls.c */
 int dtls_setup(struct openconnect_info *vpninfo, int dtls_attempt_period);
 int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout);
 void dtls_close(struct openconnect_info *vpninfo);
 void dtls_shutdown(struct openconnect_info *vpninfo);
 void append_dtls_ciphers(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
-
+void dtls_detect_mtu(struct openconnect_info *vpninfo);
 int openconnect_dtls_read(struct openconnect_info *vpninfo, void *buf, size_t len, unsigned ms);
 int openconnect_dtls_write(struct openconnect_info *vpninfo, void *buf, size_t len);
 
