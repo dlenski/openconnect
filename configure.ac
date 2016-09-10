@@ -256,190 +256,56 @@ AC_ARG_WITH([system-cafile],
 	    AS_HELP_STRING([--with-system-cafile],
 			   [Location of the default system CA certificate file for old (<3.0.20) GnuTLS versions]))
 
-# We will use GnuTLS by default if it's present, and if GnuTLS doesn't
-# have DTLS support then we'll *also* use OpenSSL for that, but it
-# appears *only* only in the openconnect executable and not the
-# library (hence shouldn't be a problem for GPL'd programs using
-# libopenconnect).
-#
-# If built with --without-openssl then we'll even eschew OpenSSL for
-# DTLS support and will build without any DTLS support at all if
-# GnuTLS cannot manage.
-#
-# You can build without GnuTLS, even if its pkg-config file is present
-# on the system, by using '--without-gnutls'
+# We will use GnuTLS by default if it's present. We used to suppport
+# using GnuTLS for the TLS connections and OpenSSL for DTLS, but none
+# of the reasons for that make sense any more.
 
 AC_ARG_WITH([gnutls],
-	AS_HELP_STRING([--without-gnutls],
-		       [Do not attempt to use GnuTLS; use OpenSSL instead]))
+    AS_HELP_STRING([--without-gnutls], [Do not attempt to use GnuTLS; use OpenSSL instead]))
 AC_ARG_WITH([openssl],
-            AS_HELP_STRING([--with-openssl],
-                           [Location of OpenSSL build dir]))
+    AS_HELP_STRING([--with-openssl], [Location of OpenSSL build dir]))
+
 ssl_library=
 
+if test "$with_openssl" != "" -a "$with_openssl" != "no"; then
+    if test "$with_gnutls" = ""; then
+	with_gnutls=no
+    elif test "$with_gnutls" = "yes"; then
+	AC_MSG_ERROR([You cannot choose both GnuTLS and OpenSSL.])
+    fi
+fi
+
+# First, check if GnuTLS exists and is usable
 if test "$with_gnutls" = "yes" || test "$with_gnutls" = ""; then
-    PKG_CHECK_MODULES(GNUTLS, gnutls, [found_gnutls=yes], [found_gnutls=no])
-    if test "$found_gnutls" = "yes"; then
-        if ! $PKG_CONFIG --atleast-version=2.12.16 gnutls; then
-	    found_gnutls=old
-        fi
-	if test "$have_win" = "yes"; then
+    PKG_CHECK_MODULES(GNUTLS, gnutls >= 2.12.16,
+       [if ! $PKG_CONFIG --atleast-version=2.12.16 gnutls; then
+	    AC_MSG_WARN([Your GnuTLS is too old. At least v2.12.16 is required])
+        elif test "$have_win" = "yes"; then
 	   AC_MSG_CHECKING([for broken GnuTLS Windows versions])
 	   if $PKG_CONFIG --atleast-version=3.2.0 gnutls &&
 	      ! $PKG_CONFIG --atleast-version=3.2.10 gnutls; then
-	      AC_MSG_RESULT([yes])
-	      found_gnutls=winbroken
+	       AC_MSG_RESULT([broken])
 	   else
-	      AC_MSG_RESULT([no])
+	       AC_MSG_RESULT([OK])
+	       ssl_library=GnuTLS
 	   fi
-	fi
-    fi
-    case $with_gnutls$found_gnutls in
-     yeswinbroken)
-        AC_MSG_ERROR([GnuTLS v3.2.0-v3.2.9 are not functional on Windows])
-	;;
-     yesold)
-        AC_MSG_ERROR([Your GnuTLS is too old. At least v2.12.16 is required])
-	;;
-     yesno)
-	AC_MSG_ERROR([GnuTLS requested but no package 'gnutls' found])
-	;;
-     old)
-        AC_MSG_WARN([GnuTLS is too old. At least v2.12.16 is required. Falling back to OpenSSL])
-	;;
-     yes)
-        with_gnutls=yes
-	;;
-    esac
+	else
+	    ssl_library=GnuTLS
+	fi], [:])
 elif test "$with_gnutls" != "no"; then
-    AC_MSG_ERROR([Values other than 'yes' or 'no' for --with-gnutls are not supported])
+    AC_ERROR([Values other than 'yes' or 'no' for --with-gnutls are not supported])
 fi
 
-if test "$with_gnutls" = "yes"; then
-    oldlibs="$LIBS"
-    LIBS="$LIBS $GNUTLS_LIBS"
-    oldcflags="$CFLAGS"
-    CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
-    AC_CHECK_FUNC(gnutls_dtls_set_data_mtu,
-		 [AC_DEFINE(HAVE_GNUTLS_DTLS_SET_DATA_MTU, 1, [Have this function])], [])
-    AC_CHECK_FUNC(gnutls_pkcs11_get_raw_issuer,
-		 [AC_DEFINE(HAVE_GNUTLS_PKCS11_GET_RAW_ISSUER, 1, [Have this function])], [])
-    AC_CHECK_FUNC(gnutls_certificate_set_x509_system_trust,
-		 [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_X509_SYSTEM_TRUST, 1, [I hate autoheader])], [])
-    if test "$ac_cv_func_gnutls_certificate_set_x509_system_trust" != "yes"; then
-	# We will need to tell GnuTLS the path to the system CA file.
-	if test "$with_system_cafile" = "yes" || test "$with_system_cafile" = ""; then
-	    unset with_system_cafile
-	    AC_MSG_CHECKING([For location of system CA trust file])
-	    for file in /etc/ssl/certs/ca-certificates.crt \
-			/etc/pki/tls/cert.pem \
-			/usr/local/share/certs/ca-root-nss.crt \
-			/etc/ssl/cert.pem \
-			/etc/ssl/ca-bundle.pem \
-		; do
-		if grep 'BEGIN CERTIFICATE-----' $file >/dev/null 2>&1; then
-		    with_system_cafile=${file}
-		    break
-		fi
-	    done
-	    AC_MSG_RESULT([${with_system_cafile-NOT FOUND}])
-	elif test "$with_system_cafile" = "no"; then
-	    AC_MSG_ERROR([You cannot disable the system CA certificate file.])
-	fi
-	if test "$with_system_cafile" = ""; then
-	    AC_MSG_ERROR([Unable to find a standard system CA certificate file.]
-    [Your GnuTLS requires a path to a CA certificate store. This is a file]
-    [which contains a list of the Certificate Authorities which are trusted.]
-    [Most distributions ship with this file in a standard location, but none]
-    [the known standard locations exist on your system. You should provide a]
-    [--with-system-cafile= argument to this configure script, giving the full]
-    [path to a default CA certificate file for GnuTLS to use. Also, please]
-    [send full details of your system, including 'uname -a' output and the]
-    [location of the system CA certificate store on your system, to the]
-    [openconnect-devel@lists.infradead.org mailing list.])
-	fi
-	AC_DEFINE_UNQUOTED([DEFAULT_SYSTEM_CAFILE], ["$with_system_cafile"], [Location of System CA trust file])
-    fi
-    AC_CHECK_FUNC(gnutls_cipher_set_iv,
-		 [have_gnutls_esp=yes], [have_gnutls_esp=no])
-    AC_CHECK_FUNC(gnutls_pkcs12_simple_parse,
-		 [AC_DEFINE(HAVE_GNUTLS_PKCS12_SIMPLE_PARSE, 1, [This one was obvious too])], [])
-    AC_CHECK_FUNC(gnutls_certificate_set_key,
-		 [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_KEY, 1, [stupid])], [])
-    AC_CHECK_FUNC(gnutls_pk_to_sign,
-		 [AC_DEFINE(HAVE_GNUTLS_PK_TO_SIGN, 1, [autoheader])], [])
-    AC_CHECK_FUNC(gnutls_pubkey_export2,
-		 [AC_DEFINE(HAVE_GNUTLS_PUBKEY_EXPORT2, 1, [autoheader sucks donkey balls])], [])
-    AC_CHECK_FUNC(gnutls_x509_crt_set_pin_function,
-		 [AC_DEFINE(HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION, 1, [From GnuTLS 3.1.0])], [])
-    AC_CHECK_FUNC(gnutls_url_is_supported,
-		 [AC_DEFINE(HAVE_GNUTLS_URL_IS_SUPPORTED, 1, [From GnuTLS 3.1.0])], [])
-    AC_CHECK_FUNC(gnutls_system_key_add_x509,
-		 [AC_DEFINE(HAVE_GNUTLS_SYSTEM_KEYS, 1, [From GnuTLS 3.4.0])], [])
-    if test "$with_openssl" = "" || test "$with_openssl" = "no"; then
-	AC_CHECK_FUNC(gnutls_session_set_premaster,
-		 [have_gnutls_dtls=yes], [have_gnutls_dtls=no])
-    else
-	have_gnutls_dtls=no
-    fi
-    if test "$have_gnutls_dtls" = "yes"; then
-	if test "$with_openssl" = "" || test "$with_openssl" = "no"; then
-	    # They either said no OpenSSL or didn't specify, and GnuTLS can
-	    # do DTLS, so just use GnuTLS.
-	    ssl_library=gnutls
-	    with_openssl=no
-	else
-	    # They specifically asked for OpenSSL, so use it for DTLS even
-	    # though GnuTLS could manage.
-	    ssl_library=both
-	fi
-    else
-	if test "$with_openssl" = "no"; then
-	    # GnuTLS doesn't have DTLS, but they don't want OpenSSL. So build
-	    # without DTLS support at all.
-	    ssl_library=gnutls
-	else
-	    # GnuTLS doesn't have DTLS so use OpenSSL for it, but GnuTLS for
-	    # the TCP connection (and thus in the library).
-	    ssl_library=both
-	fi
-    fi
-    AC_CHECK_FUNC(gnutls_pkcs11_add_provider,
-		  [PKG_CHECK_MODULES(P11KIT, p11-kit-1,
-				     [AC_DEFINE(HAVE_P11KIT, 1, [Have. P11. Kit.])
-				      pkcs11_support=GnuTLS
-				      AC_SUBST(P11KIT_PC, p11-kit-1)],
-				     [:])], [])
-    LIBS="$oldlibs -ltspi"
-    AC_MSG_CHECKING([for tss library])
-    AC_LINK_IFELSE([AC_LANG_PROGRAM([
-		   #include <trousers/tss.h>
-		   #include <trousers/trousers.h>],[
-		   int err = Tspi_Context_Create((void *)0);
-		   Trspi_Error_String(err);])],
-		  [AC_MSG_RESULT(yes)
-		   AC_SUBST([TSS_LIBS], [-ltspi])
-		   AC_SUBST([TSS_CFLAGS], [])
-		   AC_DEFINE(HAVE_TROUSERS, 1, [Have Trousers TSS library])],
-		  [AC_MSG_RESULT(no)])
-    LIBS="$oldlibs"
-    CFLAGS="$oldcflags"
-fi
-
-AC_ARG_WITH([default-gnutls-priority],
-	AS_HELP_STRING([--with-default-gnutls-priority=STRING],
-	[Provide a default string as GnuTLS priority string]),
-	default_gnutls_priority=$withval)
-if test -n "$default_gnutls_priority"; then
-   AC_DEFINE_UNQUOTED([DEFAULT_PRIO], ["$default_gnutls_priority"], [The GnuTLS priority string])
-fi
-
-if test "$with_openssl" = "yes" || test "$with_openssl" = "" || test "$ssl_library" = "both"; then
-    PKG_CHECK_MODULES(OPENSSL, openssl, [],
-	[oldLIBS="$LIBS"
-	 LIBS="$LIBS -lssl -lcrypto"
-	 AC_MSG_CHECKING([for OpenSSL without pkg-config])
-	 AC_LINK_IFELSE([AC_LANG_PROGRAM([
+# Do we need to look for OpenSSL?
+if test "$ssl_library" = ""; then
+    if test "$with_gnutls" = "yes" -o "$with_openssl" = "no"; then
+	    AC_MSG_ERROR([Suitable GnuTLS required but not found])
+    elif test "$with_openssl" = "yes" -o "$with_openssl" = ""; then
+        PKG_CHECK_MODULES(OPENSSL, openssl, [],
+	    [oldLIBS="$LIBS"
+	     LIBS="$LIBS -lssl -lcrypto"
+	     AC_MSG_CHECKING([for OpenSSL without pkg-config])
+	     AC_LINK_IFELSE([AC_LANG_PROGRAM([
 			        #include <openssl/ssl.h>
 				#include <openssl/err.h>],[
 				SSL_library_init();
@@ -450,87 +316,241 @@ if test "$with_openssl" = "yes" || test "$with_openssl" = "" || test "$ssl_libra
 			 AC_SUBST([OPENSSL_LIBS], ["-lssl -lcrypto"])
 			 AC_SUBST([OPENSSL_CFLAGS], [])],
 			[AC_MSG_RESULT(no)
-			 if test "$ssl_library" = "both"; then
-			     ssl_library="gnutls";
-			 else
-			     AC_ERROR([Could not build against OpenSSL]);
-			 fi])
-	 LIBS="$oldLIBS"])
-    if test "$ssl_library" != "both" && test "$ssl_library" != "gnutls"; then
-        ssl_library=openssl
-    fi
-elif test "$with_openssl" != "no" ; then
-    OPENSSL_CFLAGS="-I${with_openssl}/include ${OPENSSL_CFLAGS}"
-    if test -r "${with_openssl}/libssl.a" -a -r "${with_openssl}/libcrypto.a";  then
-	OPENSSL_LIBS="${with_openssl}/libssl.a ${with_openssl}/libcrypto.a -ldl -lz"
-    elif test -r "${with_openssl}/crypto/.libs/libcrypto.a" -a \
-	      -r "${with_openssl}/ssl/.libs/libssl.a"; then
-	OPENSSL_LIBS="${with_openssl}/ssl/.libs/libssl.a ${with_openssl}/crypto/.libs/libcrypto.a -ldl -lz"
+			 AC_ERROR([Could not build against OpenSSL])])
+	     LIBS="$oldLIBS"])
+	ssl_library=OpenSSL
+	PKG_CHECK_MODULES(P11KIT, p11-kit-1,
+	    [PKG_CHECK_MODULES(LIBP11, libp11,
+		[AC_DEFINE(HAVE_LIBP11, 1, [Have libp11 and p11-kit for OpenSSL])
+		 AC_SUBST(P11KIT_PC, ["libp11 p11-kit-1"])
+		 proxy_module="`$PKG_CONFIG --variable=proxy_module p11-kit-1`"
+		 pkcs11_support="libp11"
+		 AC_DEFINE_UNQUOTED([DEFAULT_PKCS11_MODULE], "${proxy_module}", [p11-kit proxy])],
+		[:])], [:])
     else
-	AC_ERROR([Could not found OpenSSL libraries]);
-    fi
-    AC_SUBST(OPENSSL_CFLAGS)
-    AC_SUBST(OPENSSL_LIBS)
-    enable_static=yes
-    enable_shared=no
-    AC_DEFINE(DTLS_OPENSSL, 1, [Using OpenSSL for DTLS])
-    if test "$ssl_library" != "both"; then
-        ssl_library=openssl
+	OPENSSL_CFLAGS="-I${with_openssl}/include ${OPENSSL_CFLAGS}"
+	if test -r "${with_openssl}/libssl.a" -a -r "${with_openssl}/libcrypto.a";  then
+	    OPENSSL_LIBS="${with_openssl}/libssl.a ${with_openssl}/libcrypto.a -ldl -lz"
+	elif test -r "${with_openssl}/crypto/.libs/libcrypto.a" -a \
+		  -r "${with_openssl}/ssl/.libs/libssl.a"; then
+	    OPENSSL_LIBS="${with_openssl}/ssl/.libs/libssl.a ${with_openssl}/crypto/.libs/libcrypto.a -ldl -lz"
+	else
+	    AC_ERROR([Could not found OpenSSL libraries]);
+	fi
+	AC_SUBST(OPENSSL_CFLAGS)
+	AC_SUBST(OPENSSL_LIBS)
+	enable_static=yes
+	enable_shared=no
+	ssl_library=OpenSSL
     fi
 fi
-esp=none
+
+AC_ARG_WITH([openssl-version-check],
+    AS_HELP_STRING([--without-openssl-version-check], [Do not check for known-broken OpenSSL versions]))
+AC_ARG_WITH([default-gnutls-priority],
+    AS_HELP_STRING([--with-default-gnutls-priority=STRING],
+	[Provide a default string as GnuTLS priority string]),
+	default_gnutls_priority=$withval)
+if test -n "$default_gnutls_priority"; then
+   AC_DEFINE_UNQUOTED([DEFAULT_PRIO], ["$default_gnutls_priority"], [The GnuTLS priority string])
+fi
+
 case "$ssl_library" in
-    gnutls)
-	AC_DEFINE(OPENCONNECT_GNUTLS, 1, [Using GnuTLS])
-	AC_SUBST(SSL_DTLS_PC, [gnutls])
-	AC_SUBST(SSL_LIBS, ['$(GNUTLS_LIBS)'])
-	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
-	if test "$have_gnutls_dtls" = "yes"; then
-	    AC_DEFINE(DTLS_GNUTLS, 1, [Using GnuTLS for DTLS])
-	    dtls_lib=gnutls
+    OpenSSL)
+	oldLIBS="${LIBS}"
+	oldCFLAGS="${CFLAGS}"
+	LIBS="${LIBS} ${OPENSSL_LIBS}"
+	CFLAGS="${CFLAGS} ${OPENSSL_CFLAGS}"
+
+	# Check for the various known-broken versions of OpenSSL, which includes LibreSSL.
+	if test "$with_openssl_version_check" != "no"; then
+	    AC_MSG_CHECKING([for known-broken versions of OpenSSL])
+	    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],
+				[#if defined(LIBRESSL_VERSION_NUMBER)
+				#error Bad OpenSSL
+				#endif
+				])],
+			  [],
+			  [AC_MSG_RESULT(yes)
+			   AC_MSG_ERROR([LibreSSL does not support Cisco DTLS.]
+[Build with OpenSSL or GnuTLS instead.])])
+	    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],[#if \
+				    (OPENSSL_VERSION_NUMBER == 0x10002000L || \
+				    (OPENSSL_VERSION_NUMBER >= 0x100000b0L && OPENSSL_VERSION_NUMBER <= 0x100000c0L) || \
+				    (OPENSSL_VERSION_NUMBER >= 0x10001040L && OPENSSL_VERSION_NUMBER <= 0x10001060L))
+				#error Bad OpenSSL
+				#endif
+				])],
+			  [],
+			  [AC_MSG_RESULT(yes)
+			   AC_ERROR([This version of OpenSSL is known to be broken with Cisco DTLS.]
+[See http://rt.openssl.org/Ticket/Display.html?id=2984&user=guest&pass=guest]
+[Add --without-openssl-version-check to configure args to avoid this check, or]
+[perhaps consider building with GnuTLS instead.])])
+	    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],[#if \
+				    (OPENSSL_VERSION_NUMBER == 0x1000200fL)
+				#error Bad OpenSSL
+				#endif
+				])],
+			  [],
+			  [AC_MSG_RESULT(yes)
+			   AC_ERROR([This version of OpenSSL is known to be broken with Cisco DTLS.]
+[See http://rt.openssl.org/Ticket/Display.html?id=3703&user=guest&pass=guest]
+[and http://rt.openssl.org/Ticket/Display.html?id=3711&user=guest&pass=guest]
+[Add --without-openssl-version-check to configure args to avoid this check, or]
+[perhaps consider building with GnuTLS instead.])])
+	    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],[#if \
+				    ((OPENSSL_VERSION_NUMBER >= 0x10001110L && OPENSSL_VERSION_NUMBER <= 0x10001150L) || \
+				     (OPENSSL_VERSION_NUMBER >= 0x10002050L && OPENSSL_VERSION_NUMBER <= 0x10002090L))
+				#error Bad OpenSSL
+				#endif
+				])],
+			  [],
+			  [AC_MSG_RESULT(yes)
+			   AC_ERROR([This version of OpenSSL is known to be broken with Cisco DTLS.]
+[See http://rt.openssl.org/Ticket/Display.html?id=4631&user=guest&pass=guest]
+[Add --without-openssl-version-check to configure args to avoid this check, or]
+[perhaps consider building with GnuTLS instead.])])
+	    AC_MSG_RESULT(no)
 	fi
-	if test "$have_gnutls_esp" = "yes"; then
-	   esp=gnutls
-	fi
-	;;
-    openssl)
-	PKG_CHECK_MODULES(P11KIT, p11-kit-1,
-		[PKG_CHECK_MODULES(LIBP11, libp11,
-			[AC_DEFINE(HAVE_LIBP11, 1, [Have libp11 and p11-kit for OpenSSL])
-			 AC_SUBST(P11KIT_PC, ["libp11 p11-kit-1"])
-			 proxy_module="`$PKG_CONFIG --variable=proxy_module p11-kit-1`"
-			 pkcs11_support="libp11"
-			 AC_DEFINE_UNQUOTED([DEFAULT_PKCS11_MODULE], "${proxy_module}", [p11-kit proxy])],
-			[:])], [:])
+
+	AC_MSG_CHECKING([for ENGINE_by_id() in OpenSSL])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <openssl/engine.h>],
+					[ENGINE_by_id("foo");])],
+		       [AC_MSG_RESULT(yes)
+			AC_DEFINE(HAVE_ENGINE, [1], [OpenSSL has ENGINE support])],
+		       [AC_MSG_RESULT(no)
+			AC_MSG_NOTICE([Building without OpenSSL TPM ENGINE support])])
+
+	AC_MSG_CHECKING([for dtls1_stop_timer() in OpenSSL])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <openssl/ssl.h>
+					 #include <stdlib.h>
+					 extern void dtls1_stop_timer(SSL *);],
+					[dtls1_stop_timer(NULL);])],
+		       [AC_MSG_RESULT(yes)
+			AC_DEFINE(HAVE_DTLS1_STOP_TIMER, [1], [OpenSSL has dtls1_stop_timer() function])],
+		       [AC_MSG_RESULT(no)])
+
+	AC_MSG_CHECKING([for DTLSv1_2_client_method() in OpenSSL])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <openssl/ssl.h>],
+					[DTLSv1_2_client_method();])],
+		       [AC_MSG_RESULT(yes)
+			AC_DEFINE(HAVE_DTLS12, [1], [OpenSSL has DTLSv1_2_client_method() function])],
+		       [AC_MSG_RESULT(no)])
+
+	AC_CHECK_FUNC(HMAC_CTX_copy,
+		      [esp=openssl],
+		      [esp=none
+		       AC_MSG_WARN([ESP support will be disabled])])
+
+	LIBS="${oldLIBS}"
+	CFLAGS="${oldCFLAGS}"
+
 	AC_DEFINE(OPENCONNECT_OPENSSL, 1, [Using OpenSSL])
 	AC_DEFINE(DTLS_OPENSSL, 1, [Using OpenSSL for DTLS])
-	AC_SUBST(SSL_DTLS_PC, [openssl])
+	AC_SUBST(SSL_PC, [openssl])
 	AC_SUBST(SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
-	dtls_lib=openssl
-	esp=openssl
 	;;
-    both)
-	# GnuTLS for TCP, OpenSSL for DTLS
+
+    GnuTLS)
+	oldlibs="$LIBS"
+	oldcflags="$CFLAGS"
+	LIBS="$LIBS $GNUTLS_LIBS"
+	CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
+	AC_CHECK_FUNC(gnutls_dtls_set_data_mtu,
+		      [AC_DEFINE(HAVE_GNUTLS_DTLS_SET_DATA_MTU, 1, [From GnuTLS 3.0.20])], [])
+	AC_CHECK_FUNC(gnutls_pkcs11_get_raw_issuer,
+		      [AC_DEFINE(HAVE_GNUTLS_PKCS11_GET_RAW_ISSUER, 1, [From GnuTLS 3.2.7])], [])
+	AC_CHECK_FUNC(gnutls_certificate_set_x509_system_trust,
+		      [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_X509_SYSTEM_TRUST, 1, [From GnuTLS 3.0.20])], [])
+	if test "$ac_cv_func_gnutls_certificate_set_x509_system_trust" != "yes"; then
+	    # We will need to tell GnuTLS the path to the system CA file.
+	    if test "$with_system_cafile" = "yes" || test "$with_system_cafile" = ""; then
+		unset with_system_cafile
+		AC_MSG_CHECKING([For location of system CA trust file])
+		for file in /etc/ssl/certs/ca-certificates.crt \
+				/etc/pki/tls/cert.pem \
+				/usr/local/share/certs/ca-root-nss.crt \
+				/etc/ssl/cert.pem \
+				/etc/ssl/ca-bundle.pem \
+			    ; do
+		    if grep 'BEGIN CERTIFICATE-----' $file >/dev/null 2>&1; then
+			with_system_cafile=${file}
+			break
+		    fi
+		done
+		AC_MSG_RESULT([${with_system_cafile-NOT FOUND}])
+	    elif test "$with_system_cafile" = "no"; then
+		AC_MSG_ERROR([You cannot disable the system CA certificate file.])
+	    fi
+	    if test "$with_system_cafile" = ""; then
+		AC_MSG_ERROR([Unable to find a standard system CA certificate file.]
+			     [Your GnuTLS requires a path to a CA certificate store. This is a file]
+			     [which contains a list of the Certificate Authorities which are trusted.]
+			     [Most distributions ship with this file in a standard location, but none]
+			     [the known standard locations exist on your system. You should provide a]
+			     [--with-system-cafile= argument to this configure script, giving the full]
+			     [path to a default CA certificate file for GnuTLS to use. Also, please]
+			     [send full details of your system, including 'uname -a' output and the]
+			     [location of the system CA certificate store on your system, to the]
+			     [openconnect-devel@lists.infradead.org mailing list.])
+	    fi
+	    AC_DEFINE_UNQUOTED([DEFAULT_SYSTEM_CAFILE], ["$with_system_cafile"], [Location of System CA trust file])
+	fi
+	AC_CHECK_FUNC(gnutls_cipher_set_iv,
+		      [esp=gnutls], [esp=none])
+	AC_CHECK_FUNC(gnutls_pkcs12_simple_parse,
+		      [AC_DEFINE(HAVE_GNUTLS_PKCS12_SIMPLE_PARSE, 1, [From GnuTLS 3.1.0])], [])
+	AC_CHECK_FUNC(gnutls_certificate_set_key,
+		      [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_KEY, 1, [From GnuTLS 3.0.4])], [])
+	AC_CHECK_FUNC(gnutls_pk_to_sign,
+		      [AC_DEFINE(HAVE_GNUTLS_PK_TO_SIGN, 1, [From GnuTLS 3.1.0])], [])
+	AC_CHECK_FUNC(gnutls_pubkey_export2,
+		      [AC_DEFINE(HAVE_GNUTLS_PUBKEY_EXPORT2, 1, [From GnuTLS 3.1.3])], [])
+	AC_CHECK_FUNC(gnutls_x509_crt_set_pin_function,
+		      [AC_DEFINE(HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION, 1, [From GnuTLS 3.1.0])], [])
+	AC_CHECK_FUNC(gnutls_url_is_supported,
+		      [AC_DEFINE(HAVE_GNUTLS_URL_IS_SUPPORTED, 1, [From GnuTLS 3.1.0])], [])
+	AC_CHECK_FUNC(gnutls_system_key_add_x509,
+		      [AC_DEFINE(HAVE_GNUTLS_SYSTEM_KEYS, 1, [From GnuTLS 3.4.0])], [])
+	AC_CHECK_FUNC(gnutls_session_set_premaster,
+		      [AC_DEFINE(DTLS_GNUTLS, 1, [Using GnuTLS for DTLS])])
+	AC_CHECK_FUNC(gnutls_pkcs11_add_provider,
+		      [PKG_CHECK_MODULES(P11KIT, p11-kit-1,
+					 [AC_DEFINE(HAVE_P11KIT, 1, [Have. P11. Kit.])
+					  pkcs11_support=GnuTLS
+					  AC_SUBST(P11KIT_PC, p11-kit-1)],
+					 [:])], [])
+	LIBS="$oldlibs -ltspi"
+	AC_MSG_CHECKING([for tss library])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([
+					   #include <trousers/tss.h>
+					   #include <trousers/trousers.h>],[
+					   int err = Tspi_Context_Create((void *)0);
+					   Trspi_Error_String(err);])],
+		       [AC_MSG_RESULT(yes)
+			AC_SUBST([TSS_LIBS], [-ltspi])
+			AC_SUBST([TSS_CFLAGS], [])
+			AC_DEFINE(HAVE_TROUSERS, 1, [Have Trousers TSS library])],
+		       [AC_MSG_RESULT(no)])
+	LIBS="$oldlibs"
+	CFLAGS="$oldcflags"
+
 	AC_DEFINE(OPENCONNECT_GNUTLS, 1, [Using GnuTLS])
-	AC_DEFINE(DTLS_OPENSSL, 1, [Using OpenSSL for DTLS])
-	AC_SUBST(SSL_DTLS_PC, ['gnutls openssl'])
+	AC_SUBST(SSL_PC, [gnutls])
 	AC_SUBST(SSL_LIBS, ['$(GNUTLS_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(GNUTLS_CFLAGS)'])
-	AC_SUBST(DTLS_SSL_LIBS, ['$(OPENSSL_LIBS)'])
-	AC_SUBST(DTLS_SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
-	dtls_lib=openssl
 	if test "$have_gnutls_esp" = "yes"; then
 	    esp=gnutls
-	else
-	    esp=openssl
 	fi
 	;;
+
     *)
-	AC_MSG_ERROR([Neither OpenSSL nor GnuTLS selected for SSL.])
+	# This should never happen
+	AC_MSG_ERROR([No SSL library selected])
 	;;
 esac
-
 
 test_pkcs11=
 if test "$pkcs11_support" != ""; then
@@ -539,7 +559,7 @@ fi
 AM_CONDITIONAL(TEST_PKCS11, [ test "$test_pkcs11" = "yes" ])
 
 # The test is OpenSSL-only for now.
-AM_CONDITIONAL(CHECK_DTLS, [ test "$dtls_lib" = "openssl" ])
+AM_CONDITIONAL(CHECK_DTLS, [ test "$ssl_library" = "OpenSSL" ])
 
 AC_ARG_ENABLE([dtls-xfail],
 	AS_HELP_STRING([--enable-dtls-xfail], [Only for gitlab CI. Do not use]))
@@ -550,73 +570,8 @@ AC_ARG_ENABLE([dsa-tests],
 	[], [enable_dsa_tests=yes])
 AM_CONDITIONAL(TEST_DSA, [test "$enable_dsa_tests" = "yes"])
 
-AC_ARG_WITH([openssl-version-check],
-	AS_HELP_STRING([--without-openssl-version-check],
-	[Do not check for known-broken OpenSSL versions]))
-
-oldLIBS="${LIBS}"
-oldCFLAGS="${CFLAGS}"
-LIBS="${LIBS} ${OPENSSL_LIBS}"
-CFLAGS="${CFLAGS} ${OPENSSL_CFLAGS}"
-if test "$dtls_lib" = "openssl" -a "$with_openssl_version_check" != "no"; then
-	AC_MSG_CHECKING([for known-broken versions of OpenSSL])
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],
-				[#if defined(LIBRESSL_VERSION_NUMBER)
-				#error Bad OpenSSL
-				#endif
-				])],
-			  [],
-			  [AC_MSG_RESULT(yes)
-			   AC_ERROR([LibreSSL does not support Cisco DTLS.
-Build with OpenSSL or GnuTLS instead.])])
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],[#if \
-				    (OPENSSL_VERSION_NUMBER == 0x10002000L || \
-				    (OPENSSL_VERSION_NUMBER >= 0x100000b0L && OPENSSL_VERSION_NUMBER <= 0x100000c0L) || \
-				    (OPENSSL_VERSION_NUMBER >= 0x10001040L && OPENSSL_VERSION_NUMBER <= 0x10001060L))
-				#error Bad OpenSSL
-				#endif
-				])],
-			  [],
-			  [AC_MSG_RESULT(yes)
-			   AC_ERROR([This version of OpenSSL is known to be broken with Cisco DTLS.
-See http://rt.openssl.org/Ticket/Display.html?id=2984&user=guest&pass=guest
-Add --without-openssl-version-check to configure args to avoid this check, or
-perhaps consider building with GnuTLS instead.])])
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],[#if \
-				    (OPENSSL_VERSION_NUMBER == 0x1000200fL)
-				#error Bad OpenSSL
-				#endif
-				])],
-			  [],
-			  [AC_MSG_RESULT(yes)
-			   AC_ERROR([This version of OpenSSL is known to be broken with Cisco DTLS.
-See http://rt.openssl.org/Ticket/Display.html?id=3703&user=guest&pass=guest
-and http://rt.openssl.org/Ticket/Display.html?id=3711&user=guest&pass=guest
-Add --without-openssl-version-check to configure args to avoid this check, or
-perhaps consider building with GnuTLS instead.])])
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([#include <openssl/opensslv.h>],[#if \
-				    ((OPENSSL_VERSION_NUMBER >= 0x10001110L && OPENSSL_VERSION_NUMBER <= 0x10001150L) || \
-				     (OPENSSL_VERSION_NUMBER >= 0x10002050L && OPENSSL_VERSION_NUMBER <= 0x10002090L))
-				#error Bad OpenSSL
-				#endif
-				])],
-			  [],
-			  [AC_MSG_RESULT(yes)
-			   AC_ERROR([This version of OpenSSL is known to be broken with Cisco DTLS.
-See http://rt.openssl.org/Ticket/Display.html?id=4631&user=guest&pass=guest
-Add --without-openssl-version-check to configure args to avoid this check, or
-perhaps consider building with GnuTLS instead.])])
-	AC_MSG_RESULT(no)
-fi
-if test "$esp" = "openssl"; then
-    AC_CHECK_FUNC(HMAC_CTX_copy,
-		  [], [esp=none
-		       AC_MSG_WARN([ESP support will be disabled])])
-fi
-LIBS="${oldLIBS}"
-CFLAGS="${oldCFLAGS}"
-AM_CONDITIONAL(OPENCONNECT_GNUTLS,  [ test "$ssl_library" != "openssl" ])
-AM_CONDITIONAL(OPENCONNECT_OPENSSL, [ test "$ssl_library" = "openssl" ])
+AM_CONDITIONAL(OPENCONNECT_GNUTLS,  [ test "$ssl_library" = "GnuTLS" ])
+AM_CONDITIONAL(OPENCONNECT_OPENSSL, [ test "$ssl_library" = "OpenSSL" ])
 AM_CONDITIONAL(ESP_GNUTLS, [ test "$esp" = "gnutls" ])
 AM_CONDITIONAL(ESP_OPENSSL, [ test "$esp" = "openssl" ])
 if test "$esp" = "gnutls"; then
@@ -979,32 +934,7 @@ if test "$ssl_library" = "openssl" || test "$ssl_library" = "both"; then
     oldCFLAGS="$CFLAGS"
     CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
 
-    if test "$ssl_library" = "openssl"; then
-	AC_MSG_CHECKING([for ENGINE_by_id() in OpenSSL])
-	AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <openssl/engine.h>],
-				        [ENGINE_by_id("foo");])],
-		       [AC_MSG_RESULT(yes)
-			AC_DEFINE(HAVE_ENGINE, [1], [OpenSSL has ENGINE support])],
-		       [AC_MSG_RESULT(no)
-			AC_MSG_NOTICE([Building without OpenSSL TPM ENGINE support])])
-    fi
-
-    AC_MSG_CHECKING([for dtls1_stop_timer() in OpenSSL])
-    AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <openssl/ssl.h>
-				     #include <stdlib.h>
-				     extern void dtls1_stop_timer(SSL *);],
-				    [dtls1_stop_timer(NULL);])],
-		   [AC_MSG_RESULT(yes)
-		    AC_DEFINE(HAVE_DTLS1_STOP_TIMER, [1], [OpenSSL has dtls1_stop_timer() function])],
-		   [AC_MSG_RESULT(no)])
-
-    AC_MSG_CHECKING([for DTLSv1_2_client_method() in OpenSSL])
-    AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <openssl/ssl.h>],
-				    [DTLSv1_2_client_method();])],
-		   [AC_MSG_RESULT(yes)
-		    AC_DEFINE(HAVE_DTLS12, [1], [OpenSSL has DTLSv1_2_client_method() function])],
-		   [AC_MSG_RESULT(no)])
-LIBS="$oldLIBS"
+    LIBS="$oldLIBS"
     CFLAGS="$oldCFLAGS"
 fi
 
@@ -1091,7 +1021,6 @@ AC_DEFUN([SUMMARY],
 echo "BUILD OPTIONS:"
 SUMMARY([SSL library], [$ssl_library])
 SUMMARY([[PKCS#11 support]], [$pkcs11_support])
-SUMMARY([DTLS support], [$dtls_lib])
 SUMMARY([ESP support], [$esp])
 SUMMARY([libproxy support], [$libproxy_pkg])
 SUMMARY([RSA SecurID support], [$libstoken_pkg])
@@ -1103,7 +1032,7 @@ SUMMARY([Java bindings], [$with_java])
 SUMMARY([Build docs], [$build_www])
 SUMMARY([Unit tests], [$have_cwrap])
 
-if test "$dtls_lib" = "openssl"; then
+if test "$ssl_library" = "openssl"; then
     AC_MSG_WARN([[
 ***
 *** Be sure to run "make check" to verify OpenSSL DTLS support
