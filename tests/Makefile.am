@@ -88,7 +88,7 @@ TESTS = $(dist_check_SCRIPTS) $(C_TESTS)
 noinst_PROGRAMS = $(C_TESTS) serverhash
 
 serverhash_SOURCES = serverhash.c
-serverhash_LDADD = ../libopenconnect.la
+serverhash_LDADD = ../libopenconnect.la $(SSL_LIBS)
 
 # Nothing actually *depends* on the cert files; they are created manually
 # and considered part of the sources, committed to the git tree. But for
