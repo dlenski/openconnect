@@ -61,11 +61,9 @@
 #if defined(OPENCONNECT_OPENSSL)
 #define DTLS_SEND SSL_write
 #define DTLS_RECV SSL_read
-#define DTLS_FREE SSL_free
 #elif defined(OPENCONNECT_GNUTLS)
 #define DTLS_SEND gnutls_record_send
 #define DTLS_RECV gnutls_record_recv
-#define DTLS_FREE gnutls_deinit
 #endif
 
 static int connect_dtls_socket(struct openconnect_info *vpninfo)
@@ -125,7 +123,7 @@ static int connect_dtls_socket(struct openconnect_info *vpninfo)
 void dtls_close(struct openconnect_info *vpninfo)
 {
 	if (vpninfo->dtls_ssl) {
-		DTLS_FREE(vpninfo->dtls_ssl);
+		dtls_ssl_free(vpninfo);
 		closesocket(vpninfo->dtls_fd);
 		unmonitor_read_fd(vpninfo, dtls);
 		unmonitor_write_fd(vpninfo, dtls);

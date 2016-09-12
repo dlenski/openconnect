@@ -416,6 +416,11 @@ void dtls_shutdown(struct openconnect_info *vpninfo)
 	SSL_CTX_free(vpninfo->dtls_ctx);
 }
 
+void dtls_ssl_free(struct openconnect_info *vpninfo)
+{
+	SSL_free(vpninfo->dtls_ssl);
+}
+
 void append_dtls_ciphers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
 {
 #ifdef HAVE_DTLS12

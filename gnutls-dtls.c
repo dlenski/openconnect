@@ -263,3 +263,7 @@ void dtls_shutdown(struct openconnect_info *vpninfo)
 	dtls_close(vpninfo);
 }
 
+void dtls_ssl_free(struct openconnect_info *vpninfo)
+{
+	gnutls_deinit(vpninfo->dtls_ssl);
+}
