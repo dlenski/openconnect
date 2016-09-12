@@ -50,6 +50,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "usage: serverhash <server>");
 		exit(1);
 	}
+	openconnect_init_ssl();
 	vpninfo = openconnect_vpninfo_new(NULL, validate_peer_cert, NULL, NULL, progress, NULL);
 	if (openconnect_parse_url(vpninfo, argv[1])) {
 		fprintf(stderr, "Failed to parse URL\n");
