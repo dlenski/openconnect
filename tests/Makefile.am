@@ -69,10 +69,11 @@ TESTS_ENVIRONMENT = srcdir="$(srcdir)" \
 	pkcs11_tokens="$(PKCS11_TOKENS)"
 
 
-noinst_PROGRAMS = lzstest seqtest
+C_TESTS = lzstest seqtest
+
 
 if CHECK_DTLS
-noinst_PROGRAMS += bad_dtls_test
+C_TESTS += bad_dtls_test
 bad_dtls_test_SOURCES = bad_dtls_test.c
 bad_dtls_test_CFLAGS = $(OPENSSL_CFLAGS)
 bad_dtls_test_LDADD = $(OPENSSL_LIBS)
@@ -82,8 +83,12 @@ XFAIL_TESTS = bad_dtls_test
 endif
 endif
 
-TESTS = $(dist_check_SCRIPTS) $(noinst_PROGRAMS)
+TESTS = $(dist_check_SCRIPTS) $(C_TESTS)
 
+noinst_PROGRAMS = $(C_TESTS) serverhash
+
+serverhash_SOURCES = serverhash.c
+serverhash_LDADD = ../libopenconnect.la
 
 # Nothing actually *depends* on the cert files; they are created manually
 # and considered part of the sources, committed to the git tree. But for
