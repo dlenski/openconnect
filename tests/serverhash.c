@@ -19,6 +19,13 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+/* Normally it's nice for header files to automatically include anything
+ * they need. But winsock is a horrid can of worms; we 're not going to
+ * make openconnect.h include anything for itself. So just do this... */
+#ifdef _WIN32
+#define SOCKET int
+#endif
+
 #include "../openconnect.h"
 
 static void progress(void *privdata, int level, const char *fmt, ...)
