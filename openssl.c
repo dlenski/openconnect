@@ -1658,12 +1658,13 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 	if (!vpninfo->https_ctx) {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-		vpninfo->https_ctx = SSL_CTX_new(TLSv1_client_method());
+		vpninfo->https_ctx = SSL_CTX_new(SSLv23_client_method());
+		if (vpninfo->https_ctx)
+			SSL_CTX_set_options(vpninfo->https_ctx, SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3);
 #else
 		vpninfo->https_ctx = SSL_CTX_new(TLS_client_method());
 		if (vpninfo->https_ctx &&
-		    (!SSL_CTX_set_min_proto_version(vpninfo->https_ctx, TLS1_VERSION) ||
-		     !SSL_CTX_set_max_proto_version(vpninfo->https_ctx, TLS1_VERSION))) {
+		    !SSL_CTX_set_min_proto_version(vpninfo->https_ctx, TLS1_VERSION)) {
 			SSL_CTX_free(vpninfo->https_ctx);
 			vpninfo->https_ctx = NULL;
 		}
