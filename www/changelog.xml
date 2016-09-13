@@ -15,6 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Support <tt>--key-password</tt> for GnuTLS PKCS#11 PIN.</li>
        <li>Support automatic DTLS MTU detection with OpenSSL.</li>
        <li>Drop support for combined GnuTLS/OpenSSL build.</li>
        <li>Update OpenSSL to allow TLSv1.2, improve compatibility options.</li>

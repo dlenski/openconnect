@@ -2644,6 +2644,13 @@ static int gnutls_pin_callback(void *priv, int attempt, const char *uri,
 		(*cache)->token = strdup(uri);
 	}
 
+	if (!attempt && vpninfo->cert_password) {
+		snprintf(pin, pin_max, "%s", vpninfo->cert_password);
+		(*cache)->pin = vpninfo->cert_password;
+		vpninfo->cert_password = NULL;
+		return 0;
+	}
+
 	memset(&f, 0, sizeof(f));
 	f.auth_id = (char *)"pkcs11_pin";
 	f.opts = &o;
