@@ -1676,9 +1676,13 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			return -EINVAL;
 		}
 
-		/* Some servers (or their firewalls) really don't like seeing
-		   extensions. */
-#ifdef SSL_OP_NO_TICKET
+		/* Try to work around the broken firewalls which reject ClientHello
+		 * packets in certain size ranges. If we have SSL_OP_TLSEXT_PADDING
+		 * use it, else fall back to SSL_OP_NO_TICKET which mostly worked for
+		 * a long time. */
+#if defined(SSL_OP_TLSEXT_PADDING)
+		SSL_CTX_set_options(vpninfo->https_ctx, SSL_OP_TLSEXT_PADDING);
+#elif defined(SSL_OP_NO_TICKET)
 		SSL_CTX_set_options(vpninfo->https_ctx, SSL_OP_NO_TICKET);
 #endif
 
