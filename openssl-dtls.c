@@ -306,7 +306,7 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 		vpninfo->dtls_state = DTLS_CONNECTED;
 		vpn_progress(vpninfo, PRG_INFO,
 			     _("Established DTLS connection (using OpenSSL). Ciphersuite %s.\n"),
-			     vpninfo->dtls_cipher);
+			     SSL_get_cipher(vpninfo->dtls_ssl));
 
 		c = openconnect_get_dtls_compression(vpninfo);
 		if (c) {

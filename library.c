@@ -885,7 +885,10 @@ const char *openconnect_get_dtls_cipher(struct openconnect_info *vpninfo)
 		vpninfo->gnutls_dtls_cipher = get_gnutls_cipher(vpninfo->dtls_ssl);
 	return vpninfo->gnutls_dtls_cipher;
 #else
-	return vpninfo->dtls_cipher;
+	if (vpninfo->dtls_ssl)
+		return SSL_get_cipher(vpninfo->dtls_ssl);
+	else
+		return NULL;
 #endif
 }
 
