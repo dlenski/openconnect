@@ -15,7 +15,7 @@ CentOS7/GnuTLS:
   - ./configure --with-java
   - make -j4
   # XFAIL the auth-pkcs11 test because GnuTLS 3.3.8 doesn't support pin-value
-  - make VERBOSE=1 -j4 check XFAIL_TESTS="auth-pkcs11"
+  - make VERBOSE=1 -j4 check
   tags:
   - shared
   except:
@@ -122,7 +122,7 @@ Fedora/GnuTLS/clang:
     paths:
       - tests/*.log
 
-Fedora/GnuTLS/OpenSSL:
+Fedora/OpenSSL:
   script:
   - dnf install -y git autoconf automake libtool python gettext
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
@@ -133,7 +133,7 @@ Fedora/GnuTLS/OpenSSL:
     java-devel-openjdk 'pkgconfig(libp11)'
   - dnf --enablerepo=updates-testing update -y libp11\* gnutls
   - ./autogen.sh
-  - ./configure --without-gnutls --with-openssl --without-openssl-version-check
+  - ./configure --without-gnutls --with-openssl --without-openssl-version-check --disable-dsa-tests
   - make -j4
   - make VERBOSE=1 -j4 check
   tags:
@@ -157,7 +157,7 @@ Fedora/OpenSSL/clang:
     java-devel-openjdk 'pkgconfig(libp11)' clang
   - dnf --enablerepo=updates-testing update -y libp11\* gnutls
   - ./autogen.sh
-  - ./configure CC=clang --without-gnutls --with-openssl --without-openssl-version-check
+  - ./configure CC=clang --without-gnutls --with-openssl --without-openssl-version-check --disable-dsa-tests
   - make -j4
   - make VERBOSE=1 -j4 check
   tags:
