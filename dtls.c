@@ -467,12 +467,7 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 }
 
 #define MTU_ID_SIZE 4
-#define MTU_FAIL_CONT { \
-		cur--; \
-		max = cur; \
-		continue; \
-	}
-
+#define MTU_MAX_TRIES 10
 #define MTU_TIMEOUT_MS 2400
 
 /* Performs a binary search to detect MTU.
@@ -484,51 +479,59 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 static int detect_mtu_ipv4(struct openconnect_info *vpninfo, unsigned char *buf)
 {
 	int max, min, cur, ret, orig_min;
-	int max_tries = 10; /* maximum number of loops in bin search - includes resends */
+	int tries = 0; /* Number of loops in bin search - includes resends */
 	char id[MTU_ID_SIZE];
-	unsigned re_use_rnd_val = 0;
 
 	cur = max = vpninfo->ip_info.mtu;
 	orig_min = min = vpninfo->ip_info.mtu/2;
 
 	vpn_progress(vpninfo, PRG_DEBUG,
-	     _("Initiating IPv4 MTU detection (min=%d, max=%d)\n"), min, max);
+		     _("Initiating IPv4 MTU detection (min=%d, max=%d)\n"), min, max);
 
 	while (max > min) {
-		if (max_tries-- <= 0) {
-			if (orig_min == cur) {
+		/* Common case will be that the negotiated MTU is correct.
+		   So try that first. Then search lower values. */
+		if (!tries)
+			cur = max;
+		else
+			cur = (min + max + 1) / 2;
+
+	next_rnd:
+		/* Generate unique ID */
+		if (openconnect_random(id, sizeof(id)) < 0)
+			goto fail;
+
+	next_nornd:
+		if (tries++ >= MTU_MAX_TRIES) {
+			if (orig_min == min) {
+				/* Hm, we never got *anything* back successfully? */
 				vpn_progress(vpninfo, PRG_ERR,
-				     _("Too long time in MTU detect loop; assuming negotiated MTU.\n"));
+					     _("Too long time in MTU detect loop; assuming negotiated MTU.\n"));
 				goto fail;
 			} else {
 				vpn_progress(vpninfo, PRG_ERR,
-				     _("Too long time in MTU detect loop; MTU set to %d.\n"), cur);
-				return cur;
+					     _("Too long time in MTU detect loop; MTU set to %d.\n"), min);
+				return min;
 			}
 		}
 
-		/* generate unique ID */
-		if (!re_use_rnd_val) {
-			if (openconnect_random(id, sizeof(id)) < 0)
-				goto fail;
-		} else {
-			re_use_rnd_val = 0;
-		}
-
-		cur = (min + max + 1) / 2;
 		buf[0] = AC_PKT_DPD_OUT;
 		memcpy(&buf[1], id, sizeof(id));
 
 		vpn_progress(vpninfo, PRG_TRACE,
-		     _("Sending MTU DPD probe (%u bytes)\n"), cur);
+			     _("Sending MTU DPD probe (%u bytes, min=%u, max=%u)\n"), cur, min, max);
 		ret = openconnect_dtls_write(vpninfo, buf, cur+1);
 		if (ret != cur+1) {
 			vpn_progress(vpninfo, PRG_ERR,
-				     _("Failed to send DPD request (%d)\n"), cur);
-			MTU_FAIL_CONT;
+				     _("Failed to send DPD request (%d %d)\n"), cur, ret);
+			/* If it didn't even manage to send, it took basically zero time.
+			   So don't count it as a 'try' for the purpose of our timeout. */
+			max = --cur;
+			tries--;
+			goto next_rnd;
 		}
 
- reread:
+	reread:
 		memset(buf, 0, sizeof(id)+1);
 
 		ret = openconnect_dtls_read(vpninfo, buf, cur+1, MTU_TIMEOUT_MS);
@@ -538,28 +541,39 @@ static int detect_mtu_ipv4(struct openconnect_info *vpninfo, unsigned char *buf)
 			goto reread;
 		}
 
-		/* timeout, probably our original request was lost,
-		 * let's resend the DPD */
+		/* Timeout. Either it was too large, or it just got lost. Try again
+		 * with a smaller value, but don't actually reduce 'max' because we
+		 * don't *know* it was too large. */
 		if (ret == -ETIMEDOUT) {
-			vpn_progress(vpninfo, PRG_DEBUG,
-			     _("Timeout while waiting for DPD response; resending probe.\n"));
-			re_use_rnd_val = 1;
-			continue;
+			int next = (min + cur + 1) / 2;
+
+			if (next < cur && next > min) {
+				vpn_progress(vpninfo, PRG_DEBUG,
+					     _("Timeout while waiting for DPD response; trying %d\n"),
+					     next);
+				cur = next;
+				/* We don't set 'max' because we don't *know* it won't get through */
+				goto next_rnd;
+			} else {
+				vpn_progress(vpninfo, PRG_DEBUG,
+					     _("Timeout while waiting for DPD response; resending probe.\n"));
+				goto next_nornd;
+			}
 		}
 
 		if (ret <= 0) {
 			vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to recv DPD request (%d)\n"), cur);
-			MTU_FAIL_CONT;
+				     _("Failed to recv DPD request (%d)\n"), cur);
+			goto fail;
 		}
 
 		vpn_progress(vpninfo, PRG_TRACE,
-		     _("Received MTU DPD probe (%u bytes)\n"), cur);
+			     _("Received MTU DPD probe (%u bytes of %u)\n"), ret, cur);
 
 		/* If we reached the max, success */
-		if (cur == max) {
+		if (cur == max)
 			break;
-		}
+
 		min = cur;
 	}
 
