@@ -94,7 +94,7 @@ cert-user-oid = 0.9.2342.19200300.100.1.1
 #crl = /path/to/crl.pem
 
 # GnuTLS priority string
-tls-priorities = "PERFORMANCE:%SERVER_PRECEDENCE:%COMPAT"
+tls-priorities = "PERFORMANCE:%SERVER_PRECEDENCE:%COMPAT:+SIGN-DSA-SHA1"
 
 # To enforce perfect forward secrecy (PFS) on the main channel.
 #tls-priorities = "NORMAL:%SERVER_PRECEDENCE:%COMPAT:-RSA"
