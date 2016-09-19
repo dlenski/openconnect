@@ -972,7 +972,15 @@ AM_CONDITIONAL(BUILD_WWW, [test "${build_www}" = "yes"])
 PKG_CHECK_MODULES([CWRAP], [uid_wrapper, socket_wrapper], have_cwrap=yes, have_cwrap=no)
 AM_CONDITIONAL(HAVE_CWRAP, test "x$have_cwrap" != xno)
 
-AC_SUBST([CONFIG_STATUS_DEPENDENCIES], ['$(top_srcdir)/po/LINGUAS $(top_srcdir)/openconnect.h ${top_srcdir}/libopenconnect.map.in'])
+AC_SUBST([CONFIG_STATUS_DEPENDENCIES],
+	 ['$(top_srcdir)/po/LINGUAS \
+	   $(top_srcdir)/openconnect.h \
+           $(top_srcdir)/libopenconnect.map.in \
+	   $(top_srcdir)/openconnect.8.in \
+	   $(top_srcdir)/tests/softhsm2.conf.in \
+	   $(top_srcdir)/tests/configs/test-user-cert.config.in \
+	   $(top_srcdir)/tests/configs/test-user-pass.config.in'])
+
 RAWLINGUAS=`sed -e "/^#/d" -e "s/#.*//" "${srcdir}/po/LINGUAS"`
 # Remove newlines
 LINGUAS=`echo $RAWLINGUAS`
