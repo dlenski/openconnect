@@ -562,6 +562,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 
  	buf_append(reqbuf, "POST /dana/js?prot=1&svc=1 HTTP/1.1\r\n");
 	oncp_common_headers(vpninfo, reqbuf);
+	buf_append(reqbuf, "Content-Length: 256\r\n");
 	buf_append(reqbuf, "\r\n");
 
 	if (buf_error(reqbuf)) {
@@ -606,6 +607,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	buf_truncate(reqbuf);
 	buf_append(reqbuf, "POST /dana/js?prot=1&svc=4 HTTP/1.1\r\n");
 	oncp_common_headers(vpninfo, reqbuf);
+	buf_append(reqbuf, "Content-Length: 256\r\n");
 	buf_append(reqbuf, "\r\n");
 
 	if (buf_error(reqbuf)) {
