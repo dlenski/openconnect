@@ -3,6 +3,7 @@ SUBDIRS = tests
 # We kind of want openconnect to be built before we try to test it
 check-recursive: openconnect$(EXEEXT)
 # And even *building* some of tests/*.c needs libopenconnect
+install-recursive: libopenconnect.la
 all-recursive: libopenconnect.la
 
 if BUILD_WWW
