@@ -162,7 +162,7 @@ intptr_t os_setup_tun(struct openconnect_info *vpninfo)
 		return -EIO;
 	}
 
-	if (vpninfo->ip_info.addr6) {
+	if (vpninfo->ip_info.addr6 || vpninfo->ip_info.netmask6) {
 		vpninfo->ip6_fd = link_proto(vpninfo, unit_nr, "/dev/udp6", IFF_IPV6);
 		if (vpninfo->ip6_fd < 0) {
 			close(tun_fd);
