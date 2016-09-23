@@ -195,13 +195,12 @@ static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *nam
 		     data[0], data[1], data[2]);
 
 	data[0] = inet_addr(vpninfo->ip_info.addr);
-	/* Always ensure the netmask is no smaller than /31. This isn't a
-	 * sensible Ethernet netmask, but at least as far as the TAP-Windows
-	 * driver is concerned, it does allow for the existence of *one* other
-	 * host for which ARP replies can be faked, and which we can use as
-	 * the "router". */
-	data[2] = inet_addr(vpninfo->ip_info.netmask) & 0xfeffffff;
-	data[1] = data[0] & data[2];
+	/* Set network and mask both to 0.0.0.0. It's not about routing;
+	 * it just ensures that the TAP driver fakes ARP responses for
+	 * *everything* we throw at it, and we can just configure them
+	 * as on-link routes. */
+	data[1] = 0;
+	data[2] = 0;
 
 	if (!DeviceIoControl(tun_fh, TAP_IOCTL_CONFIG_TUN,
 			     data, sizeof(data), data, sizeof(data),
