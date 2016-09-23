@@ -15,6 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Add <tt>TUNIDX</tt> environment variable on Windows.</li>
        <li>Fix compatibility with Pulse Secure 8.2R5.</li>
        <li>Fix IPv6 support in Solaris.</li>
        <li>Support DTLS automatic negotiation.</li>

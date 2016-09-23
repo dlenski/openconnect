@@ -589,7 +589,7 @@ struct openconnect_info {
 #ifdef _WIN32
 	HANDLE tun_fh;
 	OVERLAPPED tun_rd_overlap, tun_wr_overlap;
-	int tun_rd_pending;
+	int tun_idx, tun_rd_pending;
 #else
 	int tun_fd;
 #endif

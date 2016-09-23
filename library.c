@@ -840,6 +840,10 @@ int openconnect_setup_tun_device(struct openconnect_info *vpninfo,
 	if (tun_fd < 0)
 		return tun_fd;
 
+#ifdef _WIN32
+	if (vpninfo->tun_idx != -1)
+		script_setenv_int(vpninfo, "TUNIDX", vpninfo->tun_idx);
+#endif
 	legacy_ifname = openconnect_utf8_to_legacy(vpninfo, vpninfo->ifname);
 	script_setenv(vpninfo, "TUNDEV", legacy_ifname, 0);
 	if (legacy_ifname != vpninfo->ifname)

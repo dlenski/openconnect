@@ -20,6 +20,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winioctl.h>
+#include <iphlpapi.h>
 
 #include <errno.h>
 #include <stdio.h>
@@ -155,6 +156,65 @@ static intptr_t search_taps(struct openconnect_info *vpninfo, tap_callback *cb, 
 	return ret;
 }
 
+static int get_adapter_index(struct openconnect_info *vpninfo, char *guid)
+{
+	struct oc_text_buf *buf = buf_alloc();
+	IP_ADAPTER_INFO *adapter;
+	void *adapters_buf;
+	ULONG idx;
+	DWORD status;
+	int ret = -EINVAL;
+
+	vpninfo->tun_idx = -1;
+
+	buf_append_utf16le(buf, "\\device\\tcpip_");
+	buf_append_utf16le(buf, guid);
+	if (buf_error(buf)) {
+		/* If we didn't manage to malloc for this, we're never
+		 * going to manage for GetAdaptersInfo(). Give up. */
+		return buf_free(buf);
+	}
+
+	status = GetAdapterIndex((void *)buf->data, &idx);
+	buf_free(buf);
+	if (status == NO_ERROR) {
+		vpninfo->tun_idx = idx;
+		return 0;
+	} else {
+		char *errstr = openconnect__win32_strerror(status);
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("GetAdapterIndex() failed: %s\nFalling back to GetAdaptersInfo()\n"),
+			     errstr);
+		free(errstr);
+	}
+	idx = 0;
+	status = GetAdaptersInfo(NULL, &idx);
+	if (status != ERROR_BUFFER_OVERFLOW)
+		return -EIO;
+	adapters_buf = malloc(idx);
+	if (!adapters_buf)
+		return -ENOMEM;
+	status = GetAdaptersInfo(adapters_buf, &idx);
+	if (status != NO_ERROR) {
+		char *errstr = openconnect__win32_strerror(status);
+		vpn_progress(vpninfo, PRG_ERR, _("GetAdaptersInfo() failed: %s\n"), errstr);
+		free(errstr);
+		free(adapters_buf);
+		return -EIO;
+	}
+
+	for (adapter = adapters_buf; adapter; adapter = adapter->Next) {
+		if (!strcmp(adapter->AdapterName, guid)) {
+			vpninfo->tun_idx = adapter->Index;
+			ret = 0;
+			break;
+		}
+	}
+
+	free(adapters_buf);
+	return ret;
+}
+
 static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *name)
 {
 	char devname[80];
@@ -226,6 +286,8 @@ static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *nam
 	}
 	if (!vpninfo->ifname)
 		vpninfo->ifname = strdup(name);
+
+	get_adapter_index(vpninfo, guid);
 
 	return (intptr_t)tun_fh;
 }
