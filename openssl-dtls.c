@@ -394,6 +394,22 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 
 	if (ret == 1) {
 		const char *c;
+
+		if (strcmp(vpninfo->dtls_cipher, "PSK-NEGOTIATE") &&
+		    !SSL_session_reused(vpninfo->dtls_ssl)) {
+			/* Someone attempting to hijack the DTLS session?
+			 * A real server would never allow a full session
+			 * establishment instead of the agreed resume. */
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("DTLS session resume failed; possible MITM attack. Disabling DTLS.\n"));
+			dtls_close(vpninfo);
+			SSL_CTX_free(vpninfo->dtls_ctx);
+			vpninfo->dtls_ctx = NULL;
+			vpninfo->dtls_attempt_period = 0;
+			vpninfo->dtls_state = DTLS_DISABLED;
+			return -EIO;
+		}
+
 		vpninfo->dtls_state = DTLS_CONNECTED;
 		vpn_progress(vpninfo, PRG_INFO,
 			     _("Established DTLS connection (using OpenSSL). Ciphersuite %s.\n"),
