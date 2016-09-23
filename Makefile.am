@@ -40,7 +40,8 @@ lib_srcs_esp = esp.c esp-seqno.c
 lib_srcs_dtls = dtls.c
 
 POTFILES = $(openconnect_SOURCES) $(lib_srcs_cisco) $(lib_srcs_juniper) \
-	   gnutls-esp.c openssl-esp.c esp.c esp-seqno.c \
+	   gnutls-esp.c gnutls-dtls.c openssl-esp.c openssl-dtls.c \
+	   $(lib_srcs_esp) $(lib_srcs_dtls) \
 	   $(lib_srcs_openssl) $(lib_srcs_gnutls) $(library_srcs) \
 	   $(lib_srcs_win32) $(lib_srcs_posix) $(lib_srcs_gssapi) $(lib_srcs_iconv) \
 	   $(lib_srcs_oath) $(lib_srcs_yubikey) $(lib_srcs_stoken) openconnect-internal.h
