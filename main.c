@@ -367,17 +367,29 @@ static char *convert_arg_to_utf8(char **argv, char *arg)
 static void read_stdin(char **string, int hidden, int allow_fail)
 {
 	CONSOLE_READCONSOLE_CONTROL rcc = { sizeof(rcc), 0, 13, 0 };
-	HANDLE stdinh = GetStdHandle(STD_INPUT_HANDLE);
+	HANDLE conh, stdinh = GetStdHandle(STD_INPUT_HANDLE);
 	DWORD cmode, nr_read;
 	wchar_t wbuf[1024];
 	char *buf;
 
+	conh = stdinh;
+	if (!GetConsoleMode(conh, &cmode)) {
+		/* STDIN is not a console? Try opening it explicitly */
+		conh = CreateFile("CONIN$", GENERIC_READ, FILE_SHARE_READ,
+				  0,OPEN_EXISTING, 0, 0);
+		if (conh == INVALID_HANDLE_VALUE || !GetConsoleMode(conh, &cmode)) {
+			char *errstr = openconnect__win32_strerror(GetLastError());
+			fprintf(stderr, _("Failed to open CONIN$: %s\n"), errstr);
+			free(errstr);
+			*string = NULL;
+			goto out;
+		}
+	}
 	if (hidden) {
-		GetConsoleMode(stdinh, &cmode);
-		SetConsoleMode(stdinh, cmode & (~ENABLE_ECHO_INPUT));
+		SetConsoleMode(conh, cmode & (~ENABLE_ECHO_INPUT));
 	}
 
-	if (!ReadConsoleW(stdinh, wbuf, sizeof(wbuf)/2, &nr_read, &rcc)) {
+	if (!ReadConsoleW(conh, wbuf, sizeof(wbuf)/2, &nr_read, &rcc)) {
 		char *errstr = openconnect__win32_strerror(GetLastError());
 		fprintf(stderr, _("ReadConsole() failed: %s\n"), errstr);
 		free(errstr);
@@ -417,9 +429,11 @@ static void read_stdin(char **string, int hidden, int allow_fail)
 
 out:
 	if (hidden) {
-		SetConsoleMode(stdinh, cmode);
+		SetConsoleMode(conh, cmode);
 		fprintf(stderr, "\n");
 	}
+	if (conh != stdinh && conh != INVALID_HANDLE_VALUE)
+		CloseHandle(conh);
 }
 
 #elif defined(HAVE_ICONV)
