@@ -167,7 +167,7 @@ static int start_dtls_psk_handshake(struct openconnect_info *vpninfo, int dtls_f
 	}
 
 
-	err = gnutls_init(&dtls_ssl, GNUTLS_CLIENT|GNUTLS_DATAGRAM|GNUTLS_NONBLOCK);
+	err = gnutls_init(&dtls_ssl, GNUTLS_CLIENT|GNUTLS_DATAGRAM|GNUTLS_NONBLOCK|GNUTLS_NO_EXTENSIONS);
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to initialize DTLS: %s\n"),
