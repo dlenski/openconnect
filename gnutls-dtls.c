@@ -312,6 +312,19 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	char *str;
 
 	if (!err) {
+		if (strcmp(vpninfo->dtls_cipher, "PSK-NEGOTIATE") &&
+		    !gnutls_session_is_resumed(vpninfo->dtls_ssl)) {
+			/* Someone attempting to hijack the DTLS session?
+			 * A real server would never allow a full session
+			 * establishment instead of the agreed resume. */
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("DTLS session resume failed; possible MITM attack. Disabling DTLS.\n"));
+			dtls_close(vpninfo);
+			vpninfo->dtls_attempt_period = 0;
+			vpninfo->dtls_state = DTLS_DISABLED;
+			return -EIO;
+		}
+
 #ifdef HAVE_GNUTLS_DTLS_SET_DATA_MTU
 		/* Make sure GnuTLS's idea of the MTU is sufficient to take
 		   a full VPN MTU (with 1-byte header) in a data record. */
