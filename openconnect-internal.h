@@ -566,10 +566,11 @@ struct openconnect_info {
 	char *ifname;
 	char *cmd_ifname;
 
-	int reqmtu, basemtu;
+	int reqmtu, basemtu; /* Local static configured values */
 	const char *banner;
 
 	struct oc_ip_info ip_info;
+	int cstp_basemtu; /* Returned by server */
 
 #ifdef _WIN32
 	long dtls_monitored, ssl_monitored, cmd_monitored, tun_monitored;

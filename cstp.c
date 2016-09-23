@@ -238,6 +238,7 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
  retry:
 	calculate_mtu(vpninfo, &base_mtu, &mtu);
+	vpninfo->cstp_basemtu = base_mtu;
 
 	reqbuf = buf_alloc();
 	buf_append(reqbuf, "CONNECT /CSCOSSLC/tunnel HTTP/1.1\r\n");
@@ -484,6 +485,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 					     colon);
 				return -EINVAL;
 			}
+		} else if (!strcmp(buf + 7, "Base-MTU")) {
+			vpninfo->cstp_basemtu = atol(colon);
 		} else if (!strcmp(buf + 7, "MTU")) {
 			int cstpmtu = atol(colon);
 			if (cstpmtu > mtu)
