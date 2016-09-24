@@ -15,6 +15,10 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Increase initial oNCP configuration buffer size.</li>
+       <li>Reopen <tt>CONIN$</tt> when stdin is redirected on Windows.</li>
+       <li>Improve support for point-to-point routing on Windows.</li>
+       <li>Check for non-resumed DTLS sessions which may indicate a MiTM attack.</li>
        <li>Add <tt>TUNIDX</tt> environment variable on Windows.</li>
        <li>Fix compatibility with Pulse Secure 8.2R5.</li>
        <li>Fix IPv6 support in Solaris.</li>
