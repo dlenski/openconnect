@@ -962,6 +962,8 @@ msgstr "Ustawienie parametrów sesji DTLS się nie powiodło: %s\n"
 #: gnutls-dtls.c:321 openssl-dtls.c:404
 msgid "DTLS session resume failed; possible MITM attack. Disabling DTLS.\n"
 msgstr ""
+"Wznowienie sesji DTLS się nie powiodło. Możliwe, że to atak typu „MITM”. "
+"Wyłączanie DTLS.\n"
 
 #: gnutls-dtls.c:334
 #, c-format
@@ -2028,7 +2030,7 @@ msgstr "Krytyczny błąd podczas obsługiwania wiersza poleceń\n"
 #: main.c:382
 #, c-format
 msgid "Failed to open CONIN$: %s\n"
-msgstr ""
+msgstr "Otwarcie CONIN$ się nie powiodło: %s\n"
 
 #: main.c:394
 #, c-format
@@ -3896,11 +3898,13 @@ msgid ""
 "GetAdapterIndex() failed: %s\n"
 "Falling back to GetAdaptersInfo()\n"
 msgstr ""
+"GetAdapterIndex() się nie powiodło: %s\n"
+"Używanie GetAdaptersInfo()\n"
 
 #: tun-win32.c:200
 #, c-format
 msgid "GetAdaptersInfo() failed: %s\n"
-msgstr ""
+msgstr "GetAdaptersInfo() się nie powiodło: %s\n"
 
 #: tun-win32.c:231
 #, c-format
@@ -4278,17 +4282,17 @@ msgstr "polecenie obliczania"
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr "Nierozpoznana odpowiedź z Yubikey podczas tworzenia kodu tokena\n"
 
-#~ msgid "SSL operation cancelled\n"
-#~ msgstr "Anulowano działanie SSL\n"
-
-#~ msgid "Too long time in MTU detect loop; bailing out.\n"
-#~ msgstr "Za dużo czasu w pętli wykrywania MTU. Wychodzenie.\n"
-
-#~ msgid "Failed to send DPD request (%d): %s\n"
-#~ msgstr "Wysłanie żądania DPD się nie powiodło (%d): %s\n"
+#~ msgid "using OpenSSL"
+#~ msgstr "używanie biblioteki OpenSSL"
 
 #~ msgid "Failed to recv DPD request (%d): %s\n"
 #~ msgstr "Odebranie żądania DPD się nie powiodło (%d): %s\n"
 
-#~ msgid "using OpenSSL"
-#~ msgstr "używanie biblioteki OpenSSL"
+#~ msgid "Failed to send DPD request (%d): %s\n"
+#~ msgstr "Wysłanie żądania DPD się nie powiodło (%d): %s\n"
+
+#~ msgid "Too long time in MTU detect loop; bailing out.\n"
+#~ msgstr "Za dużo czasu w pętli wykrywania MTU. Wychodzenie.\n"
+
+#~ msgid "SSL operation cancelled\n"
+#~ msgstr "Anulowano działanie SSL\n"
