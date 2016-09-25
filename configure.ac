@@ -55,12 +55,12 @@ case $host_os in
     AC_DEFINE(_GNU_SOURCE, 1, [_GNU_SOURCE])
     symver_win32_strerror="openconnect__win32_strerror;"
     # Win32 does have the SCard API
-    LIBPCSCLITE_LIBS=-lwinscard
-    LIBPCSCLITE_CFLAGS=" "
+    system_pcsc_libs="-lwinscard"
+    system_pcsc_cflags=
     ;;
  *darwin*)
-    LIBPCSCLITE_LIBS="-Wl,-framework -Wl,PCSC"
-    LIBPCSCLITE_CFLAGS=" "
+    system_pcsc_libs="-Wl,-framework -Wl,PCSC"
+    system_pcsc_cflags=
     ;;
  *)
     # On FreeBSD the only way to get vsyslog() visible is to define
@@ -682,12 +682,21 @@ AC_ARG_WITH([libpcsclite],
 	AS_HELP_STRING([--without-libpcsclite],
 	[Build without libpcsclite library (for Yubikey support) [default=auto]]))
 AS_IF([test "x$with_libpcsclite" != "xno"], [
-	PKG_CHECK_MODULES(LIBPCSCLITE, libpcsclite,
+	if test "$system_pcsc_libs" != ""; then
+	   AC_SUBST(LIBPCSCLITE_LIBS, "$system_pcsc_libs")
+	   AC_SUBST(LIBPCSCLITE_CFLAGS, "$system_pcsc_cflags")
+	   AC_SUBST(system_pcsc_libs)
+	   libpcsclite_pkg=yes
+	else
+	    PKG_CHECK_MODULES(LIBPCSCLITE, libpcsclite,
 			[AC_SUBST(LIBPCSCLITE_PC, libpcsclite)
-			 AC_DEFINE([HAVE_LIBPCSCLITE], 1, [Have libpcsclite])
 			 libpcsclite_pkg=yes],
-			 libpcsclite_pkg=no)
+			libpcsclite_pkg=no)
+	fi
 ], [libpcsclite_pkg=disabled])
+if test "$libpcsclite_pkg" = "yes"; then
+    AC_DEFINE([HAVE_LIBPCSCLITE], 1, [Have libpcsclite])
+fi
 AM_CONDITIONAL(OPENCONNECT_LIBPCSCLITE, [test "$libpcsclite_pkg" = "yes"])
 
 AC_ARG_WITH([libpskc],

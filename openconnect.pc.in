@@ -9,5 +9,5 @@ Description: OpenConnect VPN client
 Version: @VERSION@
 Requires.private: @LIBPROXY_PC@ @ZLIB_PC@ @LIBLZ4_PC@ @SSL_PC@ @P11KIT_PC@ @LIBSTOKEN_PC@ @LIBPSKC_PC@ @LIBPCSCLITE_PC@ libxml-2.0
 Libs: -L${libdir} -lopenconnect
-Libs.private: @INTL_LIBS@
+Libs.private: @INTL_LIBS@ @system_pcsc_libs@
 Cflags: -I${includedir}
