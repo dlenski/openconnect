@@ -936,16 +936,6 @@ AC_CHECK_HEADER([endian.h],
         [AC_CHECK_HEADER([sys/isa_defs.h],
             [AC_DEFINE([ENDIAN_HDR], [<sys/isa_defs.h>])])])])
 
-if test "$ssl_library" = "openssl" || test "$ssl_library" = "both"; then
-    oldLIBS="$LIBS"
-    LIBS="$LIBS $OPENSSL_LIBS"
-    oldCFLAGS="$CFLAGS"
-    CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
-
-    LIBS="$oldLIBS"
-    CFLAGS="$oldCFLAGS"
-fi
-
 build_www=yes
 AC_PATH_PROGS(PYTHON, [python2 python], [], $PATH:/bin:/usr/bin)
 if (test -n "${ac_cv_path_PYTHON}"); then
