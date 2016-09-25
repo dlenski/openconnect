@@ -303,7 +303,7 @@ if test "$ssl_library" = ""; then
     if test "$with_gnutls" = "yes" -o "$with_openssl" = "no"; then
 	    AC_MSG_ERROR([Suitable GnuTLS required but not found])
     elif test "$with_openssl" = "yes" -o "$with_openssl" = ""; then
-        PKG_CHECK_MODULES(OPENSSL, openssl, [],
+        PKG_CHECK_MODULES(OPENSSL, openssl, [AC_SUBST(SSL_PC, [openssl])],
 	    [oldLIBS="$LIBS"
 	     LIBS="$LIBS -lssl -lcrypto"
 	     AC_MSG_CHECKING([for OpenSSL without pkg-config])
@@ -316,7 +316,8 @@ if test "$ssl_library" = ""; then
 				OpenSSL_add_all_algorithms();])],
 			[AC_MSG_RESULT(yes)
 			 AC_SUBST([OPENSSL_LIBS], ["-lssl -lcrypto"])
-			 AC_SUBST([OPENSSL_CFLAGS], [])],
+			 AC_SUBST([OPENSSL_CFLAGS], [])]
+			 AC_SUBST([openssl_pc_libs], [$OPENSSL_LIBS]),
 			[AC_MSG_RESULT(no)
 			 AC_ERROR([Could not build against OpenSSL])])
 	     LIBS="$oldLIBS"])
@@ -449,7 +450,6 @@ case "$ssl_library" in
 
 	dtls=yes
 	AC_DEFINE(OPENCONNECT_OPENSSL, 1, [Using OpenSSL])
-	AC_SUBST(SSL_PC, [openssl])
 	AC_SUBST(SSL_LIBS, ['$(OPENSSL_LIBS)'])
 	AC_SUBST(SSL_CFLAGS, ['$(OPENSSL_CFLAGS)'])
 	;;
