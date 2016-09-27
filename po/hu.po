@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2016-09-24 21:57+0100\n"
+"POT-Creation-Date: 2016-09-27 08:09+0100\n"
 "PO-Revision-Date: 2011-09-22 22:31+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Hungarian (http://www.transifex.net/projects/p/meego/team/"
@@ -956,6 +956,8 @@ msgstr "Nem sikerült a DTLS munkamenet paraméterek beállítása: %s\n"
 #: gnutls-dtls.c:321 openssl-dtls.c:404
 msgid "DTLS session resume failed; possible MITM attack. Disabling DTLS.\n"
 msgstr ""
+"A DTLS munkamenet folytatása nem sikerült; lehetséges beékelődéses támadás. "
+"A DTLS letiltása.\n"
 
 #: gnutls-dtls.c:334
 #, c-format
@@ -2014,7 +2016,7 @@ msgstr "Végzetes hiba a parancssor kezelésében\n"
 #: main.c:382
 #, c-format
 msgid "Failed to open CONIN$: %s\n"
-msgstr ""
+msgstr "Nem sikerült a CONIN$ megnyitása: %s\n"
 
 #: main.c:394
 #, c-format
@@ -3868,11 +3870,13 @@ msgid ""
 "GetAdapterIndex() failed: %s\n"
 "Falling back to GetAdaptersInfo()\n"
 msgstr ""
+"GetAdapterIndex() sikertelen: %s\n"
+"Visszaállás a GetAdaptersInfo() függvényre\n"
 
 #: tun-win32.c:200
 #, c-format
 msgid "GetAdaptersInfo() failed: %s\n"
-msgstr ""
+msgstr "GetAdaptersInfo() sikertelen: %s\n"
 
 #: tun-win32.c:231
 #, c-format
@@ -4251,17 +4255,17 @@ msgstr "kiszámítás parancs"
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr "Azonosítatlan válasz a Yubikey-től a tokenkód előállításakor\n"
 
-#~ msgid "SSL operation cancelled\n"
-#~ msgstr "Az SSL művelet megszakítva\n"
-
-#~ msgid "Too long time in MTU detect loop; bailing out.\n"
-#~ msgstr "Túl sok idő telt az MTU észlelési ciklusban; kiugrás.\n"
-
-#~ msgid "Failed to send DPD request (%d): %s\n"
-#~ msgstr "Nem sikerült a DPD kérés (%d) küldése: %s\n"
+#~ msgid "using OpenSSL"
+#~ msgstr "OpenSSL használata"
 
 #~ msgid "Failed to recv DPD request (%d): %s\n"
 #~ msgstr "Nem sikerült a DPD kérés (%d) fogadása: %s\n"
 
-#~ msgid "using OpenSSL"
-#~ msgstr "OpenSSL használata"
+#~ msgid "Failed to send DPD request (%d): %s\n"
+#~ msgstr "Nem sikerült a DPD kérés (%d) küldése: %s\n"
+
+#~ msgid "Too long time in MTU detect loop; bailing out.\n"
+#~ msgstr "Túl sok idő telt az MTU észlelési ciklusban; kiugrás.\n"
+
+#~ msgid "SSL operation cancelled\n"
+#~ msgstr "Az SSL művelet megszakítva\n"
