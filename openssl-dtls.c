@@ -537,6 +537,7 @@ void append_dtls_ciphers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 #endif
 	buf_append(buf, "OC-DTLS1_2-AES256-GCM:OC-DTLS1_2-AES128-GCM:");
 #endif
+	buf_append(buf, "DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:");
 	buf_append(buf, "AES256-SHA:AES128-SHA:DES-CBC3-SHA:DES-CBC-SHA");
 }
 

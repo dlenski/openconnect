@@ -15,6 +15,7 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Enable DHE ciphers for Cisco DTLS.</li>
        <li>Increase initial oNCP configuration buffer size.</li>
        <li>Reopen <tt>CONIN$</tt> when stdin is redirected on Windows.</li>
        <li>Improve support for point-to-point routing on Windows.</li>
