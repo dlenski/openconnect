@@ -316,37 +316,63 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	char *str;
 
 	if (!err) {
-		if (strcmp(vpninfo->dtls_cipher, "PSK-NEGOTIATE") &&
-		    !gnutls_session_is_resumed(vpninfo->dtls_ssl)) {
-			/* Someone attempting to hijack the DTLS session?
-			 * A real server would never allow a full session
-			 * establishment instead of the agreed resume. */
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("DTLS session resume failed; possible MITM attack. Disabling DTLS.\n"));
-			dtls_close(vpninfo);
-			vpninfo->dtls_attempt_period = 0;
-			vpninfo->dtls_state = DTLS_DISABLED;
-			return -EIO;
-		}
+		if (!strcmp(vpninfo->dtls_cipher, "PSK-NEGOTIATE")) {
+			/* For PSK-NEGOTIATE, we have to determine the tunnel MTU
+			 * for ourselves based on the base MTU */
+			int data_mtu = vpninfo->cstp_basemtu;
+			if (vpninfo->peer_addr->sa_family == IPPROTO_IPV6)
+				data_mtu -= 40; /* IPv6 header */
+			else
+				data_mtu -= 20; /* Legacy IP header */
+			data_mtu -= 8; /* UDP header */
+			if (data_mtu < 0) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Peer MTU %d too small to allow DTLS\n"),
+					     vpninfo->cstp_basemtu);
+				goto nodtls;
+			}
+			/* Reduce it by one because that's the payload header *inside*
+			 * the encryption */
+			data_mtu = dtls_set_mtu(vpninfo, data_mtu) - 1;
+			if (data_mtu < vpninfo->ip_info.mtu) {
+				vpn_progress(vpninfo, PRG_INFO,
+					     _("DTLS MTU reduced to %d\n"),
+					     data_mtu);
+				vpninfo->ip_info.mtu = data_mtu;
+			}
+		} else {
+			if (!gnutls_session_is_resumed(vpninfo->dtls_ssl)) {
+				/* Someone attempting to hijack the DTLS session?
+				 * A real server would never allow a full session
+				 * establishment instead of the agreed resume. */
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("DTLS session resume failed; possible MITM attack. Disabling DTLS.\n"));
+			nodtls:
+				dtls_close(vpninfo);
+				vpninfo->dtls_attempt_period = 0;
+				vpninfo->dtls_state = DTLS_DISABLED;
+				return -EIO;
+			}
 
 #ifdef HAVE_GNUTLS_DTLS_SET_DATA_MTU
-		/* Make sure GnuTLS's idea of the MTU is sufficient to take
-		   a full VPN MTU (with 1-byte header) in a data record. */
-		err = gnutls_dtls_set_data_mtu(vpninfo->dtls_ssl, vpninfo->ip_info.mtu + 1);
-		if (err) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Failed to set DTLS MTU: %s\n"),
-				     gnutls_strerror(err));
-			goto error;
-		}
+			/* Make sure GnuTLS's idea of the MTU is sufficient to take
+			   a full VPN MTU (with 1-byte header) in a data record. */
+			err = gnutls_dtls_set_data_mtu(vpninfo->dtls_ssl, vpninfo->ip_info.mtu + 1);
+			if (err) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to set DTLS MTU: %s\n"),
+					     gnutls_strerror(err));
+				goto error;
+			}
 #else
-		/* If we don't have gnutls_dtls_set_data_mtu() then make sure
-		   we leave enough headroom by adding the worst-case overhead.
-		   We only support AES128-CBC and DES-CBC3-SHA anyway, so
-		   working out the worst case isn't hard. */
-		gnutls_dtls_set_mtu(vpninfo->dtls_ssl,
-				    vpninfo->ip_info.mtu + DTLS_OVERHEAD);
+			/* If we don't have gnutls_dtls_set_data_mtu() then make sure
+			   we leave enough headroom by adding the worst-case overhead.
+			   We only support AES128-CBC and DES-CBC3-SHA anyway, so
+			   working out the worst case isn't hard. */
+			gnutls_dtls_set_mtu(vpninfo->dtls_ssl,
+					    vpninfo->ip_info.mtu + DTLS_OVERHEAD);
 #endif
+		}
 
 		vpninfo->dtls_state = DTLS_CONNECTED;
 		str = get_gnutls_cipher(vpninfo->dtls_ssl);

@@ -46,16 +46,98 @@
 extern void dtls1_stop_timer(SSL *);
 #endif
 
+#ifndef DTLS_get_data_mtu
+/* This equivalent functionality was submitted for OpenSSL 1.1.1+ in
+ * https://github.com/openssl/openssl/pull/1666 */
+static int dtls_get_data_mtu(struct openconnect_info *vpninfo, int mtu)
+{
+	int ivlen, maclen, blocksize = 0, pad = 0;
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
+	const SSL_CIPHER *s_ciph = SSL_get_current_cipher(vpninfo->dtls_ssl);
+	int cipher_nid;
+	const EVP_CIPHER *e_ciph;
+	const EVP_MD *e_md;
+	char wtf[128];
+
+	cipher_nid = SSL_CIPHER_get_cipher_nid(s_ciph);
+	if (cipher_nid == NID_chacha20_poly1305) {
+		ivlen = 0; /* Automatically derived from handshake and seqno */
+		maclen = 16; /* Poly1305 */
+	} else {
+		e_ciph = EVP_get_cipherbynid(cipher_nid);
+		switch (EVP_CIPHER_mode(e_ciph)) {
+		case EVP_CIPH_GCM_MODE:
+			ivlen = EVP_GCM_TLS_EXPLICIT_IV_LEN;
+			maclen = EVP_GCM_TLS_TAG_LEN;
+			break;
+
+		case EVP_CIPH_CCM_MODE:
+			ivlen = EVP_CCM_TLS_EXPLICIT_IV_LEN;
+			SSL_CIPHER_description(s_ciph, wtf, sizeof(wtf));
+			if (strstr(wtf, "CCM8"))
+				maclen = 8;
+			else
+				maclen = 16;
+			break;
+
+		case EVP_CIPH_CBC_MODE:
+			blocksize = EVP_CIPHER_block_size(e_ciph);
+			ivlen = EVP_CIPHER_iv_length(e_ciph);
+			pad = 1;
+
+			e_md = EVP_get_digestbynid(SSL_CIPHER_get_digest_nid(s_ciph));
+			maclen = EVP_MD_size(e_md);
+			break;
+
+		default:
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Unable to calculate DTLS overhead for %s\n"),
+				     SSL_CIPHER_get_name(s_ciph));
+			ivlen = 0;
+			maclen = DTLS_OVERHEAD;
+			break;
+		}
+	}
+#else
+	/* OpenSSL <= 1.0.2 only supports CBC ciphers with PSK */
+	ivlen = EVP_CIPHER_iv_length(EVP_CIPHER_CTX_cipher(vpninfo->dtls_ssl->enc_write_ctx));
+	maclen = EVP_MD_CTX_size(vpninfo->dtls_ssl->write_hash);
+	blocksize = ivlen;
+	pad = 1;
+#endif
+
+	/* Even when it pretended to, OpenSSL never did encrypt-then-mac.
+	 * So the MAC is *inside* the encryption, unconditionally.
+	 * https://github.com/openssl/openssl/pull/1705 */
+	if (mtu < DTLS1_RT_HEADER_LENGTH + ivlen)
+		return 0;
+	mtu -= DTLS1_RT_HEADER_LENGTH + ivlen;
+
+	/* For CBC mode round down to blocksize */
+	if (blocksize)
+		mtu -= mtu % blocksize;
+
+	/* Finally, CBC modes require at least one byte to indicate
+	 * padding length, as well as the MAC. */
+	if (mtu < pad + maclen)
+		return 0;
+	mtu -= pad + maclen;
+	return mtu;
+}
+#endif /* !DTLS_get_data_mtu */
+
 /* sets the DTLS MTU and returns the actual tunnel MTU */
 unsigned dtls_set_mtu(struct openconnect_info *vpninfo, unsigned mtu)
 {
-#ifdef DTLS_set_link_mtu
-	DTLS_set_link_mtu(vpninfo->dtls_ssl, mtu);
+	/* This is the record MTU (not the link MTU, which includes
+	 * IP+UDP headers, and not the payload MTU */
+	SSL_set_mtu(vpninfo->dtls_ssl, mtu);
+
+#ifdef DTLS_get_data_mtu
+	return DTLS_get_data_mtu(vpninfo->dtls_ssl);
 #else
-	/* not sure if this is equivalent */
-	SSL_set_mtu(vpninfo->dtls_ssl, LINK_TO_TUNNEL_MTU(mtu));
+	return dtls_get_data_mtu(vpninfo, mtu);
 #endif
-	return LINK_TO_TUNNEL_MTU(mtu);
 }
 
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
@@ -388,13 +470,39 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 	if (ret == 1) {
 		const char *c;
 
-		if (strcmp(vpninfo->dtls_cipher, "PSK-NEGOTIATE") &&
-		    !SSL_session_reused(vpninfo->dtls_ssl)) {
+		if (!strcmp(vpninfo->dtls_cipher, "PSK-NEGOTIATE")) {
+			/* For PSK-NEGOTIATE, we have to determine the tunnel MTU
+			 * for ourselves based on the base MTU */
+			int data_mtu = vpninfo->cstp_basemtu;
+			if (vpninfo->peer_addr->sa_family == IPPROTO_IPV6)
+				data_mtu -= 40; /* IPv6 header */
+			else
+				data_mtu -= 20; /* Legacy IP header */
+			data_mtu -= 8; /* UDP header */
+			if (data_mtu < 0) {
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Peer MTU %d too small to allow DTLS\n"),
+					     vpninfo->cstp_basemtu);
+				goto nodtls;
+			}
+			/* Reduce it by one because that's the payload header *inside*
+			 * the encryption */
+			data_mtu = dtls_set_mtu(vpninfo, data_mtu) - 1;
+			if (data_mtu < 0)
+				goto nodtls;
+			if (data_mtu < vpninfo->ip_info.mtu) {
+				vpn_progress(vpninfo, PRG_INFO,
+					     _("DTLS MTU reduced to %d\n"),
+					     data_mtu);
+				vpninfo->ip_info.mtu = data_mtu;
+			}
+		} else if (!SSL_session_reused(vpninfo->dtls_ssl)) {
 			/* Someone attempting to hijack the DTLS session?
 			 * A real server would never allow a full session
 			 * establishment instead of the agreed resume. */
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("DTLS session resume failed; possible MITM attack. Disabling DTLS.\n"));
+		nodtls:
 			dtls_close(vpninfo);
 			SSL_CTX_free(vpninfo->dtls_ctx);
 			vpninfo->dtls_ctx = NULL;

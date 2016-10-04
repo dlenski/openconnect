@@ -323,9 +323,6 @@ static inline void init_pkt_queue(struct pkt_q *q)
 	 20 /* biggest supported MAC (SHA1) */ +  16 /* biggest supported IV (AES-128) */ + \
 	 16 /* max padding */)
 
-#define LINK_TO_TUNNEL_MTU(linkmtu) \
-	(linkmtu - DTLS_OVERHEAD)
-
 struct esp {
 #if defined(OPENCONNECT_GNUTLS)
 	gnutls_cipher_hd_t cipher;
