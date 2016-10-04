@@ -328,55 +328,47 @@ int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 	SSL_set_connect_state(dtls_ssl);
 	SSL_set_app_data(dtls_ssl, vpninfo);
 
-	ciphers = SSL_get_ciphers(dtls_ssl);
-	if (dtlsver != 0 && sk_SSL_CIPHER_num(ciphers) != 1) {
-		vpn_progress(vpninfo, PRG_ERR, _("Not precisely one DTLS cipher\n"));
-		SSL_CTX_free(vpninfo->dtls_ctx);
-		SSL_free(dtls_ssl);
-		vpninfo->dtls_ctx = NULL;
-		vpninfo->dtls_attempt_period = 0;
-		return -EINVAL;
-	}
+	if (dtlsver) {
+		ciphers = SSL_get_ciphers(dtls_ssl);
+		if (dtlsver != 0 && sk_SSL_CIPHER_num(ciphers) != 1) {
+			vpn_progress(vpninfo, PRG_ERR, _("Not precisely one DTLS cipher\n"));
+			SSL_CTX_free(vpninfo->dtls_ctx);
+			SSL_free(dtls_ssl);
+			vpninfo->dtls_ctx = NULL;
+			vpninfo->dtls_attempt_period = 0;
+			return -EINVAL;
+		}
 
-#if defined (HAVE_DTLS12) && !defined(OPENSSL_NO_PSK)
-	/* In the PSK case, OpenSSL 1.1+ will negotiate properly regardless of
-	 * this. But OpenSSL = 1.0.2 will do precisely the version requested
-	 * here. Which we don't want because we *want* it to negotiate. The
-	 * session we're pretending to resume is *only* to let the server know
-	 * who we are, since draft-jay-tls-psk-identify-extension isn't here
-	 * yet. */
-	if (!dtlsver)
-		dtlsver = DTLS1_2_VERSION;
-#endif
+		/* We're going to "resume" a session which never existed. Fake it... */
+		dtls_session = generate_dtls_session(vpninfo, dtlsver,
+						     sk_SSL_CIPHER_value(ciphers, 0));
+		if (!dtls_session) {
+			SSL_CTX_free(vpninfo->dtls_ctx);
+			SSL_free(dtls_ssl);
+			vpninfo->dtls_ctx = NULL;
+			vpninfo->dtls_attempt_period = 0;
+			return -EINVAL;
+		}
 
-	/* We're going to "resume" a session which never existed. Fake it... */
-	dtls_session = generate_dtls_session(vpninfo, dtlsver,
-					     sk_SSL_CIPHER_value(ciphers, 0));
-	if (!dtls_session) {
-		SSL_CTX_free(vpninfo->dtls_ctx);
-		SSL_free(dtls_ssl);
-		vpninfo->dtls_ctx = NULL;
-		vpninfo->dtls_attempt_period = 0;
-		return -EINVAL;
-	}
+		/* Add the generated session to the SSL */
+		if (!SSL_set_session(dtls_ssl, dtls_session)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("SSL_set_session() failed with old protocol version 0x%x\n"
+				       "Are you using a version of OpenSSL older than 0.9.8m?\n"
+				       "See http://rt.openssl.org/Ticket/Display.html?id=1751\n"
+				       "Use the --no-dtls command line option to avoid this message\n"),
+				     DTLS1_BAD_VER);
+			SSL_CTX_free(vpninfo->dtls_ctx);
+			SSL_free(dtls_ssl);
+			vpninfo->dtls_ctx = NULL;
+			vpninfo->dtls_attempt_period = 0;
+			SSL_SESSION_free(dtls_session);
+			return -EINVAL;
+		}
 
-	/* Add the generated session to the SSL */
-	if (!SSL_set_session(dtls_ssl, dtls_session)) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("SSL_set_session() failed with old protocol version 0x%x\n"
-			       "Are you using a version of OpenSSL older than 0.9.8m?\n"
-			       "See http://rt.openssl.org/Ticket/Display.html?id=1751\n"
-			       "Use the --no-dtls command line option to avoid this message\n"),
-			     DTLS1_BAD_VER);
-		SSL_CTX_free(vpninfo->dtls_ctx);
-		SSL_free(dtls_ssl);
-		vpninfo->dtls_ctx = NULL;
-		vpninfo->dtls_attempt_period = 0;
+		/* We don't need our own refcount on it any more */
 		SSL_SESSION_free(dtls_session);
-		return -EINVAL;
 	}
-	/* We don't need our own refcount on it any more */
-	SSL_SESSION_free(dtls_session);
 
 	dtls_bio = BIO_new_socket(dtls_fd, BIO_NOCLOSE);
 	/* Set non-blocking */
