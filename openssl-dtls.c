@@ -253,15 +253,16 @@ int start_dtls_handshake(struct openconnect_info *vpninfo, int dtls_fd)
 #endif
 
 	if (!vpninfo->dtls_ctx) {
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 #ifdef HAVE_DTLS12
-		if (dtlsver == DTLS1_2_VERSION)
-			dtls_method = DTLSv1_2_client_method();
-		else
-#endif
-			dtls_method = DTLSv1_client_method();
-#else
 		dtls_method = DTLS_client_method();
+#endif
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+		if (dtlsver == DTLS1_BAD_VER)
+			dtls_method = DTLSv1_client_method();
+#ifdef HAVE_DTLS12
+		else if (dtlsver == DTLS1_2_VERSION)
+			dtls_method = DTLSv1_2_client_method();
+#endif
 #endif
 		vpninfo->dtls_ctx = SSL_CTX_new(dtls_method);
 		if (!vpninfo->dtls_ctx) {
