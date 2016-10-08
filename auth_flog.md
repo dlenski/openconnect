@@ -180,6 +180,24 @@ Finally...
 * IPsec-over-UDP using the keys shown above (I have yet tested this "manually" but I feel fairly confident in this interpretation).
 * and/or IP-over-TLS via a `CONNECT`-disguised-as-`GET` to the tunnel URL from the configuration above
 
+Here is the IP-over-TLS stream format, initiated by the client's `GET /ssl-tunnel-connect.sslvpn` command (`<` means sent by the gateway, `>` means sent by the client):
+
+    < 'GET /ssl-tunnel-connect.sslvpn?user=Myusername&authcookie=deadbeef HTTP/1.1\r\n\r\n' 
+    > 'START_TUNNEL'
+    < 1a2b3c4d0800005401000000000000004500005461e400007e11f5520a100f030a12c23d[...]
+    > 1a2b3c4d08000034010000000000000045000034038f0000011108df0a12c23de00000fc[...]
+    ...
+
+In other words:
+
+1. The gateway sends the 12 ASCII bytes `START_TUNNEL` to indicate the tunnel is up
+2. Packets in both directions follow. They are formatted as:
+  1. 4 magic bytes: `1a2b3c4d`
+  2. Next 2 bytes are probably the Ethertype: `0800` (= IPv4)
+  3. Next 2 bytes are the packet size (as int16_le)
+  4. Next 8 bytes always seem to be `0100000000000000` in my testing (1 as an int64_le?)
+  5. Remaining bytes are the actual Layer 3 packet (IPv4 packets starting with `45` in the examples above)
+
 Logout request
 ==============
 
