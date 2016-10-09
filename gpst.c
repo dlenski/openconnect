@@ -106,7 +106,7 @@ int gpst_connect(struct openconnect_info *vpninfo)
 	int mtu = -1;
 	struct oc_text_buf *reqbuf;
 	struct oc_vpn_option *cookie;
-	char *tunnel_path = NULL, *username = NULL, *authcookie = NULL, *ipaddr = NULL;
+	const char *tunnel_path = NULL, *username = NULL, *authcookie = NULL, *ipaddr = NULL;
 	char buf[256];
 
 	/* XXX: We should do what cstp_connect() does to check that configuration

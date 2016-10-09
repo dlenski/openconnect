@@ -1006,7 +1006,7 @@ int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8);
 int get_utf8char(const char **utf8);
 void buf_append_from_utf16le(struct oc_text_buf *buf, const void *utf16);
 void buf_truncate(struct oc_text_buf *buf);
-void buf_append_urlencoded(struct oc_text_buf *buf, char *str);
+void buf_append_urlencoded(struct oc_text_buf *buf, const char *str);
 int buf_error(struct oc_text_buf *buf);
 int buf_free(struct oc_text_buf *buf);
 char *openconnect_create_useragent(const char *base);
