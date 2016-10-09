@@ -250,7 +250,7 @@ Passphrase for certificate file is automatically generated from the
 .I fsid
 of the file system on which it is stored. The
 .I fsid
-is obtained from the 
+is obtained from the
 .BR statvfs (2)
 or
 .BR statfs (2)
@@ -422,11 +422,12 @@ Select VPN protocol
 .I PROTO
 to be used for the connection. Supported protocols are
 .I anyconnect
-for Cisco AnyConnect (the default), and
+for Cisco AnyConnect (the default),
 .I nc
 for experimental support for Juniper Network Connect (also supported
-by Junos Pulse servers).
-
+by Junos Pulse servers), and
+.I gp
+for experimental support for PAN GlobalProtect.
 .TP
 .B \-\-token\-mode=MODE
 Enable one-time password generation using the

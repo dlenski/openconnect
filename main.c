@@ -160,6 +160,7 @@ enum {
 	OPT_FORCE_DPD,
 	OPT_GNUTLS_DEBUG,
 	OPT_JUNIPER,
+	OPT_GLOBALPROTECT,
 	OPT_KEY_PASSWORD_FROM_FSID,
 	OPT_LIBPROXY,
 	OPT_NO_CERT_CHECK,
@@ -217,6 +218,7 @@ static const struct option long_options[] = {
 	OPTION("compression", 1, OPT_COMPRESSION),
 	OPTION("deflate", 0, 'd'),
 	OPTION("juniper", 0, OPT_JUNIPER),
+	OPTION("globalprotect", 0, OPT_GLOBALPROTECT),
 	OPTION("no-deflate", 0, 'D'),
 	OPTION("cert-expire-warning", 1, 'e'),
 	OPTION("usergroup", 1, 'g'),
@@ -1123,6 +1125,10 @@ int main(int argc, char **argv)
 			fprintf(stderr, "WARNING: Juniper Network Connect support is experimental.\n");
 			fprintf(stderr, "It will probably be superseded by Junos Pulse support.\n");
 			openconnect_set_protocol(vpninfo, "nc");
+			break;
+		case OPT_GLOBALPROTECT:
+			fprintf(stderr, "WARNING: PAN GlobalProtect support is experimental.\n");
+			openconnect_set_protocol(vpninfo, "gp");
 			break;
 		case OPT_CONFIGFILE:
 			if (config_file) {
