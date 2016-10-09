@@ -166,7 +166,7 @@ int gpst_connect(struct openconnect_info *vpninfo)
 	vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
 	buf_free(reqbuf);
 
-	if ((ret = vpninfo->ssl_read(vpninfo, buf, 256)) < 0) {
+	if ((ret = vpninfo->ssl_read(vpninfo, buf, 12)) < 0) {
 		if (ret == -EINTR)
 			return ret;
 		vpn_progress(vpninfo, PRG_ERR,
@@ -180,9 +180,10 @@ int gpst_connect(struct openconnect_info *vpninfo)
 		vpninfo->ip_info.netmask = "255.255.255.255";
 		vpninfo->ip_info.mtu = mtu;
 		ret = 0;
-	} else if (!strncmp(buf, "HTTP/", 5)) {
+	} else if (ret==12 && !strncmp(buf, "HTTP/", 5)) {
+		ret = vpninfo->ssl_gets(vpninfo, buf+12, 244);
 		vpn_progress(vpninfo, PRG_ERR,
-		             _("Got HTTP error in response to GET-tunnel request: %.*s\n"), ret, buf);
+		             _("Got HTTP status in response to GET-tunnel request: %.*s\n"), ret+12, buf);
 		ret = -EINVAL;
 	} else if (ret==0) {
 		vpn_progress(vpninfo, PRG_ERR,
