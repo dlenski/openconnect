@@ -194,7 +194,7 @@ In other words:
 2. Packets in both directions follow. They are formatted as:
   1. 4 magic bytes: `1a2b3c4d`
   2. Next 2 bytes are probably the Ethertype: `0800` (= IPv4)
-  3. Next 2 bytes are the packet size (as int16_le)
+  3. Next 2 bytes are the packet size (as int16_be)
   4. Next 8 bytes always seem to be `0100000000000000` in my testing (1 as an int64_le?)
   5. Remaining bytes are the actual Layer 3 packet (IPv4 packets starting with `45` in the examples above)
 
