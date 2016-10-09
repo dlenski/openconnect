@@ -48,7 +48,7 @@
  * 0010: data payload
  */
 
-static void buf_hexdump(struct openconnect_info *vpninfo, unsigned char *d, int len)
+static void buf_hexdump(struct openconnect_info *vpninfo, int loglevel, unsigned char *d, int len)
 {
 	char linebuf[80];
 	int i;
@@ -56,12 +56,12 @@ static void buf_hexdump(struct openconnect_info *vpninfo, unsigned char *d, int 
 	for (i = 0; i < len; i++) {
 		if (i % 16 == 0) {
 			if (i)
-				vpn_progress(vpninfo, PRG_TRACE, "%s\n", linebuf);
+				vpn_progress(vpninfo, loglevel, "%s\n", linebuf);
 			sprintf(linebuf, "%04x:", i);
 		}
 		sprintf(linebuf + strlen(linebuf), " %02x", d[i]);
 	}
-	vpn_progress(vpninfo, PRG_TRACE, "%s\n", linebuf);
+	vpn_progress(vpninfo, loglevel, "%s\n", linebuf);
 }
 
 static int parse_cookie(struct openconnect_info *vpninfo)
@@ -190,7 +190,7 @@ int gpst_connect(struct openconnect_info *vpninfo)
 		ret = -EPIPE;
 	} else {
 		vpn_progress(vpninfo, PRG_ERR, _("Got inappropriate response to GET-tunnel request:\n"));
-		buf_hexdump(vpninfo, (void*)buf, ret);
+		buf_hexdump(vpninfo, PRG_ERR, (void*)buf, ret);
 		ret = -EINVAL;
 	}
 
@@ -257,7 +257,7 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		}
 		if (len != 16 + payload_len) {
 			vpn_progress(vpninfo, PRG_ERR,
-				     _("Unexpected packet length. SSL_read returned %d (includes 16 header bytes) but header has payload_len=%d\n"),
+				     _("Unexpected packet length. SSL_read returned %d (includes 16 header bytes) but header payload_len is %d\n"),
 			             len, payload_len);
 			goto unknown_pkt;
 		}
@@ -272,7 +272,7 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpn_progress(vpninfo, PRG_TRACE,
 			     _("Got data packet of %d bytes\n"),
 			     payload_len);
-		buf_hexdump(vpninfo, vpninfo->cstp_pkt->gpst.hdr, len);
+		//buf_hexdump(vpninfo, PRG_TRACE, vpninfo->cstp_pkt->gpst.hdr, len);
 
 		vpninfo->cstp_pkt->len = payload_len;
 		queue_packet(&vpninfo->incoming_queue, vpninfo->cstp_pkt);
@@ -289,9 +289,9 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpninfo->ssl_times.last_tx = time(NULL);
 		unmonitor_write_fd(vpninfo, ssl);
 
-		vpn_progress(vpninfo, PRG_TRACE, _("Packet outgoing:\n"));
-		buf_hexdump(vpninfo, vpninfo->current_ssl_pkt->gpst.hdr,
-			    vpninfo->current_ssl_pkt->len + 16);
+		vpn_progress(vpninfo, PRG_TRACE, _("Outgoing data packet of %d bytes\n"), vpninfo->current_ssl_pkt->len);
+		//buf_hexdump(vpninfo, PRG_TRACE, vpninfo->current_ssl_pkt->gpst.hdr,
+		//	    vpninfo->current_ssl_pkt->len + 16);
 
 		ret = ssl_nonblock_write(vpninfo,
 					 vpninfo->current_ssl_pkt->gpst.hdr,
@@ -346,15 +346,8 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 unknown_pkt:
 	vpn_progress(vpninfo, PRG_ERR,
-		     _("Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n"),
-		     vpninfo->cstp_pkt->gpst.hdr[0], vpninfo->cstp_pkt->gpst.hdr[1],
-		     vpninfo->cstp_pkt->gpst.hdr[2], vpninfo->cstp_pkt->gpst.hdr[3],
-		     vpninfo->cstp_pkt->gpst.hdr[4], vpninfo->cstp_pkt->gpst.hdr[5],
-		     vpninfo->cstp_pkt->gpst.hdr[6], vpninfo->cstp_pkt->gpst.hdr[7],
-		     vpninfo->cstp_pkt->gpst.hdr[8], vpninfo->cstp_pkt->gpst.hdr[9],
-		     vpninfo->cstp_pkt->gpst.hdr[10], vpninfo->cstp_pkt->gpst.hdr[11],
-		     vpninfo->cstp_pkt->gpst.hdr[12], vpninfo->cstp_pkt->gpst.hdr[13],
-		     vpninfo->cstp_pkt->gpst.hdr[14], vpninfo->cstp_pkt->gpst.hdr[15]);
+		     _("Unknown packet. Header dump follows:\n"));
+	buf_hexdump(vpninfo, PRG_ERR, vpninfo->cstp_pkt->gpst.hdr, 16);
 	vpninfo->quit_reason = "Unknown packet received";
 	return 1;
 }
