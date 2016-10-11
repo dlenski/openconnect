@@ -174,28 +174,36 @@ Here's the interesting part:
 </response>
 ```
 
-Finally...
-==========
+Tunnel
+======
 
-* IPsec-over-UDP using the keys shown above (I have yet tested this "manually" but I feel fairly confident in this interpretation).
-* and/or IP-over-TLS via a `CONNECT`-disguised-as-`GET` to the tunnel URL from the configuration above
+In the back-and-forth flows shown below, `<` means sent by the gateway, `>` means sent by the client.
+ 
+### IPsec-over-UDP
 
-Here is the IP-over-TLS stream format, initiated by the client's `GET /ssl-tunnel-connect.sslvpn` command (`<` means sent by the gateway, `>` means sent by the client):
+Uses the keying information obtained in response to the `getconfig` request. I have not yet tested this "manually" but I feel fairly confident in this interpretation.
 
-    < 'GET /ssl-tunnel-connect.sslvpn?user=Myusername&authcookie=deadbeef HTTP/1.1\r\n\r\n' 
-    > 'START_TUNNEL'
+### SSL vpn tunnel
+
+The tunnel starts when the client issues a `CONNECT`-disguised-as-`GET` command, to the tunnel URL path specified in the `getconfig` response. The gateway responds with the ASCII string `START_TUNNEL` **instead of** a standard HTTP response code:
+
+    > 'GET /ssl-tunnel-connect.sslvpn?user=Myusername&authcookie=deadbeef HTTP/1.1\r\n\r\n'
+    < 'START_TUNNEL'
+
+Now the client and gateway proceed to communicate by sending encapsulated IPv4 packets back and forth. Here is an example snippet of the IP-over-TLS stream format, as initiated by the client's `GET` command:
+
+    > 'GET /ssl-tunnel-connect.sslvpn?user=Myusername&authcookie=deadbeef HTTP/1.1\r\n\r\n' 
+    < 'START_TUNNEL'
     < 1a2b3c4d0800005401000000000000004500005461e400007e11f5520a100f030a12c23d[...]
     > 1a2b3c4d08000034010000000000000045000034038f0000011108df0a12c23de00000fc[...]
     ...
 
-In other words:
+Here is the packet format:
 
-1. The gateway sends the 12 ASCII bytes `START_TUNNEL` to indicate the tunnel is up
-2. Packets in both directions follow. They are formatted as:
   1. 4 magic bytes: `1a2b3c4d`
-  2. Next 2 bytes are probably the Ethertype: `0800` (= IPv4)
-  3. Next 2 bytes are the packet size (as int16_be)
-  4. Next 8 bytes always seem to be `0100000000000000` in my testing (1 as an int64_le?)
+  2. Next 2 bytes are probably the Ethertype (as uint16_be): `0800` is IPv4
+  3. Next 2 bytes are the packet length (as uint16_be) excluding this header
+  4. Next 8 bytes always seem to be `0100000000000000` in my testing (1 as an uint64_le?)
   5. Remaining bytes are the actual Layer 3 packet (IPv4 packets starting with `45` in the examples above)
 
 Logout request
