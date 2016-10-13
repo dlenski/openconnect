@@ -167,7 +167,7 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
-	char *xml_buf;
+	char *xml_buf=NULL;
 
 	/* submit getconfig request */
 	buf_append(request_body, "client-type=1&protocol-version=p1&app-version=3.0.1-10&app-version=3.0.1-10&os-version=Windows");
