@@ -64,6 +64,146 @@ static void buf_hexdump(struct openconnect_info *vpninfo, int loglevel, unsigned
 	vpn_progress(vpninfo, loglevel, "%s\n", linebuf);
 }
 
+/* Return value:
+ *  < 0, on error
+ *  = 0, on success; *form is populated
+ */
+static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *response)
+{
+	struct oc_text_buf *cookie = buf_alloc();
+	xmlDocPtr xml_doc;
+	xmlNode *xml_node, *member;
+	int ret, ii, mtu;
+
+	if (!response) {
+		vpn_progress(vpninfo, PRG_DEBUG,
+			     _("Empty response from server\n"));
+		return -EINVAL;
+	}
+
+	xml_doc = xmlReadMemory(response, strlen(response), "noname.xml", NULL,
+				XML_PARSE_NOERROR|XML_PARSE_RECOVER);
+	if (!xml_doc)
+		goto bad_xml;
+
+	xml_node = xmlDocGetRootElement(xml_doc);
+	if (!xmlnode_is_named(xml_node, "response"))
+		goto bad_xml;
+	if (strcmp(xmlGetProp(xml_node, "status"),"success"))
+		goto bad_xml;
+	xml_node = xml_node->children;
+
+	for (; xml_node; xml_node=xml_node->next) {
+		if (xmlnode_is_named(xml_node, "ip-address")) {
+			vpninfo->ip_info.addr = xmlNodeGetContent(xml_node);
+		} else if (xmlnode_is_named(xml_node, "netmask")) {
+			vpninfo->ip_info.netmask = xmlNodeGetContent(xml_node);
+		} else if (xmlnode_is_named(xml_node, "ssl-tunnel-url")) {
+			vpninfo->urlpath = xmlNodeGetContent(xml_node);
+		} else if (xmlnode_is_named(xml_node, "mtu")) {
+			mtu = atoi(xmlNodeGetContent(xml_node));
+			if (mtu==0) {
+				vpn_progress(vpninfo, PRG_ERR, "Replacing MTU of 0 with 1500\n");
+				mtu = 1500;
+			}
+			vpninfo->ip_info.mtu = mtu;
+		} else if (xmlnode_is_named(xml_node, "dns")) {
+			for (ii=0, member = xml_node->children; member && ii<3; member=member->next) {
+				if (xmlnode_is_named(member, "member"))
+					vpninfo->ip_info.dns[ii++] = xmlNodeGetContent(member);
+			}
+		} else if (xmlnode_is_named(xml_node, "wins")) {
+			for (ii=0, member = xml_node->children; member && ii<3; member=member->next) {
+				if (xmlnode_is_named(member, "member"))
+					vpninfo->ip_info.nbns[ii++] = xmlNodeGetContent(member);
+			}
+		} else if (xmlnode_is_named(xml_node, "dns-suffix")) {
+			member = xml_node->children;
+			for (ii=0, member = xml_node->children; member && ii<1; member=member->next) {
+				if (xmlnode_is_named(member, "member")) {
+					vpninfo->ip_info.domain = xmlNodeGetContent(member);
+					ii++;
+				}
+			}
+		} else if (xmlnode_is_named(xml_node, "access-routes")) {
+			for (ii=0, member = xml_node->children; member; member=member->next) {
+				if (xmlnode_is_named(member, "member")) {
+					struct oc_split_include *s = calloc(1, sizeof(struct oc_split_include)), *t;
+					s->route = xmlNodeGetContent(member);
+
+					if ((t = vpninfo->ip_info.split_includes) == NULL) {
+						vpninfo->ip_info.split_includes = s;
+					} else {
+						while(t->next)
+							t = t->next;
+						t->next = s;
+					}
+				}
+			}
+		}
+	}
+
+	/* No IPv6 support for GlobalProtect yet */
+	openconnect_disable_ipv6(vpninfo);
+
+	xmlFreeDoc(xml_doc);
+	return 0;
+
+bad_xml:
+	if (xml_doc)
+		xmlFreeDoc(xml_doc);
+	vpn_progress(vpninfo, PRG_ERR,
+			 _("Failed to parse server response\n"));
+	vpn_progress(vpninfo, PRG_DEBUG,
+			 _("Response was:%s\n"), response);
+	return -EINVAL;
+}
+
+static int gpst_get_config(struct openconnect_info *vpninfo)
+{
+	char *orig_path, *orig_ua;
+	int result;
+	struct oc_vpn_option *cookie;
+	struct oc_text_buf *request_body = buf_alloc();
+	const char *request_body_type = "application/x-www-form-urlencoded";
+	const char *method = "POST";
+	char *xml_buf;
+
+	/* submit getconfig request */
+	buf_append(request_body, "client-type=1&protocol-version=p1&app-version=3.0.1-10&app-version=3.0.1-10&os-version=Windows");
+	append_opt(request_body, "hmac-algo", "sha1,md5");
+	append_opt(request_body, "enc-algo", "aes-128-cb,aes-256-cbc");
+	for (cookie = vpninfo->cookies; cookie; cookie = cookie->next) {
+		if (!strcmp(cookie->option, "USER"))
+			append_opt(request_body, "user", cookie->value);
+		else if (!strcmp(cookie->option, "AUTH"))
+			append_opt(request_body, "authcookie", cookie->value);
+		else if (!strcmp(cookie->option, "PORTAL"))
+			append_opt(request_body, "portal", cookie->value);
+	}
+
+	orig_path = vpninfo->urlpath;
+	orig_ua = vpninfo->useragent;
+	vpninfo->useragent = "PAN GlobalProtect";
+	vpninfo->urlpath = "ssl-vpn/getconfig.esp";
+	result = do_https_request(vpninfo, method, request_body_type, request_body,
+				  &xml_buf, 0);
+	vpninfo->urlpath = orig_path;
+	vpninfo->useragent = orig_ua;
+
+	buf_free(request_body);
+
+	if (result < 0)
+		return -EINVAL;
+
+	/* parse getconfig result */
+	result = gpst_parse_config_xml(vpninfo, xml_buf);
+	if (result < 0)
+		return -EINVAL;
+
+	return 0;
+}
+
 static int parse_cookie(struct openconnect_info *vpninfo)
 {
 	char *p = vpninfo->cookie;
@@ -103,10 +243,9 @@ static int parse_cookie(struct openconnect_info *vpninfo)
 int gpst_connect(struct openconnect_info *vpninfo)
 {
 	int ret;
-	int mtu = -1;
 	struct oc_text_buf *reqbuf;
 	struct oc_vpn_option *cookie;
-	const char *tunnel_path = NULL, *username = NULL, *authcookie = NULL, *ipaddr = NULL;
+	const char *username = NULL, *authcookie = NULL;
 	char buf[256];
 
 	/* XXX: We should do what cstp_connect() does to check that configuration
@@ -117,44 +256,24 @@ int gpst_connect(struct openconnect_info *vpninfo)
 		return ret;
 
 	for (cookie = vpninfo->cookies; cookie; cookie = cookie->next) {
-		if (!strcmp(cookie->option, "TUNNEL"))
-			tunnel_path = cookie->value;
-		else if (!strcmp(cookie->option, "USER"))
+		if (!strcmp(cookie->option, "USER"))
 			username = cookie->value;
 		else if (!strcmp(cookie->option, "AUTH"))
 			authcookie = cookie->value;
-		else if (!strcmp(cookie->option, "IP"))
-			ipaddr = cookie->value;
-		else if (!strcmp(cookie->option, "MTU"))
-			mtu = atoi(cookie->value);
-	}
-	if (!username || !authcookie) {
-		vpn_progress(vpninfo, PRG_ERR,
-		             _("Missing USER and/or AUTH cookie; cannot connect\n"));
-		return -EINVAL;
-	}
-	if (!tunnel_path) {
-		vpn_progress(vpninfo, PRG_INFO, _("Missing TUNNEL cookie; assuming /ssl-tunnel-connect.sslvpn\n"));
-		tunnel_path = "/ssl-tunnel-connect.sslvpn";
-	}
-	if (!ipaddr) {
-		vpn_progress(vpninfo, PRG_INFO, _("Missing IP cookie; setting IP address to 0.0.0.0\n"));
-		ipaddr = "0.0.0.0";
-	}
-	if (mtu <= 0) {
-		vpn_progress(vpninfo, PRG_INFO, _("Missing or zero MTU cookie; assuming 1500\n"));
-		mtu = 1500;
 	}
 
-	/* No IPv6 support for GlobalProtect yet */
-	openconnect_disable_ipv6(vpninfo);
+	/* Get configuration */
+	ret = gpst_get_config(vpninfo);
+	if (ret)
+		return ret;
 
+	/* Connect to SSL VPN tunnel */
 	ret = openconnect_open_https(vpninfo);
 	if (ret)
 		return ret;
 
 	reqbuf = buf_alloc();
-	buf_append(reqbuf, "GET %s?user=", tunnel_path);
+	buf_append(reqbuf, "GET %s?user=", vpninfo->urlpath);
 	buf_append_urlencoded(reqbuf, username);
 	buf_append(reqbuf, "&authcookie=%s HTTP/1.1\r\n\r\n", authcookie);
 
@@ -173,10 +292,6 @@ int gpst_connect(struct openconnect_info *vpninfo)
 	}
 
 	if (!strncmp(buf, "START_TUNNEL", 12)) {
-		/* FIXME hardcoded */
-		vpninfo->ip_info.addr = ipaddr;
-		vpninfo->ip_info.netmask = "255.255.255.255";
-		vpninfo->ip_info.mtu = mtu;
 		ret = 0;
 	} else if (ret==12 && !strncmp(buf, "HTTP/", 5)) {
 		ret = vpninfo->ssl_gets(vpninfo, buf+12, 244);
