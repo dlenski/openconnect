@@ -79,6 +79,11 @@ static int netmasklen(struct in_addr addr)
 	return 32 - masklen;
 }
 
+static uint32_t netmaskbits(int masklen)
+{
+	return htonl((0xffffffff << (32-masklen)));
+}
+
 static int process_split_xxclude(struct openconnect_info *vpninfo,
 				 int include, const char *route, int *v4_incs,
 				 int *v6_incs)
@@ -86,7 +91,8 @@ static int process_split_xxclude(struct openconnect_info *vpninfo,
 	struct in_addr addr;
 	const char *in_ex = include ? "IN" : "EX";
 	char envname[80];
-	char *slash;
+	char *slash, *endp;
+	int masklen;
 
 	slash = strchr(route, '/');
 	if (!slash) {
@@ -129,14 +135,21 @@ static int process_split_xxclude(struct openconnect_info *vpninfo,
 	/* Put it back how we found it */
 	*slash = '/';
 
-	if (!inet_aton(slash+1, &addr))
+	if ((masklen = strtol(slash+1, &endp, 10))<=32 && *endp!='.') {
+		/* mask is /N */
+		addr.s_addr = netmaskbits(masklen);
+	} else if (inet_aton(slash+1, &addr)) {
+		/* mask is /A.B.C.D */
+		masklen = netmasklen(addr);
+	} else {
 		goto badinc;
+	}
 
 	snprintf(envname, 79, "CISCO_SPLIT_%sC_%d_MASK", in_ex, *v4_incs);
-	script_setenv(vpninfo, envname, slash+1, 0);
+	script_setenv(vpninfo, envname, inet_ntoa(addr), 0);
 
 	snprintf(envname, 79, "CISCO_SPLIT_%sC_%d_MASKLEN", in_ex, *v4_incs);
-	script_setenv_int(vpninfo, envname, netmasklen(addr));
+	script_setenv_int(vpninfo, envname, masklen);
 
 	(*v4_incs)++;
 	return 0;
