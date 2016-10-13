@@ -62,7 +62,7 @@ int xmlnode_match_prop(xmlNode *xml_node, const char *name, const char *match)
 	return ret;
 }
 
-int append_opt(struct oc_text_buf *body, char *opt, char *name)
+int append_opt(struct oc_text_buf *body, const char *opt, const char *name)
 {
 	if (buf_error(body))
 		return buf_error(body);
