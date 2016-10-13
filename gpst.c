@@ -112,11 +112,9 @@ int gpst_connect(struct openconnect_info *vpninfo)
 	/* XXX: We should do what cstp_connect() does to check that configuration
 	   hasn't changed on a reconnect. */
 
-	if (!vpninfo->cookies) {
-		ret = parse_cookie(vpninfo);
-		if (ret)
-			return ret;
-	}
+	ret = parse_cookie(vpninfo);
+	if (ret)
+		return ret;
 
 	for (cookie = vpninfo->cookies; cookie; cookie = cookie->next) {
 		if (!strcmp(cookie->option, "TUNNEL"))
@@ -132,7 +130,7 @@ int gpst_connect(struct openconnect_info *vpninfo)
 	}
 	if (!username || !authcookie) {
 		vpn_progress(vpninfo, PRG_ERR,
-		             _("Missing USERNAME and/or AUTH cookie; cannot connect\n"));
+		             _("Missing USER and/or AUTH cookie; cannot connect\n"));
 		return -EINVAL;
 	}
 	if (!tunnel_path) {
