@@ -73,11 +73,13 @@ static int parse_login_xml(struct openconnect_info *vpninfo, char *response)
 			else if (argn == 3)
 				buf_append(cookie, "PORTAL=%s;", xmlNodeGetContent(xml_node));
 			else if (argn == 4)
-				buf_append(cookie, "USER=%s", xmlNodeGetContent(xml_node));
+				buf_append(cookie, "USER=%s;", xmlNodeGetContent(xml_node));
+			else if (argn == 7)
+				buf_append(cookie, "DOMAIN=%s", xmlNodeGetContent(xml_node));
 			argn++;
 		}
 	}
-	if (argn<5) {
+	if (argn<8) {
 		buf_free(cookie);
 		goto bad_xml;
 	}
@@ -140,5 +142,50 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 
 	/* parse login result */
 	result = parse_login_xml(vpninfo, xml_buf);
+	return result;
+}
+
+int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
+{
+	char *orig_path, *orig_ua;
+	int result;
+	struct oc_vpn_option *cookie;
+	struct oc_text_buf *request_body = buf_alloc();
+	const char *request_body_type = "application/x-www-form-urlencoded";
+	const char *method = "POST";
+	char *xml_buf=NULL;
+
+	/* submit logout request */
+	append_opt(request_body, "computer", vpninfo->localname);
+	for (cookie = vpninfo->cookies; cookie; cookie = cookie->next) {
+		if (!strcmp(cookie->option, "USER"))
+			append_opt(request_body, "user", cookie->value);
+		else if (!strcmp(cookie->option, "AUTH"))
+			append_opt(request_body, "authcookie", cookie->value);
+		else if (!strcmp(cookie->option, "PORTAL"))
+			append_opt(request_body, "portal", cookie->value);
+		else if (!strcmp(cookie->option, "DOMAIN"))
+			append_opt(request_body, "domain", cookie->value);
+	}
+
+	/* this one correctly returns HTTP status 200 when successful, so
+	 * we don't have to parse the XML
+         */
+	orig_path = vpninfo->urlpath;
+	orig_ua = vpninfo->useragent;
+	vpninfo->useragent = "PAN GlobalProtect";
+	vpninfo->urlpath = "ssl-vpn/logout.esp";
+	result = do_https_request(vpninfo, method, request_body_type, request_body,
+				  &xml_buf, 0);
+	vpninfo->urlpath = orig_path;
+	vpninfo->useragent = orig_ua;
+
+	buf_free(request_body);
+
+	if (result < 0)
+		vpn_progress(vpninfo, PRG_ERR, _("Logout failed. Response was: %s\n"), xml_buf);
+	else
+		vpn_progress(vpninfo, PRG_INFO, _("Logout successful\n"));
+	free(xml_buf);
 	return result;
 }

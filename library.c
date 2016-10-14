@@ -135,7 +135,7 @@ const struct vpn_proto openconnect_protos[] = {
 #endif
 	}, {
 		.name = "gp",
-		.vpn_close_session = NULL,
+		.vpn_close_session = gpst_bye,
 		.tcp_connect = gpst_connect,
 		.tcp_mainloop = gpst_mainloop,
 		.add_http_headers = gpst_common_headers,
