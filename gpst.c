@@ -89,6 +89,10 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 	xml_node = xmlDocGetRootElement(xml_doc);
 	if (!xmlnode_is_named(xml_node, "response"))
 		goto bad_xml;
+	if (!strcmp(xmlGetProp(xml_node, "status"),"error")) {
+		xmlFreeDoc(xml_doc);
+		return -EPERM;
+	}
 	if (strcmp(xmlGetProp(xml_node, "status"),"success"))
 		goto bad_xml;
 	xml_node = xml_node->children;
