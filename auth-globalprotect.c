@@ -25,7 +25,6 @@
 void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
 {
 	http_common_headers(vpninfo, buf);
-	buf_append(buf, "Connection: Keep-Alive\r\n");
 }
 
 /* our "auth form" is just a static combination of username and password */

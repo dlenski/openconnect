@@ -202,10 +202,8 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 
 	/* parse getconfig result */
 	result = gpst_parse_config_xml(vpninfo, xml_buf);
-	if (result < 0)
-		return -EINVAL;
 
-	return 0;
+	return result;
 }
 
 static int parse_cookie(struct openconnect_info *vpninfo)
@@ -297,18 +295,17 @@ int gpst_connect(struct openconnect_info *vpninfo)
 
 	if (!strncmp(buf, "START_TUNNEL", 12)) {
 		ret = 0;
-	} else if (ret==12 && !strncmp(buf, "HTTP/", 5)) {
-		ret = vpninfo->ssl_gets(vpninfo, buf+12, 244);
-		vpn_progress(vpninfo, PRG_ERR,
-		             _("Got HTTP status in response to GET-tunnel request: %.*s\n"), ret+12, buf);
-		ret = -EINVAL;
 	} else if (ret==0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Gateway disconnected immediately after GET-tunnel request.\n"));
 		ret = -EPIPE;
 	} else {
-		vpn_progress(vpninfo, PRG_ERR, _("Got inappropriate response to GET-tunnel request:\n"));
-		buf_hexdump(vpninfo, PRG_ERR, (void*)buf, ret);
+		if (ret==12) {
+			ret = vpninfo->ssl_gets(vpninfo, buf+12, 244);
+			ret = (ret>0 ? ret : 0) + 12;
+		}
+		vpn_progress(vpninfo, PRG_ERR,
+		             _("Got inappropriate HTTP GET-tunnel response: %.*s\n"), ret, buf);
 		ret = -EINVAL;
 	}
 
