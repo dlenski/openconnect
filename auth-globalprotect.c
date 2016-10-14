@@ -148,7 +148,7 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 {
 	char *orig_path, *orig_ua;
-	int result;
+	int result, orig_cancel;
 	struct oc_vpn_option *cookie;
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
@@ -168,20 +168,29 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 			append_opt(request_body, "domain", cookie->value);
 	}
 
-	/* this one correctly returns HTTP status 200 when successful, so
-	 * we don't have to parse the XML
-         */
+	/* We need to close and reopen the HTTPS connection (to kill
+	 * the tunnel session) and submit a new HTTPS request to
+	 * logout, but openconnect interrupts HTTPS requests once
+	 * got_cancel_cmd is true. So we trick it :-(
+	 */
 	orig_path = vpninfo->urlpath;
 	orig_ua = vpninfo->useragent;
+	orig_cancel = vpninfo->got_cancel_cmd;
 	vpninfo->useragent = "PAN GlobalProtect";
 	vpninfo->urlpath = "ssl-vpn/logout.esp";
+	vpninfo->got_cancel_cmd = 0;
+	openconnect_close_https(vpninfo, 0);
 	result = do_https_request(vpninfo, method, request_body_type, request_body,
 				  &xml_buf, 0);
+	vpninfo->got_cancel_cmd = orig_cancel;
 	vpninfo->urlpath = orig_path;
 	vpninfo->useragent = orig_ua;
 
 	buf_free(request_body);
 
+	/* logout.esp correctly returns HTTP status 200 when successful, so
+	 * we don't have to parse the XML... phew.
+         */
 	if (result < 0)
 		vpn_progress(vpninfo, PRG_ERR, _("Logout failed. Response was: %s\n"), xml_buf);
 	else
