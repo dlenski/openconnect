@@ -177,6 +177,8 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	buf_append(request_body, "client-type=1&protocol-version=p1&app-version=3.0.1-10&app-version=3.0.1-10&os-version=Windows");
 	append_opt(request_body, "hmac-algo", "sha1,md5");
 	append_opt(request_body, "enc-algo", "aes-128-cb,aes-256-cbc");
+	if (vpninfo->ip_info.addr)
+		append_opt(request_body, "preferred-ip", vpninfo->ip_info.addr);
 	for (cookie = vpninfo->cookies; cookie; cookie = cookie->next) {
 		if (!strcmp(cookie->option, "USER"))
 			append_opt(request_body, "user", cookie->value);
