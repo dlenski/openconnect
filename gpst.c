@@ -73,7 +73,8 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 	struct oc_text_buf *cookie = buf_alloc();
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node, *member;
-	int ret, ii, mtu;
+	const char *err = NULL;
+	int success, ii, mtu;
 
 	if (!response) {
 		vpn_progress(vpninfo, PRG_DEBUG,
@@ -87,14 +88,9 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 		goto bad_xml;
 
 	xml_node = xmlDocGetRootElement(xml_doc);
-	if (!xmlnode_is_named(xml_node, "response"))
+	if (!xml_node || !xmlnode_is_named(xml_node, "response"))
 		goto bad_xml;
-	if (!strcmp(xmlGetProp(xml_node, "status"),"error")) {
-		xmlFreeDoc(xml_doc);
-		return -EPERM;
-	}
-	if (strcmp(xmlGetProp(xml_node, "status"),"success"))
-		goto bad_xml;
+	success = !strcmp(xmlGetProp(xml_node, "status"), "success");
 	xml_node = xml_node->children;
 
 	for (; xml_node; xml_node=xml_node->next) {
@@ -104,6 +100,8 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 			vpninfo->ip_info.netmask = xmlNodeGetContent(xml_node);
 		} else if (xmlnode_is_named(xml_node, "ssl-tunnel-url")) {
 			vpninfo->urlpath = xmlNodeGetContent(xml_node);
+		} else if (xmlnode_is_named(xml_node, "error")) {
+			err = xmlNodeGetContent(xml_node);
 		} else if (xmlnode_is_named(xml_node, "mtu")) {
 			mtu = atoi(xmlNodeGetContent(xml_node));
 			if (mtu==0) {
@@ -151,7 +149,13 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 	openconnect_disable_ipv6(vpninfo);
 
 	xmlFreeDoc(xml_doc);
-	return 0;
+	if (success)
+		return 0;
+	else {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Error fetching configuration: %s\n"), err);
+		return strcasestr(err ? : "", "auth") ? -EPERM : -EINVAL;
+	}
 
 bad_xml:
 	if (xml_doc)
@@ -159,7 +163,7 @@ bad_xml:
 	vpn_progress(vpninfo, PRG_ERR,
 			 _("Failed to parse server response\n"));
 	vpn_progress(vpninfo, PRG_DEBUG,
-			 _("Response was:%s\n"), response);
+			 _("Response was: %s\n"), response);
 	return -EINVAL;
 }
 
