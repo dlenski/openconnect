@@ -163,7 +163,6 @@ static int parse_cookie(struct openconnect_info *vpninfo)
  */
 static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *response)
 {
-	struct oc_text_buf *cookie = buf_alloc();
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node, *member;
 	const char *err = NULL;
@@ -183,35 +182,35 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 	xml_node = xmlDocGetRootElement(xml_doc);
 	if (!xml_node || !xmlnode_is_named(xml_node, "response"))
 		goto bad_xml;
-	success = !strcmp(xmlGetProp(xml_node, "status") ? : "", "success");
+	success = !xmlnode_match_prop(xml_node, "status", "success");
 	xml_node = xml_node->children;
 
 	for (; xml_node; xml_node=xml_node->next) {
 		if (xmlnode_is_named(xml_node, "ip-address")) {
-			vpninfo->ip_info.addr = xmlNodeGetContent(xml_node);
+			vpninfo->ip_info.addr = (char *)xmlNodeGetContent(xml_node);
 		} else if (xmlnode_is_named(xml_node, "netmask")) {
-			vpninfo->ip_info.netmask = xmlNodeGetContent(xml_node);
+			vpninfo->ip_info.netmask = (char *)xmlNodeGetContent(xml_node);
 		} else if (xmlnode_is_named(xml_node, "ssl-tunnel-url")) {
-			set_option(vpninfo, "TUNNEL", xmlNodeGetContent(xml_node), 1);
+			vpninfo->urlpath = (char *)xmlNodeGetContent(xml_node);
 		} else if (xmlnode_is_named(xml_node, "error")) {
-			err = xmlNodeGetContent(xml_node);
+			err = (char *)xmlNodeGetContent(xml_node);
 		} else if (xmlnode_is_named(xml_node, "mtu")) {
-			vpninfo->ip_info.mtu = atoi(xmlNodeGetContent(xml_node));
+			vpninfo->ip_info.mtu = atoi((char *)xmlNodeGetContent(xml_node));
 		} else if (xmlnode_is_named(xml_node, "dns")) {
 			for (ii=0, member = xml_node->children; member && ii<3; member=member->next) {
 				if (xmlnode_is_named(member, "member"))
-					vpninfo->ip_info.dns[ii++] = xmlNodeGetContent(member);
+					vpninfo->ip_info.dns[ii++] = (char *)xmlNodeGetContent(member);
 			}
 		} else if (xmlnode_is_named(xml_node, "wins")) {
 			for (ii=0, member = xml_node->children; member && ii<3; member=member->next) {
 				if (xmlnode_is_named(member, "member"))
-					vpninfo->ip_info.nbns[ii++] = xmlNodeGetContent(member);
+					vpninfo->ip_info.nbns[ii++] = (char *)xmlNodeGetContent(member);
 			}
 		} else if (xmlnode_is_named(xml_node, "dns-suffix")) {
 			member = xml_node->children;
 			for (ii=0, member = xml_node->children; member && ii<1; member=member->next) {
 				if (xmlnode_is_named(member, "member")) {
-					vpninfo->ip_info.domain = xmlNodeGetContent(member);
+					vpninfo->ip_info.domain = (char *)xmlNodeGetContent(member);
 					ii++;
 				}
 			}
@@ -221,7 +220,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 					struct oc_split_include *inc = malloc(sizeof(*inc));
 					if (!inc)
 						continue;
-					inc->route = xmlNodeGetContent(member);
+					inc->route = (char *)xmlNodeGetContent(member);
 					inc->next = vpninfo->ip_info.split_includes;
 					vpninfo->ip_info.split_includes = inc;
 				}
@@ -288,8 +287,8 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 
 	orig_path = vpninfo->urlpath;
 	orig_ua = vpninfo->useragent;
-	vpninfo->useragent = "PAN GlobalProtect";
-	vpninfo->urlpath = "ssl-vpn/getconfig.esp";
+	vpninfo->useragent = (char *)"PAN GlobalProtect";
+	vpninfo->urlpath = (char *)"ssl-vpn/getconfig.esp";
 	result = do_https_request(vpninfo, method, request_body_type, request_body,
 				  &xml_buf, 0);
 	vpninfo->urlpath = orig_path;
@@ -392,7 +391,6 @@ int gpst_connect(struct openconnect_info *vpninfo)
 		ret = -EINVAL;
 	}
 
- out:
 	if (ret < 0)
 		openconnect_close_https(vpninfo, 0);
 	else {

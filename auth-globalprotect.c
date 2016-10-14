@@ -28,10 +28,10 @@ void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 }
 
 /* our "auth form" is just a static combination of username and password */
-struct oc_auth_form *gp_auth_form(void)
+static struct oc_auth_form *gp_auth_form(void)
 {
-	static struct oc_form_opt password = {.type=OC_FORM_OPT_PASSWORD, .name="password", .label="Password: "};
-	static struct oc_form_opt username = {.next=&password, .type=OC_FORM_OPT_TEXT, .name="username", .label="Username: "};
+	static struct oc_form_opt password = {.type=OC_FORM_OPT_PASSWORD, .name=(char *)"password", .label=(char *)"Password: "};
+	static struct oc_form_opt username = {.next=&password, .type=OC_FORM_OPT_TEXT, .name=(char *)"username", .label=(char *)"Username: "};
 	static struct oc_auth_form form = {.opts=&username };
 	return &form;
 }
@@ -45,7 +45,7 @@ static int parse_login_xml(struct openconnect_info *vpninfo, char *response)
 	struct oc_text_buf *cookie = buf_alloc();
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node;
-	int ret, argn;
+	int argn;
 
 	if (!response) {
 		vpn_progress(vpninfo, PRG_DEBUG,
@@ -129,8 +129,8 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 
 	orig_path = vpninfo->urlpath;
 	orig_ua = vpninfo->useragent;
-	vpninfo->useragent = "PAN GlobalProtect";
-	vpninfo->urlpath = "ssl-vpn/login.esp";
+	vpninfo->useragent = (char *)"PAN GlobalProtect";
+	vpninfo->urlpath = (char *)"ssl-vpn/login.esp";
 	result = do_https_request(vpninfo, method, request_body_type, request_body,
 				  &xml_buf, 0);
 	vpninfo->urlpath = orig_path;
@@ -176,8 +176,8 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 	orig_path = vpninfo->urlpath;
 	orig_ua = vpninfo->useragent;
 	orig_cancel = vpninfo->got_cancel_cmd;
-	vpninfo->useragent = "PAN GlobalProtect";
-	vpninfo->urlpath = "ssl-vpn/logout.esp";
+	vpninfo->useragent = (char *)"PAN GlobalProtect";
+	vpninfo->urlpath = (char *)"ssl-vpn/logout.esp";
 	vpninfo->got_cancel_cmd = 0;
 	openconnect_close_https(vpninfo, 0);
 	result = do_https_request(vpninfo, method, request_body_type, request_body,
