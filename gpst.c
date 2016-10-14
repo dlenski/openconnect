@@ -74,7 +74,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node, *member;
 	const char *err = NULL;
-	int success, ii, mtu;
+	int success, ii;
 
 	if (!response) {
 		vpn_progress(vpninfo, PRG_DEBUG,
@@ -90,7 +90,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 	xml_node = xmlDocGetRootElement(xml_doc);
 	if (!xml_node || !xmlnode_is_named(xml_node, "response"))
 		goto bad_xml;
-	success = !strcmp(xmlGetProp(xml_node, "status"), "success");
+	success = !strcmp(xmlGetProp(xml_node, "status") ? : "", "success");
 	xml_node = xml_node->children;
 
 	for (; xml_node; xml_node=xml_node->next) {
@@ -103,12 +103,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 		} else if (xmlnode_is_named(xml_node, "error")) {
 			err = xmlNodeGetContent(xml_node);
 		} else if (xmlnode_is_named(xml_node, "mtu")) {
-			mtu = atoi(xmlNodeGetContent(xml_node));
-			if (mtu==0) {
-				vpn_progress(vpninfo, PRG_ERR, "Replacing MTU of 0 with 1500\n");
-				mtu = 1500;
-			}
-			vpninfo->ip_info.mtu = mtu;
+			vpninfo->ip_info.mtu = atoi(xmlNodeGetContent(xml_node));
 		} else if (xmlnode_is_named(xml_node, "dns")) {
 			for (ii=0, member = xml_node->children; member && ii<3; member=member->next) {
 				if (xmlnode_is_named(member, "member"))
@@ -130,16 +125,12 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 		} else if (xmlnode_is_named(xml_node, "access-routes")) {
 			for (ii=0, member = xml_node->children; member; member=member->next) {
 				if (xmlnode_is_named(member, "member")) {
-					struct oc_split_include *s = calloc(1, sizeof(struct oc_split_include)), *t;
-					s->route = xmlNodeGetContent(member);
-
-					if ((t = vpninfo->ip_info.split_includes) == NULL) {
-						vpninfo->ip_info.split_includes = s;
-					} else {
-						while(t->next)
-							t = t->next;
-						t->next = s;
-					}
+					struct oc_split_include *inc = malloc(sizeof(*inc));
+					if (!inc)
+						continue;
+					inc->route = xmlNodeGetContent(member);
+					inc->next = vpninfo->ip_info.split_includes;
+					vpninfo->ip_info.split_includes = inc;
 				}
 			}
 		}
@@ -170,19 +161,29 @@ bad_xml:
 static int gpst_get_config(struct openconnect_info *vpninfo)
 {
 	char *orig_path, *orig_ua;
-	int result;
+	int result, ii;
 	struct oc_vpn_option *cookie;
 	struct oc_text_buf *request_body = buf_alloc();
+	const char *old_addr = vpninfo->ip_info.addr, *old_netmask = vpninfo->ip_info.netmask;
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
 	char *xml_buf=NULL;
+
+	/* Clear old options which will be overwritten */
+	vpninfo->ip_info.addr = vpninfo->ip_info.netmask = NULL;
+	vpninfo->ip_info.addr6 = vpninfo->ip_info.netmask6 = NULL;
+	vpninfo->ip_info.domain = NULL;
+
+	for (ii = 0; ii < 3; ii++)
+		vpninfo->ip_info.dns[ii] = vpninfo->ip_info.nbns[ii] = NULL;
+	free_split_routes(vpninfo);
 
 	/* submit getconfig request */
 	buf_append(request_body, "client-type=1&protocol-version=p1&app-version=3.0.1-10&app-version=3.0.1-10&os-version=Windows");
 	append_opt(request_body, "hmac-algo", "sha1,md5");
 	append_opt(request_body, "enc-algo", "aes-128-cb,aes-256-cbc");
-	if (vpninfo->ip_info.addr)
-		append_opt(request_body, "preferred-ip", vpninfo->ip_info.addr);
+	if (old_addr)
+		append_opt(request_body, "preferred-ip", old_addr);
 	for (cookie = vpninfo->cookies; cookie; cookie = cookie->next) {
 		if (!strcmp(cookie->option, "USER"))
 			append_opt(request_body, "user", cookie->value);
@@ -208,8 +209,39 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 
 	/* parse getconfig result */
 	result = gpst_parse_config_xml(vpninfo, xml_buf);
+	if (result)
+		return result;
 
-	return result;
+	if (!vpninfo->ip_info.mtu) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("No MTU received. Defaulting to 1500\n"));
+		/* FIXME: GP gateway config always seems to be <mtu>0</mtu> */
+		vpninfo->ip_info.mtu = 1500;
+		/* return -EINVAL; */
+	}
+	if (!vpninfo->ip_info.addr) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("No IP address received. Aborting\n"));
+		return -EINVAL;
+	}
+	if (old_addr) {
+		if (strcmp(old_addr, vpninfo->ip_info.addr)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Reconnect gave different Legacy IP address (%s != %s)\n"),
+				     vpninfo->ip_info.addr, old_addr);
+			return -EINVAL;
+		}
+	}
+	if (old_netmask) {
+		if (strcmp(old_netmask, vpninfo->ip_info.netmask)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Reconnect gave different Legacy IP netmask (%s != %s)\n"),
+				     vpninfo->ip_info.netmask, old_netmask);
+			return -EINVAL;
+		}
+	}
+
+	return 0;
 }
 
 static int parse_cookie(struct openconnect_info *vpninfo)
@@ -253,12 +285,9 @@ int gpst_connect(struct openconnect_info *vpninfo)
 	int ret;
 	struct oc_text_buf *reqbuf;
 	struct oc_vpn_option *cookie;
-	const char *username = NULL, *authcookie = NULL;
+	const char *username = NULL, *authcookie = NULL, *old_addr = vpninfo->ip_info.addr, *old_netmask = vpninfo->ip_info.netmask;
+	const char *old_addr = vpninfo->ip_info.addr, *old_netmask = vpninfo->ip_info.netmask;
 	char buf[256];
-
-	/* XXX: We should do what cstp_connect() does to check that configuration
-	   hasn't changed on a reconnect. */
-
 	ret = parse_cookie(vpninfo);
 	if (ret)
 		return ret;
@@ -274,6 +303,35 @@ int gpst_connect(struct openconnect_info *vpninfo)
 	ret = gpst_get_config(vpninfo);
 	if (ret)
 		return ret;
+
+	if (!vpninfo->ip_info.mtu) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("No MTU received. Defaulting to 1500\n"));
+		/* FIXME: GP gateway config always seems to be <mtu>0</mtu> */
+		vpninfo->ip_info.mtu = 1500;
+		/* return -EINVAL; */
+	}
+	if (!vpninfo->ip_info.addr) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("No IP address received. Aborting\n"));
+		return -EINVAL;
+	}
+	if (old_addr) {
+		if (strcmp(old_addr, vpninfo->ip_info.addr)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Reconnect gave different Legacy IP address (%s != %s)\n"),
+				     vpninfo->ip_info.addr, old_addr);
+			return -EINVAL;
+		}
+	}
+	if (old_netmask) {
+		if (strcmp(old_netmask, vpninfo->ip_info.netmask)) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Reconnect gave different Legacy IP netmask (%s != %s)\n"),
+				     vpninfo->ip_info.netmask, old_netmask);
+			return -EINVAL;
+		}
+	}
 
 	/* Connect to SSL VPN tunnel */
 	ret = openconnect_open_https(vpninfo);
