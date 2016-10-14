@@ -64,6 +64,99 @@ static void buf_hexdump(struct openconnect_info *vpninfo, int loglevel, unsigned
 	vpn_progress(vpninfo, loglevel, "%s\n", linebuf);
 }
 
+/* basically a copy of http_add_cookie */
+static int set_option(struct openconnect_info *vpninfo, const char *option,
+		      const char *value, int replace)
+{
+	struct oc_vpn_option *new, **this;
+
+	if (*value) {
+		new = malloc(sizeof(*new));
+		if (!new) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("No memory for allocating options\n"));
+			return -ENOMEM;
+		}
+		new->next = NULL;
+		new->option = strdup(option);
+		new->value = strdup(value);
+		if (!new->option || !new->value) {
+			free(new->option);
+			free(new->value);
+			free(new);
+			return -ENOMEM;
+		}
+	} else {
+		/* Kill option; don't replace it */
+		new = NULL;
+		/* This would be meaningless */
+		if (!replace)
+			return -EINVAL;
+	}
+	for (this = &vpninfo->cstp_options; *this; this = &(*this)->next) {
+		if (!strcmp(option, (*this)->option)) {
+			if (!replace) {
+				free(new->value);
+				free(new->option);
+				free(new);
+				return 0;
+			}
+			/* Replace existing option */
+			if (new)
+				new->next = (*this)->next;
+			else
+				new = (*this)->next;
+
+			free((*this)->option);
+			free((*this)->value);
+			free(*this);
+			*this = new;
+			break;
+		}
+	}
+	if (new && !*this) {
+		*this = new;
+		new->next = NULL;
+	}
+	return 0;
+}
+
+static int parse_cookie(struct openconnect_info *vpninfo)
+{
+	char *p = vpninfo->cookie;
+
+	/* We currently expect the "cookie" to contain multiple options:
+	 * USER=xxx; AUTH=xxx; PORTAL=xxx; DOMAIN=xxx
+	 * Process those into vpninfo->cstp_options unless we already had them
+	 * (in which case they may be newer). */
+	while (p && *p) {
+		char *semicolon = strchr(p, ';');
+		char *equals;
+
+		if (semicolon)
+			*semicolon = 0;
+
+		equals = strchr(p, '=');
+		if (!equals) {
+			vpn_progress(vpninfo, PRG_ERR, _("Invalid cookie '%s'\n"), p);
+			return -EINVAL;
+		}
+		*equals = 0;
+		set_option(vpninfo, p, equals+1, 0);
+		*equals = '=';
+
+		p = semicolon;
+		if (p) {
+			*p = ';';
+			p++;
+			while (*p && isspace((int)(unsigned char)*p))
+				p++;
+		}
+	}
+
+	return 0;
+}
+
 /* Return value:
  *  < 0, on error
  *  = 0, on success; *form is populated
@@ -99,7 +192,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 		} else if (xmlnode_is_named(xml_node, "netmask")) {
 			vpninfo->ip_info.netmask = xmlNodeGetContent(xml_node);
 		} else if (xmlnode_is_named(xml_node, "ssl-tunnel-url")) {
-			vpninfo->urlpath = xmlNodeGetContent(xml_node);
+			set_option(vpninfo, "TUNNEL", xmlNodeGetContent(xml_node), 1);
 		} else if (xmlnode_is_named(xml_node, "error")) {
 			err = xmlNodeGetContent(xml_node);
 		} else if (xmlnode_is_named(xml_node, "mtu")) {
@@ -162,7 +255,7 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 {
 	char *orig_path, *orig_ua;
 	int result, ii;
-	struct oc_vpn_option *cookie;
+	struct oc_vpn_option *opt;
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *old_addr = vpninfo->ip_info.addr, *old_netmask = vpninfo->ip_info.netmask;
 	const char *request_body_type = "application/x-www-form-urlencoded";
@@ -184,13 +277,13 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	append_opt(request_body, "enc-algo", "aes-128-cb,aes-256-cbc");
 	if (old_addr)
 		append_opt(request_body, "preferred-ip", old_addr);
-	for (cookie = vpninfo->cookies; cookie; cookie = cookie->next) {
-		if (!strcmp(cookie->option, "USER"))
-			append_opt(request_body, "user", cookie->value);
-		else if (!strcmp(cookie->option, "AUTH"))
-			append_opt(request_body, "authcookie", cookie->value);
-		else if (!strcmp(cookie->option, "PORTAL"))
-			append_opt(request_body, "portal", cookie->value);
+	for (opt = vpninfo->cstp_options; opt; opt = opt->next) {
+		if (!strcmp(opt->option, "USER"))
+			append_opt(request_body, "user", opt->value);
+		else if (!strcmp(opt->option, "AUTH"))
+			append_opt(request_body, "authcookie", opt->value);
+		else if (!strcmp(opt->option, "PORTAL"))
+			append_opt(request_body, "portal", opt->value);
 	}
 
 	orig_path = vpninfo->urlpath;
@@ -244,94 +337,20 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	return 0;
 }
 
-static int parse_cookie(struct openconnect_info *vpninfo)
-{
-	char *p = vpninfo->cookie;
-
-	/* We currenly expect the "cookie" to contain multiple cookies. At a minimum:
-	 * USER=xxx; AUTH=xxx
-	 * Process those into vpninfo->cookies unless we already had them
-	 * (in which case they may be newer). */
-	while (p && *p) {
-		char *semicolon = strchr(p, ';');
-		char *equals;
-
-		if (semicolon)
-			*semicolon = 0;
-
-		equals = strchr(p, '=');
-		if (!equals) {
-			vpn_progress(vpninfo, PRG_ERR, _("Invalid cookie '%s'\n"), p);
-			return -EINVAL;
-		}
-		*equals = 0;
-		http_add_cookie(vpninfo, p, equals+1, 0);
-		*equals = '=';
-
-		p = semicolon;
-		if (p) {
-			*p = ';';
-			p++;
-			while (*p && isspace((int)(unsigned char)*p))
-				p++;
-		}
-	}
-
-	return 0;
-}
-
 int gpst_connect(struct openconnect_info *vpninfo)
 {
 	int ret;
 	struct oc_text_buf *reqbuf;
-	struct oc_vpn_option *cookie;
-	const char *username = NULL, *authcookie = NULL, *old_addr = vpninfo->ip_info.addr, *old_netmask = vpninfo->ip_info.netmask;
-	const char *old_addr = vpninfo->ip_info.addr, *old_netmask = vpninfo->ip_info.netmask;
 	char buf[256];
+
 	ret = parse_cookie(vpninfo);
 	if (ret)
 		return ret;
-
-	for (cookie = vpninfo->cookies; cookie; cookie = cookie->next) {
-		if (!strcmp(cookie->option, "USER"))
-			username = cookie->value;
-		else if (!strcmp(cookie->option, "AUTH"))
-			authcookie = cookie->value;
-	}
 
 	/* Get configuration */
 	ret = gpst_get_config(vpninfo);
 	if (ret)
 		return ret;
-
-	if (!vpninfo->ip_info.mtu) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("No MTU received. Defaulting to 1500\n"));
-		/* FIXME: GP gateway config always seems to be <mtu>0</mtu> */
-		vpninfo->ip_info.mtu = 1500;
-		/* return -EINVAL; */
-	}
-	if (!vpninfo->ip_info.addr) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("No IP address received. Aborting\n"));
-		return -EINVAL;
-	}
-	if (old_addr) {
-		if (strcmp(old_addr, vpninfo->ip_info.addr)) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Reconnect gave different Legacy IP address (%s != %s)\n"),
-				     vpninfo->ip_info.addr, old_addr);
-			return -EINVAL;
-		}
-	}
-	if (old_netmask) {
-		if (strcmp(old_netmask, vpninfo->ip_info.netmask)) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Reconnect gave different Legacy IP netmask (%s != %s)\n"),
-				     vpninfo->ip_info.netmask, old_netmask);
-			return -EINVAL;
-		}
-	}
 
 	/* Connect to SSL VPN tunnel */
 	ret = openconnect_open_https(vpninfo);
@@ -339,7 +358,7 @@ int gpst_connect(struct openconnect_info *vpninfo)
 		return ret;
 
 	reqbuf = buf_alloc();
-	buf_append(reqbuf, "GET %s?user=", vpninfo->urlpath);
+	buf_append(reqbuf, "GET %s?user=", tunnel);
 	buf_append_urlencoded(reqbuf, username);
 	buf_append(reqbuf, "&authcookie=%s HTTP/1.1\r\n\r\n", authcookie);
 

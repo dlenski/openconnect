@@ -149,7 +149,7 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 {
 	char *orig_path, *orig_ua;
 	int result, orig_cancel;
-	struct oc_vpn_option *cookie;
+	struct oc_vpn_option *opt;
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
@@ -157,15 +157,15 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 
 	/* submit logout request */
 	append_opt(request_body, "computer", vpninfo->localname);
-	for (cookie = vpninfo->cookies; cookie; cookie = cookie->next) {
-		if (!strcmp(cookie->option, "USER"))
-			append_opt(request_body, "user", cookie->value);
-		else if (!strcmp(cookie->option, "AUTH"))
-			append_opt(request_body, "authcookie", cookie->value);
-		else if (!strcmp(cookie->option, "PORTAL"))
-			append_opt(request_body, "portal", cookie->value);
-		else if (!strcmp(cookie->option, "DOMAIN"))
-			append_opt(request_body, "domain", cookie->value);
+	for (opt = vpninfo->cstp_options; opt; opt = opt->next) {
+		if (!strcmp(opt->option, "USER"))
+			append_opt(request_body, "user", opt->value);
+		else if (!strcmp(opt->option, "AUTH"))
+			append_opt(request_body, "authcookie", opt->value);
+		else if (!strcmp(opt->option, "PORTAL"))
+			append_opt(request_body, "portal", opt->value);
+		else if (!strcmp(opt->option, "DOMAIN"))
+			append_opt(request_body, "domain", opt->value);
 	}
 
 	/* We need to close and reopen the HTTPS connection (to kill
