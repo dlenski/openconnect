@@ -66,6 +66,22 @@ static void buf_hexdump(struct openconnect_info *vpninfo, int loglevel, unsigned
 	vpn_progress(vpninfo, loglevel, "%s\n", linebuf);
 }
 
+/* similar to auth.c's xmlnode_get_text, except that *var should be freed by the caller */
+static int xmlnode_get_text(xmlNode *xml_node, const char *name, const char **var)
+{
+	const char *str;
+
+	if (name && !xmlnode_is_named(xml_node, name))
+		return -EINVAL;
+
+	str = (const char *)xmlNodeGetContent(xml_node);
+	if (!str)
+		return -ENOENT;
+
+	*var = str;
+	return 0;
+}
+
 /* basically a copy of http_add_cookie */
 static int set_option(struct openconnect_info *vpninfo, const char *option,
 		      const char *value, int replace)
@@ -167,7 +183,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 {
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node, *member;
-	const char *err = NULL;
+	const char *err = NULL, *s;
 	int success, ii;
 
 	if (!response) {
@@ -188,41 +204,35 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 	xml_node = xml_node->children;
 
 	for (; xml_node; xml_node=xml_node->next) {
-		if (xmlnode_is_named(xml_node, "ip-address")) {
-			vpninfo->ip_info.addr = (char *)xmlNodeGetContent(xml_node);
-		} else if (xmlnode_is_named(xml_node, "netmask")) {
-			vpninfo->ip_info.netmask = (char *)xmlNodeGetContent(xml_node);
-		} else if (xmlnode_is_named(xml_node, "ssl-tunnel-url")) {
-			vpninfo->urlpath = (char *)xmlNodeGetContent(xml_node);
-		} else if (xmlnode_is_named(xml_node, "error")) {
-			err = (char *)xmlNodeGetContent(xml_node);
-		} else if (xmlnode_is_named(xml_node, "mtu")) {
-			vpninfo->ip_info.mtu = atoi((char *)xmlNodeGetContent(xml_node));
+		xmlnode_get_text(xml_node, "error", &err);
+		xmlnode_get_text(xml_node, "ip-address", &vpninfo->ip_info.addr);
+		xmlnode_get_text(xml_node, "netmask", &vpninfo->ip_info.netmask);
+
+		if (!xmlnode_get_text(xml_node, "ssl-tunnel-url", &s)) {
+			set_option(vpninfo, "tunnel", s, 1);
+			free(s);
+		} else if (!xmlnode_get_text(xml_node, "mtu", &s)) {
+			vpninfo->ip_info.mtu = atoi(s);
+			free(s);
 		} else if (xmlnode_is_named(xml_node, "dns")) {
-			for (ii=0, member = xml_node->children; member && ii<3; member=member->next) {
-				if (xmlnode_is_named(member, "member"))
-					vpninfo->ip_info.dns[ii++] = (char *)xmlNodeGetContent(member);
-			}
-		} else if (xmlnode_is_named(xml_node, "wins")) {
-			for (ii=0, member = xml_node->children; member && ii<3; member=member->next) {
-				if (xmlnode_is_named(member, "member"))
-					vpninfo->ip_info.nbns[ii++] = (char *)xmlNodeGetContent(member);
-			}
-		} else if (xmlnode_is_named(xml_node, "dns-suffix")) {
-			member = xml_node->children;
-			for (ii=0, member = xml_node->children; member && ii<1; member=member->next) {
-				if (xmlnode_is_named(member, "member")) {
-					vpninfo->ip_info.domain = (char *)xmlNodeGetContent(member);
+			for (ii=0, member = xml_node->children; member && ii<3; member=member->next)
+				if (!xmlnode_get_text(member, "member", &vpninfo->ip_info.dns[ii]))
 					ii++;
-				}
-			}
+		} else if (xmlnode_is_named(xml_node, "wins")) {
+			for (ii=0, member = xml_node->children; member && ii<3; member=member->next)
+				if (!xmlnode_get_text(member, "member", &vpninfo->ip_info.nbns[ii]))
+					ii++;
+		} if (xmlnode_is_named(xml_node, "dns-suffix")) {
+			for (ii=0, member = xml_node->children; member && ii<1; member=member->next)
+				if (!xmlnode_get_text(member, "member", &vpninfo->ip_info.domain))
+					ii++;
 		} else if (xmlnode_is_named(xml_node, "access-routes")) {
-			for (ii=0, member = xml_node->children; member; member=member->next) {
-				if (xmlnode_is_named(member, "member")) {
+			for (member = xml_node->children; member; member=member->next) {
+				if (!xmlnode_get_text(member, "member", &s)) {
 					struct oc_split_include *inc = malloc(sizeof(*inc));
 					if (!inc)
 						continue;
-					inc->route = (char *)xmlNodeGetContent(member);
+					inc->route = s;
 					inc->next = vpninfo->ip_info.split_includes;
 					vpninfo->ip_info.split_includes = inc;
 				}
