@@ -114,7 +114,7 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 	/* process static auth form (username and password) */
 	result = process_auth_form(vpninfo, form);
 	if (result)
-		return result;
+		goto out;
 
 	/* submit login request */
 	buf_append(request_body, "jnlpReady=jnlpReady&ok=Login&direct=yes&clientVer=4100&prot=https:");
@@ -135,13 +135,15 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 				  &xml_buf, 0);
 	vpninfo->urlpath = orig_path;
 	vpninfo->useragent = orig_ua;
-
-	buf_free(request_body);
 	if (result < 0)
-		return -EINVAL;
+		goto out;
 
 	/* parse login result */
 	result = parse_login_xml(vpninfo, xml_buf);
+
+out:
+	buf_free(request_body);
+	free(xml_buf);
 	return result;
 }
 
@@ -182,7 +184,6 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 	vpninfo->urlpath = orig_path;
 	vpninfo->useragent = orig_ua;
 
-	buf_free(request_body);
 
 	/* logout.esp correctly returns HTTP status 200 when successful, so
 	 * we don't have to parse the XML... phew.
@@ -191,6 +192,8 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 		vpn_progress(vpninfo, PRG_ERR, _("Logout failed. Response was: %s\n"), xml_buf);
 	else
 		vpn_progress(vpninfo, PRG_INFO, _("Logout successful\n"));
+
+	buf_free(request_body);
 	free(xml_buf);
 	return result;
 }

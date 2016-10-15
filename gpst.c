@@ -297,10 +297,8 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	vpninfo->urlpath = orig_path;
 	vpninfo->useragent = orig_ua;
 
-	buf_free(request_body);
-
 	if (result < 0)
-		return -EINVAL;
+		goto out;
 
 	/* parse getconfig result */
 	result = gpst_parse_config_xml(vpninfo, xml_buf);
@@ -317,14 +315,16 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	if (!vpninfo->ip_info.addr) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("No IP address received. Aborting\n"));
-		return -EINVAL;
+		result = -EINVAL;
+		goto out;
 	}
 	if (old_addr) {
 		if (strcmp(old_addr, vpninfo->ip_info.addr)) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Reconnect gave different Legacy IP address (%s != %s)\n"),
 				     vpninfo->ip_info.addr, old_addr);
-			return -EINVAL;
+			result = -EINVAL;
+			goto out;
 		}
 	}
 	if (old_netmask) {
@@ -332,10 +332,14 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Reconnect gave different Legacy IP netmask (%s != %s)\n"),
 				     vpninfo->ip_info.netmask, old_netmask);
-			return -EINVAL;
+			result = -EINVAL;
+			goto out;
 		}
 	}
 
+out:
+	buf_free(request_body);
+	free(xml_buf);
 	return 0;
 }
 
