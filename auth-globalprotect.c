@@ -148,7 +148,7 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 {
 	char *orig_path, *orig_ua;
-	int result, orig_cancel;
+	int result;
 	struct oc_vpn_option *opt;
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
@@ -170,19 +170,15 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 
 	/* We need to close and reopen the HTTPS connection (to kill
 	 * the tunnel session) and submit a new HTTPS request to
-	 * logout, but openconnect interrupts HTTPS requests once
-	 * got_cancel_cmd is true. So we trick it :-(
+	 * logout.
 	 */
 	orig_path = vpninfo->urlpath;
 	orig_ua = vpninfo->useragent;
-	orig_cancel = vpninfo->got_cancel_cmd;
 	vpninfo->useragent = (char *)"PAN GlobalProtect";
 	vpninfo->urlpath = (char *)"ssl-vpn/logout.esp";
-	vpninfo->got_cancel_cmd = 0;
 	openconnect_close_https(vpninfo, 0);
 	result = do_https_request(vpninfo, method, request_body_type, request_body,
 				  &xml_buf, 0);
-	vpninfo->got_cancel_cmd = orig_cancel;
 	vpninfo->urlpath = orig_path;
 	vpninfo->useragent = orig_ua;
 
