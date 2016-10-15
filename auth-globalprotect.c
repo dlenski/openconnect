@@ -32,7 +32,7 @@ static struct oc_auth_form *gp_auth_form(void)
 {
 	static struct oc_form_opt password = {.type=OC_FORM_OPT_PASSWORD, .name=(char *)"password", .label=(char *)"Password: "};
 	static struct oc_form_opt username = {.next=&password, .type=OC_FORM_OPT_TEXT, .name=(char *)"username", .label=(char *)"Username: "};
-	static struct oc_auth_form form = {.opts=&username };
+	static struct oc_auth_form form = {.opts=&username, .message=(char *)"Please enter your username and password." };
 	return &form;
 }
 
@@ -110,33 +110,43 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 	const char *method = "POST";
 	char *xml_buf=NULL, *orig_path, *orig_ua;
 
+	/* Ask the user to fill in the auth form; repeat as necessary */
+	while (1) {
+		buf_truncate(request_body);
 
-	/* process static auth form (username and password) */
-	result = process_auth_form(vpninfo, form);
-	if (result)
+		/* process static auth form (username and password) */
+		result = process_auth_form(vpninfo, form);
+		if (result)
+			goto out;
+
+		/* submit login request */
+		buf_append(request_body, "jnlpReady=jnlpReady&ok=Login&direct=yes&clientVer=4100&prot=https:");
+		append_opt(request_body, "server", vpninfo->hostname);
+		append_opt(request_body, "computer", vpninfo->localname);
+		for (opt=form->opts; opt; opt=opt->next) {
+			if (!strcmp(opt->name, "username"))
+				append_opt(request_body, "user", opt->_value);
+			else if (!strcmp(opt->name, "password"))
+				append_opt(request_body, "passwd", opt->_value);
+		}
+
+		orig_path = vpninfo->urlpath;
+		orig_ua = vpninfo->useragent;
+		vpninfo->useragent = (char *)"PAN GlobalProtect";
+		vpninfo->urlpath = (char *)"ssl-vpn/login.esp";
+		result = do_https_request(vpninfo, method, request_body_type, request_body,
+					  &xml_buf, 0);
+		vpninfo->urlpath = orig_path;
+		vpninfo->useragent = orig_ua;
+		if (result >= 0)
+			break;
+		else if (result == -512) {
+			vpn_progress(vpninfo, PRG_ERR, _("Authentication failed.\n"));
+			continue;
+		} else if (result == -513)
+			vpn_progress(vpninfo, PRG_ERR, _("Invalid client certificate.\n"));
 		goto out;
-
-	/* submit login request */
-	buf_append(request_body, "jnlpReady=jnlpReady&ok=Login&direct=yes&clientVer=4100&prot=https:");
-	append_opt(request_body, "server", vpninfo->hostname);
-	append_opt(request_body, "computer", vpninfo->localname);
-	for (opt=form->opts; opt; opt=opt->next) {
-		if (!strcmp(opt->name, "username"))
-			append_opt(request_body, "user", opt->_value);
-		else if (!strcmp(opt->name, "password"))
-			append_opt(request_body, "passwd", opt->_value);
 	}
-
-	orig_path = vpninfo->urlpath;
-	orig_ua = vpninfo->useragent;
-	vpninfo->useragent = (char *)"PAN GlobalProtect";
-	vpninfo->urlpath = (char *)"ssl-vpn/login.esp";
-	result = do_https_request(vpninfo, method, request_body_type, request_body,
-				  &xml_buf, 0);
-	vpninfo->urlpath = orig_path;
-	vpninfo->useragent = orig_ua;
-	if (result < 0)
-		goto out;
 
 	/* parse login result */
 	result = parse_login_xml(vpninfo, xml_buf);
