@@ -969,7 +969,7 @@ int cstp_obtain_cookie(struct openconnect_info *vpninfo);
 int xmlnode_is_named(xmlNode *xml_node, const char *name);
 int xmlnode_get_prop(xmlNode *xml_node, const char *name, char **var);
 int xmlnode_match_prop(xmlNode *xml_node, const char *name, const char *match);
-int append_opt(struct oc_text_buf *body, char *opt, char *name);
+int append_opt(struct oc_text_buf *body, const char *opt, const char *name);
 int append_form_opts(struct openconnect_info *vpninfo,
 		     struct oc_auth_form *form, struct oc_text_buf *body);
 void free_opt(struct oc_form_opt *opt);
@@ -991,7 +991,7 @@ int buf_append_utf16le(struct oc_text_buf *buf, const char *utf8);
 int get_utf8char(const char **utf8);
 void buf_append_from_utf16le(struct oc_text_buf *buf, const void *utf16);
 void buf_truncate(struct oc_text_buf *buf);
-void buf_append_urlencoded(struct oc_text_buf *buf, char *str);
+void buf_append_urlencoded(struct oc_text_buf *buf, const char *str);
 int buf_error(struct oc_text_buf *buf);
 int buf_free(struct oc_text_buf *buf);
 char *openconnect_create_useragent(const char *base);
