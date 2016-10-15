@@ -246,6 +246,7 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 			} else {
 				ret = -ECONNABORTED;
 			}
+			vpninfo->got_cancel_cmd = 0;
 			break;
 		}
 
