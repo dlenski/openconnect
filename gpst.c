@@ -48,6 +48,8 @@
  * 0010: data payload
  */
 
+static const struct pkt dpd_pkt = { .gpst.hdr = { 0x1a, 0x2b, 0x3c, 0x4d } };
+
 static void buf_hexdump(struct openconnect_info *vpninfo, int loglevel, unsigned char *d, int len)
 {
 	char linebuf[80];
@@ -228,8 +230,9 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 		}
 	}
 
-	/* No IPv6 support for GlobalProtect yet */
+	/* No IPv6 support, and 10-second DPD/keepalive (same as Windows client) */
 	openconnect_disable_ipv6(vpninfo);
+	vpninfo->ssl_times.dpd = vpninfo->ssl_times.keepalive = 10;
 
 	xmlFreeDoc(xml_doc);
 	if (success)
@@ -399,6 +402,8 @@ int gpst_connect(struct openconnect_info *vpninfo)
 		monitor_except_fd(vpninfo, ssl);
 	}
 
+	vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
+
 	return ret;
 }
 
@@ -413,7 +418,7 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		goto do_reconnect;
 
 	while (1) {
-		int len = 65536;
+		int len = MAX(16384, vpninfo->ip_info.mtu);
 		int payload_len;
 
 		if (!vpninfo->cstp_pkt) {
@@ -446,34 +451,50 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		if (magic != 0x1a2b3c4d)
 			goto unknown_pkt;
-		if (ethertype != 0x800) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Expected EtherType 0x800 for IPv4, but got 0x%04x"), ethertype);
-			goto unknown_pkt;
-		}
+
 		if (len != 16 + payload_len) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Unexpected packet length. SSL_read returned %d (includes 16 header bytes) but header payload_len is %d\n"),
 			             len, payload_len);
-			goto unknown_pkt;
-		}
-		if (one != 1 || zero != 0) {
-			vpn_progress(vpninfo, PRG_ERR,
-			             _("Expected 0100000000000000 as last 8 bytes of packet header\n"));
-			goto unknown_pkt;
+			buf_hexdump(vpninfo, PRG_ERR, vpninfo->cstp_pkt->gpst.hdr, 16);
+			continue;
 		}
 
 		vpninfo->ssl_times.last_rx = time(NULL);
+		switch (ethertype) {
+		case 0:
+			vpn_progress(vpninfo, PRG_DEBUG,
+				     _("Got GPST DPD/keepalive response\n"));
 
-		vpn_progress(vpninfo, PRG_TRACE,
-			     _("Got data packet of %d bytes\n"),
-			     payload_len);
-		//buf_hexdump(vpninfo, PRG_TRACE, vpninfo->cstp_pkt->gpst.hdr, len);
+			if (one != 0 || zero != 0) {
+				vpn_progress(vpninfo, PRG_DEBUG,
+					     _("Expected 0000000000000000 as last 8 bytes of DPD/keepalive packet header, but got:\n"));
+				buf_hexdump(vpninfo, PRG_DEBUG, vpninfo->cstp_pkt->gpst.hdr + 8, 8);
+			}
+			continue;
+		case 0x0800:
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("Received data packet of %d bytes\n"),
+				     payload_len);
+			vpninfo->cstp_pkt->len = payload_len;
+			queue_packet(&vpninfo->incoming_queue, vpninfo->cstp_pkt);
+			vpninfo->cstp_pkt = NULL;
+			work_done = 1;
 
-		vpninfo->cstp_pkt->len = payload_len;
-		queue_packet(&vpninfo->incoming_queue, vpninfo->cstp_pkt);
-		vpninfo->cstp_pkt = NULL;
-		work_done = 1;
+			if (one != 1 || zero != 0) {
+				vpn_progress(vpninfo, PRG_DEBUG,
+					     _("Expected 0100000000000000 as last 8 bytes of data packet header, but got:\n"));
+				buf_hexdump(vpninfo, PRG_ERR, vpninfo->cstp_pkt->gpst.hdr + 8, 8);
+			}
+			continue;
+		}
+
+	unknown_pkt:
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Unknown packet. Header dump follows:\n"));
+		buf_hexdump(vpninfo, PRG_ERR, vpninfo->cstp_pkt->gpst.hdr, 16);
+		vpninfo->quit_reason = "Unknown packet received";
+		return 1;
 	}
 
 
@@ -485,25 +506,18 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpninfo->ssl_times.last_tx = time(NULL);
 		unmonitor_write_fd(vpninfo, ssl);
 
-		vpn_progress(vpninfo, PRG_TRACE, _("Outgoing data packet of %d bytes\n"), vpninfo->current_ssl_pkt->len);
-		//buf_hexdump(vpninfo, PRG_TRACE, vpninfo->current_ssl_pkt->gpst.hdr,
-		//	    vpninfo->current_ssl_pkt->len + 16);
-
 		ret = ssl_nonblock_write(vpninfo,
 					 vpninfo->current_ssl_pkt->gpst.hdr,
 					 vpninfo->current_ssl_pkt->len + 16);
-		if (ret < 0) {
-			vpn_progress(vpninfo, PRG_ERR, _("Write error: %s\n"), strerror(-ret));
-		do_reconnect:
-			ret = ssl_reconnect(vpninfo);
-			if (ret) {
-				vpn_progress(vpninfo, PRG_ERR, _("Reconnect failed\n"));
-				vpninfo->quit_reason = "GPST reconnect failed";
-				return ret;
+		if (ret < 0)
+			goto do_reconnect;
+		else if (!ret) {
+			switch (ka_stalled_action(&vpninfo->ssl_times, timeout)) {
+			case KA_DPD_DEAD:
+				goto peer_dead;
+			case KA_NONE:
+				return work_done;
 			}
-			return 1;
-		} else if (!ret) {
-			return work_done;
 		}
 
 		if (ret != vpninfo->current_ssl_pkt->len + 16) {
@@ -513,14 +527,45 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpninfo->quit_reason = "Internal error";
 			return 1;
 		}
-		free(vpninfo->current_ssl_pkt);
+		/* Don't free the 'special' packets */
+		if (vpninfo->current_ssl_pkt != &dpd_pkt)
+			free(vpninfo->current_ssl_pkt);
 
 		vpninfo->current_ssl_pkt = NULL;
 	}
 
+	switch (keepalive_action(&vpninfo->ssl_times, timeout)) {
+	case KA_DPD_DEAD:
+	peer_dead:
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("GPST Dead Peer Detection detected dead peer!\n"));
+	do_reconnect:
+		ret = ssl_reconnect(vpninfo);
+		if (ret) {
+			vpn_progress(vpninfo, PRG_ERR, _("Reconnect failed\n"));
+			vpninfo->quit_reason = "GPST reconnect failed";
+			return ret;
+		}
+		return 1;
+
+	case KA_KEEPALIVE:
+		/* No need to send an explicit keepalive
+		   if we have real data to send */
+		if (vpninfo->dtls_state != DTLS_CONNECTED &&
+		    vpninfo->outgoing_queue.head)
+			break;
+
+	case KA_DPD:
+		vpn_progress(vpninfo, PRG_DEBUG, _("Send GPST DPD/keepalive request\n"));
+
+		vpninfo->current_ssl_pkt = (struct pkt *)&dpd_pkt;
+		goto handle_outgoing;
+	}
+
+
 	/* Service outgoing packet queue */
-        while (vpninfo->dtls_state != DTLS_CONNECTED &&
-               (vpninfo->current_ssl_pkt = dequeue_packet(&vpninfo->outgoing_queue))) {
+	while (vpninfo->dtls_state != DTLS_CONNECTED &&
+	       (vpninfo->current_ssl_pkt = dequeue_packet(&vpninfo->outgoing_queue))) {
 		struct pkt *this = vpninfo->current_ssl_pkt;
 
 		/* store header */
@@ -539,11 +584,4 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 	/* Work is not done if we just got rid of packets off the queue */
 	return work_done;
-
-unknown_pkt:
-	vpn_progress(vpninfo, PRG_ERR,
-		     _("Unknown packet. Header dump follows:\n"));
-	buf_hexdump(vpninfo, PRG_ERR, vpninfo->cstp_pkt->gpst.hdr, 16);
-	vpninfo->quit_reason = "Unknown packet received";
-	return 1;
 }
