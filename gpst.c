@@ -230,9 +230,15 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 		}
 	}
 
-	/* No IPv6 support, and 10-second DPD/keepalive (same as Windows client) */
+	/* No IPv6 support for SSL VPN:
+	 * https://live.paloaltonetworks.com/t5/Learning-Articles/IPv6-Support-on-the-Palo-Alto-Networks-Firewall/ta-p/52994 */
 	openconnect_disable_ipv6(vpninfo);
-	vpninfo->ssl_times.dpd = vpninfo->ssl_times.keepalive = 10;
+
+	/* Set 10-second DPD/keepalive (same as Windows client) unless
+	 * overridden with --force-dpd */
+	if (!vpninfo->ssl_times.dpd)
+		vpninfo->ssl_times.dpd = 10;
+	vpninfo->ssl_times.keepalive = vpninfo->ssl_times.dpd;
 
 	xmlFreeDoc(xml_doc);
 	if (success)
@@ -308,10 +314,10 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 		return result;
 
 	if (!vpninfo->ip_info.mtu) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("No MTU received. Defaulting to 1500\n"));
 		/* FIXME: GP gateway config always seems to be <mtu>0</mtu> */
-		vpninfo->ip_info.mtu = 1500;
+		vpninfo->ip_info.mtu = vpninfo->reqmtu ? : vpninfo->basemtu ? : 1500;
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("No MTU received. Set to %d\n"), vpninfo->ip_info.mtu);
 		/* return -EINVAL; */
 	}
 	if (!vpninfo->ip_info.addr) {
