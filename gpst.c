@@ -175,6 +175,35 @@ static int parse_cookie(struct openconnect_info *vpninfo)
 	return 0;
 }
 
+static int set_esp_algo(struct openconnect_info *vpninfo, const char *s, int hmac)
+{
+	if (hmac && !strcmp(s, "sha1"))		vpninfo->esp_hmac = HMAC_SHA1;
+	else if (hmac && !strcmp(s, "md5"))	vpninfo->esp_hmac = HMAC_MD5;
+	else if (!strcmp(s, "aes-128-cbc"))	vpninfo->esp_enc = ENC_AES_128_CBC;
+	else if (!strcmp(s, "aes-256-cbc"))	vpninfo->esp_enc = ENC_AES_256_CBC;
+	else return -ENOENT;
+	return 0;
+}
+
+static int get_key_bits(xmlNode *xml_node, unsigned char *dest)
+{
+	int bits = -EINVAL;
+	xmlNode *child;
+	const char *s, *p;
+
+	for (child = xml_node->children; child; child=child->next) {
+		if (xmlnode_get_text(child, "bits", &s) == 0) {
+			bits = atoi(s);
+			free((void *)s);
+		} else if (xmlnode_get_text(child, "val", &s) == 0) {
+			for (p=s; *p && *(p+1); p+=2)
+				*dest++ = unhex(p);
+			free((void *)s);
+		}
+	}
+	return (bits >> 3); /* we expect output in bytes */
+}
+
 /* Return value:
  *  < 0, on error
  *  = 0, on success; *form is populated
@@ -210,10 +239,10 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 
 		if (!xmlnode_get_text(xml_node, "ssl-tunnel-url", &s)) {
 			set_option(vpninfo, "tunnel", s, 1);
-			free(s);
+			free((void *)s);
 		} else if (!xmlnode_get_text(xml_node, "mtu", &s)) {
 			vpninfo->ip_info.mtu = atoi(s);
-			free(s);
+			free((void *)s);
 		} else if (xmlnode_is_named(xml_node, "dns")) {
 			for (ii=0, member = xml_node->children; member && ii<3; member=member->next)
 				if (!xmlnode_get_text(member, "member", &vpninfo->ip_info.dns[ii]))
@@ -237,6 +266,35 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 					vpninfo->ip_info.split_includes = inc;
 				}
 			}
+		} else if (xmlnode_is_named(xml_node, "ipsec")) {
+#ifdef HAVE_ESP
+			unsigned char in_mackey[0x40], out_mackey[0x40];
+			int in_enclen=0, out_enclen=0, in_maclen=0, out_maclen=0;
+			for (member = xml_node->children; member; member=member->next) {
+				s = NULL;
+				if (!xmlnode_get_text(member, "udp-port", &s))		udp_sockaddr(vpninfo, atoi(s));
+				else if (!xmlnode_get_text(member, "enc-algo", &s)) 	set_esp_algo(vpninfo, s, 0);
+				else if (!xmlnode_get_text(member, "hmac-algo", &s))	set_esp_algo(vpninfo, s, 1);
+				else if (!xmlnode_get_text(member, "c2s-spi", &s))	vpninfo->esp_out.spi = htonl(strtoul(s, NULL, 16));
+				else if (!xmlnode_get_text(member, "s2c-spi", &s))	vpninfo->esp_in[0].spi = htonl(strtoul(s, NULL, 16));
+				else if (xmlnode_is_named(member, "ekey-c2s"))		out_enclen = get_key_bits(member, vpninfo->esp_out.secrets);
+				else if (xmlnode_is_named(member, "ekey-s2c"))		in_enclen = get_key_bits(member, vpninfo->esp_in[0].secrets);
+				else if (xmlnode_is_named(member, "akey-c2s"))		out_maclen = get_key_bits(member, out_mackey);
+				else if (xmlnode_is_named(member, "akey-s2c"))		in_maclen = get_key_bits(member, in_mackey);
+				free((void *)s);
+			}
+			if (in_enclen && in_maclen)
+				memcpy(vpninfo->esp_in[0].secrets + in_enclen, in_mackey, in_maclen);
+			if (out_enclen && out_maclen)
+				memcpy(vpninfo->esp_out.secrets + out_enclen, out_mackey, out_maclen);
+			if (vpninfo->dtls_state != DTLS_DISABLED
+			    && setup_esp_keys(vpninfo)) {
+				vpn_progress(vpninfo, PRG_ERR, "Failed to setup ESP keys.\n");
+				vpninfo->dtls_state = DTLS_NOSECRET;
+			}
+#else
+			vpn_progress(vpninfo, PRG_DEBUG, _("Ignoring ESP keys since ESP support not available in this build\n"));
+#endif
 		}
 	}
 
@@ -294,7 +352,7 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	append_opt(request_body, "os-version", vpninfo->platname);
 	append_opt(request_body, "clientos", vpninfo->platname);
 	append_opt(request_body, "hmac-algo", "sha1,md5");
-	append_opt(request_body, "enc-algo", "aes-128-cb,aes-256-cbc");
+	append_opt(request_body, "enc-algo", "aes-128-cbc,aes-256-cbc");
 	if (old_addr)
 		append_opt(request_body, "preferred-ip", old_addr);
 	for (opt = vpninfo->cstp_options; opt; opt = opt->next) {
