@@ -274,7 +274,9 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	free_split_routes(vpninfo);
 
 	/* submit getconfig request */
-	buf_append(request_body, "client-type=1&protocol-version=p1&app-version=3.0.1-10&app-version=3.0.1-10&os-version=Windows");
+	buf_append(request_body, "client-type=1&protocol-version=p1&app-version=3.0.1-10");
+	append_opt(request_body, "os-version", vpninfo->platname);
+	append_opt(request_body, "clientos", vpninfo->platname);
 	append_opt(request_body, "hmac-algo", "sha1,md5");
 	append_opt(request_body, "enc-algo", "aes-128-cb,aes-256-cbc");
 	if (old_addr)
