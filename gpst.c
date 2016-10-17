@@ -306,7 +306,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 	 * overridden with --force-dpd */
 	if (!vpninfo->ssl_times.dpd)
 		vpninfo->ssl_times.dpd = 10;
-	vpninfo->ssl_times.keepalive = vpninfo->ssl_times.dpd;
+	vpninfo->ssl_times.keepalive = vpninfo->esp_ssl_fallback = vpninfo->ssl_times.dpd;
 
 	xmlFreeDoc(xml_doc);
 	if (success)
@@ -423,8 +423,18 @@ static int start_gpst_tunnel(struct openconnect_info *vpninfo)
 {
 	int ret;
 	struct oc_text_buf *reqbuf;
+	struct oc_vpn_option *opt;
+	const char *username = NULL, *authcookie = NULL, *tunnel = "/ssl-tunnel-connect.sslvpn";
 	char buf[256];
 
+	for (opt = vpninfo->cstp_options; opt; opt = opt->next) {
+		if (!strcmp(opt->option, "USER"))
+			username = opt->value;
+		else if (!strcmp(opt->option, "AUTH"))
+			authcookie = opt->value;
+		else if (!strcmp(opt->option, "TUNNEL"))
+			tunnel = opt->value;
+	}
 
 	/* Connect to SSL VPN tunnel */
 	ret = openconnect_open_https(vpninfo);

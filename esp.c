@@ -119,7 +119,7 @@ static int esp_send_probes(struct openconnect_info *vpninfo)
 		monitor_except_fd(vpninfo, dtls);
 	}
 
-	for (seq=1; seq<=3; seq++) {
+	for (seq=1; seq <= (vpninfo->dtls_state==DTLS_CONNECTED ? 1 : 3); seq++) {
 		memset(pkt, 0, sizeof(*pkt) + sizeof(*iph) + sizeof(*icmph) + sizeof(magic));
 		pkt->len = sizeof(struct iphdr) + sizeof(struct icmphdr) + sizeof(magic);
 
@@ -146,7 +146,6 @@ static int esp_send_probes(struct openconnect_info *vpninfo)
 		if (pktlen >= 0)
 			send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
 	}
-	vpn_progress(vpninfo, PRG_TRACE, "Sent pings to gateway using ESP\n");
 
 	free(pkt);
 
