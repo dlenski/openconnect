@@ -419,20 +419,12 @@ out:
 	return 0;
 }
 
-int gpst_connect(struct openconnect_info *vpninfo)
+static int start_gpst_tunnel(struct openconnect_info *vpninfo)
 {
 	int ret;
 	struct oc_text_buf *reqbuf;
 	char buf[256];
 
-	ret = parse_cookie(vpninfo);
-	if (ret)
-		return ret;
-
-	/* Get configuration */
-	ret = gpst_get_config(vpninfo);
-	if (ret)
-		return ret;
 
 	/* Connect to SSL VPN tunnel */
 	ret = openconnect_open_https(vpninfo);
@@ -483,6 +475,24 @@ int gpst_connect(struct openconnect_info *vpninfo)
 		vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
 	}
 
+	return ret;
+}
+
+int gpst_connect(struct openconnect_info *vpninfo)
+{
+	int ret;
+
+	/* Parse cookie into cstp_options */
+	ret = parse_cookie(vpninfo);
+	if (ret)
+		return ret;
+
+	/* Get configuration */
+	ret = gpst_get_config(vpninfo);
+	if (ret)
+		return ret;
+
+	ret = start_gpst_tunnel(vpninfo);
 
 	return ret;
 }
