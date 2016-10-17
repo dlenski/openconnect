@@ -437,6 +437,9 @@ static int start_gpst_tunnel(struct openconnect_info *vpninfo)
 	}
 
 	/* Connect to SSL VPN tunnel */
+	vpn_progress(vpninfo, PRG_DEBUG,
+		     _("Connecting to GPST tunnel over HTTPS...\n"));
+
 	ret = openconnect_open_https(vpninfo);
 	if (ret)
 		return ret;
@@ -502,7 +505,18 @@ int gpst_connect(struct openconnect_info *vpninfo)
 	if (ret)
 		return ret;
 
-	ret = start_gpst_tunnel(vpninfo);
+	/* We do NOT actually start the SSL tunnel yet if we want to
+	 * use ESP, because the ESP tunnel won't work if we've started
+	 * the SSL tunnel! >:-(
+         */
+	if (vpninfo->dtls_state == DTLS_DISABLED || vpninfo->dtls_state == DTLS_NOSECRET)
+		ret = start_gpst_tunnel(vpninfo);
+	else {
+		openconnect_close_https(vpninfo, 0);
+		/* we don't want the DPD/Keepalive timers to expire
+		 * until ESP has had a chance to start */
+		vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
+	}
 
 	return ret;
 }
@@ -514,8 +528,18 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	uint16_t ethertype;
 	uint32_t one, zero, magic;
 
-	if (vpninfo->ssl_fd == -1)
-		goto do_reconnect;
+	if (vpninfo->dtls_state == DTLS_CONNECTED) {
+		return 0;
+	} else if (vpninfo->dtls_state == DTLS_CONNECTING) {
+		vpn_progress(vpninfo, PRG_DEBUG,
+			     _("ESP tunnel connected; exiting GPST mainloop.\n"));
+		vpninfo->dtls_state = DTLS_CONNECTED;
+		return 0;
+	} else if (vpninfo->ssl_fd == -1
+		   && start_gpst_tunnel(vpninfo)) {
+		vpninfo->quit_reason = "GPST connect failed";
+		return 1;
+	}
 
 	while (1) {
 		int len = MAX(16384, vpninfo->ip_info.mtu);
