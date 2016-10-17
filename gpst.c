@@ -288,7 +288,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 			if (out_enclen && out_maclen)
 				memcpy(vpninfo->esp_out.secrets + out_enclen, out_mackey, out_maclen);
 			if (vpninfo->dtls_state != DTLS_DISABLED
-			    && setup_esp_keys(vpninfo)) {
+			    && setup_esp_keys(vpninfo, FALSE)) {
 				vpn_progress(vpninfo, PRG_ERR, "Failed to setup ESP keys.\n");
 				vpninfo->dtls_state = DTLS_NOSECRET;
 			}
@@ -480,9 +480,9 @@ int gpst_connect(struct openconnect_info *vpninfo)
 		monitor_fd_new(vpninfo, ssl);
 		monitor_read_fd(vpninfo, ssl);
 		monitor_except_fd(vpninfo, ssl);
+		vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
 	}
 
-	vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
 
 	return ret;
 }

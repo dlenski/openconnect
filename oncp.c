@@ -666,7 +666,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 		goto out;
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Read %d bytes of SSL record\n"), ret);
-	
+
 	if (ret != 3 || bytes[0] != 1 || bytes[1] != 0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unexpected response of size %d after hostname packet\n"),
@@ -778,7 +778,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	put_len16(reqbuf, kmp);
 
 #ifdef HAVE_ESP
-	if (!setup_esp_keys(vpninfo)) {
+	if (!setup_esp_keys(vpninfo, TRUE)) {
 		struct esp *esp = &vpninfo->esp_in[vpninfo->current_esp_in];
 		/* Since we'll want to do this in the oncp_mainloop too, where it's easier
 		 * *not* to have an oc_text_buf and build it up manually, and since it's
@@ -830,7 +830,7 @@ static int oncp_receive_espkeys(struct openconnect_info *vpninfo, int len)
 	int ret;
 
 	ret = parse_conf_pkt(vpninfo, vpninfo->cstp_pkt->oncp.kmp, len + 20, 301);
-	if (!ret && !setup_esp_keys(vpninfo)) {
+	if (!ret && !setup_esp_keys(vpninfo, TRUE)) {
 		struct esp *esp = &vpninfo->esp_in[vpninfo->current_esp_in];
 		unsigned char *p = vpninfo->cstp_pkt->oncp.kmp;
 
