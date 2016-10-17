@@ -310,14 +310,17 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpninfo->dtls_times.last_rx = time(NULL);
 
 //		if (pkt->len  == 1 && pkt->data[0] == 0) {
+		if (pkt->data[9]==1 /* IPv4 protocol field == ICMP */
+		    && *((uint32_t *)(pkt->data + 12)) == inet_addr(vpninfo->ip_info.gateway_addr) /* source == gateway */
+		    && pkt->data[20]==0 /* ICMP reply */) {
 			if (vpninfo->dtls_state == DTLS_SLEEPING) {
 				vpn_progress(vpninfo, PRG_INFO,
 					     _("ESP session established with server\n"));
 				queue_esp_control(vpninfo, 1);
 				vpninfo->dtls_state = DTLS_CONNECTING;
-				continue;
 			}
-//		}
+			continue;
+		}
 		if (pkt->data[len - 1] == 0x05) {
 			struct pkt *newpkt = malloc(sizeof(*pkt) + vpninfo->ip_info.mtu + vpninfo->pkt_trailer);
 			int newlen = vpninfo->ip_info.mtu;
