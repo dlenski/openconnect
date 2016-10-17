@@ -1,0 +1,74 @@
+<PAGE>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_PROTOCOLS" replace="selected" />
+	<VAR match="VAR_SEL_GLOBALPROTECT" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2-protocols.xml" />
+
+	<INCLUDE file="inc/content.tmpl" />
+
+<h1>PAN GlobalProtect</h1>
+
+<h2>How the VPN works</h2>
+
+<p>This VPN is based on HTTPS and <a
+href="https://tools.ietf.org/html/rfc3948">ESP</a>, with routing and
+configuration information distributed in XML format.</p>
+
+<p>To authenticate, you connect to the secure web server (<tt>POST
+/ssl-vpn/login.esp</tt>), provide a username, password, and (optionally) a
+certificate, and receive an authcookie.  The username, authcookie, and a
+couple other bits of information obtained at login are combined into the
+OpenConnect cookie.</p>
+
+<p>To connect to the secure tunnel, the cookie is used to read routing and
+tunnel configuration information (<tt>POST ssl-vpn/getconfig.esp</tt>).</p>
+
+<p>Finally, either an HTTPS-based or ESP-based tunnel is setup:</p>
+
+<ol>
+  <li>The cookie is used in a non-standard HTTP <tt>GET</tt> request that
+      acts more like a <tt>CONNECT</tt>.  Arbitrary IP packets can be passed
+      over the resulting tunnel.</li>
+  <li>The ESP keys provided by the configuration request are used to set up
+      a <a href="https://tools.ietf.org/html/rfc3948">UDP-encapsulated
+      ESP</a> tunnel.</li>
+</ol>
+
+<p>Since <a href="http://sites.inka.de/~W1011/devel/tcp-tcp.html">TCP over
+TCP is very suboptimal</a>, OpenConnect tries to always use ESP-over-ESP,
+and will only fall over to the HTTPS tunnel if that fails or if the
+<tt>--no-dtls</tt> is specified.</p>
+
+<h2>Quirks and issues</h2>
+
+<p>There appears to be no reasonable mechanism to negotiate the <a
+href="https://en.wikipedia.org/wiki/Maximum_transmission_unit">MTU</a> for
+the link, or discover the MTU of the accessed network.  The configuration
+always shows <tt><![CDATA[&lt;mtu&gt;0&lt;/mtu&gt;]]></tt>.  OpenConnect attempts to
+calculate the MTU by starting from the base MTU with the overhead of
+encapsulating each packets within ESP, UDP, and IP.</p>
+
+<p>There is currently no IPv6 support.  <a
+href="https://live.paloaltonetworks.com/t5/Learning-Articles/IPv6-Support-on-the-Palo-Alto-Networks-Firewall/ta-p/52994">PAN's
+documentation</a> suggests that recent versions of GlobalProtect may support
+IPv6 over the ESP tunnel, though not the SSL tunnel.</p>
+
+<p>The ESP and HTTPS tunnels cannot be connected simultaneously.  The ESP
+tunnel becomes unresponsive as soon as the HTTPS tunnel is started, and
+remains so unless/until the tunnel is closed and the configuration is
+re-fetched.</p>
+
+<p>Compared to the AnyConnect or Juniper protocols, the GlobalProtect
+protocol appears to have very little in the way of <a
+href="https://en.wikipedia.org/wiki/In-band_signaling">in-band
+signaling</a>.  The HTTPS tunnel can only send or receive IPv4 packets and a
+simple DPD/keepalive packet (always sent by the client and echoed by the
+server).  The ESP tunnel does not have any special DPD/keepalive packet, but
+uses an <a
+href="https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol">ICMP</a>
+("ping") request to the server with a magic payload for this purpose</p>
+
+	<INCLUDE file="inc/footer.tmpl" />
+</PAGE>
