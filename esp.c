@@ -23,6 +23,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
 
 #include "openconnect-internal.h"
 #include "lzo.h"
@@ -76,7 +78,84 @@ int print_esp_keys(struct openconnect_info *vpninfo, const char *name, struct es
 	return 0;
 }
 
+/* Ping must include at least these 16 bytes. The Windows client actually sends this
+ * 56-byte version, but the remaining bytes don't seem to matter:
+ *
+ * "monitor\x00\x00pan ha 0123456789:;<=>? !\"#$%&\'()*+,-./\x10\x11\x12\x13\x14\x15\x16\x18";
+ */
+
+char magic[16] = "monitor\x00\x00pan ha ";
+
+static uint16_t csum(uint16_t *buf, int nwords)
+{
+	uint32_t sum = 0;
+	for(sum=0; nwords>0; nwords--)
+		sum += ntohs(*buf++);
+	sum = (sum >> 16) + (sum &0xffff);
+	sum += (sum >> 16);
+	return htons((uint16_t)(~sum));
+}
+
 static int esp_send_probes(struct openconnect_info *vpninfo)
+{
+	int pktlen, seq;
+	struct pkt *pkt = malloc(sizeof(*pkt) + sizeof(struct iphdr) + sizeof(struct icmphdr) + sizeof(magic) + vpninfo->pkt_trailer);
+	struct iphdr *iph = (void *)pkt->data;
+	struct icmphdr *icmph = (void *)(pkt->data + sizeof(*iph));
+	char *pmagic = (void *)(pkt->data + sizeof(*iph) + sizeof(*icmph));
+	if (!pkt)
+		return -ENOMEM;
+
+	if (vpninfo->dtls_fd == -1) {
+		int fd = udp_connect(vpninfo);
+		if (fd < 0)
+			return fd;
+
+		/* We are not connected until we get an ESP packet back */
+		vpninfo->dtls_state = DTLS_SLEEPING;
+		vpninfo->dtls_fd = fd;
+		monitor_fd_new(vpninfo, dtls);
+		monitor_read_fd(vpninfo, dtls);
+		monitor_except_fd(vpninfo, dtls);
+	}
+
+	for (seq=1; seq<=3; seq++) {
+		memset(pkt, 0, sizeof(*pkt) + sizeof(*iph) + sizeof(*icmph) + sizeof(magic));
+		pkt->len = sizeof(struct iphdr) + sizeof(struct icmphdr) + sizeof(magic);
+
+		/* IP Header */
+		iph->ihl = 5;
+		iph->version = 4;
+		iph->tot_len = htons(sizeof(*iph) + sizeof(*icmph) + sizeof(magic));
+		iph->id = htons(0x4747); /* what the Windows client uses */
+		iph->frag_off = htons(IP_DF); /* don't fragment, frag offset = 0 */
+		iph->ttl = 64; /* hops */
+		iph->protocol = 1; /* ICMP */
+		iph->saddr = inet_addr(vpninfo->ip_info.addr);
+		iph->daddr = inet_addr(vpninfo->ip_info.gateway_addr);
+		iph->check = csum((uint16_t *)iph, sizeof(*iph)/2);
+
+		/* ICMP echo request */
+		icmph->type = ICMP_ECHO;
+		icmph->un.echo.id = htons(0x4747);
+		icmph->un.echo.sequence = htons(seq);
+		memcpy(pmagic, magic, sizeof(magic)); /* required to get gateway to respond */
+		icmph->checksum = csum((uint16_t *)icmph, (sizeof(*icmph)+sizeof(magic))/2);
+
+		pktlen = encrypt_esp_packet(vpninfo, pkt);
+		if (pktlen >= 0)
+			send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
+	}
+	vpn_progress(vpninfo, PRG_TRACE, "Sent pings to gateway using ESP\n");
+
+	free(pkt);
+
+	vpninfo->dtls_times.last_tx = time(&vpninfo->new_dtls_started);
+
+	return 0;
+}
+
+static int esp_send_probes_BAK(struct openconnect_info *vpninfo)
 {
 	struct pkt *pkt;
 	int pktlen;
@@ -231,15 +310,15 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		}
 		vpninfo->dtls_times.last_rx = time(NULL);
 
-		if (pkt->len  == 1 && pkt->data[0] == 0) {
+//		if (pkt->len  == 1 && pkt->data[0] == 0) {
 			if (vpninfo->dtls_state == DTLS_SLEEPING) {
 				vpn_progress(vpninfo, PRG_INFO,
 					     _("ESP session established with server\n"));
 				queue_esp_control(vpninfo, 1);
 				vpninfo->dtls_state = DTLS_CONNECTING;
+				continue;
 			}
-			continue;
-		}
+//		}
 		if (pkt->data[len - 1] == 0x05) {
 			struct pkt *newpkt = malloc(sizeof(*pkt) + vpninfo->ip_info.mtu + vpninfo->pkt_trailer);
 			int newlen = vpninfo->ip_info.mtu;
