@@ -139,6 +139,72 @@ static int set_option(struct openconnect_info *vpninfo, const char *option,
 	return 0;
 }
 
+#define ESP_OVERHEAD (4 /* SPI */ + 4 /* sequence number */ + \
+         20 /* biggest supported MAC (SHA1) */ + 16 /* biggest supported IV (AES-128) */ + \
+	 1 /* pad length */ + 1 /* next header */ + \
+         16 /* max padding */ )
+#define UDP_HEADER_SIZE 8
+#define IPV4_HEADER_SIZE 20
+#define IPV6_HEADER_SIZE 40
+
+static int calculate_mtu(struct openconnect_info *vpninfo)
+{
+	int mtu = vpninfo->reqmtu, base_mtu = vpninfo->basemtu;
+
+#if defined(__linux__) && defined(TCP_INFO)
+	if (!mtu || !base_mtu) {
+		struct tcp_info ti;
+		socklen_t ti_size = sizeof(ti);
+
+		if (!getsockopt(vpninfo->ssl_fd, IPPROTO_TCP, TCP_INFO,
+				&ti, &ti_size)) {
+			vpn_progress(vpninfo, PRG_DEBUG,
+				     _("TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"),
+				     ti.tcpi_rcv_mss, ti.tcpi_snd_mss, ti.tcpi_advmss, ti.tcpi_pmtu);
+
+			if (!base_mtu) {
+				base_mtu = ti.tcpi_pmtu;
+			}
+
+			if (!base_mtu) {
+				if (ti.tcpi_rcv_mss < ti.tcpi_snd_mss)
+					base_mtu = ti.tcpi_rcv_mss - 13;
+				else
+					base_mtu = ti.tcpi_snd_mss - 13;
+			}
+		}
+	}
+#endif
+#ifdef TCP_MAXSEG
+	if (!base_mtu) {
+		int mss;
+		socklen_t mss_size = sizeof(mss);
+		if (!getsockopt(vpninfo->ssl_fd, IPPROTO_TCP, TCP_MAXSEG,
+				&mss, &mss_size)) {
+			vpn_progress(vpninfo, PRG_DEBUG, _("TCP_MAXSEG %d\n"), mss);
+			base_mtu = mss - 13;
+		}
+	}
+#endif
+	if (!base_mtu) {
+		/* Default */
+		base_mtu = 1406;
+	}
+
+	if (base_mtu < 1280)
+		base_mtu = 1280;
+
+	if (!mtu) {
+		/* remove IP/UDP and ESP overhead from base MTU to calculate tunnel MTU */
+		mtu = base_mtu - ESP_OVERHEAD - UDP_HEADER_SIZE;
+		if (vpninfo->peer_addr->sa_family == AF_INET6)
+			mtu -= IPV6_HEADER_SIZE;
+		else
+			mtu -= IPV4_HEADER_SIZE;
+	}
+	return mtu;
+}
+
 static int parse_cookie(struct openconnect_info *vpninfo)
 {
 	char *p = vpninfo->cookie;
@@ -383,9 +449,9 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 
 	if (!vpninfo->ip_info.mtu) {
 		/* FIXME: GP gateway config always seems to be <mtu>0</mtu> */
-		vpninfo->ip_info.mtu = vpninfo->reqmtu ? : vpninfo->basemtu ? : 1500;
+		vpninfo->ip_info.mtu = calculate_mtu(vpninfo);
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("No MTU received. Set to %d\n"), vpninfo->ip_info.mtu);
+			     _("No MTU received. Calculated %d\n"), vpninfo->ip_info.mtu);
 		/* return -EINVAL; */
 	}
 	if (!vpninfo->ip_info.addr) {
