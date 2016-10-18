@@ -243,17 +243,19 @@ static int parse_cookie(struct openconnect_info *vpninfo)
 
 static int set_esp_algo(struct openconnect_info *vpninfo, const char *s, int hmac)
 {
-	if (hmac && !strcmp(s, "sha1"))		vpninfo->esp_hmac = HMAC_SHA1;
-	else if (hmac && !strcmp(s, "md5"))	vpninfo->esp_hmac = HMAC_MD5;
-	else if (!strcmp(s, "aes-128-cbc"))	vpninfo->esp_enc = ENC_AES_128_CBC;
-	else if (!strcmp(s, "aes-256-cbc"))	vpninfo->esp_enc = ENC_AES_256_CBC;
-	else return -ENOENT;
-	return 0;
+	if (hmac) {
+		if (!strcmp(s, "sha1"))		{ vpninfo->esp_hmac = HMAC_SHA1; return 20; }
+		if (!strcmp(s, "md5"))		{ vpninfo->esp_hmac = HMAC_MD5; return 16; }
+	} else {
+		if (!strcmp(s, "aes-128-cbc"))	{ vpninfo->esp_enc = ENC_AES_128_CBC; return 16; }
+		if (!strcmp(s, "aes-256-cbc"))	{ vpninfo->esp_enc = ENC_AES_256_CBC; return 32; }
+	}
+	return -ENOENT;
 }
 
-static int get_key_bits(xmlNode *xml_node, unsigned char *dest)
+static int get_key_bits(xmlNode *xml_node, unsigned char *dest, int keybytes)
 {
-	int bits = -EINVAL;
+	int bits = -1;
 	xmlNode *child;
 	const char *s, *p;
 
@@ -262,12 +264,12 @@ static int get_key_bits(xmlNode *xml_node, unsigned char *dest)
 			bits = atoi(s);
 			free((void *)s);
 		} else if (xmlnode_get_text(child, "val", &s) == 0) {
-			for (p=s; *p && *(p+1); p+=2)
+			for (p=s; *p && *(p+1) && p<s+(keybytes<<1); p+=2)
 				*dest++ = unhex(p);
 			free((void *)s);
 		}
 	}
-	return (bits >> 3); /* we expect output in bytes */
+	return (bits == (keybytes<<3)) ? 0 : -EINVAL;
 }
 
 /* Return value:
@@ -334,25 +336,21 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 			}
 		} else if (xmlnode_is_named(xml_node, "ipsec")) {
 #ifdef HAVE_ESP
-			unsigned char in_mackey[0x40], out_mackey[0x40];
-			int in_enclen=0, out_enclen=0, in_maclen=0, out_maclen=0;
+			int enclen=0, maclen=0;
 			for (member = xml_node->children; member; member=member->next) {
 				s = NULL;
 				if (!xmlnode_get_text(member, "udp-port", &s))		udp_sockaddr(vpninfo, atoi(s));
-				else if (!xmlnode_get_text(member, "enc-algo", &s)) 	set_esp_algo(vpninfo, s, 0);
-				else if (!xmlnode_get_text(member, "hmac-algo", &s))	set_esp_algo(vpninfo, s, 1);
+				else if (!xmlnode_get_text(member, "enc-algo", &s)) 	enclen = set_esp_algo(vpninfo, s, FALSE);
+				else if (!xmlnode_get_text(member, "hmac-algo", &s))	maclen = set_esp_algo(vpninfo, s, TRUE);
 				else if (!xmlnode_get_text(member, "c2s-spi", &s))	vpninfo->esp_out.spi = htonl(strtoul(s, NULL, 16));
 				else if (!xmlnode_get_text(member, "s2c-spi", &s))	vpninfo->esp_in[0].spi = htonl(strtoul(s, NULL, 16));
-				else if (xmlnode_is_named(member, "ekey-c2s"))		out_enclen = get_key_bits(member, vpninfo->esp_out.secrets);
-				else if (xmlnode_is_named(member, "ekey-s2c"))		in_enclen = get_key_bits(member, vpninfo->esp_in[0].secrets);
-				else if (xmlnode_is_named(member, "akey-c2s"))		out_maclen = get_key_bits(member, out_mackey);
-				else if (xmlnode_is_named(member, "akey-s2c"))		in_maclen = get_key_bits(member, in_mackey);
+				/* FIXME: this won't work if ekey or akey tags appears before algo tags */
+				else if (xmlnode_is_named(member, "ekey-c2s"))		get_key_bits(member, vpninfo->esp_out.secrets, enclen);
+				else if (xmlnode_is_named(member, "ekey-s2c"))		get_key_bits(member, vpninfo->esp_in[0].secrets, enclen);
+				else if (xmlnode_is_named(member, "akey-c2s"))		get_key_bits(member, vpninfo->esp_out.secrets+enclen, maclen);
+				else if (xmlnode_is_named(member, "akey-s2c"))		get_key_bits(member, vpninfo->esp_in[0].secrets+enclen, maclen);
 				free((void *)s);
 			}
-			if (in_enclen && in_maclen)
-				memcpy(vpninfo->esp_in[0].secrets + in_enclen, in_mackey, in_maclen);
-			if (out_enclen && out_maclen)
-				memcpy(vpninfo->esp_out.secrets + out_enclen, out_mackey, out_maclen);
 			if (vpninfo->dtls_state != DTLS_DISABLED) {
 				if (setup_esp_keys(vpninfo, FALSE))
 					vpn_progress(vpninfo, PRG_ERR, "Failed to setup ESP keys.\n");
