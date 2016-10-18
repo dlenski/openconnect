@@ -856,7 +856,9 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo);
 void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
 int gpst_bye(struct openconnect_info *vpninfo, const char *reason);
 
-/* oncp.c */
+/* gpst.c */
+int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *response,
+		      int (*xml_cb)(struct openconnect_info *, xmlNode *xml_node));
 int gpst_setup(struct openconnect_info *vpninfo);
 int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout);
 

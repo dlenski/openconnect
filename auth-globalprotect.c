@@ -40,32 +40,19 @@ static struct oc_auth_form *gp_auth_form(void)
  *  < 0, on error
  *  = 0, on success; *form is populated
  */
-static int parse_login_xml(struct openconnect_info *vpninfo, char *response)
+static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 {
 	struct oc_text_buf *cookie = buf_alloc();
-	xmlDocPtr xml_doc;
-	xmlNode *xml_node;
-	int argn;
+	int argn=0;
 
-	if (!response) {
-		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("Empty response from server\n"));
-		return -EINVAL;
-	}
-
-	xml_doc = xmlReadMemory(response, strlen(response), "noname.xml", NULL,
-				XML_PARSE_NOERROR|XML_PARSE_RECOVER);
-	if (!xml_doc)
-		goto bad_xml;
-
-	xml_node = xmlDocGetRootElement(xml_doc);
 	if (!xmlnode_is_named(xml_node, "jnlp"))
-		goto bad_xml;
+		return -EINVAL;
+
 	xml_node = xml_node->children;
 	if (!xmlnode_is_named(xml_node, "application-desc"))
-		goto bad_xml;
-	xml_node = xml_node->children;
+		return -EINVAL;
 
+	xml_node = xml_node->children;
 	for (argn=0; xml_node; xml_node=xml_node->next) {
 		if (xmlnode_is_named(xml_node, "argument")) {
 			if (argn == 1)
@@ -79,24 +66,15 @@ static int parse_login_xml(struct openconnect_info *vpninfo, char *response)
 			argn++;
 		}
 	}
+
 	if (argn<8) {
 		buf_free(cookie);
-		goto bad_xml;
+		return -EINVAL;
 	}
 
 	vpninfo->cookie = strdup(cookie->data);
 	buf_free(cookie);
-	xmlFreeDoc(xml_doc);
 	return 0;
-
-bad_xml:
-	if (xml_doc)
-		xmlFreeDoc(xml_doc);
-	vpn_progress(vpninfo, PRG_ERR,
-		     _("Failed to parse server response\n"));
-	vpn_progress(vpninfo, PRG_DEBUG,
-		     _("Response was:%s\n"), response);
-	return -EINVAL;
 }
 
 int gpst_obtain_cookie(struct openconnect_info *vpninfo)
@@ -111,7 +89,8 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 	char *xml_buf=NULL, *orig_path, *orig_ua;
 
 	/* Ask the user to fill in the auth form; repeat as necessary */
-	while (1) {
+	do {
+		free(xml_buf);
 		buf_truncate(request_body);
 
 		/* process static auth form (username and password) */
@@ -138,18 +117,12 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 					  &xml_buf, 0);
 		vpninfo->urlpath = orig_path;
 		vpninfo->useragent = orig_ua;
-		if (result >= 0)
-			break;
-		else if (result == -512) {
-			vpn_progress(vpninfo, PRG_ERR, _("Authentication failed.\n"));
-			continue;
-		} else if (result == -513)
-			vpn_progress(vpninfo, PRG_ERR, _("Invalid client certificate.\n"));
-		goto out;
-	}
 
-	/* parse login result */
-	result = parse_login_xml(vpninfo, xml_buf);
+		result = gpst_xml_or_error(vpninfo, result, xml_buf, parse_login_xml);
+
+	}
+	/* repeat on invalid username or password */
+	while (result == -512);
 
 out:
 	buf_free(request_body);
@@ -194,12 +167,12 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 	vpninfo->urlpath = orig_path;
 	vpninfo->useragent = orig_ua;
 
-
-	/* logout.esp correctly returns HTTP status 200 when successful, so
-	 * we don't have to parse the XML... phew.
+	/* logout.esp returns HTTP status 200 and <response status="success"> when
+	 * successful, and all manner of malformed junk when unsuccessful.
          */
+	result = gpst_xml_or_error(vpninfo, result, xml_buf, NULL);
 	if (result < 0)
-		vpn_progress(vpninfo, PRG_ERR, _("Logout failed. Response was: %s\n"), xml_buf);
+		vpn_progress(vpninfo, PRG_ERR, _("Logout failed.\n"));
 	else
 		vpn_progress(vpninfo, PRG_INFO, _("Logout successful\n"));
 

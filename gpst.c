@@ -139,6 +139,82 @@ static int set_option(struct openconnect_info *vpninfo, const char *option,
 	return 0;
 }
 
+int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *response,
+		      int (*xml_cb)(struct openconnect_info *, xmlNode *xml_node))
+{
+	xmlDocPtr xml_doc;
+	xmlNode *xml_node;
+	int errlen;
+	const char *err;
+
+	/* custom error codes returned by /ssl-vpn/login.esp and maybe others */
+	if (result == -512)
+		vpn_progress(vpninfo, PRG_ERR, _("Invalid username or password.\n"));
+	else if (result == -513)
+		vpn_progress(vpninfo, PRG_ERR, _("Invalid client certificate.\n"));
+
+	if (result < 0)
+		return result;
+
+	if (!response) {
+		vpn_progress(vpninfo, PRG_DEBUG,
+			     _("Empty response from server\n"));
+		return -EINVAL;
+	}
+
+	/* is it XML? */
+	xml_doc = xmlReadMemory(response, strlen(response), "noname.xml", NULL,
+				XML_PARSE_NOERROR);
+	if (!xml_doc) {
+		/* nope, but maybe it looks like this JavaScript-y blob:
+		   var respStatus = "Error";
+		   var respMsg = "<want this part>";
+		   thisForm.inputStr.value = ""; */
+		if ((err = strstr(response, "respMsg = \"")) != NULL) {
+			err += 11;
+			errlen = strchrnul(err, ';') - err - 1;
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("%.*s\n"), errlen, err);
+			goto out;
+		}
+		goto bad_xml;
+	}
+
+        xml_node = xmlDocGetRootElement(xml_doc);
+
+	/* is it <response status="error"><error>..</error></response> ? */
+	if (xmlnode_is_named(xml_node, "response")
+	    && !xmlnode_match_prop(xml_node, "status", "error")) {
+		for (xml_node=xml_node->children; xml_node; xml_node=xml_node->next) {
+			if (!xmlnode_get_text(xml_node, "error", &err)) {
+				vpn_progress(vpninfo, PRG_ERR, _("%s\n"), err);
+				free((void *)err);
+				goto out;
+			}
+		}
+		goto bad_xml;
+	}
+
+	if (xml_cb)
+		result = xml_cb(vpninfo, xml_node);
+
+	if (result == -EINVAL)
+		goto bad_xml;
+
+	xmlFreeDoc(xml_doc);
+	return result;
+
+bad_xml:
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Failed to parse server response\n"));
+	vpn_progress(vpninfo, PRG_DEBUG,
+		     _("Response was:%s\n"), response);
+out:
+	if (xml_doc)
+		xmlFreeDoc(xml_doc);
+	return -EINVAL;
+}
+
 #define ESP_OVERHEAD (4 /* SPI */ + 4 /* sequence number */ + \
          20 /* biggest supported MAC (SHA1) */ + 16 /* biggest supported IV (AES-128) */ + \
 	 1 /* pad length */ + 1 /* next header */ + \
@@ -276,32 +352,16 @@ static int get_key_bits(xmlNode *xml_node, unsigned char *dest, int keybytes)
  *  < 0, on error
  *  = 0, on success; *form is populated
  */
-static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *response)
+static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 {
-	xmlDocPtr xml_doc;
-	xmlNode *xml_node, *member;
-	const char *err = NULL, *s;
-	int success, ii;
+	xmlNode *member;
+	const char *s;
+	int ii;
 
-	if (!response) {
-		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("Empty response from server\n"));
-		return -EINVAL;
-	}
-
-	xml_doc = xmlReadMemory(response, strlen(response), "noname.xml", NULL,
-				XML_PARSE_NOERROR|XML_PARSE_RECOVER);
-	if (!xml_doc)
-		goto bad_xml;
-
-	xml_node = xmlDocGetRootElement(xml_doc);
 	if (!xml_node || !xmlnode_is_named(xml_node, "response"))
-		goto bad_xml;
-	success = !xmlnode_match_prop(xml_node, "status", "success");
-	xml_node = xml_node->children;
+		return -EINVAL;
 
-	for (; xml_node; xml_node=xml_node->next) {
-		xmlnode_get_text(xml_node, "error", &err);
+	for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
 		xmlnode_get_text(xml_node, "ip-address", &vpninfo->ip_info.addr);
 		xmlnode_get_text(xml_node, "netmask", &vpninfo->ip_info.netmask);
 
@@ -373,23 +433,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 		vpninfo->ssl_times.dpd = 10;
 	vpninfo->ssl_times.keepalive = vpninfo->esp_ssl_fallback = vpninfo->ssl_times.dpd;
 
-	xmlFreeDoc(xml_doc);
-	if (success)
-		return 0;
-	else {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Error fetching configuration: %s\n"), err);
-		return strcasestr(err ? : "", "auth") ? -EPERM : -EINVAL;
-	}
-
-bad_xml:
-	if (xml_doc)
-		xmlFreeDoc(xml_doc);
-	vpn_progress(vpninfo, PRG_ERR,
-			 _("Failed to parse server response\n"));
-	vpn_progress(vpninfo, PRG_DEBUG,
-			 _("Response was: %s\n"), response);
-	return -EINVAL;
+	return 0;
 }
 
 static int gpst_get_config(struct openconnect_info *vpninfo)
@@ -442,7 +486,7 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 		goto out;
 
 	/* parse getconfig result */
-	result = gpst_parse_config_xml(vpninfo, xml_buf);
+	result = gpst_xml_or_error(vpninfo, result, xml_buf, gpst_parse_config_xml);
 	if (result)
 		return result;
 
