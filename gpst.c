@@ -353,10 +353,11 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, char *respons
 				memcpy(vpninfo->esp_in[0].secrets + in_enclen, in_mackey, in_maclen);
 			if (out_enclen && out_maclen)
 				memcpy(vpninfo->esp_out.secrets + out_enclen, out_mackey, out_maclen);
-			if (vpninfo->dtls_state != DTLS_DISABLED
-			    && setup_esp_keys(vpninfo, FALSE)) {
-				vpn_progress(vpninfo, PRG_ERR, "Failed to setup ESP keys.\n");
-				vpninfo->dtls_state = DTLS_NOSECRET;
+			if (vpninfo->dtls_state != DTLS_DISABLED) {
+				if (setup_esp_keys(vpninfo, FALSE))
+					vpn_progress(vpninfo, PRG_ERR, "Failed to setup ESP keys.\n");
+				else
+					vpninfo->dtls_times.last_rekey = time(NULL);
 			}
 #else
 			vpn_progress(vpninfo, PRG_DEBUG, _("Ignoring ESP keys since ESP support not available in this build\n"));
@@ -551,7 +552,7 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 		monitor_fd_new(vpninfo, ssl);
 		monitor_read_fd(vpninfo, ssl);
 		monitor_except_fd(vpninfo, ssl);
-		vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
+		vpninfo->ssl_times.last_rekey = vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
 	}
 
 	return ret;
@@ -582,6 +583,11 @@ int gpst_setup(struct openconnect_info *vpninfo)
 		 * calling the GPST mainloop.
 		 */
 		vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
+
+		/* Using (abusing?) last_rekey as the time when the SSL tunnel
+		 * was brought up.
+		 */
+		vpninfo->ssl_times.last_rekey = 0;
 	}
 
 	return ret;
@@ -594,17 +600,36 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	uint16_t ethertype;
 	uint32_t one, zero, magic;
 
-	if (vpninfo->dtls_state == DTLS_CONNECTED) {
-		return 0;
-	} else if (vpninfo->dtls_state == DTLS_CONNECTING) {
-		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("ESP tunnel connected; exiting GPST mainloop.\n"));
-		vpninfo->dtls_state = DTLS_CONNECTED;
-		return 0;
-	} else if (vpninfo->ssl_fd == -1
-		   && gpst_connect(vpninfo)) {
-		vpninfo->quit_reason = "GPST connect failed";
-		return 1;
+	/* If the HTTPS tunnel is currently down, don't want to
+	 * start it if the ESP tunnel is connected or connecting
+	 * (because starting the GP HTTPS tunnel kills ESP)
+	 */
+	if (!vpninfo->ssl_times.last_rekey || vpninfo->ssl_fd == -1) {
+		switch (vpninfo->dtls_state) {
+		case DTLS_CONNECTING:
+			vpn_progress(vpninfo, PRG_DEBUG,
+				     _("ESP tunnel connected; exiting GPST mainloop.\n"));
+			vpninfo->dtls_state = DTLS_CONNECTED;
+		case DTLS_CONNECTED:
+			return 0;
+		case DTLS_SECRET:
+		case DTLS_SLEEPING:
+			if (time(NULL) < vpninfo->dtls_times.last_rekey + 5)
+				/* Allow 5 seconds for ESP to start */
+				return 0;
+			else
+				vpn_progress(vpninfo, PRG_ERR,
+					     _("Failed to connect ESP tunnel; using HTTPS instead.\n"));
+		case DTLS_NOSECRET:
+		case DTLS_DISABLED:
+			/* ESP is disabled or getconfig.esp did not provide any ESP keys */
+			;
+		}
+
+		if (gpst_connect(vpninfo)) {
+			vpninfo->quit_reason = "GPST connect failed";
+			return 1;
+		}
 	}
 
 	while (1) {
