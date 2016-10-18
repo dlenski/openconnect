@@ -485,7 +485,7 @@ out:
 	return 0;
 }
 
-static int start_gpst_tunnel(struct openconnect_info *vpninfo)
+static int gpst_connect(struct openconnect_info *vpninfo)
 {
 	int ret;
 	struct oc_text_buf *reqbuf;
@@ -557,7 +557,7 @@ static int start_gpst_tunnel(struct openconnect_info *vpninfo)
 	return ret;
 }
 
-int gpst_connect(struct openconnect_info *vpninfo)
+int gpst_setup(struct openconnect_info *vpninfo)
 {
 	int ret;
 
@@ -571,16 +571,16 @@ int gpst_connect(struct openconnect_info *vpninfo)
 	if (ret)
 		return ret;
 
-	/* We do NOT actually start the SSL tunnel yet if we want to
-	 * use ESP, because the ESP tunnel won't work if we've started
-	 * the SSL tunnel! >:-(
-         */
+	/* We do NOT actually start the HTTPS tunnel yet if we want to
+	 * use ESP, because the ESP tunnel won't work if the HTTPS tunnel
+	 * is connected! >:-(
+	 */
 	if (vpninfo->dtls_state == DTLS_DISABLED || vpninfo->dtls_state == DTLS_NOSECRET)
-		ret = start_gpst_tunnel(vpninfo);
+		ret = gpst_connect(vpninfo);
 	else {
-		openconnect_close_https(vpninfo, 0);
-		/* we don't want the DPD/Keepalive timers to expire
-		 * until ESP has had a chance to start */
+		/* We want to prevent the mainloop timers from frantically
+		 * calling the GPST mainloop.
+		 */
 		vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
 	}
 
@@ -602,7 +602,7 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpninfo->dtls_state = DTLS_CONNECTED;
 		return 0;
 	} else if (vpninfo->ssl_fd == -1
-		   && start_gpst_tunnel(vpninfo)) {
+		   && gpst_connect(vpninfo)) {
 		vpninfo->quit_reason = "GPST connect failed";
 		return 1;
 	}

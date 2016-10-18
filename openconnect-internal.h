@@ -857,7 +857,7 @@ void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 int gpst_bye(struct openconnect_info *vpninfo, const char *reason);
 
 /* oncp.c */
-int gpst_connect(struct openconnect_info *vpninfo);
+int gpst_setup(struct openconnect_info *vpninfo);
 int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout);
 
 /* lzs.c */
