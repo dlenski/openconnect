@@ -112,7 +112,7 @@ static int init_esp_ciphers(struct openconnect_info *vpninfo, struct esp *esp,
 	return 0;
 }
 
-int setup_esp_keys(struct openconnect_info *vpninfo)
+int setup_esp_keys(struct openconnect_info *vpninfo, int new_keys)
 {
 	struct esp *esp_in;
 	const EVP_CIPHER *encalg;
@@ -146,16 +146,21 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	vpninfo->old_esp_maxseq = vpninfo->esp_in[vpninfo->current_esp_in].seq + 32;
-	vpninfo->current_esp_in ^= 1;
+	if (new_keys) {
+		vpninfo->old_esp_maxseq = vpninfo->esp_in[vpninfo->current_esp_in].seq + 32;
+		vpninfo->current_esp_in ^= 1;
+	}
+
 	esp_in = &vpninfo->esp_in[vpninfo->current_esp_in];
 
-	if (!RAND_bytes((void *)&esp_in->spi, sizeof(esp_in->spi)) ||
-	    !RAND_bytes((void *)&esp_in->secrets, sizeof(esp_in->secrets))) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to generate random keys for ESP:\n"));
-		openconnect_report_ssl_errors(vpninfo);
-		return -EIO;
+	if (new_keys) {
+		if (!RAND_bytes((void *)&esp_in->spi, sizeof(esp_in->spi)) ||
+		    !RAND_bytes((void *)&esp_in->secrets, sizeof(esp_in->secrets))) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to generate random keys for ESP:\n"));
+			openconnect_report_ssl_errors(vpninfo);
+			return -EIO;
+		}
 	}
 
 	ret = init_esp_ciphers(vpninfo, &vpninfo->esp_out, macalg, encalg, 0);

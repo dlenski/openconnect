@@ -334,7 +334,7 @@ struct esp {
 	uint64_t seq_backlog;
 	uint64_t seq;
 	uint32_t spi; /* Stored network-endian */
-	unsigned char secrets[0x40];
+	unsigned char secrets[0x40]; /* Encryption key bytes, then HMAC key bytes */
 };
 
 struct openconnect_info {
@@ -886,7 +886,7 @@ void esp_shutdown(struct openconnect_info *vpninfo);
 int print_esp_keys(struct openconnect_info *vpninfo, const char *name, struct esp *esp);
 
 /* {gnutls,openssl}-esp.c */
-int setup_esp_keys(struct openconnect_info *vpninfo);
+int setup_esp_keys(struct openconnect_info *vpninfo, int new_keys);
 void destroy_esp_ciphers(struct esp *esp);
 int decrypt_esp_packet(struct openconnect_info *vpninfo, struct esp *esp, struct pkt *pkt);
 int encrypt_esp_packet(struct openconnect_info *vpninfo, struct pkt *pkt);

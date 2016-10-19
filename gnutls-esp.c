@@ -72,7 +72,7 @@ static int init_esp_ciphers(struct openconnect_info *vpninfo, struct esp *esp,
 	return 0;
 }
 
-int setup_esp_keys(struct openconnect_info *vpninfo)
+int setup_esp_keys(struct openconnect_info *vpninfo, int new_keys)
 {
 	struct esp *esp_in;
 	gnutls_mac_algorithm_t macalg;
@@ -106,16 +106,21 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 		return -EINVAL;
 	}
 
-	vpninfo->old_esp_maxseq = vpninfo->esp_in[vpninfo->current_esp_in].seq + 32;
-	vpninfo->current_esp_in ^= 1;
+	if (new_keys) {
+		vpninfo->old_esp_maxseq = vpninfo->esp_in[vpninfo->current_esp_in].seq + 32;
+		vpninfo->current_esp_in ^= 1;
+	}
+
 	esp_in = &vpninfo->esp_in[vpninfo->current_esp_in];
 
-	if ((ret = gnutls_rnd(GNUTLS_RND_NONCE, &esp_in->spi, sizeof(esp_in->spi))) ||
-	    (ret = gnutls_rnd(GNUTLS_RND_RANDOM, &esp_in->secrets, sizeof(esp_in->secrets)))) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to generate random keys for ESP: %s\n"),
-			     gnutls_strerror(ret));
-		return -EIO;
+	if (new_keys) {
+		if ((ret = gnutls_rnd(GNUTLS_RND_NONCE, &esp_in->spi, sizeof(esp_in->spi))) ||
+		    (ret = gnutls_rnd(GNUTLS_RND_RANDOM, &esp_in->secrets, sizeof(esp_in->secrets)))) {
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to generate random keys for ESP: %s\n"),
+				     gnutls_strerror(ret));
+			return -EIO;
+		}
 	}
 
 	ret = init_esp_ciphers(vpninfo, &vpninfo->esp_out, macalg, encalg);
