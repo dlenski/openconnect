@@ -906,6 +906,7 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period);
 int esp_mainloop(struct openconnect_info *vpninfo, int *timeout);
 void esp_close(struct openconnect_info *vpninfo);
+void esp_close_secret(struct openconnect_info *vpninfo);
 void esp_shutdown(struct openconnect_info *vpninfo);
 int print_esp_keys(struct openconnect_info *vpninfo, const char *name, struct esp *esp);
 

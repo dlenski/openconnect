@@ -662,7 +662,11 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			else
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to connect ESP tunnel; using HTTPS instead.\n"));
+			break;
 		case DTLS_NOSECRET:
+			/* prevents infinite loop of reconnections */
+			if (vpninfo->ssl_fd == -1)
+				goto do_reconnect;
 		case DTLS_DISABLED:
 			/* ESP is disabled or getconfig.esp did not provide any ESP keys */
 			;
@@ -803,6 +807,7 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpninfo->quit_reason = "GPST reconnect failed";
 			return ret;
 		}
+		esp_setup(vpninfo, vpninfo->dtls_attempt_period);
 		return 1;
 
 	case KA_KEEPALIVE:

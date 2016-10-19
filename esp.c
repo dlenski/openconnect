@@ -425,6 +425,12 @@ void esp_close(struct openconnect_info *vpninfo)
 	vpninfo->dtls_state = DTLS_SLEEPING;
 }
 
+void esp_close_secret(struct openconnect_info *vpninfo)
+{
+	esp_close(vpninfo);
+	vpninfo->dtls_state = DTLS_NOSECRET;
+}
+
 void esp_shutdown(struct openconnect_info *vpninfo)
 {
 	destroy_esp_ciphers(&vpninfo->esp_in[0]);
