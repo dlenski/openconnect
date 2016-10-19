@@ -41,6 +41,19 @@ TCP is very suboptimal</a>, OpenConnect tries to always use ESP-over-ESP,
 and will only fall over to the HTTPS tunnel if that fails or if the
 <tt>--no-dtls</tt> is specified.</p>
 
+<h2>Portals vs. gateway servers</h2>
+
+<p>The GlobalProtect VPN has an outer layer of web-based authentication
+and redirection ("portal") which isn't handled by OpenConnect, because it isn't
+necessary to use it to connect to the VPN server ("gateway").</p>
+
+<p>In many cases, the portal and gateway servers are one and the
+same. However, if the portal address does not work with OpenConnect,
+try using the "Gateway IP" instead, as shown in the official GlobalProtect
+clients:</p>
+
+<p><img src="images/gp_gateway_vs_portal.png"/></p>
+
 <h2>Quirks and issues</h2>
 
 <p>There appears to be no reasonable mechanism to negotiate the <a
