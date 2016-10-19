@@ -73,84 +73,6 @@ static const struct pkt dpd_resp_pkt = {
 	{ .cstp.hdr = { 'S', 'T', 'F', 1, 0, 0, AC_PKT_DPD_RESP, 0 } }
 };
 
-#define UDP_HEADER_SIZE 8
-#define IPV4_HEADER_SIZE 20
-#define IPV6_HEADER_SIZE 40
-
-/* Calculate MTU to request. Old servers simply use the X-CSTP-MTU: header,
- * which represents the tunnel MTU, while new servers do calculations on the
- * X-CSTP-Base-MTU: header which represents the link MTU between client
- * and server.
- *
- * If possible, the legacy MTU value should be the TCP MSS less 5 bytes of
- * TLS and 8 bytes of CSTP overhead. We can get the MSS from either the
- * TCP_INFO or TCP_MAXSEG sockopts.
- *
- * The base MTU comes from the TCP_INFO sockopt under Linux, but I don't know
- * how to work it out on other systems. So leave it blank and do things the
- * legacy way there. Contributions welcome...
- *
- * If we don't even have TCP_MAXSEG, then default to sending a legacy MTU of
- * 1406 which is what we always used to do.
- */
-static void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *mtu)
-{
-	*mtu = vpninfo->reqmtu;
-	*base_mtu = vpninfo->basemtu;
-
-#if defined(__linux__) && defined(TCP_INFO)
-	if (!*mtu || !*base_mtu) {
-		struct tcp_info ti;
-		socklen_t ti_size = sizeof(ti);
-
-		if (!getsockopt(vpninfo->ssl_fd, IPPROTO_TCP, TCP_INFO,
-				&ti, &ti_size)) {
-			vpn_progress(vpninfo, PRG_DEBUG,
-				     _("TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"),
-				     ti.tcpi_rcv_mss, ti.tcpi_snd_mss, ti.tcpi_advmss, ti.tcpi_pmtu);
-
-			if (!*base_mtu) {
-				*base_mtu = ti.tcpi_pmtu;
-			}
-
-			if (!*base_mtu) {
-				if (ti.tcpi_rcv_mss < ti.tcpi_snd_mss)
-					*base_mtu = ti.tcpi_rcv_mss - 13;
-				else
-					*base_mtu = ti.tcpi_snd_mss - 13;
-			}
-		}
-	}
-#endif
-#ifdef TCP_MAXSEG
-	if (!*base_mtu) {
-		int mss;
-		socklen_t mss_size = sizeof(mss);
-		if (!getsockopt(vpninfo->ssl_fd, IPPROTO_TCP, TCP_MAXSEG,
-				&mss, &mss_size)) {
-			vpn_progress(vpninfo, PRG_DEBUG, _("TCP_MAXSEG %d\n"), mss);
-			*base_mtu = mss - 13;
-		}
-	}
-#endif
-	if (!*base_mtu) {
-		/* Default */
-		*base_mtu = 1406;
-	}
-
-	if (*base_mtu < 1280)
-		*base_mtu = 1280;
-
-	if (!*mtu) {
-		/* remove IP/UDP and DTLS overhead from base MTU to calculate tunnel MTU */
-		*mtu = *base_mtu - DTLS_OVERHEAD - UDP_HEADER_SIZE;
-		if (vpninfo->peer_addr->sa_family == AF_INET6)
-			*mtu -= IPV6_HEADER_SIZE;
-		else
-			*mtu -= IPV4_HEADER_SIZE;
-	}
-}
-
 static void append_compr_types(struct oc_text_buf *buf, const char *proto, int avail)
 {
 	if (avail) {
@@ -237,7 +159,14 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 	free_split_routes(vpninfo);
 
  retry:
-	calculate_mtu(vpninfo, &base_mtu, &mtu);
+	/* Calculate MTU to request. Old servers simply use the X-CSTP-MTU: header,
+	 * which represents the tunnel MTU, while new servers do calculations on the
+	 * X-CSTP-Base-MTU: header which represents the link MTU between client
+	 * and server.
+         */
+	calculate_mtu(vpninfo, &base_mtu, &mtu,
+		      8 + 5 /* 5 bytes of TLS and 8 bytes of CSTP overhead */,
+		      DTLS_OVERHEAD + UDP_HEADER_SIZE);
 	vpninfo->cstp_basemtu = base_mtu;
 
 	reqbuf = buf_alloc();

@@ -323,9 +323,16 @@ static inline void init_pkt_queue(struct pkt_q *q)
 	q->tail = &q->head;
 }
 
+#define IPV4_HEADER_SIZE 20
+#define IPV6_HEADER_SIZE 40
+#define UDP_HEADER_SIZE 8
 #define DTLS_OVERHEAD (1 /* packet + header */ + 13 /* DTLS header */ + \
 	 20 /* biggest supported MAC (SHA1) */ +  16 /* biggest supported IV (AES-128) */ + \
 	 16 /* max padding */)
+#define ESP_OVERHEAD (4 /* SPI */ + 4 /* sequence number */ + \
+         20 /* biggest supported MAC (SHA1) */ + 16 /* biggest supported IV (AES-128) */ + \
+	 1 /* pad length */ + 1 /* next header */ + \
+         16 /* max padding */ )
 
 #define LINK_TO_TUNNEL_MTU(linkmtu) \
 	(linkmtu - DTLS_OVERHEAD)
@@ -1055,6 +1062,8 @@ int digest_authorization(struct openconnect_info *vpninfo, int proxy, struct htt
 /* library.c */
 void nuke_opt_values(struct oc_form_opt *opt);
 int process_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *form);
+void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *mtu,
+		   int cstp_overhead, int dtls_overhead);
 /* This is private for now since we haven't yet worked out what the API will be */
 void openconnect_set_juniper(struct openconnect_info *vpninfo);
 

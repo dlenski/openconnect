@@ -1084,3 +1084,72 @@ retry:
 
 	return ret;
 }
+
+/* If possible, the legacy MTU value should be the TCP MSS less TLS overhead
+ * We can get the MSS from either the TCP_INFO or TCP_MAXSEG sockopts.
+ *
+ * The base MTU comes from the TCP_INFO sockopt under Linux, but I don't know
+ * how to work it out on other systems. So leave it blank and do things the
+ * legacy way there. Contributions welcome...
+ *
+ * If we don't even have TCP_MAXSEG, then default to sending a legacy MTU of
+ * 1406 which is what we always used to do.
+ */
+void calculate_mtu(struct openconnect_info *vpninfo, int *base_mtu, int *mtu,
+		   int cstp_overhead, int dtls_overhead)
+{
+	*mtu = vpninfo->reqmtu;
+	*base_mtu = vpninfo->basemtu;
+
+#if defined(__linux__) && defined(TCP_INFO)
+	if (!*mtu || !*base_mtu) {
+		struct tcp_info ti;
+		socklen_t ti_size = sizeof(ti);
+
+		if (!getsockopt(vpninfo->ssl_fd, IPPROTO_TCP, TCP_INFO,
+				&ti, &ti_size)) {
+			vpn_progress(vpninfo, PRG_DEBUG,
+				     _("TCP_INFO rcv mss %d, snd mss %d, adv mss %d, pmtu %d\n"),
+				     ti.tcpi_rcv_mss, ti.tcpi_snd_mss, ti.tcpi_advmss, ti.tcpi_pmtu);
+
+			if (!*base_mtu) {
+				*base_mtu = ti.tcpi_pmtu;
+			}
+
+			if (!*base_mtu) {
+				if (ti.tcpi_rcv_mss < ti.tcpi_snd_mss)
+					*base_mtu = ti.tcpi_rcv_mss - cstp_overhead;
+				else
+					*base_mtu = ti.tcpi_snd_mss - cstp_overhead;
+			}
+		}
+	}
+#endif
+#ifdef TCP_MAXSEG
+	if (!*base_mtu) {
+		int mss;
+		socklen_t mss_size = sizeof(mss);
+		if (!getsockopt(vpninfo->ssl_fd, IPPROTO_TCP, TCP_MAXSEG,
+				&mss, &mss_size)) {
+			vpn_progress(vpninfo, PRG_DEBUG, _("TCP_MAXSEG %d\n"), mss);
+			*base_mtu = mss - 13;
+		}
+	}
+#endif
+	if (!*base_mtu) {
+		/* Default */
+		*base_mtu = 1406;
+	}
+
+	if (*base_mtu < 1280)
+		*base_mtu = 1280;
+
+	if (!*mtu) {
+		/* remove DTLS overhead from base MTU to calculate tunnel MTU */
+		*mtu = *base_mtu - dtls_overhead;
+		if (vpninfo->peer_addr->sa_family == AF_INET6)
+			*mtu -= IPV6_HEADER_SIZE;
+		else
+			*mtu -= IPV4_HEADER_SIZE;
+	}
+}
