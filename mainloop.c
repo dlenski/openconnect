@@ -256,7 +256,6 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 			openconnect_close_https(vpninfo, 0);
 			if (vpninfo->dtls_state > DTLS_DISABLED) {
 				vpninfo->proto->udp_close(vpninfo);
-				vpninfo->dtls_state = DTLS_SLEEPING;
 				vpninfo->new_dtls_started = 0;
 			}
 

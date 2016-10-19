@@ -131,6 +131,7 @@ void dtls_close(struct openconnect_info *vpninfo)
 		vpninfo->dtls_ssl = NULL;
 		vpninfo->dtls_fd = -1;
 	}
+	vpninfo->dtls_state = DTLS_SLEEPING;
 }
 
 static int dtls_reconnect(struct openconnect_info *vpninfo)
@@ -723,4 +724,3 @@ void dtls_detect_mtu(struct openconnect_info *vpninfo)
  skip_mtu:
 	free(buf);
 }
-
