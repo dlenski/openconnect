@@ -396,6 +396,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 			}
 		} else if (xmlnode_is_named(xml_node, "ipsec")) {
 #ifdef HAVE_ESP
+			int c = (vpninfo->current_esp_in ^= 1);
 			int enclen=0, maclen=0;
 			for (member = xml_node->children; member; member=member->next) {
 				s = NULL;
@@ -403,12 +404,12 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 				else if (!xmlnode_get_text(member, "enc-algo", &s)) 	enclen = set_esp_algo(vpninfo, s, FALSE);
 				else if (!xmlnode_get_text(member, "hmac-algo", &s))	maclen = set_esp_algo(vpninfo, s, TRUE);
 				else if (!xmlnode_get_text(member, "c2s-spi", &s))	vpninfo->esp_out.spi = htonl(strtoul(s, NULL, 16));
-				else if (!xmlnode_get_text(member, "s2c-spi", &s))	vpninfo->esp_in[0].spi = htonl(strtoul(s, NULL, 16));
+				else if (!xmlnode_get_text(member, "s2c-spi", &s))	vpninfo->esp_in[c].spi = htonl(strtoul(s, NULL, 16));
 				/* FIXME: this won't work if ekey or akey tags appears before algo tags */
 				else if (xmlnode_is_named(member, "ekey-c2s"))		get_key_bits(member, vpninfo->esp_out.secrets, enclen);
-				else if (xmlnode_is_named(member, "ekey-s2c"))		get_key_bits(member, vpninfo->esp_in[0].secrets, enclen);
+				else if (xmlnode_is_named(member, "ekey-s2c"))		get_key_bits(member, vpninfo->esp_in[c].secrets, enclen);
 				else if (xmlnode_is_named(member, "akey-c2s"))		get_key_bits(member, vpninfo->esp_out.secrets+enclen, maclen);
-				else if (xmlnode_is_named(member, "akey-s2c"))		get_key_bits(member, vpninfo->esp_in[0].secrets+enclen, maclen);
+				else if (xmlnode_is_named(member, "akey-s2c"))		get_key_bits(member, vpninfo->esp_in[c].secrets+enclen, maclen);
 				free((void *)s);
 			}
 			if (vpninfo->dtls_state != DTLS_DISABLED) {
