@@ -650,6 +650,7 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	if (!vpninfo->ssl_times.last_rekey || vpninfo->ssl_fd == -1) {
 		switch (vpninfo->dtls_state) {
 		case DTLS_CONNECTING:
+			openconnect_close_https(vpninfo, 0); /* don't keep stale HTTPS socket */
 			vpn_progress(vpninfo, PRG_DEBUG,
 				     _("ESP tunnel connected; exiting GPST mainloop.\n"));
 			vpninfo->dtls_state = DTLS_CONNECTED;
