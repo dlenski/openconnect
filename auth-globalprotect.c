@@ -56,13 +56,13 @@ static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 	for (argn=0; xml_node; xml_node=xml_node->next) {
 		if (xmlnode_is_named(xml_node, "argument")) {
 			if (argn == 1)
-				buf_append(cookie, "AUTH=%s;", xmlNodeGetContent(xml_node));
+				append_opt(cookie, "authcookie", (char *)xmlNodeGetContent(xml_node));
 			else if (argn == 3)
-				buf_append(cookie, "PORTAL=%s;", xmlNodeGetContent(xml_node));
+				append_opt(cookie, "portal", (char *)xmlNodeGetContent(xml_node));
 			else if (argn == 4)
-				buf_append(cookie, "USER=%s;", xmlNodeGetContent(xml_node));
+				append_opt(cookie, "user", (char *)xmlNodeGetContent(xml_node));
 			else if (argn == 7)
-				buf_append(cookie, "DOMAIN=%s", xmlNodeGetContent(xml_node));
+				append_opt(cookie, "domain", (char *)xmlNodeGetContent(xml_node));
 			argn++;
 		}
 	}
@@ -134,7 +134,6 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 {
 	char *orig_path, *orig_ua;
 	int result;
-	struct oc_vpn_option *opt;
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
@@ -142,16 +141,7 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 
 	/* submit logout request */
 	append_opt(request_body, "computer", vpninfo->localname);
-	for (opt = vpninfo->cstp_options; opt; opt = opt->next) {
-		if (!strcmp(opt->option, "USER"))
-			append_opt(request_body, "user", opt->value);
-		else if (!strcmp(opt->option, "AUTH"))
-			append_opt(request_body, "authcookie", opt->value);
-		else if (!strcmp(opt->option, "PORTAL"))
-			append_opt(request_body, "portal", opt->value);
-		else if (!strcmp(opt->option, "DOMAIN"))
-			append_opt(request_body, "domain", opt->value);
-	}
+	buf_append(request_body, "&%s", vpninfo->cookie);
 
 	/* We need to close and reopen the HTTPS connection (to kill
 	 * the tunnel session) and submit a new HTTPS request to

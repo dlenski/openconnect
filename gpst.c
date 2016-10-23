@@ -82,63 +82,6 @@ static int xmlnode_get_text(xmlNode *xml_node, const char *name, const char **va
 	return 0;
 }
 
-/* basically a copy of http_add_cookie */
-static int set_option(struct openconnect_info *vpninfo, const char *option,
-		      const char *value, int replace)
-{
-	struct oc_vpn_option *new, **this;
-
-	if (*value) {
-		new = malloc(sizeof(*new));
-		if (!new) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("No memory for allocating options\n"));
-			return -ENOMEM;
-		}
-		new->next = NULL;
-		new->option = strdup(option);
-		new->value = strdup(value);
-		if (!new->option || !new->value) {
-			free(new->option);
-			free(new->value);
-			free(new);
-			return -ENOMEM;
-		}
-	} else {
-		/* Kill option; don't replace it */
-		new = NULL;
-		/* This would be meaningless */
-		if (!replace)
-			return -EINVAL;
-	}
-	for (this = &vpninfo->cstp_options; *this; this = &(*this)->next) {
-		if (!strcmp(option, (*this)->option)) {
-			if (!replace) {
-				free(new->value);
-				free(new->option);
-				free(new);
-				return 0;
-			}
-			/* Replace existing option */
-			if (new)
-				new->next = (*this)->next;
-			else
-				new = (*this)->next;
-
-			free((*this)->option);
-			free((*this)->value);
-			free(*this);
-			*this = new;
-			break;
-		}
-	}
-	if (new && !*this) {
-		*this = new;
-		new->next = NULL;
-	}
-	return 0;
-}
-
 int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *response,
 		      int (*xml_cb)(struct openconnect_info *, xmlNode *xml_node))
 {
@@ -281,42 +224,6 @@ static int calculate_mtu(struct openconnect_info *vpninfo)
 	return mtu;
 }
 
-static int parse_cookie(struct openconnect_info *vpninfo)
-{
-	char *p = vpninfo->cookie;
-
-	/* We currently expect the "cookie" to contain multiple options:
-	 * USER=xxx; AUTH=xxx; PORTAL=xxx; DOMAIN=xxx
-	 * Process those into vpninfo->cstp_options unless we already had them
-	 * (in which case they may be newer). */
-	while (p && *p) {
-		char *semicolon = strchr(p, ';');
-		char *equals;
-
-		if (semicolon)
-			*semicolon = 0;
-
-		equals = strchr(p, '=');
-		if (!equals) {
-			vpn_progress(vpninfo, PRG_ERR, _("Invalid cookie '%s'\n"), p);
-			return -EINVAL;
-		}
-		*equals = 0;
-		set_option(vpninfo, p, equals+1, 0);
-		*equals = '=';
-
-		p = semicolon;
-		if (p) {
-			*p = ';';
-			p++;
-			while (*p && isspace((int)(unsigned char)*p))
-				p++;
-		}
-	}
-
-	return 0;
-}
-
 static int set_esp_algo(struct openconnect_info *vpninfo, const char *s, int hmac)
 {
 	if (hmac) {
@@ -365,10 +272,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 		xmlnode_get_text(xml_node, "ip-address", &vpninfo->ip_info.addr);
 		xmlnode_get_text(xml_node, "netmask", &vpninfo->ip_info.netmask);
 
-		if (!xmlnode_get_text(xml_node, "ssl-tunnel-url", &s)) {
-			set_option(vpninfo, "tunnel", s, 1);
-			free((void *)s);
-		} else if (!xmlnode_get_text(xml_node, "mtu", &s)) {
+		if (!xmlnode_get_text(xml_node, "mtu", &s)) {
 			vpninfo->ip_info.mtu = atoi(s);
 			free((void *)s);
 		} else if (xmlnode_is_named(xml_node, "dns")) {
@@ -441,7 +345,6 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 {
 	char *orig_path, *orig_ua;
 	int result, ii;
-	struct oc_vpn_option *opt;
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *old_addr = vpninfo->ip_info.addr, *old_netmask = vpninfo->ip_info.netmask;
 	const char *request_body_type = "application/x-www-form-urlencoded";
@@ -465,14 +368,7 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	append_opt(request_body, "enc-algo", "aes-128-cbc,aes-256-cbc");
 	if (old_addr)
 		append_opt(request_body, "preferred-ip", old_addr);
-	for (opt = vpninfo->cstp_options; opt; opt = opt->next) {
-		if (!strcmp(opt->option, "USER"))
-			append_opt(request_body, "user", opt->value);
-		else if (!strcmp(opt->option, "AUTH"))
-			append_opt(request_body, "authcookie", opt->value);
-		else if (!strcmp(opt->option, "PORTAL"))
-			append_opt(request_body, "portal", opt->value);
-	}
+	buf_append(request_body, "&%s", vpninfo->cookie);
 
 	orig_path = vpninfo->urlpath;
 	orig_ua = vpninfo->useragent;
@@ -533,18 +429,7 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 {
 	int ret;
 	struct oc_text_buf *reqbuf;
-	struct oc_vpn_option *opt;
-	const char *username = NULL, *authcookie = NULL, *tunnel = "/ssl-tunnel-connect.sslvpn";
 	char buf[256];
-
-	for (opt = vpninfo->cstp_options; opt; opt = opt->next) {
-		if (!strcmp(opt->option, "USER"))
-			username = opt->value;
-		else if (!strcmp(opt->option, "AUTH"))
-			authcookie = opt->value;
-		else if (!strcmp(opt->option, "TUNNEL"))
-			tunnel = opt->value;
-	}
 
 	/* Connect to SSL VPN tunnel */
 	vpn_progress(vpninfo, PRG_DEBUG,
@@ -555,9 +440,7 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 		return ret;
 
 	reqbuf = buf_alloc();
-	buf_append(reqbuf, "GET %s?user=", tunnel);
-	buf_append_urlencoded(reqbuf, username);
-	buf_append(reqbuf, "&authcookie=%s HTTP/1.1\r\n\r\n", authcookie);
+	buf_append(reqbuf, "GET /ssl-tunnel-connect.sslvpn?%s HTTP/1.1\r\n\r\n", vpninfo->cookie);
 
 	if (vpninfo->dump_http_traffic)
 		dump_buf(vpninfo, '>', reqbuf->data);
@@ -604,11 +487,6 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 int gpst_setup(struct openconnect_info *vpninfo)
 {
 	int ret;
-
-	/* Parse cookie into cstp_options */
-	ret = parse_cookie(vpninfo);
-	if (ret)
-		return ret;
 
 	/* Get configuration */
 	ret = gpst_get_config(vpninfo);
