@@ -536,10 +536,12 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			return 0;
 		case DTLS_SECRET:
 		case DTLS_SLEEPING:
-			if (time(NULL) < vpninfo->dtls_times.last_rekey + 5)
+			if (time(NULL) < vpninfo->dtls_times.last_rekey + 5) {
 				/* Allow 5 seconds for ESP to start */
+				if (*timeout > 5000)
+					*timeout = 5000;
 				return 0;
-			else
+			} else
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to connect ESP tunnel; using HTTPS instead.\n"));
 			break;
