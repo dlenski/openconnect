@@ -78,13 +78,46 @@ int print_esp_keys(struct openconnect_info *vpninfo, const char *name, struct es
 	return 0;
 }
 
-/* Ping must include at least these 16 bytes. The Windows client actually sends this
- * 56-byte version, but the remaining bytes don't seem to matter:
- *
- * "monitor\x00\x00pan ha 0123456789:;<=>? !\"#$%&\'()*+,-./\x10\x11\x12\x13\x14\x15\x16\x18";
- */
+int esp_send_probes(struct openconnect_info *vpninfo)
+{
+	struct pkt *pkt;
+	int pktlen;
 
-char magic[16] = "monitor\x00\x00pan ha ";
+	if (vpninfo->dtls_fd == -1) {
+		int fd = udp_connect(vpninfo);
+		if (fd < 0)
+			return fd;
+
+		/* We are not connected until we get an ESP packet back */
+		vpninfo->dtls_state = DTLS_SLEEPING;
+		vpninfo->dtls_fd = fd;
+		monitor_fd_new(vpninfo, dtls);
+		monitor_read_fd(vpninfo, dtls);
+		monitor_except_fd(vpninfo, dtls);
+	}
+
+	pkt = malloc(sizeof(*pkt) + 1 + vpninfo->pkt_trailer);
+	if (!pkt)
+		return -ENOMEM;
+
+	pkt->len = 1;
+	pkt->data[0] = 0;
+	pktlen = encrypt_esp_packet(vpninfo, pkt);
+	if (pktlen >= 0)
+		send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
+
+	pkt->len = 1;
+	pkt->data[0] = 0;
+	pktlen = encrypt_esp_packet(vpninfo, pkt);
+	if (pktlen >= 0)
+		send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
+
+	free(pkt);
+
+	vpninfo->dtls_times.last_tx = time(&vpninfo->new_dtls_started);
+
+	return 0;
+};
 
 static uint16_t csum(uint16_t *buf, int nwords)
 {
@@ -96,8 +129,15 @@ static uint16_t csum(uint16_t *buf, int nwords)
 	return htons((uint16_t)(~sum));
 }
 
-static int esp_send_probes(struct openconnect_info *vpninfo)
+int esp_send_probes_gp(struct openconnect_info *vpninfo)
 {
+	/* Ping must include at least these 16 bytes. The Windows client actually sends this
+	 * 56-byte version, but the remaining bytes don't seem to matter:
+	 *
+	 * "monitor\x00\x00pan ha 0123456789:;<=>? !\"#$%&\'()*+,-./\x10\x11\x12\x13\x14\x15\x16\x18";
+	 */
+	static char magic[16] = "monitor\x00\x00pan ha ";
+
 	int pktlen, seq;
 	struct pkt *pkt = malloc(sizeof(*pkt) + sizeof(struct iphdr) + sizeof(struct icmphdr) + sizeof(magic) + vpninfo->pkt_trailer);
 	struct iphdr *iph = (void *)pkt->data;
@@ -154,46 +194,18 @@ static int esp_send_probes(struct openconnect_info *vpninfo)
 	return 0;
 }
 
-static int esp_send_probes_BAK(struct openconnect_info *vpninfo)
+int esp_catch_probe(struct openconnect_info *vpninfo, struct pkt *pkt)
 {
-	struct pkt *pkt;
-	int pktlen;
+	return (pkt->len == 1 && pkt->data[0] == 0);
+}
 
-	if (vpninfo->dtls_fd == -1) {
-		int fd = udp_connect(vpninfo);
-		if (fd < 0)
-			return fd;
-
-		/* We are not connected until we get an ESP packet back */
-		vpninfo->dtls_state = DTLS_SLEEPING;
-		vpninfo->dtls_fd = fd;
-		monitor_fd_new(vpninfo, dtls);
-		monitor_read_fd(vpninfo, dtls);
-		monitor_except_fd(vpninfo, dtls);
-	}
-
-	pkt = malloc(sizeof(*pkt) + 1 + vpninfo->pkt_trailer);
-	if (!pkt)
-		return -ENOMEM;
-
-	pkt->len = 1;
-	pkt->data[0] = 0;
-	pktlen = encrypt_esp_packet(vpninfo, pkt);
-	if (pktlen >= 0)
-		send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
-
-	pkt->len = 1;
-	pkt->data[0] = 0;
-	pktlen = encrypt_esp_packet(vpninfo, pkt);
-	if (pktlen >= 0)
-		send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
-
-	free(pkt);
-
-	vpninfo->dtls_times.last_tx = time(&vpninfo->new_dtls_started);
-
-	return 0;
-};
+int esp_catch_probe_gp(struct openconnect_info *vpninfo, struct pkt *pkt)
+{
+	return ( pkt->len >= 21
+		 && pkt->data[9]==1 /* IPv4 protocol field == ICMP */
+		 && *((uint32_t *)(pkt->data + 12)) == inet_addr(vpninfo->ip_info.gateway_addr) /* source == gateway */
+		 && pkt->data[20]==0 /* ICMP reply */ );
+}
 
 int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 {
@@ -212,7 +224,8 @@ int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 	print_esp_keys(vpninfo, _("outgoing"), &vpninfo->esp_out);
 
 	vpn_progress(vpninfo, PRG_DEBUG, _("Send ESP probes\n"));
-	esp_send_probes(vpninfo);
+	if (vpninfo->proto->udp_send_probes)
+		vpninfo->proto->udp_send_probes(vpninfo);
 
 	return 0;
 }
@@ -229,7 +242,8 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		int when = vpninfo->new_dtls_started + vpninfo->dtls_attempt_period - time(NULL);
 		if (when <= 0 || vpninfo->dtls_need_reconnect) {
 			vpn_progress(vpninfo, PRG_DEBUG, _("Send ESP probes\n"));
-			esp_send_probes(vpninfo);
+			if (vpninfo->proto->udp_send_probes)
+				vpninfo->proto->udp_send_probes(vpninfo);
 			when = vpninfo->dtls_attempt_period;
 		}
 		if (*timeout > when * 1000)
@@ -309,17 +323,16 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		}
 		vpninfo->dtls_times.last_rx = time(NULL);
 
-//		if (pkt->len  == 1 && pkt->data[0] == 0) {
-		if (pkt->data[9]==1 /* IPv4 protocol field == ICMP */
-		    && *((uint32_t *)(pkt->data + 12)) == inet_addr(vpninfo->ip_info.gateway_addr) /* source == gateway */
-		    && pkt->data[20]==0 /* ICMP reply */) {
-			if (vpninfo->dtls_state == DTLS_SLEEPING) {
-				vpn_progress(vpninfo, PRG_INFO,
-					     _("ESP session established with server\n"));
-				queue_esp_control(vpninfo, 1);
-				vpninfo->dtls_state = DTLS_CONNECTING;
+		if (vpninfo->proto->udp_catch_probe) {
+			if (vpninfo->proto->udp_catch_probe(vpninfo, pkt)) {
+				if (vpninfo->dtls_state == DTLS_SLEEPING) {
+					vpn_progress(vpninfo, PRG_INFO,
+						     _("ESP session established with server\n"));
+					queue_esp_control(vpninfo, 1);
+					vpninfo->dtls_state = DTLS_CONNECTING;
+				}
+				continue;
 			}
-			continue;
 		}
 		if (pkt->data[len - 1] == 0x05) {
 			struct pkt *newpkt = malloc(sizeof(*pkt) + vpninfo->ip_info.mtu + vpninfo->pkt_trailer);
@@ -359,12 +372,14 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpn_progress(vpninfo, PRG_ERR, _("ESP detected dead peer\n"));
 		queue_esp_control(vpninfo, 0);
 		esp_close(vpninfo);
-		esp_send_probes(vpninfo);
+		if (vpninfo->proto->udp_send_probes)
+			vpninfo->proto->udp_send_probes(vpninfo);
 		return 1;
 
 	case KA_DPD:
 		vpn_progress(vpninfo, PRG_DEBUG, _("Send ESP probes for DPD\n"));
-		esp_send_probes(vpninfo);
+		if (vpninfo->proto->udp_send_probes)
+			vpninfo->proto->udp_send_probes(vpninfo);
 		work_done = 1;
 		break;
 

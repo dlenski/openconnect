@@ -282,6 +282,12 @@ struct vpn_proto {
 
 	/* Close and destroy the (UDP) session */
 	void (*udp_shutdown)(struct openconnect_info *vpninfo);
+
+	/* Send probe packets to start or maintain the (UDP) session */
+	int (*udp_send_probes)(struct openconnect_info *vpninfo);
+
+	/* Catch probe packet confirming the (UDP) session */
+	int (*udp_catch_probe)(struct openconnect_info *vpninfo, struct pkt *p);
 };
 
 struct pkt_q {
@@ -909,6 +915,10 @@ void esp_close(struct openconnect_info *vpninfo);
 void esp_close_secret(struct openconnect_info *vpninfo);
 void esp_shutdown(struct openconnect_info *vpninfo);
 int print_esp_keys(struct openconnect_info *vpninfo, const char *name, struct esp *esp);
+int esp_send_probes(struct openconnect_info *vpninfo);
+int esp_send_probes_gp(struct openconnect_info *vpninfo);
+int esp_catch_probe(struct openconnect_info *vpninfo, struct pkt *pkt);
+int esp_catch_probe_gp(struct openconnect_info *vpninfo, struct pkt *pkt);
 
 /* {gnutls,openssl}-esp.c */
 int setup_esp_keys(struct openconnect_info *vpninfo, int new_keys);

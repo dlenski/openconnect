@@ -132,6 +132,8 @@ const struct vpn_proto openconnect_protos[] = {
 		.udp_mainloop = esp_mainloop,
 		.udp_close = esp_close,
 		.udp_shutdown = esp_shutdown,
+		.udp_send_probes = esp_send_probes,
+		.udp_catch_probe = esp_catch_probe,
 #endif
 	}, {
 		.name = "gp",
@@ -145,6 +147,8 @@ const struct vpn_proto openconnect_protos[] = {
 		.udp_mainloop = esp_mainloop,
 		.udp_close = esp_close_secret,
 		.udp_shutdown = esp_shutdown,
+		.udp_send_probes = esp_send_probes_gp,
+		.udp_catch_probe = esp_catch_probe_gp,
 #endif
 	},
 	{ /* NULL */ }
