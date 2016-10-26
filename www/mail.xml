@@ -45,6 +45,9 @@
 	<p>For Juniper VPN, the equivalent is a <tt>DSID</tt> cookie, which is not yet filtered
 	out of any output <i>(the authentication support in Juniper is still very new)</i>.</p>
 
+	<p>For PAN GlobalConnect, the equivalent is a URL-encoded
+	<tt>authcookie</tt> parameter, which is also not yet filtered out of any output.</p>
+
 	<h1>Internet Relay Chat (IRC)</h1>
 
 	<p>There is also an IRC channel
