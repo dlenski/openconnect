@@ -1018,6 +1018,7 @@ int can_gen_tokencode(struct openconnect_info *vpninfo,
 /* http.c */
 struct oc_text_buf *buf_alloc(void);
 void dump_buf(struct openconnect_info *vpninfo, char prefix, char *buf);
+void dump_buf_hex(struct openconnect_info *vpninfo, int loglevel, char prefix, unsigned char *buf, int len);
 int buf_ensure_space(struct oc_text_buf *buf, int len);
 void  __attribute__ ((format (printf, 2, 3)))
 	buf_append(struct oc_text_buf *buf, const char *fmt, ...);

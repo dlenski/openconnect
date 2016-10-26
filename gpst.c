@@ -50,22 +50,6 @@
 
 static const struct pkt dpd_pkt = { .gpst.hdr = { 0x1a, 0x2b, 0x3c, 0x4d } };
 
-static void buf_hexdump(struct openconnect_info *vpninfo, int loglevel, unsigned char *d, int len)
-{
-	char linebuf[80];
-	int i;
-
-	for (i = 0; i < len; i++) {
-		if (i % 16 == 0) {
-			if (i)
-				vpn_progress(vpninfo, loglevel, "%s\n", linebuf);
-			sprintf(linebuf, "%04x:", i);
-		}
-		sprintf(linebuf + strlen(linebuf), " %02x", d[i]);
-	}
-	vpn_progress(vpninfo, loglevel, "%s\n", linebuf);
-}
-
 /* similar to auth.c's xmlnode_get_text, except that *var should be freed by the caller */
 static int xmlnode_get_text(xmlNode *xml_node, const char *name, const char **var)
 {
@@ -599,7 +583,7 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Unexpected packet length. SSL_read returned %d (includes 16 header bytes) but header payload_len is %d\n"),
 			             len, payload_len);
-			buf_hexdump(vpninfo, PRG_ERR, vpninfo->cstp_pkt->gpst.hdr, 16);
+			dump_buf_hex(vpninfo, PRG_ERR, '<', vpninfo->cstp_pkt->gpst.hdr, 16);
 			continue;
 		}
 
@@ -612,7 +596,7 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			if (one != 0 || zero != 0) {
 				vpn_progress(vpninfo, PRG_DEBUG,
 					     _("Expected 0000000000000000 as last 8 bytes of DPD/keepalive packet header, but got:\n"));
-				buf_hexdump(vpninfo, PRG_DEBUG, vpninfo->cstp_pkt->gpst.hdr + 8, 8);
+				dump_buf_hex(vpninfo, PRG_DEBUG, '<', vpninfo->cstp_pkt->gpst.hdr + 8, 8);
 			}
 			continue;
 		case 0x0800:
@@ -627,7 +611,7 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			if (one != 1 || zero != 0) {
 				vpn_progress(vpninfo, PRG_DEBUG,
 					     _("Expected 0100000000000000 as last 8 bytes of data packet header, but got:\n"));
-				buf_hexdump(vpninfo, PRG_ERR, vpninfo->cstp_pkt->gpst.hdr + 8, 8);
+				dump_buf_hex(vpninfo, PRG_DEBUG, '<', vpninfo->cstp_pkt->gpst.hdr + 8, 8);
 			}
 			continue;
 		}
@@ -635,7 +619,7 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	unknown_pkt:
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unknown packet. Header dump follows:\n"));
-		buf_hexdump(vpninfo, PRG_ERR, vpninfo->cstp_pkt->gpst.hdr, 16);
+		dump_buf_hex(vpninfo, PRG_ERR, '<', vpninfo->cstp_pkt->gpst.hdr, 16);
 		vpninfo->quit_reason = "Unknown packet received";
 		return 1;
 	}
