@@ -1,20 +1,20 @@
 #!/bin/bash
 # Cisco Anyconnect CSD wrapper for OpenConnect
+#
+# [05 May 2015] Written by Nikolay Panin <nick_panin@mail.ru>:
+#   - source: https://gist.github.com/l0ki000/56845c00fd2a0e76d688
+# [27 Oct 2017] Updated by Daniel Lenski <dlenski@gmail.com>:
+#   - use -url argument
+#   - kill cstub after timeout
+#   - fix small typos:
 
-# Enter your vpn host here
-CSD_HOSTNAME=
-if [[ -z ${CSD_HOSTNAME} ]]
-then
-    echo "Define CSD_HOSTNAME with vpn-host in script text. Exiting."
-    exit 1
-fi
-
+TIMEOUT=30
+URL="https://${CSD_HOSTNAME}/CACHE"
 HOSTSCAN_DIR="$HOME/.cisco/hostscan"
 LIB_DIR="$HOSTSCAN_DIR/lib"
 BIN_DIR="$HOSTSCAN_DIR/bin"
 
 BINS=("cscan" "cstub" "cnotify")
-
 
 # parsing command line
 shift
@@ -31,11 +31,10 @@ while [ "$1" ]; do
     if [ "$1" == "-stub" ];     then shift; STUB=$1; fi
     if [ "$1" == "-group" ];    then shift; GROUP=$1; fi
     if [ "$1" == "-certhash" ]; then shift; CERTHASH=$1; fi
-    if [ "$1" == "-url" ];      then shift; URL=$1; fi
+    if [ "$1" == "-url" ];      then shift; URL=$(echo $1|tr -d '"'); fi # strip quotes
     if [ "$1" == "-langselen" ];then shift; LANGSELEN=$1; fi
     shift
 done
-
 
 ARCH=$(uname -m)
 
@@ -55,7 +54,7 @@ for dir in $HOSTSCAN_DIR $LIB_DIR $BIN_DIR ; do
 done
 
 # getting manifest, and checking binaries
-wget --no-check-certificate -c "https://${CSD_HOSTNAME}/CACHE/sdesktop/hostscan/$ARCH/manifest" -O "$HOSTSCAN_DIR/manifest"
+wget --no-check-certificate -c "${URL}/sdesktop/hostscan/$ARCH/manifest" -O "$HOSTSCAN_DIR/manifest"
 
 # generating md5.sum with full paths from manifest
 export HOSTSCAN_DIR=$HOSTSCAN_DIR
@@ -64,7 +63,7 @@ cat $HOSTSCAN_DIR/manifest | sed -r 's/\(|\)//g' | awk '{ cmd = "find $HOSTSCAN_
 # check number of files either
 MD5_LINES=`wc --lines $HOSTSCAN_DIR/md5.sum | awk '{ print $1; }'`
 MANIFEST_LINES=`wc --lines $HOSTSCAN_DIR/manifest | awk '{ print $1; }'`
-echo "Got $MANIFEST_LINES files in manifes, locally found $MD5_LINES"
+echo "Got $MANIFEST_LINES files in manifest, locally found $MD5_LINES"
 
 # check md5
 md5sum -c $HOSTSCAN_DIR/md5.sum
@@ -79,7 +78,7 @@ then
         FILE="$(basename "$i")"
 
         echo "Downloading: $FILE to $TMP_DIR"
-        wget --no-check-certificate -c "https://${CSD_HOSTNAME}/CACHE/sdesktop/hostscan/$ARCH/$FILE" -O $FILE
+        wget --no-check-certificate -c "${URL}/sdesktop/hostscan/$ARCH/$FILE" -O $FILE
 
         # some files are in gz (don't understand logic here)
         if [[ ! -f $FILE || ! -s $FILE ]]
@@ -91,7 +90,7 @@ then
 
             echo "Failure on $FILE, trying gz"
             FILE_GZ=$FILE.gz
-            wget --no-check-certificate -c "https://${CSD_HOSTNAME}/CACHE/sdesktop/hostscan/$ARCH/$FILE_GZ" -O $FILE_GZ
+            wget --no-check-certificate -c "${URL}/sdesktop/hostscan/$ARCH/$FILE_GZ" -O $FILE_GZ
             gunzip --verbose --decompress $FILE_GZ
         fi
 
@@ -118,8 +117,14 @@ then
 fi
 
 # cstub doesn't care about logging options, sic!
-#ARGS="-log debug -ticket $TICKET -stub $STUB -group $GROUP -host $URL -certhash $CERTHASH"
-ARGS="-log error -ticket $TICKET -stub $STUB -group $GROUP -host $URL -certhash $CERTHASH"
+#ARGS="-log debug -ticket $TICKET -stub $STUB -group $GROUP -host "$URL" -certhash $CERTHASH"
+ARGS="-log error -ticket $TICKET -stub $STUB -group $GROUP -host \"$URL\" -certhash $CERTHASH"
 
 echo "Launching: $BIN_DIR/cstub $ARGS"
-$BIN_DIR/cstub $ARGS
+$BIN_DIR/cstub $ARGS & CSTUB_PID=$!
+
+sleep $TIMEOUT
+if kill -0 $CSTUB_PID 2> /dev/null; then
+    echo "Killing cstub process after $TIMEOUT seconds"
+    kill $CSTUB_PID 2> /dev/null || kill -9 $CSTUB_PID 2> /dev/null
+fi
