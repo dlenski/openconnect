@@ -339,7 +339,8 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		free(cache);
 	}
 
-	free(vpninfo->peer_cert_hash);
+	free(vpninfo->peer_cert_sha1);
+	free(vpninfo->peer_cert_sha256);
 	free(vpninfo->localname);
 	free(vpninfo->useragent);
 	free(vpninfo->authgroup);
@@ -942,7 +943,15 @@ int openconnect_check_peer_cert_hash(struct openconnect_info *vpninfo,
 	const char *fingerprint;
 
 	if (strchr(old_hash, ':')) {
-		fingerprint = openconnect_get_peer_cert_hash(vpninfo);
+		if (strncmp(old_hash, "sha1:", 5) == 0) {
+			fingerprint = vpninfo->peer_cert_sha1;
+		} else if (strncmp(old_hash, "sha256:", 7) == 0) {
+			fingerprint = vpninfo->peer_cert_sha256;
+		} else {
+			vpn_progress(vpninfo, PRG_ERR, _("Unknown certificate hash: %s.\n"), old_hash);
+			return -EIO;
+		}
+
 		if (!fingerprint)
 			return -EIO;
 	} else {
@@ -976,7 +985,7 @@ const char *openconnect_get_cstp_cipher(struct openconnect_info *vpninfo)
 
 const char *openconnect_get_peer_cert_hash(struct openconnect_info *vpninfo)
 {
-	return vpninfo->peer_cert_hash;
+	return vpninfo->peer_cert_sha256;
 }
 
 int openconnect_set_compression_mode(struct openconnect_info *vpninfo,
