@@ -941,12 +941,17 @@ int openconnect_check_peer_cert_hash(struct openconnect_info *vpninfo,
 {
 	char sha1_text[41];
 	const char *fingerprint;
+	unsigned min_match_len;
+	unsigned real_min_match_len = 4;
+	unsigned old_len, fingerprint_len;
 
 	if (strchr(old_hash, ':')) {
 		if (strncmp(old_hash, "sha1:", 5) == 0) {
 			fingerprint = vpninfo->peer_cert_sha1;
+			min_match_len = real_min_match_len + sizeof("sha1:")-1;
 		} else if (strncmp(old_hash, "sha256:", 7) == 0) {
 			fingerprint = vpninfo->peer_cert_sha256;
+			min_match_len = real_min_match_len + sizeof("sha256:")-1;
 		} else {
 			vpn_progress(vpninfo, PRG_ERR, _("Unknown certificate hash: %s.\n"), old_hash);
 			return -EIO;
@@ -970,10 +975,24 @@ int openconnect_check_peer_cert_hash(struct openconnect_info *vpninfo,
 			sprintf(&sha1_text[i*2], "%02x", sha1_bin[i]);
 
 		fingerprint = sha1_text;
+		min_match_len = real_min_match_len;
 	}
 
-	if (strcasecmp(old_hash, fingerprint))
-		return 1;
+	old_len = strlen(old_hash);
+	fingerprint_len = strlen(fingerprint);
+
+	/* allow partial matches */
+	if (old_len < fingerprint_len) {
+		if (strncasecmp(old_hash, fingerprint, MAX(min_match_len, old_len))) {
+			if (old_len < min_match_len) {
+				vpn_progress(vpninfo, PRG_ERR, _("The size of the provided fingerprint is less than the minimum required (%u).\n"), real_min_match_len);
+			}
+			return 1;
+		}
+	} else {
+		if (strcasecmp(old_hash, fingerprint))
+			return 1;
+	}
 
 	return 0;
 }
