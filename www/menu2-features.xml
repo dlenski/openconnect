@@ -7,5 +7,6 @@
 	<MENU topic="Character sets" link="charset.html" mode="VAR_SEL_FEATURE_CHARSET" />
 	<MENU topic="One Time Passwords" link="token.html" mode="VAR_SEL_FEATURE_TOKEN" />
 	<MENU topic="Smart Cards / PKCS#11" link="pkcs11.html" mode="VAR_SEL_FEATURE_PKCS11" />
+	<MENU topic="Trusted Platform Module (TPM)" link="tpm.html" mode="VAR_SEL_FEATURE_TPM" />
 	<ENDMENU />
 </PAGE>
