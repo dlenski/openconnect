@@ -946,7 +946,13 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unexpected %d result from server\n"),
 			     result);
-		result = -EINVAL;
+		if (result == 401 || result == 403)
+			result = -EPERM;
+		else if (result > 511)
+                       /* custom 5xx error codes */
+			result = -result;
+		else
+			result = -EINVAL;
 		goto out;
 	}
 
