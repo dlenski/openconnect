@@ -214,9 +214,11 @@ static int set_esp_algo(struct openconnect_info *vpninfo, const char *s, int hma
 		if (!strcmp(s, "sha1"))		{ vpninfo->esp_hmac = HMAC_SHA1; return 20; }
 		if (!strcmp(s, "md5"))		{ vpninfo->esp_hmac = HMAC_MD5; return 16; }
 	} else {
-		if (!strcmp(s, "aes-128-cbc"))	{ vpninfo->esp_enc = ENC_AES_128_CBC; return 16; }
+		if (!strcmp(s, "aes128") || !strcmp(s, "aes-128-cbc"))
+		                                { vpninfo->esp_enc = ENC_AES_128_CBC; return 16; }
 		if (!strcmp(s, "aes-256-cbc"))	{ vpninfo->esp_enc = ENC_AES_256_CBC; return 32; }
 	}
+	vpn_progress(vpninfo, PRG_ERR, _("Unknown ESP %s algorithm: %s"), hmac ? "MAC" : "encryption", s);
 	return -ENOENT;
 }
 
