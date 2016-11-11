@@ -1,3 +1,5 @@
+This is an anonymized log of the authentication and connection process between a GlobalProtect VPN client and server.
+
 Request #1
 ==========
 
