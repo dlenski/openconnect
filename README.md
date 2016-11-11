@@ -13,7 +13,13 @@ for me.
 Having other people test it would be awesome and I welcome your
 feedback! Please report any problems here on Github rather than
 bothering the OpenConnect mailing list, since this is *not part of any
-official OpenConnect release*.
+official OpenConnect release*. **If you are having trouble
+authenticating to your GlobalProtect server, please run OpenConnect
+with the `--dump -vvv` flags to dump the authentication flow; please
+compare the back-and-forth XML configuration to [this anonymized
+transcript](https://gist.github.com/dlenski/5046e5f934ac111e8d8718fc10c25703)
+and include information about relevant differences in your issue
+report.**
 
 ## Installation
 
