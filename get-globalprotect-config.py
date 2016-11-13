@@ -4,7 +4,6 @@ from __future__ import print_function
 import requests
 import argparse
 import getpass
-import xml.etree.ElementTree as ET
 import os
 from sys import stderr
 
@@ -46,6 +45,4 @@ res = s.post(login, data=dict(user=args.user, passwd=args.password,
                               computer='localhost'))
 
 res.raise_for_status()
-res = ET.fromstring(res.text)
-gw = res.find('.//gateways')
-print (ET.tostring(gw))
+print(res.text)
