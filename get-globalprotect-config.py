@@ -15,6 +15,7 @@ g.add_argument('--user', help='Username (will prompt if unspecified)')
 g.add_argument('--password', help='Password (will prompt if unspecified)')
 g.add_argument('--cert', help='PEM file containing client certificate (and optionally private key)')
 g.add_argument('--key', help='PEM file containing client private key (if not included in same file as certificate)')
+g.add_argument('--no-verify', dest='verify', action='store_false', default=True, help='Ignore invalid server certificate')
 args = p.parse_args()
 
 if args.cert and args.key:
@@ -37,7 +38,7 @@ s.cert = cert
 
 # same request params work for /global-protect/getconfig.esp as for /ssl-vpn/login.esp
 login = 'https://{}/global-protect/getconfig.esp'.format(args.portal)
-res = s.post(login, data=dict(user=args.user, passwd=args.password,
+res = s.post(login, verify=args.verify, data=dict(user=args.user, passwd=args.password,
                               # required
                               jnlpReady='jnlpReady', ok='Login', direct='yes',
                               # optional but might affect behavior
