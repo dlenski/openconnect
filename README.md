@@ -23,6 +23,8 @@ report.**
 
 ## Installation
 
+Ubuntu 16.04 users can install from [this PPA](https://launchpad.net/~lenski/+archive/ubuntu/openconnect-gp).
+
 Build the `globalprotect` branch from this repository. Requires modern versions of `autoconf`, `automake`, `gcc`, `libxml`.
 
 ```sh
