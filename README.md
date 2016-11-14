@@ -23,13 +23,20 @@ report.**
 
 ## Installation
 
+### Ubuntu
+
 Ubuntu 16.04 users can install from [this PPA](https://launchpad.net/~lenski/+archive/ubuntu/openconnect-gp).
 
-Build the `globalprotect` branch from this repository. Requires modern versions of `autoconf`, `automake`, `gcc`, `libxml`.
+### Building from source
+
+Please refer to the [build requirements for the official releases of OpenConnect](http://www.infradead.org/openconnect/building.html). **This version has the exact same build dependencies as OpenConnect v7.06**; modern versions of `autoconf`, `automake`, `gcc`, `libxml`, etc.
+
+Once you have all the build dependencies installed, checkout and build the `globalprotect` branch from this repository.
 
 ```sh
 $ git clone git@github.com:dlenski/openconnect
 $ cd openconnect
+$ git checkout globalprotect
 $ ./autogen.sh
 $ ./configure
 $ make
