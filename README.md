@@ -6,20 +6,24 @@ PAN GlobalProtect VPN in its native modes (SSL and
 [ESP](http://wikipedia.org/wiki/Encapsulating_Security_Payload))—with
 no assistance or cooperation needed from your VPN administrators.
 
-This is a [work in progress](http://lists.infradead.org/pipermail/openconnect-devel/2016-October/004035.html),
-but I've been using it for real work already and it works very well
-for me.
+## Feedback and troubleshooting
+
+This is a [work in progress](http://lists.infradead.org/pipermail/openconnect-devel/2016-October/004035.html).
+
+That said, I've been using it for real work for many weeks, and it works very well for me.
 
 Having other people test it would be awesome and I welcome your
 feedback! Please report any problems here on Github rather than
 bothering the OpenConnect mailing list, since this is *not part of any
-official OpenConnect release*. **If you are having trouble
+official OpenConnect release*.
+
+If you are having trouble
 authenticating to your GlobalProtect server, please run OpenConnect
 with the `--dump -vvv` flags to dump the authentication flow; please
 compare the back-and-forth XML configuration to [this anonymized
 transcript](https://gist.github.com/dlenski/5046e5f934ac111e8d8718fc10c25703)
 and include information about relevant differences in your issue
-report.**
+report.
 
 ## Installation
 
@@ -68,3 +72,23 @@ and the "GlobalProtect Gateway IP" shown in the Windows client with
 OpenConnect:
 
 [![GlobalProtect Windows client](https://i.stack.imgur.com/2JC9T.png)]
+
+You can also use [`get-globalprotect-config.py`](get-globalprotect-config.py) to list the available gateway servers:
+
+```sh
+$ ./get-globalprotect-config.py [--cert client_cert_with_privkey.pem] portal.company.com
+        ...
+        <gateways>
+                <cutoff-time>5</cutoff-time>
+                <external>
+                        <list>
+                                <entry name="gateway.company.com">
+                                        <priority>1</priority>
+                                        <manual>yes</manual>
+                                        <description>WowSuchGateway</description>
+                                </entry>
+                        </list>
+                </external>
+        </gateways>
+        ...
+```

@@ -28,7 +28,7 @@ else:
     cert = None
 
 if not args.user:
-    args.user = input('Username: ')
+    args.user = raw_input('Username: ')
 if not args.password:
     args.password = getpass.getpass('Password: ')
 
