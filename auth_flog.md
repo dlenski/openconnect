@@ -40,7 +40,7 @@ host-id:                        deadbeef-dead-beef-dead-beefdeadbeef
 Response #1
 ===========
 
-Nothing in this response seems interesting or useful, except for the delicious 32-digit cookie:
+Nothing in this response seems interesting or useful, except for the delicious 32-digit cookie. The second hexadecimal blob is a persistent identifier associated with the combination of user account and gateway (probably the `sha1` hash of something, since it's 40 digits long).
 
 ```
 Headers:
@@ -181,9 +181,13 @@ Tunnel
 
 In the back-and-forth flows shown below, `<` means sent by the gateway, `>` means sent by the client.
  
-### IPsec-over-UDP
+### ESP-over-UDP
 
-Uses the keying information obtained in response to the `getconfig` request. I have not yet tested this "manually" but I feel fairly confident in this interpretation.
+Uses the keying information obtained in response to the `getconfig` request. In order to initiate the connection, the client sends 3 ESP-encapsulated ping packets to the gateway. They are sent _from_ the client's in-VPN IP address _to_ the gateway's public IP address, and they include the following magic payload:
+
+    "monitor\x00\x00pan ha 0123456789:;<=>? !\"#$%&\'()*+,-./\x10\x11\x12\x13\x14\x15\x16\x18"
+
+Only the first 16 bytes of the payload appear to be necessary to elicit a response from the gateway. Once the gateway has responded, the client and server send and receive arbitrary ESP-encapsulated traffic. The client continues to periodically send the "magic ping" packets as a keepalive.
 
 ### SSL vpn tunnel
 
