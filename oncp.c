@@ -1002,7 +1002,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				iplen = load_be16(vpninfo->cstp_pkt->data + 2);
 				break;
 			case 6:
-				iplen = load_be16(vpninfo->cstp_pkt->data + 4);
+				iplen = load_be16(vpninfo->cstp_pkt->data + 4) + 40;
 				break;
 			default:
 			badiplen:
