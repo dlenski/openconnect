@@ -419,7 +419,7 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 
 	/* Connect to SSL VPN tunnel */
 	vpn_progress(vpninfo, PRG_DEBUG,
-		     _("Connecting to GPST tunnel over HTTPS...\n"));
+		     _("Connecting to HTTPS tunnel endpoint ...\n"));
 
 	ret = openconnect_open_https(vpninfo);
 	if (ret)
@@ -514,8 +514,8 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	switch (vpninfo->dtls_state) {
 	case DTLS_CONNECTING:
 		openconnect_close_https(vpninfo, 0); /* don't keep stale HTTPS socket */
-		vpn_progress(vpninfo, PRG_DEBUG,
-			     _("ESP tunnel connected; exiting GPST mainloop.\n"));
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("ESP tunnel connected; exiting HTTPS mainloop.\n"));
 		vpninfo->dtls_state = DTLS_CONNECTED;
 	case DTLS_CONNECTED:
 		return 0;
