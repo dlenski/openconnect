@@ -16,6 +16,7 @@
    <li><b>OpenConnect HEAD</b>
      <ul>
        <li>Fix portability of shell scripts in test suite.</li>
+       <li>Add Google Authenticator TOTP support for Juniper.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.08.tar.gz">OpenConnect v7.08</a></b>
