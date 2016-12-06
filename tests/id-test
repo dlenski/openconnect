@@ -1,0 +1,64 @@
+#!/bin/sh
+#
+# Copyright © 2016 Red Hat, Inc.
+#
+# This file is part of openconnect.
+#
+# This is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public License
+# as published by the Free Software Foundation; either version 2.1 of
+# the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>
+
+SERV="${SERV:-../src/ocserv}"
+srcdir=${srcdir:-.}
+top_builddir=${top_builddir:-..}
+
+. `dirname $0`/common.sh
+
+echo "Testing certificate auth... "
+
+launch_simple_sr_server -d 1 -f -c configs/test-user-pass.config >/dev/null 2>&1
+PID=$!
+wait_server $PID
+
+echo -n "Connecting with legacy hash... "
+( echo "test" | LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q $ADDRESS:443 -u test --servercert=d66b507ae074d03b02eafca40d35f87dd81049d3 --cookieonly >/dev/null 2>&1) ||
+	fail $PID "Could not receive cookie from server"
+
+echo ok
+
+echo -n "Connecting with SHA1 ID... "
+( echo "test" | LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q $ADDRESS:443 -u test --servercert=sha1:a82547f68f44d6351bef6cacd1d7b96e84f9dfa3 --cookieonly >/dev/null 2>&1) ||
+	fail $PID "Could not receive cookie from server"
+
+echo ok
+
+echo -n "Connecting with SHA256 ID... "
+( echo "test" | LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q $ADDRESS:443 -u test --servercert=sha256:c69dec71fcf2deb390b2ff4d70ebdeffc61556ffa91ebe2a3425c45eb365e6cf --cookieonly >/dev/null 2>&1) ||
+	fail $PID "Could not receive cookie from server"
+
+echo ok
+
+echo -n "Connecting with SHA256 partial ID... "
+( echo "test" | LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q $ADDRESS:443 -u test --servercert=sha256:c69dec --cookieonly >/dev/null 2>&1) ||
+	fail $PID "Could not receive cookie from server"
+
+echo ok
+
+echo -n "Connecting with wrong SHA256 ID... "
+( echo "test" | LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q $ADDRESS:443 -u test --servercert=sha256:c69ded --cookieonly >/dev/null 2>&1) &&
+	fail $PID "Did connect to the server with wrong ID"
+
+echo ok
+
+cleanup
+
+exit 0
