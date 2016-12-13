@@ -591,6 +591,20 @@ PKG_CHECK_MODULES([LIBLZ4], [liblz4], [
 	AC_SUBST(LIBLZ4_PC, liblz4)
 	AC_DEFINE([HAVE_LZ4], [], [LZ4 was found])
 	lz4_pkg=yes
+	oldLIBS="$LIBS"
+	LIBS="$LIBS $LIBLZ4_LIBS"
+	oldCFLAGS="$CFLAGS"
+	CFLAGS="$CFLAGS $LIBLZ4_CFLAGS"
+	AC_MSG_CHECKING([for LZ4_compress_default()])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([
+		   #include <lz4.h>],[
+		   LZ4_compress_default("", (char *)0, 0, 0);])],
+		  [AC_MSG_RESULT(yes)
+		   AC_DEFINE([HAVE_LZ4_COMPRESS_DEFAULT], [], [From LZ4 r129])
+		  ],
+		  [AC_MSG_RESULT(no)])
+	LIBS="$oldLIBS"
+	CFLAGS="$oldCFLAGS"
 ],
 [
 	AC_MSG_WARN([[

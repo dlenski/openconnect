@@ -30,6 +30,9 @@
 #include <stdarg.h>
 #ifdef HAVE_LZ4
 #include <lz4.h>
+#ifndef HAVE_LZ4_COMPRESS_DEFAULT
+#define LZ4_compress_default LZ4_compress_limitedOutput
+#endif
 #endif
 
 #if defined(__linux__)
@@ -859,8 +862,8 @@ int compress_packet(struct openconnect_info *vpninfo, int compr_type, struct pkt
 		if (this->len < 40)
 			return -EFBIG;
 
-		ret = LZ4_compress_limitedOutput((void*)this->data, (void*)vpninfo->deflate_pkt->data, this->len,
-				   this->len);
+		ret = LZ4_compress_default((void*)this->data, (void*)vpninfo->deflate_pkt->data,
+					   this->len, this->len);
 		if (ret <= 0) {
 			if (ret == 0)
 				ret = -EFBIG;
