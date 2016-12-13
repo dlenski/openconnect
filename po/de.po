@@ -4319,18 +4319,3 @@ msgstr "Berechnen-Befehl"
 #: yubikey.c:608
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr "Nicht erkannte Antwort von Yubikey bei Erstellung des Token-Codes\n"
-
-#~ msgid "SSL operation cancelled\n"
-#~ msgstr "SSL-Operation abgebrochen\n"
-
-#~ msgid "Too long time in MTU detect loop; bailing out.\n"
-#~ msgstr "Zu lange Zeit in MTU-Erkennungsschleife; Abbruch.\n"
-
-#~ msgid "Failed to send DPD request (%d): %s\n"
-#~ msgstr "DPD-Anfrage konnte nicht gesendet werden (%d): %s\n"
-
-#~ msgid "Failed to recv DPD request (%d): %s\n"
-#~ msgstr "DPD-Anfrage konnte nicht empfangen werden (%d): %s\n"
-
-#~ msgid "using OpenSSL"
-#~ msgstr "OpenSSL wird verwendet"

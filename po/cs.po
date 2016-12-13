@@ -4236,18 +4236,3 @@ msgstr "příkaz výpočtu"
 #: yubikey.c:608
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr "Nerozpoznaná odpověď od Yubikey při generování kódu tokenu\n"
-
-#~ msgid "using OpenSSL"
-#~ msgstr "používá se OpenSSL"
-
-#~ msgid "Failed to recv DPD request (%d): %s\n"
-#~ msgstr "Nepodařilo se přijmout požadavek DPD (%d): %s\n"
-
-#~ msgid "Failed to send DPD request (%d): %s\n"
-#~ msgstr "Nepodařilo se poslat požadavek DPD (%d): %s\n"
-
-#~ msgid "Too long time in MTU detect loop; bailing out.\n"
-#~ msgstr "Příliš dlouhé trvání detekční smyčky MTU, ukončuje se.\n"
-
-#~ msgid "SSL operation cancelled\n"
-#~ msgstr "Spojení SSL bylo zrušeno\n"
