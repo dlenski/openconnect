@@ -36,7 +36,7 @@ extern "C" {
 #define OPENCONNECT_API_VERSION_MINOR 4
 
 /*
- * API version 5.4:
+ * API version 5.4 (v7.08; 2016-12-13):
  *  - Add openconnect_set_pass_tos()
  *
  * API version 5.3 (v7.07; 2016-07-11):
