@@ -34,16 +34,13 @@ int print_esp_keys(struct openconnect_info *vpninfo, const char *name, struct es
 	int i;
 	const char *enctype, *mactype;
 	char enckey[256], mackey[256];
-	int enclen, maclen;
 
 	switch(vpninfo->esp_enc) {
 	case 0x02:
 		enctype = "AES-128-CBC (RFC3602)";
-		enclen = 16;
 		break;
 	case 0x05:
 		enctype = "AES-256-CBC (RFC3602)";
-		enclen = 32;
 		break;
 	default:
 		return -EINVAL;
@@ -51,20 +48,18 @@ int print_esp_keys(struct openconnect_info *vpninfo, const char *name, struct es
 	switch(vpninfo->esp_hmac) {
 	case 0x01:
 		mactype = "HMAC-MD5-96 (RFC2403)";
-		maclen = 16;
 		break;
 	case 0x02:
 		mactype = "HMAC-SHA-1-96 (RFC2404)";
-		maclen = 20;
 		break;
 	default:
 		return -EINVAL;
 	}
 
-	for (i = 0; i < enclen; i++)
-		sprintf(enckey + (2 * i), "%02x", esp->secrets[i]);
-	for (i = 0; i < maclen; i++)
-		sprintf(mackey + (2 * i), "%02x", esp->secrets[enclen + i]);
+	for (i = 0; i < vpninfo->enc_key_len; i++)
+		sprintf(enckey + (2 * i), "%02x", esp->enc_key[i]);
+	for (i = 0; i < vpninfo->hmac_key_len; i++)
+		sprintf(mackey + (2 * i), "%02x", esp->hmac_key[i]);
 
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Parameters for %s ESP: SPI 0x%08x\n"),

@@ -345,7 +345,8 @@ struct esp {
 	uint64_t seq_backlog;
 	uint64_t seq;
 	uint32_t spi; /* Stored network-endian */
-	unsigned char secrets[0x40]; /* Encryption key bytes, then HMAC key bytes */
+	unsigned char enc_key[0x40]; /* Encryption key */
+	unsigned char hmac_key[0x40]; /* HMAC key */
 };
 
 struct openconnect_info {
@@ -369,6 +370,8 @@ struct openconnect_info {
 	int old_esp_maxseq;
 	struct esp esp_in[2];
 	struct esp esp_out;
+	int enc_key_len;
+	int hmac_key_len;
 
 	int tncc_fd; /* For Juniper TNCC */
 	const char *csd_xmltag;

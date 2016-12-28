@@ -286,11 +286,13 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 
 		if (attrlen != 1)
 			goto badlen;
-		if (data[0] == 0x02)
+		if (data[0] == ENC_AES_128_CBC) {
 			enctype = "AES-128";
-		else if (data[0] == 0x05)
+			vpninfo->enc_key_len = 16;
+		} else if (data[0] == ENC_AES_256_CBC) {
 			enctype = "AES-256";
-		else
+			vpninfo->enc_key_len = 32;
+		} else
 			enctype = "unknown";
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP encryption: 0x%02x (%s)\n"),
 			      data[0], enctype);
@@ -303,11 +305,13 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 
 		if (attrlen != 1)
 			goto badlen;
-		if (data[0] == 0x01)
+		if (data[0] == HMAC_MD5) {
 			mactype = "MD5";
-		else if (data[0] == 0x02)
+			vpninfo->hmac_key_len = 16;
+		} else if (data[0] == HMAC_SHA1) {
 			mactype = "SHA1";
-		else
+			vpninfo->hmac_key_len = 20;
+		} else
 			mactype = "unknown";
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP HMAC: 0x%02x (%s)\n"),
 			      data[0], mactype);
@@ -373,7 +377,8 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 	case GRP_ATTR(7, 2):
 		if (attrlen != 0x40)
 			goto badlen;
-		memcpy(vpninfo->esp_out.secrets, data, 0x40);
+		/* data contains enc_key and hmac_key concatenated */
+		memcpy(vpninfo->esp_out.enc_key, data, 0x40);
 		vpn_progress(vpninfo, PRG_DEBUG, _("%d bytes of ESP secrets\n"),
 			     attrlen);
 		break;
@@ -474,6 +479,7 @@ static int parse_conf_pkt(struct openconnect_info *vpninfo, unsigned char *bytes
 {
 	int kmplen, kmpend, grouplen, groupend, group, attr, attrlen;
 	int ofs = 0;
+	int split_enc_hmac_keys = 0;
 
 	kmplen = load_be16(bytes + ofs + 18);
 	kmpend = ofs + kmplen;
@@ -517,11 +523,20 @@ static int parse_conf_pkt(struct openconnect_info *vpninfo, unsigned char *bytes
 				goto eparse;
 			if (process_attr(vpninfo, group, attr, bytes + ofs, attrlen))
 				goto eparse;
+			if (GRP_ATTR(group, attr)==GRP_ATTR(7, 2))
+				split_enc_hmac_keys = 1;
 			ofs += attrlen;
 		}
 	}
+
+	/* The encryption and HMAC keys are sent concatenated together in a block of 0x40 bytes;
+	   we can't split them apart until we know how long the encryption key is. */
+	if (split_enc_hmac_keys)
+		memcpy(vpninfo->esp_out.hmac_key, vpninfo->esp_out.enc_key + vpninfo->enc_key_len, vpninfo->hmac_key_len);
+
 	return 0;
 }
+
 
 int oncp_connect(struct openconnect_info *vpninfo)
 {
@@ -770,7 +785,8 @@ int oncp_connect(struct openconnect_info *vpninfo)
 		buf_append_bytes(reqbuf, esp_kmp_hdr, sizeof(esp_kmp_hdr));
 		buf_append_bytes(reqbuf, &esp->spi, sizeof(esp->spi));
 		buf_append_bytes(reqbuf, esp_kmp_part2, sizeof(esp_kmp_part2));
-		buf_append_bytes(reqbuf, &esp->secrets, sizeof(esp->secrets));
+		buf_append_bytes(reqbuf, &esp->enc_key, vpninfo->enc_key_len);
+		buf_append_bytes(reqbuf, &esp->hmac_key, 0x40 - vpninfo->enc_key_len);
 		if (buf_error(reqbuf)) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Error negotiating ESP keys\n"));
@@ -825,8 +841,9 @@ static int oncp_receive_espkeys(struct openconnect_info *vpninfo, int len)
 		p += sizeof(esp->spi);
 		memcpy(p, esp_kmp_part2, sizeof(esp_kmp_part2));
 		p += sizeof(esp_kmp_part2);
-		memcpy(p, esp->secrets, sizeof(esp->secrets));
-		p += sizeof(esp->secrets);
+		memcpy(p, esp->enc_key, vpninfo->enc_key_len);
+		memcpy(p+vpninfo->enc_key_len, esp->hmac_key, 0x40 - vpninfo->enc_key_len);
+		p += 0x40;
 		vpninfo->cstp_pkt->len = p - vpninfo->cstp_pkt->data;
 		store_le16(vpninfo->cstp_pkt->oncp.rec,
 			   (p - vpninfo->cstp_pkt->oncp.kmp));

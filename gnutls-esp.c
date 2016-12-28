@@ -48,7 +48,7 @@ static int init_esp_ciphers(struct openconnect_info *vpninfo, struct esp *esp,
 	destroy_esp_ciphers(esp);
 
 	enc_key.size = gnutls_cipher_get_key_size(encalg);
-	enc_key.data = esp->secrets;
+	enc_key.data = esp->enc_key;
 
 	err = gnutls_cipher_init(&esp->cipher, encalg, &enc_key, NULL);
 	if (err) {
@@ -59,7 +59,7 @@ static int init_esp_ciphers(struct openconnect_info *vpninfo, struct esp *esp,
 	}
 
 	err = gnutls_hmac_init(&esp->hmac, macalg,
-			       esp->secrets + enc_key.size,
+			       esp->hmac_key,
 			       gnutls_hmac_get_len(macalg));
 	if (err) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -115,7 +115,8 @@ int setup_esp_keys(struct openconnect_info *vpninfo, int new_keys)
 
 	if (new_keys) {
 		if ((ret = gnutls_rnd(GNUTLS_RND_NONCE, &esp_in->spi, sizeof(esp_in->spi))) ||
-		    (ret = gnutls_rnd(GNUTLS_RND_RANDOM, &esp_in->secrets, sizeof(esp_in->secrets)))) {
+		    (ret = gnutls_rnd(GNUTLS_RND_RANDOM, &esp_in->enc_key, vpninfo->enc_key_len)) ||
+		    (ret = gnutls_rnd(GNUTLS_RND_RANDOM, &esp_in->hmac_key, vpninfo->hmac_key_len)) ) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to generate random keys for ESP: %s\n"),
 				     gnutls_strerror(ret));
