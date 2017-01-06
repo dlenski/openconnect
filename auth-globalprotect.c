@@ -44,6 +44,12 @@ static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 {
 	struct oc_text_buf *cookie = buf_alloc();
 	int argn=0;
+	static const char *argn_opt[] = {
+		/* 0 */ NULL, "authcookie", NULL, "portal",
+		/* 4 */ "user", NULL, NULL, "domain",
+		/* 8 */ NULL, NULL, NULL, NULL,
+		/* 12 */ NULL, NULL, NULL, "preferred-ip"
+	};
 
 	if (!xmlnode_is_named(xml_node, "jnlp"))
 		return -EINVAL;
@@ -55,14 +61,11 @@ static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 	xml_node = xml_node->children;
 	for (argn=0; xml_node; xml_node=xml_node->next) {
 		if (xmlnode_is_named(xml_node, "argument")) {
-			if (argn == 1)
-				append_opt(cookie, "authcookie", (char *)xmlNodeGetContent(xml_node));
-			else if (argn == 3)
-				append_opt(cookie, "portal", (char *)xmlNodeGetContent(xml_node));
-			else if (argn == 4)
-				append_opt(cookie, "user", (char *)xmlNodeGetContent(xml_node));
-			else if (argn == 7)
-				append_opt(cookie, "domain", (char *)xmlNodeGetContent(xml_node));
+			const char *opt=argn_opt[argn];
+			const char *value = (const char *)xmlNodeGetContent(xml_node);
+			if (opt && value && strlen(value)>0 && strcmp(value, "(null)")!=0)
+				append_opt(cookie, opt, value);
+			free((void *)value);
 			argn++;
 		}
 	}
