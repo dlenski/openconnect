@@ -41,7 +41,7 @@ static struct oc_auth_form *gp_auth_form(void)
  *  = 0, on success; *form is populated
  */
 struct gp_login_arg { const char *opt; int save:1; int show:1; int warn_missing:1; int err_missing:1; const char *check; };
-static const struct gp_login_arg argn_opt[] = {
+static const struct gp_login_arg gp_login_args[] = {
     [1] = { .opt="authcookie", .save=1, .err_missing=1 },
     [3] = { .opt="portal", .save=1, .warn_missing=1 },
     [4] = { .opt="user", .save=1, .err_missing=1 },
@@ -51,49 +51,51 @@ static const struct gp_login_arg argn_opt[] = {
     [14] = { .opt="clientVer", .err_missing=1, .check="4100" },
     [15] = { .opt="preferred-ip", .save=1 },
 };
+const int gp_login_nargs = (sizeof(gp_login_args)/sizeof(*gp_login_args));
 
 static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 {
 	struct oc_text_buf *cookie = buf_alloc();
-	const char *value;
+	const char *value = NULL;
+	const struct gp_login_arg *arg;
 
 	if (!xmlnode_is_named(xml_node, "jnlp"))
-		return -EINVAL;
+		goto err_out;
 
 	xml_node = xml_node->children;
 	if (!xmlnode_is_named(xml_node, "application-desc"))
-		return -EINVAL;
+		goto err_out;
 
 	xml_node = xml_node->children;
-	for (int argn=0; xml_node; xml_node=xml_node->next) {
-		if (xmlnode_is_named(xml_node, "argument")) {
-			const struct gp_login_arg *arg = &argn_opt[argn++];
-			if (!arg->opt)
-				continue;
+	for (arg=gp_login_args; xml_node && arg<gp_login_args+gp_login_nargs; xml_node=xml_node->next, arg++) {
+		if (!xmlnode_is_named(xml_node, "argument"))
+			goto err_out;
 
-			value = (const char *)xmlNodeGetContent(xml_node);
-			if (value && (!strlen(value) || !strcmp(value, "(null)"))) {
-				free((void *)value);
-				value = NULL;
-			}
+		if (!arg->opt)
+			continue;
 
-			if (arg->check && (value==NULL || strcmp(value, arg->check))) {
-				vpn_progress(vpninfo, arg->err_missing ? PRG_ERR : PRG_DEBUG,
-							 _("GlobalProtect login returned %s=%s (expected %s)\n"), arg->opt, value, arg->check);
-				if (arg->err_missing) goto err_out;
-			} else if ((arg->err_missing || arg->warn_missing) && value==NULL) {
-				vpn_progress(vpninfo, arg->err_missing ? PRG_ERR : PRG_DEBUG,
-							 _("GlobalProtect login returned empty %s\n"), arg->opt);
-				if (arg->err_missing) goto err_out;
-			} else if (value && arg->show) {
-				vpn_progress(vpninfo, PRG_INFO,
-							 _("GlobalProtect login returned %s=%s\n"), arg->opt, value);
-			}
-
-			if (value && arg->save)
-				append_opt(cookie, arg->opt, value);
+		value = (const char *)xmlNodeGetContent(xml_node);
+		if (value && (!strlen(value) || !strcmp(value, "(null)"))) {
 			free((void *)value);
+			value = NULL;
 		}
+
+		if (arg->check && (value==NULL || strcmp(value, arg->check))) {
+			vpn_progress(vpninfo, arg->err_missing ? PRG_ERR : PRG_DEBUG,
+						 _("GlobalProtect login returned %s=%s (expected %s)\n"), arg->opt, value, arg->check);
+			if (arg->err_missing) goto err_out;
+		} else if ((arg->err_missing || arg->warn_missing) && value==NULL) {
+			vpn_progress(vpninfo, arg->err_missing ? PRG_ERR : PRG_DEBUG,
+						 _("GlobalProtect login returned empty %s\n"), arg->opt);
+			if (arg->err_missing) goto err_out;
+		} else if (value && arg->show) {
+			vpn_progress(vpninfo, PRG_INFO,
+						 _("GlobalProtect login returned %s=%s\n"), arg->opt, value);
+		}
+
+		if (value && arg->save)
+			append_opt(cookie, arg->opt, value);
+		free((void *)value);
 	}
 
 	vpninfo->cookie = strdup(cookie->data);
