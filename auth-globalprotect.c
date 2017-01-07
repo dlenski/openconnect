@@ -64,6 +64,14 @@ static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 			case 4: opt="user"; break;
 			case 7: opt="domain"; break;
 			case 15: opt="preferred-ip"; break;
+			case 5:
+				vpn_progress(vpninfo, PRG_INFO, _("GlobalProtect login authenticated via %s\n"), value);
+				break;
+			case 14:
+				if (strcmp(value, "4100")!=0)
+					vpn_progress(vpninfo, PRG_DEBUG,
+						     _("GlobalProtect login returned clientVer=%s (expected 4100)\n"), value);
+				break;
 			}
 
 			if (opt && value && strlen(value)>0 && strcmp(value, "(null)")!=0)
