@@ -856,6 +856,7 @@ void oncp_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 int queue_esp_control(struct openconnect_info *vpninfo, int enable);
 int oncp_connect(struct openconnect_info *vpninfo);
 int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout);
+int oncp_bye(struct openconnect_info *vpninfo, const char *reason);
 
 /* auth-globalprotect.c */
 int gpst_obtain_cookie(struct openconnect_info *vpninfo);

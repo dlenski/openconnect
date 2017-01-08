@@ -122,7 +122,7 @@ const struct vpn_proto openconnect_protos[] = {
 #endif
 	}, {
 		.name = "nc",
-		.vpn_close_session = NULL,
+		.vpn_close_session = oncp_bye,
 		.tcp_connect = oncp_connect,
 		.tcp_mainloop = oncp_mainloop,
 		.add_http_headers = oncp_common_headers,
