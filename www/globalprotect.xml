@@ -23,14 +23,15 @@ couple other bits of information obtained at login are combined into the
 OpenConnect cookie.</p>
 
 <p>To connect to the secure tunnel, the cookie is used to read routing and
-tunnel configuration information (<tt>POST ssl-vpn/getconfig.esp</tt>).</p>
+tunnel configuration information (<tt>POST /ssl-vpn/getconfig.esp</tt>).</p>
 
 <p>Finally, either an HTTPS-based or ESP-based tunnel is setup:</p>
 
 <ol>
-  <li>The cookie is used in a non-standard HTTP <tt>GET</tt> request that
-      acts more like a <tt>CONNECT</tt>.  Arbitrary IP packets can be passed
-      over the resulting tunnel.</li>
+  <li>The cookie is used in a non-standard HTTP request (<tt>GET
+      /ssl-tunnel-connect.sslvpn</tt>, which acts more like a
+      <tt>CONNECT</tt>).  Arbitrary IP packets can be passed over the
+      resulting tunnel.</li>
   <li>The ESP keys provided by the configuration request are used to set up
       a <a href="https://tools.ietf.org/html/rfc3948">UDP-encapsulated
       ESP</a> tunnel.</li>
@@ -38,8 +39,8 @@ tunnel configuration information (<tt>POST ssl-vpn/getconfig.esp</tt>).</p>
 
 <p>Since <a href="http://sites.inka.de/~W1011/devel/tcp-tcp.html">TCP over
 TCP is very suboptimal</a>, OpenConnect tries to always use ESP-over-ESP,
-and will only fall over to the HTTPS tunnel if that fails or if the
-<tt>--no-dtls</tt> is specified.</p>
+and will only fall over to the HTTPS tunnel if that fails, or if disabled
+via the <tt>--no-dtls</tt> argument.</p>
 
 <h2>Quirks and issues</h2>
 
