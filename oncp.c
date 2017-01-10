@@ -632,7 +632,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 		ret = buf_error(reqbuf);
 		goto out;
 	}
-	dump_buf_hex(vpninfo, PRG_DEBUG, '<', (void *)reqbuf->data, reqbuf->pos);
+	dump_buf_hex(vpninfo, PRG_DEBUG, '>', (void *)reqbuf->data, reqbuf->pos);
 	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
 	if (ret != reqbuf->pos) {
 		if (ret >= 0) {
@@ -782,7 +782,8 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	/* Length at the start of the packet is little-endian */
 	store_le16(reqbuf->data, reqbuf->pos - 2);
 
-	dump_buf_hex(vpninfo, PRG_DEBUG, '<', (void *)reqbuf->data, reqbuf->pos);
+	vpn_progress(vpninfo, PRG_DEBUG, _("oNCP negotiation request outgoing:\n"));
+	dump_buf_hex(vpninfo, PRG_DEBUG, '>', (void *)reqbuf->data, reqbuf->pos);
 	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
 	if (ret == reqbuf->pos)
 		ret = 0;
