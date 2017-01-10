@@ -66,6 +66,24 @@
 #define DTLS_RECV gnutls_record_recv
 #endif
 
+char *openconnect_bin2hex(const char *prefix, const uint8_t *data, unsigned len)
+{
+	struct oc_text_buf *buf;
+	char *p = NULL;
+
+	buf = buf_alloc();
+	buf_append(buf, "%s", prefix);
+	buf_append_hex(buf, data, len);
+
+	if (!buf_error(buf)) {
+		p = buf->data;
+		buf->data = NULL;
+	}
+	buf_free(buf);
+
+	return p;
+}
+
 static int connect_dtls_socket(struct openconnect_info *vpninfo)
 {
 	int dtls_fd, ret;

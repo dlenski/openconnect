@@ -56,6 +56,15 @@ void buf_append_urlencoded(struct oc_text_buf *buf, const char *str)
 	}
 }
 
+void buf_append_hex(struct oc_text_buf *buf, const void *str, unsigned len)
+{
+	const unsigned char *data = str;
+	unsigned i;
+
+	for (i = 0; i < len; i++)
+		buf_append(buf, "%02x", (unsigned)data[i]);
+}
+
 void buf_truncate(struct oc_text_buf *buf)
 {
 	if (!buf)

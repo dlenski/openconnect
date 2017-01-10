@@ -476,9 +476,15 @@ to
 .IR IP
 instead of using the normal resolver to look it up.
 .TP
-.B \-\-servercert=SHA1
-Accept server's SSL certificate only if its fingerprint matches
-.IR SHA1 .
+.B \-\-servercert=HASH
+Accept server's SSL certificate only if the provided fingerprint matches.
+The allowed fingerprint types are
+.IR SHA1 ,
+and
+.IR SHA256 .
+They are distinguished by the 'sha1:' or 'sha256:' prefixes to the hex encoded
+hash. To ease certain testing use-cases, a partial match of the hash will also
+be accepted, if it is at least 4 characters.
 .TP
 .B \-\-useragent=STRING
 Use

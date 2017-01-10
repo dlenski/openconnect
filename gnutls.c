@@ -1927,11 +1927,11 @@ int get_cert_md5_fingerprint(struct openconnect_info *vpninfo,
 
 static int set_peer_cert_hash(struct openconnect_info *vpninfo)
 {
-	unsigned char sha1[SHA1_SIZE];
+	unsigned char hash[SHA256_SIZE];
 	size_t shalen;
 	gnutls_pubkey_t pkey;
 	gnutls_datum_t d;
-	int i, err;
+	int err;
 
 	err = gnutls_pubkey_init(&pkey);
 	if (err)
@@ -1969,9 +1969,18 @@ static int set_peer_cert_hash(struct openconnect_info *vpninfo)
 	}
 #endif
 	gnutls_pubkey_deinit(pkey);
-	shalen = SHA1_SIZE;
+	shalen = SHA256_SIZE;
 
-	err = gnutls_fingerprint(GNUTLS_DIG_SHA1, &d, sha1, &shalen);
+	err = gnutls_fingerprint(GNUTLS_DIG_SHA256, &d, hash, &shalen);
+	if (err) {
+		gnutls_free(d.data);
+		return err;
+	}
+
+	vpninfo->peer_cert_sha256 = openconnect_bin2hex("sha256:", hash, shalen);
+
+	shalen = SHA1_SIZE;
+	err = gnutls_fingerprint(GNUTLS_DIG_SHA1, &d, hash, &shalen);
 	if (err) {
 		gnutls_free(d.data);
 		return err;
@@ -1979,12 +1988,7 @@ static int set_peer_cert_hash(struct openconnect_info *vpninfo)
 
 	gnutls_free(d.data);
 
-	vpninfo->peer_cert_hash = malloc(SHA1_SIZE * 2 + 6);
-	if (vpninfo->peer_cert_hash) {
-		snprintf(vpninfo->peer_cert_hash, 6, "sha1:");
-		for (i = 0; i < shalen; i++)
-			sprintf(&vpninfo->peer_cert_hash[i*2 + 5], "%02x", sha1[i]);
-	}
+	vpninfo->peer_cert_sha1 = openconnect_bin2hex("sha1:", hash, shalen);
 
 	return 0;
 }
@@ -2217,8 +2221,10 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		gnutls_x509_crt_deinit(vpninfo->peer_cert);
 		vpninfo->peer_cert = NULL;
 	}
-	free(vpninfo->peer_cert_hash);
-	vpninfo->peer_cert_hash = NULL;
+	free(vpninfo->peer_cert_sha1);
+	vpninfo->peer_cert_sha1 = NULL;
+	free(vpninfo->peer_cert_sha256);
+	vpninfo->peer_cert_sha256 = NULL;
 	gnutls_free(vpninfo->cstp_cipher);
 	vpninfo->cstp_cipher = NULL;
 
@@ -2690,6 +2696,19 @@ int openconnect_sha1(unsigned char *result, void *data, int datalen)
 	d.data = data;
 	d.size = datalen;
 	if (gnutls_fingerprint(GNUTLS_DIG_SHA1, &d, result, &shalen))
+		return -1;
+
+	return 0;
+}
+
+int openconnect_sha256(unsigned char *result, void *data, int datalen)
+{
+	gnutls_datum_t d;
+	size_t shalen = SHA256_SIZE;
+
+	d.data = data;
+	d.size = datalen;
+	if (gnutls_fingerprint(GNUTLS_DIG_SHA256, &d, result, &shalen))
 		return -1;
 
 	return 0;

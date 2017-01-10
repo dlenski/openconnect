@@ -489,7 +489,6 @@ static char *regen_hotp_secret(struct openconnect_info *vpninfo)
 {
 	char *new_secret = NULL;
 	struct oc_text_buf *buf;
-	int i;
 
 	switch (vpninfo->hotp_secret_format) {
 	case HOTP_SECRET_BASE32:
@@ -502,9 +501,7 @@ static char *regen_hotp_secret(struct openconnect_info *vpninfo)
 	case HOTP_SECRET_HEX:
 		buf = buf_alloc();
 		buf_append(buf, "0x");
-		for (i=0; i < vpninfo->oath_secret_len; i++)
-			buf_append(buf, "%02x",
-				   (unsigned char)vpninfo->oath_secret[i]);
+		buf_append_hex(buf, vpninfo->oath_secret, vpninfo->oath_secret_len);
 		break;
 
 	case HOTP_SECRET_RAW:

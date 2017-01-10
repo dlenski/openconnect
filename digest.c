@@ -67,15 +67,13 @@ static void buf_append_unq(struct oc_text_buf *buf, const char *str)
 static void buf_append_md5(struct oc_text_buf *buf, void *data, int len)
 {
 	unsigned char md5[16];
-	int i;
 
 	if (openconnect_md5(md5, data, len)) {
 		buf->error = -EIO;
 		return;
 	}
 
-	for (i = 0; i < 16; i++)
-		buf_append(buf, "%02x", md5[i]);
+	buf_append_hex(buf, md5, 16);
 }
 
 int digest_authorization(struct openconnect_info *vpninfo, int proxy,

@@ -62,6 +62,19 @@ int openconnect_sha1(unsigned char *result, void *data, int len)
 	return 0;
 }
 
+int openconnect_sha256(unsigned char *result, void *data, int len)
+{
+	EVP_MD_CTX *c = EVP_MD_CTX_new();
+
+	if (!c)
+		return -ENOMEM;
+
+	EVP_Digest(data, len, result, NULL, EVP_sha256(), NULL);
+	EVP_MD_CTX_free(c);
+
+	return 0;
+}
+
 int openconnect_md5(unsigned char *result, void *data, int len)
 {
 	EVP_MD_CTX *c = EVP_MD_CTX_new();
@@ -1086,11 +1099,11 @@ int get_cert_md5_fingerprint(struct openconnect_info *vpninfo,
 
 static int set_peer_cert_hash(struct openconnect_info *vpninfo)
 {
-	unsigned char sha1[SHA1_SIZE];
+	unsigned char sha256_hash[SHA256_SIZE];
+	unsigned char sha1_hash[SHA1_SIZE];
 	EVP_PKEY *pkey;
 	BIO *bp = BIO_new(BIO_s_mem());
 	BUF_MEM *keyinfo;
-	int i;
 
 	/* We can't use X509_pubkey_digest() because it only hashes the
 	   subjectPublicKey BIT STRING, and not the whole of the
@@ -1106,16 +1119,13 @@ static int set_peer_cert_hash(struct openconnect_info *vpninfo)
 
 	BIO_get_mem_ptr(bp, &keyinfo);
 
-	openconnect_sha1(sha1, keyinfo->data, keyinfo->length);
+	openconnect_sha256(sha256_hash, keyinfo->data, keyinfo->length);
+	openconnect_sha1(sha1_hash, keyinfo->data, keyinfo->length);
 
 	BIO_free(bp);
 
-	vpninfo->peer_cert_hash = malloc(SHA1_SIZE * 2 + 6);
-	if (vpninfo->peer_cert_hash) {
-		snprintf(vpninfo->peer_cert_hash, 6, "sha1:");
-		for (i = 0; i < sizeof(sha1); i++)
-			sprintf(&vpninfo->peer_cert_hash[i*2 + 5], "%02x", sha1[i]);
-	}
+	vpninfo->peer_cert_sha1 = openconnect_bin2hex("sha1:", sha1_hash, sizeof(sha1_hash));
+	vpninfo->peer_cert_sha256 = openconnect_bin2hex("sha256:", sha256_hash, sizeof(sha256_hash));
 
 	return 0;
 }
@@ -1648,8 +1658,10 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		X509_free(vpninfo->peer_cert);
 		vpninfo->peer_cert = NULL;
 	}
-	free (vpninfo->peer_cert_hash);
-	vpninfo->peer_cert_hash = NULL;
+	free (vpninfo->peer_cert_sha1);
+	vpninfo->peer_cert_sha1 = NULL;
+	free (vpninfo->peer_cert_sha256);
+	vpninfo->peer_cert_sha256 = NULL;
 	vpninfo->cstp_cipher = NULL;
 
 	ssl_sock = connect_https_socket(vpninfo);
