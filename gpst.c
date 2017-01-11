@@ -408,7 +408,7 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 out:
 	buf_free(request_body);
 	free(xml_buf);
-	return 0;
+	return result;
 }
 
 static int gpst_connect(struct openconnect_info *vpninfo)
