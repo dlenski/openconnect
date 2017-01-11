@@ -143,9 +143,10 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 		orig_path = vpninfo->urlpath;
 		orig_ua = vpninfo->useragent;
 		vpninfo->useragent = (char *)"PAN GlobalProtect";
-		vpninfo->urlpath = (char *)"ssl-vpn/login.esp";
+		vpninfo->urlpath = strdup("ssl-vpn/login.esp");
 		result = do_https_request(vpninfo, method, request_body_type, request_body,
 					  &xml_buf, 0);
+		free(vpninfo->urlpath);
 		vpninfo->urlpath = orig_path;
 		vpninfo->useragent = orig_ua;
 
@@ -181,10 +182,11 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 	orig_path = vpninfo->urlpath;
 	orig_ua = vpninfo->useragent;
 	vpninfo->useragent = (char *)"PAN GlobalProtect";
-	vpninfo->urlpath = (char *)"ssl-vpn/logout.esp";
+	vpninfo->urlpath = strdup("ssl-vpn/logout.esp");
 	openconnect_close_https(vpninfo, 0);
 	result = do_https_request(vpninfo, method, request_body_type, request_body,
 				  &xml_buf, 0);
+	free(vpninfo->urlpath);
 	vpninfo->urlpath = orig_path;
 	vpninfo->useragent = orig_ua;
 

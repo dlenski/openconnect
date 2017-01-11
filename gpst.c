@@ -359,9 +359,10 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	orig_path = vpninfo->urlpath;
 	orig_ua = vpninfo->useragent;
 	vpninfo->useragent = (char *)"PAN GlobalProtect";
-	vpninfo->urlpath = (char *)"ssl-vpn/getconfig.esp";
+	vpninfo->urlpath = strdup("ssl-vpn/getconfig.esp");
 	result = do_https_request(vpninfo, method, request_body_type, request_body,
 				  &xml_buf, 0);
+	free(vpninfo->urlpath);
 	vpninfo->urlpath = orig_path;
 	vpninfo->useragent = orig_ua;
 
