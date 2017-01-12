@@ -238,6 +238,22 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 		add_option(vpninfo, "ipaddr", buf, -1);
 		break;
 
+	case GRP_ATTR(3, 2):
+		if (attrlen != 1)
+			goto badlen;
+		switch (data[0]) {
+		case 0:
+			vpn_progress(vpninfo, PRG_DEBUG, _("Received SSL compression: disabled\n"));
+			break;
+		case 1:
+			vpn_progress(vpninfo, PRG_DEBUG, _("Received SSL compression: DEFLATE\n"));
+			vpninfo->cstp_compr = COMPR_DEFLATE;
+			break;
+		default:
+			vpn_progress(vpninfo, PRG_DEBUG, _("Received unknown SSL compression: 0x%02x\n"), (int)data[0]);
+		}
+		break;
+
 	case GRP_ATTR(3, 3): {
 		struct oc_split_include *inc;
 		if (attrlen != 8)
@@ -765,6 +781,19 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	buf_append_bytes(reqbuf, kmp_tail_out, sizeof(kmp_tail_out));
 	buf_append_be16(reqbuf, 0); /* KMP message length */
 	kmp = reqbuf->pos;
+	switch (vpninfo->cstp_compr) {
+		uint8_t zero, one;
+	case COMPR_DEFLATE:
+		zero = 0;
+		one = 255;
+		buf_append_tlv(reqbuf, 3, 0, NULL); /* TLV group 3 */
+		group = reqbuf->pos;
+		buf_append_tlv(reqbuf, 1, 1, &zero);
+		buf_append_tlv(reqbuf, 2, 1, &one);
+		if (!buf_error(reqbuf))
+			put_len32(reqbuf, group);
+		break;
+	}
 	buf_append_tlv(reqbuf, 6, 0, NULL); /* TLV group 6 */
 	group = reqbuf->pos;
 	buf_append_tlv_be32(reqbuf, 2, vpninfo->ip_info.mtu);
