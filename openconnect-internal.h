@@ -258,6 +258,9 @@ struct http_auth_state {
 
 struct vpn_proto {
 	const char *name;
+	const char *pretty_name;
+	const char *description;
+	unsigned int flags;
 	int (*vpn_close_session)(struct openconnect_info *vpninfo, const char *reason);
 
 	/* This does the full authentication, calling back as appropriate */

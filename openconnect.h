@@ -33,9 +33,13 @@ extern "C" {
 #endif
 
 #define OPENCONNECT_API_VERSION_MAJOR 5
-#define OPENCONNECT_API_VERSION_MINOR 4
+#define OPENCONNECT_API_VERSION_MINOR 5
 
 /*
+ * API version 5.5:
+ *  - Add openconnect_get_supported_protocols()
+ *  - Add openconnect_free_supported_protocols()
+ *
  * API version 5.4 (v7.08; 2016-12-13):
  *  - Add openconnect_set_pass_tos()
  *
@@ -163,6 +167,23 @@ extern "C" {
 	(OPENCONNECT_API_VERSION_MAJOR > (maj) || \
 	(OPENCONNECT_API_VERSION_MAJOR == (maj) && \
 	 OPENCONNECT_API_VERSION_MINOR >= (min)))
+
+/****************************************************************************/
+
+/* Enumeration of supported VPN protocols */
+
+#define OC_PROTO_PROXY	(1<<0)
+#define OC_PROTO_CSD	(1<<1)
+#define OC_PROTO_AUTH_CERT	(1<<2)
+#define OC_PROTO_AUTH_OTP	(1<<3)
+#define OC_PROTO_AUTH_STOKEN	(1<<4)
+
+struct oc_vpn_proto {
+	const char *name;
+	const char *pretty_name;
+	const char *description;
+	unsigned int flags;
+};
 
 /****************************************************************************/
 
@@ -408,7 +429,7 @@ int openconnect_init_ssl(void);
 const char *openconnect_get_cstp_cipher(struct openconnect_info *);
 const char *openconnect_get_dtls_cipher(struct openconnect_info *);
 
-/* These return a descriptive string of the compression algorithm 
+/* These return a descriptive string of the compression algorithm
  * in use (LZS, LZ4, ...). If no compression then NULL is returned. */
 const char *openconnect_get_cstp_compression(struct openconnect_info *);
 const char *openconnect_get_dtls_compression(struct openconnect_info *);
@@ -640,6 +661,8 @@ int openconnect_has_oath_support(void);
 int openconnect_has_yubioath_support(void);
 int openconnect_has_system_key_support(void);
 
+int openconnect_get_supported_protocols(struct oc_vpn_proto **protos);
+void openconnect_free_supported_protocols(struct oc_vpn_proto *protos);
 int openconnect_set_protocol(struct openconnect_info *vpninfo, const char *protocol);
 
 struct addrinfo;
