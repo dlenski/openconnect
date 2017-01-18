@@ -28,11 +28,15 @@ void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 }
 
 /* our "auth form" is just a static combination of username and password */
-static struct oc_auth_form *gp_auth_form(void)
+static struct oc_auth_form *gp_auth_form(struct openconnect_info *vpninfo)
 {
 	static struct oc_form_opt password = {.type=OC_FORM_OPT_PASSWORD, .name=(char *)"password", .label=(char *)"Password: "};
 	static struct oc_form_opt username = {.next=&password, .type=OC_FORM_OPT_TEXT, .name=(char *)"username", .label=(char *)"Username: "};
 	static struct oc_auth_form form = {.opts=&username, .message=(char *)"Please enter your username and password." };
+
+	if (vpninfo->token_mode!=OC_TOKEN_MODE_NONE)
+		password.type = OC_FORM_OPT_TOKEN;
+
 	return &form;
 }
 
@@ -113,11 +117,20 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 	int result;
 
 	struct oc_form_opt *opt;
-	struct oc_auth_form *form = gp_auth_form();
+	struct oc_auth_form *form = gp_auth_form(vpninfo);
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
 	char *xml_buf=NULL, *orig_path, *orig_ua;
+
+#ifdef HAVE_LIBSTOKEN
+	/* Step 1: Unlock software token (if applicable) */
+	if (vpninfo->token_mode == OC_TOKEN_MODE_STOKEN) {
+		result = prepare_stoken(vpninfo);
+		if (result)
+			goto out;
+	}
+#endif
 
 	/* Ask the user to fill in the auth form; repeat as necessary */
 	do {
@@ -128,6 +141,14 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 		result = process_auth_form(vpninfo, form);
 		if (result)
 			goto out;
+
+		/* generate token code if specified */
+		result = do_gen_tokencode(vpninfo, form);
+		if (result) {
+			vpn_progress(vpninfo, PRG_ERR, _("Failed to generate OTP tokencode; disabling token\n"));
+			vpninfo->token_bypassed = 1;
+			goto out;
+		}
 
 		/* submit login request */
 		buf_append(request_body, "jnlpReady=jnlpReady&ok=Login&direct=yes&clientVer=4100&prot=https:");
