@@ -112,49 +112,90 @@ err_out:
 	return -EINVAL;
 }
 
-static int parse_prelogin_response(struct openconnect_info *vpninfo, xmlNode *xml_node)
+static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 {
-	int result = 0;
-	const char *status = NULL, *msg = NULL;
+	static struct oc_auth_form form = {.message=(char *)"Please select GlobalProtect gateway." };
 
-	/* is it <prelogin-response><status>Error<status><msg>GlobalProtect [portal|gateway] does not exist</msg></response> ? */
-	if (!xmlnode_is_named(xml_node, "prelogin-response")) {
-		result = -EINVAL;
-	} else {
-		for (xml_node=xml_node->children; xml_node; xml_node=xml_node->next) {
-			if (xmlnode_is_named(xml_node, "status"))
-				status = (const char *)xmlNodeGetContent(xml_node);
-			else if (xmlnode_is_named(xml_node, "msg"))
-				msg = (const char *)xmlNodeGetContent(xml_node);
-		}
+	xmlNode *x;
+	struct oc_form_opt_select *opt;
+	int max_choices = 0, selection = 0;
 
-		if (!status || strcasecmp(status, "Success")) {
-			vpn_progress(vpninfo, PRG_DEBUG,
-						 _("Prelogin response error: %s\n"), msg);
-			if (msg && !strcmp(msg, "GlobalProtect portal does not exist"))
-				result = -EEXIST;
-			else if (msg && !strcmp(msg, "GlobalProtect gateway does not exist"))
-				result = -EEXIST;
-			else
-				result = -EINVAL;
-		} else {
-			vpn_progress(vpninfo, PRG_INFO,
-						 _("Prelogin response info: %s\n"), msg);
+	opt = calloc(1, sizeof(*opt));
+	if (!opt)
+		return -ENOMEM;
+	opt->form.type = OC_FORM_OPT_SELECT;
+	opt->form.name = strdup("GlobalProtect gateway selection");
+	opt->form.label = strdup("GlobalProtect gateway");
+
+	if (!xmlnode_is_named(xml_node, "policy"))
+		goto err_out;
+
+	/* Look for these XML nodes, which list the gateways: policy/gateways/external/list/entry */
+	for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
+		if (xmlnode_is_named(xml_node, "gateways")) {
+			for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
+				if (xmlnode_is_named(xml_node, "external")) {
+					for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
+						if (xmlnode_is_named(xml_node, "list")) {
+							/* first, count the number of gateways */
+							for (x = xml_node->children; x; x=x->next)
+								if (xmlnode_is_named(x, "entry"))
+									max_choices++;
+
+							opt->choices = calloc(1, max_choices * sizeof(struct oc_choice *));
+							if (!opt->choices) {
+								free_opt((struct oc_form_opt *)opt);
+								return -ENOMEM;
+							}
+
+							for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
+								if (xmlnode_is_named(xml_node, "entry")) {
+									struct oc_choice *choice = calloc(1, sizeof(*choice));
+									if (!choice) {
+										free_opt((struct oc_form_opt *)opt);
+										return -ENOMEM;
+									}
+
+									xmlnode_get_prop(xml_node, "name", &choice->name);
+
+									for (x = xml_node->children; x; x=x->next) {
+										if (xmlnode_is_named(x, "description"))
+											choice->label = (char *)xmlNodeGetContent(x);
+										if (xmlnode_is_named(x, "priority")) {
+											const char *p = (const char *)xmlNodeGetContent(x);
+											if (p && !strcmp(p, "1"))
+												selection = opt->nr_choices;
+											free((void *)p);
+										}
+									}
+
+									opt->choices[opt->nr_choices++] = choice;
+								}
+							}
+
+							form.opts = (struct oc_form_opt *)opt;
+
+							/* process static auth form (gateway selection) */
+							if (process_auth_form(vpninfo, &form))
+								goto err_out;
+
+							free(vpninfo->hostname);
+							vpninfo->hostname = strdup(opt->form._value);
+							free_opt((struct oc_form_opt *)opt);
+							return 0;
+						}
+					}
+				}
+			}
 		}
 	}
 
-	free((void *)status);
-	free((void *)msg);
-	return result;
-}
-
-static int gpst_portal_login(struct openconnect_info *vpninfo)
-{
-	vpn_progress(vpninfo, PRG_ERR, _("Support for GlobalProtect portal not yet implemented.\n"));
+err_out:
+	free_opt((struct oc_form_opt *)opt);
 	return -EINVAL;
 }
 
-static int gpst_gateway_login(struct openconnect_info *vpninfo)
+static int gpst_login(struct openconnect_info *vpninfo, int portal)
 {
 	int result;
 
@@ -176,12 +217,13 @@ static int gpst_gateway_login(struct openconnect_info *vpninfo)
 
 	/* Ask the user to fill in the auth form; repeat as necessary */
 	do {
-		buf_truncate(request_body);
-
 		/* process static auth form (username and password) */
 		result = process_auth_form(vpninfo, form);
 		if (result)
 			goto out;
+
+	redo_gateway:
+		buf_truncate(request_body);
 
 		/* generate token code if specified */
 		result = do_gen_tokencode(vpninfo, form);
@@ -191,7 +233,7 @@ static int gpst_gateway_login(struct openconnect_info *vpninfo)
 			goto out;
 		}
 
-		/* submit login request */
+		/* submit gateway login (ssl-vpn/login.esp) or portal config (global-protect/getconfig.esp) request */
 		buf_append(request_body, "jnlpReady=jnlpReady&ok=Login&direct=yes&clientVer=4100&prot=https:");
 		append_opt(request_body, "server", vpninfo->hostname);
 		append_opt(request_body, "computer", vpninfo->localname);
@@ -205,15 +247,22 @@ static int gpst_gateway_login(struct openconnect_info *vpninfo)
 		orig_path = vpninfo->urlpath;
 		orig_ua = vpninfo->useragent;
 		vpninfo->useragent = (char *)"PAN GlobalProtect";
-		vpninfo->urlpath = strdup("ssl-vpn/login.esp");
+		vpninfo->urlpath = strdup(portal ? "global-protect/getconfig.esp" : "ssl-vpn/login.esp");
 		result = do_https_request(vpninfo, method, request_body_type, request_body,
 					  &xml_buf, 0);
 		free(vpninfo->urlpath);
 		vpninfo->urlpath = orig_path;
 		vpninfo->useragent = orig_ua;
 
-		result = gpst_xml_or_error(vpninfo, result, xml_buf, parse_login_xml);
-
+		if (portal) {
+			result = gpst_xml_or_error(vpninfo, result, xml_buf, parse_portal_xml);
+			if (result == 0) {
+				portal = 0;
+				goto redo_gateway;
+			}
+		} else {
+			result = gpst_xml_or_error(vpninfo, result, xml_buf, parse_login_xml);
+		}
 	}
 	/* repeat on invalid username or password */
 	while (result == -512);
@@ -226,41 +275,23 @@ out:
 
 int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 {
-	char *xml_buf=NULL, *orig_path, *orig_ua;
 	int result;
 
 	if (vpninfo->urlpath && !strncmp(vpninfo->urlpath, "global-protect", 14)) {
 		/* assume the server is a portal */
-		return gpst_portal_login(vpninfo);
+		return gpst_login(vpninfo, 1);
 	} else if (vpninfo->urlpath && !strncmp(vpninfo->urlpath, "ssl-vpn", 7)) {
 		/* assume the server is a gateway */
-		return gpst_gateway_login(vpninfo);
+		return gpst_login(vpninfo, 0);
 	} else {
 		/* first try handling it as a gateway, then a portal */
-		for (int ii=0; ii<2; ii++) {
-			orig_path = vpninfo->urlpath;
-			orig_ua = vpninfo->useragent;
-			vpninfo->useragent = (char *)"PAN GlobalProtect";
-			vpninfo->urlpath = strdup(ii==0 ? "ssl-vpn/prelogin.esp" : "global-protect/prelogin.esp");
-			result = do_https_request(vpninfo, "GET", NULL, NULL, &xml_buf, 0);
-			free(vpninfo->urlpath);
-			vpninfo->urlpath = orig_path;
-			vpninfo->useragent = orig_ua;
-
-			result = gpst_xml_or_error(vpninfo, result, xml_buf, parse_prelogin_response);
-			if (result==0) {
-				switch (ii) {
-				case 0:
-					vpn_progress(vpninfo, PRG_DEBUG, _("Logging in to GlobalProtect gateway\n"));
-					return gpst_gateway_login(vpninfo);
-				case 1:
-					vpn_progress(vpninfo, PRG_DEBUG, _("Logging in to GlobalProtect portal\n"));
-					return gpst_portal_login(vpninfo);
-				}
-			}
+		result = gpst_login(vpninfo, 0);
+		if (result == -EEXIST) {
+			result = gpst_login(vpninfo, 1);
+			if (result == -EEXIST)
+				vpn_progress(vpninfo, PRG_ERR, _("Server is neither a GlobalProtect portal nor a gateway.\n"));
 		}
-		vpn_progress(vpninfo, PRG_ERR, _("Server is not a GlobalProtect portal or gateway.\n"));
-		return -EINVAL;
+		return result;
 	}
 }
 
