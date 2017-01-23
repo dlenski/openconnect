@@ -72,7 +72,7 @@ int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *respon
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node;
 	int errlen;
-	const char *err;
+	const char *err = NULL;
 
 	/* custom error codes returned by /ssl-vpn/login.esp and maybe others */
 	if (result == -512)
@@ -100,8 +100,7 @@ int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *respon
 		if ((err = strstr(response, "respMsg = \"")) != NULL) {
 			err += 11;
 			errlen = (strchr(err, ';') ? : err + strlen(err)) - err - 1;
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("%.*s\n"), errlen, err);
+			err = strndup(err, errlen);
 			goto out;
 		}
 		goto bad_xml;
@@ -113,11 +112,8 @@ int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *respon
 	if (xmlnode_is_named(xml_node, "response")
 	    && !xmlnode_match_prop(xml_node, "status", "error")) {
 		for (xml_node=xml_node->children; xml_node; xml_node=xml_node->next) {
-			if (!xmlnode_get_text(xml_node, "error", &err)) {
-				vpn_progress(vpninfo, PRG_ERR, _("%s\n"), err);
-				free((void *)err);
+			if (!xmlnode_get_text(xml_node, "error", &err))
 				goto out;
-			}
 		}
 		goto bad_xml;
 	}
@@ -125,21 +121,29 @@ int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *respon
 	if (xml_cb)
 		result = xml_cb(vpninfo, xml_node);
 
-	if (result == -EINVAL)
-		goto bad_xml;
+	if (result == -EINVAL) {
+	bad_xml:
+		vpn_progress(vpninfo, PRG_ERR,
+					 _("Failed to parse server response\n"));
+		vpn_progress(vpninfo, PRG_DEBUG,
+					 _("Response was:%s\n"), response);
+	}
 
-	xmlFreeDoc(xml_doc);
-	return result;
-
-bad_xml:
-	vpn_progress(vpninfo, PRG_ERR,
-		     _("Failed to parse server response\n"));
-	vpn_progress(vpninfo, PRG_DEBUG,
-		     _("Response was:%s\n"), response);
 out:
+	if (err) {
+		if (!strcmp(err, "GlobalProtect gateway does not exist")
+		    || !strcmp(err, "GlobalProtect portal does not exist")) {
+			vpn_progress(vpninfo, PRG_DEBUG, "%s\n", err);
+			result = -EEXIST;
+		} else {
+			vpn_progress(vpninfo, PRG_ERR, "%s\n", err);
+			result = -EINVAL;
+		}
+		free(err);
+	}
 	if (xml_doc)
 		xmlFreeDoc(xml_doc);
-	return -EINVAL;
+	return result;
 }
 
 #define ESP_OVERHEAD (4 /* SPI */ + 4 /* sequence number */ + \
