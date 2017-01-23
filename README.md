@@ -46,6 +46,23 @@ $ ./configure
 $ make
 ```
 
+### Building on the Mac
+
+You need to have [Homebrew](https://brew.sh).
+
+To build and install into /usr/local:
+
+```sh
+$ brew install pkg-config gettext gnutls lz4
+$ export LIBTOOLIZE=glibtoolize
+$ ./autogen.sh 
+$ ./configure --prefix=/usr/local --sbindir=/usr/local/sbin --localstatedir=/usr/local/var --with-vpnc-script=/usr/local/etc/vpnc-script --disable-nls
+$ make
+$ make install
+```
+
+Please see [here](https://gist.github.com/moklett/3170636) on how to use/set up OpenConnect on the Mac. Don't forget to install the vpnc-script into /usr/local/etc.
+
 ## Connecting
 
 Run openconnect like this to test it with your GlobalProtect VPN
