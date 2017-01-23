@@ -99,7 +99,8 @@ int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *respon
 		   thisForm.inputStr.value = ""; */
 		if ((err = strstr(response, "respMsg = \"")) != NULL) {
 			err += 11;
-			errlen = strchrnul(err, ';') - err - 1;
+			const char *semicolon = strchr(err, ';');
+			errlen = semicolon ? semicolon - err - 1 : strlen(err) - 1;
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("%.*s\n"), errlen, err);
 			goto out;
