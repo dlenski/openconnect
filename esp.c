@@ -139,10 +139,10 @@ int esp_send_probes_gp(struct openconnect_info *vpninfo)
 	static char magic[16] = "monitor\x00\x00pan ha ";
 
 	int pktlen, seq;
-	struct pkt *pkt = malloc(sizeof(*pkt) + sizeof(struct ip) + sizeof(struct icmp) + sizeof(magic) + vpninfo->pkt_trailer);
+	struct pkt *pkt = malloc(sizeof(*pkt) + sizeof(struct ip) + ICMP_MINLEN + sizeof(magic) + vpninfo->pkt_trailer);
 	struct ip *iph = (void *)pkt->data;
 	struct icmp *icmph = (void *)(pkt->data + sizeof(*iph));
-	char *pmagic = (void *)(pkt->data + sizeof(*iph) + sizeof(*icmph));
+	char *pmagic = (void *)(pkt->data + sizeof(*iph) + ICMP_MINLEN);
 	if (!pkt)
 		return -ENOMEM;
 
@@ -160,13 +160,13 @@ int esp_send_probes_gp(struct openconnect_info *vpninfo)
 	}
 
 	for (seq=1; seq <= (vpninfo->dtls_state==DTLS_CONNECTED ? 1 : 3); seq++) {
-		memset(pkt, 0, sizeof(*pkt) + sizeof(*iph) + sizeof(*icmph) + sizeof(magic));
-		pkt->len = sizeof(struct ip) + sizeof(struct icmp) + sizeof(magic);
+		memset(pkt, 0, sizeof(*pkt) + sizeof(*iph) + ICMP_MINLEN + sizeof(magic));
+		pkt->len = sizeof(struct ip) + ICMP_MINLEN + sizeof(magic);
 
 		/* IP Header */
 		iph->ip_hl = 5;
 		iph->ip_v = 4;
-		iph->ip_len = htons(sizeof(*iph) + sizeof(*icmph) + sizeof(magic));
+		iph->ip_len = htons(sizeof(*iph) + ICMP_MINLEN + sizeof(magic));
 		iph->ip_id = htons(0x4747); /* what the Windows client uses */
 		iph->ip_off = htons(IP_DF); /* don't fragment, frag offset = 0 */
 		iph->ip_ttl = 64; /* hops */
@@ -180,7 +180,7 @@ int esp_send_probes_gp(struct openconnect_info *vpninfo)
 		icmph->icmp_hun.ih_idseq.icd_id = htons(0x4747);
 		icmph->icmp_hun.ih_idseq.icd_seq = htons(seq);
 		memcpy(pmagic, magic, sizeof(magic)); /* required to get gateway to respond */
-		icmph->icmp_cksum = csum((uint16_t *)icmph, (sizeof(*icmph)+sizeof(magic))/2);
+		icmph->icmp_cksum = csum((uint16_t *)icmph, (ICMP_MINLEN+sizeof(magic))/2);
 
 		pktlen = encrypt_esp_packet(vpninfo, pkt);
 		if (pktlen >= 0)
