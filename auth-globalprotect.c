@@ -112,7 +112,49 @@ err_out:
 	return -EINVAL;
 }
 
-int gpst_obtain_cookie(struct openconnect_info *vpninfo)
+static int parse_prelogin_response(struct openconnect_info *vpninfo, xmlNode *xml_node)
+{
+	int result = 0;
+	const char *status = NULL, *msg = NULL;
+
+	/* is it <prelogin-response><status>Error<status><msg>GlobalProtect [portal|gateway] does not exist</msg></response> ? */
+	if (!xmlnode_is_named(xml_node, "prelogin-response")) {
+		result = -EINVAL;
+	} else {
+		for (xml_node=xml_node->children; xml_node; xml_node=xml_node->next) {
+			if (xmlnode_is_named(xml_node, "status"))
+				status = (const char *)xmlNodeGetContent(xml_node);
+			else if (xmlnode_is_named(xml_node, "msg"))
+				msg = (const char *)xmlNodeGetContent(xml_node);
+		}
+
+		if (!status || strcasecmp(status, "Success")) {
+			vpn_progress(vpninfo, PRG_DEBUG,
+						 _("Prelogin response error: %s\n"), msg);
+			if (msg && !strcmp(msg, "GlobalProtect portal does not exist"))
+				result = -EEXIST;
+			else if (msg && !strcmp(msg, "GlobalProtect gateway does not exist"))
+				result = -EEXIST;
+			else
+				result = -EINVAL;
+		} else {
+			vpn_progress(vpninfo, PRG_INFO,
+						 _("Prelogin response info: %s\n"), msg);
+		}
+	}
+
+	free((void *)status);
+	free((void *)msg);
+	return result;
+}
+
+static int gpst_portal_login(struct openconnect_info *vpninfo)
+{
+	vpn_progress(vpninfo, PRG_ERR, _("Support for GlobalProtect portal not yet implemented.\n"));
+	return -EINVAL;
+}
+
+static int gpst_gateway_login(struct openconnect_info *vpninfo)
 {
 	int result;
 
@@ -181,6 +223,46 @@ out:
 	buf_free(request_body);
 	free(xml_buf);
 	return result;
+}
+
+int gpst_obtain_cookie(struct openconnect_info *vpninfo)
+{
+	char *xml_buf=NULL, *orig_path, *orig_ua;
+	int result;
+
+	if (vpninfo->urlpath && !strncmp(vpninfo->urlpath, "global-protect", 14)) {
+		/* assume the server is a portal */
+		return gpst_portal_login(vpninfo);
+	} else if (vpninfo->urlpath && !strncmp(vpninfo->urlpath, "ssl-vpn", 7)) {
+		/* assume the server is a gateway */
+		return gpst_gateway_login(vpninfo);
+	} else {
+		/* first try handling it as a gateway, then a portal */
+		for (int ii=0; ii<2; ii++) {
+			orig_path = vpninfo->urlpath;
+			orig_ua = vpninfo->useragent;
+			vpninfo->useragent = (char *)"PAN GlobalProtect";
+			vpninfo->urlpath = strdup(ii==0 ? "ssl-vpn/prelogin.esp" : "global-protect/prelogin.esp");
+			result = do_https_request(vpninfo, "GET", NULL, NULL, &xml_buf, 0);
+			free(vpninfo->urlpath);
+			vpninfo->urlpath = orig_path;
+			vpninfo->useragent = orig_ua;
+
+			result = gpst_xml_or_error(vpninfo, result, xml_buf, parse_prelogin_response);
+			if (result==0) {
+				switch (ii) {
+				case 0:
+					vpn_progress(vpninfo, PRG_DEBUG, _("Logging in to GlobalProtect gateway\n"));
+					return gpst_gateway_login(vpninfo);
+				case 1:
+					vpn_progress(vpninfo, PRG_DEBUG, _("Logging in to GlobalProtect portal\n"));
+					return gpst_portal_login(vpninfo);
+				}
+			}
+		}
+		vpn_progress(vpninfo, PRG_ERR, _("Server is not a GlobalProtect portal or gateway.\n"));
+		return -EINVAL;
+	}
 }
 
 int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
