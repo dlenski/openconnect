@@ -176,7 +176,6 @@ static int gpst_gateway_login(struct openconnect_info *vpninfo)
 
 	/* Ask the user to fill in the auth form; repeat as necessary */
 	do {
-		free(xml_buf);
 		buf_truncate(request_body);
 
 		/* process static auth form (username and password) */
