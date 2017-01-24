@@ -276,10 +276,10 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 {
 	int result;
 
-	if (vpninfo->urlpath && !strncmp(vpninfo->urlpath, "global-protect", 14)) {
+	if (vpninfo->urlpath && !strcmp(vpninfo->urlpath, "portal")) {
 		/* assume the server is a portal */
 		return gpst_login(vpninfo, 1);
-	} else if (vpninfo->urlpath && !strncmp(vpninfo->urlpath, "ssl-vpn", 7)) {
+	} else if (vpninfo->urlpath && !strcmp(vpninfo->urlpath, "gateway")) {
 		/* assume the server is a gateway */
 		return gpst_login(vpninfo, 0);
 	} else {
