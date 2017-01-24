@@ -118,81 +118,80 @@ static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 
 	xmlNode *x;
 	struct oc_form_opt_select *opt;
-	int max_choices = 0, selection = 0;
+	int max_choices = 0, result;
 
 	opt = calloc(1, sizeof(*opt));
 	if (!opt)
 		return -ENOMEM;
 	opt->form.type = OC_FORM_OPT_SELECT;
-	opt->form.name = strdup("GlobalProtect gateway selection");
-	opt->form.label = strdup("GlobalProtect gateway");
+	opt->form.name = strdup("gateway");
+	opt->form.label = strdup(_("GATEWAY:"));
 
-	if (!xmlnode_is_named(xml_node, "policy"))
-		goto err_out;
+	/* The portal contains a ton of stuff, but basically none of it is useful to a VPN client
+	 * that wishes to give control to the client user, as opposed to the VPN administrator.
+	 * The exception is the list of gateways in policy/gateways/external/list
+	 */
+	if (xmlnode_is_named(xml_node, "policy"))
+		for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next)
+			if (xmlnode_is_named(xml_node, "gateways"))
+				for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next)
+					if (xmlnode_is_named(xml_node, "external"))
+						for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next)
+							if (xmlnode_is_named(xml_node, "list"))
+								goto gateways;
+	result = -EINVAL;
+	goto out;
 
-	/* Look for these XML nodes, which list the gateways: policy/gateways/external/list/entry */
+gateways:
+	/* first, count the number of gateways */
+	for (x = xml_node->children; x; x=x->next)
+		if (xmlnode_is_named(x, "entry"))
+			max_choices++;
+
+	opt->choices = calloc(1, max_choices * sizeof(struct oc_choice *));
+	if (!opt->choices) {
+		free_opt((struct oc_form_opt *)opt);
+		return -ENOMEM;
+	}
+
+	/* each entry looks like <entry name="host[:443]"><description>Label</description></entry> */
+	vpn_progress(vpninfo, PRG_INFO, _("%d gateway servers available:\n"), max_choices);
 	for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
-		if (xmlnode_is_named(xml_node, "gateways")) {
-			for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
-				if (xmlnode_is_named(xml_node, "external")) {
-					for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
-						if (xmlnode_is_named(xml_node, "list")) {
-							/* first, count the number of gateways */
-							for (x = xml_node->children; x; x=x->next)
-								if (xmlnode_is_named(x, "entry"))
-									max_choices++;
-
-							opt->choices = calloc(1, max_choices * sizeof(struct oc_choice *));
-							if (!opt->choices) {
-								free_opt((struct oc_form_opt *)opt);
-								return -ENOMEM;
-							}
-
-							for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
-								if (xmlnode_is_named(xml_node, "entry")) {
-									struct oc_choice *choice = calloc(1, sizeof(*choice));
-									if (!choice) {
-										free_opt((struct oc_form_opt *)opt);
-										return -ENOMEM;
-									}
-
-									xmlnode_get_prop(xml_node, "name", &choice->name);
-
-									for (x = xml_node->children; x; x=x->next) {
-										if (xmlnode_is_named(x, "description"))
-											choice->label = (char *)xmlNodeGetContent(x);
-										if (xmlnode_is_named(x, "priority")) {
-											const char *p = (const char *)xmlNodeGetContent(x);
-											if (p && !strcmp(p, "1"))
-												selection = opt->nr_choices;
-											free((void *)p);
-										}
-									}
-
-									opt->choices[opt->nr_choices++] = choice;
-								}
-							}
-
-							form.opts = (struct oc_form_opt *)opt;
-
-							/* process static auth form (gateway selection) */
-							if (process_auth_form(vpninfo, &form))
-								goto err_out;
-
-							free(vpninfo->hostname);
-							vpninfo->hostname = strdup(opt->form._value);
-							free_opt((struct oc_form_opt *)opt);
-							return 0;
-						}
-					}
-				}
+		if (xmlnode_is_named(xml_node, "entry")) {
+			struct oc_choice *choice = calloc(1, sizeof(*choice));
+			if (!choice) {
+				free_opt((struct oc_form_opt *)opt);
+				return -ENOMEM;
 			}
+
+			xmlnode_get_prop(xml_node, "name", &choice->name);
+			for (x = xml_node->children; x; x=x->next)
+				if (xmlnode_is_named(x, "description"))
+					choice->label = (char *)xmlNodeGetContent(x);
+
+			opt->choices[opt->nr_choices++] = choice;
+			vpn_progress(vpninfo, PRG_INFO, _("  %s (%s)\n"),
+						 choice->label, choice->name);
 		}
 	}
 
-err_out:
+	/* process static auth form to select gateway */
+	form.opts = (struct oc_form_opt *)opt;
+	result = process_auth_form(vpninfo, &form);
+	if (result)
+		goto out;
+
+	/* redirect to the gateway (no-op if it's the same host) */
+	if ((vpninfo->redirect_url = malloc(strlen(opt->form._value) + 9)) == NULL) {
+		result = -ENOMEM;
+		goto out;
+	}
+	sprintf(vpninfo->redirect_url, "https://%s", opt->form._value);
+	result = handle_redirect(vpninfo);
+
+out:
 	free_opt((struct oc_form_opt *)opt);
-	return -EINVAL;
+	return result;
 }
 
 static int gpst_login(struct openconnect_info *vpninfo, int portal)
