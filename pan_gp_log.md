@@ -1,12 +1,12 @@
-This is an anonymized log of the authentication, configuration, data transfer, and logout interactions between a [PAN](http://www.paloaltonetworks.com) GlobalProtect VPN server and client (Windows client, v3.0.1-10).
+This is an anonymized log of the authentication, configuration, tunnel data transfer, and logout interactions between a [PAN](http://www.paloaltonetworks.com) GlobalProtect VPN server and client (Windows client, v3.0.1-10).
 
 The correct user-agent (`User-Agent: PAN Globalprotect`) is **required** for all HTTP interactions with the GlobalProtect VPN. It treats any other user-agent as a web browser, not a VPN client.
 
-Request #1
-==========
+Login request
+=============
 
 Some of the form fields are required (user and password
-obviously, ok=Login inexplicably) while others can apparently be
+obviously, `ok=Login` inexplicably) while others can apparently be
 omitted.
 
 ```
@@ -38,10 +38,18 @@ portal-prelogonuserauthcookie:  empty
 host-id:                        deadbeef-dead-beef-dead-beefdeadbeef
 ```
 
-Response #1
-===========
+Successful login response
+=========================
 
-Nothing in this response seems interesting or useful, except for the delicious 32-digit cookie. The second hexadecimal blob is a persistent identifier associated with the combination of user account and gateway (probably the `sha1` hash of something, since it's 40 digits long).
+This response contains a delicious 32-digit cookie. The second hexadecimal blob is a persistent identifier associated with the combination of user account and gateway (probably the `sha1` hash of something, since it's 40 digits long).
+
+In order to handle the getconfig, tunnel-connect, and logon requests properly (described below), the client needs to save some other parts of this response besides the cookie:
+
+* username: the server may return a slightly modified version of the username provided upon login (e.g. `steve.JoNes` transformed into the canonical `steve.jones`)
+* domain name and portal name: the correct values for these are—inexplicably—required to log out of the VPN session successfully ¯\\\_(ツ)\_/¯
+* authentication type is something like `LDAP-auth` or `AUTH-RADIUS_RSA_OTP`, and appears to reflect the mechanism by which the user was authenticated
+* preferred IP address is set by some VPN gateways _even if_ it was omitted from the login request; if it is not empty or `(null)`, its value should be used in the subsequent getconfig request
+* `4100` appears to identify the VPN protocol version. I've never seen another value.
 
 ```xml
 <?xml version='1.0' encoding='utf-8'?>
@@ -52,7 +60,7 @@ Nothing in this response seems interesting or useful, except for the delicious 3
     <argument>another 40 mysterious hexadecimal digits</argument>
     <argument>Gateway-Name</argument>
     <argument>username provided above</argument>
-    <argument>LDAP-auth</argument>
+    <argument>authentication type</argument>
     <argument>vsys1</argument>
     <argument>company domain name</argument>
     <argument>(null)</argument>
@@ -67,12 +75,14 @@ Nothing in this response seems interesting or useful, except for the delicious 3
 </jnlp>
 ```
 
-Request #2
-==========
+getconfig request
+=================
 
 Similar to above, some of the parameters are
 required, others are not. `addr1` seems to be the current IPv4 subnet
 of the client machine, and is apparently optional.
+
+If a client has obtained a valid and unexpired authcookie, it's possible to re-run the getconfig request/response flow. This can be used to reconnect the tunnel after a network outage, without reauthenticating.
 
 ```
 POST https://gateway.company.com/ssl-vpn/getconfig.esp
@@ -85,10 +95,10 @@ Host:            gateway.company.com
 URLEncoded form
 
 user:              Myusername
-addr1:             4.5.6.78/24 (current IPv4 network, I think?)
-preferred-ip:      12.34.56.78
-portal:            Gateway-Name
-authcookie:        cookie (32 hex digits from above))
+addr1:             4.5.6.78/24     (current IPv4 network, I think?)
+preferred-ip:      12.34.56.78     (use value from login response)
+portal:            Gateway-Name    (use value from login response)
+authcookie:        cookie          (32 hex digits from above)
 client-type:       1
 os-version:        Microsoft Windows Server 2012, 64-bit
 app-version:       3.0.1-10
@@ -98,15 +108,18 @@ enc-algo:          aes-256-gcm,aes-128-gcm,aes-128-cbc,
 hmac-algo:         sha1,
 ```
 
-Response #2
-===========
+Response #2 (getconfig)
+=======================
 
-Here's the interesting part:
+Here's where it gets interesting:
+
 * Routing information seems almost identical to what Cisco AnyConnect provides, except in XML form
 * IPsec configuration specifies the exist SPI indexes to use, as well
   as the client-to-server (c2s) and server-to-client (s2c) encryption
   keys and authentication keys. Note that the upstream and downstream
   keys and SPIs do **not** match; this is intentional.
+* SSL tunnel URL (`<ssl-tunnel-url>/ssl-tunnel-connect.sslvpn</ssl-tunnel-url>`) is the same on all servers I've seen
+* MTU is sent as zero (`<mtu>0</mtu>`) on all servers I've seen. This seems broken and useless.
 
 ```xml
 <?xml version='1.0' encoding='UTF-8'?>
@@ -170,18 +183,21 @@ Here's the interesting part:
 </response>
 ```
 
-Tunnel
-======
+Data transfer over the tunnel
+=============================
 
 In the back-and-forth flows shown below, `<` means sent by the gateway, `>` means sent by the client.
  
 ### ESP-over-UDP
 
-Uses the keying information obtained in response to the `getconfig` request. In order to initiate the connection, the client sends 3 ESP-encapsulated ping packets to the gateway. They are sent _from_ the client's in-VPN IP address _to_ the gateway's public IP address, and they include the following magic payload:
+Uses the keying information obtained in response to the `getconfig` request. In order to initiate the connection, the client sends 3 ESP-encapsulated ICMP request ("ping") packets to the gateway. They are sent _from_ the client's in-VPN IP address _to_ the gateway's **public** IP address (¯\\\_(ツ)\_/¯), and they include the following magic payload:
 
     "monitor\x00\x00pan ha 0123456789:;<=>? !\"#$%&\'()*+,-./\x10\x11\x12\x13\x14\x15\x16\x18"
+    "monitor\x00\x00pan ha " (first 16 bytes)
 
-Only the first 16 bytes of the payload appear to be necessary to elicit a response from the gateway. Once the gateway has responded, the client and server send and receive arbitrary ESP-encapsulated traffic. The client continues to periodically send the "magic ping" packets as a keepalive.
+Only the first 16 bytes of the payload appear to be necessary to elicit a response from the gateway. Once the gateway has responded with a corresponding ICMP reply, the client and server send and receive arbitrary ESP-encapsulated traffic.
+
+The client continues to periodically send the "magic ping" packets as a keepalive.
 
 ### SSL vpn tunnel
 
@@ -202,12 +218,24 @@ Here is the packet format:
 
   1. 4 magic bytes: `1a2b3c4d`
   2. Next 2 bytes are probably the Ethertype (as uint16_be): `0800` is IPv4
-  3. Next 2 bytes are the packet length (as uint16_be) excluding this header
-  4. Next 8 bytes always seem to be `0100000000000000` in my testing (1 as an uint64_le?)
+  3. Next 2 bytes are the packet length (as uint16_be) excluding this header, or `0000` for a keepalive packet
+  4. Next 8 bytes are always `0100000000000000` for a real IP packet, or `0000000000000000` for a keepalive packet
   5. Remaining bytes are the actual Layer 3 packet (IPv4 packets starting with `45` in the examples above)
+
+The DPD/keepalive packets can be sent by _either_ the client or the server, and the other should immediately respond with an _identical_ packet.
+
+The server will drop the client connection if it doesn't receive anything from the client (after about 120 seconds in my testing) and the client should send the DPD/keepalive if it hasn't received anything from the server in a while. The official client appears to always send keepalive packets every 10 seconds.
+
+### ESP and SSL tunnels are mutually exclusive
+
+If/when the SSL tunnel is connected, the ESP tunnel _cannot_ be used any longer. The VPN server appears to invalidate the SPIs/keys that it sent, and will not respond to ESP-over-UDP packets. The only way to re-enable the ESP connection is to disconnect the SSL tunnel, re-run the getconfig request, and start over with new ESP keys sent in the new getconfig response.
+
+This means that a client that prefers to use ESP **must not** try to connect the SSL tunnel until after an ESP connection has failed. (The official Windows client waits 10 seconds for ICMP reply packets over ESP, before failing over to the SSL tunnel.)
 
 Logout request
 ==============
+
+The client **must** send the exact domain, computer name, portal, and OS version from the login request or response… otherwise the logout request will _fail_ and the tunnel can be reconnected using the same authcookie.
 
 ```
 POST https://gateway.company.com/ssl-vpn/logout.esp
@@ -226,8 +254,8 @@ computer:    DEADBEEF01
 os-version:  Microsoft Windows Server 2012, 64-bit
 ```
 
-Logout response
-===============
+Successful logout response
+==========================
 
 ```xml
 <?xml version='1.0' encoding='UTF-8'?>
