@@ -1,10 +1,11 @@
 This is an anonymized log of the authentication and connection process between a GlobalProtect VPN client and server.
 
+The correct user-agent (`User-Agent: PAN Globalprotect`) is **required** for all HTTP interactions with the GlobalProtect VPN. It treats any other user-agent as a web browser, not a VPN client.
+
 Request #1
 ==========
 
-The correct user-agent is required to produce the desired
-response. Some of the form fields are required (user and password
+Some of the form fields are required (user and password
 obviously, ok=Login inexplicably) while others can apparently be
 omitted.
 
@@ -42,14 +43,7 @@ Response #1
 
 Nothing in this response seems interesting or useful, except for the delicious 32-digit cookie. The second hexadecimal blob is a persistent identifier associated with the combination of user account and gateway (probably the `sha1` hash of something, since it's 40 digits long).
 
-```
-Headers:
-Connection:       keep-alive
-Server:           PanWeb Server/ -
-<various cache-related headers like ETag>
-
-XML-like data:
-
+```xml
 <?xml version='1.0' encoding='utf-8'?>
 <jnlp>
   <application-desc>
@@ -114,7 +108,7 @@ Here's the interesting part:
   keys and authentication keys. Note that the upstream and downstream
   keys and SPIs do **not** match; this is intentional.
 
-```
+```xml
 <?xml version='1.0' encoding='UTF-8'?>
 <response status="success">
   <need-tunnel>yes</need-tunnel>
@@ -235,10 +229,7 @@ os-version:  Microsoft Windows Server 2012, 64-bit
 Logout response
 ===============
 
-```
-Server:           PanWeb Server/ -
-<various cache headers>
-
+```xml
 <?xml version='1.0' encoding='UTF-8'?>
 <response status="success">
   <portal>Gateway-Name</portal>
