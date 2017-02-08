@@ -1,4 +1,4 @@
-This is an anonymized log of the authentication and connection process between a GlobalProtect VPN client and server.
+This is an anonymized log of the authentication, configuration, data transfer, and logout interactions between a [PAN](http://www.paloaltonetworks.com) GlobalProtect VPN server and client (Windows client, v3.0.1-10).
 
 The correct user-agent (`User-Agent: PAN Globalprotect`) is **required** for all HTTP interactions with the GlobalProtect VPN. It treats any other user-agent as a web browser, not a VPN client.
 
