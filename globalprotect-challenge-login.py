@@ -12,6 +12,7 @@ import requests
 import argparse
 import getpass
 import os, re
+import xml.etree.ElementTree as ET
 from sys import stderr
 
 p = argparse.ArgumentParser()
@@ -44,6 +45,7 @@ if args.verbose:
 user, password, inputStr = args.user, args.password, ''
 login = 'https://{}/ssl-vpn/login.esp'.format(args.gateway)
 hostname = os.uname()[1]
+jnlp = None
 
 while True:
     if not user:
@@ -75,7 +77,7 @@ while True:
             unknown = True
     elif res.status_code == 200:
         print('=> Success')
-        print(res.text)
+        jnlp = res.text
         break
     else:
         unknown = True
@@ -83,3 +85,12 @@ while True:
     if unknown:
         print('Got unknown response: %r', res.text)
         res.raise_for_status()
+
+if jnlp:
+    jnlp = [x.text for x in ET.fromstring(jnlp).findall('.//argument')]
+    authcookie = 'user={4}&authcookie={1}&portal={3}&domain={7}'.format(*jnlp)
+    print('''
+Start openconnect with:
+
+    openconnect --protocol=gp %s --cookie "%s"
+''' % (args.gateway, authcookie), file=stderr)
