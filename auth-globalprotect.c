@@ -134,8 +134,6 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 
 	/* Ask the user to fill in the auth form; repeat as necessary */
 	do {
-		free(xml_buf);
-		buf_truncate(request_body);
 
 		/* process static auth form (username and password) */
 		result = process_auth_form(vpninfo, form);
@@ -151,6 +149,7 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 		}
 
 		/* submit login request */
+		buf_truncate(request_body);
 		buf_append(request_body, "jnlpReady=jnlpReady&ok=Login&direct=yes&clientVer=4100&prot=https:");
 		append_opt(request_body, "server", vpninfo->hostname);
 		append_opt(request_body, "computer", vpninfo->localname);
