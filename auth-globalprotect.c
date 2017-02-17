@@ -28,7 +28,7 @@ void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 }
 
 /* our "auth form" always has a username and password or challenge */
-static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *prompt, char *user, char *inputStr)
+static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *prompt, char *auth_id)
 {
 	static struct oc_auth_form *form;
 	static struct oc_form_opt *opt, *opt2;
@@ -37,23 +37,24 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *pr
 
 	if (!form)
 		return NULL;
-	form->message = prompt ? : strdup(_("Please enter your username and password."));
-	form->auth_id = inputStr;
+	if (prompt) form->message = strdup(prompt);
+	if (auth_id) form->auth_id = strdup(auth_id);
 
 	opt = form->opts = calloc(1, sizeof(*opt));
 	if (!opt)
 		return NULL;
-	opt->name=strdup("username");
+	opt->name=strdup("user");
 	opt->label=strdup(_("Username: "));
-	opt->type = user ? OC_FORM_OPT_HIDDEN : OC_FORM_OPT_TEXT;
-	opt->_value = user;
+	opt->type = OC_FORM_OPT_TEXT;
+	opt->flags = OC_FORM_OPT_FILL_USERNAME;
 
 	opt2 = opt->next = calloc(1, sizeof(*opt));
 	if (!opt2)
 		return NULL;
-	opt2->name = strdup("password");
-	opt2->label = inputStr ? strdup(_("Challenge: ")) : strdup(_("Password: "));
+	opt2->name = strdup("passwd");
+	opt2->label = auth_id ? strdup(_("Challenge: ")) : strdup(_("Password: "));
 	opt2->type = vpninfo->token_mode!=OC_TOKEN_MODE_NONE ? OC_FORM_OPT_TOKEN : OC_FORM_OPT_PASSWORD;
+	opt2->flags = OC_FORM_OPT_FILL_PASSWORD;
 
 	form->opts = opt;
 	return form;
@@ -135,13 +136,12 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 {
 	int result;
 
-	struct oc_form_opt *opt;
-	struct oc_auth_form *form;
+	struct oc_auth_form *form = NULL;
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
 	char *xml_buf=NULL, *orig_path, *orig_ua;
-	char *prompt=NULL, *inputStr=NULL;
+	char *prompt=_("Please enter your username and password"), *auth_id=NULL;
 
 #ifdef HAVE_LIBSTOKEN
 	/* Step 1: Unlock software token (if applicable) */
@@ -152,14 +152,14 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 	}
 #endif
 
-	/* Ask the user to fill in the auth form; repeat as necessary */
-	do {
+	form = auth_form(vpninfo, prompt, auth_id);
+	if (!form)
+		return -ENOMEM;
 
-		form = auth_form(vpninfo, prompt, NULL, inputStr);
-		if (!form)
-			return -ENOMEM;
+    /* Ask the user to fill in the auth form; repeat as necessary */
+	for (;;) {
 
-		/* process auth form (username, password or challenge, and hidden inputStr) */
+		/* process auth form (username and password or challenge) */
 		result = process_auth_form(vpninfo, form);
 		if (result)
 			goto out;
@@ -178,13 +178,7 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 		append_opt(request_body, "server", vpninfo->hostname);
 		append_opt(request_body, "computer", vpninfo->localname);
 		append_opt(request_body, "inputStr", form->auth_id);
-		for (opt=form->opts; opt; opt=opt->next) {
-			if (!strcmp(opt->name, "username"))
-				append_opt(request_body, "user", opt->_value);
-			else if (!strcmp(opt->name, "password"))
-				append_opt(request_body, "passwd", opt->_value);
-		}
-		free_auth_form(form);
+		append_form_opts(vpninfo, form, request_body);
 
 		orig_path = vpninfo->urlpath;
 		orig_ua = vpninfo->useragent;
@@ -197,12 +191,21 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 		vpninfo->useragent = orig_ua;
 
 		/* Result could be either a JavaScript challenge or XML */
-		result = gpst_xml_or_error(vpninfo, result, xml_buf, parse_login_xml, &prompt, &inputStr);
+		result = gpst_xml_or_error(vpninfo, result, xml_buf, parse_login_xml, &prompt, &auth_id);
+		if (result == -EAGAIN) {
+			free_auth_form(form);
+			form = auth_form(vpninfo, prompt, auth_id);
+			if (!form)
+				return -ENOMEM;
+			continue;
+		} else if (result == -512)
+			continue;
+		else
+			break;
 	}
-	/* repeat on invalid username or password, or challenge */
-	while (result == -512 || result == 2);
 
 out:
+	free_auth_form(form);
 	buf_free(request_body);
 	free(xml_buf);
 	return result;

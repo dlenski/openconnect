@@ -864,7 +864,6 @@ void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 int gpst_bye(struct openconnect_info *vpninfo, const char *reason);
 
 /* gpst.c */
-int gpst_scrape_javascript(char *javascript, char **prompt, char **inputStr);
 int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *response,
 					  int (*xml_cb)(struct openconnect_info *, xmlNode *xml_node),
 					  char **prompt, char **inputStr);

@@ -68,13 +68,13 @@ static int xmlnode_get_text(xmlNode *xml_node, const char *name, const char **va
 
 /* Parse this JavaScript-y mess:
 
-	"var respStatus = \"<status>\";\n"
+	"var respStatus = \"Challenge|Error\";\n"
 	"var respMsg = \"<prompt>\";\n"
 	"thisForm.inputStr.value = "<inputStr>";\n"
 */
-int gpst_scrape_javascript(char *javascript, char **prompt, char **inputStr)
+static int parse_javascript(char *buf, char **prompt, char **inputStr)
 {
-	const char *start, *end = javascript;
+	const char *start, *end = buf;
 	int status;
 
 	const char *pre_status = "var respStatus = \"",
@@ -92,9 +92,8 @@ int gpst_scrape_javascript(char *javascript, char **prompt, char **inputStr)
 	if (!end || end[-1] != ';' || end[-2] != '"')
 		goto err;
 
-	if (!strncmp(start, "Challenge", 8))    status = 2;
+	if (!strncmp(start, "Challenge", 8))    status = 0;
 	else if (!strncmp(start, "Error", 5))   status = 1;
-	else if (!strncmp(start, "Success", 7)) status = 0;
 	else                                    goto err;
 
 	/* Prompt */
@@ -133,9 +132,9 @@ int gpst_scrape_javascript(char *javascript, char **prompt, char **inputStr)
 	return status;
 
 err3:
-	if (inputStr) free((void *)inputStr);
+	if (inputStr) free((void *)*inputStr);
 err2:
-	if (prompt) free((void *)prompt);
+	if (prompt) free((void *)*prompt);
 err:
 	return -EINVAL;
 }
@@ -167,21 +166,19 @@ int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *respon
 	xml_doc = xmlReadMemory(response, strlen(response), "noname.xml", NULL,
 				XML_PARSE_NOERROR);
 	if (!xml_doc) {
+		/* is it Javascript? */
 		char *p, *i;
-		result = gpst_scrape_javascript(response, &p, &i);
+		result = parse_javascript(response, &p, &i);
 		switch (result) {
-		case 0:
-			vpn_progress(vpninfo, PRG_ERR, _("Success: %s\n"), p);
-			break;
 		case 1:
 			vpn_progress(vpninfo, PRG_ERR, _("%s\n"), p);
 			break;
-		case 2:
-			vpn_progress(vpninfo, PRG_ERR, _("Challenge: %s\n"), p);
+		case 0:
+			vpn_progress(vpninfo, PRG_INFO, _("Challenge: %s\n"), p);
 			if (prompt && inputStr) {
 				*prompt=p;
 				*inputStr=i;
-				return 2;
+				return -EAGAIN;
 			}
 			break;
 		default:
