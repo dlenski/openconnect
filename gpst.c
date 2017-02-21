@@ -66,12 +66,85 @@ static int xmlnode_get_text(xmlNode *xml_node, const char *name, const char **va
 	return 0;
 }
 
+/* Parse this JavaScript-y mess:
+
+	"var respStatus = \"Challenge|Error\";\n"
+	"var respMsg = \"<prompt>\";\n"
+	"thisForm.inputStr.value = "<inputStr>";\n"
+*/
+static int parse_javascript(char *buf, char **prompt, char **inputStr)
+{
+	const char *start, *end = buf;
+	int status;
+
+	const char *pre_status = "var respStatus = \"",
+	           *pre_prompt = "var respMsg = \"",
+	           *pre_inputStr = "thisForm.inputStr.value = \"";
+
+	/* Status */
+	while (isspace(*end))
+		end++;
+	if (strncmp(end, pre_status, strlen(pre_status)))
+		goto err;
+
+	start = end+strlen(pre_status);
+	end = strchr(start, '\n');
+	if (!end || end[-1] != ';' || end[-2] != '"')
+		goto err;
+
+	if (!strncmp(start, "Challenge", 8))    status = 0;
+	else if (!strncmp(start, "Error", 5))   status = 1;
+	else                                    goto err;
+
+	/* Prompt */
+	while (isspace(*end))
+		end++;
+	if (strncmp(end, pre_prompt, strlen(pre_prompt)))
+		goto err;
+
+	start = end+strlen(pre_prompt);
+	end = strchr(start, '\n');
+	if (!end || end[-1] != ';' || end[-2] != '"')
+		goto err;
+
+	if (prompt)
+		*prompt = strndup(start, end-start-2);
+
+	/* inputStr */
+	while (isspace(*end))
+		end++;
+	if (strncmp(end, pre_inputStr, strlen(pre_inputStr)))
+		goto err2;
+
+	start = end+strlen(pre_inputStr);
+	end = strchr(start, '\n');
+	if (!end || end[-1] != ';' || end[-2] != '"')
+		goto err2;
+
+	if (inputStr)
+		*inputStr = strndup(start, end-start-2);
+
+	while (isspace(*end))
+		end++;
+	if (*end != '\0')
+		goto err3;
+
+	return status;
+
+err3:
+	if (inputStr) free((void *)*inputStr);
+err2:
+	if (prompt) free((void *)*prompt);
+err:
+	return -EINVAL;
+}
+
 int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *response,
-		      int (*xml_cb)(struct openconnect_info *, xmlNode *xml_node))
+					  int (*xml_cb)(struct openconnect_info *, xmlNode *xml_node),
+					  char **prompt, char **inputStr)
 {
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node;
-	int errlen;
 	const char *err;
 
 	/* custom error codes returned by /ssl-vpn/login.esp and maybe others */
@@ -93,21 +166,30 @@ int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *respon
 	xml_doc = xmlReadMemory(response, strlen(response), "noname.xml", NULL,
 				XML_PARSE_NOERROR);
 	if (!xml_doc) {
-		/* nope, but maybe it looks like this JavaScript-y blob:
-		   var respStatus = "Error";
-		   var respMsg = "<want this part>";
-		   thisForm.inputStr.value = ""; */
-		if ((err = strstr(response, "respMsg = \"")) != NULL) {
-			err += 11;
-			errlen = (strchr(err, ';') ? : err + strlen(err)) - err - 1;
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("%.*s\n"), errlen, err);
-			goto out;
+		/* is it Javascript? */
+		char *p, *i;
+		result = parse_javascript(response, &p, &i);
+		switch (result) {
+		case 1:
+			vpn_progress(vpninfo, PRG_ERR, _("%s\n"), p);
+			break;
+		case 0:
+			vpn_progress(vpninfo, PRG_INFO, _("Challenge: %s\n"), p);
+			if (prompt && inputStr) {
+				*prompt=p;
+				*inputStr=i;
+				return -EAGAIN;
+			}
+			break;
+		default:
+			goto bad_xml;
 		}
-		goto bad_xml;
+		free((char *)p);
+		free((char *)i);
+		goto out;
 	}
 
-        xml_node = xmlDocGetRootElement(xml_doc);
+	xml_node = xmlDocGetRootElement(xml_doc);
 
 	/* is it <response status="error"><error>..</error></response> ? */
 	if (xmlnode_is_named(xml_node, "response")
@@ -370,7 +452,7 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 		goto out;
 
 	/* parse getconfig result */
-	result = gpst_xml_or_error(vpninfo, result, xml_buf, gpst_parse_config_xml);
+	result = gpst_xml_or_error(vpninfo, result, xml_buf, gpst_parse_config_xml, NULL, NULL);
 	if (result)
 		return result;
 

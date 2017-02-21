@@ -27,17 +27,37 @@ void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 	http_common_headers(vpninfo, buf);
 }
 
-/* our "auth form" is just a static combination of username and password */
-static struct oc_auth_form *gp_auth_form(struct openconnect_info *vpninfo)
+/* our "auth form" always has a username and password or challenge */
+static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *prompt, char *auth_id)
 {
-	static struct oc_form_opt password = {.type=OC_FORM_OPT_PASSWORD, .name=(char *)"password", .label=(char *)"Password: ", .flags=OC_FORM_OPT_FILL_PASSWORD};
-	static struct oc_form_opt username = {.next=&password, .type=OC_FORM_OPT_TEXT, .name=(char *)"username", .label=(char *)"Username: ", .flags=OC_FORM_OPT_FILL_USERNAME};
-	static struct oc_auth_form form = {.opts=&username, .message=(char *)"Please enter your username and password." };
+	static struct oc_auth_form *form;
+	static struct oc_form_opt *opt, *opt2;
 
-	if (vpninfo->token_mode!=OC_TOKEN_MODE_NONE)
-		password.type = OC_FORM_OPT_TOKEN;
+	form = calloc(1, sizeof(*form));
 
-	return &form;
+	if (!form)
+		return NULL;
+	if (prompt) form->message = strdup(prompt);
+	if (auth_id) form->auth_id = strdup(auth_id);
+
+	opt = form->opts = calloc(1, sizeof(*opt));
+	if (!opt)
+		return NULL;
+	opt->name=strdup("user");
+	opt->label=strdup(_("Username: "));
+	opt->type = OC_FORM_OPT_TEXT;
+	opt->flags = OC_FORM_OPT_FILL_USERNAME;
+
+	opt2 = opt->next = calloc(1, sizeof(*opt));
+	if (!opt2)
+		return NULL;
+	opt2->name = strdup("passwd");
+	opt2->label = auth_id ? strdup(_("Challenge: ")) : strdup(_("Password: "));
+	opt2->type = vpninfo->token_mode!=OC_TOKEN_MODE_NONE ? OC_FORM_OPT_TOKEN : OC_FORM_OPT_PASSWORD;
+	opt2->flags = OC_FORM_OPT_FILL_PASSWORD;
+
+	form->opts = opt;
+	return form;
 }
 
 /* Return value:
@@ -116,12 +136,12 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 {
 	int result;
 
-	struct oc_form_opt *opt;
-	struct oc_auth_form *form = gp_auth_form(vpninfo);
+	struct oc_auth_form *form = NULL;
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
 	char *xml_buf=NULL, *orig_path, *orig_ua;
+	char *prompt=_("Please enter your username and password"), *auth_id=NULL;
 
 #ifdef HAVE_LIBSTOKEN
 	/* Step 1: Unlock software token (if applicable) */
@@ -132,12 +152,14 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 	}
 #endif
 
-	/* Ask the user to fill in the auth form; repeat as necessary */
-	do {
-		free(xml_buf);
-		buf_truncate(request_body);
+	form = auth_form(vpninfo, prompt, auth_id);
+	if (!form)
+		return -ENOMEM;
 
-		/* process static auth form (username and password) */
+    /* Ask the user to fill in the auth form; repeat as necessary */
+	for (;;) {
+
+		/* process auth form (username and password or challenge) */
 		result = process_auth_form(vpninfo, form);
 		if (result)
 			goto out;
@@ -151,9 +173,11 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 		}
 
 		/* submit login request */
+		buf_truncate(request_body);
 		buf_append(request_body, "jnlpReady=jnlpReady&ok=Login&direct=yes&clientVer=4100&prot=https:");
 		append_opt(request_body, "server", vpninfo->hostname);
 		append_opt(request_body, "computer", vpninfo->localname);
+		append_opt(request_body, "inputStr", form->auth_id);
 		append_form_opts(vpninfo, form, request_body);
 
 		orig_path = vpninfo->urlpath;
@@ -166,13 +190,22 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 		vpninfo->urlpath = orig_path;
 		vpninfo->useragent = orig_ua;
 
-		result = gpst_xml_or_error(vpninfo, result, xml_buf, parse_login_xml);
-
+		/* Result could be either a JavaScript challenge or XML */
+		result = gpst_xml_or_error(vpninfo, result, xml_buf, parse_login_xml, &prompt, &auth_id);
+		if (result == -EAGAIN) {
+			free_auth_form(form);
+			form = auth_form(vpninfo, prompt, auth_id);
+			if (!form)
+				return -ENOMEM;
+			continue;
+		} else if (result == -512)
+			continue;
+		else
+			break;
 	}
-	/* repeat on invalid username or password */
-	while (result == -512);
 
 out:
+	free_auth_form(form);
 	buf_free(request_body);
 	free(xml_buf);
 	return result;
@@ -208,8 +241,8 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 
 	/* logout.esp returns HTTP status 200 and <response status="success"> when
 	 * successful, and all manner of malformed junk when unsuccessful.
-         */
-	result = gpst_xml_or_error(vpninfo, result, xml_buf, NULL);
+	 */
+	result = gpst_xml_or_error(vpninfo, result, xml_buf, NULL, NULL, NULL);
 	if (result < 0)
 		vpn_progress(vpninfo, PRG_ERR, _("Logout failed.\n"));
 	else
