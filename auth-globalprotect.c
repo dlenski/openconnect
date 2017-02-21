@@ -30,8 +30,8 @@ void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 /* our "auth form" is just a static combination of username and password */
 static struct oc_auth_form *gp_auth_form(struct openconnect_info *vpninfo)
 {
-	static struct oc_form_opt password = {.type=OC_FORM_OPT_PASSWORD, .name=(char *)"password", .label=(char *)"Password: "};
-	static struct oc_form_opt username = {.next=&password, .type=OC_FORM_OPT_TEXT, .name=(char *)"username", .label=(char *)"Username: "};
+	static struct oc_form_opt password = {.type=OC_FORM_OPT_PASSWORD, .name=(char *)"password", .label=(char *)"Password: ", .flags=OC_FORM_OPT_FILL_PASSWORD};
+	static struct oc_form_opt username = {.next=&password, .type=OC_FORM_OPT_TEXT, .name=(char *)"username", .label=(char *)"Username: ", .flags=OC_FORM_OPT_FILL_USERNAME};
 	static struct oc_auth_form form = {.opts=&username, .message=(char *)"Please enter your username and password." };
 
 	if (vpninfo->token_mode!=OC_TOKEN_MODE_NONE)
@@ -154,12 +154,7 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 		buf_append(request_body, "jnlpReady=jnlpReady&ok=Login&direct=yes&clientVer=4100&prot=https:");
 		append_opt(request_body, "server", vpninfo->hostname);
 		append_opt(request_body, "computer", vpninfo->localname);
-		for (opt=form->opts; opt; opt=opt->next) {
-			if (!strcmp(opt->name, "username"))
-				append_opt(request_body, "user", opt->_value);
-			else if (!strcmp(opt->name, "password"))
-				append_opt(request_body, "passwd", opt->_value);
-		}
+		append_form_opts(vpninfo, form, request_body);
 
 		orig_path = vpninfo->urlpath;
 		orig_ua = vpninfo->useragent;
