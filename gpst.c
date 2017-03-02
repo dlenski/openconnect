@@ -48,7 +48,13 @@
  * 0010: data payload
  */
 
-static const struct pkt dpd_pkt = { .gpst.hdr = { 0x1a, 0x2b, 0x3c, 0x4d } };
+/* Strange initialisers here to work around GCC PR#10676 (which was
+ * fixed in GCC 4.6 but it takes a while for some systems to catch
+ * up. */
+static const struct pkt dpd_pkt = {
+	.next = NULL,
+	{ .gpst.hdr = { 0x1a, 0x2b, 0x3c, 0x4d } }
+};
 
 /* similar to auth.c's xmlnode_get_text, except that *var should be freed by the caller */
 static int xmlnode_get_text(xmlNode *xml_node, const char *name, const char **var)
