@@ -1031,7 +1031,7 @@ const char *openconnect_get_cstp_cipher(struct openconnect_info *vpninfo)
 const char *openconnect_get_peer_cert_hash(struct openconnect_info *vpninfo)
 {
 	if (vpninfo->peer_cert_hash == NULL)
-		vpninfo->peer_cert_hash = openconnect_bin2hex("sha256:", vpninfo->peer_cert_sha256_raw, sizeof(vpninfo->peer_cert_sha256_raw));
+		vpninfo->peer_cert_hash = openconnect_bin2base64("pin-sha256:", vpninfo->peer_cert_sha256_raw, sizeof(vpninfo->peer_cert_sha256_raw));
 	return vpninfo->peer_cert_hash;
 }
 
