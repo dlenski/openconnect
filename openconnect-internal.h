@@ -458,8 +458,11 @@ struct openconnect_info {
 	void *tok_cbdata;
 
 	void *peer_cert;
-	char *peer_cert_sha1;
-	char *peer_cert_sha256;
+	/* The SHA1 and SHA256 hashes of the peer's public key */
+	uint8_t peer_cert_sha1_raw[SHA1_SIZE];
+	uint8_t peer_cert_sha256_raw[SHA256_SIZE];
+	/* this value is cache for openconnect_get_peer_cert_hash */
+	char *peer_cert_hash;
 	void *cert_list_handle;
 	int cert_list_size;
 

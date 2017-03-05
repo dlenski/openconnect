@@ -72,7 +72,8 @@ char *openconnect_bin2hex(const char *prefix, const uint8_t *data, unsigned len)
 	char *p = NULL;
 
 	buf = buf_alloc();
-	buf_append(buf, "%s", prefix);
+	if (prefix)
+		buf_append(buf, "%s", prefix);
 	buf_append_hex(buf, data, len);
 
 	if (!buf_error(buf)) {
