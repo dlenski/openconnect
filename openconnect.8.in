@@ -479,11 +479,15 @@ instead of using the normal resolver to look it up.
 Accept server's SSL certificate only if the provided fingerprint matches.
 The allowed fingerprint types are
 .IR SHA1 ,
+.IR SHA256 ,
 and
-.IR SHA256 .
-They are distinguished by the 'sha1:' or 'sha256:' prefixes to the hex encoded
-hash. To ease certain testing use-cases, a partial match of the hash will also
-be accepted, if it is at least 4 characters.
+.IR PIN-SHA256 .
+They are distinguished by the 'sha1:', 'sha256:' and 'pin-sha256:' prefixes to the
+encoded hash. The first two are custom identifiers providing hex
+encoding of the peer's public key, while 'pin-sha256:' is the RFC7469 key
+PIN, which utilizes base64 encoding. To ease certain
+testing use-cases, a partial match of the hash will also
+be accepted, if it is at least 4 characters past the prefix.
 .TP
 .B \-\-useragent=STRING
 Use

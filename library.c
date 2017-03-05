@@ -978,6 +978,9 @@ int openconnect_check_peer_cert_hash(struct openconnect_info *vpninfo,
 		} else if (strncmp(old_hash, "sha256:", 7) == 0) {
 			fingerprint = openconnect_bin2hex("sha256:", vpninfo->peer_cert_sha256_raw, sizeof(vpninfo->peer_cert_sha256_raw));
 			min_match_len = real_min_match_len + sizeof("sha256:")-1;
+		} else if (strncmp(old_hash, "pin-sha256:", 11) == 0) {
+			fingerprint = openconnect_bin2base64("pin-sha256:", vpninfo->peer_cert_sha256_raw, sizeof(vpninfo->peer_cert_sha256_raw));
+			min_match_len = real_min_match_len + sizeof("pin-sha256:")-1;
 		} else {
 			vpn_progress(vpninfo, PRG_ERR, _("Unknown certificate hash: %s.\n"), old_hash);
 			return -EIO;

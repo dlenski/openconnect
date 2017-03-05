@@ -85,6 +85,25 @@ char *openconnect_bin2hex(const char *prefix, const uint8_t *data, unsigned len)
 	return p;
 }
 
+char *openconnect_bin2base64(const char *prefix, const uint8_t *data, unsigned len)
+{
+	struct oc_text_buf *buf;
+	char *p = NULL;
+
+	buf = buf_alloc();
+	if (prefix)
+		buf_append(buf, "%s", prefix);
+	buf_append_base64(buf, data, len);
+
+	if (!buf_error(buf)) {
+		p = buf->data;
+		buf->data = NULL;
+	}
+	buf_free(buf);
+
+	return p;
+}
+
 static int connect_dtls_socket(struct openconnect_info *vpninfo)
 {
 	int dtls_fd, ret;

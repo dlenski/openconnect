@@ -828,6 +828,7 @@ void dtls_detect_mtu(struct openconnect_info *vpninfo);
 int openconnect_dtls_read(struct openconnect_info *vpninfo, void *buf, size_t len, unsigned ms);
 int openconnect_dtls_write(struct openconnect_info *vpninfo, void *buf, size_t len);
 char *openconnect_bin2hex(const char *prefix, const uint8_t *data, unsigned len);
+char *openconnect_bin2base64(const char *prefix, const uint8_t *data, unsigned len);
 
 /* cstp.c */
 void cstp_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
