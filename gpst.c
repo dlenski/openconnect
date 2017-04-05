@@ -357,7 +357,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 			for (ii=0, member = xml_node->children; member && ii<3; member=member->next)
 				if (!xmlnode_get_text(member, "member", &vpninfo->ip_info.nbns[ii]))
 					ii++;
-		} if (xmlnode_is_named(xml_node, "dns-suffix")) {
+		} else if (xmlnode_is_named(xml_node, "dns-suffix")) {
 			for (ii=0, member = xml_node->children; member && ii<1; member=member->next)
 				if (!xmlnode_get_text(member, "member", &vpninfo->ip_info.domain))
 					ii++;
