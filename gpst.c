@@ -342,6 +342,16 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 	if (!xml_node || !xmlnode_is_named(xml_node, "response"))
 		return -EINVAL;
 
+	/* Clear old options which will be overwritten */
+	vpninfo->ip_info.addr = vpninfo->ip_info.netmask = NULL;
+	vpninfo->ip_info.addr6 = vpninfo->ip_info.netmask6 = NULL;
+	vpninfo->ip_info.domain = NULL;
+
+	for (ii = 0; ii < 3; ii++)
+		vpninfo->ip_info.dns[ii] = vpninfo->ip_info.nbns[ii] = NULL;
+	free_split_routes(vpninfo);
+
+	/* Parse config */
 	for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
 		xmlnode_get_text(xml_node, "ip-address", &vpninfo->ip_info.addr);
 		xmlnode_get_text(xml_node, "netmask", &vpninfo->ip_info.netmask);
@@ -418,21 +428,12 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 static int gpst_get_config(struct openconnect_info *vpninfo)
 {
 	char *orig_path, *orig_ua;
-	int result, ii;
+	int result;
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *old_addr = vpninfo->ip_info.addr, *old_netmask = vpninfo->ip_info.netmask;
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
 	char *xml_buf=NULL;
-
-	/* Clear old options which will be overwritten */
-	vpninfo->ip_info.addr = vpninfo->ip_info.netmask = NULL;
-	vpninfo->ip_info.addr6 = vpninfo->ip_info.netmask6 = NULL;
-	vpninfo->ip_info.domain = NULL;
-
-	for (ii = 0; ii < 3; ii++)
-		vpninfo->ip_info.dns[ii] = vpninfo->ip_info.nbns[ii] = NULL;
-	free_split_routes(vpninfo);
 
 	/* submit getconfig request */
 	buf_append(request_body, "client-type=1&protocol-version=p1&app-version=3.0.1-10");
