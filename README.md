@@ -44,7 +44,7 @@ $ sudo apt-get install build-essential autoconf automake libgnutls-dev libproxy-
 Once you have all the build dependencies installed, checkout and build the `globalprotect` branch from this repository.
 
 ```sh
-$ git clone git@github.com:dlenski/openconnect
+$ git clone https://github.com/dlenski/openconnect.git
 $ cd openconnect
 $ git checkout globalprotect
 $ ./autogen.sh

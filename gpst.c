@@ -48,7 +48,13 @@
  * 0010: data payload
  */
 
-static const struct pkt dpd_pkt = { .gpst.hdr = { 0x1a, 0x2b, 0x3c, 0x4d } };
+/* Strange initialisers here to work around GCC PR#10676 (which was
+ * fixed in GCC 4.6 but it takes a while for some systems to catch
+ * up. */
+static const struct pkt dpd_pkt = {
+	.next = NULL,
+	{ .gpst.hdr = { 0x1a, 0x2b, 0x3c, 0x4d } }
+};
 
 /* similar to auth.c's xmlnode_get_text, except that *var should be freed by the caller */
 static int xmlnode_get_text(xmlNode *xml_node, const char *name, const char **var)
@@ -66,12 +72,85 @@ static int xmlnode_get_text(xmlNode *xml_node, const char *name, const char **va
 	return 0;
 }
 
+/* Parse this JavaScript-y mess:
+
+	"var respStatus = \"Challenge|Error\";\n"
+	"var respMsg = \"<prompt>\";\n"
+	"thisForm.inputStr.value = "<inputStr>";\n"
+*/
+static int parse_javascript(char *buf, char **prompt, char **inputStr)
+{
+	const char *start, *end = buf;
+	int status;
+
+	const char *pre_status = "var respStatus = \"",
+	           *pre_prompt = "var respMsg = \"",
+	           *pre_inputStr = "thisForm.inputStr.value = \"";
+
+	/* Status */
+	while (isspace(*end))
+		end++;
+	if (strncmp(end, pre_status, strlen(pre_status)))
+		goto err;
+
+	start = end+strlen(pre_status);
+	end = strchr(start, '\n');
+	if (!end || end[-1] != ';' || end[-2] != '"')
+		goto err;
+
+	if (!strncmp(start, "Challenge", 8))    status = 0;
+	else if (!strncmp(start, "Error", 5))   status = 1;
+	else                                    goto err;
+
+	/* Prompt */
+	while (isspace(*end))
+		end++;
+	if (strncmp(end, pre_prompt, strlen(pre_prompt)))
+		goto err;
+
+	start = end+strlen(pre_prompt);
+	end = strchr(start, '\n');
+	if (!end || end[-1] != ';' || end[-2] != '"')
+		goto err;
+
+	if (prompt)
+		*prompt = strndup(start, end-start-2);
+
+	/* inputStr */
+	while (isspace(*end))
+		end++;
+	if (strncmp(end, pre_inputStr, strlen(pre_inputStr)))
+		goto err2;
+
+	start = end+strlen(pre_inputStr);
+	end = strchr(start, '\n');
+	if (!end || end[-1] != ';' || end[-2] != '"')
+		goto err2;
+
+	if (inputStr)
+		*inputStr = strndup(start, end-start-2);
+
+	while (isspace(*end))
+		end++;
+	if (*end != '\0')
+		goto err3;
+
+	return status;
+
+err3:
+	if (inputStr) free((void *)*inputStr);
+err2:
+	if (prompt) free((void *)*prompt);
+err:
+	return -EINVAL;
+}
+
 int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *response,
-		      int (*xml_cb)(struct openconnect_info *, xmlNode *xml_node))
+					  int (*xml_cb)(struct openconnect_info *, xmlNode *xml_node),
+					  char **prompt, char **inputStr)
 {
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node;
-	int errlen;
 	const char *err = NULL;
 
 	/* custom error codes returned by /ssl-vpn/login.esp and maybe others */
@@ -93,20 +172,30 @@ int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *respon
 	xml_doc = xmlReadMemory(response, strlen(response), "noname.xml", NULL,
 				XML_PARSE_NOERROR);
 	if (!xml_doc) {
-		/* nope, but maybe it looks like this JavaScript-y blob:
-		   var respStatus = "Error";
-		   var respMsg = "<want this part>";
-		   thisForm.inputStr.value = ""; */
-		if ((err = strstr(response, "respMsg = \"")) != NULL) {
-			err += 11;
-			errlen = (strchr(err, ';') ? : err + strlen(err)) - err - 1;
-			err = strndup(err, errlen);
-			goto out;
+		/* is it Javascript? */
+		char *p, *i;
+		result = parse_javascript(response, &p, &i);
+		switch (result) {
+		case 1:
+			vpn_progress(vpninfo, PRG_ERR, _("%s\n"), p);
+			break;
+		case 0:
+			vpn_progress(vpninfo, PRG_INFO, _("Challenge: %s\n"), p);
+			if (prompt && inputStr) {
+				*prompt=p;
+				*inputStr=i;
+				return -EAGAIN;
+			}
+			break;
+		default:
+			goto bad_xml;
 		}
-		goto bad_xml;
+		free((char *)p);
+		free((char *)i);
+		goto out;
 	}
 
-        xml_node = xmlDocGetRootElement(xml_doc);
+	xml_node = xmlDocGetRootElement(xml_doc);
 
 	/* is it <response status="error"><error>..</error></response> ? */
 	if (xmlnode_is_named(xml_node, "response")
@@ -258,6 +347,16 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 	if (!xml_node || !xmlnode_is_named(xml_node, "response"))
 		return -EINVAL;
 
+	/* Clear old options which will be overwritten */
+	vpninfo->ip_info.addr = vpninfo->ip_info.netmask = NULL;
+	vpninfo->ip_info.addr6 = vpninfo->ip_info.netmask6 = NULL;
+	vpninfo->ip_info.domain = NULL;
+
+	for (ii = 0; ii < 3; ii++)
+		vpninfo->ip_info.dns[ii] = vpninfo->ip_info.nbns[ii] = NULL;
+	free_split_routes(vpninfo);
+
+	/* Parse config */
 	for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
 		xmlnode_get_text(xml_node, "ip-address", &vpninfo->ip_info.addr);
 		xmlnode_get_text(xml_node, "netmask", &vpninfo->ip_info.netmask);
@@ -273,7 +372,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 			for (ii=0, member = xml_node->children; member && ii<3; member=member->next)
 				if (!xmlnode_get_text(member, "member", &vpninfo->ip_info.nbns[ii]))
 					ii++;
-		} if (xmlnode_is_named(xml_node, "dns-suffix")) {
+		} else if (xmlnode_is_named(xml_node, "dns-suffix")) {
 			for (ii=0, member = xml_node->children; member && ii<1; member=member->next)
 				if (!xmlnode_get_text(member, "member", &vpninfo->ip_info.domain))
 					ii++;
@@ -334,21 +433,12 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 static int gpst_get_config(struct openconnect_info *vpninfo)
 {
 	char *orig_path, *orig_ua;
-	int result, ii;
+	int result;
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *old_addr = vpninfo->ip_info.addr, *old_netmask = vpninfo->ip_info.netmask;
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
 	char *xml_buf=NULL;
-
-	/* Clear old options which will be overwritten */
-	vpninfo->ip_info.addr = vpninfo->ip_info.netmask = NULL;
-	vpninfo->ip_info.addr6 = vpninfo->ip_info.netmask6 = NULL;
-	vpninfo->ip_info.domain = NULL;
-
-	for (ii = 0; ii < 3; ii++)
-		vpninfo->ip_info.dns[ii] = vpninfo->ip_info.nbns[ii] = NULL;
-	free_split_routes(vpninfo);
 
 	/* submit getconfig request */
 	buf_append(request_body, "client-type=1&protocol-version=p1&app-version=3.0.1-10");
@@ -374,7 +464,7 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 		goto out;
 
 	/* parse getconfig result */
-	result = gpst_xml_or_error(vpninfo, result, xml_buf, gpst_parse_config_xml);
+	result = gpst_xml_or_error(vpninfo, result, xml_buf, gpst_parse_config_xml, NULL, NULL);
 	if (result)
 		return result;
 
