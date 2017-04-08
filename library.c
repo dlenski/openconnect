@@ -178,7 +178,7 @@ int openconnect_get_supported_protocols(struct oc_vpn_proto **protos)
 		pr->description = _(p->description);
 		pr->flags = p->flags;
 	}
-	return 0;
+	return (p - openconnect_protos);
 }
 
 void openconnect_free_supported_protocols(struct oc_vpn_proto *protos)
