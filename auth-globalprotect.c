@@ -196,17 +196,17 @@ gateways:
 	}
 
 	/* process static auth form to select gateway */
-	form.opts = (struct oc_form_opt *)opt;
+	form.authgroup_opt = opt;
 	result = process_auth_form(vpninfo, &form);
-	if (result)
+	if (result != OC_FORM_RESULT_NEWGROUP)
 		goto out;
 
 	/* redirect to the gateway (no-op if it's the same host) */
-	if ((vpninfo->redirect_url = malloc(strlen(opt->form._value) + 9)) == NULL) {
+	if ((vpninfo->redirect_url = malloc(strlen(vpninfo->authgroup) + 9)) == NULL) {
 		result = -ENOMEM;
 		goto out;
 	}
-	sprintf(vpninfo->redirect_url, "https://%s", opt->form._value);
+	sprintf(vpninfo->redirect_url, "https://%s", vpninfo->authgroup);
 	result = handle_redirect(vpninfo);
 
 out:
