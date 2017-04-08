@@ -228,7 +228,7 @@ out:
 			vpn_progress(vpninfo, PRG_ERR, "%s\n", err);
 			result = -EINVAL;
 		}
-		free(err);
+		free((void *)err);
 	}
 	if (xml_doc)
 		xmlFreeDoc(xml_doc);
