@@ -38,7 +38,7 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *pr
 	if (!form)
 		return NULL;
 	if (prompt) form->message = strdup(prompt);
-	if (auth_id) form->auth_id = strdup(auth_id);
+	form->auth_id = strdup(auth_id ? : "_gateway");
 
 	opt = form->opts = calloc(1, sizeof(*opt));
 	if (!opt)
@@ -134,7 +134,7 @@ err_out:
 
 static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 {
-	static struct oc_auth_form form = {.message=(char *)"Please select GlobalProtect gateway." };
+	static struct oc_auth_form form = {.message=(char *)"Please select GlobalProtect gateway.", .auth_id=(char *)"_portal"};
 
 	xmlNode *x;
 	struct oc_form_opt_select *opt;
@@ -261,7 +261,8 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 		buf_append(request_body, "jnlpReady=jnlpReady&ok=Login&direct=yes&clientVer=4100&prot=https:");
 		append_opt(request_body, "server", vpninfo->hostname);
 		append_opt(request_body, "computer", vpninfo->localname);
-		append_opt(request_body, "inputStr", form->auth_id);
+		if (form->auth_id && form->auth_id[0]!='_')
+			append_opt(request_body, "inputStr", form->auth_id);
 		append_form_opts(vpninfo, form, request_body);
 
 		orig_path = vpninfo->urlpath;
