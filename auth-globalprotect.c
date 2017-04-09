@@ -196,7 +196,7 @@ gateways:
 	}
 
 	/* process static auth form to select gateway */
-	form.authgroup_opt = opt;
+	form.opts = (struct oc_form_opt *)(form.authgroup_opt = opt);
 	result = process_auth_form(vpninfo, &form);
 	if (result != OC_FORM_RESULT_NEWGROUP)
 		goto out;
