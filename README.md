@@ -38,7 +38,7 @@ Please refer to the [build requirements for the official releases of OpenConnect
 Under Debian-based or Ubuntu-based distributions, this should install the requirements:
 
 ```sh
-$ sudo apt-get install build-essential autoconf automake libgnutls-dev libproxy-dev libxml2-dev`
+$ sudo apt-get install build-essential autoconf automake libgnutls-dev libproxy-dev libxml2-dev libtool
 ```
 
 Once you have all the build dependencies installed, checkout and build the `globalprotect` branch from this repository.
