@@ -261,6 +261,10 @@ struct oc_ip_info {
 	struct oc_split_include *split_includes;
 	struct oc_split_include *split_excludes;
 
+	/* Needed if the gateway address presented by the global protect
+	 * gateway portal is not the same as the actual portal. */
+	const char *gateway_addr_gp;
+
 	/* The elements above this line come from server-provided CSTP headers,
 	 * so they should be handled with caution.  gateway_addr is generated
 	 * locally from getnameinfo(). */
@@ -410,7 +414,7 @@ int openconnect_init_ssl(void);
 const char *openconnect_get_cstp_cipher(struct openconnect_info *);
 const char *openconnect_get_dtls_cipher(struct openconnect_info *);
 
-/* These return a descriptive string of the compression algorithm 
+/* These return a descriptive string of the compression algorithm
  * in use (LZS, LZ4, ...). If no compression then NULL is returned. */
 const char *openconnect_get_cstp_compression(struct openconnect_info *);
 const char *openconnect_get_dtls_compression(struct openconnect_info *);
