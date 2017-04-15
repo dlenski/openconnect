@@ -560,7 +560,8 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 		monitor_read_fd(vpninfo, ssl);
 		monitor_except_fd(vpninfo, ssl);
 		vpninfo->ssl_times.last_rekey = vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
-		vpninfo->dtls_state = DTLS_NOSECRET;
+		if (vpninfo->dtls_state != DTLS_DISABLED)
+			vpninfo->dtls_state = DTLS_NOSECRET;
 	}
 
 	return ret;
