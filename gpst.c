@@ -363,6 +363,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 	for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
 		xmlnode_get_text(xml_node, "ip-address", &vpninfo->ip_info.addr);
 		xmlnode_get_text(xml_node, "netmask", &vpninfo->ip_info.netmask);
+		xmlnode_get_text(xml_node, "gw-address", &vpninfo->ip_info.gateway_addr_gp);
 
 		if (!xmlnode_get_text(xml_node, "mtu", &s)) {
 			vpninfo->ip_info.mtu = atoi(s);
