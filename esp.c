@@ -172,7 +172,7 @@ int esp_send_probes_gp(struct openconnect_info *vpninfo)
 		iph->ip_ttl = 64; /* hops */
 		iph->ip_p = 1; /* ICMP */
 		iph->ip_src.s_addr = inet_addr(vpninfo->ip_info.addr);
-		iph->ip_dst.s_addr = inet_addr(vpninfo->ip_info.gateway_addr);
+		iph->ip_dst.s_addr = inet_addr(vpninfo->ip_info.gateway_addr_gp);
 		iph->ip_sum = csum((uint16_t *)iph, sizeof(*iph)/2);
 
 		/* ICMP echo request */
@@ -183,8 +183,11 @@ int esp_send_probes_gp(struct openconnect_info *vpninfo)
 		icmph->icmp_cksum = csum((uint16_t *)icmph, (ICMP_MINLEN+sizeof(magic))/2);
 
 		pktlen = encrypt_esp_packet(vpninfo, pkt);
-		if (pktlen >= 0)
+		if (pktlen >= 0){
+			vpn_progress(vpninfo, PRG_TRACE, _("Sending ESP ICMP requests to : %s (%d)\n"),
+				     vpninfo->ip_info.gateway_addr_gp,seq);
 			send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
+		}
 	}
 
 	free(pkt);
@@ -203,7 +206,7 @@ int esp_catch_probe_gp(struct openconnect_info *vpninfo, struct pkt *pkt)
 {
 	return ( pkt->len >= 21
 		 && pkt->data[9]==1 /* IPv4 protocol field == ICMP */
-		 && *((uint32_t *)(pkt->data + 12)) == inet_addr(vpninfo->ip_info.gateway_addr) /* source == gateway */
+		 && *((uint32_t *)(pkt->data + 12)) == inet_addr(vpninfo->ip_info.gateway_addr_gp) /* source == gateway */
 		 && pkt->data[20]==0 /* ICMP reply */ );
 }
 
