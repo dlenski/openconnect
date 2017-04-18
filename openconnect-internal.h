@@ -372,6 +372,7 @@ struct openconnect_info {
 	int old_esp_maxseq;
 	struct esp esp_in[2];
 	struct esp esp_out;
+	in_addr_t esp_magic; /* GlobalProtect magic ping address (network-endian) */
 
 	int tncc_fd; /* For Juniper TNCC */
 	const char *csd_xmltag;

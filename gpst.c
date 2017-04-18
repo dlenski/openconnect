@@ -354,6 +354,8 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 	vpninfo->ip_info.addr = vpninfo->ip_info.netmask = NULL;
 	vpninfo->ip_info.addr6 = vpninfo->ip_info.netmask6 = NULL;
 	vpninfo->ip_info.domain = NULL;
+	vpninfo->ip_info.mtu = 0;
+	vpninfo->esp_magic = inet_addr(vpninfo->ip_info.gateway_addr);
 
 	for (ii = 0; ii < 3; ii++)
 		vpninfo->ip_info.dns[ii] = vpninfo->ip_info.nbns[ii] = NULL;
@@ -366,6 +368,13 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 
 		if (!xmlnode_get_text(xml_node, "mtu", &s)) {
 			vpninfo->ip_info.mtu = atoi(s);
+			free((void *)s);
+		} else if (!xmlnode_get_text(xml_node, "gw-address", &s)) {
+			/* As remarked in oncp.c, "this is a tunnel; having a
+			 * gateway is meaningless." See esp_send_probes_gp for the
+			 * gory details of what this field actually means.
+			 */
+			vpninfo->esp_magic = inet_addr(s);
 			free((void *)s);
 		} else if (xmlnode_is_named(xml_node, "dns")) {
 			for (ii=0, member = xml_node->children; member && ii<3; member=member->next)
