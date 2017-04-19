@@ -374,6 +374,9 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 			 * gateway is meaningless." See esp_send_probes_gp for the
 			 * gory details of what this field actually means.
 			 */
+			if (strcmp(s, vpninfo->ip_info.gateway_addr))
+				vpn_progress(vpninfo, PRG_DEBUG,
+							 _("Gateway address in config XML (%s) differs from external gateway address (%s).\n"), s, vpninfo->ip_info.gateway_addr);
 			vpninfo->esp_magic = inet_addr(s);
 			free((void *)s);
 		} else if (xmlnode_is_named(xml_node, "dns")) {
