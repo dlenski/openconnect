@@ -631,10 +631,45 @@ static void print_build_opts(void)
 	}
 
 #ifdef HAVE_DTLS
-	printf("%sDTLS\n", sep);
-#else
-	printf(_("\nWARNING: No DTLS support in this binary. Performance will be impaired.\n"));
+	printf("%sDTLS", sep);
 #endif
+#ifdef HAVE_ESP
+	printf("%sESP", sep);
+#endif
+	printf("\n");
+
+#if !defined(HAVE_DTLS) || !defined(HAVE_ESP)
+	printf(_("WARNING: This binary lacks DTLS and/or ESP support. Performance will be impaired.\n"));
+#endif
+}
+
+static void print_supported_protocols(void)
+{
+	const char *comma = ", ", *sep = comma + 1;
+	struct oc_vpn_proto *protos, *p;
+
+	if (openconnect_get_supported_protocols(&protos)>=0) {
+		printf(_("Supported protocols:"));
+		for (p=protos; p->name; p++) {
+			printf("%s%s%s", sep, p->name, p==protos ? _(" (default)") : "");
+			sep = comma;
+		}
+		printf("\n");
+		free(protos);
+	}
+}
+
+static void print_supported_protocols_usage(void)
+{
+	struct oc_vpn_proto *protos, *p;
+
+	if (openconnect_get_supported_protocols(&protos)>=0) {
+		printf(_("\n    Set VPN protocol:\n"));
+		for (p=protos; p->name; p++)
+			printf("      --protocol=%-16s %s%s\n",
+				   p->name, p->description, p==protos ? _(" (default)") : "");
+		openconnect_free_supported_protocols(protos);
+	}
 }
 
 #ifndef _WIN32
@@ -750,7 +785,7 @@ static int gai_override_cb(void *cbdata, const char *node,
 static void usage(void)
 {
 	printf(_("Usage:  openconnect [options] <server>\n"));
-	printf(_("Open client for Cisco AnyConnect VPN, version %s\n\n"), openconnect_version_str);
+	printf(_("Open client for multiple VPN protocols, version %s\n\n"), openconnect_version_str);
 	print_build_opts();
 	printf("      --config=CONFIGFILE         %s\n", _("Read options from config file"));
 #ifndef _WIN32
@@ -832,6 +867,8 @@ static void usage(void)
 	printf("      --resolve=HOST:IP           %s\n", _("Use IP when connecting to HOST"));
 	printf("      --os=STRING                 %s\n", _("OS type (linux,linux-64,win,...) to report"));
 	printf("      --dtls-local-port=PORT      %s\n", _("Set local port for DTLS datagrams"));
+	print_supported_protocols_usage();
+
 	printf("\n");
 
 	helpmessage();
@@ -1334,6 +1371,7 @@ int main(int argc, char **argv)
 		case 'V':
 			printf(_("OpenConnect version %s\n"), openconnect_version_str);
 			print_build_opts();
+			print_supported_protocols();
 			exit(0);
 		case 'x':
 			vpninfo->xmlconfig = keep_config_arg();
