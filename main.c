@@ -1174,7 +1174,7 @@ int main(int argc, char **argv)
 				fprintf(stderr, _("Missing colon in resolve option\n"));
 				exit(1);
 			}
-			gai = malloc(sizeof(*gai) + strlen(config_arg));
+			gai = malloc(sizeof(*gai) + strlen(config_arg) + 1);
 			if (!gai) {
 				fprintf(stderr, _("Failed to allocate memory\n"));
 				exit(1);
@@ -1182,7 +1182,7 @@ int main(int argc, char **argv)
 			gai->next = gai_overrides;
 			gai_overrides = gai;
 			gai->option = (void *)(gai + 1);
-			memcpy(gai->option, config_arg, strlen(config_arg));
+			memcpy(gai->option, config_arg, strlen(config_arg) + 1);
 			gai->option[ip - config_arg] = 0;
 			gai->value = gai->option + (ip - config_arg) + 1;
 			break;
