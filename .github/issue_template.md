@@ -8,13 +8,20 @@
 # Operating system and openconnect-gp version
 
 openconnect-gp version:
+
+```
     <!-- Run "openconnect --version" and include the output here -->
+```
 
 operating system
+
+```
     <!-- Run "uname -a" and include the output here -->
+```
 
 # GlobalProtect VPN information
 
+```
 <!--
     Run openconnect with the highest verbosity, and dump all HTTP traffic:
     
@@ -32,3 +39,4 @@ operating system
        - ESP keys
        - external IP addresses
 -->
+```
