@@ -20,8 +20,8 @@ official OpenConnect release*.
 If you are having trouble
 authenticating to your GlobalProtect server, please run OpenConnect
 with the `--dump -vvv` flags to dump the authentication flow; please
-compare the back-and-forth XML configuration to [this anonymized
-transcript](https://gist.github.com/dlenski/5046e5f934ac111e8d8718fc10c25703)
+compare the back-and-forth configuration requests to [this anonymized
+transcript](PAN_GlobalProtect_protocol_doc.md)
 and include information about relevant differences in your issue
 report.
 
