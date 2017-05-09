@@ -190,7 +190,7 @@ In the back-and-forth flows shown below, `<` means sent by the gateway, `>` mean
  
 ### ESP-over-UDP
 
-Uses the keying information obtained in response to the `getconfig` request. In order to initiate the connection, the client sends 3 ESP-encapsulated ICMP request ("ping") packets to the gateway. They are sent _from_ the client's in-VPN IP address _to_ the gateway's **public** IP address (¯\\\_(ツ)\_/¯), and they include the following magic payload:
+Uses the keying information obtained in response to the `getconfig` request. In order to initiate the connection, the client sends 3 ESP-encapsulated ICMP request ("ping") packets to the gateway. They are sent _from_ the client's in-VPN IP address _to_ the IP address specified by the `<gw-address>` from the `getconfig` response (this is normally the same as the gateway's **public** IP address, but is sometimes a VPN-internal address ¯\\\_(ツ)\_/¯). These ICMP request packets include the following magic payload:
 
     "monitor\x00\x00pan ha 0123456789:;<=>? !\"#$%&\'()*+,-./\x10\x11\x12\x13\x14\x15\x16\x18"
     "monitor\x00\x00pan ha " (first 16 bytes)
