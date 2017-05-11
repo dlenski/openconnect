@@ -1521,8 +1521,13 @@ int main(int argc, char **argv)
 	STRDUP(vpninfo->vpnc_script, vpnc_script);
 
 	if (vpninfo->dtls_state != DTLS_DISABLED &&
-	    openconnect_setup_dtls(vpninfo, 60))
+	    openconnect_setup_dtls(vpninfo, 60)) {
+		/* Disable DTLS if we cannot set it up, otherwise
+		 * reconnects end up in infinite loop trying to connect
+		 * to non existing DTLS */
+		vpninfo->dtls_state = DTLS_DISABLED;
 		fprintf(stderr, _("Set up DTLS failed; using SSL instead\n"));
+	}
 
 	openconnect_get_ip_info(vpninfo, &ip_info, NULL, NULL);
 

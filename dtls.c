@@ -154,6 +154,10 @@ void dtls_close(struct openconnect_info *vpninfo)
 static int dtls_reconnect(struct openconnect_info *vpninfo)
 {
 	dtls_close(vpninfo);
+
+	if (vpninfo->dtls_state == DTLS_DISABLED)
+		return -EINVAL;
+
 	vpninfo->dtls_state = DTLS_SLEEPING;
 	return connect_dtls_socket(vpninfo);
 }

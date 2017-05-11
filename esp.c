@@ -341,7 +341,8 @@ void esp_close(struct openconnect_info *vpninfo)
 		unmonitor_except_fd(vpninfo, dtls);
 		vpninfo->dtls_fd = -1;
 	}
-	vpninfo->dtls_state = DTLS_SLEEPING;
+	if (vpninfo->dtls_state > DTLS_DISABLED)
+		vpninfo->dtls_state = DTLS_SLEEPING;
 }
 
 void esp_shutdown(struct openconnect_info *vpninfo)
