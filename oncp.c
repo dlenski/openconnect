@@ -925,8 +925,12 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	   fairly unlikely situation, until the write backlog clears. */
 	while (1) {
 		int len, kmp, kmplen, iplen;
+		/* Some servers send us packets that are larger than
+		   negitiated MTU. We reserve some estra space to
+		   handle that */
+		int receive_mtu = MAX(16384, vpninfo->ip_info.mtu);
 
-		len = vpninfo->ip_info.mtu + vpninfo->pkt_trailer;
+		len = receive_mtu + vpninfo->pkt_trailer;
 		if (!vpninfo->cstp_pkt) {
 			vpninfo->cstp_pkt = malloc(sizeof(struct pkt) + len);
 			if (!vpninfo->cstp_pkt) {
@@ -967,7 +971,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		 * the amount of data received *including* the KMP header. */
 		len = oncp_record_read(vpninfo,
 				       vpninfo->cstp_pkt->oncp.kmp + vpninfo->cstp_pkt->len,
-				       vpninfo->ip_info.mtu + 20 - vpninfo->cstp_pkt->len);
+				       receive_mtu + 20 - vpninfo->cstp_pkt->len);
 		if (!len)
 			break;
 		else if (len < 0) {
@@ -1011,7 +1015,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				goto unknown_pkt;
 			}
 
-			if (!iplen || iplen > vpninfo->ip_info.mtu || iplen > kmplen)
+			if (!iplen || iplen > receive_mtu || iplen > kmplen)
 				goto badiplen;
 
 			if (iplen > vpninfo->cstp_pkt->len - 20)
@@ -1055,7 +1059,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		case 302:
 			/* Should never happen; if it does we'll have to cope */
-			if (kmplen > vpninfo->ip_info.mtu)
+			if (kmplen > receive_mtu)
 				goto unknown_pkt;
 			/* Probably never happens. We need it in its own record.
 			 * If I fix oncp_receive_espkeys() not to reuse cstp_pkt
