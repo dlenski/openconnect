@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2016-12-13 12:03+0000\n"
+"POT-Creation-Date: 2017-05-15 00:47+0100\n"
 "PO-Revision-Date: 2011-09-22 22:31+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Hungarian (http://www.transifex.net/projects/p/meego/team/"
@@ -18,65 +18,65 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
-#: auth-juniper.c:135
+#: auth-juniper.c:136
 #, c-format
 msgid "Ignoring unknown form submit item '%s'\n"
 msgstr "Ismeretlen űrlap elküldési elem mellőzése: „%s”\n"
 
-#: auth-juniper.c:146
+#: auth-juniper.c:147
 #, c-format
 msgid "Ignoring unknown form input type '%s'\n"
 msgstr "Ismeretlen űrlap beviteli típus mellőzése: „%s”\n"
 
-#: auth-juniper.c:156
+#: auth-juniper.c:157
 #, c-format
 msgid "Discarding duplicate option '%s'\n"
 msgstr "Kettőzött kapcsoló eldobása: „%s”\n"
 
-#: auth-juniper.c:229 auth.c:408
+#: auth-juniper.c:230 auth.c:408
 #, c-format
 msgid "Cannot handle form method='%s', action='%s'\n"
 msgstr "Nem kezelhetők az űrlap method='%s', action='%s' értékei\n"
 
-#: auth-juniper.c:260
+#: auth-juniper.c:261
 #, c-format
 msgid "Unknown textarea field: '%s'\n"
 msgstr "Ismeretlen szövegterület mező: „%s”\n"
 
-#: auth-juniper.c:328
+#: auth-juniper.c:329
 msgid "TNCC support not implemented yet on Windows\n"
 msgstr "A TNCC támogatás még nincs megvalósítva Windowson\n"
 
-#: auth-juniper.c:350
+#: auth-juniper.c:351
 msgid "No DSPREAUTH cookie; not attempting TNCC\n"
 msgstr "Nincs DSPREAUTH süti, TNCC nincs megpróbálva\n"
 
-#: auth-juniper.c:361
+#: auth-juniper.c:362
 msgid "Failed to allocate memory for communication with TNCC\n"
 msgstr "Nem sikerült memóriát lefoglalni a TNCC-vel való kommunikációhoz\n"
 
-#: auth-juniper.c:396
+#: auth-juniper.c:397
 #, c-format
 msgid "Failed to exec TNCC script %s: %s\n"
 msgstr "Nem sikerült végrehajtani a(z) %s TNCC parancsfájlt: %s\n"
 
-#: auth-juniper.c:405
+#: auth-juniper.c:406
 msgid "Failed to send start command to TNCC\n"
 msgstr "Nem sikerült indítási parancsot küldeni a TNCC-nek\n"
 
-#: auth-juniper.c:412
+#: auth-juniper.c:413
 msgid "Sent start; waiting for response from TNCC\n"
 msgstr "Indítás elküldve, várakozás a TNCC-től érkező válaszra\n"
 
-#: auth-juniper.c:417
+#: auth-juniper.c:418
 msgid "Failed to read response from TNCC\n"
 msgstr "Nem sikerült a válasz olvasása a TNCC-től\n"
 
-#: auth-juniper.c:428
+#: auth-juniper.c:429
 msgid "Received invalid response from TNCC\n"
 msgstr "Érvénytelen válasz érkezett a TNCC-től\n"
 
-#: auth-juniper.c:430
+#: auth-juniper.c:431
 #, c-format
 msgid ""
 "TNCC response: -->\n"
@@ -87,41 +87,41 @@ msgstr ""
 "%s\n"
 "<--\n"
 
-#: auth-juniper.c:438
+#: auth-juniper.c:439
 #, c-format
 msgid "Received unsuccessful %s response from TNCC\n"
 msgstr "%s válasz sikertelenül érkezett a TNCC-től\n"
 
-#: auth-juniper.c:451
+#: auth-juniper.c:452
 #, c-format
 msgid "Got new DSPREAUTH cookie from TNCC: %s\n"
 msgstr "Új DSPREAUTH süti beszerezve a TNCC-től: %s\n"
 
-#: auth-juniper.c:619
+#: auth-juniper.c:620
 msgid "Failed to parse HTML document\n"
 msgstr "Nem sikerült feldolgozni a HTML dokumentumot\n"
 
-#: auth-juniper.c:636
+#: auth-juniper.c:637
 msgid "Failed to find or parse web form in login page\n"
 msgstr ""
 "Nem sikerült megtalálni vagy feldolgozni a bejelentkező oldalon lévő webes "
 "űrlapot\n"
 
-#: auth-juniper.c:644
+#: auth-juniper.c:645
 msgid "Encountered form with no ID\n"
 msgstr "Azonosító nélküli űrlap található\n"
 
-#: auth-juniper.c:676
+#: auth-juniper.c:683
 #, c-format
 msgid "Unknown form ID '%s'\n"
 msgstr "Ismeretlen űrlap-azonosító: „%s”\n"
 
-#: auth-juniper.c:679
+#: auth-juniper.c:686
 #, c-format
 msgid "Dumping unknown HTML form:\n"
 msgstr "Ismeretlen HTML űrlap kiírása:\n"
 
-#: auth-juniper.c:693 auth.c:661
+#: auth-juniper.c:700 auth.c:661
 msgid "Failed to generate OTP tokencode; disabling token\n"
 msgstr "Nem sikerült az OTP tokenkód előállítása, a token letiltásra kerül\n"
 
@@ -239,17 +239,17 @@ msgstr "Nem sikerült megnyitni az átmeneti CSD parancsfájlt: %s\n"
 msgid "Failed to write temporary CSD script file: %s\n"
 msgstr "Nem sikerült írni az átmeneti CSD parancsfájlt: %s\n"
 
-#: auth.c:1084 mainloop.c:142
+#: auth.c:1084 mainloop.c:144
 #, c-format
 msgid "Failed to set gid %ld: %s\n"
 msgstr "A(z) %ld gid beállítása nem sikerült: %s\n"
 
-#: auth.c:1091 mainloop.c:149
+#: auth.c:1091 mainloop.c:151
 #, c-format
 msgid "Failed to set groups to %ld: %s\n"
 msgstr "A csoportok beállítása nem sikerült erre: %ld: %s\n"
 
-#: auth.c:1098 mainloop.c:156
+#: auth.c:1098 mainloop.c:158
 #, c-format
 msgid "Failed to set uid %ld: %s\n"
 msgstr "A(z) %ld uid beállítása nem sikerült: %s\n"
@@ -463,7 +463,7 @@ msgstr "%s / %d bájt tömörített adatcsomag érkezett (%d volt)\n"
 msgid "deflate failed %d\n"
 msgstr "deflate meghiúsult: %d\n"
 
-#: cstp.c:903 dtls.c:257 dtls.c:716 esp.c:171 mainloop.c:67 oncp.c:933
+#: cstp.c:903 dtls.c:261 dtls.c:720 esp.c:171 mainloop.c:69 oncp.c:937
 msgid "Allocation failed\n"
 msgstr "A lefoglalás meghiúsult\n"
 
@@ -490,7 +490,7 @@ msgstr "CSTP DPD válasz érkezett\n"
 msgid "Got CSTP Keepalive\n"
 msgstr "CSTP Keepalive érkezett\n"
 
-#: cstp.c:957 oncp.c:1022
+#: cstp.c:957 oncp.c:1026
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr "%d bájt tömörítetlen adatcsomag érkezett\n"
@@ -517,35 +517,35 @@ msgstr "kiszolgáló megszakítás csomag érkezett\n"
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr "Ismeretlen csomag: %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
-#: cstp.c:1044 oncp.c:1139
+#: cstp.c:1044 oncp.c:1143
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr "Az SSL túl kevés bájtot írt! %d volt a kérés, %d lett elküldve\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:1072 oncp.c:1177
+#: cstp.c:1072 oncp.c:1181
 msgid "CSTP rekey due\n"
 msgstr "CSTP kulcsmegújítás esedékes\n"
 
 #. if we failed rehandshake try establishing a new-tunnel instead of failing
-#: cstp.c:1079 oncp.c:1184
+#: cstp.c:1079 oncp.c:1188
 msgid "Rehandshake failed; attempting new-tunnel\n"
 msgstr "Újra kézfogás sikertelen, új alagút kísérlete\n"
 
-#: cstp.c:1090 oncp.c:1195
+#: cstp.c:1090 oncp.c:1199
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr "A CSTP halott csomópont felderítés halott csomópontot észlelt!\n"
 
-#: cstp.c:1094 oncp.c:1109 oncp.c:1199
+#: cstp.c:1094 oncp.c:1113 oncp.c:1203
 msgid "Reconnect failed\n"
 msgstr "Újracsatlakozás sikertelen\n"
 
-#: cstp.c:1110 oncp.c:1215
+#: cstp.c:1110 oncp.c:1219
 msgid "Send CSTP DPD\n"
 msgstr "CSTP DPD küldése\n"
 
-#: cstp.c:1122 oncp.c:1226
+#: cstp.c:1122 oncp.c:1230
 msgid "Send CSTP Keepalive\n"
 msgstr "CSTP Keepalive küldése\n"
 
@@ -554,7 +554,7 @@ msgstr "CSTP Keepalive küldése\n"
 msgid "Sending compressed data packet of %d bytes (was %d)\n"
 msgstr "%d bájt tömörített adatcsomag küldése (%d volt)\n"
 
-#: cstp.c:1158 oncp.c:1251
+#: cstp.c:1158 oncp.c:1255
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr "%d bájt tömörítetlen adatcsomag küldése\n"
@@ -591,183 +591,183 @@ msgstr "A kiszolgáló nem ajánlott DTLS titkosító lehetőséget\n"
 msgid "No DTLS when connected via proxy\n"
 msgstr "Nincs DTLS proxy-n keresztüli csatlakozáskor\n"
 
-#: dtls.c:175
+#: dtls.c:179
 #, c-format
 msgid "DTLS option %s : %s\n"
 msgstr "DTLS kapcsoló: %s : %s\n"
 
-#: dtls.c:216
+#: dtls.c:220
 #, c-format
 msgid "DTLS initialised. DPD %d, Keepalive %d\n"
 msgstr "DTLS előkészítve. DPD %d, Keepalive %d\n"
 
-#: dtls.c:242
+#: dtls.c:246
 msgid "Attempt new DTLS connection\n"
 msgstr "Új DTLS csatlakozási kísérlet\n"
 
-#: dtls.c:268
+#: dtls.c:272
 #, c-format
 msgid "Received DTLS packet 0x%02x of %d bytes\n"
 msgstr "Fogadott DTLS csomag 0x%02x / %d bájt\n"
 
-#: dtls.c:282
+#: dtls.c:286
 msgid "Got DTLS DPD request\n"
 msgstr "DTLS DPD kérés érkezett\n"
 
-#: dtls.c:288
+#: dtls.c:292
 msgid "Failed to send DPD response. Expect disconnect\n"
 msgstr "Nem sikerült a DPD válasz küldése. Leválasztás várható\n"
 
-#: dtls.c:292
+#: dtls.c:296
 msgid "Got DTLS DPD response\n"
 msgstr "DTLS DPD válasz érkezett\n"
 
-#: dtls.c:296
+#: dtls.c:300
 msgid "Got DTLS Keepalive\n"
 msgstr "DTLS Keepalive érkezett\n"
 
-#: dtls.c:302
+#: dtls.c:306
 msgid "Compressed DTLS packet received when compression not enabled\n"
 msgstr ""
 "Tömörített DTLS csomag érkezett, amikor a tömörítés nincs engedélyezve\n"
 
-#: dtls.c:310
+#: dtls.c:314
 #, c-format
 msgid "Unknown DTLS packet type %02x, len %d\n"
 msgstr "Ismeretlen DTLS csomagtípus: %02x, hossz: %d\n"
 
-#: dtls.c:332
+#: dtls.c:336
 msgid "DTLS rekey due\n"
 msgstr "DTLS kulcsmegújítás esedékes\n"
 
-#: dtls.c:339
+#: dtls.c:343
 msgid "DTLS Rehandshake failed; reconnecting.\n"
 msgstr "DTLS újra kézfogás sikertelen, újracsatlakozás.\n"
 
-#: dtls.c:348
+#: dtls.c:352
 msgid "DTLS Dead Peer Detection detected dead peer!\n"
 msgstr "A DTLS halott csomópont felderítés halott csomópontot észlelt!\n"
 
-#: dtls.c:354
+#: dtls.c:358
 msgid "Send DTLS DPD\n"
 msgstr "DTLS DPD küldése\n"
 
-#: dtls.c:359
+#: dtls.c:363
 msgid "Failed to send DPD request. Expect disconnect\n"
 msgstr "Nem sikerült a DPD kérés küldése. Leválasztás várható\n"
 
-#: dtls.c:372
+#: dtls.c:376
 msgid "Send DTLS Keepalive\n"
 msgstr "DTLS Keepalive küldése\n"
 
-#: dtls.c:377
+#: dtls.c:381
 msgid "Failed to send keepalive request. Expect disconnect\n"
 msgstr "Nem sikerült az életben tartás kérés küldése. Leválasztás várható\n"
 
-#: dtls.c:408 tun.c:541
+#: dtls.c:412 tun.c:541
 #, c-format
 msgid "Unknown packet (len %d) received: %02x %02x %02x %02x...\n"
 msgstr "Ismeretlen csomag (hossz: %d) érkezett: %02x %02x %02x %02x…\n"
 
-#: dtls.c:415
+#: dtls.c:419
 #, c-format
 msgid "TOS this: %d, TOS last: %d\n"
 msgstr "TOS ez: %d, TOS utolsó: %d\n"
 
-#: dtls.c:419
+#: dtls.c:423
 msgid "UDP setsockopt"
 msgstr "UDP setsockopt"
 
-#: dtls.c:450
+#: dtls.c:454
 #, c-format
 msgid "DTLS got write error %d. Falling back to SSL\n"
 msgstr "A DTLS írási hibát kapott: %d. Visszatérés SSL-re\n"
 
-#: dtls.c:464
+#: dtls.c:468
 #, c-format
 msgid "DTLS got write error: %s. Falling back to SSL\n"
 msgstr "A DTLS írási hibát kapott: %s. Visszatérés SSL-re\n"
 
-#: dtls.c:479
+#: dtls.c:483
 #, c-format
 msgid "Sent DTLS packet of %d bytes; DTLS send returned %d\n"
 msgstr "%d bájt DTLS csomag küldése; a DTLS küldés visszatérése: %d\n"
 
-#: dtls.c:507
+#: dtls.c:511
 #, c-format
 msgid "Initiating IPv4 MTU detection (min=%d, max=%d)\n"
 msgstr "IPv4 MTU észlelés előkészítése (min=%d, max=%d)\n"
 
-#: dtls.c:527
+#: dtls.c:531
 msgid "Too long time in MTU detect loop; assuming negotiated MTU.\n"
 msgstr ""
 "Túl sok idő telt az MTU észlelési ciklusban; megbeszélt MTU feltételezése.\n"
 
-#: dtls.c:531
+#: dtls.c:535
 #, c-format
 msgid "Too long time in MTU detect loop; MTU set to %d.\n"
 msgstr ""
 "Túl sok idő telt az MTU észlelési ciklusban; az MTU %d értékre beállítva.\n"
 
-#: dtls.c:540
+#: dtls.c:544
 #, c-format
 msgid "Sending MTU DPD probe (%u bytes, min=%u, max=%u)\n"
 msgstr "MTU DPD szonda küldése (%u bájt, min=%u, max=%u)\n"
 
-#: dtls.c:544
+#: dtls.c:548
 #, c-format
 msgid "Failed to send DPD request (%d %d)\n"
 msgstr "Nem sikerült a DPD kérés (%d %d) küldése\n"
 
-#: dtls.c:558 dtls.c:666
+#: dtls.c:562 dtls.c:670
 #, c-format
 msgid "Received unexpected packet (%.2x) in MTU detection; skipping.\n"
 msgstr "Váratlan csomag (%.2x) érkezett az MTU észlelésnél; kihagyás.\n"
 
-#: dtls.c:570
+#: dtls.c:574
 #, c-format
 msgid "Timeout while waiting for DPD response; trying %d\n"
 msgstr "Időtúllépés a DPD válaszra várva; próbálkozás: %d\n"
 
-#: dtls.c:577 dtls.c:658
+#: dtls.c:581 dtls.c:662
 msgid "Timeout while waiting for DPD response; resending probe.\n"
 msgstr "Időtúllépés a DPD válaszra várva; szonda újraküldése.\n"
 
-#: dtls.c:584 dtls.c:685
+#: dtls.c:588 dtls.c:689
 #, c-format
 msgid "Failed to recv DPD request (%d)\n"
 msgstr "Nem sikerült a DPD kérés (%d) fogadása\n"
 
-#: dtls.c:589
+#: dtls.c:593
 #, c-format
 msgid "Received MTU DPD probe (%u bytes of %u)\n"
 msgstr "MTU DPD szonda fogadva (%u bájt / %u)\n"
 
-#: dtls.c:627
+#: dtls.c:631
 msgid "Initiating IPv6 MTU detection\n"
 msgstr "IPv6 MTU észlelés előkészítése\n"
 
-#: dtls.c:642
+#: dtls.c:646
 #, c-format
 msgid "Sending MTU DPD probe (%u bytes)\n"
 msgstr "MTU DPD szonda küldése (%u bájt)\n"
 
-#: dtls.c:646
+#: dtls.c:650
 #, c-format
 msgid "Failed to send DPD request (%d)\n"
 msgstr "Nem sikerült a DPD kérés (%d) küldése\n"
 
-#: dtls.c:671
+#: dtls.c:675
 #, c-format
 msgid "Received MTU DPD probe (%u bytes)\n"
 msgstr "MTU DPD szonda fogadva (%u bájt)\n"
 
-#: dtls.c:735
+#: dtls.c:739
 #, c-format
 msgid "Detected MTU of %d bytes (was %d)\n"
 msgstr "%d bájtos MTU észlelve (%d volt)\n"
 
-#: dtls.c:738
+#: dtls.c:742
 #, c-format
 msgid "No change in MTU after detection (was %d)\n"
 msgstr "Nincs változás az MTU-ban az észlelés után (%d volt)\n"
@@ -956,12 +956,12 @@ msgstr "Nem sikerült a DTLS munkamenet paraméterek beállítása: %s\n"
 #: gnutls-dtls.c:330 openssl-dtls.c:484
 #, c-format
 msgid "Peer MTU %d too small to allow DTLS\n"
-msgstr ""
+msgstr "A partner %d MTU-ja túl kicsi a DTLS működéséhez\n"
 
 #: gnutls-dtls.c:339 openssl-dtls.c:495
 #, c-format
 msgid "DTLS MTU reduced to %d\n"
-msgstr ""
+msgstr "A DTLS MTU csökkentve erre: %d\n"
 
 #: gnutls-dtls.c:349 openssl-dtls.c:504
 msgid "DTLS session resume failed; possible MITM attack. Disabling DTLS.\n"
@@ -1412,7 +1412,7 @@ msgstr "Hiba az X509 tanúsítvány szerkezet előkészítésekor\n"
 msgid "Error importing server's cert\n"
 msgstr "Hiba a kiszolgáló tanúsítványának importálásakor\n"
 
-#: gnutls.c:2117 main.c:1705
+#: gnutls.c:2117 main.c:1748
 msgid "Could not calculate hash of server's certificate\n"
 msgstr "Nem sikerült kiszámolni a kiszolgáló tanúsítványának hash értékét\n"
 
@@ -1991,37 +1991,54 @@ msgstr "Ismeretlen proxy típus: „%s”\n"
 msgid "Only http or socks(5) proxies supported\n"
 msgstr "Csak http vagy socks(5) proxyk támogatottak\n"
 
-#: library.c:154
+#: library.c:112
+msgid "Cisco AnyConnect or openconnect"
+msgstr ""
+
+#: library.c:113
+msgid "Compatible with Cisco AnyConnect SSL VPN, as well as ocserv"
+msgstr ""
+
+#: library.c:128
+msgid "Juniper Network Connect"
+msgstr ""
+
+#: library.c:129
+msgid "Compatible with Juniper Network Connect / Pulse Secure SSL VPN"
+msgstr "Kompatibilis a Juniper hálózati csatlakozás / Pulse Secure SSL VPN-nel"
+
+#: library.c:183
 #, c-format
 msgid "Unknown VPN protocol '%s'\n"
 msgstr "Ismeretlen VPN protokoll: „%s”\n"
 
-#: library.c:176
+#: library.c:205
 msgid "Built against SSL library with no Cisco DTLS support\n"
 msgstr "A Cisco DTLS támogatás nélküli SSL könyvtárral szemben készítve\n"
 
-#: library.c:584
+#: library.c:613
 #, c-format
 msgid "Failed to parse server URL '%s'\n"
 msgstr "Nem sikerült a kiszolgáló URL feldolgozása: „%s”\n"
 
-#: library.c:590
+#: library.c:619
 msgid "Only https:// permitted for server URL\n"
 msgstr "Csak https:// engedélyezett a kiszolgáló URL-hez\n"
 
-#: library.c:956
+#: library.c:985
 #, c-format
 msgid "Unknown certificate hash: %s.\n"
-msgstr ""
+msgstr "Ismeretlen tanúsítvány hash: %s.\n"
 
-#: library.c:988
+#: library.c:1017
 #, c-format
 msgid ""
 "The size of the provided fingerprint is less than the minimum required "
 "(%u).\n"
 msgstr ""
+"A megadott ujjlenyomat hossza kisebb a minimálisan szükségesnél (%u).\n"
 
-#: library.c:1047
+#: library.c:1076
 msgid "No form handler; cannot authenticate.\n"
 msgstr "Nincs űrlapkezelő, nem lehet hitelesíteni.\n"
 
@@ -2050,7 +2067,7 @@ msgstr "ReadConsole() sikertelen: %s\n"
 msgid "Error converting console input: %s\n"
 msgstr "Hiba a konzolbemenet átalakításakor: %s\n"
 
-#: main.c:415 main.c:649
+#: main.c:415 main.c:684
 #, c-format
 msgid "Allocation failure for string from stdin\n"
 msgstr "Lefoglalási hiba a szabványos bemenetről érkező szöveghez\n"
@@ -2078,351 +2095,362 @@ msgstr "GnuTLS használata. A következő jellemzői vannak:"
 msgid "OpenSSL ENGINE not present"
 msgstr "Az OpenSSL MOTOR nincs jelen"
 
-#: main.c:636
+#: main.c:642
+#, c-format
+msgid ""
+"WARNING: This binary lacks DTLS and/or ESP support. Performance will be "
+"impaired.\n"
+msgstr ""
+
+#: main.c:652
+#, c-format
+msgid "Supported protocols:"
+msgstr ""
+
+#: main.c:654 main.c:670
+msgid " (default)"
+msgstr ""
+
+#: main.c:667
 #, c-format
 msgid ""
 "\n"
-"WARNING: No DTLS support in this binary. Performance will be impaired.\n"
+"    Set VPN protocol:\n"
 msgstr ""
-"\n"
-"FIGYELEM: Nincs DTLS támogatás ebben a programban. A teljesítmény károsodni "
-"fog.\n"
 
-#: main.c:673
+#: main.c:708
 msgid "fgets (stdin)"
 msgstr "fgets (szabványos bemenet)"
 
-#: main.c:713
+#: main.c:748
 #, c-format
 msgid "Cannot process this executable path \"%s\""
 msgstr "Nem dolgozható fel ez a végrehajtható útvonal: „%s”"
 
-#: main.c:719
+#: main.c:754
 #, c-format
 msgid "Allocation for vpnc-script path failed\n"
 msgstr "A vpnc-script útvonal lefoglalása nem sikerült\n"
 
-#: main.c:739
+#: main.c:774
 #, c-format
 msgid "Override hostname '%s' to '%s'\n"
 msgstr "A(z) „%s” gépnév felülbírálása erre: „%s”\n"
 
-#: main.c:752
+#: main.c:787
 #, c-format
 msgid "Usage:  openconnect [options] <server>\n"
 msgstr "Használat: openconnect [kapcsolók] <kiszolgáló>\n"
 
-#: main.c:753
+#: main.c:788
 #, c-format
 msgid ""
-"Open client for Cisco AnyConnect VPN, version %s\n"
+"Open client for multiple VPN protocols, version %s\n"
 "\n"
 msgstr ""
-"Nyílt kliens a Cisco AnyConnect VPN-hez, verzió: %s\n"
-"\n"
 
-#: main.c:755
+#: main.c:790
 msgid "Read options from config file"
 msgstr "Beállítások olvasása a beállítófájlból"
 
-#: main.c:757
+#: main.c:792
 msgid "Continue in background after startup"
 msgstr "Indítás után folytatás a háttérben"
 
-#: main.c:758
+#: main.c:793
 msgid "Write the daemon's PID to this file"
 msgstr "A démon PID értékének írása ebbe a fájlba"
 
-#: main.c:760
+#: main.c:795
 msgid "Use SSL client certificate CERT"
 msgstr "A CERT SSL kliens tanúsítvány használata"
 
-#: main.c:761
+#: main.c:796
 msgid "Warn when certificate lifetime < DAYS"
 msgstr "Figyelmeztetés, ha a tanúsítvány élettartama < DAYS"
 
-#: main.c:762
+#: main.c:797
 msgid "Use SSL private key file KEY"
 msgstr "A KEY SSL személyes kulcsfájl használata"
 
-#: main.c:763
+#: main.c:798
 msgid "Use WebVPN cookie COOKIE"
 msgstr "A COOKIE WebVPN süti használata"
 
-#: main.c:764
+#: main.c:799
 msgid "Read cookie from standard input"
 msgstr "Süti olvasása a szabványos bemenetről"
 
-#: main.c:765
+#: main.c:800
 msgid "Enable compression (default)"
 msgstr "Tömörítés engedélyezése (alapértelmezett)"
 
-#: main.c:766
+#: main.c:801
 msgid "Disable compression"
 msgstr "Tömörítés letiltása"
 
-#: main.c:767
+#: main.c:802
 msgid "Set minimum Dead Peer Detection interval"
 msgstr "Legkisebb halott csomópont észlelési időköz beállítása"
 
-#: main.c:768
+#: main.c:803
 msgid "Set login usergroup"
 msgstr "Bejelentkezési felhasználói csoport beállítása"
 
-#: main.c:769
+#: main.c:804
 msgid "Display help text"
 msgstr "Súgószöveg megjelenítése"
 
-#: main.c:770
+#: main.c:805
 msgid "Use IFNAME for tunnel interface"
 msgstr "IFNAME használata az alagút csatolóhoz"
 
-#: main.c:772
+#: main.c:807
 msgid "Use syslog for progress messages"
 msgstr "A syslog használata folyamatüzenetekhez"
 
-#: main.c:774
+#: main.c:809
 msgid "Prepend timestamp to progress messages"
 msgstr "Időbélyeg eléfűzése az üzenetek múlásához"
 
-#: main.c:775
+#: main.c:810
 msgid "copy TOS / TCLASS when using DTLS"
 msgstr "TOS / TCLASS másolása DTLS használata esetén"
 
-#: main.c:777
+#: main.c:812
 msgid "Drop privileges after connecting"
 msgstr "Jogosultságok eldobása csatlakozás után"
 
-#: main.c:778
+#: main.c:813
 msgid "Drop privileges during CSD execution"
 msgstr "Jogosultságok eldobása CSD végrehajtás közben"
 
-#: main.c:779
+#: main.c:814
 msgid "Run SCRIPT instead of CSD binary"
 msgstr "SCRIPT futtatása a CSD program helyett"
 
-#: main.c:781
+#: main.c:816
 msgid "Request MTU from server (legacy servers only)"
 msgstr "MTU kérése a kiszolgálótól (csak örökölt kiszolgálóknál)"
 
-#: main.c:782
+#: main.c:817
 msgid "Indicate path MTU to/from server"
 msgstr "Az MTU útvonal jelzése a kiszolgálóhoz/kiszolgálóról"
 
-#: main.c:783
+#: main.c:818
 msgid "Set key passphrase or TPM SRK PIN"
 msgstr "Kulcsjelszó vagy TPM SRK PIN beállítása"
 
-#: main.c:784
+#: main.c:819
 msgid "Key passphrase is fsid of file system"
 msgstr "A kulcs jelszava a fájlrendszer fsid értéke"
 
-#: main.c:785
+#: main.c:820
 msgid "Set proxy server"
 msgstr "Proxykiszolgáló beállítása"
 
-#: main.c:786
+#: main.c:821
 msgid "Set proxy authentication methods"
 msgstr "Proxy hitelesítési eljárások beállítása"
 
-#: main.c:787
+#: main.c:822
 msgid "Disable proxy"
 msgstr "Proxy letiltása"
 
-#: main.c:788
+#: main.c:823
 msgid "Use libproxy to automatically configure proxy"
 msgstr "A libproxy használata a proxy automatikus beállításához"
 
-#: main.c:790
+#: main.c:825
 msgid "(NOTE: libproxy disabled in this build)"
 msgstr "(MEGJEGYZÉS: a libproxy le van tiltva ebben a verzióban)"
 
-#: main.c:792
+#: main.c:827
 msgid "Require perfect forward secrecy"
 msgstr "Tökéletes továbbító titkosságot igényel"
 
-#: main.c:793
+#: main.c:828
 msgid "Less output"
 msgstr "Kevesebb kimenet"
 
-#: main.c:794
+#: main.c:829
 msgid "Set packet queue limit to LEN pkts"
 msgstr "A csomag várakozási sor korlát beállítása LEN pkts értékre"
 
-#: main.c:795
+#: main.c:830
 msgid "Shell command line for using a vpnc-compatible config script"
 msgstr "Héj parancssor egy vpnc-kompatibilis beállítófájl használatához"
 
-#: main.c:796
+#: main.c:831
 msgid "default"
 msgstr "alapértelmezett"
 
-#: main.c:798
+#: main.c:833
 msgid "Pass traffic to 'script' program, not tun"
 msgstr "Forgalom átadása a „script” programnak, nem a tun-nak"
 
-#: main.c:800
+#: main.c:835
 msgid "Set login username"
 msgstr "Bejelentkező felhasználónév beállítása"
 
-#: main.c:801
+#: main.c:836
 msgid "Report version number"
 msgstr "Verziószám jelentése"
 
-#: main.c:802
+#: main.c:837
 msgid "More output"
 msgstr "Több kimenet"
 
-#: main.c:803
+#: main.c:838
 msgid "Dump HTTP authentication traffic (implies --verbose"
 msgstr ""
 "A HTTP hitelesítési forgalom kiírása (magába foglalja a --verbose kapcsolót"
 
-#: main.c:804
+#: main.c:839
 msgid "XML config file"
 msgstr "XML beállítófájl"
 
-#: main.c:805
+#: main.c:840
 msgid "Choose authentication login selection"
 msgstr "Hitelesítési bejelentkezés kijelölés kiválasztása"
 
-#: main.c:806
+#: main.c:841
 msgid "Authenticate only and print login info"
 msgstr "Csak hitelesítés és bejelentkezési információk kiírása"
 
-#: main.c:807
+#: main.c:842
 msgid "Fetch webvpn cookie only; don't connect"
 msgstr "Csak a webvpn süti lekérése, ne csatlakozzon"
 
-#: main.c:808
+#: main.c:843
 msgid "Print webvpn cookie before connecting"
 msgstr "A webvpn süti kiírása csatlakozás előtt"
 
-#: main.c:809
+#: main.c:844
 msgid "Cert file for server verification"
 msgstr "Tanúsítványfájl a kiszolgáló ellenőrzéséhez"
 
-#: main.c:810
+#: main.c:845
 msgid "Do not ask for IPv6 connectivity"
 msgstr "Ne kérdje IPv6 kapcsolatnál"
 
-#: main.c:811
+#: main.c:846
 msgid "OpenSSL ciphers to support for DTLS"
 msgstr "OpenSSL titkosítók a DTLS támogatásához"
 
-#: main.c:812
+#: main.c:847
 msgid "Disable DTLS"
 msgstr "DTLS letiltása"
 
-#: main.c:813
+#: main.c:848
 msgid "Disable HTTP connection re-use"
 msgstr "HTTP kapcsolat újrahasználatának letiltása"
 
-#: main.c:814
+#: main.c:849
 msgid "Disable password/SecurID authentication"
 msgstr "Jelszavas/SecurID hitelesítés letiltása"
 
-#: main.c:815
+#: main.c:850
 msgid "Do not require server SSL cert to be valid"
 msgstr "Ne követelje meg a kiszolgáló SSL tanúsítványának érvényességét"
 
-#: main.c:816
+#: main.c:851
 msgid "Disable default system certificate authorities"
 msgstr "Az alapértelmezett rendszertanúsítvány szolgáltatók letiltása"
 
-#: main.c:817
+#: main.c:852
 msgid "Do not attempt XML POST authentication"
 msgstr "Ne próbálkozzon XML POST hitelesítéssel"
 
-#: main.c:818
+#: main.c:853
 msgid "Do not expect user input; exit if it is required"
 msgstr "Ne várjon felhasználói bemenetet; kilépés, ha azt megkövetelik"
 
-#: main.c:819
+#: main.c:854
 msgid "Read password from standard input"
 msgstr "Jelszó olvasása a szabványos bemenetről"
 
-#: main.c:820
+#: main.c:855
 msgid "Software token type: rsa, totp or hotp"
 msgstr "Szoftveres token típusa: rsa, totp vagy hotp"
 
-#: main.c:821
+#: main.c:856
 msgid "Software token secret"
 msgstr "Szoftveres token titok"
 
-#: main.c:823
+#: main.c:858
 msgid "(NOTE: libstoken (RSA SecurID) disabled in this build)"
 msgstr ""
 "(MEGJEGYZÉS: a libstoken (RSA SecurID) le van tiltva ebben a verzióban)"
 
-#: main.c:826
+#: main.c:861
 msgid "(NOTE: Yubikey OATH disabled in this build)"
 msgstr "(MEGJEGYZÉS: a Yubikey OATH le van tiltva ebben a verzióban)"
 
-#: main.c:828
+#: main.c:863
 msgid "Connection retry timeout in seconds"
 msgstr "Csatlakozás újrapróbálkozási időkorlátja másodpercben"
 
-#: main.c:829
+#: main.c:864
 msgid "Server's certificate SHA1 fingerprint"
 msgstr "A kiszolgáló tanúsítványának SHA1 ujjlenyomata"
 
-#: main.c:830
+#: main.c:865
 msgid "HTTP header User-Agent: field"
 msgstr "HTTP fejléc User-Agent: mező"
 
-#: main.c:831
+#: main.c:866
 msgid "Local hostname to advertise to server"
 msgstr "A kiszolgáló felé hirdetett helyi gépnév"
 
-#: main.c:832
+#: main.c:867
 msgid "Use IP when connecting to HOST"
 msgstr "IP használata a GÉPHEZ való kapcsolódáskor"
 
-#: main.c:833
+#: main.c:868
 msgid "OS type (linux,linux-64,win,...) to report"
 msgstr "A jelentendő operációs rendszer típus (linux,linux-64,win,…)"
 
-#: main.c:834
+#: main.c:869
 msgid "Set local port for DTLS datagrams"
 msgstr "Helyi port beállítása a DTLS datagrammokhoz"
 
-#: main.c:855
+#: main.c:892
 #, c-format
 msgid "Failed to allocate string\n"
 msgstr "Nem sikerült lefoglalni szöveget\n"
 
-#: main.c:916
+#: main.c:953
 #, c-format
 msgid "Failed to get line from config file: %s\n"
 msgstr "Nem sikerült a sor lekérése a beállítófájlból: %s\n"
 
-#: main.c:956
+#: main.c:993
 #, c-format
 msgid "Unrecognised option at line %d: '%s'\n"
 msgstr "Ismeretlen kapcsoló a(z) %d. sorban: „%s”\n"
 
-#: main.c:966
+#: main.c:1003
 #, c-format
 msgid "Option '%s' does not take an argument at line %d\n"
 msgstr "A(z) „%s” kapcsoló nem fogad el argumentumot a(z) %d. sorban\n"
 
-#: main.c:970
+#: main.c:1007
 #, c-format
 msgid "Option '%s' requires an argument at line %d\n"
 msgstr "A(z) „%s” kapcsolóhoz argumentum szükséges a(z) %d. sorban\n"
 
-#: main.c:995
+#: main.c:1032
 #, c-format
 msgid "Invalid user \"%s\": %s\n"
 msgstr "Érvénytelen felhasználó „%s”: %s\n"
 
-#: main.c:1005
+#: main.c:1042
 #, c-format
 msgid "Invalid user ID \"%d\": %s\n"
 msgstr "Érvénytelen felhasználóazonosító „%d”: %s\n"
 
-#: main.c:1057
+#: main.c:1094
 #, c-format
 msgid ""
 "WARNING: This version of openconnect was built without iconv\n"
@@ -2433,7 +2461,7 @@ msgstr ""
 "         készült, de úgy tűnik, hogy az örökölt „%s” karakterkészletet\n"
 "         használja. Furcsaság várható.\n"
 
-#: main.c:1064
+#: main.c:1101
 #, c-format
 msgid ""
 "WARNING: This version of openconnect is %s but\n"
@@ -2442,42 +2470,42 @@ msgstr ""
 "FIGYELEM: Az openconnect ezen verziója %s, de\n"
 "         a libopenconnect függvénykönyvár %s\n"
 
-#: main.c:1074
+#: main.c:1111
 #, c-format
 msgid "Failed to allocate vpninfo structure\n"
 msgstr "Nem sikerült lefoglalni a vpninfo szerkezetet\n"
 
-#: main.c:1129
+#: main.c:1166
 #, c-format
 msgid "Cannot use 'config' option inside config file\n"
 msgstr "Nem használható a „config” kapcsoló a beállítófájlon belül\n"
 
-#: main.c:1137
+#: main.c:1174
 #, c-format
 msgid "Cannot open config file '%s': %s\n"
 msgstr "Nem sikerült a(z) „%s” beállítófájl megnyitása: %s\n"
 
-#: main.c:1153
+#: main.c:1190
 #, c-format
 msgid "Invalid compression mode '%s'\n"
 msgstr "Érvénytelen tömörítési mód: „%s”\n"
 
-#: main.c:1174
+#: main.c:1211
 #, c-format
 msgid "Missing colon in resolve option\n"
 msgstr "Hiányzó kettőspont a feloldási kapcsolóban\n"
 
-#: main.c:1179
+#: main.c:1216
 #, c-format
 msgid "Failed to allocate memory\n"
 msgstr "Nem sikerült memóriát lefoglalni\n"
 
-#: main.c:1259 main.c:1268
+#: main.c:1296 main.c:1305
 #, c-format
 msgid "MTU %d too small\n"
 msgstr "A(z) %d. MTU túl kicsi\n"
 
-#: main.c:1298
+#: main.c:1335
 #, c-format
 msgid ""
 "Disabling all HTTP connection re-use due to --no-http-keepalive option.\n"
@@ -2487,7 +2515,7 @@ msgstr ""
 "miatt.\n"
 "Ha ez segít, jelentse a <openconnect-devel@lists.infradead.org> címre.\n"
 
-#: main.c:1304
+#: main.c:1341
 #, c-format
 msgid ""
 "The --no-cert-check option was insecure and has been removed.\n"
@@ -2497,125 +2525,125 @@ msgstr ""
 "Hozza rendbe a kiszolgáló tanúsítványát, vagy használja a --servercert "
 "kapcsolót, ha megbízik benne.\n"
 
-#: main.c:1321
+#: main.c:1358
 #, c-format
 msgid "Queue length zero not permitted; using 1\n"
 msgstr "A nulla hosszú sor nem engedélyezett; 1 használata\n"
 
-#: main.c:1335
+#: main.c:1372
 #, c-format
 msgid "OpenConnect version %s\n"
 msgstr "OpenConnect verzió: %s\n"
 
-#: main.c:1368
+#: main.c:1406
 #, c-format
 msgid "Invalid software token mode \"%s\"\n"
 msgstr "Érvénytelen szoftveres token mód: „%s”\n"
 
-#: main.c:1378
+#: main.c:1416
 #, c-format
 msgid "Invalid OS identity \"%s\"\n"
 msgstr "Érvénytelen OS identitás: „%s”\n"
 
-#: main.c:1411
+#: main.c:1449
 #, c-format
 msgid "Too many arguments on command line\n"
 msgstr "Túl sok argumentum a parancssorban\n"
 
-#: main.c:1414
+#: main.c:1452
 #, c-format
 msgid "No server specified\n"
 msgstr "Nincs megadva kiszolgáló\n"
 
-#: main.c:1430
+#: main.c:1468
 #, c-format
 msgid "This version of openconnect was built without libproxy support\n"
 msgstr "Az openconnect ezen verziója libproxy támogatás nélkül készült\n"
 
-#: main.c:1459
+#: main.c:1497
 #, c-format
 msgid "Error opening cmd pipe\n"
 msgstr "Hiba a cmd cső megnyitásakor\n"
 
-#: main.c:1492
+#: main.c:1530
 #, c-format
 msgid "Failed to obtain WebVPN cookie\n"
 msgstr "Nem sikerült megszerezni a WebVPN sütit\n"
 
-#: main.c:1513
+#: main.c:1551
 #, c-format
 msgid "Creating SSL connection failed\n"
 msgstr "Az SSL kapcsolat létrehozása nem sikerült\n"
 
-#: main.c:1525
+#: main.c:1567
 #, c-format
 msgid "Set up DTLS failed; using SSL instead\n"
 msgstr "A DTLS beállítása nem sikerült; SSL használata helyette\n"
 
-#: main.c:1545
+#: main.c:1588
 #, c-format
 msgid "Connected as %s%s%s, using %s%s\n"
 msgstr "Csatlakozva mint %s%s%s, %s%s használatával\n"
 
-#: main.c:1554
+#: main.c:1597
 msgid "No --script argument provided; DNS and routing are not configured\n"
 msgstr ""
 "Nincs --script argumentum megadva; a DNS és az útválasztás nincs beállítva\n"
 
-#: main.c:1556
+#: main.c:1599
 msgid "See http://www.infradead.org/openconnect/vpnc-script.html\n"
 msgstr "Lásd: http://www.infradead.org/openconnect/vpnc-script.html\n"
 
-#: main.c:1569
+#: main.c:1612
 #, c-format
 msgid "Failed to open '%s' for write: %s\n"
 msgstr "Nem sikerült a(z) „%s” megnyitása írásra: %s\n"
 
-#: main.c:1581
+#: main.c:1624
 #, c-format
 msgid "Continuing in background; pid %d\n"
 msgstr "Folytatás a háttérben; pid %d\n"
 
-#: main.c:1598
+#: main.c:1641
 msgid "User requested reconnect\n"
 msgstr "A felhasználó újracsatlakozást kért\n"
 
-#: main.c:1606
+#: main.c:1649
 msgid "Cookie was rejected on reconnection; exiting.\n"
 msgstr "A sütit visszautasították az újracsatlakozáskor; kilépés.\n"
 
-#: main.c:1610
+#: main.c:1653
 msgid "Session terminated by server; exiting.\n"
 msgstr "A kiszolgáló megszakította a munkamenetet; kilépés.\n"
 
-#: main.c:1614
+#: main.c:1657
 msgid "User cancelled (SIGINT); exiting.\n"
 msgstr "Felhasználói megszakítás (SIGINT); kilépés.\n"
 
-#: main.c:1618
+#: main.c:1661
 msgid "User detached from session (SIGHUP); exiting.\n"
 msgstr "A felhasználó le lett választva a munkamenetről (SIGHUP); kilépés.\n"
 
-#: main.c:1622
+#: main.c:1665
 msgid "Unknown error; exiting.\n"
 msgstr "Ismeretlen hiba, kilépés.\n"
 
-#: main.c:1641
+#: main.c:1684
 #, c-format
 msgid "Failed to open %s for write: %s\n"
 msgstr "Nem sikerült a(z) „%s” megnyitása írásra: %s\n"
 
-#: main.c:1649
+#: main.c:1692
 #, c-format
 msgid "Failed to write config to %s: %s\n"
 msgstr "Nem sikerült a beállítás írása ebbe: %s: %s\n"
 
-#: main.c:1708
+#: main.c:1751
 #, c-format
 msgid "Server SSL certificate didn't match: %s\n"
 msgstr "A kiszolgáló SSL tanúsítványa nem egyezett: %s\n"
 
-#: main.c:1727
+#: main.c:1770
 #, c-format
 msgid ""
 "\n"
@@ -2627,7 +2655,7 @@ msgstr ""
 "sikerült.\n"
 "Ok: %s\n"
 
-#: main.c:1730
+#: main.c:1773
 #, c-format
 msgid ""
 "To trust this server in future, perhaps add this to your command line:\n"
@@ -2635,120 +2663,120 @@ msgstr ""
 "Ha megbízik a kiszolgálóban a jövőben, akkor hozzáadhatja ezt a parancs "
 "sorához:\n"
 
-#: main.c:1731
+#: main.c:1774
 #, c-format
 msgid "    --servercert %s\n"
 msgstr "    --servercert %s\n"
 
-#: main.c:1736
+#: main.c:1779
 #, c-format
 msgid "Enter '%s' to accept, '%s' to abort; anything else to view: "
 msgstr ""
 "„%s” beírása az elfogadáshoz, „%s” a megszakításhoz; bármi más a "
 "megtekintéshez: "
 
-#: main.c:1737 main.c:1755
+#: main.c:1780 main.c:1798
 msgid "no"
 msgstr "nem"
 
-#: main.c:1737 main.c:1743
+#: main.c:1780 main.c:1786
 msgid "yes"
 msgstr "igen"
 
-#: main.c:1764
+#: main.c:1807
 #, c-format
 msgid "Server key hash: %s\n"
 msgstr "Kiszolgáló kulcs hash: %s\n"
 
-#: main.c:1798
+#: main.c:1841
 #, c-format
 msgid "Auth choice \"%s\" matches multiple options\n"
 msgstr "A(z) „%s” hitelesítés-választás több kapcsolóra illeszkedik\n"
 
-#: main.c:1801
+#: main.c:1844
 #, c-format
 msgid "Auth choice \"%s\" not available\n"
 msgstr "A(z) „%s” hitelesítés-választás nem érhető el\n"
 
-#: main.c:1822
+#: main.c:1865
 msgid "User input required in non-interactive mode\n"
 msgstr "Felhasználói bemenet szükséges nem interaktív módban\n"
 
-#: main.c:1999
+#: main.c:2042
 #, c-format
 msgid "Failed to open token file for write: %s\n"
 msgstr "Nem sikerült megnyitni a tokenfájlt írásra: %s\n"
 
-#: main.c:2007
+#: main.c:2050
 #, c-format
 msgid "Failed to write token: %s\n"
 msgstr "Nem sikerült a token írása: %s\n"
 
-#: main.c:2053 main.c:2074
+#: main.c:2096 main.c:2117
 #, c-format
 msgid "Soft token string is invalid\n"
 msgstr "A szoftveres token szöveg érvénytelen\n"
 
-#: main.c:2056
+#: main.c:2099
 #, c-format
 msgid "Can't open ~/.stokenrc file\n"
 msgstr "Nem nyitható meg a ~/.stokenrc fájl\n"
 
-#: main.c:2059
+#: main.c:2102
 #, c-format
 msgid "OpenConnect was not built with libstoken support\n"
 msgstr "Az OpenConnect nem libstoken támogatással készült\n"
 
-#: main.c:2062
+#: main.c:2105
 #, c-format
 msgid "General failure in libstoken\n"
 msgstr "Általános hiba a libstoken könyvtárban\n"
 
-#: main.c:2077
+#: main.c:2120
 #, c-format
 msgid "OpenConnect was not built with liboath support\n"
 msgstr "Az OpenConnect nem liboath támogatással készült\n"
 
-#: main.c:2080
+#: main.c:2123
 #, c-format
 msgid "General failure in liboath\n"
 msgstr "Általános hiba a liboath könyvtárban\n"
 
-#: main.c:2091
+#: main.c:2134
 #, c-format
 msgid "Yubikey token not found\n"
 msgstr "Yubikey token nem található\n"
 
-#: main.c:2094
+#: main.c:2137
 #, c-format
 msgid "OpenConnect was not built with Yubikey support\n"
 msgstr "Az OpenConnect nem Yubikey támogatással készült\n"
 
-#: main.c:2097
+#: main.c:2140
 #, c-format
 msgid "General Yubikey failure: %s\n"
 msgstr "Általános Yubikey hiba: %s\n"
 
-#: mainloop.c:125
+#: mainloop.c:127
 #, c-format
 msgid "Set up tun script failed\n"
 msgstr "A tun parancsfájl beállítása nem sikerült\n"
 
-#: mainloop.c:132
+#: mainloop.c:134
 #, c-format
 msgid "Set up tun device failed\n"
 msgstr "A tun eszköz beállítása nem sikerült\n"
 
-#: mainloop.c:264
+#: mainloop.c:266
 msgid "Caller paused the connection\n"
 msgstr "A hívó szüneteltette a kapcsolatot\n"
 
-#: mainloop.c:272
+#: mainloop.c:274
 #, c-format
 msgid "No work to do; sleeping for %d ms...\n"
 msgstr "Nincs tennivalója; alvás %d ms-ra…\n"
 
-#: mainloop.c:293
+#: mainloop.c:295
 #, c-format
 msgid "WaitForMultipleObjects failed: %s\n"
 msgstr "WaitForMultipleObjects sikertelen: %s\n"
@@ -3045,40 +3073,48 @@ msgstr "A kiszolgáló megszakította a kapcsolatot (ok: %d)\n"
 msgid "Server sent zero-length oNCP record\n"
 msgstr "A kiszolgáló nulla hosszú oNCP rekordot küldött\n"
 
-#: oncp.c:988
+#: oncp.c:992
 #, c-format
 msgid "Incoming KMP message %d of size %d (got %d)\n"
 msgstr "Bejövő, %2$d méretű, KMP %1$d. üzenet (kapott: %3$d)\n"
 
-#: oncp.c:991
+#: oncp.c:995
 #, c-format
 msgid "Continuing to process KMP message %d now size %d (got %d)\n"
 msgstr ""
 "A KMP %d üzenet feldolgozásának folytatása, mérete most: %d (kapott: %d)\n"
 
-#: oncp.c:1010
+#: oncp.c:1014
 msgid "Unrecognised data packet\n"
 msgstr "Nem felismert adatcsomag\n"
 
-#: oncp.c:1072
+#: oncp.c:1076
 #, c-format
 msgid "Unknown KMP message %d of size %d:\n"
 msgstr "Ismeretlen, %2$d méretű, KMP %1$d üzenet:\n"
 
-#: oncp.c:1077
+#: oncp.c:1081
 #, c-format
 msgid ".... + %d more bytes unreceived\n"
 msgstr ".... + %d további, nem fogadott bájt\n"
 
-#: oncp.c:1092
+#: oncp.c:1096
 msgid "Packet outgoing:\n"
 msgstr "Kimenő csomag:\n"
 
-#: oncp.c:1156
+#: oncp.c:1160
 msgid "Sent ESP enable control packet\n"
 msgstr "ESP engedélyezési vezérlőcsomag elküldve\n"
 
-#: openconnect-internal.h:1067 openconnect-internal.h:1075
+#: oncp.c:1282
+msgid "Logout failed.\n"
+msgstr ""
+
+#: oncp.c:1284
+msgid "Logout successful.\n"
+msgstr ""
+
+#: openconnect-internal.h:1071 openconnect-internal.h:1079
 #, c-format
 msgid "ERROR: %s() called with invalid UTF-8 for '%s' argument\n"
 msgstr ""
@@ -3087,7 +3123,7 @@ msgstr ""
 #: openssl-dtls.c:94
 #, c-format
 msgid "Unable to calculate DTLS overhead for %s\n"
-msgstr ""
+msgstr "Nem sikerült a DTLS ráhagyás kiszámítása ehhez: %s\n"
 
 #: openssl-dtls.c:216
 #, c-format
@@ -4281,3 +4317,18 @@ msgstr "kiszámítás parancs"
 #: yubikey.c:608
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr "Azonosítatlan válasz a Yubikey-től a tokenkód előállításakor\n"
+
+#~ msgid ""
+#~ "Open client for Cisco AnyConnect VPN, version %s\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Nyílt kliens a Cisco AnyConnect VPN-hez, verzió: %s\n"
+#~ "\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "WARNING: No DTLS support in this binary. Performance will be impaired.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "FIGYELEM: Nincs DTLS támogatás ebben a programban. A teljesítmény "
+#~ "károsodni fog.\n"
