@@ -688,18 +688,18 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		goto do_reconnect;
 
 	while (1) {
-		int len = MAX(16384, vpninfo->ip_info.mtu);
-		int payload_len;
+		int receive_mtu = MAX(2048, vpninfo->ip_info.mtu + 256);
+		int len, payload_len;
 
 		if (!vpninfo->cstp_pkt) {
-			vpninfo->cstp_pkt = malloc(sizeof(struct pkt) + len);
+			vpninfo->cstp_pkt = malloc(sizeof(struct pkt) + receive_mtu);
 			if (!vpninfo->cstp_pkt) {
 				vpn_progress(vpninfo, PRG_ERR, _("Allocation failed\n"));
 				break;
 			}
 		}
 
-		len = ssl_nonblock_read(vpninfo, vpninfo->cstp_pkt->gpst.hdr, len + 16);
+		len = ssl_nonblock_read(vpninfo, vpninfo->cstp_pkt->gpst.hdr, receive_mtu + 16);
 		if (!len)
 			break;
 		if (len < 0) {
