@@ -72,6 +72,30 @@ static int xmlnode_get_text(xmlNode *xml_node, const char *name, const char **va
 	return 0;
 }
 
+/* We behave like CSTP — create a linked list in vpninfo->cstp_options
+ * with the strings containing the information we got from the server,
+ * and oc_ip_info contains const copies of those pointers.
+ *
+ * (unlike version in oncp.c, val is stolen rather than strdup'ed) */
+
+static const char *add_option(struct openconnect_info *vpninfo, const char *opt, const char *val)
+{
+	struct oc_vpn_option *new = malloc(sizeof(*new));
+	if (!new)
+		return NULL;
+
+	new->option = strdup(opt);
+	if (!new->option) {
+		free(new);
+		return NULL;
+	}
+	new->value = strdup(val);
+	new->next = vpninfo->cstp_options;
+	vpninfo->cstp_options = new;
+
+	return new->value;
+}
+
 /* Parse this JavaScript-y mess:
 
 	"var respStatus = \"Challenge|Error\";\n"
@@ -356,6 +380,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 	vpninfo->ip_info.domain = NULL;
 	vpninfo->ip_info.mtu = 0;
 	vpninfo->esp_magic = inet_addr(vpninfo->ip_info.gateway_addr);
+	vpninfo->cstp_options = NULL;
 
 	for (ii = 0; ii < 3; ii++)
 		vpninfo->ip_info.dns[ii] = vpninfo->ip_info.nbns[ii] = NULL;
@@ -363,10 +388,11 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 
 	/* Parse config */
 	for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
-		xmlnode_get_text(xml_node, "ip-address", &vpninfo->ip_info.addr);
-		xmlnode_get_text(xml_node, "netmask", &vpninfo->ip_info.netmask);
-
-		if (!xmlnode_get_text(xml_node, "mtu", &s)) {
+		if (!xmlnode_get_text(xml_node, "ip-address", &s))
+			vpninfo->ip_info.addr = add_option(vpninfo, "ipaddr", s);
+		else if (!xmlnode_get_text(xml_node, "netmask", &s))
+			vpninfo->ip_info.netmask = add_option(vpninfo, "netmask", s);
+		else if (!xmlnode_get_text(xml_node, "mtu", &s)) {
 			vpninfo->ip_info.mtu = atoi(s);
 			free((void *)s);
 		} else if (!xmlnode_get_text(xml_node, "gw-address", &s)) {
@@ -381,16 +407,18 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 			free((void *)s);
 		} else if (xmlnode_is_named(xml_node, "dns")) {
 			for (ii=0, member = xml_node->children; member && ii<3; member=member->next)
-				if (!xmlnode_get_text(member, "member", &vpninfo->ip_info.dns[ii]))
-					ii++;
+				if (!xmlnode_get_text(member, "member", &s))
+					vpninfo->ip_info.dns[ii++] = add_option(vpninfo, "DNS", s);
 		} else if (xmlnode_is_named(xml_node, "wins")) {
 			for (ii=0, member = xml_node->children; member && ii<3; member=member->next)
-				if (!xmlnode_get_text(member, "member", &vpninfo->ip_info.nbns[ii]))
-					ii++;
+				if (!xmlnode_get_text(member, "member", &s))
+					vpninfo->ip_info.nbns[ii++] = add_option(vpninfo, "WINS", s);
 		} else if (xmlnode_is_named(xml_node, "dns-suffix")) {
 			for (ii=0, member = xml_node->children; member && ii<1; member=member->next)
-				if (!xmlnode_get_text(member, "member", &vpninfo->ip_info.domain))
+				if (!xmlnode_get_text(member, "member", &s)) {
+					vpninfo->ip_info.domain = add_option(vpninfo, "search", s);
 					ii++;
+				}
 		} else if (xmlnode_is_named(xml_node, "access-routes")) {
 			for (member = xml_node->children; member; member=member->next) {
 				if (!xmlnode_get_text(member, "member", &s)) {
@@ -450,6 +478,7 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	char *orig_path, *orig_ua;
 	int result;
 	struct oc_text_buf *request_body = buf_alloc();
+	struct oc_vpn_option *old_cstp_opts = vpninfo->cstp_options;
 	const char *old_addr = vpninfo->ip_info.addr, *old_netmask = vpninfo->ip_info.netmask;
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
@@ -517,6 +546,7 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 
 out:
 	buf_free(request_body);
+	free_optlist(old_cstp_opts);
 	free(xml_buf);
 	return result;
 }
