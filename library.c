@@ -277,7 +277,7 @@ int openconnect_set_mobile_info(struct openconnect_info *vpninfo,
 	return 0;
 }
 
-static void free_optlist(struct oc_vpn_option *opt)
+void free_optlist(struct oc_vpn_option *opt)
 {
 	struct oc_vpn_option *next;
 
