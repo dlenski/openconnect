@@ -338,7 +338,8 @@ struct esp {
 	uint64_t seq_backlog;
 	uint64_t seq;
 	uint32_t spi; /* Stored network-endian */
-	unsigned char secrets[0x40];
+	unsigned char enc_key[0x40]; /* Encryption key */
+	unsigned char hmac_key[0x40]; /* HMAC key */
 };
 
 struct openconnect_info {
@@ -362,6 +363,8 @@ struct openconnect_info {
 	int old_esp_maxseq;
 	struct esp esp_in[2];
 	struct esp esp_out;
+	int enc_key_len;
+	int hmac_key_len;
 
 	int tncc_fd; /* For Juniper TNCC */
 	const char *csd_xmltag;
@@ -689,6 +692,12 @@ struct openconnect_info {
 #define AC_PKT_KEEPALIVE	7	/* Keepalive */
 #define AC_PKT_COMPRESSED	8	/* Compressed data */
 #define AC_PKT_TERM_SERVER	9	/* Server kick */
+
+/* Encryption and HMAC algorithms (matching Juniper's binary encoding) */
+#define ENC_AES_128_CBC		2
+#define ENC_AES_256_CBC		5
+#define HMAC_MD5		1
+#define HMAC_SHA1		2
 
 #define vpn_progress(_v, lvl, ...) do {					\
 	if ((_v)->verbose >= (lvl))					\

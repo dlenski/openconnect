@@ -99,7 +99,7 @@ static int init_esp_ciphers(struct openconnect_info *vpninfo, struct esp *esp,
 		destroy_esp_ciphers(esp);
 		return -ENOMEM;
 	}
-	if (!HMAC_Init_ex(esp->hmac, esp->secrets + EVP_CIPHER_key_length(encalg),
+	if (!HMAC_Init_ex(esp->hmac, esp->hmac_key,
 			  EVP_MD_size(macalg), macalg, NULL)) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to initialize ESP HMAC\n"));
@@ -151,7 +151,8 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 	esp_in = &vpninfo->esp_in[vpninfo->current_esp_in];
 
 	if (!RAND_bytes((void *)&esp_in->spi, sizeof(esp_in->spi)) ||
-	    !RAND_bytes((void *)&esp_in->secrets, sizeof(esp_in->secrets))) {
+		    !RAND_bytes((void *)&esp_in->enc_key, vpninfo->enc_key_len)) ||
+		    !RAND_bytes((void *)&esp_in->hmac_key, vpninfo->hmac_key_len)) ) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to generate random keys for ESP:\n"));
 		openconnect_report_ssl_errors(vpninfo);
