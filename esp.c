@@ -71,7 +71,7 @@ int print_esp_keys(struct openconnect_info *vpninfo, const char *name, struct es
 	return 0;
 }
 
-static int esp_send_probes(struct openconnect_info *vpninfo)
+int esp_send_probes(struct openconnect_info *vpninfo)
 {
 	struct pkt *pkt;
 	int pktlen;
@@ -112,6 +112,11 @@ static int esp_send_probes(struct openconnect_info *vpninfo)
 	return 0;
 };
 
+int esp_catch_probe(struct openconnect_info *vpninfo, struct pkt *pkt)
+{
+	return (pkt->len == 1 && pkt->data[0] == 0);
+}
+
 int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 {
 	if (vpninfo->dtls_state == DTLS_DISABLED ||
@@ -129,7 +134,8 @@ int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 	print_esp_keys(vpninfo, _("outgoing"), &vpninfo->esp_out);
 
 	vpn_progress(vpninfo, PRG_DEBUG, _("Send ESP probes\n"));
-	esp_send_probes(vpninfo);
+	if (vpninfo->proto->udp_send_probes)
+		vpninfo->proto->udp_send_probes(vpninfo);
 
 	return 0;
 }
@@ -146,7 +152,8 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		int when = vpninfo->new_dtls_started + vpninfo->dtls_attempt_period - time(NULL);
 		if (when <= 0 || vpninfo->dtls_need_reconnect) {
 			vpn_progress(vpninfo, PRG_DEBUG, _("Send ESP probes\n"));
-			esp_send_probes(vpninfo);
+			if (vpninfo->proto->udp_send_probes)
+				vpninfo->proto->udp_send_probes(vpninfo);
 			when = vpninfo->dtls_attempt_period;
 		}
 		if (*timeout > when * 1000)
@@ -226,14 +233,16 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		}
 		vpninfo->dtls_times.last_rx = time(NULL);
 
-		if (pkt->len  == 1 && pkt->data[0] == 0) {
-			if (vpninfo->dtls_state == DTLS_SLEEPING) {
-				vpn_progress(vpninfo, PRG_INFO,
-					     _("ESP session established with server\n"));
-				queue_esp_control(vpninfo, 1);
-				vpninfo->dtls_state = DTLS_CONNECTING;
+		if (vpninfo->proto->udp_catch_probe) {
+			if (vpninfo->proto->udp_catch_probe(vpninfo, pkt)) {
+				if (vpninfo->dtls_state == DTLS_SLEEPING) {
+					vpn_progress(vpninfo, PRG_INFO,
+						     _("ESP session established with server\n"));
+					queue_esp_control(vpninfo, 1);
+					vpninfo->dtls_state = DTLS_CONNECTING;
+				}
+				continue;
 			}
-			continue;
 		}
 		if (pkt->data[len - 1] == 0x05) {
 			struct pkt *newpkt = malloc(sizeof(*pkt) + vpninfo->ip_info.mtu + vpninfo->pkt_trailer);
@@ -273,12 +282,14 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		vpn_progress(vpninfo, PRG_ERR, _("ESP detected dead peer\n"));
 		queue_esp_control(vpninfo, 0);
 		esp_close(vpninfo);
-		esp_send_probes(vpninfo);
+		if (vpninfo->proto->udp_send_probes)
+			vpninfo->proto->udp_send_probes(vpninfo);
 		return 1;
 
 	case KA_DPD:
 		vpn_progress(vpninfo, PRG_DEBUG, _("Send ESP probes for DPD\n"));
-		esp_send_probes(vpninfo);
+		if (vpninfo->proto->udp_send_probes)
+			vpninfo->proto->udp_send_probes(vpninfo);
 		work_done = 1;
 		break;
 

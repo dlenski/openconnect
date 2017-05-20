@@ -138,6 +138,8 @@ const struct vpn_proto openconnect_protos[] = {
 		.udp_mainloop = esp_mainloop,
 		.udp_close = esp_close,
 		.udp_shutdown = esp_shutdown,
+		.udp_send_probes = esp_send_probes,
+		.udp_catch_probe = esp_catch_probe,
 #endif
 	},
 	{ /* NULL */ }
