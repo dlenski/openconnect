@@ -432,21 +432,21 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 			}
 		} else if (xmlnode_is_named(xml_node, "ipsec")) {
 #ifdef HAVE_ESP
-			int c = (vpninfo->current_esp_in ^= 1);
-			for (member = xml_node->children; member; member=member->next) {
-				s = NULL;
-				if (!xmlnode_get_text(member, "udp-port", &s))		udp_sockaddr(vpninfo, atoi(s));
-				else if (!xmlnode_get_text(member, "enc-algo", &s)) 	set_esp_algo(vpninfo, s, 0);
-				else if (!xmlnode_get_text(member, "hmac-algo", &s))	set_esp_algo(vpninfo, s, 1);
-				else if (!xmlnode_get_text(member, "c2s-spi", &s))	vpninfo->esp_out.spi = htonl(strtoul(s, NULL, 16));
-				else if (!xmlnode_get_text(member, "s2c-spi", &s))	vpninfo->esp_in[c].spi = htonl(strtoul(s, NULL, 16));
-				else if (xmlnode_is_named(member, "ekey-c2s"))		get_key_bits(member, vpninfo->esp_out.enc_key);
-				else if (xmlnode_is_named(member, "ekey-s2c"))		get_key_bits(member, vpninfo->esp_in[c].enc_key);
-				else if (xmlnode_is_named(member, "akey-c2s"))		get_key_bits(member, vpninfo->esp_out.hmac_key);
-				else if (xmlnode_is_named(member, "akey-s2c"))		get_key_bits(member, vpninfo->esp_in[c].hmac_key);
-				free((void *)s);
-			}
 			if (vpninfo->dtls_state != DTLS_DISABLED) {
+				int c = (vpninfo->current_esp_in ^= 1);
+				for (member = xml_node->children; member; member=member->next) {
+					s = NULL;
+					if (!xmlnode_get_text(member, "udp-port", &s))		udp_sockaddr(vpninfo, atoi(s));
+					else if (!xmlnode_get_text(member, "enc-algo", &s)) 	set_esp_algo(vpninfo, s, 0);
+					else if (!xmlnode_get_text(member, "hmac-algo", &s))	set_esp_algo(vpninfo, s, 1);
+					else if (!xmlnode_get_text(member, "c2s-spi", &s))	vpninfo->esp_out.spi = htonl(strtoul(s, NULL, 16));
+					else if (!xmlnode_get_text(member, "s2c-spi", &s))	vpninfo->esp_in[c].spi = htonl(strtoul(s, NULL, 16));
+					else if (xmlnode_is_named(member, "ekey-c2s"))		get_key_bits(member, vpninfo->esp_out.enc_key);
+					else if (xmlnode_is_named(member, "ekey-s2c"))		get_key_bits(member, vpninfo->esp_in[c].enc_key);
+					else if (xmlnode_is_named(member, "akey-c2s"))		get_key_bits(member, vpninfo->esp_out.hmac_key);
+					else if (xmlnode_is_named(member, "akey-s2c"))		get_key_bits(member, vpninfo->esp_in[c].hmac_key);
+					free((void *)s);
+				}
 				if (setup_esp_keys(vpninfo, 0))
 					vpn_progress(vpninfo, PRG_ERR, "Failed to setup ESP keys.\n");
 				else
