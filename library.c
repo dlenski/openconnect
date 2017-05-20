@@ -109,8 +109,8 @@ err:
 const struct vpn_proto openconnect_protos[] = {
 	{
 		.name = "anyconnect",
-		.pretty_name = "Cisco AnyConnect or openconnect",
-		.description = "Compatible with Cisco AnyConnect SSL VPN, as well as ocserv",
+		.pretty_name = N_("Cisco AnyConnect or openconnect"),
+		.description = N_("Compatible with Cisco AnyConnect SSL VPN, as well as ocserv"),
 		.flags = OC_PROTO_PROXY | OC_PROTO_CSD | OC_PROTO_AUTH_CERT | OC_PROTO_AUTH_OTP | OC_PROTO_AUTH_STOKEN,
 		.vpn_close_session = cstp_bye,
 		.tcp_connect = cstp_connect,
@@ -125,8 +125,8 @@ const struct vpn_proto openconnect_protos[] = {
 #endif
 	}, {
 		.name = "nc",
-		.pretty_name = "Juniper Network Connect",
-		.description = "Compatible with Juniper Network Connect / Pulse Secure SSL VPN",
+		.pretty_name = N_("Juniper Network Connect"),
+		.description = N_("Compatible with Juniper Network Connect / Pulse Secure SSL VPN"),
 		.flags = OC_PROTO_PROXY | OC_PROTO_CSD | OC_PROTO_AUTH_CERT | OC_PROTO_AUTH_OTP,
 		.vpn_close_session = oncp_bye,
 		.tcp_connect = oncp_connect,
@@ -143,8 +143,8 @@ const struct vpn_proto openconnect_protos[] = {
 #endif
 	}, {
 		.name = "gp",
-		.pretty_name = "Palo Alto Networks GlobalProtect",
-		.description = "Compatible with Palo Alto Networks (PAN) GlobalProtect SSL VPN",
+		.pretty_name = N_("Palo Alto Networks GlobalProtect"),
+		.description = N_("Compatible with Palo Alto Networks (PAN) GlobalProtect SSL VPN"),
 		.flags = OC_PROTO_PROXY | OC_PROTO_AUTH_CERT,
 		.vpn_close_session = gpst_bye,
 		.tcp_connect = gpst_setup,
@@ -174,8 +174,8 @@ int openconnect_get_supported_protocols(struct oc_vpn_proto **protos)
 
 	for (p = openconnect_protos; p->name; p++, pr++) {
 		pr->name = p->name;
-		pr->pretty_name = _(p->pretty_name);
-		pr->description = _(p->description);
+		pr->pretty_name = p->pretty_name;
+		pr->description = p->description;
 		pr->flags = p->flags;
 	}
 	return (p - openconnect_protos);

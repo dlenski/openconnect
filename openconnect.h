@@ -663,6 +663,7 @@ int openconnect_has_oath_support(void);
 int openconnect_has_yubioath_support(void);
 int openconnect_has_system_key_support(void);
 
+/* Query and select from among supported protocols */
 int openconnect_get_supported_protocols(struct oc_vpn_proto **protos);
 void openconnect_free_supported_protocols(struct oc_vpn_proto *protos);
 int openconnect_set_protocol(struct openconnect_info *vpninfo, const char *protocol);
