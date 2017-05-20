@@ -309,7 +309,7 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 		} else if (portal && result == 0) {
 			portal = 0;
 			goto redo_gateway;
-		} else if (result == -512)
+		} else if (result == -EACCES) /* Invalid username/password */
 			continue;
 		else
 			break;

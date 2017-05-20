@@ -957,11 +957,10 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 			     result);
 		if (result == 401 || result == 403)
 			result = -EPERM;
-		else if (result == 512 || result == 513)
-			/* 512 = GlobalProtect login failed due to invalid username/password
-			 * 513 = GlobalProtect login failed due to invalid client cert
-			 */
-			result = -result;
+		else if (result == 512) /* GlobalProtect invalid username/password */
+			result = -EACCES;
+		else if (result == 513) /* GlobalProtect invalid client cert */
+			result = -EBADMSG;
 		else
 			result = -EINVAL;
 		goto out;

@@ -178,9 +178,9 @@ int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *respon
 	const char *err = NULL;
 
 	/* custom error codes returned by /ssl-vpn/login.esp and maybe others */
-	if (result == -512)
+	if (result == -EACCES)
 		vpn_progress(vpninfo, PRG_ERR, _("Invalid username or password.\n"));
-	else if (result == -513)
+	else if (result == -EBADMSG)
 		vpn_progress(vpninfo, PRG_ERR, _("Invalid client certificate.\n"));
 
 	if (result < 0)
