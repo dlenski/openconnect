@@ -138,7 +138,9 @@ static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 
 	xmlNode *x;
 	struct oc_form_opt_select *opt;
+	struct oc_text_buf *buf;
 	int max_choices = 0, result;
+	char *portal = NULL;
 
 	opt = calloc(1, sizeof(*opt));
 	if (!opt)
@@ -153,16 +155,29 @@ static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 	 */
 	if (xmlnode_is_named(xml_node, "policy"))
 		for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next)
-			if (xmlnode_is_named(xml_node, "gateways"))
+			if (xmlnode_is_named(xml_node, "portal-name"))
+				portal = (char *)xmlNodeGetContent(xml_node);
+			else if (xmlnode_is_named(xml_node, "gateways"))
 				for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next)
 					if (xmlnode_is_named(xml_node, "external"))
 						for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next)
 							if (xmlnode_is_named(xml_node, "list"))
 								goto gateways;
 	result = -EINVAL;
+	free(portal);
 	goto out;
 
 gateways:
+	buf = buf_alloc();
+	buf_append(buf, "<GPPortal>\n  <ServerList>\n");
+	if (portal) {
+		buf_append(buf, "      <HostEntry><HostName>%s</HostName><HostAddress>%s", portal, vpninfo->hostname);
+		if (vpninfo->port!=443)
+			buf_append(buf, ":%d", vpninfo->port);
+		buf_append(buf, "/global-protect</HostAddress></HostEntry>\n");
+	}
+	free(portal);
+
 	/* first, count the number of gateways */
 	for (x = xml_node->children; x; x=x->next)
 		if (xmlnode_is_named(x, "entry"))
@@ -187,13 +202,20 @@ gateways:
 			xmlnode_get_prop(xml_node, "name", &choice->name);
 			for (x = xml_node->children; x; x=x->next)
 				if (xmlnode_is_named(x, "description"))
-					choice->label = (char *)xmlNodeGetContent(x);
+					buf_append(buf, "      <HostEntry><HostName>%s</HostName><HostAddress>%s/ssl-vpn</HostAddress></HostEntry>\n",
+					           choice->label = (char *)xmlNodeGetContent(x),
+					           choice->name);
 
 			opt->choices[opt->nr_choices++] = choice;
 			vpn_progress(vpninfo, PRG_INFO, _("  %s (%s)\n"),
 						 choice->label, choice->name);
 		}
 	}
+
+	buf_append(buf, "  </ServerList>\n</GPPortal>\n");
+	if (vpninfo->write_new_config)
+		result = vpninfo->write_new_config(vpninfo->cbdata, buf->data, buf->pos);
+	buf_free(buf);
 
 	/* process static auth form to select gateway */
 	form.opts = (struct oc_form_opt *)(form.authgroup_opt = opt);
