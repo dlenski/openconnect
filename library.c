@@ -139,6 +139,16 @@ const struct vpn_proto openconnect_protos[] = {
 		.udp_close = esp_close,
 		.udp_shutdown = esp_shutdown,
 #endif
+	}, {
+		.name = "gp",
+		.pretty_name = N_("Palo Alto Networks GlobalProtect"),
+		.description = N_("Compatible with Palo Alto Networks (PAN) GlobalProtect SSL VPN"),
+		.flags = OC_PROTO_PROXY | OC_PROTO_AUTH_CERT | OC_PROTO_AUTH_OTP | OC_PROTO_AUTH_STOKEN,
+		.vpn_close_session = gpst_bye,
+		.tcp_connect = gpst_setup,
+		.tcp_mainloop = gpst_mainloop,
+		.add_http_headers = gpst_common_headers,
+		.obtain_cookie = gpst_obtain_cookie,
 	},
 	{ /* NULL */ }
 };
