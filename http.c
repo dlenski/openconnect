@@ -781,6 +781,22 @@ void dump_buf(struct openconnect_info *vpninfo, char prefix, char *buf)
 	}
 }
 
+void dump_buf_hex(struct openconnect_info *vpninfo, int loglevel, char prefix, unsigned char *buf, int len)
+{
+	char linebuf[80];
+	int i;
+
+	for (i = 0; i < len; i++) {
+		if (i % 16 == 0) {
+			if (i)
+				vpn_progress(vpninfo, loglevel, "%c %s\n", prefix, linebuf);
+			sprintf(linebuf, "%04x:", i);
+		}
+		sprintf(linebuf + strlen(linebuf), " %02x", buf[i]);
+	}
+	vpn_progress(vpninfo, loglevel, "%c %s\n", prefix, linebuf);
+}
+
 /* Inputs:
  *  method:             GET or POST
  *  vpninfo->hostname:  Host DNS name

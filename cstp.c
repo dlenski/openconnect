@@ -609,20 +609,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		}
 	}
 
-	while (old_dtls_opts) {
-		struct oc_vpn_option *tmp = old_dtls_opts;
-		old_dtls_opts = old_dtls_opts->next;
-		free(tmp->value);
-		free(tmp->option);
-		free(tmp);
-	}
-	while (old_cstp_opts) {
-		struct oc_vpn_option *tmp = old_cstp_opts;
-		old_cstp_opts = old_cstp_opts->next;
-		free(tmp->value);
-		free(tmp->option);
-		free(tmp);
-	}
+	free_optlist(old_dtls_opts);
+	free_optlist(old_cstp_opts);
 	vpn_progress(vpninfo, PRG_INFO, _("CSTP connected. DPD %d, Keepalive %d\n"),
 		     vpninfo->ssl_times.dpd, vpninfo->ssl_times.keepalive);
 	vpn_progress(vpninfo, PRG_DEBUG, _("CSTP Ciphersuite: %s\n"),
