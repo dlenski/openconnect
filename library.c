@@ -151,6 +151,14 @@ const struct vpn_proto openconnect_protos[] = {
 		.tcp_mainloop = gpst_mainloop,
 		.add_http_headers = gpst_common_headers,
 		.obtain_cookie = gpst_obtain_cookie,
+#ifdef HAVE_ESP
+		.udp_setup = esp_setup,
+		.udp_mainloop = esp_mainloop,
+		.udp_close = esp_close_secret,
+		.udp_shutdown = esp_shutdown,
+		.udp_send_probes = esp_send_probes_gp,
+		.udp_catch_probe = esp_catch_probe_gp,
+#endif
 	},
 	{ /* NULL */ }
 };
