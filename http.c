@@ -47,8 +47,6 @@ void buf_append_urlencoded(struct oc_text_buf *buf, const char *str)
 		unsigned char c = *str;
 		if (c < 0x80 && (isalnum((int)(c)) || c=='-' || c=='_' || c=='.' || c=='~'))
 			buf_append_bytes(buf, str, 1);
-		else if (c==' ')
-			buf_append_bytes(buf, "+", 1);
 		else
 			buf_append(buf, "%%%02x", c);
 
