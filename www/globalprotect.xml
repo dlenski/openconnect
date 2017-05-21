@@ -38,7 +38,7 @@ tunnel configuration information (<tt>POST /ssl-vpn/getconfig.esp</tt>).</p>
 </ol>
 
 <p>Since <a href="http://sites.inka.de/~W1011/devel/tcp-tcp.html">TCP over
-TCP is very suboptimal</a>, OpenConnect tries to always use ESP-over-ESP,
+TCP is very suboptimal</a>, OpenConnect tries to always use ESP-over-UDP,
 and will only fall over to the HTTPS tunnel if that fails, or if disabled
 via the <tt>--no-dtls</tt> argument.</p>
 
