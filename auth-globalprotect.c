@@ -66,12 +66,20 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *pr
  */
 struct gp_login_arg { const char *opt; int save:1; int show:1; int warn_missing:1; int err_missing:1; const char *check; };
 static const struct gp_login_arg gp_login_args[] = {
+    [0] = { .opt="unknown-arg0", .show=1 },
     [1] = { .opt="authcookie", .save=1, .err_missing=1 },
+    [2] = { .opt="persistent-cookie", .warn_missing=1 },  /* 40 hex digits; persists across sessions */
     [3] = { .opt="portal", .save=1, .warn_missing=1 },
     [4] = { .opt="user", .save=1, .err_missing=1 },
-    [5] = { .opt="authentication source", .show=1 },
+    [5] = { .opt="authentication-source", .show=1 },      /* LDAP-auth, AUTH-RADIUS_RSA_OTP, etc. */
+    [6] = { .opt="configuration", .warn_missing=1 },      /* usually vsys1 (sometimes vsys2, etc.) */
     [7] = { .opt="domain", .save=1, .warn_missing=1 },
+    [8] = { .opt="unknown-arg8", .show=1 },
+    [9] = { .opt="unknown-arg9", .show=1 },
+    [10] = { .opt="unknown-arg10", .show=1 },
+    [11] = { .opt="unknown-arg11", .show=1 },
     [12] = { .opt="connection-type", .err_missing=1, .check="tunnel" },
+    [13] = { .opt="minus1", .err_missing=1, .check="-1" },
     [14] = { .opt="clientVer", .err_missing=1, .check="4100" },
     [15] = { .opt="preferred-ip", .save=1 },
 };
@@ -91,17 +99,21 @@ static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 		goto err_out;
 
 	xml_node = xml_node->children;
-	for (arg=gp_login_args; xml_node && arg<gp_login_args+gp_login_nargs; xml_node=xml_node->next, arg++) {
-		if (!xmlnode_is_named(xml_node, "argument"))
-			goto err_out;
-
+	for (arg=gp_login_args; arg<gp_login_args+gp_login_nargs; arg++) {
 		if (!arg->opt)
 			continue;
 
-		value = (const char *)xmlNodeGetContent(xml_node);
-		if (value && (!strlen(value) || !strcmp(value, "(null)"))) {
-			free((void *)value);
+		if (!xml_node)
 			value = NULL;
+		else if (!xmlnode_is_named(xml_node, "argument"))
+			goto err_out;
+		else {
+			value = (const char *)xmlNodeGetContent(xml_node);
+			if (value && (!strlen(value) || !strcmp(value, "(null)"))) {
+				free((void *)value);
+				value = NULL;
+			}
+			xml_node = xml_node->next;
 		}
 
 		if (arg->check && (value==NULL || strcmp(value, arg->check))) {
@@ -110,7 +122,7 @@ static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 			if (arg->err_missing) goto err_out;
 		} else if ((arg->err_missing || arg->warn_missing) && value==NULL) {
 			vpn_progress(vpninfo, arg->err_missing ? PRG_ERR : PRG_DEBUG,
-						 _("GlobalProtect login returned empty %s\n"), arg->opt);
+						 _("GlobalProtect login returned empty or missing %s\n"), arg->opt);
 			if (arg->err_missing) goto err_out;
 		} else if (value && arg->show) {
 			vpn_progress(vpninfo, PRG_INFO,
@@ -353,7 +365,17 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 	const char *method = "POST";
 	char *xml_buf=NULL;
 
-	/* submit logout request */
+	/* In order to logout successfully, the client must send not only
+	 * the session's authcookie, but also the portal, user, computer,
+	 * and domain matching the values sent with the getconfig request.
+	 *
+	 * You read that right: the client must send a bunch of irrelevant
+	 * non-secret values in its logout request. If they're wrong or
+	 * missing, the logout will fail and the authcookie will remain
+	 * valid -- which is a security hole.
+	 *
+	 * Don't blame me. I didn't design this.
+	 */
 	append_opt(request_body, "computer", vpninfo->localname);
 	buf_append(request_body, "&%s", vpninfo->cookie);
 
