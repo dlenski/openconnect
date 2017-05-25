@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+# Copyright (C) 2016 Red Hat, Inc.
+#
+# This file is part of openconnect.
+#
+# This is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public License
+# as published by the Free Software Foundation; either version 2.1 of
+# the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>
+
+SERV="${SERV:-../src/ocserv}"
+srcdir=${srcdir:-.}
+top_builddir=${top_builddir:-..}
+
+. `dirname $0`/common.sh
+
+echo "Testing certificate auth with non-ASCII passwords... "
+
+launch_simple_sr_server -d 1 -f -c configs/test-user-cert.config
+PID=$!
+wait_server $PID
+
+KEY=${srcdir}/certs/user-key-nonascii-password.p12
+set -x
+for CHARSET in UTF-8 ISO8859-2; do
+    echo -n "Connecting to obtain cookie (with password charset ${CHARSET})... "
+    CERTARGS="-c ${KEY} --key-password $(cat ${srcdir}/pass-${CHARSET})"
+    ( echo "test" | LC_CTYPE=cs_CZ.${CHARSET} LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q $ADDRESS:443 -u test $CERTARGS --servercert=d66b507ae074d03b02eafca40d35f87dd81049d3 --cookieonly --passwd-on-stdin ) ||
+	fail $PID "Could not connect with charset ${CHARSET}!"
+done
+
+echo ok
+
+cleanup
+
+exit 0
