@@ -81,9 +81,9 @@ static int init_esp_ciphers(struct openconnect_info *vpninfo, struct esp *esp,
 #endif
 
 	if (decrypt)
-		ret = EVP_DecryptInit_ex(esp->cipher, encalg, NULL, esp->secrets, NULL);
+		ret = EVP_DecryptInit_ex(esp->cipher, encalg, NULL, esp->enc_key, NULL);
 	else
-		ret = EVP_EncryptInit_ex(esp->cipher, encalg, NULL, esp->secrets, NULL);
+		ret = EVP_EncryptInit_ex(esp->cipher, encalg, NULL, esp->enc_key, NULL);
 
 	if (!ret) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -151,8 +151,8 @@ int setup_esp_keys(struct openconnect_info *vpninfo)
 	esp_in = &vpninfo->esp_in[vpninfo->current_esp_in];
 
 	if (!RAND_bytes((void *)&esp_in->spi, sizeof(esp_in->spi)) ||
-		    !RAND_bytes((void *)&esp_in->enc_key, vpninfo->enc_key_len)) ||
-		    !RAND_bytes((void *)&esp_in->hmac_key, vpninfo->hmac_key_len)) ) {
+	    !RAND_bytes((void *)&esp_in->enc_key, vpninfo->enc_key_len) ||
+	    !RAND_bytes((void *)&esp_in->hmac_key, vpninfo->hmac_key_len) ) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Failed to generate random keys for ESP:\n"));
 		openconnect_report_ssl_errors(vpninfo);
