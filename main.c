@@ -1307,7 +1307,7 @@ int main(int argc, char **argv)
 			}
 			break;
 		case 'p':
-			vpninfo->cert_password = strdup(config_arg);
+			vpninfo->cert_password = dup_config_arg();
 			break;
 		case 'P':
 			proxy = keep_config_arg();
