@@ -12,7 +12,7 @@ CentOS7/GnuTLS:
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
     java-devel-openjdk
   - ./autogen.sh
-  - ./configure --with-java
+  - ./configure --with-java CFLAGS=-g
   - make -j4
   # XFAIL the auth-pkcs11 test because GnuTLS 3.3.8 doesn't support pin-value
   - make VERBOSE=1 -j4 check
@@ -38,7 +38,7 @@ CentOS7/OpenSSL:
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
     java-devel-openjdk 'pkgconfig(libp11)'
   - ./autogen.sh
-  - ./configure --without-gnutls --with-openssl --with-java --without-openssl-version-check --enable-dtls-xfail --disable-dsa-tests
+  - ./configure --without-gnutls --with-openssl --with-java --without-openssl-version-check --enable-dtls-xfail --disable-dsa-tests CFLAGS=-g
   - make -j4
   - make VERBOSE=1 -j4 check
   tags:
@@ -63,7 +63,7 @@ CentOS6/OpenSSL:
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
     java-devel-openjdk vpnc 'pkgconfig(libp11)' 'pkgconfig(p11-kit-1)'
   - ./autogen.sh
-  - ./configure --with-java --without-openssl-version-check --enable-dtls-xfail
+  - ./configure --with-java --without-openssl-version-check --enable-dtls-xfail CFLAGS=-g
   - make -j4
   - make VERBOSE=1 -j4 check
   tags:
@@ -86,7 +86,7 @@ Fedora/GnuTLS:
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
     java-devel-openjdk
   - ./autogen.sh
-  - ./configure --with-java
+  - ./configure --with-java CFLAGS=-g
   - make -j4
   - make VERBOSE=1 -j4 check
   tags:
@@ -109,7 +109,7 @@ Fedora/GnuTLS/clang:
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
     java-devel-openjdk clang
   - ./autogen.sh
-  - ./configure --with-java CC=clang
+  - ./configure --with-java CC=clang CFLAGS=-g
   - make -j4
   - make VERBOSE=1 -j4 check
   tags:
@@ -133,7 +133,7 @@ Fedora/OpenSSL:
     java-devel-openjdk 'pkgconfig(libp11)'
   - dnf --enablerepo=updates-testing update -y libp11\* gnutls
   - ./autogen.sh
-  - ./configure --without-gnutls --with-openssl --without-openssl-version-check --disable-dsa-tests
+  - ./configure --without-gnutls --with-openssl --without-openssl-version-check --disable-dsa-tests CFLAGS=-g
   - make -j4
   - make VERBOSE=1 -j4 check
   tags:
@@ -157,7 +157,7 @@ Fedora/OpenSSL/clang:
     java-devel-openjdk 'pkgconfig(libp11)' clang
   - dnf --enablerepo=updates-testing update -y libp11\* gnutls
   - ./autogen.sh
-  - ./configure CC=clang --without-gnutls --with-openssl --without-openssl-version-check --disable-dsa-tests
+  - ./configure CC=clang --without-gnutls --with-openssl --without-openssl-version-check --disable-dsa-tests CFLAGS=-g
   - make -j4
   - make VERBOSE=1 -j4 check
   tags:
@@ -178,7 +178,7 @@ MinGW32/GnuTLS:
   - mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
   - echo ':DOSWin:M::MZ::/usr/bin/wine:' > /proc/sys/fs/binfmt_misc/register
   - ./autogen.sh
-  - mingw32-configure
+  - mingw32-configure CFLAGS=-g
   - make -j4
   - make VERBOSE=1 -j4 check
   tags:
@@ -199,7 +199,7 @@ MinGW32/OpenSSL:
   - mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
   - echo ':DOSWin:M::MZ::/usr/bin/wine:' > /proc/sys/fs/binfmt_misc/register
   - ./autogen.sh
-  - mingw32-configure --without-gnutls --with-openssl --without-openssl-version-check
+  - mingw32-configure --without-gnutls --with-openssl --without-openssl-version-check CFLAGS=-g
   - make -j4
   - make VERBOSE=1 -j4 check
   tags:
@@ -220,7 +220,7 @@ MinGW64/GnuTLS:
   - mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
   - echo ':DOSWin:M::MZ::/usr/bin/wine:' > /proc/sys/fs/binfmt_misc/register
   - ./autogen.sh
-  - mingw64-configure
+  - mingw64-configure CFLAGS=-g
   - make -j4
   - make VERBOSE=1 -j4 check
   tags:
@@ -241,7 +241,7 @@ MinGW64/OpenSSL:
   - mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
   - echo ':DOSWin:M::MZ::/usr/bin/wine:' > /proc/sys/fs/binfmt_misc/register
   - ./autogen.sh
-  - mingw64-configure --without-gnutls --with-openssl --without-openssl-version-check
+  - mingw64-configure --without-gnutls --with-openssl --without-openssl-version-check CFLAGS=-g
   - make -j4
   - make VERBOSE=1 -j4 check
   tags:
