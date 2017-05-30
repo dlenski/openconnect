@@ -209,10 +209,12 @@ int esp_catch_probe(struct openconnect_info *vpninfo, struct pkt *pkt)
 
 int esp_catch_probe_gp(struct openconnect_info *vpninfo, struct pkt *pkt)
 {
+	struct ip *iph = (void *)(pkt->data);
 	return ( pkt->len >= 21
-		 && pkt->data[9]==1 /* IPv4 protocol field == ICMP */
-		 && *((in_addr_t *)(pkt->data + 12)) == vpninfo->esp_magic /* source == magic address */
-		 && pkt->data[20]==0 /* ICMP reply */ );
+		 && iph->ip_p==1 /* IPv4 protocol field == ICMP */
+		 && iph->ip_src.s_addr == vpninfo->esp_magic /* source == magic address */
+		 && pkt->len >= (iph->ip_hl<<2)+1 /* No short-packet segfaults */
+		 && pkt->data[iph->ip_hl<<2]==0 /* ICMP reply */ );
 }
 
 int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
