@@ -4,13 +4,16 @@ CentOS7/GnuTLS:
   image: centos:7
   script:
   - yum install -y epel-release
+  - yum -y reinstall glibc-common
+  - localedef -i cs_CZ -f UTF-8 cs_CZ.UTF-8
+  - localedef -i cs_CZ -f ISO-8859-2 cs_CZ.ISO8859-2
   - yum install -y git autoconf automake libtool python gettext
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
     'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
     'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
     ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
-    java-devel-openjdk glibc-langpack-cs
+    java-devel-openjdk
   - ./autogen.sh
   - ./configure --with-java CFLAGS=-g
   - make -j4
@@ -30,13 +33,16 @@ CentOS7/OpenSSL:
   image: centos:7
   script:
   - yum install -y epel-release
+  - yum -y reinstall glibc-common
+  - localedef -i cs_CZ -f UTF-8 cs_CZ.UTF-8
+  - localedef -i cs_CZ -f ISO-8859-2 cs_CZ.ISO8859-2
   - yum install -y git autoconf automake libtool python gettext
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
     'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
     'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
     ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
-    java-devel-openjdk 'pkgconfig(libp11)' glibc-langpack-cs
+    java-devel-openjdk 'pkgconfig(libp11)'
   - ./autogen.sh
   - ./configure --without-gnutls --with-openssl --with-java --without-openssl-version-check --enable-dtls-xfail --disable-dsa-tests CFLAGS=-g
   - make -j4
@@ -55,6 +61,9 @@ CentOS6/OpenSSL:
   image: centos:6
   script:
   - yum install -y epel-release
+  - yum -y reinstall glibc-common
+  - localedef -i cs_CZ -f UTF-8 cs_CZ.UTF-8
+  - localedef -i cs_CZ -f ISO-8859-2 cs_CZ.ISO8859-2
   - yum install -y git autoconf automake libtool python gettext
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
     'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
@@ -62,7 +71,6 @@ CentOS6/OpenSSL:
     ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
     java-devel-openjdk vpnc 'pkgconfig(libp11)' 'pkgconfig(p11-kit-1)'
-    glibc-langpack-cs
   - ./autogen.sh
   - ./configure --with-java --without-openssl-version-check --enable-dtls-xfail CFLAGS=-g
   - make -j4
