@@ -1093,7 +1093,9 @@ int main(int argc, char **argv)
 	bindtextdomain("openconnect", LOCALEDIR);
 #endif
 
-	setlocale(LC_ALL, "");
+	if (!setlocale(LC_ALL, ""))
+		fprintf(stderr,
+			_("WARNING: Cannot set locale: %s\n"), strerror(errno));
 
 #ifdef HAVE_NL_LANGINFO
 	charset = nl_langinfo(CODESET);
