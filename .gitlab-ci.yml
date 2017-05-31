@@ -10,7 +10,7 @@ CentOS7/GnuTLS:
     'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
     ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
-    java-devel-openjdk
+    java-devel-openjdk glibc-langpack-cs
   - ./autogen.sh
   - ./configure --with-java CFLAGS=-g
   - make -j4
@@ -36,7 +36,7 @@ CentOS7/OpenSSL:
     'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
     ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
-    java-devel-openjdk 'pkgconfig(libp11)'
+    java-devel-openjdk 'pkgconfig(libp11)' glibc-langpack-cs
   - ./autogen.sh
   - ./configure --without-gnutls --with-openssl --with-java --without-openssl-version-check --enable-dtls-xfail --disable-dsa-tests CFLAGS=-g
   - make -j4
@@ -62,6 +62,7 @@ CentOS6/OpenSSL:
     ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
     java-devel-openjdk vpnc 'pkgconfig(libp11)' 'pkgconfig(p11-kit-1)'
+    glibc-langpack-cs
   - ./autogen.sh
   - ./configure --with-java --without-openssl-version-check --enable-dtls-xfail CFLAGS=-g
   - make -j4
@@ -84,7 +85,7 @@ Fedora/GnuTLS:
     'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
     ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
-    java-devel-openjdk
+    java-devel-openjdk glibc-langpack-cs
   - ./autogen.sh
   - ./configure --with-java CFLAGS=-g
   - make -j4
@@ -107,7 +108,7 @@ Fedora/GnuTLS/clang:
     'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
     ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
-    java-devel-openjdk clang
+    java-devel-openjdk clang glibc-langpack-cs
   - ./autogen.sh
   - ./configure --with-java CC=clang CFLAGS=-g
   - make -j4
@@ -130,7 +131,7 @@ Fedora/OpenSSL:
     'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
     ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
-    java-devel-openjdk 'pkgconfig(libp11)'
+    java-devel-openjdk 'pkgconfig(libp11)' glibc-langpack-cs
   - dnf --enablerepo=updates-testing update -y libp11\* gnutls
   - ./autogen.sh
   - ./configure --without-gnutls --with-openssl --without-openssl-version-check --disable-dsa-tests CFLAGS=-g
@@ -154,7 +155,7 @@ Fedora/OpenSSL/clang:
     'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
     ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
-    java-devel-openjdk 'pkgconfig(libp11)' clang
+    java-devel-openjdk 'pkgconfig(libp11)' clang glibc-langpack-cs
   - dnf --enablerepo=updates-testing update -y libp11\* gnutls
   - ./autogen.sh
   - ./configure CC=clang --without-gnutls --with-openssl --without-openssl-version-check --disable-dsa-tests CFLAGS=-g
