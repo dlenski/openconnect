@@ -913,9 +913,21 @@ static char *xstrdup(const char *arg)
 #define keep_config_arg() \
 	(config_file ? xstrdup(config_arg) : convert_arg_to_utf8(argv, config_arg))
 
-#define dup_config_arg() \
-	((config_file || is_arg_utf8(config_arg)) ? xstrdup(config_arg) : \
-	 convert_arg_to_utf8(argv, config_arg))
+#define dup_config_arg() __dup_config_arg(argv, config_arg)
+
+static inline char *__dup_config_arg(char **argv, char *config_arg)
+{
+	char *res;
+
+	if (config_file || is_arg_utf8(config_arg))
+	    return xstrdup(config_arg);
+
+	res = convert_arg_to_utf8(argv, config_arg);
+	/* Force a copy, even if conversion failed */
+	if (res == config_arg)
+		res = xstrdup(res);
+	return res;
+}
 
 static int next_option(int argc, char **argv, char **config_arg)
 {
