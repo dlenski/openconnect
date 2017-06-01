@@ -258,6 +258,10 @@ int openconnect_set_reported_os(struct openconnect_info *vpninfo,
 		vpninfo->csd_nostub = 1;
 	} else if (!strcmp(os, "win"))
 		vpninfo->csd_xmltag = "csd";
+	else if (!strcmp(os, "gpmac")){
+		os = "Apple Mac OS X 10.0.0";
+                vpninfo->csd_xmltag = "Apple Mac OS X 10.0.0";
+	}
 	else
 		return -EINVAL;
 
