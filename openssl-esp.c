@@ -155,8 +155,8 @@ int setup_esp_keys(struct openconnect_info *vpninfo, int new_keys)
 
 	if (new_keys) {
 		if (!RAND_bytes((void *)&esp_in->spi, sizeof(esp_in->spi)) ||
-		    !RAND_bytes((void *)&esp_in->enc_key, vpninfo->enc_key_len) ||
-		    !RAND_bytes((void *)&esp_in->hmac_key, vpninfo->hmac_key_len) ) {
+	    !RAND_bytes((void *)&esp_in->enc_key, vpninfo->enc_key_len) ||
+	    !RAND_bytes((void *)&esp_in->hmac_key, vpninfo->hmac_key_len) ) {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to generate random keys for ESP:\n"));
 			openconnect_report_ssl_errors(vpninfo);

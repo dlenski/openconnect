@@ -100,8 +100,8 @@ static int dtls_get_data_mtu(struct openconnect_info *vpninfo, int mtu)
 	}
 #else
 	/* OpenSSL <= 1.0.2 only supports CBC ciphers with PSK */
-	ivlen = EVP_CIPHER_iv_length(EVP_CIPHER_CTX_cipher(vpninfo->dtls_ssl->enc_write_ctx));
-	maclen = EVP_MD_CTX_size(vpninfo->dtls_ssl->write_hash);
+	ivlen = EVP_CIPHER_iv_length(EVP_CIPHER_CTX_cipher(vpninfo->dtls_ssl->enc_read_ctx));
+	maclen = EVP_MD_CTX_size(vpninfo->dtls_ssl->read_hash);
 	blocksize = ivlen;
 	pad = 1;
 #endif

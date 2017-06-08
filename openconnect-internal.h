@@ -472,8 +472,11 @@ struct openconnect_info {
 	void *tok_cbdata;
 
 	void *peer_cert;
-	char *peer_cert_sha1;
-	char *peer_cert_sha256;
+	/* The SHA1 and SHA256 hashes of the peer's public key */
+	uint8_t peer_cert_sha1_raw[SHA1_SIZE];
+	uint8_t peer_cert_sha256_raw[SHA256_SIZE];
+	/* this value is cache for openconnect_get_peer_cert_hash */
+	char *peer_cert_hash;
 	void *cert_list_handle;
 	int cert_list_size;
 
@@ -845,6 +848,7 @@ void dtls_detect_mtu(struct openconnect_info *vpninfo);
 int openconnect_dtls_read(struct openconnect_info *vpninfo, void *buf, size_t len, unsigned ms);
 int openconnect_dtls_write(struct openconnect_info *vpninfo, void *buf, size_t len);
 char *openconnect_bin2hex(const char *prefix, const uint8_t *data, unsigned len);
+char *openconnect_bin2base64(const char *prefix, const uint8_t *data, unsigned len);
 
 /* cstp.c */
 void cstp_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf);

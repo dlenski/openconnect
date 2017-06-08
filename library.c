@@ -388,8 +388,6 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		free(cache);
 	}
 
-	free(vpninfo->peer_cert_sha1);
-	free(vpninfo->peer_cert_sha256);
 	free(vpninfo->localname);
 	free(vpninfo->useragent);
 	free(vpninfo->authgroup);
@@ -988,29 +986,28 @@ int openconnect_set_csd_environ(struct openconnect_info *vpninfo,
 int openconnect_check_peer_cert_hash(struct openconnect_info *vpninfo,
 				     const char *old_hash)
 {
-	char sha1_text[41];
-	const char *fingerprint;
+	char *fingerprint = NULL;
 	unsigned min_match_len;
 	unsigned real_min_match_len = 4;
 	unsigned old_len, fingerprint_len;
 
 	if (strchr(old_hash, ':')) {
 		if (strncmp(old_hash, "sha1:", 5) == 0) {
-			fingerprint = vpninfo->peer_cert_sha1;
+			fingerprint = openconnect_bin2hex("sha1:", vpninfo->peer_cert_sha1_raw, sizeof(vpninfo->peer_cert_sha1_raw));
 			min_match_len = real_min_match_len + sizeof("sha1:")-1;
 		} else if (strncmp(old_hash, "sha256:", 7) == 0) {
-			fingerprint = vpninfo->peer_cert_sha256;
+			fingerprint = openconnect_bin2hex("sha256:", vpninfo->peer_cert_sha256_raw, sizeof(vpninfo->peer_cert_sha256_raw));
 			min_match_len = real_min_match_len + sizeof("sha256:")-1;
+		} else if (strncmp(old_hash, "pin-sha256:", 11) == 0) {
+			fingerprint = openconnect_bin2base64("pin-sha256:", vpninfo->peer_cert_sha256_raw, sizeof(vpninfo->peer_cert_sha256_raw));
+			min_match_len = real_min_match_len + sizeof("pin-sha256:")-1;
 		} else {
 			vpn_progress(vpninfo, PRG_ERR, _("Unknown certificate hash: %s.\n"), old_hash);
 			return -EIO;
 		}
-
-		if (!fingerprint)
-			return -EIO;
 	} else {
 		unsigned char *cert;
-		int len, i;
+		int len;
 		unsigned char sha1_bin[SHA1_SIZE];
 
 		len = openconnect_get_peer_cert_DER(vpninfo, &cert);
@@ -1020,12 +1017,12 @@ int openconnect_check_peer_cert_hash(struct openconnect_info *vpninfo,
 		if (openconnect_sha1(sha1_bin, cert, len))
 			return -EIO;
 
-		for (i = 0; i < sizeof(sha1_bin); i++)
-			sprintf(&sha1_text[i*2], "%02x", sha1_bin[i]);
-
-		fingerprint = sha1_text;
+		fingerprint = openconnect_bin2hex(NULL, sha1_bin, sizeof(sha1_bin));
 		min_match_len = real_min_match_len;
 	}
+
+	if (!fingerprint)
+		return -EIO;
 
 	old_len = strlen(old_hash);
 	fingerprint_len = strlen(fingerprint);
@@ -1053,7 +1050,9 @@ const char *openconnect_get_cstp_cipher(struct openconnect_info *vpninfo)
 
 const char *openconnect_get_peer_cert_hash(struct openconnect_info *vpninfo)
 {
-	return vpninfo->peer_cert_sha256;
+	if (vpninfo->peer_cert_hash == NULL)
+		vpninfo->peer_cert_hash = openconnect_bin2base64("pin-sha256:", vpninfo->peer_cert_sha256_raw, sizeof(vpninfo->peer_cert_sha256_raw));
+	return vpninfo->peer_cert_hash;
 }
 
 int openconnect_set_compression_mode(struct openconnect_info *vpninfo,

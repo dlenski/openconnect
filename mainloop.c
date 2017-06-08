@@ -51,8 +51,10 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	int work_done = 0;
 
 	if (!tun_is_up(vpninfo)) {
-		/* no tun yet, clear any queued packets */
-		while ((this = dequeue_packet(&vpninfo->incoming_queue)));
+		/* no tun yet; clear any queued packets */
+		while ((this = dequeue_packet(&vpninfo->incoming_queue)))
+			free(this);
+
 		return 0;
 	}
 

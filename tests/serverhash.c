@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 	struct openconnect_info *vpninfo;
 
 	if (argc != 2) {
-		fprintf(stderr, "usage: serverhash <server>");
+		fprintf(stderr, "usage: serverhash <server>\n");
 		exit(1);
 	}
 	openconnect_init_ssl();

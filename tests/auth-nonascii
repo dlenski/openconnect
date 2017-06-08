@@ -23,23 +23,19 @@ top_builddir=${top_builddir:-..}
 
 . `dirname $0`/common.sh
 
-pkcs11_keys=${pkcs11_keys:-object=RSA object=DSA object=EC id=%01 id=%02 id=%03}
-pkcs11_tokens=${pkcs11_tokens:-openconnect-test}
-
-echo "Testing PKCS#11 auth... "
+echo "Testing certificate auth with non-ASCII passwords... "
 
 launch_simple_sr_server -d 1 -f -c configs/test-user-cert.config
 PID=$!
 wait_server $PID
 
-for TOKEN in ${pkcs11_tokens}; do
-    for KEY in ${pkcs11_keys}; do
-	echo -n "Connecting to obtain cookie (token ${TOKEN} key ${KEY})... "
-	CERTURI="pkcs11:token=${TOKEN};${KEY};pin-value=1234"
-	( echo "test" | SOFTHSM2_CONF=softhsm2.conf LD_PRELOAD=libsocket_wrapper.so \
-			    $OPENCONNECT -q $ADDRESS:443 -u test -c "${CERTURI}" --key-password 1234 --servercert=d66b507ae074d03b02eafca40d35f87dd81049d3 --cookieonly --passwd-on-stdin ) ||
-	    fail $PID "Could not connect with token ${TOKEN} key ${KEY##*/}!"
-    done
+KEY=${srcdir}/certs/user-key-nonascii-password.p12
+set -x
+for CHARSET in UTF-8 ISO8859-2; do
+    echo -n "Connecting to obtain cookie (with password charset ${CHARSET})... "
+    CERTARGS="-c ${KEY} --key-password $(cat ${srcdir}/pass-${CHARSET})"
+    ( echo "test" | LC_CTYPE=cs_CZ.${CHARSET} LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q $ADDRESS:443 -u test $CERTARGS --servercert=d66b507ae074d03b02eafca40d35f87dd81049d3 --cookieonly --passwd-on-stdin ) ||
+	fail $PID "Could not connect with charset ${CHARSET}!"
 done
 
 echo ok

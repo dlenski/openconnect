@@ -42,7 +42,7 @@ EXTRA_DIST = certs/ca.pem certs/ca-key.pem certs/user-cert.pem $(USER_KEYS) $(US
 dist_check_SCRIPTS =
 
 if HAVE_CWRAP
-dist_check_SCRIPTS += auth-username-pass auth-certificate id-test
+dist_check_SCRIPTS += auth-username-pass auth-certificate auth-nonascii id-test
 
 if TEST_PKCS11
 dist_check_SCRIPTS += auth-pkcs11
@@ -99,7 +99,7 @@ keyfiles: $(USER_KEYS) $(USER_CERTS)
 
 OPENSSL = openssl
 OSSLARGS = -in $< -out $@ -passout pass:password
-OSSLARGSP12 = -inkey $< -out $@ -in $${KEYFILE%-key-pkcs8.pem}-cert.pem -passout pass:password
+OSSLARGSP12 = -inkey $< -out $@ -in $${KEYFILE%-key-pkcs8.pem}-cert.pem -passout pass:$${PASSWORD%-password}
 
 # Strictly speaking this is only PKCS#1 for RSA. For EC it's probably
 # best described as RFC5915§4, and no idea what defines it for DSA.
@@ -156,6 +156,12 @@ $(certsdir)/ec-key-pkcs1-aes128.pem: certs/ec-key-pkcs1.pem
 	KEYFILE="$<"; $(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA256 \
 		-certpbe AES-256-CBC -keypbe AES-256-CBC
 
+# NB: Needs OpenSSL 1.1 or newer
+%-key-nonascii-password.p12: %-key-pkcs8.pem %-cert.pem
+	LC_ALL=en_GB.UTF-8 PASSWORD="$$(cat $(srcdir)/pass-UTF-8)" KEYFILE="$<" ; \
+	$(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA256 \
+		-certpbe AES-256-CBC -keypbe AES-256-CBC
+
 # This one makes GnuTLS behave strangely...
 %-key-aes256-cbc-md5-des-sha256.p12: %-key-pkcs8.pem %-cert.pem
 	KEYFILE="$<"; $(OPENSSL) pkcs12 $(OSSLARGSP12) -export -macalg SHA256 \
@@ -171,8 +177,8 @@ $(certsdir)/ec-key-pkcs1-aes128.pem: certs/ec-key-pkcs1.pem
 	$(OPENSSL) x509 -days 3650 -CA $(certsdir)/ca.pem -CAkey $(certsdir)/ca-key.pem \
 		-set_serial $(shell date +%s) -req -out $@ -in $<
 
-SHM2_UTIL=HOME=$(srcdir) SOFTHSM2_CONF=softhsm2.conf softhsm2-util
-P11TOOL=HOME=$(srcdir) SOFTHSM2_CONF=softhsm2.conf p11tool
+SHM2_UTIL=SOFTHSM2_CONF=softhsm2.conf softhsm2-util
+P11TOOL=SOFTHSM2_CONF=softhsm2.conf p11tool
 
 # Nice and simple: Certs visible without login, public keys present in token
 softhsm-setup0:

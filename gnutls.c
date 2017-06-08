@@ -1927,7 +1927,6 @@ int get_cert_md5_fingerprint(struct openconnect_info *vpninfo,
 
 static int set_peer_cert_hash(struct openconnect_info *vpninfo)
 {
-	unsigned char hash[SHA256_SIZE];
 	size_t shalen;
 	gnutls_pubkey_t pkey;
 	gnutls_datum_t d;
@@ -1969,26 +1968,22 @@ static int set_peer_cert_hash(struct openconnect_info *vpninfo)
 	}
 #endif
 	gnutls_pubkey_deinit(pkey);
-	shalen = SHA256_SIZE;
 
-	err = gnutls_fingerprint(GNUTLS_DIG_SHA256, &d, hash, &shalen);
+	shalen = sizeof(vpninfo->peer_cert_sha256_raw);
+	err = gnutls_fingerprint(GNUTLS_DIG_SHA256, &d, vpninfo->peer_cert_sha256_raw, &shalen);
 	if (err) {
 		gnutls_free(d.data);
 		return err;
 	}
 
-	vpninfo->peer_cert_sha256 = openconnect_bin2hex("sha256:", hash, shalen);
-
-	shalen = SHA1_SIZE;
-	err = gnutls_fingerprint(GNUTLS_DIG_SHA1, &d, hash, &shalen);
+	shalen = sizeof(vpninfo->peer_cert_sha1_raw);
+	err = gnutls_fingerprint(GNUTLS_DIG_SHA1, &d, vpninfo->peer_cert_sha1_raw, &shalen);
 	if (err) {
 		gnutls_free(d.data);
 		return err;
 	}
 
 	gnutls_free(d.data);
-
-	vpninfo->peer_cert_sha1 = openconnect_bin2hex("sha1:", hash, shalen);
 
 	return 0;
 }
@@ -2221,10 +2216,9 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 		gnutls_x509_crt_deinit(vpninfo->peer_cert);
 		vpninfo->peer_cert = NULL;
 	}
-	free(vpninfo->peer_cert_sha1);
-	vpninfo->peer_cert_sha1 = NULL;
-	free(vpninfo->peer_cert_sha256);
-	vpninfo->peer_cert_sha256 = NULL;
+
+	free(vpninfo->peer_cert_hash);
+	vpninfo->peer_cert_hash = NULL;
 	gnutls_free(vpninfo->cstp_cipher);
 	vpninfo->cstp_cipher = NULL;
 

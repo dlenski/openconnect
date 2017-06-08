@@ -76,7 +76,8 @@ static int oncp_can_gen_tokencode(struct openconnect_info *vpninfo,
 		return -EINVAL;
 
 	if (strcmp(form->auth_id, "frmDefender") &&
-	    strcmp(form->auth_id, "frmNextToken"))
+	    strcmp(form->auth_id, "frmNextToken") &&
+	    strcmp(form->auth_id, "ftmTotpToken"))
 		return -EINVAL;
 
 	return can_gen_tokencode(vpninfo, form, opt);
@@ -671,6 +672,12 @@ int oncp_obtain_cookie(struct openconnect_info *vpninfo)
 				break;
 			}
 			role_select = 1;
+		} else if (!strcmp(form_id, "frmTotpToken")) {
+			form = parse_form_node(vpninfo, node, "totpactionEnter");
+			if (!form) {
+				ret = -EINVAL;
+				break;
+			}
 		} else {
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Unknown form ID '%s'\n"),

@@ -1211,7 +1211,7 @@ int main(int argc, char **argv)
 				fprintf(stderr, _("Missing colon in resolve option\n"));
 				exit(1);
 			}
-			gai = malloc(sizeof(*gai) + strlen(config_arg));
+			gai = malloc(sizeof(*gai) + strlen(config_arg) + 1);
 			if (!gai) {
 				fprintf(stderr, _("Failed to allocate memory\n"));
 				exit(1);
@@ -1219,7 +1219,7 @@ int main(int argc, char **argv)
 			gai->next = gai_overrides;
 			gai_overrides = gai;
 			gai->option = (void *)(gai + 1);
-			memcpy(gai->option, config_arg, strlen(config_arg));
+			memcpy(gai->option, config_arg, strlen(config_arg) + 1);
 			gai->option[ip - config_arg] = 0;
 			gai->value = gai->option + (ip - config_arg) + 1;
 			break;
@@ -1307,7 +1307,7 @@ int main(int argc, char **argv)
 			}
 			break;
 		case 'p':
-			vpninfo->cert_password = strdup(config_arg);
+			vpninfo->cert_password = dup_config_arg();
 			break;
 		case 'P':
 			proxy = keep_config_arg();
@@ -1559,8 +1559,13 @@ int main(int argc, char **argv)
 	STRDUP(vpninfo->vpnc_script, vpnc_script);
 
 	if (vpninfo->dtls_state != DTLS_DISABLED &&
-	    openconnect_setup_dtls(vpninfo, 60))
+	    openconnect_setup_dtls(vpninfo, 60)) {
+		/* Disable DTLS if we cannot set it up, otherwise
+		 * reconnects end up in infinite loop trying to connect
+		 * to non existing DTLS */
+		vpninfo->dtls_state = DTLS_DISABLED;
 		fprintf(stderr, _("Set up DTLS failed; using SSL instead\n"));
+	}
 
 	openconnect_get_ip_info(vpninfo, &ip_info, NULL, NULL);
 
