@@ -540,7 +540,7 @@ static int parse_conf_pkt(struct openconnect_info *vpninfo, unsigned char *bytes
 
 int oncp_connect(struct openconnect_info *vpninfo)
 {
-	int ret, len, kmp, kmplen, group;
+	int ret, len, kmp, kmplen, group, check_len;
 	struct oc_text_buf *reqbuf;
 	unsigned char bytes[16384];
 
@@ -661,12 +661,14 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	/* Now we expect a three-byte response with what's presumably an
 	   error code */
 	ret = vpninfo->ssl_read(vpninfo, (void *)bytes, 3);
+	check_len = load_le16(bytes);
 	if (ret < 0)
 		goto out;
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Read %d bytes of SSL record\n"), ret);
+	dump_buf_hex(vpninfo, PRG_TRACE, '<', (void *)bytes, ret);
 
-	if (ret != 3 || bytes[0] != 1 || bytes[1] != 0) {
+	if (ret != 3 || check_len < 1) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unexpected response of size %d after hostname packet\n"),
 			     ret);
@@ -681,8 +683,18 @@ int oncp_connect(struct openconnect_info *vpninfo)
 		goto out;
 	}
 
-	/* And then a KMP message 301 with the IP configuration */
-	len = vpninfo->ssl_read(vpninfo, (void *)bytes, sizeof(bytes));
+	/* And then a KMP message 301 with the IP configuration.
+	 * Sometimes this arrives as a separate SSL record (with its own
+	 * 2-byte length prefix), and sometimes concatenated with the
+	 * previous 3-byte response).
+	 */
+	if (check_len == 1) {
+		len = vpninfo->ssl_read(vpninfo, (void *)bytes, sizeof(bytes));
+		check_len = load_le16(bytes);
+	} else {
+		len = vpninfo->ssl_read(vpninfo, (void *)(bytes+2), sizeof(bytes)-2) + 2;
+		check_len--;
+	}
 	if (len < 0) {
 		ret = len;
 		goto out;
@@ -690,7 +702,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	vpn_progress(vpninfo, PRG_TRACE,
 		     _("Read %d bytes of SSL record\n"), len);
 
-	if (len < 0x16 || load_le16(bytes) + 2 != len) {
+	if (len < 0x16 || check_len + 2 != len) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Invalid packet waiting for KMP 301\n"));
 		dump_buf_hex(vpninfo, PRG_ERR, '<', bytes, len);
