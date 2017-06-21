@@ -76,10 +76,15 @@ AC_ARG_WITH([vpnc-script],
 	  [default location of vpnc-script helper])])
 
 if test "$with_vpnc_script" = "yes" || test "$with_vpnc_script" = ""; then
+   AC_MSG_CHECKING([for vpnc-script in standard locations])
    if test "$have_win" = "yes"; then
       with_vpnc_script=vpnc-script-win.js
    else
-      with_vpnc_script=/etc/vpnc/vpnc-script
+      for with_vpnc_script in /usr/share/vpnc-scripts/vpnc-script /etc/vpnc/vpnc-script; do
+         if test -x "$with_vpnc_script"; then
+            break
+         fi
+      done
       if ! test -x "$with_vpnc_script"; then
 	 AC_MSG_ERROR([${with_vpnc_script} does not seem to be executable.]
  [OpenConnect will not function correctly without a vpnc-script.]
@@ -95,7 +100,9 @@ if test "$with_vpnc_script" = "yes" || test "$with_vpnc_script" = ""; then
  [build OpenConnect to use the script from this location, even though it is]
  [not present at the time you are building OpenConnect, pass the argument]
  ["--with-vpnc-script=${with_vpnc_script}"])
-     fi
+      else
+         AC_MSG_RESULT([${with_vpnc_script}])
+      fi
    fi
 elif test "$with_vpnc_script" = "no"; then
    AC_ERROR([You cannot disable vpnc-script.]
