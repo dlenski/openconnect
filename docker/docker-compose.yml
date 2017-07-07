@@ -1,0 +1,15 @@
+version: '3'
+services:
+  vpn:
+    environment:
+      - VPN_PASSWORD=${VPN_PASSWORD}
+      - VPN_USER=${VPN_USER}
+      - VPN_SERVER=${VPN_SERVER}
+    build:
+      context: ./
+    network_mode: "host"
+    cap_add:
+      -  NET_ADMIN
+    devices:
+      - "/dev/ppp"
+    privileged: true

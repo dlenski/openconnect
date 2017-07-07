@@ -85,6 +85,19 @@ certificate authentication… since that's the only example I have. But
 I'd welcome feedback if there are other authentication methods in use
 out there.
 
+## Connecting using Docker
+
+Requires [docker](https://www.docker.com) and [docker-compose](https://github.com/docker/compose):
+
+```sh
+$ cd docker
+$ docker-compose build
+$ export VPN_SERVER=myvpn.server.com
+$ export VPN_USER=myuser
+$ export VPN_PASSWORD=mypass
+$ docker-compose up -d
+```
+
 ## Portal vs. gateway servers
 
 For my VPN, the VPN tunnel server is the *same* as the VPN "portal"
