@@ -35,6 +35,10 @@ elif args.key:
 else:
     cert = None
 
+if not args.verify:
+    from requests.packages.urllib3.exceptions import InsecureRequestWarning
+    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)    
+    
 s = requests.Session()
 s.headers['User-Agent'] = 'PAN GlobalProtect'
 s.cert = cert
