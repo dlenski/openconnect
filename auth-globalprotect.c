@@ -79,7 +79,7 @@ static const struct gp_login_arg gp_login_args[] = {
     [10] = { .opt="unknown-arg10", .show=1 },
     [11] = { .opt="unknown-arg11", .show=1 },
     [12] = { .opt="connection-type", .err_missing=1, .check="tunnel" },
-    [13] = { .opt="minus1", .err_missing=1, .check="-1" },
+    [13] = { .opt="minus1", .err_missing=1 },
     [14] = { .opt="clientVer", .err_missing=1, .check="4100" },
     [15] = { .opt="preferred-ip", .save=1 },
 };
