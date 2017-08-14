@@ -452,8 +452,6 @@ case "$ssl_library" in
 	CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
 	esp=yes
 	dtls=yes
-	AC_CHECK_FUNC(gnutls_url_is_supported,
-		      [AC_DEFINE(HAVE_GNUTLS_URL_IS_SUPPORTED, 1, [From GnuTLS 3.1.0])], [])
 	AC_CHECK_FUNC(gnutls_system_key_add_x509,
 		      [AC_DEFINE(HAVE_GNUTLS_SYSTEM_KEYS, 1, [From GnuTLS 3.4.0])], [])
 	AC_CHECK_FUNC(gnutls_pkcs11_add_provider,
