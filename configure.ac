@@ -450,8 +450,6 @@ case "$ssl_library" in
 	oldcflags="$CFLAGS"
 	LIBS="$LIBS $GNUTLS_LIBS"
 	CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
-	AC_CHECK_FUNC(gnutls_pkcs11_get_raw_issuer,
-		      [AC_DEFINE(HAVE_GNUTLS_PKCS11_GET_RAW_ISSUER, 1, [From GnuTLS 3.2.7])], [])
 	AC_CHECK_FUNC(gnutls_certificate_set_x509_system_trust,
 		      [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_X509_SYSTEM_TRUST, 1, [From GnuTLS 3.0.20])], [])
 	if test "$ac_cv_func_gnutls_certificate_set_x509_system_trust" != "yes"; then

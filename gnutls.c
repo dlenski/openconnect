@@ -1751,7 +1751,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			}
 			free_issuer = 0;
 
-#if defined(HAVE_P11KIT) && defined(HAVE_GNUTLS_PKCS11_GET_RAW_ISSUER)
+#ifdef HAVE_P11KIT
 			if (err && cert_is_p11) {
 				gnutls_datum_t t;
 
