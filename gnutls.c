@@ -2228,15 +2228,9 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 
 	if (!vpninfo->https_cred) {
 		gnutls_certificate_allocate_credentials(&vpninfo->https_cred);
-		if (!vpninfo->no_system_trust) {
-#ifdef HAVE_GNUTLS_CERTIFICATE_SET_X509_SYSTEM_TRUST
+		if (!vpninfo->no_system_trust)
 			gnutls_certificate_set_x509_system_trust(vpninfo->https_cred);
-#else
-			gnutls_certificate_set_x509_trust_file(vpninfo->https_cred,
-							       DEFAULT_SYSTEM_CAFILE,
-							       GNUTLS_X509_FMT_PEM);
-#endif
-		}
+
 		gnutls_certificate_set_verify_function(vpninfo->https_cred,
 						       verify_peer);
 
