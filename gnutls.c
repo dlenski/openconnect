@@ -48,26 +48,6 @@
 static int gnutls_pin_callback(void *priv, int attempt, const char *uri,
 			       const char *token_label, unsigned int flags,
 			       char *pin, size_t pin_max);
-
-#ifndef HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION
-/* If we don't have this (3.1.0+) then we'll use p11-kit callbacks instead
- * because the old GnuTLS callback was global rather than context-specific,
- * which makes it basically unusable from libopenconnect. The p11-kit
- * callback function is a simple wrapper around the GnuTLS native version. */
-typedef enum {
-        GNUTLS_PIN_USER = (1 << 0),
-        GNUTLS_PIN_SO = (1 << 1),
-        GNUTLS_PIN_FINAL_TRY = (1 << 2),
-        GNUTLS_PIN_COUNT_LOW = (1 << 3),
-        GNUTLS_PIN_CONTEXT_SPECIFIC = (1 << 4),
-        GNUTLS_PIN_WRONG = (1 << 5)
-} gnutls_pin_flag_t;
-
-static P11KitPin *p11kit_pin_callback(const char *pin_source, P11KitUri *pin_uri,
-				      const char *pin_description,
-				      P11KitPinFlags flags,
-				      void *_vpninfo);
-#endif /* !HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION */
 #endif /* HAVE_P11KIT || HAVE_GNUTLS_SYSTEM_KEYS */
 
 #include "gnutls.h"
@@ -987,12 +967,6 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		CK_OBJECT_CLASS class;
 		CK_ATTRIBUTE attr;
 		P11KitUri *uri;
-#ifndef HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION
-		char pin_source[40];
-
-		sprintf(pin_source, "openconnect:%p", vpninfo);
-		p11_kit_pin_register_callback(pin_source, p11kit_pin_callback, vpninfo, NULL);
-#endif
 		uri = p11_kit_uri_new();
 
 		attr.type = CKA_CLASS;
@@ -1003,10 +977,6 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		   both certificate and key URLs, unless they already exist. */
 		if (cert_is_p11 &&
 		    !p11_kit_uri_parse(cert_url, P11_KIT_URI_FOR_ANY, uri)) {
-#ifndef HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION
-			if (!p11_kit_uri_get_pin_source(uri))
-				p11_kit_uri_set_pin_source(uri, pin_source);
-#endif
 			if (!p11_kit_uri_get_attribute(uri, CKA_CLASS)) {
 				class = CKO_CERTIFICATE;
 				p11_kit_uri_set_attribute(uri, &attr);
@@ -1016,10 +986,6 @@ static int load_certificate(struct openconnect_info *vpninfo)
 
 		if (key_is_p11 &&
 		    !p11_kit_uri_parse(key_url, P11_KIT_URI_FOR_ANY, uri)) {
-#ifndef HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION
-			if (!p11_kit_uri_get_pin_source(uri))
-				p11_kit_uri_set_pin_source(uri, pin_source);
-#endif
 			if (vpninfo->sslkey == vpninfo->cert ||
 			    !p11_kit_uri_get_attribute(uri, CKA_CLASS)) {
 				class = CKO_PRIVATE_KEY;
@@ -1044,9 +1010,9 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			ret = -ENOMEM;
 			goto out;
 		}
-#ifdef HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION
+
 		gnutls_x509_crt_set_pin_function(cert, gnutls_pin_callback, vpninfo);
-#endif
+
 		/* Yes, even for *system* URLs the only API GnuTLS offers us is
 		   ...import_pkcs11_url(). */
 		err = gnutls_x509_crt_import_pkcs11_url(cert, cert_url, 0);
@@ -1151,9 +1117,9 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			ret = -EIO;
 			goto out;
 		}
-#ifdef HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION
+
 		gnutls_privkey_set_pin_function(pkey, gnutls_pin_callback, vpninfo);
-#endif
+
 		err = gnutls_privkey_import_url(pkey, vpninfo->sslkey, 0);
 		if (err) {
 			vpn_progress(vpninfo, PRG_ERR,
@@ -1178,9 +1144,9 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			ret = -EIO;
 			goto out;
 		}
-#ifdef HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION
+
 		gnutls_pkcs11_privkey_set_pin_function(p11key, gnutls_pin_callback, vpninfo);
-#endif
+
 		err = gnutls_pkcs11_privkey_import_url(p11key, key_url, 0);
 
 		/* Annoyingly, some tokens don't even admit the *existence* of
@@ -2354,14 +2320,6 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 	if (final && vpninfo->https_cred) {
 		gnutls_certificate_free_credentials(vpninfo->https_cred);
 		vpninfo->https_cred = NULL;
-#if defined(HAVE_P11KIT) && !defined(HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION)
-		if ((vpninfo->cert && !strncmp(vpninfo->cert, "pkcs11:", 7)) ||
-		    (vpninfo->sslkey && !strncmp(vpninfo->sslkey, "pkcs11:", 7))) {
-			char pin_source[40];
-			sprintf(pin_source, "openconnect:%p", vpninfo);
-			p11_kit_pin_unregister_callback(pin_source, p11kit_pin_callback, vpninfo);
-		}
-#endif
 #ifdef HAVE_TROUSERS
 		if (vpninfo->tpm_key_policy) {
 			Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->tpm_key_policy);
@@ -2660,51 +2618,6 @@ static int gnutls_pin_callback(void *priv, int attempt, const char *uri,
 
 	return 0;
 }
-
-#ifndef HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION
-static P11KitPin *p11kit_pin_callback(const char *pin_source, P11KitUri *pin_uri,
-				      const char *pin_description,
-				      P11KitPinFlags flags,
-				      void *_vpninfo)
-{
-	struct openconnect_info *vpninfo = _vpninfo;
-	char *uri;
-	P11KitPin *pin = NULL;
-	char pin_str[1024];
-	unsigned gnutls_flags = 0;
-	int attempt = 0;
-
-	if (!vpninfo || !vpninfo->process_auth_form)
-		return NULL;
-
-	if (p11_kit_uri_format(pin_uri, P11_KIT_URI_FOR_TOKEN, &uri))
-		return NULL;
-
-	/*
-	 * In p11-kit <= 0.12, these flags are *odd*.
-	 * RETRY is 0xa, FINAL_TRY is 0x14 and MANY_TRIES is 0x28.
-	 * So don't treat it like a sane bitmask. Fixed in
-	 * http://cgit.freedesktop.org/p11-glue/p11-kit/commit/?id=59774b11
-	 */
-	if ((flags & P11_KIT_PIN_FLAGS_RETRY) == P11_KIT_PIN_FLAGS_RETRY) {
-		attempt = 1;
-		gnutls_flags |= GNUTLS_PIN_WRONG;
-	}
-	if ((flags & P11_KIT_PIN_FLAGS_FINAL_TRY) == P11_KIT_PIN_FLAGS_FINAL_TRY)
-		gnutls_flags |= GNUTLS_PIN_FINAL_TRY;
-	if ((flags & P11_KIT_PIN_FLAGS_MANY_TRIES) == P11_KIT_PIN_FLAGS_MANY_TRIES)
-		gnutls_flags |= GNUTLS_PIN_COUNT_LOW;
-
-	if (!gnutls_pin_callback(vpninfo, attempt, uri, pin_description,
-				gnutls_flags, pin_str, sizeof(pin_str)))
-		pin = p11_kit_pin_new_for_string(pin_str);
-
-	memset(pin_str, 0x5a, sizeof(pin_str));
-	free(uri);
-
-	return pin;
-}
-#endif /* !HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION */
 #endif /* HAVE_P11KIT || HAVE_GNUTLS_SYSTEM_KEYS */
 
 #ifdef HAVE_LIBPCSCLITE
