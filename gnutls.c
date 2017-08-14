@@ -27,12 +27,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-#ifndef HAVE_GNUTLS_CERTIFICATE_SET_KEY
-/* Shut up about gnutls_sign_callback_set() being deprecated. We only use it
-   in the GnuTLS 2.12 case, and there just isn't another way of doing it. */
-#define GNUTLS_INTERNAL_BUILD 1
-#endif
-
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 #include <gnutls/crypto.h>
@@ -593,86 +587,9 @@ static int get_cert_name(gnutls_x509_crt_t cert, char *name, size_t namelen)
 }
 
 #if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined (HAVE_GNUTLS_SYSTEM_KEYS)
-#ifndef HAVE_GNUTLS_CERTIFICATE_SET_KEY
-/* For GnuTLS 2.12 even if we *have* a privkey (as we do for PKCS#11), we
-   can't register it. So we have to use the cert_callback function. This
-   just hands out the certificate chain we prepared in load_certificate().
-   If we have a pkey then return that too; otherwise leave the key NULL —
-   we'll also have registered a sign_callback for the session, which will
-   handle that. */
-static int gtls_cert_cb(gnutls_session_t sess, const gnutls_datum_t *req_ca_dn,
-			int nreqs, const gnutls_pk_algorithm_t *pk_algos,
-			int pk_algos_length, gnutls_retr2_st *st) {
-
-	struct openconnect_info *vpninfo = gnutls_session_get_ptr(sess);
-	int algo = GNUTLS_PK_RSA; /* TPM */
-	int i;
-
-#ifdef HAVE_P11KIT
-	if (vpninfo->my_p11key) {
-		st->key_type = GNUTLS_PRIVKEY_PKCS11;
-		st->key.pkcs11 = vpninfo->my_p11key;
-		algo = gnutls_pkcs11_privkey_get_pk_algorithm(vpninfo->my_p11key, NULL);
-	};
-#endif
-	for (i = 0; i < pk_algos_length; i++) {
-		if (algo == pk_algos[i])
-			break;
-	}
-	if (i == pk_algos_length)
-		return GNUTLS_E_UNKNOWN_PK_ALGORITHM;
-
-	st->cert_type = GNUTLS_CRT_X509;
-	st->cert.x509 = vpninfo->my_certs;
-	st->ncerts = vpninfo->nr_my_certs;
-	st->deinit_all = 0;
-
-	return 0;
-}
-
-/* For GnuTLS 2.12, this has to set the cert_callback to the function
-   above, which will return the pkey and certs on demand. Or in the
-   case of TPM we can't make a suitable pkey, so we have to set a
-   sign_callback too (which is done in openconnect_open_https() since
-   it has to be done on the *session*). */
-static int assign_privkey(struct openconnect_info *vpninfo,
-			  gnutls_privkey_t pkey,
-			  gnutls_x509_crt_t *certs,
-			  unsigned int nr_certs,
-			  uint8_t *free_certs)
-{
-	vpninfo->my_certs = gnutls_calloc(nr_certs, sizeof(*certs));
-	if (!vpninfo->my_certs)
-		return GNUTLS_E_MEMORY_ERROR;
-
-	vpninfo->free_my_certs = gnutls_malloc(nr_certs);
-	if (!vpninfo->free_my_certs) {
-		gnutls_free(vpninfo->my_certs);
-		vpninfo->my_certs = NULL;
-		return GNUTLS_E_MEMORY_ERROR;
-	}
-
-	memcpy(vpninfo->free_my_certs, free_certs, nr_certs);
-	memcpy(vpninfo->my_certs, certs, nr_certs * sizeof(*certs));
-	vpninfo->nr_my_certs = nr_certs;
-
-	/* We are *keeping* the certs, unlike in GnuTLS 3 where our caller
-	   can free them after gnutls_certificate_set_key() has been called.
-	   So wipe the 'free_certs' array. */
-	memset(free_certs, 0, nr_certs);
-
-	gnutls_certificate_set_retrieve_function(vpninfo->https_cred,
-						 gtls_cert_cb);
-	vpninfo->my_pkey = pkey;
-
-	return 0;
-}
-#else /* !SET_KEY */
-
-/* For GnuTLS 3+ this is saner than the GnuTLS 2.12 version. But still we
-   have to convert the array of X509 certificates to gnutls_pcert_st for
-   ourselves. There's no function that takes a gnutls_privkey_t as the key
-   and gnutls_x509_crt_t certificates. */
+/* We have to convert the array of X509 certificates to gnutls_pcert_st
+   for ourselves. There's no function that takes a gnutls_privkey_t as
+   the key and gnutls_x509_crt_t certificates. */
 static int assign_privkey(struct openconnect_info *vpninfo,
 			  gnutls_privkey_t pkey,
 			  gnutls_x509_crt_t *certs,
@@ -708,17 +625,15 @@ static int assign_privkey(struct openconnect_info *vpninfo,
 	}
 	return err;
 }
-#endif /* !SET_KEY */
 
 static int verify_signed_data(gnutls_pubkey_t pubkey, gnutls_privkey_t privkey,
 			      const gnutls_datum_t *data, const gnutls_datum_t *sig)
 {
 #ifdef HAVE_GNUTLS_PK_TO_SIGN
-	gnutls_sign_algorithm_t algo = GNUTLS_SIGN_RSA_SHA1; /* TPM keys */
+	gnutls_sign_algorithm_t algo;
 
-	if (privkey != OPENCONNECT_TPM_PKEY)
-		algo = gnutls_pk_to_sign(gnutls_privkey_get_pk_algorithm(privkey, NULL),
-					 GNUTLS_DIG_SHA1);
+	algo = gnutls_pk_to_sign(gnutls_privkey_get_pk_algorithm(privkey, NULL),
+				 GNUTLS_DIG_SHA1);
 
 	return gnutls_pubkey_verify_data2(pubkey, algo, 0, data, sig);
 #else
@@ -1415,16 +1330,6 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			ret = -EIO;
 			goto out;
 		}
-#ifndef HAVE_GNUTLS_CERTIFICATE_SET_KEY
-		/* This can be set now and doesn't need to be separately freed.
-		   It goes with the pkey. This is a PITA; it would be better
-		   if there was a way to get the p11key *back* from a privkey
-		   that we *know* is based on one. In fact, since this is only
-		   for GnuTLS 2.12 and we *know* the gnutls_privkey_st won't
-		   ever change there, so we *could* do something evil... but
-		   we won't :) */
-		vpninfo->my_p11key = p11key;
-#endif /* !SET_KEY */
 		goto match_cert;
 	}
 #endif /* HAVE_P11KIT */
@@ -1618,7 +1523,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 				fdata.size = 20;
 			}
 
-			err = sign_dummy_data(vpninfo, pkey, &fdata, &pkey_sig);
+			err = gnutls_privkey_sign_data(pkey, GNUTLS_DIG_SHA1, 0, &fdata, &pkey_sig);
 			if (err) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Error signing test data with private key: %s\n"),
@@ -1882,7 +1787,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	gnutls_free(extra_certs);
 
 #if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
-	if (pkey && pkey != OPENCONNECT_TPM_PKEY)
+	if (pkey)
 		gnutls_privkey_deinit(pkey);
 	/* If we support arbitrary privkeys, we might have abused fdata.data
 	   just to point to something to hash. Don't free it in that case! */
@@ -2315,10 +2220,6 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 	}
 	gnutls_init(&vpninfo->https_sess, GNUTLS_CLIENT);
 	gnutls_session_set_ptr(vpninfo->https_sess, (void *) vpninfo);
-#if defined(HAVE_TROUSERS) && !defined(HAVE_GNUTLS_CERTIFICATE_SET_KEY)
-	if (vpninfo->my_pkey == OPENCONNECT_TPM_PKEY)
-		gnutls_sign_callback_set(vpninfo->https_sess, gtls2_tpm_sign_cb, vpninfo);
-#endif
 	/*
 	 * For versions of GnuTLS older than 3.2.9, we try to avoid long
 	 * packets by silently disabling extensions such as SNI.
@@ -2511,23 +2412,6 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 		if (vpninfo->tpm_context) {
 			Tspi_Context_Close(vpninfo->tpm_context);
 			vpninfo->tpm_context = 0;
-		}
-#endif
-#ifndef HAVE_GNUTLS_CERTIFICATE_SET_KEY
-		if (vpninfo->my_pkey && vpninfo->my_pkey != OPENCONNECT_TPM_PKEY) {
-			gnutls_privkey_deinit(vpninfo->my_pkey);
-			vpninfo->my_pkey = NULL;
-			/* my_p11key went with it */
-		}
-		if (vpninfo->my_certs) {
-			int i;
-			for (i = 0; i < vpninfo->nr_my_certs; i++)
-				if (vpninfo->free_my_certs[i])
-					gnutls_x509_crt_deinit(vpninfo->my_certs[i]);
-			gnutls_free(vpninfo->my_certs);
-			gnutls_free(vpninfo->free_my_certs);
-			vpninfo->my_certs = NULL;
-			vpninfo->free_my_certs = NULL;
 		}
 #endif
 	}

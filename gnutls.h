@@ -24,33 +24,6 @@
 
 #include "openconnect-internal.h"
 
-#ifndef HAVE_GNUTLS_CERTIFICATE_SET_KEY
-int gtls2_tpm_sign_cb(gnutls_session_t sess, void *_vpninfo,
-		      gnutls_certificate_type_t cert_type,
-		      const gnutls_datum_t *cert, const gnutls_datum_t *data,
-		      gnutls_datum_t *sig);
-int gtls2_tpm_sign_dummy_data(struct openconnect_info *vpninfo,
-			      const gnutls_datum_t *data,
-			      gnutls_datum_t *sig);
-#endif /* !HAVE_GNUTLS_CERTIFICATE_SET_KEY */
-
-/* In GnuTLS 2.12 this can't be a real private key; we have to use the sign_callback
-   instead. But we want to set the 'pkey' variable to *something* non-NULL in order
-   to indicate that we aren't just using an x509 key. */
-#define OPENCONNECT_TPM_PKEY ((void *)1UL)
-
-static inline int sign_dummy_data(struct openconnect_info *vpninfo,
-				  gnutls_privkey_t pkey,
-				  const gnutls_datum_t *data,
-				  gnutls_datum_t *sig)
-{
-#if defined(HAVE_TROUSERS) && !defined(HAVE_GNUTLS_CERTIFICATE_SET_KEY)
-	if (pkey == OPENCONNECT_TPM_PKEY)
-		return gtls2_tpm_sign_dummy_data(vpninfo, data, sig);
-#endif
-	return gnutls_privkey_sign_data(pkey, GNUTLS_DIG_SHA1, 0, data, sig);
-}
-
 int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata,
 		 gnutls_privkey_t *pkey, gnutls_datum_t *pkey_sig);
 

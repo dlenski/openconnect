@@ -452,8 +452,6 @@ case "$ssl_library" in
 	CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
 	esp=yes
 	dtls=yes
-	AC_CHECK_FUNC(gnutls_certificate_set_key,
-		      [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_KEY, 1, [From GnuTLS 3.0.4])], [])
 	AC_CHECK_FUNC(gnutls_pk_to_sign,
 		      [AC_DEFINE(HAVE_GNUTLS_PK_TO_SIGN, 1, [From GnuTLS 3.1.0])], [])
 	AC_CHECK_FUNC(gnutls_pubkey_export2,
