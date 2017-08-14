@@ -629,16 +629,12 @@ static int assign_privkey(struct openconnect_info *vpninfo,
 static int verify_signed_data(gnutls_pubkey_t pubkey, gnutls_privkey_t privkey,
 			      const gnutls_datum_t *data, const gnutls_datum_t *sig)
 {
-#ifdef HAVE_GNUTLS_PK_TO_SIGN
 	gnutls_sign_algorithm_t algo;
 
 	algo = gnutls_pk_to_sign(gnutls_privkey_get_pk_algorithm(privkey, NULL),
 				 GNUTLS_DIG_SHA1);
 
 	return gnutls_pubkey_verify_data2(pubkey, algo, 0, data, sig);
-#else
-	return gnutls_pubkey_verify_data(pubkey, 0, data, sig);
-#endif
 }
 #endif /* (P11KIT || TROUSERS || SYSTEM_KEYS) */
 
