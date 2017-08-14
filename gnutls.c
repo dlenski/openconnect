@@ -1838,37 +1838,11 @@ static int set_peer_cert_hash(struct openconnect_info *vpninfo)
 		return err;
 
 	err = gnutls_pubkey_import_x509(pkey, vpninfo->peer_cert, 0);
-	if (err) {
-		gnutls_pubkey_deinit(pkey);
-		return err;
-	}
-#ifdef HAVE_GNUTLS_PUBKEY_EXPORT2
-	err = gnutls_pubkey_export2(pkey, GNUTLS_X509_FMT_DER, &d);
-	if (err) {
-		gnutls_pubkey_deinit(pkey);
-		return err;
-	}
-#else
-	shalen = 0;
-	err = gnutls_pubkey_export(pkey, GNUTLS_X509_FMT_DER, NULL, &shalen);
-	if (err != GNUTLS_E_SHORT_MEMORY_BUFFER) {
-		gnutls_pubkey_deinit(pkey);
-		return err;
-	}
-	d.size = shalen;
-	d.data = gnutls_malloc(d.size);
-	if (!d.data) {
-		gnutls_pubkey_deinit(pkey);
-		return -ENOMEM;
-	}
-	err = gnutls_pubkey_export(pkey, GNUTLS_X509_FMT_DER, d.data, &shalen);
-	if (err) {
-		gnutls_free(d.data);
-		gnutls_pubkey_deinit(pkey);
-		return err;
-	}
-#endif
+	if (!err)
+		err = gnutls_pubkey_export2(pkey, GNUTLS_X509_FMT_DER, &d);
 	gnutls_pubkey_deinit(pkey);
+	if (err)
+		return err;
 
 	shalen = sizeof(vpninfo->peer_cert_sha256_raw);
 	err = gnutls_fingerprint(GNUTLS_DIG_SHA256, &d, vpninfo->peer_cert_sha256_raw, &shalen);
