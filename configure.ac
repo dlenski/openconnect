@@ -279,18 +279,9 @@ fi
 
 # First, check if GnuTLS exists and is usable
 if test "$with_gnutls" = "yes" || test "$with_gnutls" = ""; then
-    PKG_CHECK_MODULES(GNUTLS, gnutls >= 2.12.16,
-       [if ! $PKG_CONFIG --atleast-version=2.12.16 gnutls; then
-	    AC_MSG_WARN([Your GnuTLS is too old. At least v2.12.16 is required])
-        elif test "$have_win" = "yes"; then
-	   AC_MSG_CHECKING([for broken GnuTLS Windows versions])
-	   if $PKG_CONFIG --atleast-version=3.2.0 gnutls &&
-	      ! $PKG_CONFIG --atleast-version=3.2.10 gnutls; then
-	       AC_MSG_RESULT([broken])
-	   else
-	       AC_MSG_RESULT([OK])
-	       ssl_library=GnuTLS
-	   fi
+    PKG_CHECK_MODULES(GNUTLS, gnutls,
+       [if ! $PKG_CONFIG --atleast-version=3.2.10 gnutls; then
+	    AC_MSG_WARN([Your GnuTLS is too old. At least v3.2.10 is required])
 	else
 	    ssl_library=GnuTLS
 	fi], [:])

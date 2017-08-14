@@ -23,7 +23,7 @@ libraries and tools installed:</p>
 <ul>
   <li><b><tt>libxml2</tt></b></li>
   <li><b><tt>zlib</tt></b></li>
-  <li>Either <b><tt>OpenSSL</tt></b> or <b><tt>GnuTLS</tt></b></li>
+  <li>Either <b><tt>OpenSSL</tt></b> or <b><tt>GnuTLS</tt></b> <i>(v3.2.10+)</i></li>
   <li><b><tt>pkg-config</tt></b></li>
 </ul>
 And <em>optionally</em> also:
