@@ -450,8 +450,8 @@ case "$ssl_library" in
 	oldcflags="$CFLAGS"
 	LIBS="$LIBS $GNUTLS_LIBS"
 	CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
-	AC_CHECK_FUNC(gnutls_cipher_set_iv,
-		      [esp=yes], [])
+	esp=yes
+	dtls=yes
 	AC_CHECK_FUNC(gnutls_pkcs12_simple_parse,
 		      [AC_DEFINE(HAVE_GNUTLS_PKCS12_SIMPLE_PARSE, 1, [From GnuTLS 3.1.0])], [])
 	AC_CHECK_FUNC(gnutls_certificate_set_key,
@@ -466,8 +466,6 @@ case "$ssl_library" in
 		      [AC_DEFINE(HAVE_GNUTLS_URL_IS_SUPPORTED, 1, [From GnuTLS 3.1.0])], [])
 	AC_CHECK_FUNC(gnutls_system_key_add_x509,
 		      [AC_DEFINE(HAVE_GNUTLS_SYSTEM_KEYS, 1, [From GnuTLS 3.4.0])], [])
-	AC_CHECK_FUNC(gnutls_session_set_premaster,
-		      [dtls=yes], [])
 	AC_CHECK_FUNC(gnutls_pkcs11_add_provider,
 		      [PKG_CHECK_MODULES(P11KIT, p11-kit-1,
 					 [AC_DEFINE(HAVE_P11KIT, 1, [Have. P11. Kit.])
