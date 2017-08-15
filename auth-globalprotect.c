@@ -32,8 +32,8 @@ void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 /* our "auth form" always has a username and password or challenge */
 static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *prompt, char *auth_id)
 {
-	static struct oc_auth_form *form;
-	static struct oc_form_opt *opt, *opt2;
+	struct oc_auth_form *form;
+	struct oc_form_opt *opt, *opt2;
 
 	form = calloc(1, sizeof(*form));
 
@@ -43,20 +43,22 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *pr
 	form->auth_id = strdup(auth_id ? : "_gateway");
 
 	opt = form->opts = calloc(1, sizeof(*opt));
-	if (!opt)
+	if (!opt) {
+	nomem:
+		free_auth_form(form);
 		return NULL;
+	}
 	opt->name=strdup("user");
 	opt->label=strdup(_("Username: "));
 	opt->type = OC_FORM_OPT_TEXT;
 
 	opt2 = opt->next = calloc(1, sizeof(*opt));
 	if (!opt2)
-		return NULL;
+		goto nomem;
 	opt2->name = strdup("passwd");
 	opt2->label = auth_id ? strdup(_("Challenge: ")) : strdup(_("Password: "));
 	opt2->type = vpninfo->token_mode!=OC_TOKEN_MODE_NONE ? OC_FORM_OPT_TOKEN : OC_FORM_OPT_PASSWORD;
 
-	form->opts = opt;
 	return form;
 }
 
