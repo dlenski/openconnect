@@ -1,6 +1,6 @@
 .TH OPENCONNECT 8
 .SH NAME
-openconnect \- Connect to Cisco AnyConnect VPN
+openconnect \- Multi-protocol VPN client, for Cisco AnyConnect VPNs and others
 .SH SYNOPSIS
 .SY openconnect
 .OP \-\-config configfile
@@ -72,23 +72,32 @@ openconnect \- Connect to Cisco AnyConnect VPN
 .SH DESCRIPTION
 The program
 .B openconnect
-connects to Cisco "AnyConnect" VPN servers, which use standard TLS
-and DTLS protocols for data transport.
+connects to VPN servers which use standard TLS/SSL, DTLS, and ESP
+protocols for data transport.
+
+It was originally written to support Cisco "AnyConnect" VPN servers,
+and has since been extended with experimental support for Juniper
+Network Connect and Junos Pulse VPN servers
+.RB ( \-\-protocol=nc )
+and PAN GlobalProtect VPN servers
+.RB ( \-\-protocol=gp ).
 
 The connection happens in two phases. First there is a simple HTTPS
 connection over which the user authenticates somehow \- by using a
 certificate, or password or SecurID, etc.  Having authenticated, the
-user is rewarded with an HTTP cookie which can be used to make the
+user is rewarded with an authentication cookie which can be used to make the
 real VPN connection.
 
-The second phase uses that cookie in an HTTPS
-.I CONNECT
-request, and data packets can be passed over the resulting
-connection. In auxiliary headers exchanged with the
-.I CONNECT
-request, a Session\-ID and Master Secret for a DTLS connection are also
-exchanged, which allows data transport over UDP to occur.
-
+The second phase uses that cookie to connect to a tunnel via HTTPS,
+and data packets can be passed over the resulting connection. When
+possible, a UDP tunnel is also configured: AnyConnect uses DTLS, while
+Juniper and GlobalProtect use UDP-encapsulated ESP. The UDP tunnel
+may be disabled with
+.BR \-\-no\-dtls ,
+but is preferred when correctly supported by the server and network
+for performance reasons. (TCP performs poorly and unreliably over
+TCP-based tunnels; see
+.IR http://sites.inka.de/~W1011/devel/tcp-tcp.html .)
 
 .SH OPTIONS
 .TP
@@ -147,11 +156,10 @@ Disable all compression.
 Set compression mode, where
 .I MODE
 is one of
-.I "stateless"
-,
-.I "none"
-, or
-.I "all".
+.IR "stateless" ,
+.IR "none" ,
+or
+.IR "all" .
 
 By default, only stateless compression algorithms which do not maintain state
 from one packet to the next (and which can be used on UDP transports) are
@@ -159,7 +167,7 @@ enabled. By setting the mode to
 .I "all"
 stateful algorithms (currently only zlib deflate) can be enabled. Or all
 compression can be disabled by setting the mode to
-.I "none".
+.IR "none" .
 .TP
 .B \-\-force\-dpd=INTERVAL
 Use
@@ -250,7 +258,7 @@ Passphrase for certificate file is automatically generated from the
 .I fsid
 of the file system on which it is stored. The
 .I fsid
-is obtained from the 
+is obtained from the
 .BR statvfs (2)
 or
 .BR statfs (2)
@@ -374,7 +382,7 @@ setting.
 
 .TP
 .B \-\-no\-dtls
-Disable DTLS
+Disable DTLS and ESP
 .TP
 .B \-\-no\-http\-keepalive
 Version 8.2.2.5 of the Cisco ASA software has a bug where it will forget
