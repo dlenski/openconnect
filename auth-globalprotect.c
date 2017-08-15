@@ -65,10 +65,14 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo,
 		goto nomem;
 	opt2->name = strdup("passwd");
 	opt2->label = auth_id ? strdup(_("Challenge: ")) : strdup(_("Password: "));
-	if (vpninfo->token_mode == OC_TOKEN_MODE_NONE)
-		opt2->type = OC_FORM_OPT_PASSWORD;
+
+	/* XX: Some VPNs use a password in the first form, followed by a
+	 * a token in the second ("challenge") form. Others use only a
+	 * token. How can we distinguish these? */
+	if (!can_gen_tokencode(vpninfo, form, opt2))
+		opt2->type = OC_FORM_OPT_TOKEN;
 	else
-		opt2->type = OC_FORM_OPT_TOKEN; /* Don't we normally have to check can_gen_tokencode()? */
+		opt2->type = OC_FORM_OPT_PASSWORD;
 
 	return form;
 }
