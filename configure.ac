@@ -286,18 +286,9 @@ fi
 
 # First, check if GnuTLS exists and is usable
 if test "$with_gnutls" = "yes" || test "$with_gnutls" = ""; then
-    PKG_CHECK_MODULES(GNUTLS, gnutls >= 2.12.16,
-       [if ! $PKG_CONFIG --atleast-version=2.12.16 gnutls; then
-	    AC_MSG_WARN([Your GnuTLS is too old. At least v2.12.16 is required])
-        elif test "$have_win" = "yes"; then
-	   AC_MSG_CHECKING([for broken GnuTLS Windows versions])
-	   if $PKG_CONFIG --atleast-version=3.2.0 gnutls &&
-	      ! $PKG_CONFIG --atleast-version=3.2.10 gnutls; then
-	       AC_MSG_RESULT([broken])
-	   else
-	       AC_MSG_RESULT([OK])
-	       ssl_library=GnuTLS
-	   fi
+    PKG_CHECK_MODULES(GNUTLS, gnutls,
+       [if ! $PKG_CONFIG --atleast-version=3.2.10 gnutls; then
+	    AC_MSG_WARN([Your GnuTLS is too old. At least v3.2.10 is required])
 	else
 	    ssl_library=GnuTLS
 	fi], [:])
@@ -466,64 +457,10 @@ case "$ssl_library" in
 	oldcflags="$CFLAGS"
 	LIBS="$LIBS $GNUTLS_LIBS"
 	CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
-	AC_CHECK_FUNC(gnutls_dtls_set_data_mtu,
-		      [AC_DEFINE(HAVE_GNUTLS_DTLS_SET_DATA_MTU, 1, [From GnuTLS 3.0.20])], [])
-	AC_CHECK_FUNC(gnutls_pkcs11_get_raw_issuer,
-		      [AC_DEFINE(HAVE_GNUTLS_PKCS11_GET_RAW_ISSUER, 1, [From GnuTLS 3.2.7])], [])
-	AC_CHECK_FUNC(gnutls_certificate_set_x509_system_trust,
-		      [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_X509_SYSTEM_TRUST, 1, [From GnuTLS 3.0.20])], [])
-	if test "$ac_cv_func_gnutls_certificate_set_x509_system_trust" != "yes"; then
-	    # We will need to tell GnuTLS the path to the system CA file.
-	    if test "$with_system_cafile" = "yes" || test "$with_system_cafile" = ""; then
-		unset with_system_cafile
-		AC_MSG_CHECKING([For location of system CA trust file])
-		for file in /etc/ssl/certs/ca-certificates.crt \
-				/etc/pki/tls/cert.pem \
-				/usr/local/share/certs/ca-root-nss.crt \
-				/etc/ssl/cert.pem \
-				/etc/ssl/ca-bundle.pem \
-			    ; do
-		    if grep 'BEGIN CERTIFICATE-----' $file >/dev/null 2>&1; then
-			with_system_cafile=${file}
-			break
-		    fi
-		done
-		AC_MSG_RESULT([${with_system_cafile-NOT FOUND}])
-	    elif test "$with_system_cafile" = "no"; then
-		AC_MSG_ERROR([You cannot disable the system CA certificate file.])
-	    fi
-	    if test "$with_system_cafile" = ""; then
-		AC_MSG_ERROR([Unable to find a standard system CA certificate file.]
-			     [Your GnuTLS requires a path to a CA certificate store. This is a file]
-			     [which contains a list of the Certificate Authorities which are trusted.]
-			     [Most distributions ship with this file in a standard location, but none]
-			     [the known standard locations exist on your system. You should provide a]
-			     [--with-system-cafile= argument to this configure script, giving the full]
-			     [path to a default CA certificate file for GnuTLS to use. Also, please]
-			     [send full details of your system, including 'uname -a' output and the]
-			     [location of the system CA certificate store on your system, to the]
-			     [openconnect-devel@lists.infradead.org mailing list.])
-	    fi
-	    AC_DEFINE_UNQUOTED([DEFAULT_SYSTEM_CAFILE], ["$with_system_cafile"], [Location of System CA trust file])
-	fi
-	AC_CHECK_FUNC(gnutls_cipher_set_iv,
-		      [esp=yes], [])
-	AC_CHECK_FUNC(gnutls_pkcs12_simple_parse,
-		      [AC_DEFINE(HAVE_GNUTLS_PKCS12_SIMPLE_PARSE, 1, [From GnuTLS 3.1.0])], [])
-	AC_CHECK_FUNC(gnutls_certificate_set_key,
-		      [AC_DEFINE(HAVE_GNUTLS_CERTIFICATE_SET_KEY, 1, [From GnuTLS 3.0.4])], [])
-	AC_CHECK_FUNC(gnutls_pk_to_sign,
-		      [AC_DEFINE(HAVE_GNUTLS_PK_TO_SIGN, 1, [From GnuTLS 3.1.0])], [])
-	AC_CHECK_FUNC(gnutls_pubkey_export2,
-		      [AC_DEFINE(HAVE_GNUTLS_PUBKEY_EXPORT2, 1, [From GnuTLS 3.1.3])], [])
-	AC_CHECK_FUNC(gnutls_x509_crt_set_pin_function,
-		      [AC_DEFINE(HAVE_GNUTLS_X509_CRT_SET_PIN_FUNCTION, 1, [From GnuTLS 3.1.0])], [])
-	AC_CHECK_FUNC(gnutls_url_is_supported,
-		      [AC_DEFINE(HAVE_GNUTLS_URL_IS_SUPPORTED, 1, [From GnuTLS 3.1.0])], [])
+	esp=yes
+	dtls=yes
 	AC_CHECK_FUNC(gnutls_system_key_add_x509,
 		      [AC_DEFINE(HAVE_GNUTLS_SYSTEM_KEYS, 1, [From GnuTLS 3.4.0])], [])
-	AC_CHECK_FUNC(gnutls_session_set_premaster,
-		      [dtls=yes], [])
 	AC_CHECK_FUNC(gnutls_pkcs11_add_provider,
 		      [PKG_CHECK_MODULES(P11KIT, p11-kit-1,
 					 [AC_DEFINE(HAVE_P11KIT, 1, [Have. P11. Kit.])

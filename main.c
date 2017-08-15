@@ -367,36 +367,37 @@ static char *convert_arg_to_utf8(char **argv, char *arg)
 static void read_stdin(char **string, int hidden, int allow_fail)
 {
 	CONSOLE_READCONSOLE_CONTROL rcc = { sizeof(rcc), 0, 13, 0 };
-	HANDLE conh, stdinh = GetStdHandle(STD_INPUT_HANDLE);
+	HANDLE stdinh = GetStdHandle(STD_INPUT_HANDLE);
 	DWORD cmode, nr_read;
 	wchar_t wbuf[1024];
 	char *buf;
 
-	conh = stdinh;
-	if (!GetConsoleMode(conh, &cmode)) {
-		/* STDIN is not a console? Try opening it explicitly */
-		conh = CreateFile("CONIN$", GENERIC_READ, FILE_SHARE_READ,
-				  0,OPEN_EXISTING, 0, 0);
-		if (conh == INVALID_HANDLE_VALUE || !GetConsoleMode(conh, &cmode)) {
+	if (GetConsoleMode(stdinh, &cmode)) {
+		if (hidden)
+			SetConsoleMode(stdinh, cmode & (~ENABLE_ECHO_INPUT));
+
+		if (!ReadConsoleW(stdinh, wbuf, sizeof(wbuf)/2, &nr_read, &rcc)) {
 			char *errstr = openconnect__win32_strerror(GetLastError());
-			fprintf(stderr, _("Failed to open CONIN$: %s\n"), errstr);
+			fprintf(stderr, _("ReadConsole() failed: %s\n"), errstr);
 			free(errstr);
 			*string = NULL;
-			goto out;
+			if (hidden)
+				SetConsoleMode(stdinh, cmode);
+			return;
 		}
+		if (hidden)
+			SetConsoleMode(stdinh, cmode);
+	} else {
+		/* Not a console; maybe reading from a piped stdin? */
+		if (!fgetws(wbuf, sizeof(wbuf)/2, stdin)) {
+			char *errstr = openconnect__win32_strerror(GetLastError());
+			fprintf(stderr, _("fgetws() failed: %s\n"), errstr);
+			free(errstr);
+			*string = NULL;
+			return;
+		}
+		nr_read = wcslen(wbuf);
 	}
-	if (hidden) {
-		SetConsoleMode(conh, cmode & (~ENABLE_ECHO_INPUT));
-	}
-
-	if (!ReadConsoleW(conh, wbuf, sizeof(wbuf)/2, &nr_read, &rcc)) {
-		char *errstr = openconnect__win32_strerror(GetLastError());
-		fprintf(stderr, _("ReadConsole() failed: %s\n"), errstr);
-		free(errstr);
-		*string = NULL;
-		goto out;
-	}
-
 	if (nr_read >= 2 && wbuf[nr_read - 1] == 10 && wbuf[nr_read - 2] == 13) {
 		wbuf[nr_read - 2] = 0;
 		nr_read -= 2;
@@ -408,7 +409,7 @@ static void read_stdin(char **string, int hidden, int allow_fail)
 		fprintf(stderr, _("Error converting console input: %s\n"),
 			errstr);
 		free(errstr);
-		goto out;
+		return;
 	}
 	buf = malloc(nr_read);
 	if (!buf) {
@@ -422,18 +423,10 @@ static void read_stdin(char **string, int hidden, int allow_fail)
 			errstr);
 		free(errstr);
 		free(buf);
-		goto out;
+		return;
 	}
 
 	*string = buf;
-
-out:
-	if (hidden) {
-		SetConsoleMode(conh, cmode);
-		fprintf(stderr, "\n");
-	}
-	if (conh != stdinh && conh != INVALID_HANDLE_VALUE)
-		CloseHandle(conh);
 }
 
 #elif defined(HAVE_ICONV)
@@ -913,9 +906,21 @@ static char *xstrdup(const char *arg)
 #define keep_config_arg() \
 	(config_file ? xstrdup(config_arg) : convert_arg_to_utf8(argv, config_arg))
 
-#define dup_config_arg() \
-	((config_file || is_arg_utf8(config_arg)) ? xstrdup(config_arg) : \
-	 convert_arg_to_utf8(argv, config_arg))
+#define dup_config_arg() __dup_config_arg(argv, config_arg)
+
+static inline char *__dup_config_arg(char **argv, char *config_arg)
+{
+	char *res;
+
+	if (config_file || is_arg_utf8(config_arg))
+	    return xstrdup(config_arg);
+
+	res = convert_arg_to_utf8(argv, config_arg);
+	/* Force a copy, even if conversion failed */
+	if (res == config_arg)
+		res = xstrdup(res);
+	return res;
+}
 
 static int next_option(int argc, char **argv, char **config_arg)
 {
@@ -1081,7 +1086,9 @@ int main(int argc, char **argv)
 	bindtextdomain("openconnect", LOCALEDIR);
 #endif
 
-	setlocale(LC_ALL, "");
+	if (!setlocale(LC_ALL, ""))
+		fprintf(stderr,
+			_("WARNING: Cannot set locale: %s\n"), strerror(errno));
 
 #ifdef HAVE_NL_LANGINFO
 	charset = nl_langinfo(CODESET);

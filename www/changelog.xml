@@ -15,6 +15,8 @@
 <ul>
    <li><b>OpenConnect HEAD</b>
      <ul>
+       <li>Drop support for GnuTLS older than 3.2.10.</li>
+       <li>Fix <tt>--passwd-on-stdin</tt> for Windows to not forcibly open console.</li>
        <li>Fix portability of shell scripts in test suite.</li>
        <li>Add Google Authenticator TOTP support for Juniper.</li>
        <li>Add RFC7469 key PIN support for cert hashes.</li>

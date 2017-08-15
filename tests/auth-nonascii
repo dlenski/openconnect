@@ -34,7 +34,7 @@ set -x
 for CHARSET in UTF-8 ISO8859-2; do
     echo -n "Connecting to obtain cookie (with password charset ${CHARSET})... "
     CERTARGS="-c ${KEY} --key-password $(cat ${srcdir}/pass-${CHARSET})"
-    ( echo "test" | LC_CTYPE=cs_CZ.${CHARSET} LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q $ADDRESS:443 -u test $CERTARGS --servercert=d66b507ae074d03b02eafca40d35f87dd81049d3 --cookieonly --passwd-on-stdin ) ||
+    ( echo "test" | LC_ALL=cs_CZ.${CHARSET} LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q $ADDRESS:443 -u test $CERTARGS --servercert=d66b507ae074d03b02eafca40d35f87dd81049d3 --cookieonly --passwd-on-stdin ) ||
 	fail $PID "Could not connect with charset ${CHARSET}!"
 done
 

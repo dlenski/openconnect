@@ -514,15 +514,6 @@ struct openconnect_info {
 	TSS_HKEY tpm_key;
 	TSS_HPOLICY tpm_key_policy;
 #endif
-#ifndef HAVE_GNUTLS_CERTIFICATE_SET_KEY
-#ifdef HAVE_P11KIT
-	gnutls_pkcs11_privkey_t my_p11key;
-#endif
-	gnutls_privkey_t my_pkey;
-	gnutls_x509_crt_t *my_certs;
-	uint8_t *free_my_certs;
-	unsigned int nr_my_certs;
-#endif
 #endif /* OPENCONNECT_GNUTLS */
 	struct pin_cache *pin_cache;
 	struct keepalive_info ssl_times;

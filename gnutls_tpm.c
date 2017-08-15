@@ -34,68 +34,6 @@
 
 /* Signing function for TPM privkeys, set with gnutls_privkey_import_ext() */
 static int tpm_sign_fn(gnutls_privkey_t key, void *_vpninfo,
-		       const gnutls_datum_t *data, gnutls_datum_t *sig);
-
-
-#ifndef HAVE_GNUTLS_CERTIFICATE_SET_KEY
-/* We *want* to use gnutls_privkey_import_ext() to create a privkey with our
-   own signing function tpm_sign_fn(). But GnuTLS 2.12 doesn't support that,
-   so instead we have to register this sign_callback function with the
-   *session* */
-int gtls2_tpm_sign_cb(gnutls_session_t sess, void *_vpninfo,
-		      gnutls_certificate_type_t cert_type,
-		      const gnutls_datum_t *cert, const gnutls_datum_t *data,
-		      gnutls_datum_t *sig)
-{
-	struct openconnect_info *vpninfo = _vpninfo;
-
-	if (cert_type != GNUTLS_CRT_X509)
-		return GNUTLS_E_UNSUPPORTED_CERTIFICATE_TYPE;
-
-	return tpm_sign_fn(NULL, vpninfo, data, sig);
-}
-
-/* In GnuTLS 2.12 since we don't have a normal privkey and hence can't just
-   use gnutls_privkey_sign_data() with it, we have to jump through hoops to
-   prepare the hash in exactly the right way and call our internal TPM
-   signing function. */
-int gtls2_tpm_sign_dummy_data(struct openconnect_info *vpninfo,
-			      const gnutls_datum_t *data,
-			      gnutls_datum_t *sig)
-{
-	static const unsigned char ber_encode[15] = {
-		0x30, 0x21, /* SEQUENCE, length 31 */
-		0x30, 0x09,   /* SEQUENCE, length 9 */
-		0x06, 0x05,      /* OBJECT_ID, length 5 */
-		0x2b, 0x0e, 0x03, 0x02, 0x1a,  /* SHA1 OID: 1.3.14.3.2.26 */
-		0x05, 0x00,      /* NULL (parameters) */
-		0x04, 0x14,   /* OCTET_STRING, length 20 */
-		/* followed by the 20-byte sha1 */
-	};
-	gnutls_datum_t hash;
-	unsigned char digest[sizeof(ber_encode) + SHA1_SIZE];
-	size_t shalen = SHA1_SIZE;
-	int err;
-
-	err = gnutls_fingerprint(GNUTLS_DIG_SHA1, data,
-				 &digest[sizeof(ber_encode)], &shalen);
-	if (err) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Failed to SHA1 input data for signing: %s\n"),
-			     gnutls_strerror(err));
-		return err;
-	}
-
-	memcpy(digest, ber_encode, sizeof(ber_encode));
-
-	hash.data = digest;
-	hash.size = sizeof(digest);
-
-	return tpm_sign_fn(NULL, vpninfo, &hash, sig);
-}
-#endif /* !HAVE_GNUTLS_CERTIFICATE_SET_KEY */
-
-static int tpm_sign_fn(gnutls_privkey_t key, void *_vpninfo,
 		       const gnutls_datum_t *data, gnutls_datum_t *sig)
 {
 	struct openconnect_info *vpninfo = _vpninfo;
@@ -258,18 +196,14 @@ int load_tpm_key(struct openconnect_info *vpninfo, gnutls_datum_t *fdata,
 			goto out_srkpol;
 	}
 
-#ifdef HAVE_GNUTLS_CERTIFICATE_SET_KEY
 	gnutls_privkey_init(pkey);
 	/* This would be nicer if there was a destructor callback. I could
 	   allocate a data structure with the TPM handles and the vpninfo
 	   pointer, and destroy that properly when the key is destroyed. */
 	gnutls_privkey_import_ext(*pkey, GNUTLS_PK_RSA, vpninfo, tpm_sign_fn, NULL, 0);
-#else
-	*pkey = OPENCONNECT_TPM_PKEY;
-#endif
 
  retry_sign:
-	err = sign_dummy_data(vpninfo, *pkey, fdata, pkey_sig);
+	err = gnutls_privkey_sign_data(*pkey, GNUTLS_DIG_SHA1, 0, fdata, pkey_sig);
 	if (err == GNUTLS_E_INSUFFICIENT_CREDENTIALS) {
 		if (!vpninfo->tpm_key_policy) {
 			err = Tspi_Context_CreateObject(vpninfo->tpm_context,

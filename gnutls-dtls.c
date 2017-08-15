@@ -354,7 +354,6 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 				return -EIO;
 			}
 
-#ifdef HAVE_GNUTLS_DTLS_SET_DATA_MTU
 			/* Make sure GnuTLS's idea of the MTU is sufficient to take
 			   a full VPN MTU (with 1-byte header) in a data record. */
 			err = gnutls_dtls_set_data_mtu(vpninfo->dtls_ssl, vpninfo->ip_info.mtu + 1);
@@ -364,14 +363,6 @@ int dtls_try_handshake(struct openconnect_info *vpninfo)
 					     gnutls_strerror(err));
 				goto error;
 			}
-#else
-			/* If we don't have gnutls_dtls_set_data_mtu() then make sure
-			   we leave enough headroom by adding the worst-case overhead.
-			   We only support AES128-CBC and DES-CBC3-SHA anyway, so
-			   working out the worst case isn't hard. */
-			gnutls_dtls_set_mtu(vpninfo->dtls_ssl,
-					    vpninfo->ip_info.mtu + DTLS_OVERHEAD);
-#endif
 		}
 
 		vpninfo->dtls_state = DTLS_CONNECTED;
