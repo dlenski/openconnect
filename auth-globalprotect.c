@@ -103,7 +103,7 @@ static const struct gp_login_arg gp_login_args[] = {
 	{ .opt="unknown-arg10", .show=1 },
 	{ .opt="unknown-arg11", .show=1 },
 	{ .opt="connection-type", .err_missing=1, .check="tunnel" },
-	{ .opt="minus1", .err_missing=1, .check="-1" },
+	{ .opt="password-expiration-days", .show=1 },   /* days until password expires, if not -1 */
 	{ .opt="clientVer", .err_missing=1, .check="4100" },
 	{ .opt="preferred-ip", .save=1 },
 	{ .opt=NULL },
@@ -129,7 +129,7 @@ static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 		else if (xml_node) {
 			/* XX: Could we just use xml_node->content here? */
 			value = (char *)xmlNodeGetContent(xml_node);
-			if (value && (!value[0] || !strcmp(value, "(null)"))) {
+			if (value && (!value[0] || !strcmp(value, "(null)") || !strcmp(value, "-1"))) {
 				free(value);
 				value = NULL;
 			}
