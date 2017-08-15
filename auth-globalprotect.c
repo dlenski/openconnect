@@ -36,10 +36,12 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *pr
 	struct oc_form_opt *opt, *opt2;
 
 	form = calloc(1, sizeof(*form));
-
 	if (!form)
 		return NULL;
-	if (prompt) form->message = strdup(prompt);
+
+	if (prompt)
+		form->message = strdup(prompt);
+
 	form->auth_id = strdup(auth_id ? : "_gateway");
 
 	opt = form->opts = calloc(1, sizeof(*opt));
@@ -48,8 +50,8 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *pr
 		free_auth_form(form);
 		return NULL;
 	}
-	opt->name=strdup("user");
-	opt->label=strdup(_("Username: "));
+	opt->name = strdup("user");
+	opt->label = strdup(_("Username: "));
 	opt->type = OC_FORM_OPT_TEXT;
 
 	opt2 = opt->next = calloc(1, sizeof(*opt));
@@ -57,7 +59,10 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *pr
 		goto nomem;
 	opt2->name = strdup("passwd");
 	opt2->label = auth_id ? strdup(_("Challenge: ")) : strdup(_("Password: "));
-	opt2->type = vpninfo->token_mode!=OC_TOKEN_MODE_NONE ? OC_FORM_OPT_TOKEN : OC_FORM_OPT_PASSWORD;
+	if (vpninfo->token_mode == OC_TOKEN_MODE_NONE)
+		opt2->type = OC_FORM_OPT_PASSWORD;
+	else
+		opt2->type = OC_FORM_OPT_TOKEN; /* Don't we normally have to check can_gen_tokencode()? */
 
 	return form;
 }
