@@ -158,20 +158,24 @@ err_out:
 
 static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 {
-	static struct oc_auth_form form = {.message=(char *)"Please select GlobalProtect gateway.", .auth_id=(char *)"_portal"};
-
+	struct oc_auth_form form;
 	xmlNode *x;
 	struct oc_form_opt_select *opt;
-	struct oc_text_buf *buf;
+	struct oc_text_buf *buf = NULL;
 	int max_choices = 0, result;
 	char *portal = NULL;
 
-	opt = calloc(1, sizeof(*opt));
+	form.message = (char *)_("Please select GlobalProtect gateway.");
+	form.auth_id = (char *)"_portal";
+
+	form.authgroup_opt = opt = calloc(1, sizeof(*opt));
 	if (!opt)
 		return -ENOMEM;
 	opt->form.type = OC_FORM_OPT_SELECT;
 	opt->form.name = strdup("gateway");
 	opt->form.label = strdup(_("GATEWAY:"));
+
+	form.opts = (void *)opt;
 
 	/* The portal contains a ton of stuff, but basically none of it is useful to a VPN client
 	 * that wishes to give control to the client user, as opposed to the VPN administrator.
@@ -188,38 +192,45 @@ static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 							if (xmlnode_is_named(xml_node, "list"))
 								goto gateways;
 	result = -EINVAL;
+	free_opt(form.opts);
 	free(portal);
 	goto out;
 
 gateways:
-	buf = buf_alloc();
-	buf_append(buf, "<GPPortal>\n  <ServerList>\n");
-	if (portal) {
-		buf_append(buf, "      <HostEntry><HostName>%s</HostName><HostAddress>%s", portal, vpninfo->hostname);
-		if (vpninfo->port!=443)
-			buf_append(buf, ":%d", vpninfo->port);
-		buf_append(buf, "/global-protect</HostAddress></HostEntry>\n");
+	if (vpninfo->write_new_config) {
+		buf = buf_alloc();
+		buf_append(buf, "<GPPortal>\n  <ServerList>\n");
+		if (portal) {
+			/* XXX: What if the name in 'portal' has characters which need to be
+			 * escaped in XML?  Either build up a tree using libxml "properly"
+			 * so it does it for us, or at the very least we need a
+			 * buf_append_xmlescaped(), don't we? */
+			buf_append(buf, "      <HostEntry><HostName>%s</HostName><HostAddress>%s", portal, vpninfo->hostname);
+			if (vpninfo->port!=443)
+				buf_append(buf, ":%d", vpninfo->port);
+			buf_append(buf, "/global-protect</HostAddress></HostEntry>\n");
+		}
 	}
 	free(portal);
 
 	/* first, count the number of gateways */
-	for (x = xml_node->children; x; x=x->next)
+	for (x = xml_node->children; x; x = x->next)
 		if (xmlnode_is_named(x, "entry"))
 			max_choices++;
 
-	opt->choices = calloc(1, max_choices * sizeof(struct oc_choice *));
+	opt->choices = calloc(max_choices, sizeof(opt->choices[0]));
 	if (!opt->choices) {
-		free_opt((struct oc_form_opt *)opt);
+		free_opt(form.opts);
 		return -ENOMEM;
 	}
 
 	/* each entry looks like <entry name="host[:443]"><description>Label</description></entry> */
 	vpn_progress(vpninfo, PRG_INFO, _("%d gateway servers available:\n"), max_choices);
-	for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
+	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
 		if (xmlnode_is_named(xml_node, "entry")) {
 			struct oc_choice *choice = calloc(1, sizeof(*choice));
 			if (!choice) {
-				free_opt((struct oc_form_opt *)opt);
+				free_opt(form.opts);
 				return -ENOMEM;
 			}
 
@@ -232,17 +243,16 @@ gateways:
 
 			opt->choices[opt->nr_choices++] = choice;
 			vpn_progress(vpninfo, PRG_INFO, _("  %s (%s)\n"),
-						 choice->label, choice->name);
+				     choice->label, choice->name);
 		}
 	}
 
 	buf_append(buf, "  </ServerList>\n</GPPortal>\n");
-	if (vpninfo->write_new_config)
+	if (vpninfo->write_new_config && !buf_error(buf))
 		result = vpninfo->write_new_config(vpninfo->cbdata, buf->data, buf->pos);
 	buf_free(buf);
 
 	/* process static auth form to select gateway */
-	form.opts = (struct oc_form_opt *)(form.authgroup_opt = opt);
 	result = process_auth_form(vpninfo, &form);
 	if (result != OC_FORM_RESULT_NEWGROUP)
 		goto out;
@@ -256,7 +266,7 @@ gateways:
 	result = handle_redirect(vpninfo);
 
 out:
-	free_opt((struct oc_form_opt *)opt);
+	free_opt(form.opts);
 	return result;
 }
 
