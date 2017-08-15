@@ -1974,7 +1974,7 @@ static int process_auth_form_cb(void *_vpninfo,
 
 		} else if (opt->type == OC_FORM_OPT_TEXT) {
 			if (username &&
-			    !strcmp(opt->name, "username")) {
+			    !strncmp(opt->name, "user", 4)) {
 				opt->_value = username;
 				username = NULL;
 			} else {
@@ -1987,7 +1987,7 @@ static int process_auth_form_cb(void *_vpninfo,
 
 		} else if (opt->type == OC_FORM_OPT_PASSWORD) {
 			if (password &&
-			    !strcmp(opt->name, "password")) {
+			    !strncmp(opt->name, "pass", 4)) {
 				opt->_value = password;
 				password = NULL;
 			} else {
