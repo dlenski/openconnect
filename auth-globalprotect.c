@@ -170,7 +170,7 @@ err_out:
 static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 {
 	struct oc_auth_form form;
-	xmlNode *x;
+	xmlNode *x = NULL;
 	struct oc_form_opt_select *opt;
 	struct oc_text_buf *buf = NULL;
 	int max_choices = 0, result;
@@ -192,16 +192,22 @@ static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 	 * that wishes to give control to the client user, as opposed to the VPN administrator.
 	 * The exception is the list of gateways in policy/gateways/external/list
 	 */
-	if (xmlnode_is_named(xml_node, "policy"))
-		for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next)
-			if (xmlnode_is_named(xml_node, "portal-name"))
+	if (xmlnode_is_named(xml_node, "policy")) {
+		for (x = xml_node->children, xml_node = NULL; x; x = x->next) {
+			if (xmlnode_is_named(x, "portal-name"))
 				portal = (char *)xmlNodeGetContent(xml_node);
-			else if (xmlnode_is_named(xml_node, "gateways"))
-				for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next)
-					if (xmlnode_is_named(xml_node, "external"))
-						for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next)
-							if (xmlnode_is_named(xml_node, "list"))
-								goto gateways;
+			else if (xmlnode_is_named(x, "gateways"))
+				xml_node = x;
+		}
+	}
+
+	if (xml_node) {
+		for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next)
+			if (xmlnode_is_named(xml_node, "external"))
+				for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next)
+					if (xmlnode_is_named(xml_node, "list"))
+						goto gateways;
+	}
 	result = -EINVAL;
 	free_opt(form.opts);
 	free(portal);
@@ -288,7 +294,7 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 	struct oc_auth_form *form = NULL;
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
-	char *xml_buf=NULL, *orig_path;
+	char *xml_buf = NULL, *orig_path;
 	char *prompt = NULL, *auth_id = NULL;
 
 #ifdef HAVE_LIBSTOKEN
@@ -398,7 +404,7 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
-	char *xml_buf=NULL;
+	char *xml_buf = NULL;
 
 	/* In order to logout successfully, the client must send not only
 	 * the session's authcookie, but also the portal, user, computer,
