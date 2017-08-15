@@ -56,15 +56,17 @@ static const struct pkt dpd_pkt = {
 	{ .gpst.hdr = { 0x1a, 0x2b, 0x3c, 0x4d } }
 };
 
-/* similar to auth.c's xmlnode_get_text, except that *var should be freed by the caller */
-static int xmlnode_get_text(xmlNode *xml_node, const char *name, const char **var)
+/* similar to auth.c's xmlnode_get_text, including that *var should be freed by the caller,
+   but without the hackish param / %s handling that Cisco needs. And without freeing up
+   the old contents of *var, which is likely to lead to bugs? */
+static int xmlnode_get_text(xmlNode *xml_node, const char *name, char **var)
 {
-	const char *str;
+	char *str;
 
 	if (name && !xmlnode_is_named(xml_node, name))
 		return -EINVAL;
 
-	str = (const char *)xmlNodeGetContent(xml_node);
+	str = (char *)xmlNodeGetContent(xml_node);
 	if (!str)
 		return -ENOENT;
 
@@ -162,9 +164,9 @@ static int parse_javascript(char *buf, char **prompt, char **inputStr)
 	return status;
 
 err3:
-	if (inputStr) free((void *)*inputStr);
+	if (inputStr) free(*inputStr);
 err2:
-	if (prompt) free((void *)*prompt);
+	if (prompt) free(*prompt);
 err:
 	return -EINVAL;
 }
@@ -175,7 +177,7 @@ int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *respon
 {
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node;
-	const char *err = NULL;
+	char *err = NULL;
 
 	/* custom error codes returned by /ssl-vpn/login.esp and maybe others */
 	if (result == -EACCES)
@@ -255,7 +257,7 @@ out:
 			vpn_progress(vpninfo, PRG_ERR, "%s\n", err);
 			result = -EINVAL;
 		}
-		free((void *)err);
+		free(err);
 	}
 	if (xml_doc)
 		xmlFreeDoc(xml_doc);
@@ -346,16 +348,16 @@ static int get_key_bits(xmlNode *xml_node, unsigned char *dest)
 {
 	int bits = -1;
 	xmlNode *child;
-	const char *s, *p;
+	char *s, *p;
 
 	for (child = xml_node->children; child; child=child->next) {
 		if (xmlnode_get_text(child, "bits", &s) == 0) {
 			bits = atoi(s);
-			free((void *)s);
+			free(s);
 		} else if (xmlnode_get_text(child, "val", &s) == 0) {
 			for (p=s; *p && *(p+1) && (bits-=8)>=0; p+=2)
 				*dest++ = unhex(p);
-			free((void *)s);
+			free(s);
 		}
 	}
 	return (bits == 0) ? 0 : -EINVAL;
@@ -368,7 +370,7 @@ static int get_key_bits(xmlNode *xml_node, unsigned char *dest)
 static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 {
 	xmlNode *member;
-	const char *s;
+	char *s;
 	int ii;
 
 	if (!xml_node || !xmlnode_is_named(xml_node, "response"))
@@ -394,7 +396,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 			vpninfo->ip_info.netmask = add_option(vpninfo, "netmask", s);
 		else if (!xmlnode_get_text(xml_node, "mtu", &s)) {
 			vpninfo->ip_info.mtu = atoi(s);
-			free((void *)s);
+			free(s);
 		} else if (!xmlnode_get_text(xml_node, "gw-address", &s)) {
 			/* As remarked in oncp.c, "this is a tunnel; having a
 			 * gateway is meaningless." See esp_send_probes_gp for the
@@ -404,7 +406,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 				vpn_progress(vpninfo, PRG_DEBUG,
 							 _("Gateway address in config XML (%s) differs from external gateway address (%s).\n"), s, vpninfo->ip_info.gateway_addr);
 			vpninfo->esp_magic = inet_addr(s);
-			free((void *)s);
+			free(s);
 		} else if (xmlnode_is_named(xml_node, "dns")) {
 			for (ii=0, member = xml_node->children; member && ii<3; member=member->next)
 				if (!xmlnode_get_text(member, "member", &s))
@@ -447,7 +449,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 					else if (xmlnode_is_named(member, "akey-s2c"))		get_key_bits(member, vpninfo->esp_in[c].hmac_key);
 					else if (!xmlnode_get_text(member, "ipsec-mode", &s) && strcmp(s, "esp-tunnel"))
 						vpn_progress(vpninfo, PRG_ERR, _("GlobalProtect config sent ipsec-mode=%s (expected esp-tunnel)\n"), s);
-					free((void *)s);
+					free(s);
 				}
 				if (setup_esp_keys(vpninfo, 0))
 					vpn_progress(vpninfo, PRG_ERR, "Failed to setup ESP keys.\n");
