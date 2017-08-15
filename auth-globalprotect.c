@@ -381,6 +381,8 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 		/* first try handling it as a gateway, then a portal */
 		result = gpst_login(vpninfo, 0);
 		if (result == -EEXIST) {
+			/* XX: Don't we want to start by trying the same username/password the user just
+			   entered for the 'gateway' attempt? */
 			result = gpst_login(vpninfo, 1);
 			if (result == -EEXIST)
 				vpn_progress(vpninfo, PRG_ERR, _("Server is neither a GlobalProtect portal nor a gateway.\n"));
