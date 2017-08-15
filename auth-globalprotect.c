@@ -66,31 +66,38 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *pr
  *  < 0, on error
  *  = 0, on success; *form is populated
  */
-struct gp_login_arg { const char *opt; int save:1; int show:1; int warn_missing:1; int err_missing:1; const char *check; };
-static const struct gp_login_arg gp_login_args[] = {
-    [0] = { .opt="unknown-arg0", .show=1 },
-    [1] = { .opt="authcookie", .save=1, .err_missing=1 },
-    [2] = { .opt="persistent-cookie", .warn_missing=1 },  /* 40 hex digits; persists across sessions */
-    [3] = { .opt="portal", .save=1, .warn_missing=1 },
-    [4] = { .opt="user", .save=1, .err_missing=1 },
-    [5] = { .opt="authentication-source", .show=1 },      /* LDAP-auth, AUTH-RADIUS_RSA_OTP, etc. */
-    [6] = { .opt="configuration", .warn_missing=1 },      /* usually vsys1 (sometimes vsys2, etc.) */
-    [7] = { .opt="domain", .save=1, .warn_missing=1 },
-    [8] = { .opt="unknown-arg8", .show=1 },
-    [9] = { .opt="unknown-arg9", .show=1 },
-    [10] = { .opt="unknown-arg10", .show=1 },
-    [11] = { .opt="unknown-arg11", .show=1 },
-    [12] = { .opt="connection-type", .err_missing=1, .check="tunnel" },
-    [13] = { .opt="minus1", .err_missing=1, .check="-1" },
-    [14] = { .opt="clientVer", .err_missing=1, .check="4100" },
-    [15] = { .opt="preferred-ip", .save=1 },
+struct gp_login_arg {
+	const char *opt;
+	unsigned save:1;
+	unsigned show:1;
+	unsigned warn_missing:1;
+	unsigned err_missing:1;
+	const char *check;
 };
-const int gp_login_nargs = (sizeof(gp_login_args)/sizeof(*gp_login_args));
+static const struct gp_login_arg gp_login_args[] = {
+	{ .opt="unknown-arg0", .show=1 },
+	{ .opt="authcookie", .save=1, .err_missing=1 },
+	{ .opt="persistent-cookie", .warn_missing=1 },  /* 40 hex digits; persists across sessions */
+	{ .opt="portal", .save=1, .warn_missing=1 },
+	{ .opt="user", .save=1, .err_missing=1 },
+	{ .opt="authentication-source", .show=1 },      /* LDAP-auth, AUTH-RADIUS_RSA_OTP, etc. */
+	{ .opt="configuration", .warn_missing=1 },      /* usually vsys1 (sometimes vsys2, etc.) */
+	{ .opt="domain", .save=1, .warn_missing=1 },
+	{ .opt="unknown-arg8", .show=1 },
+	{ .opt="unknown-arg9", .show=1 },
+	{ .opt="unknown-arg10", .show=1 },
+	{ .opt="unknown-arg11", .show=1 },
+	{ .opt="connection-type", .err_missing=1, .check="tunnel" },
+	{ .opt="minus1", .err_missing=1, .check="-1" },
+	{ .opt="clientVer", .err_missing=1, .check="4100" },
+	{ .opt="preferred-ip", .save=1 },
+	{ .opt=NULL },
+};
 
 static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 {
 	struct oc_text_buf *cookie = buf_alloc();
-	const char *value = NULL;
+	char *value = NULL;
 	const struct gp_login_arg *arg;
 
 	if (!xmlnode_is_named(xml_node, "jnlp"))
@@ -101,47 +108,50 @@ static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 		goto err_out;
 
 	xml_node = xml_node->children;
-	for (arg=gp_login_args; arg<gp_login_args+gp_login_nargs; arg++) {
-		if (!arg->opt)
-			continue;
-
-		if (!xml_node)
-			value = NULL;
-		else if (!xmlnode_is_named(xml_node, "argument"))
+	for (arg = gp_login_args; arg->opt; arg++) {
+		if (xml_node && !xmlnode_is_named(xml_node, "argument"))
 			goto err_out;
-		else {
-			value = (const char *)xmlNodeGetContent(xml_node);
-			if (value && (!strlen(value) || !strcmp(value, "(null)"))) {
-				free((void *)value);
+		else if (xml_node) {
+			/* XX: Could we just use xml_node->content here? */
+			value = (char *)xmlNodeGetContent(xml_node);
+			if (value && (!value[0] || !strcmp(value, "(null)"))) {
+				free(value);
 				value = NULL;
 			}
 			xml_node = xml_node->next;
 		}
 
-		if (arg->check && (value==NULL || strcmp(value, arg->check))) {
+		if (arg->check && (!value || strcmp(value, arg->check))) {
 			vpn_progress(vpninfo, arg->err_missing ? PRG_ERR : PRG_DEBUG,
-						 _("GlobalProtect login returned %s=%s (expected %s)\n"), arg->opt, value, arg->check);
-			if (arg->err_missing) goto err_out;
-		} else if ((arg->err_missing || arg->warn_missing) && value==NULL) {
+				     _("GlobalProtect login returned %s=%s (expected %s)\n"),
+				     arg->opt, value, arg->check);
+			if (arg->err_missing)
+				goto err_out;
+		} else if ((arg->err_missing || arg->warn_missing) && !value) {
 			vpn_progress(vpninfo, arg->err_missing ? PRG_ERR : PRG_DEBUG,
-						 _("GlobalProtect login returned empty or missing %s\n"), arg->opt);
-			if (arg->err_missing) goto err_out;
+				     _("GlobalProtect login returned empty or missing %s\n"),
+				     arg->opt);
+			if (arg->err_missing)
+				goto err_out;
 		} else if (value && arg->show) {
 			vpn_progress(vpninfo, PRG_INFO,
-						 _("GlobalProtect login returned %s=%s\n"), arg->opt, value);
+				     _("GlobalProtect login returned %s=%s\n"),
+				     arg->opt, value);
 		}
 
 		if (value && arg->save)
 			append_opt(cookie, arg->opt, value);
-		free((void *)value);
+		free(value);
+		value = NULL;
 	}
 
-	vpninfo->cookie = strdup(cookie->data);
+	vpninfo->cookie = cookie->data;
+	cookie->data = NULL;
 	buf_free(cookie);
 	return 0;
 
 err_out:
-	free((void *)value);
+	free(value);
 	buf_free(cookie);
 	return -EINVAL;
 }
