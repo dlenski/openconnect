@@ -26,11 +26,17 @@
 
 void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf)
 {
+	char *orig_ua = vpninfo->useragent;
+	vpninfo->useragent = (char *)"PAN GlobalProtect";
+
 	http_common_headers(vpninfo, buf);
+
+	vpninfo->useragent = orig_ua;
 }
 
 /* our "auth form" always has a username and password or challenge */
-static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *prompt, char *auth_id)
+static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo,
+				      const char *prompt, const char *auth_id)
 {
 	struct oc_auth_form *form;
 	struct oc_form_opt *opt, *opt2;
@@ -282,9 +288,8 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 	struct oc_auth_form *form = NULL;
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
-	const char *method = "POST";
-	char *xml_buf=NULL, *orig_path, *orig_ua;
-	char *prompt=_("Please enter your username and password"), *auth_id=NULL;
+	char *xml_buf=NULL, *orig_path;
+	char *prompt = NULL, *auth_id = NULL;
 
 #ifdef HAVE_LIBSTOKEN
 	/* Step 1: Unlock software token (if applicable) */
@@ -295,7 +300,7 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 	}
 #endif
 
-	form = auth_form(vpninfo, prompt, auth_id);
+	form = auth_form(vpninfo, _("Please enter your username and password"), NULL);
 	if (!form)
 		return -ENOMEM;
 
@@ -322,19 +327,18 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 		buf_append(request_body, "jnlpReady=jnlpReady&ok=Login&direct=yes&clientVer=4100&prot=https:");
 		append_opt(request_body, "server", vpninfo->hostname);
 		append_opt(request_body, "computer", vpninfo->localname);
-		if (form->auth_id && form->auth_id[0]!='_')
+		/* Note: auth_id is non-NULL but freed, and an actual copy of it is in form->auth_id.
+		   This checks if form->auth_id was explcitly set from auth_id and uses it if so. */
+		if (auth_id)
 			append_opt(request_body, "inputStr", form->auth_id);
 		append_form_opts(vpninfo, form, request_body);
 
 		orig_path = vpninfo->urlpath;
-		orig_ua = vpninfo->useragent;
-		vpninfo->useragent = (char *)"PAN GlobalProtect";
 		vpninfo->urlpath = strdup(portal ? "global-protect/getconfig.esp" : "ssl-vpn/login.esp");
-		result = do_https_request(vpninfo, method, request_body_type, request_body,
+		result = do_https_request(vpninfo, "POST", request_body_type, request_body,
 					  &xml_buf, 0);
 		free(vpninfo->urlpath);
 		vpninfo->urlpath = orig_path;
-		vpninfo->useragent = orig_ua;
 
 		/* Result could be either a JavaScript challenge or XML */
 		result = gpst_xml_or_error(vpninfo, result, xml_buf,
@@ -342,6 +346,8 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 		if (result == -EAGAIN) {
 			free_auth_form(form);
 			form = auth_form(vpninfo, prompt, auth_id);
+			free(prompt);
+			free(auth_id);
 			if (!form)
 				return -ENOMEM;
 			continue;
@@ -385,7 +391,7 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 
 int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 {
-	char *orig_path, *orig_ua;
+	char *orig_path;
 	int result;
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
@@ -411,15 +417,12 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 	 * logout.
 	 */
 	orig_path = vpninfo->urlpath;
-	orig_ua = vpninfo->useragent;
-	vpninfo->useragent = (char *)"PAN GlobalProtect";
 	vpninfo->urlpath = strdup("ssl-vpn/logout.esp");
 	openconnect_close_https(vpninfo, 0);
 	result = do_https_request(vpninfo, method, request_body_type, request_body,
 				  &xml_buf, 0);
 	free(vpninfo->urlpath);
 	vpninfo->urlpath = orig_path;
-	vpninfo->useragent = orig_ua;
 
 	/* logout.esp returns HTTP status 200 and <response status="success"> when
 	 * successful, and all manner of malformed junk when unsuccessful.
