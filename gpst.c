@@ -269,9 +269,8 @@ out:
 
 /* XXX: Look at set_esp_algo() and tell me again what the biggest supported IV is? */
 #define ESP_OVERHEAD (4 /* SPI */ + 4 /* sequence number */ + \
-         20 /* biggest supported MAC (SHA1) */ + 16 /* biggest supported IV (AES-128) */ + \
-	 1 /* pad length */ + 1 /* next header */ + \
-         16 /* max padding */ )
+                      1 /* pad length */ + 1 /* next header */ + \
+                      16 /* max padding */ )
 #define UDP_HEADER_SIZE 8
 #define IPV4_HEADER_SIZE 20
 #define IPV6_HEADER_SIZE 40
@@ -325,7 +324,9 @@ static int calculate_mtu(struct openconnect_info *vpninfo)
 
 	if (!mtu) {
 		/* remove IP/UDP and ESP overhead from base MTU to calculate tunnel MTU */
-		mtu = base_mtu - ESP_OVERHEAD - UDP_HEADER_SIZE;
+		mtu = ( base_mtu - UDP_HEADER_SIZE - ESP_OVERHEAD
+		        - (vpninfo->hmac_key_len ? : 20) /* biggest supported MAC (SHA1) */
+		        - (vpninfo->enc_key_len ? : 32) /* biggest supported IV (AES-256) */ );
 		if (vpninfo->peer_addr->sa_family == AF_INET6)
 			mtu -= IPV6_HEADER_SIZE;
 		else

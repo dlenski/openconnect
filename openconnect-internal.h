@@ -334,7 +334,7 @@ static inline void init_pkt_queue(struct pkt_q *q)
 }
 
 #define DTLS_OVERHEAD (1 /* packet + header */ + 13 /* DTLS header */ + \
-	 20 /* biggest supported MAC (SHA1) */ +  16 /* biggest supported IV (AES-128) */ + \
+	 20 /* biggest supported MAC (SHA1) */ +  32 /* biggest supported IV (AES-256) */ + \
 	 16 /* max padding */)
 
 struct esp {
