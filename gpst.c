@@ -266,6 +266,8 @@ out:
 	return result;
 }
 
+
+/* XXX: Look at set_esp_algo() and tell me again what the biggest supported IV is? */
 #define ESP_OVERHEAD (4 /* SPI */ + 4 /* sequence number */ + \
          20 /* biggest supported MAC (SHA1) */ + 16 /* biggest supported IV (AES-128) */ + \
 	 1 /* pad length */ + 1 /* next header */ + \
