@@ -1,6 +1,8 @@
 /*
  * OpenConnect (SSL + DTLS) VPN client
  *
+ * Copyright © 2016-2017 Daniel Lenski
+ *
  * Author: Daniel Lenski <dlenski@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
