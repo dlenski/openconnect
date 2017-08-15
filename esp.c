@@ -23,6 +23,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
 
 #include "openconnect-internal.h"
 #include "lzo.h"
@@ -112,9 +114,107 @@ int esp_send_probes(struct openconnect_info *vpninfo)
 	return 0;
 };
 
+static uint16_t csum(uint16_t *buf, int nwords)
+{
+	uint32_t sum = 0;
+	for(sum=0; nwords>0; nwords--)
+		sum += ntohs(*buf++);
+	sum = (sum >> 16) + (sum &0xffff);
+	sum += (sum >> 16);
+	return htons((uint16_t)(~sum));
+}
+
+int esp_send_probes_gp(struct openconnect_info *vpninfo)
+{
+	/* The GlobalProtect VPN initiates and maintains the ESP connection
+	 * using specially-crafted ICMP ("ping") packets.
+	 *
+	 * 1) These ping packets have a special magic payload. It must
+	 *    include at least the 16 bytes below. The Windows client actually
+	 *    sends this 56-byte version, but the remaining bytes don't
+	 *    seem to matter:
+	 *
+	 *    "monitor\x00\x00pan ha 0123456789:;<=>? !\"#$%&\'()*+,-./\x10\x11\x12\x13\x14\x15\x16\x18";
+	 *
+	 * 2) The ping packets are addressed to the IP supplied in the
+	 *    config XML as as <gw-address>. In most cases, this is the
+	 *    same as the *external* IP address of the VPN gateway
+	 *    (vpninfo->ip_info.gateway_addr), but in some cases it is a
+	 *    separate address.
+	 *
+	 *    Don't blame me. I didn't design this.
+	 */
+	static char magic[16] = "monitor\x00\x00pan ha ";
+
+	int pktlen, seq;
+	struct pkt *pkt = malloc(sizeof(*pkt) + sizeof(struct ip) + ICMP_MINLEN + sizeof(magic) + vpninfo->pkt_trailer);
+	struct ip *iph = (void *)pkt->data;
+	struct icmp *icmph = (void *)(pkt->data + sizeof(*iph));
+	char *pmagic = (void *)(pkt->data + sizeof(*iph) + ICMP_MINLEN);
+	if (!pkt)
+		return -ENOMEM;
+
+	if (vpninfo->dtls_fd == -1) {
+		int fd = udp_connect(vpninfo);
+		if (fd < 0)
+			return fd;
+
+		/* We are not connected until we get an ESP packet back */
+		vpninfo->dtls_state = DTLS_SLEEPING;
+		vpninfo->dtls_fd = fd;
+		monitor_fd_new(vpninfo, dtls);
+		monitor_read_fd(vpninfo, dtls);
+		monitor_except_fd(vpninfo, dtls);
+	}
+
+	for (seq=1; seq <= (vpninfo->dtls_state==DTLS_CONNECTED ? 1 : 3); seq++) {
+		memset(pkt, 0, sizeof(*pkt) + sizeof(*iph) + ICMP_MINLEN + sizeof(magic));
+		pkt->len = sizeof(struct ip) + ICMP_MINLEN + sizeof(magic);
+
+		/* IP Header */
+		iph->ip_hl = 5;
+		iph->ip_v = 4;
+		iph->ip_len = htons(sizeof(*iph) + ICMP_MINLEN + sizeof(magic));
+		iph->ip_id = htons(0x4747); /* what the Windows client uses */
+		iph->ip_off = htons(IP_DF); /* don't fragment, frag offset = 0 */
+		iph->ip_ttl = 64; /* hops */
+		iph->ip_p = 1; /* ICMP */
+		iph->ip_src.s_addr = inet_addr(vpninfo->ip_info.addr);
+		iph->ip_dst.s_addr = vpninfo->esp_magic;
+		iph->ip_sum = csum((uint16_t *)iph, sizeof(*iph)/2);
+
+		/* ICMP echo request */
+		icmph->icmp_type = ICMP_ECHO;
+		icmph->icmp_hun.ih_idseq.icd_id = htons(0x4747);
+		icmph->icmp_hun.ih_idseq.icd_seq = htons(seq);
+		memcpy(pmagic, magic, sizeof(magic)); /* required to get gateway to respond */
+		icmph->icmp_cksum = csum((uint16_t *)icmph, (ICMP_MINLEN+sizeof(magic))/2);
+
+		pktlen = encrypt_esp_packet(vpninfo, pkt);
+		if (pktlen >= 0)
+			send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
+	}
+
+	free(pkt);
+
+	vpninfo->dtls_times.last_tx = time(&vpninfo->new_dtls_started);
+
+	return 0;
+}
+
 int esp_catch_probe(struct openconnect_info *vpninfo, struct pkt *pkt)
 {
 	return (pkt->len == 1 && pkt->data[0] == 0);
+}
+
+int esp_catch_probe_gp(struct openconnect_info *vpninfo, struct pkt *pkt)
+{
+	struct ip *iph = (void *)(pkt->data);
+	return ( pkt->len >= 21
+		 && iph->ip_p==1 /* IPv4 protocol field == ICMP */
+		 && iph->ip_src.s_addr == vpninfo->esp_magic /* source == magic address */
+		 && pkt->len >= (iph->ip_hl<<2)+1 /* No short-packet segfaults */
+		 && pkt->data[iph->ip_hl<<2]==0 /* ICMP reply */ );
 }
 
 int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
@@ -349,6 +449,12 @@ void esp_close(struct openconnect_info *vpninfo)
 	}
 	if (vpninfo->dtls_state > DTLS_DISABLED)
 		vpninfo->dtls_state = DTLS_SLEEPING;
+}
+
+void esp_close_secret(struct openconnect_info *vpninfo)
+{
+	esp_close(vpninfo);
+	vpninfo->dtls_state = DTLS_NOSECRET;
 }
 
 void esp_shutdown(struct openconnect_info *vpninfo)
