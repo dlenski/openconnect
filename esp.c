@@ -23,6 +23,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#ifdef __FreeBSD__
+#include <sys/types.h>
+#include <netinet/in.h>
+#endif
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
 
