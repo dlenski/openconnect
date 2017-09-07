@@ -50,6 +50,7 @@ $ git checkout globalprotect
 $ ./autogen.sh
 $ ./configure
 $ make
+$ make install
 ```
 
 ### Building on the Mac
