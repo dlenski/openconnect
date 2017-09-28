@@ -44,7 +44,7 @@ $ sudo apt-get install build-essential autoconf automake libgnutls-dev libproxy-
 Under Debian 8 or higher:
 
 ```sh
-$ sudo apt-get install build-essential autoconf automake libgnutls28-dev libproxy-dev libxml2-dev libtool vpnc-scripts
+$ sudo apt-get install build-essential autoconf automake gettext libgnutls28-dev libproxy-dev libxml2-dev libtool vpnc-scripts
 ```
 
 
