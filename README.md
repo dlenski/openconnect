@@ -41,6 +41,13 @@ Under Debian-based or Ubuntu-based distributions, this should install the requir
 $ sudo apt-get install build-essential autoconf automake libgnutls-dev libproxy-dev libxml2-dev libtool vpnc-scripts
 ```
 
+Under Debian 8 or higher:
+
+```sh
+$ sudo apt-get install build-essential autoconf automake libgnutls28-dev libproxy-dev libxml2-dev libtool vpnc-scripts
+```
+
+
 Once you have all the build dependencies installed, checkout and build the `globalprotect` branch from this repository.
 
 ```sh
