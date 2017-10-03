@@ -43,6 +43,13 @@ $ sudo apt-get install build-essential gettext autoconf automake libproxy-dev li
 
 ```
 
+Under Debian 8 or higher:
+
+```sh
+$ sudo apt-get install build-essential autoconf automake gettext libgnutls28-dev libproxy-dev libxml2-dev libtool vpnc-scripts
+```
+
+
 Once you have all the build dependencies installed, checkout and build the `globalprotect` branch from this repository.
 
 ```sh
