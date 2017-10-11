@@ -1,3 +1,15 @@
+# OpenConnect with PAN GlobalProtect support
+
+# Table of Contents
+
+   * [What is this?](#what-is-this)
+      * [Feedback and troubleshooting](#feedback-and-troubleshooting)
+      * [Installation](#installation)
+         * [Building from source on Linux](#building-from-source-on-linux)
+         * [Building on the Mac](#building-on-the-mac)
+      * [Connecting](#connecting)
+      * [Portal vs. gateway servers](#portal-vs-gateway-servers)
+
 # What is this?
 
 This is a modified version of the fantastic open-source VPN client
@@ -26,10 +38,6 @@ and include information about relevant differences in your issue
 report.
 
 ## Installation
-
-### Ubuntu
-
-Ubuntu 16.04 users can install from [this PPA](https://launchpad.net/~lenski/+archive/ubuntu/openconnect-gp).
 
 ### Building from source on Linux
 
