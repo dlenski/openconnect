@@ -46,7 +46,7 @@ Please refer to the [build requirements for the official releases of OpenConnect
 Under Debian-based or Ubuntu-based distributions, this should install the requirements:
 
 ```sh
-$ sudo apt-get install build-essential gettext autoconf automake libproxy-dev libxml2-dev libtool vpnc-scripts \
+$ sudo apt-get install build-essential gettext autoconf automake libproxy-dev libxml2-dev libtool vpnc-scripts pkg-config \
                        libgnutls-dev # may be named libgnutls28-dev on some recent Debian/Ubuntu-based distros
 
 ```
