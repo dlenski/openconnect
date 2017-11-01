@@ -1,77 +1,62 @@
 #!/usr/bin/python
+
+from __future__ import print_function
+import requests
 import argparse
-from requests import post
+import os
+from sys import stderr, exit
 
-class spoofer():
-	def __init__(self,gateway,cookie,user,portal,ip,computer):
-		self.gateway = gateway
-		self.cookie = cookie
-		self.user = user
-		self.portal = portal
-		self.ip = ip
-		self.computer = computer
-		self.headers = {
-			'Accept' : '*/*',
-			'Connection' : 'Keep-Alive',
-			'Content-Type' : 'application/x-www-form-urlencoded',
-			'User-Agent' : 'PAN GlobalProtect'
-		}
-	def send_hip_report(self,hip):
-		with open(hip) as f:
-			h = f.read()
-		data = {
-			'user' : self.user,
-			'domain' : 'ml',
-			'portal' : self.portal,
-			'authcookie' : self.cookie,
-			'client-ip' : self.ip,
-			'computer' : self.computer,
-			'client-role' : 'global-protect-full',
-			'report' : h
-		}
-		r = post('https://'+self.gateway+'/ssl-vpn/hipreport.esp',headers=self.headers,verify=False,data=data)
-		if 'success' in r.text:
-			return True
-		else:
-			print r.request.body
-			print r.text
-			return False
-	def check_hip(self,digest):
-		data = {
-			'user' : self.user,
-			'domain' : 'ml',
-			'portal' : self.portal,
-			'authcookie' : self.cookie,
-			'client-ip' : self.ip,
-			'computer' : self.computer,
-			'client-role' : 'global-protect-full',
-			'md5' : digest
-		}
-		r = post('https://'+self.gateway+'/ssl-vpn/hipreportcheck.esp',headers=self.headers,verify=False,data=data)
-		if 'success' in r.text:
-			return True
-		else:
-			print r.text
-			return False
+p = argparse.ArgumentParser()
+#p.add_argument('-v','--verbose', default=0, action='count')
+#g = p.add_argument_group('Login credentials')
+p.add_argument('-c','--cookie', required=True, help='Cookie value(32 characters).')
+p.add_argument('-u','--user', required=True, help='User.')
+p.add_argument('-i','--ip', required=True, help='IP.')
+p.add_argument('-n','--hostname', required=True, help='Local hostname.')
+p.add_argument('-d','--domain', required=True, help='Domain.')
+p.add_argument('-p','--portal', required=True, help='Portal name.')
+p.add_argument('-g','--gateway', required=True, help='Gateway.')
+p.add_argument('-H','--hip', type=argparse.FileType('rb'), required=True, help='HIP file.')
+p.add_argument('-m','--md5', required=True, help='MD5 digest of HIP file.')
+args = p.parse_args()
 
-if __name__ == "__main__":
-	parser = argparse.ArgumentParser(description='Globalprotect HIP spoofer.')
-	parser.add_argument('-c','--cookie', required=True, help='Cookie value(32 characters).')
-	parser.add_argument('-u','--user', required=True, help='User.')
-	parser.add_argument('-i','--ip', required=True, help='IP.')
-	parser.add_argument('-p','--computer', required=True, help='Computer.')
-	parser.add_argument('-o','--portal', required=True, help='Portal name.')
-	parser.add_argument('-g','--gateway', required=True, help='Gateway.')
-	parser.add_argument('-f','--hip', required=True, help='HIP file.')
-	args = parser.parse_args()	
-	if len(args.cookie) != 32:
-		print "Cookie must have 32 characters!"
-		quit(1)
-	s = spoofer(gateway=args.gateway,cookie=args.cookie,user=args.user,portal=args.portal,ip=args.ip,computer=args.computer)
-	s.check_hip('1')
-	if s.send_hip_report(args.hip):
-		print "HIP spoofed!"
-		quit()
-	else:
-		print "Error spoofing HIP!"
-		quit(1)
+s = requests.Session()
+s.headers['User-Agent'] = 'PAN GlobalProtect'
+
+data = {
+    'user': args.user,
+    'domain' : args.domain,
+    'portal' : args.portal,
+    'authcookie' : args.cookie,
+    'client-ip' : args.ip,
+    'computer' : args.hostname,
+    'md5' : args.md5,
+    'client-role' : 'global-protect-full',
+}
+
+r = s.post('https://%s/ssl-vpn/hipreportcheck.esp' % args.gateway, data=data)
+
+needed = None
+if 'success' in r.text and '<hip-report-needed>no</hip-report-needed>' in r.text:
+    print("No HIP report needed.", file=stderr)
+    needed = False
+elif 'success' in r.text and '<hip-report-needed>yes</hip-report-needed>' in r.text:
+    print("Updated HIP report is needed.", file=stderr)
+    needed = True
+else:
+    print("HIP report check failed:", file=stderr)
+    print(r.text, file=stderr)
+    exit(1)
+
+if needed:
+    with args.hip:
+        report = args.hip.read()
+    data['report'] = report
+    r = s.post('https://%s/ssl-vpn/hipreport.esp' % args.gateway, data=data)
+
+    if 'success' in r.text:
+        print("HIP report submitted successfully.", file=stderr)
+    else:
+        print("HIP report submission failed:", file=stderr)
+        print(r.text, file=stderr)
+        exit(1)
