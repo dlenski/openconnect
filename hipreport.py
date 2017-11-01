@@ -9,6 +9,7 @@ from sys import stderr, exit
 p = argparse.ArgumentParser()
 #p.add_argument('-v','--verbose', default=0, action='count')
 #g = p.add_argument_group('Login credentials')
+p.add_argument('--check', action='store_true', help='Check if HIP report is needed before submitting it.')
 p.add_argument('-c','--cookie', required=True, help='Cookie value(32 characters).')
 p.add_argument('-u','--user', required=True, help='User.')
 p.add_argument('-i','--ip', required=True, help='IP.')
@@ -34,19 +35,20 @@ data = {
     'client-role' : 'global-protect-full',
 }
 
-r = s.post('https://%s/ssl-vpn/hipreportcheck.esp' % args.gateway, data=data)
-
-needed = None
-if 'success' in r.text and '<hip-report-needed>no</hip-report-needed>' in r.text:
-    print("No HIP report needed.", file=stderr)
-    needed = False
-elif 'success' in r.text and '<hip-report-needed>yes</hip-report-needed>' in r.text:
-    print("Updated HIP report is needed.", file=stderr)
+if not args.check:
     needed = True
 else:
-    print("HIP report check failed:", file=stderr)
-    print(r.text, file=stderr)
-    exit(1)
+    r = s.post('https://%s/ssl-vpn/hipreportcheck.esp' % args.gateway, data=data)
+    if 'success' in r.text and '<hip-report-needed>no</hip-report-needed>' in r.text:
+        print("No HIP report needed.", file=stderr)
+        needed = False
+    elif 'success' in r.text and '<hip-report-needed>yes</hip-report-needed>' in r.text:
+        print("Updated HIP report is needed.", file=stderr)
+        needed = True
+    else:
+        print("HIP report check failed:", file=stderr)
+        print(r.text, file=stderr)
+        exit(1)
 
 if needed:
     with args.hip:
