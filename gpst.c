@@ -612,12 +612,85 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 	return ret;
 }
 
+static int parse_hip_report_check(struct openconnect_info *vpninfo, xmlNode *xml_node)
+{
+	const char *s;
+
+	if (!xml_node || !xmlnode_is_named(xml_node, "response"))
+		return -EINVAL;
+
+	for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
+		if (!xmlnode_get_text(xml_node, "hip-report-needed", &s)) {
+			if (!strcmp(s, "no")) {
+				free((void *)s);
+				return 0;
+			} else if (!strcmp(s, "yes")) {
+				free((void *)s);
+				return -EAGAIN;
+			} else
+				return -EINVAL;
+		}
+	}
+
+	return -EINVAL;
+}
+
+static int gpst_hip_report_check(struct openconnect_info *vpninfo)
+{
+	int result;
+
+	struct oc_text_buf *request_body = buf_alloc();
+	const char *request_body_type = "application/x-www-form-urlencoded";
+	const char *method = "POST";
+	char *xml_buf=NULL, *orig_path, *orig_ua;
+
+	buf_truncate(request_body);
+
+	/* submit HIP report check (ssl-vpn/hipreportcheck.esp) request */
+	/* cookie gives us these fields: authcookie, portal, user, domain, and (maybe the unnecessary) preferred-ip */
+	buf_truncate(request_body);
+	buf_append(request_body, "%s", vpninfo->cookie);
+	append_opt(request_body, "computer", vpninfo->localname);
+	buf_append(request_body, "&client-role=global-protect-full&md5=");
+	buf_append_md5(request_body, request_body->data, request_body->pos); /* hash up everything we've got so far */
+	append_opt(request_body, "client-ip", vpninfo->ip_info.addr);
+
+	orig_path = vpninfo->urlpath;
+	orig_ua = vpninfo->useragent;
+	vpninfo->useragent = (char *)"PAN GlobalProtect";
+	vpninfo->urlpath = strdup("ssl-vpn/hipreportcheck.esp");
+	result = do_https_request(vpninfo, method, request_body_type, request_body,
+				  &xml_buf, 0);
+	free(vpninfo->urlpath);
+	vpninfo->urlpath = orig_path;
+	vpninfo->useragent = orig_ua;
+
+	/* Result could be either a JavaScript challenge or XML */
+	result = gpst_xml_or_error(vpninfo, result, xml_buf, parse_hip_report_check, NULL, NULL);
+	if (result == -EAGAIN) {
+		vpn_progress(vpninfo, PRG_DEBUG,
+					 _("Gateway says HIP report submission is needed.\n"));
+		result = 0; /* FIXME */
+	} else if (result == 0)
+		vpn_progress(vpninfo, PRG_DEBUG,
+					 _("Gateway says no HIP report submission is needed.\n"));
+
+	buf_free(request_body);
+	free(xml_buf);
+	return result;
+}
+
 int gpst_setup(struct openconnect_info *vpninfo)
 {
 	int ret;
 
 	/* Get configuration */
 	ret = gpst_get_config(vpninfo);
+	if (ret)
+		return ret;
+
+	/* Check HIP */
+	ret = gpst_hip_report_check(vpninfo);
 	if (ret)
 		return ret;
 

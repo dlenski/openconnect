@@ -1071,6 +1071,7 @@ int socks_gssapi_auth(struct openconnect_info *vpninfo);
 
 /* digest.c */
 int digest_authorization(struct openconnect_info *vpninfo, int proxy, struct http_auth_state *auth_state, struct oc_text_buf *buf);
+void buf_append_md5(struct oc_text_buf *buf, void *data, int len);
 
 /* library.c */
 void nuke_opt_values(struct oc_form_opt *opt);
