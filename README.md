@@ -39,9 +39,9 @@ report.
 
 ## Installation
 
-### Building from source on Linux
-
 Please refer to the [build requirements for the official releases of OpenConnect](http://www.infradead.org/openconnect/building.html). **This version has the exact same build dependencies as OpenConnect v7.06**; modern versions of `autoconf`, `automake`, `gcc`, `libxml`, etc.
+
+### Building from source on Linux
 
 Under Debian-based or Ubuntu-based distributions, this should install the requirements:
 
