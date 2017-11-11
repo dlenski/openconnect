@@ -51,6 +51,12 @@ $ sudo apt-get install build-essential gettext autoconf automake libproxy-dev li
 
 ```
 
+Under Fedora-based or CentOS-based distributions, this should install the requirements:
+
+```sh
+$ sudo yum-builddep openconnect
+```
+
 Once you have all the build dependencies installed, checkout and build the `globalprotect` branch from this repository.
 
 ```sh
