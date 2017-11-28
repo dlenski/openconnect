@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <stdarg.h>
 #ifdef HAVE_LZ4
 #include <lz4.h>
@@ -651,9 +652,9 @@ static int gpst_hip_report_check(struct openconnect_info *vpninfo)
 	buf_truncate(request_body);
 	buf_append(request_body, "%s", vpninfo->cookie);
 	append_opt(request_body, "computer", vpninfo->localname);
-	buf_append(request_body, "&client-role=global-protect-full&md5=");
-	buf_append_md5(request_body, request_body->data, request_body->pos); /* hash up everything we've got so far */
 	append_opt(request_body, "client-ip", vpninfo->ip_info.addr);
+	append_opt(request_body, "client-role", "global-protect-full");
+	append_opt(request_body, "md5", vpninfo->csd_token);
 
 	orig_path = vpninfo->urlpath;
 	orig_ua = vpninfo->useragent;
@@ -673,6 +674,73 @@ static int gpst_hip_report_check(struct openconnect_info *vpninfo)
 	return result;
 }
 
+static int run_hip_script(struct openconnect_info *vpninfo)
+{
+#if defined(_WIN32) || defined(__native_client__)
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Error: Running the 'HIP Report' script on this platform is not yet implemented.\n"));
+	return -EPERM;
+#else
+	pid_t child;
+
+	if (!vpninfo->csd_wrapper) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Error: Server asked us to submit HIP report.\n"
+			       "You need to provide a --csd-wrapper argument with the HIP report submission script.\n"));
+		return -EINVAL;
+	}
+
+	child = fork();
+	if (child == -1) {
+		goto out;
+	} else if (child > 0) {
+		/* in parent: must reap child process */
+		int status;
+		waitpid(child, &status, 0);
+		if (status != 0)
+			vpn_progress(vpninfo, PRG_ERR,
+						 _("HIP script returned non-zero status: %d\n"), status);
+	} else {
+		char *hip_argv[32];
+		char scertbuf[MD5_SIZE * 2 + 1];
+		int i = 0;
+		struct oc_text_buf *cookie_buf = buf_alloc();
+
+		/* in child: run HIP script */
+		/* Spurious stdout output from the HIP script will break both
+		   the NM tool and the various cookieonly modes. */
+		dup2(2, 1);
+		hip_argv[i++] = openconnect_utf8_to_legacy(vpninfo,
+												   vpninfo->csd_wrapper);
+
+		buf_append(cookie_buf, "%s", vpninfo->cookie);
+		append_opt(cookie_buf, "computer", vpninfo->localname);
+		append_opt(cookie_buf, "client-ip", vpninfo->ip_info.addr);
+		hip_argv[i++] = (char *)"--querystring";
+		hip_argv[i++] = cookie_buf->data;
+
+		scertbuf[0] = 0;
+		get_cert_md5_fingerprint(vpninfo, vpninfo->peer_cert, scertbuf);
+		hip_argv[i++] = (char *)"--servercert";
+		hip_argv[i++] = scertbuf;
+		hip_argv[i++] = (char *)"--gateway";
+		hip_argv[i++] = vpninfo->hostname;
+		hip_argv[i++] = (char *)"--md5";
+		hip_argv[i++] = vpninfo->csd_token;
+		hip_argv[i++] = NULL;
+
+		execv(hip_argv[0], hip_argv);
+
+	out:
+		vpn_progress(vpninfo, PRG_ERR,
+				 _("Failed to exec HIP script %s\n"), hip_argv[0]);
+		exit(1);
+	}
+
+	return 0;
+#endif /* !_WIN32 && !__native_client__ */
+}
+
 int gpst_setup(struct openconnect_info *vpninfo)
 {
 	int ret;
@@ -687,7 +755,9 @@ int gpst_setup(struct openconnect_info *vpninfo)
 	if (ret == -EAGAIN) {
 		vpn_progress(vpninfo, PRG_DEBUG,
 					 _("Gateway says HIP report submission is needed.\n"));
-		ret = 0; /* FIXME */
+		ret = run_hip_script(vpninfo);
+		if (ret != 0)
+			goto out;
 	} else if (ret == 0)
 		vpn_progress(vpninfo, PRG_DEBUG,
 					 _("Gateway says no HIP report submission is needed.\n"));
@@ -710,6 +780,7 @@ int gpst_setup(struct openconnect_info *vpninfo)
 		vpninfo->ssl_times.last_rekey = 0;
 	}
 
+out:
 	return ret;
 }
 

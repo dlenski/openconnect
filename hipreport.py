@@ -1,65 +1,64 @@
 #!/usr/bin/python
 
 from __future__ import print_function
+from urlparse import parse_qsl
+from datetime import datetime
+import hashlib
 import requests
 import argparse
 import os
-from sys import stderr, exit
+from sys import stdin, stderr, exit
+
+class FingerprintChecker(requests.adapters.HTTPAdapter):
+    def __init__(self, fingerprint, algorithm='md5', **kwargs):
+        self.fingerprint = fingerprint
+        self.algorithm = algorithm
+        super(FingerprintChecker, self).__init__(**kwargs)
+    def build_response(self, request, resp):
+        response = super(FingerprintChecker, self).build_response(request, resp)
+        try:
+            self.peercert = resp._connection.sock.getpeercert(binary_form=True)
+            self.peercertinfo = resp._connection.sock.getpeercert(binary_form=False)
+        except AttributeError:
+            pass
+        else:
+            checkfp = hashlib.new(self.algorithm, self.peercert).hexdigest()
+            if checkfp.strip().lower() != self.fingerprint.strip().lower():
+                raise requests.exceptions.SSLError("Server certificate fingerprint does not match expected %s:%s" % (self.algorithm, self.fingerprint))
+        return response
+    def cert_verify(self, conn, url, verify, cert):
+        super(FingerprintChecker, self).cert_verify(conn, url, False, cert)
 
 p = argparse.ArgumentParser()
-#p.add_argument('-v','--verbose', default=0, action='count')
-#g = p.add_argument_group('Login credentials')
-p.add_argument('--no-verify', action='store_true', dest='verify', default=True, help="Don't verify server certificates.")
+p.add_argument('-q','--querystring', type=lambda s: dict(parse_qsl(s)),
+               help='URL-escaped query string with HIP parameters. It should contain these fields: user, domain, portal, authcookie, client-ip, computer.')
+p.add_argument('--servercert', help="Server's certificate MD5 fingerprint")
+p.add_argument('-r','--raw', action='store_true', help="Don't interpolate format strings in HIP file ({__NOW__}, {md5}, {user}, {domain}, {portal}, {client-ip}, {computer})")
+p.add_argument('-g','--gateway', required=True, help='GlobalProtect gateway server.')
+p.add_argument('-H','--hip', type=argparse.FileType('r'), default=stdin, help='HIP report file (default is stdin)')
 p.add_argument('-m','--md5', help='Check if HIP report is needed by submitting MD5 digest last HIP file.')
-p.add_argument('-c','--cookie', required=True, help='Cookie value(32 characters).')
-p.add_argument('-u','--user', required=True, help='User.')
-p.add_argument('-i','--ip', required=True, help='IP.')
-p.add_argument('-n','--hostname', required=True, help='Local hostname.')
-p.add_argument('-d','--domain', required=True, help='Domain.')
-p.add_argument('-p','--portal', required=True, help='Portal name.')
-p.add_argument('-g','--gateway', required=True, help='Gateway.')
-p.add_argument('-H','--hip', type=argparse.FileType('rb'), required=True, help='HIP file.')
 args = p.parse_args()
 
 s = requests.Session()
 s.headers['User-Agent'] = 'PAN GlobalProtect'
+if args.servercert:
+    s.mount('https://' + args.gateway, FingerprintChecker(args.servercert))
 
-data = {
-    'user': args.user,
-    'domain' : args.domain,
-    'portal' : args.portal,
-    'authcookie' : args.cookie,
-    'client-ip' : args.ip,
-    'computer' : args.hostname,
-    'client-role' : 'global-protect-full',
-    'md5' : args.md5,
-}
+data = args.querystring
+data['client-role'] = 'global-protect-full'
+data['md5'] = args.md5
 
-if not args.md5:
-    needed = True
+with args.hip:
+    report = args.hip.read()
+    if not args.raw:
+        report = report.format(__NOW__=datetime.now().strftime('%d/%m/%Y %H:%M:%S'), **data)
+data['report'] = report
+del data['md5'] # official client doesn't resubmit MD5
+r = s.post('https://%s/ssl-vpn/hipreport.esp' % args.gateway, data=data)
+
+if 'success' in r.text:
+    print("HIP report submitted successfully.", file=stderr)
 else:
-    r = s.post('https://%s/ssl-vpn/hipreportcheck.esp' % args.gateway, data=data, verify=args.verify)
-    if 'success' in r.text and '<hip-report-needed>no</hip-report-needed>' in r.text:
-        print("No HIP report needed.", file=stderr)
-        needed = False
-    elif 'success' in r.text and '<hip-report-needed>yes</hip-report-needed>' in r.text:
-        print("Updated HIP report is needed.", file=stderr)
-        needed = True
-    else:
-        print("HIP report check failed:", file=stderr)
-        print(r.text, file=stderr)
-        exit(1)
-
-if needed:
-    with args.hip:
-        report = args.hip.read()
-    data['report'] = report
-    del data['md5'] # official client doesn't resubmit MD5
-    r = s.post('https://%s/ssl-vpn/hipreport.esp' % args.gateway, data=data, verify=args.verify)
-
-    if 'success' in r.text:
-        print("HIP report submitted successfully.", file=stderr)
-    else:
-        print("HIP report submission failed:", file=stderr)
-        print(r.text, file=stderr)
-        exit(1)
+    print("HIP report submission failed:", file=stderr)
+    print(r.text, file=stderr)
+    exit(1)

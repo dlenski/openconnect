@@ -64,16 +64,16 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *pr
  *  < 0, on error
  *  = 0, on success; *form is populated
  */
-struct gp_login_arg { const char *opt; int save:1; int show:1; int warn_missing:1; int err_missing:1; const char *check; };
+struct gp_login_arg { const char *opt; int save_cookie:1; int save_token:1; int show:1; int warn_missing:1; int err_missing:1; const char *check; };
 static const struct gp_login_arg gp_login_args[] = {
     [0] = { .opt="unknown-arg0", .show=1 },
-    [1] = { .opt="authcookie", .save=1, .err_missing=1 },
+    [1] = { .opt="authcookie", .save_cookie=1, .err_missing=1 },
     [2] = { .opt="persistent-cookie", .warn_missing=1 },  /* 40 hex digits; persists across sessions */
-    [3] = { .opt="portal", .save=1, .warn_missing=1 },
-    [4] = { .opt="user", .save=1, .err_missing=1 },
+    [3] = { .opt="portal", .save_cookie=1, .save_token=1, .warn_missing=1 },
+    [4] = { .opt="user", .save_cookie=1, .save_token=1, .err_missing=1 },
     [5] = { .opt="authentication-source", .show=1 },      /* LDAP-auth, AUTH-RADIUS_RSA_OTP, etc. */
     [6] = { .opt="configuration", .warn_missing=1 },      /* usually vsys1 (sometimes vsys2, etc.) */
-    [7] = { .opt="domain", .save=1, .warn_missing=1 },
+    [7] = { .opt="domain", .save_cookie=1, .save_token=1, .warn_missing=1 },
     [8] = { .opt="unknown-arg8", .show=1 },
     [9] = { .opt="unknown-arg9", .show=1 },
     [10] = { .opt="unknown-arg10", .show=1 },
@@ -81,15 +81,17 @@ static const struct gp_login_arg gp_login_args[] = {
     [12] = { .opt="connection-type", .err_missing=1, .check="tunnel" },
     [13] = { .opt="password-expiration-days", .show=1 },  /* days until password expires, if not -1 */
     [14] = { .opt="clientVer", .err_missing=1, .check="4100" },
-    [15] = { .opt="preferred-ip", .save=1 },
+    [15] = { .opt="preferred-ip", .save_cookie=1 },
 };
 const int gp_login_nargs = (sizeof(gp_login_args)/sizeof(*gp_login_args));
 
 static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 {
-	struct oc_text_buf *cookie = buf_alloc();
+	struct oc_text_buf *cookie = buf_alloc(), *token = buf_alloc();
 	const char *value = NULL;
 	const struct gp_login_arg *arg;
+	unsigned char md5[16];
+	int i;
 
 	if (!xmlnode_is_named(xml_node, "jnlp"))
 		goto err_out;
@@ -129,18 +131,28 @@ static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 						 _("GlobalProtect login returned %s=%s\n"), arg->opt, value);
 		}
 
-		if (value && arg->save)
+		if (value && arg->save_cookie)
 			append_opt(cookie, arg->opt, value);
+		if (value && arg->save_token)
+			append_opt(token, arg->opt, value);
 		free((void *)value);
 	}
 
 	vpninfo->cookie = strdup(cookie->data);
+
+	openconnect_md5(md5, token->data, token->pos);
+	vpninfo->csd_token = malloc(MD5_SIZE * 2 + 1);
+	for (i=0; i < MD5_SIZE; i++)
+		sprintf(&vpninfo->csd_token[i*2], "%02x", md5[i]);
+
 	buf_free(cookie);
+	buf_free(token);
 	return 0;
 
 err_out:
 	free((void *)value);
 	buf_free(cookie);
+	buf_free(token);
 	return -EINVAL;
 }
 
