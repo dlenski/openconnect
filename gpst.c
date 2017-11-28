@@ -667,13 +667,6 @@ static int gpst_hip_report_check(struct openconnect_info *vpninfo)
 
 	/* Result could be either a JavaScript challenge or XML */
 	result = gpst_xml_or_error(vpninfo, result, xml_buf, parse_hip_report_check, NULL, NULL);
-	if (result == -EAGAIN) {
-		vpn_progress(vpninfo, PRG_DEBUG,
-					 _("Gateway says HIP report submission is needed.\n"));
-		result = 0; /* FIXME */
-	} else if (result == 0)
-		vpn_progress(vpninfo, PRG_DEBUG,
-					 _("Gateway says no HIP report submission is needed.\n"));
 
 	buf_free(request_body);
 	free(xml_buf);
@@ -691,8 +684,13 @@ int gpst_setup(struct openconnect_info *vpninfo)
 
 	/* Check HIP */
 	ret = gpst_hip_report_check(vpninfo);
-	if (ret)
-		return ret;
+	if (ret == -EAGAIN) {
+		vpn_progress(vpninfo, PRG_DEBUG,
+					 _("Gateway says HIP report submission is needed.\n"));
+		ret = 0; /* FIXME */
+	} else if (ret == 0)
+		vpn_progress(vpninfo, PRG_DEBUG,
+					 _("Gateway says no HIP report submission is needed.\n"));
 
 	/* We do NOT actually start the HTTPS tunnel yet if we want to
 	 * use ESP, because the ESP tunnel won't work if the HTTPS tunnel
