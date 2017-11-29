@@ -64,7 +64,7 @@ static void buf_append_unq(struct oc_text_buf *buf, const char *str)
 	}
 }
 
-void buf_append_md5(struct oc_text_buf *buf, void *data, int len)
+static void buf_append_md5(struct oc_text_buf *buf, void *data, int len)
 {
 	unsigned char md5[16];
 
