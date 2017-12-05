@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <stdarg.h>
 #ifdef HAVE_LZ4
 #include <lz4.h>
@@ -612,6 +613,150 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 	return ret;
 }
 
+static int parse_hip_report_check(struct openconnect_info *vpninfo, xmlNode *xml_node)
+{
+	const char *s;
+
+	if (!xml_node || !xmlnode_is_named(xml_node, "response"))
+		return -EINVAL;
+
+	for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
+		if (!xmlnode_get_text(xml_node, "hip-report-needed", &s)) {
+			if (!strcmp(s, "no")) {
+				free((void *)s);
+				return 0;
+			} else if (!strcmp(s, "yes")) {
+				free((void *)s);
+				return -EAGAIN;
+			} else
+				return -EINVAL;
+		}
+	}
+
+	return -EINVAL;
+}
+
+/* check if HIP report is needed (to ssl-vpn/hipreportcheck.esp) or submit HIP report contents (to ssl-vpn/hipreport.esp) */
+static int check_or_submit_hip_report(struct openconnect_info *vpninfo, const char *report)
+{
+	int result;
+
+	struct oc_text_buf *request_body = buf_alloc();
+	const char *request_body_type = "application/x-www-form-urlencoded";
+	const char *method = "POST";
+	char *xml_buf=NULL, *orig_path, *orig_ua;
+
+	buf_truncate(request_body);
+
+	/* cookie gives us these fields: authcookie, portal, user, domain, and (maybe the unnecessary) preferred-ip */
+	buf_truncate(request_body);
+	buf_append(request_body, "%s", vpninfo->cookie);
+	append_opt(request_body, "computer", vpninfo->localname);
+	append_opt(request_body, "client-ip", vpninfo->ip_info.addr);
+	append_opt(request_body, "client-role", "global-protect-full");
+	if (report) {
+		buf_ensure_space(request_body, strlen(report)*5);
+		append_opt(request_body, "report", report);
+	} else
+		append_opt(request_body, "md5", vpninfo->csd_token);
+
+	orig_path = vpninfo->urlpath;
+	orig_ua = vpninfo->useragent;
+	vpninfo->useragent = (char *)"PAN GlobalProtect";
+	vpninfo->urlpath = strdup(report ? "ssl-vpn/hipreport.esp" : "ssl-vpn/hipreportcheck.esp");
+	result = do_https_request(vpninfo, method, request_body_type, request_body,
+				  &xml_buf, 0);
+	free(vpninfo->urlpath);
+	vpninfo->urlpath = orig_path;
+	vpninfo->useragent = orig_ua;
+
+	result = gpst_xml_or_error(vpninfo, result, xml_buf, report ? NULL : parse_hip_report_check, NULL, NULL);
+
+	buf_free(request_body);
+	free(xml_buf);
+	return result;
+}
+
+static int run_hip_script(struct openconnect_info *vpninfo)
+{
+#if defined(_WIN32) || defined(__native_client__)
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Error: Running the 'HIP Report' script on this platform is not yet implemented.\n"));
+	return -EPERM;
+#else
+	int pipefd[2];
+	int ret;
+	pid_t child;
+
+	if (!vpninfo->csd_wrapper) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Error: Server asked us to submit HIP report with md5sum %s.\n"
+			       "You need to provide a --csd-wrapper argument with the HIP report submission script.\n"),
+					 vpninfo->csd_token);
+		/* Many GlobalProtect VPNs work fine despite allegedly requiring HIP report submission */
+		return 0;
+	}
+
+	if (pipe(pipefd) == -1)
+		goto out;
+	child = fork();
+	if (child == -1) {
+		goto out;
+	} else if (child > 0) {
+		/* in parent: read report from child */
+		struct oc_text_buf *report_buf = buf_alloc();
+		char b[256];
+		int i, status;
+		close(pipefd[1]);
+
+		buf_truncate(report_buf);
+		while ((i = read(pipefd[0], b, sizeof(b))) > 0)
+			buf_append_bytes(report_buf, b, i);
+
+		waitpid(child, &status, 0);
+		if (status != 0) {
+			vpn_progress(vpninfo, PRG_ERR,
+						 _("HIP script returned non-zero status: %d\n"), status);
+			ret = -EINVAL;
+		} else {
+			ret = check_or_submit_hip_report(vpninfo, report_buf->data);
+			if (ret < 0)
+				vpn_progress(vpninfo, PRG_ERR, _("HIP report submission failed.\n"));
+			else {
+				vpn_progress(vpninfo, PRG_INFO, _("HIP report submitted successfully.\n"));
+				ret = 0;
+			}
+		}
+		buf_free(report_buf);
+		return ret;
+	} else {
+		/* in child: run HIP script */
+		char *hip_argv[32];
+		int i = 0;
+		close(pipefd[0]);
+		dup2(pipefd[1], 1);
+
+		hip_argv[i++] = openconnect_utf8_to_legacy(vpninfo, vpninfo->csd_wrapper);
+		hip_argv[i++] = (char *)"--cookie";
+		hip_argv[i++] = vpninfo->cookie;
+		hip_argv[i++] = (char *)"--computer";
+		hip_argv[i++] = vpninfo->localname;
+		hip_argv[i++] = (char *)"--client-ip";
+		hip_argv[i++] = (char *)vpninfo->ip_info.addr;
+		hip_argv[i++] = (char *)"--md5";
+		hip_argv[i++] = vpninfo->csd_token;
+		hip_argv[i++] = NULL;
+		execv(hip_argv[0], hip_argv);
+
+	out:
+		vpn_progress(vpninfo, PRG_ERR,
+				 _("Failed to exec HIP script %s\n"), hip_argv[0]);
+		exit(1);
+	}
+
+#endif /* !_WIN32 && !__native_client__ */
+}
+
 int gpst_setup(struct openconnect_info *vpninfo)
 {
 	int ret;
@@ -620,6 +765,18 @@ int gpst_setup(struct openconnect_info *vpninfo)
 	ret = gpst_get_config(vpninfo);
 	if (ret)
 		return ret;
+
+	/* Check HIP */
+	ret = check_or_submit_hip_report(vpninfo, NULL);
+	if (ret == -EAGAIN) {
+		vpn_progress(vpninfo, PRG_DEBUG,
+					 _("Gateway says HIP report submission is needed.\n"));
+		ret = run_hip_script(vpninfo);
+		if (ret != 0)
+			goto out;
+	} else if (ret == 0)
+		vpn_progress(vpninfo, PRG_DEBUG,
+					 _("Gateway says no HIP report submission is needed.\n"));
 
 	/* We do NOT actually start the HTTPS tunnel yet if we want to
 	 * use ESP, because the ESP tunnel won't work if the HTTPS tunnel
@@ -639,6 +796,7 @@ int gpst_setup(struct openconnect_info *vpninfo)
 		vpninfo->ssl_times.last_rekey = 0;
 	}
 
+out:
 	return ret;
 }
 
