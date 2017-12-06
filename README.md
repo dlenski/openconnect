@@ -13,7 +13,7 @@
 # What is this?
 
 This is a modified version of the fantastic open-source VPN client
-[OpenConnect](https://infradead.org/openconnect) which supports the
+[OpenConnect](https://www.infradead.org/openconnect) which supports the
 PAN GlobalProtect VPN in its native modes (SSL and
 [ESP](http://wikipedia.org/wiki/Encapsulating_Security_Payload))—with
 no assistance or cooperation needed from your VPN administrators.
@@ -39,7 +39,7 @@ report.
 
 ## Installation
 
-Please refer to the [build requirements for the official releases of OpenConnect](http://www.infradead.org/openconnect/building.html). **This version has the exact same build dependencies as OpenConnect v7.06**; modern versions of `autoconf`, `automake`, `gcc`, `libxml`, etc.
+Please refer to the [build requirements for the official releases of OpenConnect](https://www.infradead.org/openconnect/building.html). **This version has the exact same build dependencies as OpenConnect v7.06**; modern versions of `autoconf`, `automake`, `gcc`, `libxml`, etc.
 
 ### Building from source on Linux
 
