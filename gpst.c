@@ -421,6 +421,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 	vpninfo->ip_info.domain = NULL;
 	vpninfo->ip_info.mtu = 0;
 	vpninfo->esp_magic = inet_addr(vpninfo->ip_info.gateway_addr);
+	vpninfo->ssl_times.rekey_method = REKEY_NONE;
 	vpninfo->cstp_options = NULL;
 
 	for (ii = 0; ii < 3; ii++)
@@ -435,6 +436,13 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 			vpninfo->ip_info.netmask = add_option(vpninfo, "netmask", s);
 		else if (!xmlnode_get_text(xml_node, "mtu", &s)) {
 			vpninfo->ip_info.mtu = atoi(s);
+			free(s);
+		} else if (!xmlnode_get_text(xml_node, "timeout", &s)) {
+			int sec = atoi(s);
+			vpn_progress(vpninfo, PRG_INFO, _("Tunnel timeout (rekey interval) is %d minutes.\n"), sec/60);
+			vpninfo->ssl_times.last_rekey = time(NULL);
+			vpninfo->ssl_times.rekey = sec - 60;
+			vpninfo->ssl_times.rekey_method = REKEY_TUNNEL;
 			free(s);
 		} else if (!xmlnode_get_text(xml_node, "gw-address", &s)) {
 			/* As remarked in oncp.c, "this is a tunnel; having a
@@ -475,6 +483,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 #ifdef HAVE_ESP
 			if (vpninfo->dtls_state != DTLS_DISABLED) {
 				int c = (vpninfo->current_esp_in ^= 1);
+				vpninfo->old_esp_maxseq = vpninfo->esp_in[c^1].seq + 32;
 				for (member = xml_node->children; member; member=member->next) {
 					s = NULL;
 					if (!xmlnode_get_text(member, "udp-port", &s))		udp_sockaddr(vpninfo, atoi(s));
@@ -890,6 +899,9 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			     _("ESP tunnel connected; exiting HTTPS mainloop.\n"));
 		vpninfo->dtls_state = DTLS_CONNECTED;
 	case DTLS_CONNECTED:
+		/* Rekey if needed */
+		if (keepalive_action(&vpninfo->ssl_times, timeout) == KA_REKEY)
+			goto do_rekey;
 		return 0;
 	case DTLS_SECRET:
 	case DTLS_SLEEPING:
@@ -1012,6 +1024,8 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			goto do_reconnect;
 		else if (!ret) {
 			switch (ka_stalled_action(&vpninfo->ssl_times, timeout)) {
+			case KA_REKEY:
+				goto do_rekey;
 			case KA_DPD_DEAD:
 				goto peer_dead;
 			case KA_NONE:
@@ -1034,6 +1048,10 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	}
 
 	switch (keepalive_action(&vpninfo->ssl_times, timeout)) {
+	case KA_REKEY:
+	do_rekey:
+		vpn_progress(vpninfo, PRG_INFO, _("GlobalProtect rekey due\n"));
+		goto do_reconnect;
 	case KA_DPD_DEAD:
 	peer_dead:
 		vpn_progress(vpninfo, PRG_ERR,
