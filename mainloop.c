@@ -315,7 +315,7 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 	return ret < 0 ? ret : -EIO;
 }
 
-static int ka_check_deadline(int *timeout, time_t now, time_t due)
+int ka_check_deadline(int *timeout, time_t now, time_t due)
 {
 	if (now >= due)
 		return 1;

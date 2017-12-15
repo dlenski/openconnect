@@ -964,6 +964,7 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int queue_new_packet(struct pkt_q *q, void *buf, int len);
 int keepalive_action(struct keepalive_info *ka, int *timeout);
 int ka_stalled_action(struct keepalive_info *ka, int *timeout);
+int ka_check_deadline(int *timeout, time_t now, time_t due);
 
 /* xml.c */
 ssize_t read_file_into_string(struct openconnect_info *vpninfo, const char *fname,

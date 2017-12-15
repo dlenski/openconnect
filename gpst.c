@@ -605,7 +605,7 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 		monitor_fd_new(vpninfo, ssl);
 		monitor_read_fd(vpninfo, ssl);
 		monitor_except_fd(vpninfo, ssl);
-		vpninfo->ssl_times.last_rekey = vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
+		vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
 		if (vpninfo->dtls_state != DTLS_DISABLED)
 			vpninfo->dtls_state = DTLS_NOSECRET;
 	}
@@ -784,17 +784,6 @@ int gpst_setup(struct openconnect_info *vpninfo)
 	 */
 	if (vpninfo->dtls_state == DTLS_DISABLED || vpninfo->dtls_state == DTLS_NOSECRET)
 		ret = gpst_connect(vpninfo);
-	else {
-		/* We want to prevent the mainloop timers from frantically
-		 * calling the GPST mainloop.
-		 */
-		vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
-
-		/* Using (abusing?) last_rekey as the time when the SSL tunnel
-		 * was brought up.
-		 */
-		vpninfo->ssl_times.last_rekey = 0;
-	}
 
 out:
 	return ret;
@@ -820,12 +809,10 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		return 0;
 	case DTLS_SECRET:
 	case DTLS_SLEEPING:
-		if (time(NULL) < vpninfo->dtls_times.last_rekey + 5) {
+		if (!ka_check_deadline(timeout, time(NULL), vpninfo->dtls_times.last_rekey + 5)) {
 			/* Allow 5 seconds after configuration for ESP to start */
-			if (*timeout > 5000)
-				*timeout = 5000;
 			return 0;
-		} else if (!vpninfo->ssl_times.last_rekey) {
+		} else {
 			/* ... before we switch to HTTPS instead */
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to connect ESP tunnel; using HTTPS instead.\n"));
