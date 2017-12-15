@@ -493,7 +493,8 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 				if (setup_esp_keys(vpninfo, 0))
 					vpn_progress(vpninfo, PRG_ERR, "Failed to setup ESP keys.\n");
 				else
-					vpninfo->dtls_times.last_rekey = time(NULL);
+					/* prevent race condition between esp_mainloop() and gpst_mainloop() timers */
+					vpninfo->dtls_times.last_rekey = time(&vpninfo->new_dtls_started);
 			}
 #else
 			vpn_progress(vpninfo, PRG_DEBUG, _("Ignoring ESP keys since ESP support not available in this build\n"));
@@ -646,7 +647,7 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 		monitor_fd_new(vpninfo, ssl);
 		monitor_read_fd(vpninfo, ssl);
 		monitor_except_fd(vpninfo, ssl);
-		vpninfo->ssl_times.last_rekey = vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
+		vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
 		if (vpninfo->dtls_state != DTLS_DISABLED)
 			vpninfo->dtls_state = DTLS_NOSECRET;
 	}
@@ -868,17 +869,6 @@ int gpst_setup(struct openconnect_info *vpninfo)
 	 */
 	if (vpninfo->dtls_state == DTLS_DISABLED || vpninfo->dtls_state == DTLS_NOSECRET)
 		ret = gpst_connect(vpninfo);
-	else {
-		/* We want to prevent the mainloop timers from frantically
-		 * calling the GPST mainloop.
-		 */
-		vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
-
-		/* Using (abusing?) last_rekey as the time when the SSL tunnel
-		 * was brought up.
-		 */
-		vpninfo->ssl_times.last_rekey = 0;
-	}
 
 out:
 	return ret;
@@ -904,10 +894,10 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		return 0;
 	case DTLS_SECRET:
 	case DTLS_SLEEPING:
-		if (!ka_check_deadline(timeout, time(NULL), vpninfo->dtls_times.last_rekey + 5)) {
+		if (!ka_check_deadline(timeout, time(NULL), vpninfo->new_dtls_started + 5)) {
 			/* Allow 5 seconds after configuration for ESP to start */
 			return 0;
-		} else if (!vpninfo->ssl_times.last_rekey) {
+		} else {
 			/* ... before we switch to HTTPS instead */
 			vpn_progress(vpninfo, PRG_ERR,
 				     _("Failed to connect ESP tunnel; using HTTPS instead.\n"));
