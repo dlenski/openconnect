@@ -698,9 +698,10 @@ static int run_hip_script(struct openconnect_info *vpninfo)
 
 	if (!vpninfo->csd_wrapper) {
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("Error: Server asked us to submit HIP report with md5sum %s.\n"
-			       "You need to provide a --csd-wrapper argument with the HIP report submission script.\n"),
-					 vpninfo->csd_token);
+		             _("WARNING: Server asked us to submit HIP report with md5sum %s.\n"
+		               "VPN connectivity may be disabled or limited without HIP report submission.\n"
+		               "You need to provide a --csd-wrapper argument with the HIP report submission script.\n"),
+		             vpninfo->csd_token);
 		/* Many GlobalProtect VPNs work fine despite allegedly requiring HIP report submission */
 		return 0;
 	}

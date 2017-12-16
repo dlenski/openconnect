@@ -1,0 +1,89 @@
+<PAGE>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_FEATURES" replace="selected" />
+	<VAR match="VAR_SEL_FEATURE_CSD" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2-features.xml" />
+
+	<INCLUDE file="inc/content.tmpl" />
+
+<h1>PAN GlobalProtect HIP</h1>
+
+<p>The HIP ('Host Integrity Protection') mechanism is a security
+scanner for the <a href="globalprotect.html">PAN GlobalProtect</a>
+VPNs, in the same vein as <a href="csd.html">Cisco's CSD</a> and <a
+href="juniper.html">Juniper's Host Checker (tncc.jar)</a>.</p>
+
+<h2>How it works</h2>
+
+<p>It is somewhat <i>less</i> intrusive than CSD or TNCC, because it
+does not appear to work by downloading a trojan binary from the VPN
+server. Instead, it runs a HIP report generator (built-in as part of
+the official GlobalProtect VPN client software), which generates an
+"HIP report" XML file.</p>
+
+<p>HIP flow used in the official clients:</p>
+<ol>
+  <li>Client authenticates and fetches the tunnel configuration from the GlobalProtect gateway.</li>
+  <li>Client runs HIP report generator and computes MD5 digest of report.</li>
+  <li>Client checks whether a HIP report is required (<code>/ssl-vpn/hipreportcheck.esp</code>), including its MD5 digest and gateway-assigned IP address in the report.</li>
+  <li>Gateway responds whether or not a HIP report is required (normally, it doesn't require a new one if a report with the same MD5 digest and same IP address have been submitted recently).</li>
+  <li>Client uploads the complete HIP report to (<code>/ssl-vpn/hipreport.esp</code>).</li>
+  <li>Server confirms acceptance of HIP report with a success message.</li>
+</ol>
+
+<p>If all goes well, the client should have the expected level of
+access to resources on the network after these steps are
+complete. However, two things can go wrong:</p>
+
+<ul>
+  <li>Many GlobalProtect servers report that they require HIP reports
+  (#3 above), but don't actually enforce this requirement. (For this
+  reason, OpenConnect does not currently fail if a HIP report is
+  required but no HIP report script is provided.)</li>
+  <li>Many GlobalProtect servers will claim that the HIP report was
+  accepted successfully (#6 above) but silently fail to enable the
+  expected network access, presumably because some aspect of the
+  HIP report contents were not approved.</li>
+</ul>
+
+<h2>HIP support in openconnect</h2>
+
+<p>OpenConnect supports HIP report generation and submission by passing the <code>--csd-wrapper=SCRIPT</code> argument with a shell script to generate a HIP report in the format expected by the
+server. This shell script must output the HIP report to standard output and exit successfully (status code 0). The HIP script is called with the following command-line arguments:</p>
+
+<pre>
+   --cookie: a URL-encoded string, as output by openconnect
+             --authenticate --protocol=gp, which includes parameters
+             --from the /ssl-vpn/login.esp response
+
+   --computer: local hostname, which can be overriden with
+               --openconnect local-hostname=HOSTNAME
+
+   --client-ip: IPv4 address allocated by the GlobalProtect VPN for
+                this client (included in /ssl-vpn/getconfig.esp
+                response)
+
+   --md5: The md5 digest to encode into this HIP report. All that
+          really matters is that the value in the HIP report
+          submission should match the value in the HIP report check.
+</pre>
+
+<h2>Generating/spoofing a HIP report</h2>
+
+<p>An example <code>hipreport.sh</code> script is included in the
+openconnect distribution.</p>
+
+<p>Depending on how picky your GlobalProtect
+VPN is, it may be necessary to spoof or alter some of the parameters
+of the HIP report to match the output of one of the official
+clients. In order to capture the contents of the official Windows
+client's HIP reports, enable the highest logging level for the "PanGPS
+Service", and then sift through the giant <code>PanGPS.log</code> file
+(which should be in the same directory as the executables, normally
+<code>c:\Program Files\PaloAlto Networks\GlobalProtect</code>) to find
+the HIP report submission.</p>
+
+<INCLUDE file="inc/footer.tmpl" />
+</PAGE>
