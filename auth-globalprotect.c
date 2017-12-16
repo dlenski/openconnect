@@ -198,7 +198,7 @@ static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 	if (xmlnode_is_named(xml_node, "policy")) {
 		for (x = xml_node->children, xml_node = NULL; x; x = x->next) {
 			if (xmlnode_is_named(x, "portal-name"))
-				portal = (char *)xmlNodeGetContent(xml_node);
+				portal = (char *)xmlNodeGetContent(x);
 			else if (xmlnode_is_named(x, "gateways"))
 				xml_node = x;
 		}
@@ -221,11 +221,9 @@ gateways:
 		buf = buf_alloc();
 		buf_append(buf, "<GPPortal>\n  <ServerList>\n");
 		if (portal) {
-			/* XXX: What if the name in 'portal' has characters which need to be
-			 * escaped in XML?  Either build up a tree using libxml "properly"
-			 * so it does it for us, or at the very least we need a
-			 * buf_append_xmlescaped(), don't we? */
-			buf_append(buf, "      <HostEntry><HostName>%s</HostName><HostAddress>%s", portal, vpninfo->hostname);
+			buf_append(buf, "      <HostEntry><HostName>");
+			buf_append_xmlescaped(buf, portal);
+			buf_append(buf, "</HostName><HostAddress>%s", vpninfo->hostname);
 			if (vpninfo->port!=443)
 				buf_append(buf, ":%d", vpninfo->port);
 			buf_append(buf, "/global-protect</HostAddress></HostEntry>\n");
@@ -256,10 +254,13 @@ gateways:
 
 			xmlnode_get_prop(xml_node, "name", &choice->name);
 			for (x = xml_node->children; x; x=x->next)
-				if (xmlnode_is_named(x, "description"))
-					buf_append(buf, "      <HostEntry><HostName>%s</HostName><HostAddress>%s/ssl-vpn</HostAddress></HostEntry>\n",
-					           choice->label = (char *)xmlNodeGetContent(x),
+				if (xmlnode_is_named(x, "description")) {
+					choice->label = (char *)xmlNodeGetContent(x);
+					buf_append(buf, "      <HostEntry><HostName>");
+					buf_append_xmlescaped(buf, choice->label);
+					buf_append(buf, "</HostName><HostAddress>%s/ssl-vpn</HostAddress></HostEntry>\n",
 					           choice->name);
+				}
 
 			opt->choices[opt->nr_choices++] = choice;
 			vpn_progress(vpninfo, PRG_INFO, _("  %s (%s)\n"),

@@ -54,6 +54,19 @@ void buf_append_urlencoded(struct oc_text_buf *buf, const char *str)
 	}
 }
 
+void buf_append_xmlescaped(struct oc_text_buf *buf, const char *str)
+{
+	while (str && *str) {
+		unsigned char c = *str;
+		if (c=='<' || c=='>' || c=='&' || c=='"' || c=='\'')
+			buf_append(buf, "&#x%02x;", c);
+		else
+			buf_append_bytes(buf, str, 1);
+
+		str++;
+	}
+}
+
 void buf_append_hex(struct oc_text_buf *buf, const void *str, unsigned len)
 {
 	const unsigned char *data = str;
