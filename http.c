@@ -1472,7 +1472,7 @@ void http_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 		buf_append(buf, "Host: %s\r\n", vpninfo->hostname);
 	else
 		buf_append(buf, "Host: %s:%d\r\n", vpninfo->hostname, vpninfo->port);
-	buf_append(buf, "User-Agent: %s\r\n", vpninfo->useragent);
+	buf_append(buf, "User-Agent: %s\r\n", vpninfo->proto->override_useragent ? : vpninfo->useragent);
 
 	if (vpninfo->cookies) {
 		buf_append(buf, "Cookie: ");

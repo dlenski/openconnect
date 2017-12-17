@@ -484,7 +484,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 
 static int gpst_get_config(struct openconnect_info *vpninfo)
 {
-	char *orig_path, *orig_ua;
+	char *orig_path;
 	int result;
 	struct oc_text_buf *request_body = buf_alloc();
 	struct oc_vpn_option *old_cstp_opts = vpninfo->cstp_options;
@@ -504,14 +504,11 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	buf_append(request_body, "&%s", vpninfo->cookie);
 
 	orig_path = vpninfo->urlpath;
-	orig_ua = vpninfo->useragent;
-	vpninfo->useragent = (char *)"PAN GlobalProtect";
 	vpninfo->urlpath = strdup("ssl-vpn/getconfig.esp");
 	result = do_https_request(vpninfo, method, request_body_type, request_body,
 				  &xml_buf, 0);
 	free(vpninfo->urlpath);
 	vpninfo->urlpath = orig_path;
-	vpninfo->useragent = orig_ua;
 
 	if (result < 0)
 		goto out;
@@ -652,7 +649,7 @@ static int check_or_submit_hip_report(struct openconnect_info *vpninfo, const ch
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
-	char *xml_buf=NULL, *orig_path, *orig_ua;
+	char *xml_buf=NULL, *orig_path;
 
 	buf_truncate(request_body);
 
@@ -669,14 +666,11 @@ static int check_or_submit_hip_report(struct openconnect_info *vpninfo, const ch
 		append_opt(request_body, "md5", vpninfo->csd_token);
 
 	orig_path = vpninfo->urlpath;
-	orig_ua = vpninfo->useragent;
-	vpninfo->useragent = (char *)"PAN GlobalProtect";
 	vpninfo->urlpath = strdup(report ? "ssl-vpn/hipreport.esp" : "ssl-vpn/hipreportcheck.esp");
 	result = do_https_request(vpninfo, method, request_body_type, request_body,
 				  &xml_buf, 0);
 	free(vpninfo->urlpath);
 	vpninfo->urlpath = orig_path;
-	vpninfo->useragent = orig_ua;
 
 	result = gpst_xml_or_error(vpninfo, result, xml_buf, report ? NULL : parse_hip_report_check, NULL, NULL);
 

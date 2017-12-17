@@ -268,7 +268,7 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
-	char *xml_buf=NULL, *orig_path, *orig_ua;
+	char *xml_buf=NULL, *orig_path;
 	char *prompt=_("Please enter your username and password"), *auth_id=NULL;
 
 #ifdef HAVE_LIBSTOKEN
@@ -312,14 +312,11 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 		append_form_opts(vpninfo, form, request_body);
 
 		orig_path = vpninfo->urlpath;
-		orig_ua = vpninfo->useragent;
-		vpninfo->useragent = (char *)"PAN GlobalProtect";
 		vpninfo->urlpath = strdup(portal ? "global-protect/getconfig.esp" : "ssl-vpn/login.esp");
 		result = do_https_request(vpninfo, method, request_body_type, request_body,
 					  &xml_buf, 0);
 		free(vpninfo->urlpath);
 		vpninfo->urlpath = orig_path;
-		vpninfo->useragent = orig_ua;
 
 		/* Result could be either a JavaScript challenge or XML */
 		result = gpst_xml_or_error(vpninfo, result, xml_buf,
@@ -370,7 +367,7 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 
 int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 {
-	char *orig_path, *orig_ua;
+	char *orig_path;
 	int result;
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
@@ -396,15 +393,12 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 	 * logout.
 	 */
 	orig_path = vpninfo->urlpath;
-	orig_ua = vpninfo->useragent;
-	vpninfo->useragent = (char *)"PAN GlobalProtect";
 	vpninfo->urlpath = strdup("ssl-vpn/logout.esp");
 	openconnect_close_https(vpninfo, 0);
 	result = do_https_request(vpninfo, method, request_body_type, request_body,
 				  &xml_buf, 0);
 	free(vpninfo->urlpath);
 	vpninfo->urlpath = orig_path;
-	vpninfo->useragent = orig_ua;
 
 	/* logout.esp returns HTTP status 200 and <response status="success"> when
 	 * successful, and all manner of malformed junk when unsuccessful.
