@@ -122,6 +122,13 @@ static int parse_input_node(struct openconnect_info *vpninfo, struct oc_auth_for
 			ret = -ENOMEM;
 			goto out;
 		}
+	} else if (!strcasecmp(type, "username")) {
+		opt->type = OC_FORM_OPT_TEXT;
+		xmlnode_get_prop(node, "name", &opt->name);
+		if (asprintf(&opt->label, "%s:", opt->name) == -1) {
+			ret = -ENOMEM;
+			goto out;
+		}
 	} else if (!strcasecmp(type, "submit")) {
 		xmlnode_get_prop(node, "name", &opt->name);
 		if (opt->name && (!strcmp(opt->name, submit_button) ||
