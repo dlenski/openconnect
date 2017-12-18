@@ -620,25 +620,27 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 
 static int parse_hip_report_check(struct openconnect_info *vpninfo, xmlNode *xml_node)
 {
-	const char *s;
+	char *s;
+	int result = -EINVAL;
 
 	if (!xml_node || !xmlnode_is_named(xml_node, "response"))
-		return -EINVAL;
+		goto out;
 
 	for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
 		if (!xmlnode_get_text(xml_node, "hip-report-needed", &s)) {
-			if (!strcmp(s, "no")) {
-				free((void *)s);
-				return 0;
-			} else if (!strcmp(s, "yes")) {
-				free((void *)s);
-				return -EAGAIN;
-			} else
-				return -EINVAL;
+			if (!strcmp(s, "no"))
+				result = 0;
+			else if (!strcmp(s, "yes"))
+				result = -EAGAIN;
+			else
+				result = -EINVAL;
+			free(s);
+			goto out;
 		}
 	}
 
-	return -EINVAL;
+out:
+	return result;
 }
 
 /* check if HIP report is needed (to ssl-vpn/hipreportcheck.esp) or submit HIP report contents (to ssl-vpn/hipreport.esp) */
@@ -696,7 +698,7 @@ static int run_hip_script(struct openconnect_info *vpninfo)
 		               "VPN connectivity may be disabled or limited without HIP report submission.\n"
 		               "You need to provide a --csd-wrapper argument with the HIP report submission script.\n"),
 		             vpninfo->csd_token);
-		/* Many GlobalProtect VPNs work fine despite allegedly requiring HIP report submission */
+		/* XXX: Many GlobalProtect VPNs work fine despite allegedly requiring HIP report submission */
 		return 0;
 	}
 
@@ -768,6 +770,27 @@ int gpst_setup(struct openconnect_info *vpninfo)
 	ret = gpst_get_config(vpninfo);
 	if (ret)
 		return ret;
+
+	/* Unlike CSD, the HIP security checker runs during the connection
+	   phase, not during the authentication phase. Therefore we need
+	   to build the CSD token (an MD5 digest identifying the client)
+	   without relying on the authentication phase having run in the
+	   same process. We build it from the cookie containing
+	   authentication information, but exclude the volatile authcookie
+	   field which changes from session to session. */
+	if (!vpninfo->csd_token) {
+		unsigned char md5[16];
+		int i;
+		char *excl_authcookie = strncmp(vpninfo->cookie, "authcookie=", 11) ? vpninfo->cookie : strchr(vpninfo->cookie, '&');
+		openconnect_md5(md5, excl_authcookie, strlen(excl_authcookie));
+		vpninfo->csd_token = malloc(MD5_SIZE * 2 + 1);
+		if (!vpninfo->csd_token) {
+			ret = -ENOMEM;
+			goto out;
+		}
+		for (i=0; i < MD5_SIZE; i++)
+			sprintf(&vpninfo->csd_token[i*2], "%02x", md5[i]);
+	}
 
 	/* Check HIP */
 	ret = check_or_submit_hip_report(vpninfo, NULL);
