@@ -295,6 +295,8 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 		buf_append(request_body, "jnlpReady=jnlpReady&ok=Login&direct=yes&clientVer=4100&prot=https:");
 		append_opt(request_body, "server", vpninfo->hostname);
 		append_opt(request_body, "computer", vpninfo->localname);
+		if (vpninfo->ip_info.addr)
+			append_opt(request_body, "preferred-ip", vpninfo->ip_info.addr);
 		if (form->auth_id && form->auth_id[0]!='_')
 			append_opt(request_body, "inputStr", form->auth_id);
 		append_form_opts(vpninfo, form, request_body);

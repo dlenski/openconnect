@@ -262,7 +262,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		buf_append(reqbuf, "X-CSTP-MTU: %d\r\n", mtu);
 	buf_append(reqbuf, "X-CSTP-Address-Type: %s\r\n",
 			       vpninfo->disable_ipv6 ? "IPv4" : "IPv6,IPv4");
-       /* Explicitly request the same IPv4 address on reconnect */
+	/* Explicitly request the same IPv4 address on reconnect (or on
+	 * initial connection if specified with the --request-ip option)
+	 */
 	if (old_addr)
 		buf_append(reqbuf, "X-CSTP-Address: %s\r\n", old_addr);
 	if (!vpninfo->disable_ipv6)
@@ -580,11 +582,20 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 			     mtu);
 	}
 	if (old_addr) {
-		if (strcmp(old_addr, vpninfo->ip_info.addr)) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Reconnect gave different Legacy IP address (%s != %s)\n"),
-				     vpninfo->ip_info.addr, old_addr);
-			return -EINVAL;
+		/* XXX: if --request-ip option is used, we'll have old_addr!=NULL even on the
+		   first connection attempt, but if old_netmask is also non-NULL then we know
+		   it's a reconnect. */
+		if (vpninfo->ip_info.addr==NULL || strcmp(old_addr, vpninfo->ip_info.addr)) {
+			if (!old_netmask)
+				vpn_progress(vpninfo, PRG_ERR,
+							 _("Legacy IP address %s was requested, but server provided %s\n"),
+							 old_addr, vpninfo->ip_info.addr);
+			else {
+				vpn_progress(vpninfo, PRG_ERR,
+							 _("Reconnect gave different Legacy IP address (%s != %s)\n"),
+							 vpninfo->ip_info.addr, old_addr);
+				return -EINVAL;
+			}
 		}
 	}
 	if (old_netmask) {

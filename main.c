@@ -188,6 +188,7 @@ enum {
 	OPT_LOCAL_HOSTNAME,
 	OPT_PROTOCOL,
 	OPT_PASSTOS,
+	OPT_REQUEST_IP,
 };
 
 #ifdef __sun__
@@ -269,6 +270,7 @@ static const struct option long_options[] = {
 	OPTION("dump-http-traffic", 0, OPT_DUMP_HTTP),
 	OPTION("no-system-trust", 0, OPT_NO_SYSTEM_TRUST),
 	OPTION("protocol", 1, OPT_PROTOCOL),
+	OPTION("request-ip", 1, OPT_REQUEST_IP),
 #ifdef OPENCONNECT_GNUTLS
 	OPTION("gnutls-debug", 1, OPT_GNUTLS_DEBUG),
 #endif
@@ -860,6 +862,7 @@ static void usage(void)
 	printf("      --resolve=HOST:IP           %s\n", _("Use IP when connecting to HOST"));
 	printf("      --os=STRING                 %s\n", _("OS type (linux,linux-64,win,...) to report"));
 	printf("      --dtls-local-port=PORT      %s\n", _("Set local port for DTLS datagrams"));
+	printf("      --request-ip=IP             %s\n", _("Request a specific IPv4 address"));
 	print_supported_protocols_usage();
 
 	printf("\n");
@@ -1269,6 +1272,9 @@ int main(int argc, char **argv)
 			break;
 		case OPT_AUTHGROUP:
 			authgroup = keep_config_arg();
+			break;
+		case OPT_REQUEST_IP:
+			vpninfo->ip_info.addr = keep_config_arg();
 			break;
 		case 'C':
 			vpninfo->cookie = dup_config_arg();

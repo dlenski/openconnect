@@ -532,12 +532,21 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 		goto out;
 	}
 	if (old_addr) {
+		/* XXX: if --request-ip option is used, we'll have old_addr!=NULL even on the
+		   first connection attempt, but if old_netmask is also non-NULL then we know
+		   it's a reconnect. */
 		if (strcmp(old_addr, vpninfo->ip_info.addr)) {
-			vpn_progress(vpninfo, PRG_ERR,
-				     _("Reconnect gave different Legacy IP address (%s != %s)\n"),
-				     vpninfo->ip_info.addr, old_addr);
-			result = -EINVAL;
-			goto out;
+			if (!old_netmask)
+				vpn_progress(vpninfo, PRG_ERR,
+							 _("Legacy IP address %s was requested, but server provided %s\n"),
+							 old_addr, vpninfo->ip_info.addr);
+			else {
+				vpn_progress(vpninfo, PRG_ERR,
+							 _("Reconnect gave different Legacy IP address (%s != %s)\n"),
+							 vpninfo->ip_info.addr, old_addr);
+				result = -EINVAL;
+				goto out;
+			}
 		}
 	}
 	if (old_netmask) {
