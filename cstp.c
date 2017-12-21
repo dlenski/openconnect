@@ -262,6 +262,9 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 		buf_append(reqbuf, "X-CSTP-MTU: %d\r\n", mtu);
 	buf_append(reqbuf, "X-CSTP-Address-Type: %s\r\n",
 			       vpninfo->disable_ipv6 ? "IPv4" : "IPv6,IPv4");
+       /* Explicitly request the same IPv4 address on reconnect */
+	if (old_addr)
+		buf_append(reqbuf, "X-CSTP-Address: %s\r\n", old_addr);
 	if (!vpninfo->disable_ipv6)
 		buf_append(reqbuf, "X-CSTP-Full-IPv6-Capability: true\r\n");
 #ifdef HAVE_DTLS
