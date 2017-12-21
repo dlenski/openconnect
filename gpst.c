@@ -491,7 +491,7 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	const char *old_addr = vpninfo->ip_info.addr, *old_netmask = vpninfo->ip_info.netmask;
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
-	char *xml_buf=NULL;
+	char *xml_buf=NULL, *p=NULL;
 
 	/* submit getconfig request */
 	buf_append(request_body, "client-type=1&protocol-version=p1&app-version=3.0.1-10");
@@ -499,9 +499,21 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	append_opt(request_body, "clientos", vpninfo->platname);
 	append_opt(request_body, "hmac-algo", "sha1,md5");
 	append_opt(request_body, "enc-algo", "aes-128-cbc,aes-256-cbc");
-	if (old_addr)
+	if (old_addr) {
 		append_opt(request_body, "preferred-ip", old_addr);
-	buf_append(request_body, "&%s", vpninfo->cookie);
+
+		/* XXX: our cookie might also contain a preferred-ip
+		 * value. This could be a different value. We want
+		 * to skip over it if we already set one.
+		 */
+		if (p=strstr(vpninfo->cookie, "&preferred-ip="))
+			*p = 0;
+		buf_append(request_body, "&%s", vpninfo->cookie);
+		*p = '&';
+		if (p=strchr(p+1, '&'))
+			buf_append(request_body, "%s", p);
+	} else
+		buf_append(request_body, "&%s", vpninfo->cookie);
 
 	orig_path = vpninfo->urlpath;
 	vpninfo->urlpath = strdup("ssl-vpn/getconfig.esp");
