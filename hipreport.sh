@@ -1,6 +1,8 @@
 #!/bin/sh
 
-# Read required variables from command line:
+# openconnect will call this script with the follow command-line
+# arguments, which are needed to populate the contents of the
+# HIP report:
 #
 #   --cookie: a URL-encoded string, as output by openconnect
 #             --authenticate --protocol=gp, which includes parameters
@@ -18,6 +20,7 @@
 #          really matters is that the value in the HIP report
 #          submission should match the value in the HIP report check.
 
+# Read command line arguments into variables
 COOKIE=
 COMPUTER=
 IP=
