@@ -97,6 +97,33 @@ static const char *add_option(struct openconnect_info *vpninfo, const char *opt,
 	return new->value;
 }
 
+
+static int filter_opts(struct oc_text_buf *buf, const char *query, const char *incexc, int include)
+{
+	const char *f, *endf, *eq;
+	const char *found, *comma;
+
+	for (f = query; *f; f=(*endf) ? endf+1 : endf) {
+		endf = strchr(f, '&') ? : f+strlen(f);
+		eq = strchr(f, '=');
+		if (!eq || eq > endf)
+			eq = endf;
+
+		for (found = incexc; *found; found=(*comma) ? comma+1 : comma) {
+			comma = strchr(found, ',') ? : found+strlen(found);
+			if (!strncmp(found, f, MAX(comma-found, eq-f)))
+				break;
+		}
+
+		if ((include && *found) || (!include && !*found)) {
+			if (buf->pos && buf->data[buf->pos-1] != '?' && buf->data[buf->pos-1] != '&')
+				buf_append(buf, "&");
+			buf_append_bytes(buf, f, (int)(endf-f));
+		}
+	}
+	return buf_error(buf);
+}
+
 /* Parse this JavaScript-y mess:
 
 	"var respStatus = \"Challenge|Error\";\n"
@@ -499,17 +526,11 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	append_opt(request_body, "clientos", vpninfo->platname);
 	append_opt(request_body, "hmac-algo", "sha1,md5");
 	append_opt(request_body, "enc-algo", "aes-128-cbc,aes-256-cbc");
-	/* XXX: If this is a reconnect *and* there was a preferred-ip
-	 * specified on the initial connection (via --request-ip or the
-	 * server caching our preferred IP), then our cookie might also
-	 * contain a preferred-ip value--which could be different. We
-	 * need to make sure the value from old_addr comes *after* the
-	 * value from the cookie, so that it will override the value from
-	 * the cookie.
-	 */
-	buf_append(request_body, "&%s", vpninfo->cookie);
-	if (old_addr)
+	if (old_addr) {
 		append_opt(request_body, "preferred-ip", old_addr);
+		filter_opts(request_body, vpninfo->cookie, "preferred-ip", 0);
+	} else
+		buf_append(request_body, "&%s", vpninfo->cookie);
 
 	orig_path = vpninfo->urlpath;
 	vpninfo->urlpath = strdup("ssl-vpn/getconfig.esp");
@@ -589,7 +610,9 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 		return ret;
 
 	reqbuf = buf_alloc();
-	buf_append(reqbuf, "GET /ssl-tunnel-connect.sslvpn?%s HTTP/1.1\r\n\r\n", vpninfo->cookie);
+	buf_append(reqbuf, "GET /ssl-tunnel-connect.sslvpn?");
+	filter_opts(reqbuf, vpninfo->cookie, "user,authcookie", 1);
+	buf_append(reqbuf, " HTTP/1.1\r\n\r\n");
 
 	if (vpninfo->dump_http_traffic)
 		dump_buf(vpninfo, '>', reqbuf->data);
@@ -679,7 +702,6 @@ static int build_csd_token(struct openconnect_info *vpninfo)
 {
 	struct oc_text_buf *buf;
 	unsigned char md5[16];
-	char *p, *endp;
 	int i;
 
 	if (vpninfo->csd_token)
@@ -692,11 +714,7 @@ static int build_csd_token(struct openconnect_info *vpninfo)
 	/* use localname and cookie (excluding volatile authcookie and preferred-ip) to build md5sum */
 	buf = buf_alloc();
 	append_opt(buf, "computer", vpninfo->localname);
-	for (p=vpninfo->cookie; *p; p=(*endp) ? endp+1 : endp) {
-		endp = strchr(p, '&') ? : p+strlen(p);
-		if (strncmp(p, "authcookie=", 11) && strncmp(p, "preferred-ip=", 13))
-			buf_append(buf, "&%.*s", (int)(endp-p), p);
-	}
+	filter_opts(buf, vpninfo->cookie, "authcookie,preferred-ip", 0);
 
 	/* save as csd_token */
 	openconnect_md5(md5, buf->data, buf->pos);
