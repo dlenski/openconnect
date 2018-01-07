@@ -637,7 +637,7 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 
 static int parse_hip_report_check(struct openconnect_info *vpninfo, xmlNode *xml_node)
 {
-	char *s;
+	const char *s;
 	int result = -EINVAL;
 
 	if (!xml_node || !xmlnode_is_named(xml_node, "response"))
@@ -651,13 +651,59 @@ static int parse_hip_report_check(struct openconnect_info *vpninfo, xmlNode *xml
 				result = -EAGAIN;
 			else
 				result = -EINVAL;
-			free(s);
+			free((void *)s);
 			goto out;
 		}
 	}
 
 out:
 	return result;
+}
+
+/* Unlike CSD, the HIP security checker runs during the connection
+ * phase, not during the authentication phase.
+ *
+ * The HIP security checker will (probably) ask us to resubmit the
+ * HIP report if either of the following changes:
+ *   - Client IP address
+ *	 - Client HIP report md5sum
+ *
+ * I'm not sure what the md5sum is computed over in the official
+ * client, but it doesn't really matter.
+ *
+ * We just need an identifier for the combination of the local host
+ * and the VPN gateway which won't change when our IP address
+ * or authcookie are changed.
+ */
+static int build_csd_token(struct openconnect_info *vpninfo)
+{
+	struct oc_text_buf *buf;
+	unsigned char md5[16];
+	char *p, *endp;
+	int i;
+
+	if (vpninfo->csd_token)
+		return 0;
+
+	vpninfo->csd_token = malloc(MD5_SIZE * 2 + 1);
+	if (!vpninfo->csd_token)
+		return -ENOMEM;
+
+	/* use localname and cookie (excluding volatile authcookie and preferred-ip) to build md5sum */
+	buf = buf_alloc();
+	append_opt(buf, "computer", vpninfo->localname);
+	for (p=vpninfo->cookie; *p; p=(*endp) ? endp+1 : endp) {
+		endp = strchr(p, '&') ? : p+strlen(p);
+		if (strncmp(p, "authcookie=", 11) && strncmp(p, "preferred-ip=", 13))
+			buf_append(buf, "&%.*s", (int)(endp-p), p);
+	}
+
+	/* save as csd_token */
+	openconnect_md5(md5, buf->data, buf->pos);
+	for (i=0; i < MD5_SIZE; i++)
+		sprintf(&vpninfo->csd_token[i*2], "%02x", md5[i]);
+
+	return buf_free(buf);
 }
 
 /* check if HIP report is needed (to ssl-vpn/hipreportcheck.esp) or submit HIP report contents (to ssl-vpn/hipreport.esp) */
@@ -670,19 +716,20 @@ static int check_or_submit_hip_report(struct openconnect_info *vpninfo, const ch
 	const char *method = "POST";
 	char *xml_buf=NULL, *orig_path;
 
-	buf_truncate(request_body);
-
 	/* cookie gives us these fields: authcookie, portal, user, domain, and (maybe the unnecessary) preferred-ip */
-	buf_truncate(request_body);
-	buf_append(request_body, "%s", vpninfo->cookie);
+	buf_append(request_body, "client-role=global-protect-full&%s", vpninfo->cookie);
 	append_opt(request_body, "computer", vpninfo->localname);
 	append_opt(request_body, "client-ip", vpninfo->ip_info.addr);
-	append_opt(request_body, "client-role", "global-protect-full");
 	if (report) {
-		buf_ensure_space(request_body, strlen(report)*5);
+		/* XML report contains many characters requiring URL-encoding (%xx) */
+		buf_ensure_space(request_body, strlen(report)*3);
 		append_opt(request_body, "report", report);
-	} else
+	} else {
+		result = build_csd_token(vpninfo);
+		if (result)
+			goto out;
 		append_opt(request_body, "md5", vpninfo->csd_token);
+	}
 
 	orig_path = vpninfo->urlpath;
 	vpninfo->urlpath = strdup(report ? "ssl-vpn/hipreport.esp" : "ssl-vpn/hipreportcheck.esp");
@@ -693,6 +740,7 @@ static int check_or_submit_hip_report(struct openconnect_info *vpninfo, const ch
 
 	result = gpst_xml_or_error(vpninfo, result, xml_buf, report ? NULL : parse_hip_report_check, NULL, NULL);
 
+out:
 	buf_free(request_body);
 	free(xml_buf);
 	return result;
@@ -786,28 +834,7 @@ int gpst_setup(struct openconnect_info *vpninfo)
 	/* Get configuration */
 	ret = gpst_get_config(vpninfo);
 	if (ret)
-		return ret;
-
-	/* Unlike CSD, the HIP security checker runs during the connection
-	   phase, not during the authentication phase. Therefore we need
-	   to build the CSD token (an MD5 digest identifying the client)
-	   without relying on the authentication phase having run in the
-	   same process. We build it from the cookie containing
-	   authentication information, but exclude the volatile authcookie
-	   field which changes from session to session. */
-	if (!vpninfo->csd_token) {
-		unsigned char md5[16];
-		int i;
-		char *excl_authcookie = strncmp(vpninfo->cookie, "authcookie=", 11) ? vpninfo->cookie : strchr(vpninfo->cookie, '&');
-		openconnect_md5(md5, excl_authcookie, strlen(excl_authcookie));
-		vpninfo->csd_token = malloc(MD5_SIZE * 2 + 1);
-		if (!vpninfo->csd_token) {
-			ret = -ENOMEM;
-			goto out;
-		}
-		for (i=0; i < MD5_SIZE; i++)
-			sprintf(&vpninfo->csd_token[i*2], "%02x", md5[i]);
-	}
+		goto out;
 
 	/* Check HIP */
 	ret = check_or_submit_hip_report(vpninfo, NULL);
