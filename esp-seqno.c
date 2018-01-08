@@ -32,6 +32,14 @@
 int verify_packet_seqno(struct openconnect_info *vpninfo,
 			struct esp *esp, uint32_t seq)
 {
+	int err_val = -EINVAL;
+	const char *discard_verb = "Discarding";
+
+	if (!vpninfo->esp_replay_protect) {
+		err_val = 0;
+		discard_verb = "Tolerating";
+	}
+
 	/*
 	 * For incoming, esp->seq is the next *expected* packet, being
 	 * the sequence number *after* the latest we have received.
@@ -100,16 +108,16 @@ int verify_packet_seqno(struct openconnect_info *vpninfo,
 		if (delta > 65 || delta == 0) {
 			/* Too old. We can't know if it's a replay. */
 			vpn_progress(vpninfo, PRG_DEBUG,
-				     _("Discarding ancient ESP packet with seq %u (expected %" PRIu64 ")\n"),
-				     seq, esp->seq);
-			return -EINVAL;
+				     _("%s ancient ESP packet with seq %u (expected %" PRIu64 ")\n"),
+				     discard_verb, seq, esp->seq);
+			return err_val;
 		} else if (delta == 1) {
 			/* Not in the bitmask since it is by definition already received. */
 		replayed:
 			vpn_progress(vpninfo, PRG_DEBUG,
-				     _("Discarding replayed ESP packet with seq %u\n"),
-				     seq);
-			return -EINVAL;
+				     _("%s replayed ESP packet with seq %u\n"),
+				     discard_verb, seq);
+			return err_val;
 		} else {
 			/* Within the backlog window, so we remember whether we've seen it or not. */
 			uint64_t mask = 1ULL << (delta - 2);

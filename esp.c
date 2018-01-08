@@ -195,7 +195,7 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		} else if (pkt->esp.spi == old_esp->spi &&
 			   ntohl(pkt->esp.seq) + esp->seq < vpninfo->old_esp_maxseq) {
 			vpn_progress(vpninfo, PRG_TRACE,
-				     _("Consider SPI 0x%x, seq %u against outgoing ESP setup\n"),
+				     _("Received ESP packet from old SPI 0x%x, seq %u\n"),
 				     (unsigned)ntohl(old_esp->spi), (unsigned)ntohl(pkt->esp.seq));
 			if (decrypt_esp_packet(vpninfo, old_esp, pkt))
 				continue;

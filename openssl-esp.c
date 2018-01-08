@@ -198,13 +198,8 @@ int decrypt_esp_packet(struct openconnect_info *vpninfo, struct esp *esp, struct
 		return -EINVAL;
 	}
 
-	/* Why in $DEITY's name would you ever *not* set this? Perhaps we
-	 * should do th check anyway, but only warn instead of discarding
-	 * the packet? */
-	if (vpninfo->esp_replay_protect &&
-	    verify_packet_seqno(vpninfo, esp, ntohl(pkt->esp.seq)))
+	if (verify_packet_seqno(vpninfo, esp, ntohl(pkt->esp.seq)))
 		return -EINVAL;
-
 
 	if (!EVP_DecryptInit_ex(esp->cipher, NULL, NULL, NULL,
 				pkt->esp.iv)) {
