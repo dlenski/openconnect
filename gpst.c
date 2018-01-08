@@ -408,6 +408,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 	vpninfo->ip_info.domain = NULL;
 	vpninfo->ip_info.mtu = 0;
 	vpninfo->esp_magic = inet_addr(vpninfo->ip_info.gateway_addr);
+	vpninfo->esp_replay_protect = 1;
 	vpninfo->ssl_times.rekey_method = REKEY_NONE;
 	vpninfo->cstp_options = NULL;
 
@@ -470,6 +471,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 #ifdef HAVE_ESP
 			if (vpninfo->dtls_state != DTLS_DISABLED) {
 				int c = (vpninfo->current_esp_in ^= 1);
+				vpninfo->old_esp_maxseq = vpninfo->esp_in[c^1].seq + 32;
 				for (member = xml_node->children; member; member=member->next) {
 					s = NULL;
 					if (!xmlnode_get_text(member, "udp-port", &s))		udp_sockaddr(vpninfo, atoi(s));
