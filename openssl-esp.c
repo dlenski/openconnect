@@ -204,7 +204,8 @@ int decrypt_esp_packet(struct openconnect_info *vpninfo, struct esp *esp, struct
 	if (vpninfo->esp_replay_protect &&
 	    verify_packet_seqno(vpninfo, esp, ntohl(pkt->esp.seq)))
 		return -EINVAL;
-
+	else
+		esp->seq = ntohl(pkt->esp.seq) + 1;
 
 	if (!EVP_DecryptInit_ex(esp->cipher, NULL, NULL, NULL,
 				pkt->esp.iv)) {
