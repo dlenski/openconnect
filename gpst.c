@@ -100,6 +100,32 @@ static const char *add_option(struct openconnect_info *vpninfo, const char *opt,
 	return new->value;
 }
 
+static int filter_opts(struct oc_text_buf *buf, const char *query, const char *incexc, int include)
+{
+	const char *f, *endf, *eq;
+	const char *found, *comma;
+
+	for (f = query; *f; f=(*endf) ? endf+1 : endf) {
+		endf = strchr(f, '&') ? : f+strlen(f);
+		eq = strchr(f, '=');
+		if (!eq || eq > endf)
+			eq = endf;
+
+		for (found = incexc; *found; found=(*comma) ? comma+1 : comma) {
+			comma = strchr(found, ',') ? : found+strlen(found);
+			if (!strncmp(found, f, MAX(comma-found, eq-f)))
+				break;
+		}
+
+		if ((include && *found) || (!include && !*found)) {
+			if (buf->pos && buf->data[buf->pos-1] != '?' && buf->data[buf->pos-1] != '&')
+				buf_append(buf, "&");
+			buf_append_bytes(buf, f, (int)(endf-f));
+		}
+	}
+	return buf_error(buf);
+}
+
 /* Parse this JavaScript-y mess:
 
 	"var respStatus = \"Challenge|Error\";\n"
@@ -504,9 +530,11 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	append_opt(request_body, "clientos", vpninfo->platname);
 	append_opt(request_body, "hmac-algo", "sha1,md5");
 	append_opt(request_body, "enc-algo", "aes-128-cbc,aes-256-cbc");
-	if (old_addr)
+	if (old_addr) {
 		append_opt(request_body, "preferred-ip", old_addr);
-	buf_append(request_body, "&%s", vpninfo->cookie);
+		filter_opts(request_body, vpninfo->cookie, "preferred-ip", 0);
+	} else
+		buf_append(request_body, "&%s", vpninfo->cookie);
 
 	orig_path = vpninfo->urlpath;
 	vpninfo->urlpath = strdup("ssl-vpn/getconfig.esp");
@@ -577,7 +605,9 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 		return ret;
 
 	reqbuf = buf_alloc();
-	buf_append(reqbuf, "GET /ssl-tunnel-connect.sslvpn?%s HTTP/1.1\r\n\r\n", vpninfo->cookie);
+	buf_append(reqbuf, "GET /ssl-tunnel-connect.sslvpn?");
+	filter_opts(reqbuf, vpninfo->cookie, "user,authcookie", 1);
+	buf_append(reqbuf, " HTTP/1.1\r\n\r\n");
 
 	if (vpninfo->dump_http_traffic)
 		dump_buf(vpninfo, '>', reqbuf->data);
