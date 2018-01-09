@@ -127,7 +127,6 @@ static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 		if (xml_node && !xmlnode_is_named(xml_node, "argument"))
 			goto err_out;
 		else if (xml_node) {
-			/* XX: Could we just use xml_node->content here? */
 			value = (char *)xmlNodeGetContent(xml_node);
 			if (value && (!value[0] || !strcmp(value, "(null)") || !strcmp(value, "-1"))) {
 				free(value);
