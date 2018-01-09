@@ -196,6 +196,9 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 		struct timeval tv;
 		fd_set rfds, wfds, efds;
 #endif
+#ifdef _MAINLOOP_DEBUG
+		char mld_out[256], *mld_p;
+#endif
 
 		/* If tun is not up, loop more often to detect
 		 * a DTLS timeout (due to a firewall block) as soon. */
@@ -266,10 +269,19 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 			return 0;
 		}
 
-		if (did_work)
+		if (did_work) {
+#ifdef _MAINLOOP_DEBUG
+			vpn_progress(vpninfo, PRG_DEBUG, _("Did work (%d), not sleeping...\n"), did_work);
+#endif
 			continue;
+		}
 
-		vpn_progress(vpninfo, PRG_TRACE,
+		vpn_progress(vpninfo,
+#ifdef _MAINLOOP_DEBUG
+					 PRG_DEBUG,
+#else
+					 PRG_TRACE,
+#endif
 			     _("No work to do; sleeping for %d ms...\n"), timeout);
 
 #ifdef _WIN32
@@ -303,7 +315,48 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 		tv.tv_sec = timeout / 1000;
 		tv.tv_usec = (timeout % 1000) * 1000;
 
+#  ifdef _MAINLOOP_DEBUG
+		if (vpninfo->dtls_state <= DTLS_DISABLED) {
+			mld_p = mld_out;
+			if (FD_ISSET(vpninfo->dtls_fd, &rfds)) mld_p += sprintf(mld_p, "r, ");
+			if (FD_ISSET(vpninfo->dtls_fd, &wfds)) mld_p += sprintf(mld_p, "w, ");
+			if (FD_ISSET(vpninfo->dtls_fd, &wfds)) mld_p += sprintf(mld_p, "e, ");
+
+			if (mld_p > mld_out) {
+				mld_p[-2] = '\0';
+				vpn_progress(vpninfo, PRG_ERR, _("dtls_state=%d (<= %d) but dtls_fd (%d) is monitored for %s\n"),
+							 vpninfo->dtls_state, DTLS_DISABLED, vpninfo->dtls_fd, mld_out);
+			}
+		}
+#  endif
+
 		select(vpninfo->_select_nfds, &rfds, &wfds, &efds, &tv);
+
+#  ifdef _MAINLOOP_DEBUG
+		mld_p = mld_out;
+
+		if (FD_ISSET(vpninfo->ssl_fd,  &rfds)) mld_p += sprintf(mld_p, "SSL(r), ");
+		if (FD_ISSET(vpninfo->dtls_fd, &rfds)) mld_p += sprintf(mld_p, "DTLS(r), ");
+		if (FD_ISSET(vpninfo->cmd_fd,  &rfds)) mld_p += sprintf(mld_p, "CMD(r), ");
+		if (FD_ISSET(vpninfo->tun_fd,  &rfds)) mld_p += sprintf(mld_p, "TUN(r), ");
+
+		if (FD_ISSET(vpninfo->ssl_fd,  &wfds)) mld_p += sprintf(mld_p, "SSL(w), ");
+		if (FD_ISSET(vpninfo->dtls_fd, &wfds)) mld_p += sprintf(mld_p, "DTLS(w), ");
+		if (FD_ISSET(vpninfo->cmd_fd,  &wfds)) mld_p += sprintf(mld_p, "CMD(w), ");
+		if (FD_ISSET(vpninfo->tun_fd,  &wfds)) mld_p += sprintf(mld_p, "TUN(w), ");
+
+		if (FD_ISSET(vpninfo->ssl_fd,  &efds)) mld_p += sprintf(mld_p, "SSL(e), ");
+		if (FD_ISSET(vpninfo->dtls_fd, &efds)) mld_p += sprintf(mld_p, "DTLS(e), ");
+		if (FD_ISSET(vpninfo->cmd_fd,  &efds)) mld_p += sprintf(mld_p, "CMD(e), ");
+		if (FD_ISSET(vpninfo->tun_fd,  &rfds)) mld_p += sprintf(mld_p, "TUN(e), ");
+
+		if (mld_p == mld_out)
+			vpn_progress(vpninfo, PRG_DEBUG, _("Woke with %ld.%06lds left: no events\n"), tv.tv_sec, tv.tv_usec);
+		else {
+			mld_p[-2]='\0';
+			vpn_progress(vpninfo, PRG_DEBUG, _("Woke with %ld.%06lds left: %s\n"), tv.tv_sec, tv.tv_usec, mld_out);
+		}
+#  endif
 #endif
 	}
 
