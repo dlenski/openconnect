@@ -369,6 +369,7 @@ static int calculate_mtu(struct openconnect_info *vpninfo)
 	return mtu;
 }
 
+#ifdef HAVE_ESP
 static int set_esp_algo(struct openconnect_info *vpninfo, const char *s, int hmac)
 {
 	if (hmac) {
@@ -401,6 +402,7 @@ static int get_key_bits(xmlNode *xml_node, unsigned char *dest)
 	}
 	return (bits == 0) ? 0 : -EINVAL;
 }
+#endif
 
 /* Return value:
  *  < 0, on error
@@ -658,7 +660,8 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 		monitor_read_fd(vpninfo, ssl);
 		monitor_except_fd(vpninfo, ssl);
 		vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
-		esp_close_secret(vpninfo);
+		if (vpninfo->proto->udp_close)
+			vpninfo->proto->udp_close(vpninfo);
 	}
 
 	return ret;
@@ -1064,7 +1067,8 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpninfo->quit_reason = "GPST reconnect failed";
 			return ret;
 		}
-		esp_setup(vpninfo, vpninfo->dtls_attempt_period);
+		if (vpninfo->proto->udp_setup)
+			vpninfo->proto->udp_setup(vpninfo, vpninfo->dtls_attempt_period);
 		return 1;
 
 	case KA_KEEPALIVE:
