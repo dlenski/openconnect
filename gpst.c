@@ -904,10 +904,8 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		return 0;
 	case DTLS_SECRET:
 	case DTLS_SLEEPING:
-		if (time(NULL) < vpninfo->dtls_times.last_rekey + 5) {
+		if (!ka_check_deadline(timeout, time(NULL), vpninfo->dtls_times.last_rekey + 5)) {
 			/* Allow 5 seconds after configuration for ESP to start */
-			if (*timeout > 5000)
-				*timeout = 5000;
 			return 0;
 		} else if (!vpninfo->ssl_times.last_rekey) {
 			/* ... before we switch to HTTPS instead */
