@@ -421,6 +421,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 	vpninfo->ip_info.domain = NULL;
 	vpninfo->ip_info.mtu = 0;
 	vpninfo->esp_magic = inet_addr(vpninfo->ip_info.gateway_addr);
+	vpninfo->esp_replay_protect = 1;
 	vpninfo->ssl_times.rekey_method = REKEY_NONE;
 	vpninfo->cstp_options = NULL;
 
