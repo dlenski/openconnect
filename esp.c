@@ -253,15 +253,12 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	int ret;
 
 	if (vpninfo->dtls_state == DTLS_SLEEPING) {
-		int when = vpninfo->new_dtls_started + vpninfo->dtls_attempt_period - time(NULL);
-		if (when <= 0 || vpninfo->dtls_need_reconnect) {
+		if (ka_check_deadline(timeout, time(NULL), vpninfo->new_dtls_started + vpninfo->dtls_attempt_period)
+		    || vpninfo->dtls_need_reconnect) {
 			vpn_progress(vpninfo, PRG_DEBUG, _("Send ESP probes\n"));
 			if (vpninfo->proto->udp_send_probes)
 				vpninfo->proto->udp_send_probes(vpninfo);
-			when = vpninfo->dtls_attempt_period;
 		}
-		if (*timeout > when * 1000)
-			*timeout = when * 1000;
 	}
 	if (vpninfo->dtls_fd == -1)
 		return 0;
