@@ -1,4 +1,8 @@
-This is an anonymized log of the authentication, configuration, tunnel data transfer, and logout interactions between a [PAN](http://www.paloaltonetworks.com) GlobalProtect VPN server and client (Windows client, v3.0.1-10).
+This is an anonymized log of the authentication, configuration, tunnel data transfer, and logout interactions between a
+[PAN](http://www.paloaltonetworks.com) GlobalProtect VPN server and client. The logs below are based on the official Windows
+client, v3.0.1-10, with some updates from v4.0.5-8.
+
+Client version 4.0 [adds IPv6 support](https://live.paloaltonetworks.com/t5/Colossal-Event-Blog/New-GlobalProtect-4-0-announced-with-IPv6-support/ba-p/141593) and SAML authentication support.
 
 The correct user-agent (`User-Agent: PAN Globalprotect`) is **required** for all HTTP interactions with the GlobalProtect VPN. It treats any other user-agent as a web browser, not a VPN client.
 
@@ -38,6 +42,20 @@ portal-prelogonuserauthcookie:  empty
 host-id:                        deadbeef-dead-beef-dead-beefdeadbeef
 ```
 
+New parameters sent by Windows client v4.0.5-8:
+
+```
+clientgpversion:                4.0.5-8
+prelogin-cookie:
+ipv6-support:                   yes
+client-ip:                      34.56.78.90
+client-ipv6:                    .
+preferred-ipv6:
+```
+
+The `client-ip{,v6}` parameters refer to the client's _external_ internet-facing IP address, while `preferred-ip{,v6}` parameters
+refer to the expected/desired addresses within the VPN.
+
 Successful login response
 =========================
 
@@ -70,10 +88,19 @@ In order to handle the getconfig, tunnel-connect, and logon requests properly (d
     <argument>tunnel</argument>
     <argument>-1</argument>
     <argument>4100</argument>
-    <argument>preferred ip address as provided above</argument>
+    <argument>preferred IP address as sent in request</argument>
   </application-desc>
 </jnlp>
 ```
+
+Windows client v4.0.5-8 receives additional input-parroting arguments at the end:
+
+```xml
+    <argument>portal-userauthcookie as sent in request</argument>
+    <argument>prelogon-userauthcookie as sent in request</argument>
+    <argument>preferred IPv6 address as sent in request</argument>
+```
+
 
 getconfig request
 =================
@@ -107,6 +134,17 @@ clientos:          Windows
 enc-algo:          aes-256-gcm,aes-128-gcm,aes-128-cbc,
 hmac-algo:         sha1,
 ```
+
+Windows client v4.0.5-8 adds additional parameters at the end:
+
+```xml
+app-version:       4.0.5-8
+addr1-v6-1:        f00f::/16
+addr1-v6-2:        f00f:dead:beef::dead:beef/128
+preferred-ipv6:
+hmac-algo:         sha1,.
+```
+
 
 Response #2 (getconfig)
 =======================
@@ -190,14 +228,22 @@ In the back-and-forth flows shown below, `<` means sent by the gateway, `>` mean
  
 ### ESP-over-UDP
 
-Uses the keying information obtained in response to the `getconfig` request. In order to initiate the connection, the client sends 3 ESP-encapsulated ICMP request ("ping") packets to the gateway. They are sent _from_ the client's in-VPN IP address _to_ the IP address specified by the `<gw-address>` from the `getconfig` response (this is normally the same as the gateway's **public** IP address, but is sometimes a VPN-internal address ¯\\\_(ツ)\_/¯). These ICMP request packets include the following magic payload:
+Uses the keying information obtained in response to the `getconfig` request. In order to initiate the connection, the client sends 3 ICMP request ("ping") packets to the gateway.
 
-    "monitor\x00\x00pan ha 0123456789:;<=>? !\"#$%&\'()*+,-./\x10\x11\x12\x13\x14\x15\x16\x18"
-    "monitor\x00\x00pan ha " (first 16 bytes)
+* These packets are ESP-encapsulated
+* These packets are sent _from_ **the client's in-VPN IP address** _to_ **the IP address specified by the `<gw-address>` from
+  the `getconfig` response**.
+  * The destination address is usually the same as the gateway's **public** internet-facing IP address, but sometimes it is a
+    VPN-internal address ¯\\\_(ツ)\_/¯
+* These ICMP request packets include the following magic payload — though only the first 16 bytes of the payload appear
+  to be necessary to elicit a response from the gateway.
 
-Only the first 16 bytes of the payload appear to be necessary to elicit a response from the gateway. Once the gateway has responded with a corresponding ICMP reply, the client and server send and receive arbitrary ESP-encapsulated traffic.
+      "monitor\x00\x00pan ha 0123456789:;<=>? !\"#$%&\'()*+,-./\x10\x11\x12\x13\x14\x15\x16\x18"
+      "monitor\x00\x00pan ha " (first 16 bytes)
 
-The client continues to periodically send the "magic ping" packets as a keepalive.
+* Once the gateway has responded with a corresponding ICMP reply, the client and server send and receive arbitrary
+  ESP-encapsulated traffic.
+* The client continues to periodically send the same "magic ping" packets as a keepalive.
 
 ### SSL vpn tunnel
 
@@ -264,5 +310,9 @@ Successful logout response
   <domain>company domain name</domain>
   <user>Myusername</user>
   <computer>DEADBEEF01</computer>
+
+  <!-- newer servers include these, older ones don't: -->
+  <saml-session-index></saml-session-index>
+  <saml-name-id></saml-name-id>
 </response>
 ```
