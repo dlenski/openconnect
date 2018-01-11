@@ -295,15 +295,17 @@ out:
 	 1 /* pad length */ + 1 /* next header */ + \
          16 /* max padding */ )
 #define UDP_HEADER_SIZE 8
+#define TCP_HEADER_SIZE 20 /* with no options */
 #define IPV4_HEADER_SIZE 20
 #define IPV6_HEADER_SIZE 40
 
 static int calculate_mtu(struct openconnect_info *vpninfo)
 {
 	int mtu = vpninfo->reqmtu, base_mtu = vpninfo->basemtu;
+	int mss = 0;
 
 #if defined(__linux__) && defined(TCP_INFO)
-	if (!mtu || !base_mtu) {
+	if (!mtu) {
 		struct tcp_info ti;
 		socklen_t ti_size = sizeof(ti);
 
@@ -317,23 +319,19 @@ static int calculate_mtu(struct openconnect_info *vpninfo)
 				base_mtu = ti.tcpi_pmtu;
 			}
 
-			if (!base_mtu) {
-				if (ti.tcpi_rcv_mss < ti.tcpi_snd_mss)
-					base_mtu = ti.tcpi_rcv_mss - 13;
-				else
-					base_mtu = ti.tcpi_snd_mss - 13;
-			}
+			/* XXX: GlobalProtect has no mechanism to inform the server about the
+			 * desired MTU, so could just ignore the "incoming" MSS (tcpi_rcv_mss).
+			 */
+			mss = MIN(ti.tcpi_rcv_mss, ti.tcpi_snd_mss);
 		}
 	}
 #endif
 #ifdef TCP_MAXSEG
-	if (!base_mtu) {
-		int mss;
+	if (!mtu && !mss) {
 		socklen_t mss_size = sizeof(mss);
 		if (!getsockopt(vpninfo->ssl_fd, IPPROTO_TCP, TCP_MAXSEG,
 				&mss, &mss_size)) {
 			vpn_progress(vpninfo, PRG_DEBUG, _("TCP_MAXSEG %d\n"), mss);
-			base_mtu = mss - 13;
 		}
 	}
 #endif
@@ -345,13 +343,32 @@ static int calculate_mtu(struct openconnect_info *vpninfo)
 	if (base_mtu < 1280)
 		base_mtu = 1280;
 
-	if (!mtu) {
-		/* remove IP/UDP and ESP overhead from base MTU to calculate tunnel MTU */
-		mtu = base_mtu - ESP_OVERHEAD - UDP_HEADER_SIZE;
+#ifdef HAVE_ESP
+	/* If we can use the ESP tunnel (got secrets in config),
+	 * then we should pick the optimal MTU for ESP.
+	 */
+	if (!mtu && vpninfo->dtls_state == DTLS_SECRET) {
 		if (vpninfo->peer_addr->sa_family == AF_INET6)
 			mtu -= IPV6_HEADER_SIZE;
 		else
 			mtu -= IPV4_HEADER_SIZE;
+
+	} else
+#endif
+
+    /* We are definitely using the TLS tunnel (no ESP secrets)
+	 * so we should base our MTU on the TCP MSS.
+	 */
+	if (!mtu) {
+		if (mss)
+			mtu = mss - 21;
+		else {
+			mtu = base_mtu - TCP_HEADER_SIZE - 21;
+			if (vpninfo->peer_addr->sa_family == AF_INET6)
+				mtu -= IPV6_HEADER_SIZE;
+			else
+				mtu -= IPV4_HEADER_SIZE;
+		}
 	}
 	return mtu;
 }
