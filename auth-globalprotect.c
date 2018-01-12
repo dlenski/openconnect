@@ -318,6 +318,7 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 		/* submit gateway login (ssl-vpn/login.esp) or portal config (global-protect/getconfig.esp) request */
 		buf_truncate(request_body);
 		buf_append(request_body, "jnlpReady=jnlpReady&ok=Login&direct=yes&clientVer=4100&prot=https:");
+		append_opt(request_body, "ipv6-support", vpninfo->disable_ipv6 ? "no" : "yes");
 		append_opt(request_body, "server", vpninfo->hostname);
 		append_opt(request_body, "computer", vpninfo->localname);
 		if (vpninfo->ip_info.addr)

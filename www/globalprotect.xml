@@ -58,10 +58,9 @@ always shows <tt><![CDATA[&lt;mtu&gt;0&lt;/mtu&gt;]]></tt>.  OpenConnect attempt
 calculate the MTU by starting from the base MTU with the overhead of
 encapsulating each packets within ESP, UDP, and IP.</p>
 
-<p>There is currently no IPv6 support.  <a
-href="https://live.paloaltonetworks.com/t5/Learning-Articles/IPv6-Support-on-the-Palo-Alto-Networks-Firewall/ta-p/52994">PAN's
-documentation</a> suggests that recent versions of GlobalProtect may support
-IPv6 over the ESP tunnel, though not the SSL tunnel.</p>
+<p>IPv6 support was added in <a
+href="https://live.paloaltonetworks.com/t5/Colossal-Event-Blog/New-GlobalProtect-4-0-announced-with-IPv6-support/ba-p/141593">GlobalProtect
+4.0</a>.</p>
 
 <p>The ESP and HTTPS tunnels cannot be connected simultaneously.  The ESP
 tunnel becomes unresponsive as soon as the HTTPS tunnel is started, and
@@ -71,7 +70,7 @@ re-fetched.</p>
 <p>Compared to the AnyConnect or Juniper protocols, the GlobalProtect
 protocol appears to have very little in the way of <a
 href="https://en.wikipedia.org/wiki/In-band_signaling">in-band
-signaling</a>.  The HTTPS tunnel can only send or receive IPv4 packets and a
+signaling</a>.  The HTTPS tunnel can only send or receive IP packets and a
 simple DPD/keepalive packet (always sent by the client and echoed by the
 server).  The ESP tunnel does not have any special DPD/keepalive packet, but
 uses an <a
