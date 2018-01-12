@@ -459,6 +459,11 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 		else if (!xmlnode_get_text(xml_node, "mtu", &s)) {
 			vpninfo->ip_info.mtu = atoi(s);
 			free(s);
+		} else if (!xmlnode_get_text(xml_node, "ssl-tunnel-url", &s)) {
+			free(vpninfo->urlpath);
+			vpninfo->urlpath = s;
+			if (strcmp(s, "/ssl-tunnel-connect.sslvpn"))
+				vpn_progress(vpninfo, PRG_INFO, _("Non-standard SSL tunnel path: %s\n"), s);
 		} else if (!xmlnode_get_text(xml_node, "timeout", &s)) {
 			int sec = atoi(s);
 			vpn_progress(vpninfo, PRG_INFO, _("Tunnel timeout (rekey interval) is %d minutes.\n"), sec/60);
@@ -638,7 +643,7 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 		return ret;
 
 	reqbuf = buf_alloc();
-	buf_append(reqbuf, "GET /ssl-tunnel-connect.sslvpn?");
+	buf_append(reqbuf, "GET %s?", vpninfo->urlpath);
 	filter_opts(reqbuf, vpninfo->cookie, "user,authcookie", 1);
 	buf_append(reqbuf, " HTTP/1.1\r\n\r\n");
 
