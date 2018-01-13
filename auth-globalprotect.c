@@ -135,8 +135,7 @@ static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 	}
 
 	vpninfo->cookie = strdup(cookie->data);
-	buf_free(cookie);
-	return 0;
+	return buf_free(cookie);
 
 err_out:
 	free((void *)value);
@@ -326,6 +325,8 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 		if (form->auth_id && form->auth_id[0]!='_')
 			append_opt(request_body, "inputStr", form->auth_id);
 		append_form_opts(vpninfo, form, request_body);
+		if ((result = buf_error(request_body)))
+			goto out;
 
 		orig_path = vpninfo->urlpath;
 		vpninfo->urlpath = strdup(portal ? "global-protect/getconfig.esp" : "ssl-vpn/login.esp");
@@ -403,6 +404,8 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 	 */
 	append_opt(request_body, "computer", vpninfo->localname);
 	buf_append(request_body, "&%s", vpninfo->cookie);
+	if ((result = buf_error(request_body)))
+		goto out;
 
 	/* We need to close and reopen the HTTPS connection (to kill
 	 * the tunnel session) and submit a new HTTPS request to
@@ -425,6 +428,7 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 	else
 		vpn_progress(vpninfo, PRG_INFO, _("Logout successful\n"));
 
+out:
 	buf_free(request_body);
 	free(xml_buf);
 	return result;
