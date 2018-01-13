@@ -573,6 +573,8 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 		filter_opts(request_body, vpninfo->cookie, "preferred-ip", 0);
 	} else
 		buf_append(request_body, "&%s", vpninfo->cookie);
+	if ((result = buf_error(request_body)))
+		goto out;
 
 	orig_path = vpninfo->urlpath;
 	vpninfo->urlpath = strdup("ssl-vpn/getconfig.esp");
@@ -632,6 +634,7 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 {
 	int ret;
 	struct oc_text_buf *reqbuf;
+	const char start_tunnel[12] = "START_TUNNEL"; /* NOT zero-terminated */
 	char buf[256];
 
 	/* Connect to SSL VPN tunnel */
@@ -646,31 +649,33 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 	buf_append(reqbuf, "GET %s?", vpninfo->urlpath);
 	filter_opts(reqbuf, vpninfo->cookie, "user,authcookie", 1);
 	buf_append(reqbuf, " HTTP/1.1\r\n\r\n");
+	if ((ret = buf_error(reqbuf)))
+		goto out;
 
 	if (vpninfo->dump_http_traffic)
 		dump_buf(vpninfo, '>', reqbuf->data);
 
 	vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
-	buf_free(reqbuf);
 
 	if ((ret = vpninfo->ssl_read(vpninfo, buf, 12)) < 0) {
 		if (ret == -EINTR)
-			return ret;
+			goto out;
 		vpn_progress(vpninfo, PRG_ERR,
 		             _("Error fetching GET-tunnel HTTPS response.\n"));
-		return -EINVAL;
+		ret = -EINVAL;
+		goto out;
 	}
 
-	if (!strncmp(buf, "START_TUNNEL", 12)) {
+	if (!strncmp(buf, start_tunnel, sizeof(start_tunnel))) {
 		ret = 0;
 	} else if (ret==0) {
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Gateway disconnected immediately after GET-tunnel request.\n"));
 		ret = -EPIPE;
 	} else {
-		if (ret==12) {
-			ret = vpninfo->ssl_gets(vpninfo, buf+12, 244);
-			ret = (ret>0 ? ret : 0) + 12;
+		if (ret==sizeof(start_tunnel)) {
+			ret = vpninfo->ssl_gets(vpninfo, buf+sizeof(start_tunnel), sizeof(buf)-sizeof(start_tunnel));
+			ret = (ret>0 ? ret : 0) + sizeof(start_tunnel);
 		}
 		vpn_progress(vpninfo, PRG_ERR,
 		             _("Got inappropriate HTTP GET-tunnel response: %.*s\n"), ret, buf);
@@ -688,6 +693,8 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 			vpninfo->proto->udp_close(vpninfo);
 	}
 
+out:
+	buf_free(reqbuf);
 	return ret;
 }
 
@@ -748,12 +755,15 @@ static int build_csd_token(struct openconnect_info *vpninfo)
 	buf = buf_alloc();
 	append_opt(buf, "computer", vpninfo->localname);
 	filter_opts(buf, vpninfo->cookie, "authcookie,preferred-ip", 0);
+	if (buf_error(buf))
+		goto out;
 
 	/* save as csd_token */
 	openconnect_md5(md5, buf->data, buf->pos);
 	for (i=0; i < MD5_SIZE; i++)
 		sprintf(&vpninfo->csd_token[i*2], "%02x", md5[i]);
 
+out:
 	return buf_free(buf);
 }
 
@@ -781,6 +791,8 @@ static int check_or_submit_hip_report(struct openconnect_info *vpninfo, const ch
 			goto out;
 		append_opt(request_body, "md5", vpninfo->csd_token);
 	}
+	if ((result = buf_error(request_body)))
+		goto out;
 
 	orig_path = vpninfo->urlpath;
 	vpninfo->urlpath = strdup(report ? "ssl-vpn/hipreport.esp" : "ssl-vpn/hipreportcheck.esp");
