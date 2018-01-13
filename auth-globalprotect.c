@@ -171,24 +171,29 @@ err_out:
 
 static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 {
-	struct oc_auth_form form;
+	struct oc_auth_form *form;
 	xmlNode *x = NULL;
 	struct oc_form_opt_select *opt;
 	struct oc_text_buf *buf = NULL;
 	int max_choices = 0, result;
 	char *portal = NULL;
 
-	form.message = (char *)_("Please select GlobalProtect gateway.");
-	form.auth_id = (char *)"_portal";
-
-	form.authgroup_opt = opt = calloc(1, sizeof(*opt));
-	if (!opt)
+	form = calloc(1, sizeof(*form));
+	if (!form)
 		return -ENOMEM;
+
+	form->message = strdup(_("Please select GlobalProtect gateway."));
+	form->auth_id = strdup("_portal");
+
+	opt = form->authgroup_opt = calloc(1, sizeof(*opt));
+	if (!opt) {
+		result = -ENOMEM;
+		goto out;
+	}
 	opt->form.type = OC_FORM_OPT_SELECT;
 	opt->form.name = strdup("gateway");
 	opt->form.label = strdup(_("GATEWAY:"));
-
-	form.opts = (void *)opt;
+	form->opts = (void *)opt;
 
 	/* The portal contains a ton of stuff, but basically none of it is useful to a VPN client
 	 * that wishes to give control to the client user, as opposed to the VPN administrator.
@@ -211,8 +216,6 @@ static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 						goto gateways;
 	}
 	result = -EINVAL;
-	free_opt(form.opts);
-	free(portal);
 	goto out;
 
 gateways:
@@ -228,7 +231,6 @@ gateways:
 			buf_append(buf, "/global-protect</HostAddress></HostEntry>\n");
 		}
 	}
-	free(portal);
 
 	/* first, count the number of gateways */
 	for (x = xml_node->children; x; x = x->next)
@@ -237,8 +239,8 @@ gateways:
 
 	opt->choices = calloc(max_choices, sizeof(opt->choices[0]));
 	if (!opt->choices) {
-		free_opt(form.opts);
-		return -ENOMEM;
+		result = -ENOMEM;
+		goto out;
 	}
 
 	/* each entry looks like <entry name="host[:443]"><description>Label</description></entry> */
@@ -247,18 +249,20 @@ gateways:
 		if (xmlnode_is_named(xml_node, "entry")) {
 			struct oc_choice *choice = calloc(1, sizeof(*choice));
 			if (!choice) {
-				free_opt(form.opts);
-				return -ENOMEM;
+				result = -ENOMEM;
+				goto out;
 			}
 
 			xmlnode_get_prop(xml_node, "name", &choice->name);
 			for (x = xml_node->children; x; x=x->next)
 				if (xmlnode_is_named(x, "description")) {
 					choice->label = (char *)xmlNodeGetContent(x);
-					buf_append(buf, "      <HostEntry><HostName>");
-					buf_append_xmlescaped(buf, choice->label);
-					buf_append(buf, "</HostName><HostAddress>%s/ssl-vpn</HostAddress></HostEntry>\n",
-					           choice->name);
+					if (vpninfo->write_new_config) {
+						buf_append(buf, "      <HostEntry><HostName>");
+						buf_append_xmlescaped(buf, choice->label);
+						buf_append(buf, "</HostName><HostAddress>%s/ssl-vpn</HostAddress></HostEntry>\n",
+								   choice->name);
+					}
 				}
 
 			opt->choices[opt->nr_choices++] = choice;
@@ -267,31 +271,31 @@ gateways:
 		}
 	}
 
-	buf_append(buf, "  </ServerList>\n</GPPortal>\n");
 	if (vpninfo->write_new_config) {
-		result = buf_error(buf);
-		if (!result)
-			result = vpninfo->write_new_config(vpninfo->cbdata, buf->data, buf->pos);
-		buf_free(buf);
-		if (result)
+		buf_append(buf, "  </ServerList>\n</GPPortal>\n");
+		if ((result = buf_error(buf)))
+			goto out;
+		if ((result = vpninfo->write_new_config(vpninfo, buf->data, buf->pos)))
 			goto out;
 	}
 
-	/* process static auth form to select gateway */
-	result = process_auth_form(vpninfo, &form);
+	/* process auth form to select gateway */
+	result = process_auth_form(vpninfo, form);
 	if (result != OC_FORM_RESULT_NEWGROUP)
 		goto out;
 
 	/* redirect to the gateway (no-op if it's the same host) */
-	if ((vpninfo->redirect_url = malloc(strlen(vpninfo->authgroup) + 9)) == NULL) {
+	free(vpninfo->redirect_url);
+	if (asprintf(&vpninfo->redirect_url, "https://%s", vpninfo->authgroup) == 0) {
 		result = -ENOMEM;
 		goto out;
 	}
-	sprintf(vpninfo->redirect_url, "https://%s", vpninfo->authgroup);
 	result = handle_redirect(vpninfo);
 
 out:
-	free_opt(form.opts);
+	buf_free(buf);
+	free(portal);
+	free_auth_form(form);
 	return result;
 }
 
