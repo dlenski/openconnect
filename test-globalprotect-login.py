@@ -47,7 +47,7 @@ res = s.post(endpoint.geturl(), verify=args.verify, data=dict(user=args.user, pa
                               # required
                               jnlpReady='jnlpReady', ok='Login', direct='yes',
                               # optional but might affect behavior
-                              clientVer=4100, server=args.portal, prot='https:',
+                              clientVer=4100, server=endpoint.netloc, prot='https:',
                               computer=os.uname()[1]))
 
 if args.verbose:
