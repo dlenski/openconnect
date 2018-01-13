@@ -146,105 +146,131 @@ err_out:
 
 static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 {
-	static struct oc_auth_form form = {.message=(char *)"Please select GlobalProtect gateway.", .auth_id=(char *)"_portal"};
-
-	xmlNode *x;
+	struct oc_auth_form *form;
+	xmlNode *x = NULL;
 	struct oc_form_opt_select *opt;
-	struct oc_text_buf *buf;
+	struct oc_text_buf *buf = NULL;
 	int max_choices = 0, result;
 	char *portal = NULL;
 
-	opt = calloc(1, sizeof(*opt));
-	if (!opt)
+	form = calloc(1, sizeof(*form));
+	if (!form)
 		return -ENOMEM;
+
+	form->message = strdup(_("Please select GlobalProtect gateway."));
+	form->auth_id = strdup("_portal");
+
+	opt = form->authgroup_opt = calloc(1, sizeof(*opt));
+	if (!opt) {
+		result = -ENOMEM;
+		goto out;
+	}
 	opt->form.type = OC_FORM_OPT_SELECT;
 	opt->form.name = strdup("gateway");
 	opt->form.label = strdup(_("GATEWAY:"));
+	form->opts = (void *)opt;
 
 	/* The portal contains a ton of stuff, but basically none of it is useful to a VPN client
 	 * that wishes to give control to the client user, as opposed to the VPN administrator.
 	 * The exception is the list of gateways in policy/gateways/external/list
 	 */
-	if (xmlnode_is_named(xml_node, "policy"))
-		for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next)
-			if (xmlnode_is_named(xml_node, "portal-name"))
-				portal = (char *)xmlNodeGetContent(xml_node);
-			else if (xmlnode_is_named(xml_node, "gateways"))
-				for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next)
-					if (xmlnode_is_named(xml_node, "external"))
-						for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next)
-							if (xmlnode_is_named(xml_node, "list"))
-								goto gateways;
+	if (xmlnode_is_named(xml_node, "policy")) {
+		for (x = xml_node->children, xml_node = NULL; x; x = x->next) {
+			if (xmlnode_is_named(x, "portal-name"))
+				portal = (char *)xmlNodeGetContent(x);
+			else if (xmlnode_is_named(x, "gateways"))
+				xml_node = x;
+		}
+	}
+
+	if (xml_node) {
+		for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next)
+			if (xmlnode_is_named(xml_node, "external"))
+				for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next)
+					if (xmlnode_is_named(xml_node, "list"))
+						goto gateways;
+	}
 	result = -EINVAL;
-	free(portal);
 	goto out;
 
 gateways:
-	buf = buf_alloc();
-	buf_append(buf, "<GPPortal>\n  <ServerList>\n");
-	if (portal) {
-		buf_append(buf, "      <HostEntry><HostName>%s</HostName><HostAddress>%s", portal, vpninfo->hostname);
-		if (vpninfo->port!=443)
-			buf_append(buf, ":%d", vpninfo->port);
-		buf_append(buf, "/global-protect</HostAddress></HostEntry>\n");
+	if (vpninfo->write_new_config) {
+		buf = buf_alloc();
+		buf_append(buf, "<GPPortal>\n  <ServerList>\n");
+		if (portal) {
+			buf_append(buf, "      <HostEntry><HostName>");
+			buf_append_xmlescaped(buf, portal);
+			buf_append(buf, "</HostName><HostAddress>%s", vpninfo->hostname);
+			if (vpninfo->port!=443)
+				buf_append(buf, ":%d", vpninfo->port);
+			buf_append(buf, "/global-protect</HostAddress></HostEntry>\n");
+		}
 	}
-	free(portal);
 
 	/* first, count the number of gateways */
-	for (x = xml_node->children; x; x=x->next)
+	for (x = xml_node->children; x; x = x->next)
 		if (xmlnode_is_named(x, "entry"))
 			max_choices++;
 
-	opt->choices = calloc(1, max_choices * sizeof(struct oc_choice *));
+	opt->choices = calloc(max_choices, sizeof(opt->choices[0]));
 	if (!opt->choices) {
-		free_opt((struct oc_form_opt *)opt);
-		return -ENOMEM;
+		result = -ENOMEM;
+		goto out;
 	}
 
 	/* each entry looks like <entry name="host[:443]"><description>Label</description></entry> */
 	vpn_progress(vpninfo, PRG_INFO, _("%d gateway servers available:\n"), max_choices);
-	for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
+	for (xml_node = xml_node->children; xml_node; xml_node = xml_node->next) {
 		if (xmlnode_is_named(xml_node, "entry")) {
 			struct oc_choice *choice = calloc(1, sizeof(*choice));
 			if (!choice) {
-				free_opt((struct oc_form_opt *)opt);
-				return -ENOMEM;
+				result = -ENOMEM;
+				goto out;
 			}
 
 			xmlnode_get_prop(xml_node, "name", &choice->name);
 			for (x = xml_node->children; x; x=x->next)
-				if (xmlnode_is_named(x, "description"))
-					buf_append(buf, "      <HostEntry><HostName>%s</HostName><HostAddress>%s/ssl-vpn</HostAddress></HostEntry>\n",
-					           choice->label = (char *)xmlNodeGetContent(x),
-					           choice->name);
+				if (xmlnode_is_named(x, "description")) {
+					choice->label = (char *)xmlNodeGetContent(x);
+					if (vpninfo->write_new_config) {
+						buf_append(buf, "      <HostEntry><HostName>");
+						buf_append_xmlescaped(buf, choice->label);
+						buf_append(buf, "</HostName><HostAddress>%s/ssl-vpn</HostAddress></HostEntry>\n",
+								   choice->name);
+					}
+				}
 
 			opt->choices[opt->nr_choices++] = choice;
 			vpn_progress(vpninfo, PRG_INFO, _("  %s (%s)\n"),
-						 choice->label, choice->name);
+				     choice->label, choice->name);
 		}
 	}
 
-	buf_append(buf, "  </ServerList>\n</GPPortal>\n");
-	if (vpninfo->write_new_config)
-		result = vpninfo->write_new_config(vpninfo->cbdata, buf->data, buf->pos);
-	buf_free(buf);
+	if (vpninfo->write_new_config) {
+		buf_append(buf, "  </ServerList>\n</GPPortal>\n");
+		if ((result = buf_error(buf)))
+			goto out;
+		if ((result = vpninfo->write_new_config(vpninfo, buf->data, buf->pos)))
+			goto out;
+	}
 
-	/* process static auth form to select gateway */
-	form.opts = (struct oc_form_opt *)(form.authgroup_opt = opt);
-	result = process_auth_form(vpninfo, &form);
+	/* process auth form to select gateway */
+	result = process_auth_form(vpninfo, form);
 	if (result != OC_FORM_RESULT_NEWGROUP)
 		goto out;
 
 	/* redirect to the gateway (no-op if it's the same host) */
-	if ((vpninfo->redirect_url = malloc(strlen(vpninfo->authgroup) + 9)) == NULL) {
+	free(vpninfo->redirect_url);
+	if (asprintf(&vpninfo->redirect_url, "https://%s", vpninfo->authgroup) == 0) {
 		result = -ENOMEM;
 		goto out;
 	}
-	sprintf(vpninfo->redirect_url, "https://%s", vpninfo->authgroup);
 	result = handle_redirect(vpninfo);
 
 out:
-	free_opt((struct oc_form_opt *)opt);
+	buf_free(buf);
+	free(portal);
+	free_auth_form(form);
 	return result;
 }
 
