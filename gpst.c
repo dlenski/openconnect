@@ -348,11 +348,10 @@ static int calculate_mtu(struct openconnect_info *vpninfo)
 	 * then we should pick the optimal MTU for ESP.
 	 */
 	if (!mtu && vpninfo->dtls_state == DTLS_SECRET) {
-		if (vpninfo->peer_addr->sa_family == AF_INET6)
-			mtu -= IPV6_HEADER_SIZE;
-		else
-			mtu -= IPV4_HEADER_SIZE;
-
+                if (vpninfo->peer_addr->sa_family == AF_INET6)
+                        mtu = base_mtu - IPV6_HEADER_SIZE;
+                else
+                        mtu = base_mtu - IPV4_HEADER_SIZE;
 	} else
 #endif
 
