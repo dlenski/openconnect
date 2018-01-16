@@ -1,5 +1,7 @@
 # OpenConnect with PAN GlobalProtect support
 
+[![Build Status](https://api.travis-ci.org/dlenski/openconnect.png)](https://travis-ci.org/dlenski/openconnect)
+
 # Table of Contents
 
    * [What is this?](#what-is-this)
