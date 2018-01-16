@@ -290,15 +290,19 @@ out:
 	return result;
 }
 
-#define ESP_OVERHEAD (4 /* SPI */ + 4 /* sequence number */ + \
-         20 /* biggest supported MAC (SHA1) */ + 16 /* biggest supported IV (AES-128) */ + \
-	 1 /* pad length */ + 1 /* next header */ + \
-         16 /* max padding */ )
+
+#define ESP_HEADER_SIZE (4 /* SPI */ + 4 /* sequence number */)
+#define ESP_FOOTER_SIZE (1 /* pad length */ + 1 /* next header */)
 #define UDP_HEADER_SIZE 8
 #define TCP_HEADER_SIZE 20 /* with no options */
 #define IPV4_HEADER_SIZE 20
 #define IPV6_HEADER_SIZE 40
 
+/* Based on cstp.c's calculate_mtu().
+ *
+ * With HTTPS tunnel, there are 21 bytes of overhead beyond the
+ * TCP MSS: 5 bytes for TLS and 16 for GPST.
+ */
 static int calculate_mtu(struct openconnect_info *vpninfo)
 {
 	int mtu = vpninfo->reqmtu, base_mtu = vpninfo->basemtu;
@@ -348,10 +352,18 @@ static int calculate_mtu(struct openconnect_info *vpninfo)
 	 * then we should pick the optimal MTU for ESP.
 	 */
 	if (!mtu && vpninfo->dtls_state == DTLS_SECRET) {
+		/* remove ESP, UDP, IP headers from base (wire) MTU */
+		mtu = ( base_mtu - UDP_HEADER_SIZE - ESP_HEADER_SIZE
+		        - 12 /* both supported algos (SHA1 and MD5) have 96-bit MAC lengths (RFC2403 and RFC2404) */
+		        - (vpninfo->enc_key_len ? : 32) /* biggest supported IV (AES-256) */ );
 		if (vpninfo->peer_addr->sa_family == AF_INET6)
 			mtu -= IPV6_HEADER_SIZE;
 		else
 			mtu -= IPV4_HEADER_SIZE;
+		/* round down to a multiple of blocksize */
+		mtu -= mtu % (vpninfo->enc_key_len ? : 32);
+		/* subtract ESP footer, which is included in the payload before padding to the blocksize */
+		mtu -= ESP_FOOTER_SIZE;
 
 	} else
 #endif
