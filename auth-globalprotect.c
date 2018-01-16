@@ -95,6 +95,9 @@ static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 		goto err_out;
 
 	xml_node = xml_node->children;
+	while (xml_node && xml_node->type != XML_ELEMENT_NODE)
+		xml_node = xml_node->next;
+
 	if (!xmlnode_is_named(xml_node, "application-desc"))
 		goto err_out;
 
@@ -102,6 +105,9 @@ static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 	for (arg=gp_login_args; arg<gp_login_args+gp_login_nargs; arg++) {
 		if (!arg->opt)
 			continue;
+
+		while (xml_node && xml_node->type != XML_ELEMENT_NODE)
+			xml_node = xml_node->next;
 
 		if (!xml_node)
 			value = NULL;
