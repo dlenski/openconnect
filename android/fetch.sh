@@ -31,10 +31,10 @@ nettle_MIRROR_1=http://mirror.anl.gov/pub/gnu/nettle
 nettle_MIRROR_2=http://ftp.gnu.org/gnu/nettle
 nettle_MIRROR_3=http://gd.tuwien.ac.at/gnu/gnusrc/nettle
 
-gnutls_MIRROR_0=ftp://ftp.gnutls.org/gcrypt/gnutls/v3.2
-gnutls_MIRROR_1=http://ftp.heanet.ie/mirrors/ftp.gnupg.org/gcrypt/gnutls/v3.2
-gnutls_MIRROR_2=http://gd.tuwien.ac.at/pub/gnupg/gnutls/v3.2
-gnutls_MIRROR_3=http://thammuz.tchpc.tcd.ie/mirrors/gnupg/gnutls/v3.2
+gnutls_MIRROR_0=https://www.gnupg.org/ftp/gcrypt/gnutls/v3.5
+gnutls_MIRROR_1=http://ftp.heanet.ie/mirrors/ftp.gnupg.org/gcrypt/gnutls/v3.5
+gnutls_MIRROR_2=http://gd.tuwien.ac.at/pub/gnupg/gnutls/v3.5
+gnutls_MIRROR_3=http://thammuz.tchpc.tcd.ie/mirrors/gnupg/gnutls/v3.5
 
 stoken_MIRROR_0=http://sourceforge.net/projects/stoken/files
 stoken_SUFFIX_0=/download

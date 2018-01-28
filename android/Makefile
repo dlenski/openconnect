@@ -126,9 +126,9 @@ libxml: $(LIBXML_DEPS)
 #
 # Build GNU MP
 #
-GMP_VER := 5.1.2
-GMP_TAR := gmp-$(GMP_VER).tar.bz2
-GMP_SHA := 2cb498322b9be4713829d94dee944259c017d615
+GMP_VER := 6.1.2
+GMP_TAR := gmp-$(GMP_VER).tar.xz
+GMP_SHA := 87b565e89a9a684fe4ebeeddb8399dce2599f9c9049854ca8c0dfbdea0e21912
 GMP_SRC := sources/gmp-$(GMP_VER)
 GMP_BUILD := $(TRIPLET)/gmp
 
@@ -137,7 +137,7 @@ $(GMP_TAR):
 
 $(GMP_SRC)/configure: $(GMP_TAR)
 	mkdir -p sources
-	tar xfj $< -C sources
+	tar -xJf $< -C sources
 	touch $@
 
 $(GMP_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GMP_SRC)/configure
@@ -160,9 +160,9 @@ gmp: $(GMP_DEPS)
 #
 # Build nettle
 #
-NETTLE_VER := 2.7.1
+NETTLE_VER := 3.4
 NETTLE_TAR := nettle-$(NETTLE_VER).tar.gz
-NETTLE_SHA := e7477df5f66e650c4c4738ec8e01c2efdb5d1211
+NETTLE_SHA := ae7a42df026550b85daca8389b6a60ba6313b0567f374392e54918588a411e94
 NETTLE_SRC := sources/nettle-$(NETTLE_VER)
 NETTLE_BUILD := $(TRIPLET)/nettle
 
@@ -193,9 +193,9 @@ nettle: $(NETTLE_DEPS)
 #
 # Build GnuTLS
 #
-GNUTLS_VER := 3.2.21
+GNUTLS_VER := 3.5.17
 GNUTLS_TAR := gnutls-$(GNUTLS_VER).tar.xz
-GNUTLS_SHA := fa12e643ad21bcaf450d534f262c813d75843966
+GNUTLS_SHA := 86b142afef587c118d63f72ccf307f3321dbc40357aae528202b65d913d20919
 GNUTLS_SRC := sources/gnutls-$(GNUTLS_VER)
 GNUTLS_BUILD := $(TRIPLET)/gnutls
 
@@ -223,9 +223,10 @@ $(GNUTLS_BUILD)/Makefile: $(TOOLCHAIN_BUILT) $(GNUTLS_SRC)/configure $(NETTLE_DE
 		--disable-doc --disable-openssl-compatibility --disable-cxx \
 		--disable-openssl-compatibility --disable-ocsp \
 		--disable-openpgp-authentication --disable-anon-authentication \
-		--disable-psk-authentication --disable-srp-authentication \
+		--enable-psk-authentication --disable-srp-authentication \
 		--disable-dtls-srtp-support  --enable-dhe --enable-ecdhe \
-		--disable-rsa-export
+		--disable-rsa-export --with-included-libtasn1 \
+		--with-included-unistring --without-p11-kit
 
 $(GNUTLS_BUILD)/lib/libgnutls.la: $(GNUTLS_BUILD)/Makefile
 	$(MAKE) -C $(GNUTLS_BUILD)
