@@ -78,9 +78,9 @@ $(TOOLCHAIN_BUILT):
 #
 # Build libxml2 with minimal configuration for OpenConnect
 #
-LIBXML2_VER := 2.9.0
+LIBXML2_VER := 2.9.7
 LIBXML2_TAR := libxml2-$(LIBXML2_VER).tar.gz
-LIBXML2_SHA := a43d7c0a8e463ac5a7846254f2a732a9af146fab
+LIBXML2_SHA := f63c5e7d30362ed28b38bfa1ac6313f9a80230720b7fb6c80575eeab3ff5900c
 LIBXML2_SRC := sources/libxml2-$(LIBXML2_VER)
 LIBXML2_BUILD := $(TRIPLET)/libxml2
 
@@ -243,9 +243,9 @@ gnutls: $(GNUTLS_DEPS)
 #
 # Build libstoken
 #
-STOKEN_VER := 0.81
+STOKEN_VER := 0.92
 STOKEN_TAR := stoken-$(STOKEN_VER).tar.gz
-STOKEN_SHA := db36aec5a8bd3f5f92deaebdea08cb639b78da73
+STOKEN_SHA := aa2b481b058e4caf068f7e747a2dcf5772bcbf278a4f89bc9efcbf82bcc9ef5a
 STOKEN_SRC := sources/stoken-$(STOKEN_VER)
 STOKEN_BUILD := $(TRIPLET)/stoken
 
@@ -314,9 +314,9 @@ oath: $(OATH_DEPS)
 #
 # Build liblz4
 #
-LZ4_VER := r127
-LZ4_TAR := lz4-$(LZ4_VER).tar.gz
-LZ4_SHA := 1aa7d4bb62eb79f88b33f86f9890dc9f96797af5
+LZ4_VER := 1.8.1.2
+LZ4_TAR := lz4-v$(LZ4_VER).tar.gz
+LZ4_SHA := 12f3a9e776a923275b2dc78ae138b4967ad6280863b77ff733028ce89b8123f9
 LZ4_DIR := $(TRIPLET)/lz4-$(LZ4_VER)
 
 $(LZ4_TAR):

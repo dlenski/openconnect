@@ -43,7 +43,7 @@ oath_toolkit_MIRROR_0=http://download.savannah.gnu.org/releases/oath-toolkit
 oath_toolkit_MIRROR_1=http://packetstorm.wowhacker.com/UNIX/utilities
 oath_toolkit_MIRROR_2=ftp://ftp.netbsd.org/pub/pkgsrc/distfiles
 
-lz4_MIRROR_0=https://github.com/Cyan4973/lz4/archive
+lz4_MIRROR_0=https://github.com/lz4/lz4/archive
 
 MAX_TRIES=5
 
