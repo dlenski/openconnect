@@ -23,11 +23,6 @@ ifeq ($(ARCH),x86)
 TRIPLET := i686-linux-android
 OPENSSL_TARGET := android-x86
 endif
-ifeq ($(ARCH),mips)
-TRIPLET := mipsel-linux-android
-OPENSSL_TARGET := android
-EXTRA_LDFLAGS := -lz
-endif
 
 TOPDIR := $(shell pwd)
 DESTDIR := $(TOPDIR)/$(TRIPLET)/out
