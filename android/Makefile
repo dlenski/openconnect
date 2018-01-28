@@ -84,12 +84,12 @@ $(TOOLCHAIN_BUILT):
 #
 LIBXML2_VER := 2.9.0
 LIBXML2_TAR := libxml2-$(LIBXML2_VER).tar.gz
-LIBXML2_SHA1 := a43d7c0a8e463ac5a7846254f2a732a9af146fab
+LIBXML2_SHA := a43d7c0a8e463ac5a7846254f2a732a9af146fab
 LIBXML2_SRC := sources/libxml2-$(LIBXML2_VER)
 LIBXML2_BUILD := $(TRIPLET)/libxml2
 
 $(LIBXML2_TAR):
-	$(FETCH) $@ $(LIBXML2_SHA1)
+	$(FETCH) $@ $(LIBXML2_SHA)
 
 $(LIBXML2_SRC)/configure: $(LIBXML2_TAR)
 	mkdir -p sources
@@ -132,11 +132,11 @@ libxml: $(LIBXML_DEPS)
 #
 OPENSSL_VER := 1.0.1g
 OPENSSL_TAR := openssl-$(OPENSSL_VER).tar.gz
-OPENSSL_SHA1 := b28b3bcb1dc3ee7b55024c9f795be60eb3183e3c
+OPENSSL_SHA := b28b3bcb1dc3ee7b55024c9f795be60eb3183e3c
 OPENSSL_DIR := $(TRIPLET)/openssl-$(OPENSSL_VER)
 
 $(OPENSSL_TAR):
-	$(FETCH) $@ $(OPENSSL_SHA1)
+	$(FETCH) $@ $(OPENSSL_SHA)
 
 $(OPENSSL_DIR)/Configure: $(OPENSSL_TAR)
 	mkdir -p $(TRIPLET)
@@ -169,12 +169,12 @@ openssl: $(OPENSSL_DEPS)
 #
 GMP_VER := 5.1.2
 GMP_TAR := gmp-$(GMP_VER).tar.bz2
-GMP_SHA1 := 2cb498322b9be4713829d94dee944259c017d615
+GMP_SHA := 2cb498322b9be4713829d94dee944259c017d615
 GMP_SRC := sources/gmp-$(GMP_VER)
 GMP_BUILD := $(TRIPLET)/gmp
 
 $(GMP_TAR):
-	$(FETCH) $@ $(GMP_SHA1)
+	$(FETCH) $@ $(GMP_SHA)
 
 $(GMP_SRC)/configure: $(GMP_TAR)
 	mkdir -p sources
@@ -203,12 +203,12 @@ gmp: $(GMP_DEPS)
 #
 NETTLE_VER := 2.7.1
 NETTLE_TAR := nettle-$(NETTLE_VER).tar.gz
-NETTLE_SHA1 := e7477df5f66e650c4c4738ec8e01c2efdb5d1211
+NETTLE_SHA := e7477df5f66e650c4c4738ec8e01c2efdb5d1211
 NETTLE_SRC := sources/nettle-$(NETTLE_VER)
 NETTLE_BUILD := $(TRIPLET)/nettle
 
 $(NETTLE_TAR):
-	$(FETCH) $@ $(NETTLE_SHA1)
+	$(FETCH) $@ $(NETTLE_SHA)
 
 $(NETTLE_SRC)/configure: $(NETTLE_TAR)
 	mkdir -p sources
@@ -236,12 +236,12 @@ nettle: $(NETTLE_DEPS)
 #
 GNUTLS_VER := 3.2.21
 GNUTLS_TAR := gnutls-$(GNUTLS_VER).tar.xz
-GNUTLS_SHA1 := fa12e643ad21bcaf450d534f262c813d75843966
+GNUTLS_SHA := fa12e643ad21bcaf450d534f262c813d75843966
 GNUTLS_SRC := sources/gnutls-$(GNUTLS_VER)
 GNUTLS_BUILD := $(TRIPLET)/gnutls
 
 $(GNUTLS_TAR):
-	$(FETCH) $@ $(GNUTLS_SHA1)
+	$(FETCH) $@ $(GNUTLS_SHA)
 
 $(GNUTLS_SRC)/configure: $(GNUTLS_TAR)
 	mkdir -p sources
@@ -285,12 +285,12 @@ gnutls: $(GNUTLS_DEPS)
 #
 STOKEN_VER := 0.81
 STOKEN_TAR := stoken-$(STOKEN_VER).tar.gz
-STOKEN_SHA1 := db36aec5a8bd3f5f92deaebdea08cb639b78da73
+STOKEN_SHA := db36aec5a8bd3f5f92deaebdea08cb639b78da73
 STOKEN_SRC := sources/stoken-$(STOKEN_VER)
 STOKEN_BUILD := $(TRIPLET)/stoken
 
 $(STOKEN_TAR):
-	$(FETCH) $@ $(STOKEN_SHA1)
+	$(FETCH) $@ $(STOKEN_SHA)
 
 $(STOKEN_SRC)/configure: $(STOKEN_TAR)
 	mkdir -p sources
@@ -319,12 +319,12 @@ stoken: $(STOKEN_DEPS)
 #
 OATH_VER := 2.4.1
 OATH_TAR := oath-toolkit-$(OATH_VER).tar.gz
-OATH_SHA1 := b0ca4c5f89c12c550f7227123c2f21f45b2bf969
+OATH_SHA := b0ca4c5f89c12c550f7227123c2f21f45b2bf969
 OATH_SRC := sources/oath-toolkit-$(OATH_VER)
 OATH_BUILD := $(TRIPLET)/oath
 
 $(OATH_TAR):
-	$(FETCH) $@ $(OATH_SHA1)
+	$(FETCH) $@ $(OATH_SHA)
 
 $(OATH_SRC)/configure: $(OATH_TAR)
 	mkdir -p sources
@@ -354,11 +354,11 @@ oath: $(OATH_DEPS)
 #
 LZ4_VER := r127
 LZ4_TAR := lz4-$(LZ4_VER).tar.gz
-LZ4_SHA1 := 1aa7d4bb62eb79f88b33f86f9890dc9f96797af5
+LZ4_SHA := 1aa7d4bb62eb79f88b33f86f9890dc9f96797af5
 LZ4_DIR := $(TRIPLET)/lz4-$(LZ4_VER)
 
 $(LZ4_TAR):
-	$(FETCH) $@ $(LZ4_SHA1)
+	$(FETCH) $@ $(LZ4_SHA)
 
 $(LZ4_DIR)/Makefile: $(LZ4_TAR)
 	mkdir -p $(TRIPLET)
@@ -429,7 +429,7 @@ sources: $(SOURCE_LIST)
 
 .PHONY: $(MIRROR_TEST_TARGETS)
 $(MIRROR_TEST_TARGETS) : mirror-test-% :
-	$(FETCH) --mirror-test $($(*)_TAR) $($(*)_SHA1)
+	$(FETCH) --mirror-test $($(*)_TAR) $($(*)_SHA)
 
 # (re)test all mirrors for all packages. safe for use with "make -jN"
 .PHONY: mirror-test
