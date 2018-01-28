@@ -16,12 +16,10 @@ ARCH    := arm
 # You should be able to just 'make ARCH=x86' and it should DTRT.
 ifeq ($(ARCH),arm)
 TRIPLET := arm-linux-androideabi
-OPENSSL_TARGET := android-armv7
 EXTRA_CFLAGS := -march=armv7-a
 endif
 ifeq ($(ARCH),x86)
 TRIPLET := i686-linux-android
-OPENSSL_TARGET := android-x86
 endif
 
 TOPDIR := $(shell pwd)
@@ -53,7 +51,7 @@ SOURCE_LIST = $(LIBXML2_SRC)/configure $(GMP_SRC)/configure \
 	$(STOKEN_SRC)/configure $(OATH_SRC)/configure \
 	$(LZ4_DIR)/Makefile
 
-PKG_LIST := LIBXML2 OPENSSL GMP NETTLE GNUTLS STOKEN OATH LZ4
+PKG_LIST := LIBXML2 GMP NETTLE GNUTLS STOKEN OATH LZ4
 
 MIRROR_TEST_TARGETS := $(addprefix mirror-test-,$(PKG_LIST))
 
@@ -120,43 +118,6 @@ LIBXML_DEPS := $(OC_SYSROOT)/lib/libxml2.la $(OC_SYSROOT)/lib/pkgconfig/libxml-2
 
 libxml: $(LIBXML_DEPS)
 
-
-#####################################################################
-#
-# Build OpenSSL for Android
-#
-OPENSSL_VER := 1.0.1g
-OPENSSL_TAR := openssl-$(OPENSSL_VER).tar.gz
-OPENSSL_SHA := b28b3bcb1dc3ee7b55024c9f795be60eb3183e3c
-OPENSSL_DIR := $(TRIPLET)/openssl-$(OPENSSL_VER)
-
-$(OPENSSL_TAR):
-	$(FETCH) $@ $(OPENSSL_SHA)
-
-$(OPENSSL_DIR)/Configure: $(OPENSSL_TAR)
-	mkdir -p $(TRIPLET)
-	tar xfz $< -C $(TRIPLET)
-	touch $(OPENSSL_DIR)/Configure # Make sure it's newer than Makefile and tarball
-
-$(OPENSSL_DIR)/Makefile: $(TOOLCHAIN_BUILT) $(OPENSSL_DIR)/Configure
-	cd $(OPENSSL_DIR) && perl Configure --prefix=$(OC_SYSROOT) \
-		--cross-compile-prefix=$(TRIPLET)- no-shared \
-		$(OPENSSL_TARGET):gcc
-
-$(OPENSSL_DIR)/libssl.a: $(OPENSSL_DIR)/Makefile
-	$(MAKE) -C $(OPENSSL_DIR)
-
-$(OC_SYSROOT)/lib/libssl.a: $(OPENSSL_DIR)/libssl.a
-	# Do this manually instead of using 'make install' since we want symlinks
-	mkdir -p $(OC_SYSROOT)/include/openssl
-	ln -sf $(shell pwd)/$(OPENSSL_DIR)/include/openssl/*.h $(OC_SYSROOT)/include/openssl
-	mkdir -p $(OC_SYSROOT)/lib/pkgconfig
-	ln -sf $(shell pwd)/$(OPENSSL_DIR)/*.pc $(OC_SYSROOT)/lib/pkgconfig
-	ln -sf $(shell pwd)/$(OPENSSL_DIR)/*.a $(OC_SYSROOT)/lib
-
-OPENSSL_DEPS := $(OC_SYSROOT)/lib/libssl.a
-
-openssl: $(OPENSSL_DEPS)
 
 #####################################################################
 #

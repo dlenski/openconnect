@@ -21,11 +21,6 @@ libxml2_MIRROR_0=ftp://xmlsoft.org/libxml2
 libxml2_MIRROR_1=ftp://gd.tuwien.ac.at/pub/libxml
 libxml2_MIRROR_2=http://distfiles.macports.org/libxml2
 
-openssl_MIRROR_0=http://www.openssl.org/source
-openssl_MIRROR_1=http://mirror.switch.ch/ftp/mirror/openssl/source
-openssl_MIRROR_2=ftp://ftp.pca.dfn.de/pub/tools/net/openssl/source
-openssl_MIRROR_3=ftp://sunsite.uio.no/pub/security/openssl/source
-
 gmp_MIRROR_0=http://ftp.gnu.org/gnu/gmp
 gmp_MIRROR_1=ftp://ftp.gmplib.org/pub/gmp
 gmp_MIRROR_2=http://mirror.anl.gov/pub/gnu/gmp
