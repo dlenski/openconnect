@@ -10,7 +10,7 @@
 #
 # It should also be fairly simple to extend this to cross-compile for any target
 
-NDK     := /opt/android-sdk-linux_x86/android-ndk-r10d/
+NDK     := /opt/android-sdk-linux_x86/android-ndk-r16b
 ARCH    := arm
 
 # You should be able to just 'make ARCH=x86' and it should DTRT.
@@ -20,14 +20,18 @@ EXTRA_CFLAGS := -march=armv7-a
 endif
 ifeq ($(ARCH),x86)
 TRIPLET := i686-linux-android
+EXTRA_CFLAGS :=
 endif
 
 TOPDIR := $(shell pwd)
 DESTDIR := $(TOPDIR)/$(TRIPLET)/out
 
+API_LEVEL := 14
+EXTRA_CFLAGS += -D__ANDROID_API__=$(API_LEVEL)
+
 TOOLCHAIN := $(TOPDIR)/$(TRIPLET)/toolchain
 TOOLCHAIN_BUILT := $(TOOLCHAIN)/.built
-TOOLCHAIN_OPTS := --platform=android-14 --arch=$(ARCH) \
+TOOLCHAIN_OPTS := --platform=android-$(API_LEVEL) --arch=$(ARCH) \
 		  --install-dir=$(TOOLCHAIN)
 PATH := $(TOOLCHAIN)/bin:$(PATH)
 
@@ -44,7 +48,7 @@ FETCH=$(TOPDIR)/fetch.sh
 
 CONFIGURE_ARGS := --host=$(TRIPLET) --prefix=$(OC_SYSROOT) \
 		  --disable-shared --enable-static \
-		  CFLAGS="$(EXTRA_CFLAGS)"
+		  CC=$(TRIPLET)-clang CFLAGS="$(EXTRA_CFLAGS)"
 
 SOURCE_LIST = $(LIBXML2_SRC)/configure $(GMP_SRC)/configure \
 	$(NETTLE_SRC)/configure $(GNUTLS_SRC)/configure \
@@ -65,7 +69,6 @@ all: openconnect run_pie
 # use 32-bit binaries on a 64-bit NDK installation.)
 #
 $(TOOLCHAIN_BUILT):
-	mkdir -p $(TOOLCHAIN)
 	$(NDK)/build/tools/make-standalone-toolchain.sh $(TOOLCHAIN_OPTS) || \
 		$(NDK)/build/tools/make-standalone-toolchain.sh \
 			$(TOOLCHAIN_OPTS) --system=linux-x86_64
@@ -325,7 +328,7 @@ $(LZ4_DIR)/Makefile: $(LZ4_TAR)
 
 $(OC_SYSROOT)/lib/liblz4.a: $(TOOLCHAIN_BUILT) $(LZ4_DIR)/Makefile
 	$(MAKE) -C $(LZ4_DIR)/lib \
-		CC="$(TRIPLET)-gcc $(EXTRA_CFLAGS)" \
+		CC="$(TRIPLET)-clang $(EXTRA_CFLAGS)" \
 		AR="$(TRIPLET)-ar" \
 		LIBDIR=$(OC_SYSROOT)/lib \
 		INCLUDEDIR=$(OC_SYSROOT)/include \
@@ -370,7 +373,7 @@ openconnect: $(OPENCONNECT_BUILD)/Makefile
 #
 $(DESTDIR)/sbin/run_pie: run_pie.c $(TOOLCHAIN_BUILT)
 	mkdir -p $(DESTDIR)/sbin
-	$(TRIPLET)-gcc $< -o $@ -ldl
+	$(TRIPLET)-clang $< -o $@ -ldl
 
 .PHONY: run_pie
 run_pie: $(DESTDIR)/sbin/run_pie
