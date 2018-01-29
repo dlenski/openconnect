@@ -47,7 +47,7 @@ MAKEINSTALL=$(MAKE) INSTALL=$(TOPDIR)/install_symlink.sh
 FETCH=$(TOPDIR)/fetch.sh
 
 CONFIGURE_ARGS := --host=$(TRIPLET) --prefix=$(OC_SYSROOT) \
-		  --disable-shared --enable-static \
+		  --disable-shared --enable-static --with-pic \
 		  CC=$(TRIPLET)-clang CFLAGS="$(EXTRA_CFLAGS)"
 
 SOURCE_LIST = $(LIBXML2_SRC)/configure $(GMP_SRC)/configure \
