@@ -18,30 +18,26 @@
 set -e
 
 libxml2_MIRROR_0=ftp://xmlsoft.org/libxml2
-libxml2_MIRROR_1=ftp://gd.tuwien.ac.at/pub/libxml
+libxml2_MIRROR_1=http://gd.tuwien.ac.at/pub/libxml
 libxml2_MIRROR_2=http://distfiles.macports.org/libxml2
 
 gmp_MIRROR_0=http://ftp.gnu.org/gnu/gmp
-gmp_MIRROR_1=ftp://ftp.gmplib.org/pub/gmp
-gmp_MIRROR_2=http://mirror.anl.gov/pub/gnu/gmp
-gmp_MIRROR_3=http://www.mirrorservice.org/sites/ftp.gnu.org/gnu/gmp
+gmp_MIRROR_1=https://gmplib.org/download/gmp
+gmp_MIRROR_2=http://www.mirrorservice.org/sites/ftp.gnu.org/gnu/gmp
 
 nettle_MIRROR_0=http://www.lysator.liu.se/~nisse/archive
-nettle_MIRROR_1=http://mirror.anl.gov/pub/gnu/nettle
-nettle_MIRROR_2=http://ftp.gnu.org/gnu/nettle
-nettle_MIRROR_3=http://gd.tuwien.ac.at/gnu/gnusrc/nettle
+nettle_MIRROR_1=http://ftp.gnu.org/gnu/nettle
+nettle_MIRROR_2=http://gd.tuwien.ac.at/gnu/gnusrc/nettle
 
 gnutls_MIRROR_0=https://www.gnupg.org/ftp/gcrypt/gnutls/v3.5
 gnutls_MIRROR_1=http://ftp.heanet.ie/mirrors/ftp.gnupg.org/gcrypt/gnutls/v3.5
 gnutls_MIRROR_2=http://gd.tuwien.ac.at/pub/gnupg/gnutls/v3.5
-gnutls_MIRROR_3=http://thammuz.tchpc.tcd.ie/mirrors/gnupg/gnutls/v3.5
 
 stoken_MIRROR_0=http://sourceforge.net/projects/stoken/files
 stoken_SUFFIX_0=/download
 
 oath_toolkit_MIRROR_0=http://download.savannah.gnu.org/releases/oath-toolkit
-oath_toolkit_MIRROR_1=http://packetstorm.wowhacker.com/UNIX/utilities
-oath_toolkit_MIRROR_2=ftp://ftp.netbsd.org/pub/pkgsrc/distfiles
+oath_toolkit_MIRROR_1=https://download-mirror.savannah.gnu.org/releases/oath-toolkit
 
 lz4_MIRROR_0=https://github.com/lz4/lz4/archive
 
