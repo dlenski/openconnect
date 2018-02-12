@@ -16,7 +16,7 @@ ARCH    := arm
 # You should be able to just 'make ARCH=x86' and it should DTRT.
 ifeq ($(ARCH),arm)
 TRIPLET := arm-linux-androideabi
-EXTRA_CFLAGS := -march=armv7-a
+EXTRA_CFLAGS := -march=armv7-a -mthumb
 endif
 ifeq ($(ARCH),x86)
 TRIPLET := i686-linux-android
@@ -27,7 +27,7 @@ TOPDIR := $(shell pwd)
 DESTDIR := $(TOPDIR)/$(TRIPLET)/out
 
 API_LEVEL := 14
-EXTRA_CFLAGS += -D__ANDROID_API__=$(API_LEVEL)
+EXTRA_CFLAGS += -D__ANDROID_API__=$(API_LEVEL) -O2
 
 TOOLCHAIN := $(TOPDIR)/$(TRIPLET)/toolchain
 TOOLCHAIN_BUILT := $(TOOLCHAIN)/.built
