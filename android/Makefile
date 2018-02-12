@@ -13,20 +13,30 @@
 NDK     := /opt/android-sdk-linux_x86/android-ndk-r16b
 ARCH    := arm
 
+EXTRA_CFLAGS :=
+
 # You should be able to just 'make ARCH=x86' and it should DTRT.
 ifeq ($(ARCH),arm)
 TRIPLET := arm-linux-androideabi
+API_LEVEL := 14
 EXTRA_CFLAGS := -march=armv7-a -mthumb
+endif
+ifeq ($(ARCH),arm64)
+TRIPLET := aarch64-linux-android
+API_LEVEL := 26
 endif
 ifeq ($(ARCH),x86)
 TRIPLET := i686-linux-android
-EXTRA_CFLAGS :=
+API_LEVEL := 14
+endif
+ifeq ($(ARCH),x86_64)
+TRIPLET := x86_64-linux-android
+API_LEVEL := 21
 endif
 
 TOPDIR := $(shell pwd)
 DESTDIR := $(TOPDIR)/$(TRIPLET)/out
 
-API_LEVEL := 14
 EXTRA_CFLAGS += -D__ANDROID_API__=$(API_LEVEL) -O2
 
 TOOLCHAIN := $(TOPDIR)/$(TRIPLET)/toolchain
