@@ -161,6 +161,12 @@ static int start_dtls_psk_handshake(struct openconnect_info *vpninfo, int dtls_f
 	struct oc_text_buf *prio;
 	int err;
 
+	if (!vpninfo->https_sess) {
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("Deferring DTLS resumption until CSTP generates a PSK\n"));
+		return -EAGAIN;
+	}
+
 	prio = buf_alloc();
 	buf_append(prio, "%s:-VERS-TLS-ALL:+VERS-DTLS-ALL:-KX-ALL:+PSK", vpninfo->gnutls_prio);
 	if (buf_error(prio)) {
