@@ -610,6 +610,7 @@ static void print_build_opts(void)
 	case 2:
 		printf("%sHOTP software token", sep);
 		sep = comma;
+		/* fall through */
 	case 1:
 		printf("%sTOTP software token", sep);
 		sep = comma;
@@ -1294,6 +1295,7 @@ int main(int argc, char **argv)
 			break;
 		case 'h':
 			usage();
+			break;
 		case 'i':
 			vpninfo->ifname = dup_config_arg();
 			break;
