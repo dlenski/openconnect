@@ -24,6 +24,9 @@ openconnect_SOURCES = xml.c main.c
 openconnect_CFLAGS = $(AM_CFLAGS) $(SSL_CFLAGS) $(DTLS_SSL_CFLAGS) $(LIBXML2_CFLAGS) $(LIBPROXY_CFLAGS) $(ZLIB_CFLAGS) $(LIBSTOKEN_CFLAGS) $(LIBPSKC_CFLAGS) $(GSSAPI_CFLAGS) $(INTL_CFLAGS) $(ICONV_CFLAGS) $(LIBPCSCLITE_CFLAGS)
 openconnect_LDADD = libopenconnect.la $(SSL_LIBS) $(LIBXML2_LIBS) $(LIBPROXY_LIBS) $(INTL_LIBS) $(ICONV_LIBS)
 
+if OPENCONNECT_WIN32
+openconnect_SOURCES += openconnect.rc
+endif
 library_srcs = ssl.c http.c http-auth.c auth-common.c library.c compat.c lzs.c mainloop.c script.c ntlm.c digest.c
 lib_srcs_cisco = auth.c cstp.c
 lib_srcs_juniper = oncp.c lzo.c auth-juniper.c
@@ -77,6 +80,10 @@ library_srcs += $(lib_srcs_iconv)
 endif
 if OPENCONNECT_WIN32
 library_srcs += $(lib_srcs_win32)
+.rc.o:
+	$(WINDRES) $^ -o $@
+%.o : %.rc
+	$(WINDRES) $^ -o $@
 else
 library_srcs += $(lib_srcs_posix)
 endif

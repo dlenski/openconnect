@@ -57,6 +57,7 @@ case $host_os in
     # Win32 does have the SCard API
     system_pcsc_libs="-lwinscard"
     system_pcsc_cflags=
+    AC_CHECK_TOOL([WINDRES], [windres], [])
     ;;
  *darwin*)
     system_pcsc_libs="-Wl,-framework -Wl,PCSC"
