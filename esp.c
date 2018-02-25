@@ -27,8 +27,15 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #endif
+
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include "win32-ipicmp.h"
+#else
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
+#endif
 
 #include "openconnect-internal.h"
 #include "lzo.h"
