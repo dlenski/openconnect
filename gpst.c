@@ -24,8 +24,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <stdarg.h>
+#ifndef _WIN32
+#include <sys/wait.h>
+#endif
 #ifdef HAVE_LZ4
 #include <lz4.h>
 #endif
