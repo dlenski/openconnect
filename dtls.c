@@ -265,7 +265,8 @@ int dtls_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 		if (when <= 0) {
 			vpn_progress(vpninfo, PRG_DEBUG, _("Attempt new DTLS connection\n"));
-			connect_dtls_socket(vpninfo);
+			if (connect_dtls_socket(vpninfo) < 0)
+				*timeout = 1000;
 		} else if ((when * 1000) < *timeout) {
 			*timeout = when * 1000;
 		}

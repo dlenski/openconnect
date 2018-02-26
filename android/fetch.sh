@@ -18,37 +18,28 @@
 set -e
 
 libxml2_MIRROR_0=ftp://xmlsoft.org/libxml2
-libxml2_MIRROR_1=ftp://gd.tuwien.ac.at/pub/libxml
+libxml2_MIRROR_1=http://gd.tuwien.ac.at/pub/libxml
 libxml2_MIRROR_2=http://distfiles.macports.org/libxml2
 
-openssl_MIRROR_0=http://www.openssl.org/source
-openssl_MIRROR_1=http://mirror.switch.ch/ftp/mirror/openssl/source
-openssl_MIRROR_2=ftp://ftp.pca.dfn.de/pub/tools/net/openssl/source
-openssl_MIRROR_3=ftp://sunsite.uio.no/pub/security/openssl/source
-
 gmp_MIRROR_0=http://ftp.gnu.org/gnu/gmp
-gmp_MIRROR_1=ftp://ftp.gmplib.org/pub/gmp
-gmp_MIRROR_2=http://mirror.anl.gov/pub/gnu/gmp
-gmp_MIRROR_3=http://www.mirrorservice.org/sites/ftp.gnu.org/gnu/gmp
+gmp_MIRROR_1=https://gmplib.org/download/gmp
+gmp_MIRROR_2=http://www.mirrorservice.org/sites/ftp.gnu.org/gnu/gmp
 
 nettle_MIRROR_0=http://www.lysator.liu.se/~nisse/archive
-nettle_MIRROR_1=http://mirror.anl.gov/pub/gnu/nettle
-nettle_MIRROR_2=http://ftp.gnu.org/gnu/nettle
-nettle_MIRROR_3=http://gd.tuwien.ac.at/gnu/gnusrc/nettle
+nettle_MIRROR_1=http://ftp.gnu.org/gnu/nettle
+nettle_MIRROR_2=http://gd.tuwien.ac.at/gnu/gnusrc/nettle
 
-gnutls_MIRROR_0=ftp://ftp.gnutls.org/gcrypt/gnutls/v3.2
-gnutls_MIRROR_1=http://ftp.heanet.ie/mirrors/ftp.gnupg.org/gcrypt/gnutls/v3.2
-gnutls_MIRROR_2=http://gd.tuwien.ac.at/pub/gnupg/gnutls/v3.2
-gnutls_MIRROR_3=http://thammuz.tchpc.tcd.ie/mirrors/gnupg/gnutls/v3.2
+gnutls_MIRROR_0=https://www.gnupg.org/ftp/gcrypt/gnutls/v3.5
+gnutls_MIRROR_1=http://ftp.heanet.ie/mirrors/ftp.gnupg.org/gcrypt/gnutls/v3.5
+gnutls_MIRROR_2=http://gd.tuwien.ac.at/pub/gnupg/gnutls/v3.5
 
 stoken_MIRROR_0=http://sourceforge.net/projects/stoken/files
 stoken_SUFFIX_0=/download
 
 oath_toolkit_MIRROR_0=http://download.savannah.gnu.org/releases/oath-toolkit
-oath_toolkit_MIRROR_1=http://packetstorm.wowhacker.com/UNIX/utilities
-oath_toolkit_MIRROR_2=ftp://ftp.netbsd.org/pub/pkgsrc/distfiles
+oath_toolkit_MIRROR_1=https://download-mirror.savannah.gnu.org/releases/oath-toolkit
 
-lz4_MIRROR_0=https://github.com/Cyan4973/lz4/archive
+lz4_MIRROR_0=https://github.com/lz4/lz4/archive
 
 MAX_TRIES=5
 
@@ -89,9 +80,18 @@ function check_hash
 {
 	local tarball="$1"
 	local good_hash="$2"
+	local actual_hash
 
-	local actual_hash=$(sha1sum "$tarball")
-	actual_hash=${actual_hash:0:40}
+	if [ "${#good_hash}" = "40" ]; then
+		actual_hash=$(sha1sum "$tarball")
+		actual_hash=${actual_hash:0:40}
+	elif [ "${#good_hash}" = "64" ]; then
+		actual_hash=$(sha256sum "$tarball")
+		actual_hash=${actual_hash:0:64}
+	else
+		echo "Unrecognized hash: $good_hash"
+		exit 1
+	fi
 
 	if [ "$actual_hash" = "$good_hash" ]; then
 		return 0
@@ -149,7 +149,7 @@ function mirror_test
 
 		if download_and_check "$url" "$tmpfile" "$good_hash"; then
 			echo ""
-			echo "SHA1 $good_hash OK."
+			echo "SHA $good_hash OK."
 			echo ""
 		else
 			exit 1
