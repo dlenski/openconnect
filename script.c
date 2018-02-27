@@ -81,7 +81,7 @@ static int netmasklen(struct in_addr addr)
 
 static uint32_t netmaskbits(int masklen)
 {
-	return htonl((0xffffffff << (32-masklen)));
+	return htonl(masklen>0 ? (0xffffffff << (32-masklen)) : 0);
 }
 
 static int process_split_xxclude(struct openconnect_info *vpninfo,
