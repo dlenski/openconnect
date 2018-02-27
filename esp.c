@@ -71,52 +71,6 @@ int print_esp_keys(struct openconnect_info *vpninfo, const char *name, struct es
 	return 0;
 }
 
-int esp_send_probes(struct openconnect_info *vpninfo)
-{
-	struct pkt *pkt;
-	int pktlen;
-
-	if (vpninfo->dtls_fd == -1) {
-		int fd = udp_connect(vpninfo);
-		if (fd < 0)
-			return fd;
-
-		/* We are not connected until we get an ESP packet back */
-		vpninfo->dtls_state = DTLS_SLEEPING;
-		vpninfo->dtls_fd = fd;
-		monitor_fd_new(vpninfo, dtls);
-		monitor_read_fd(vpninfo, dtls);
-		monitor_except_fd(vpninfo, dtls);
-	}
-
-	pkt = malloc(sizeof(*pkt) + 1 + vpninfo->pkt_trailer);
-	if (!pkt)
-		return -ENOMEM;
-
-	pkt->len = 1;
-	pkt->data[0] = 0;
-	pktlen = encrypt_esp_packet(vpninfo, pkt);
-	if (pktlen >= 0)
-		send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
-
-	pkt->len = 1;
-	pkt->data[0] = 0;
-	pktlen = encrypt_esp_packet(vpninfo, pkt);
-	if (pktlen >= 0)
-		send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
-
-	free(pkt);
-
-	vpninfo->dtls_times.last_tx = time(&vpninfo->new_dtls_started);
-
-	return 0;
-};
-
-int esp_catch_probe(struct openconnect_info *vpninfo, struct pkt *pkt)
-{
-	return (pkt->len == 1 && pkt->data[0] == 0);
-}
-
 int esp_setup(struct openconnect_info *vpninfo, int dtls_attempt_period)
 {
 	if (vpninfo->dtls_state == DTLS_DISABLED ||

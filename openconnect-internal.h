@@ -857,6 +857,8 @@ int queue_esp_control(struct openconnect_info *vpninfo, int enable);
 int oncp_connect(struct openconnect_info *vpninfo);
 int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int oncp_bye(struct openconnect_info *vpninfo, const char *reason);
+int oncp_esp_send_probes(struct openconnect_info *vpninfo);
+int oncp_esp_catch_probe(struct openconnect_info *vpninfo, struct pkt *pkt);
 
 /* lzs.c */
 int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
@@ -904,8 +906,6 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout);
 void esp_close(struct openconnect_info *vpninfo);
 void esp_shutdown(struct openconnect_info *vpninfo);
 int print_esp_keys(struct openconnect_info *vpninfo, const char *name, struct esp *esp);
-int esp_send_probes(struct openconnect_info *vpninfo);
-int esp_catch_probe(struct openconnect_info *vpninfo, struct pkt *pkt);
 
 /* {gnutls,openssl}-esp.c */
 int setup_esp_keys(struct openconnect_info *vpninfo, int new_keys);
