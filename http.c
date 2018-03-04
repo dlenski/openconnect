@@ -54,6 +54,19 @@ void buf_append_urlencoded(struct oc_text_buf *buf, const char *str)
 	}
 }
 
+void buf_append_xmlescaped(struct oc_text_buf *buf, const char *str)
+{
+	while (str && *str) {
+		unsigned char c = *str;
+		if (c=='<' || c=='>' || c=='&' || c=='"' || c=='\'')
+			buf_append(buf, "&#x%02x;", c);
+		else
+			buf_append_bytes(buf, str, 1);
+
+		str++;
+	}
+}
+
 void buf_append_hex(struct oc_text_buf *buf, const void *str, unsigned len)
 {
 	const unsigned char *data = str;
@@ -958,7 +971,12 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("Unexpected %d result from server\n"),
 			     result);
-		result = -EINVAL;
+		if (result == 401 || result == 403)
+			result = -EPERM;
+		else if (result == 512) /* GlobalProtect invalid username/password */
+			result = -EACCES;
+		else
+			result = -EINVAL;
 		goto out;
 	}
 

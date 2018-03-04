@@ -30,6 +30,7 @@ endif
 library_srcs = ssl.c http.c http-auth.c auth-common.c library.c compat.c lzs.c mainloop.c script.c ntlm.c digest.c
 lib_srcs_cisco = auth.c cstp.c
 lib_srcs_juniper = oncp.c lzo.c auth-juniper.c
+lib_srcs_globalprotect = gpst.c auth-globalprotect.c
 lib_srcs_gnutls = gnutls.c gnutls_tpm.c
 lib_srcs_openssl = openssl.c openssl-pkcs11.c
 lib_srcs_win32 = tun-win32.c sspi.c
@@ -42,14 +43,14 @@ lib_srcs_stoken = stoken.c
 lib_srcs_esp = esp.c esp-seqno.c
 lib_srcs_dtls = dtls.c
 
-POTFILES = $(openconnect_SOURCES) $(lib_srcs_cisco) $(lib_srcs_juniper) \
+POTFILES = $(openconnect_SOURCES) $(lib_srcs_cisco) $(lib_srcs_juniper) $(lib_srcs_globalprotect) \
 	   gnutls-esp.c gnutls-dtls.c openssl-esp.c openssl-dtls.c \
 	   $(lib_srcs_esp) $(lib_srcs_dtls) \
 	   $(lib_srcs_openssl) $(lib_srcs_gnutls) $(library_srcs) \
 	   $(lib_srcs_win32) $(lib_srcs_posix) $(lib_srcs_gssapi) $(lib_srcs_iconv) \
 	   $(lib_srcs_oath) $(lib_srcs_yubikey) $(lib_srcs_stoken) openconnect-internal.h
 
-library_srcs += $(lib_srcs_juniper) $(lib_srcs_cisco) $(lib_srcs_oath)
+library_srcs += $(lib_srcs_juniper) $(lib_srcs_cisco) $(lib_srcs_oath) $(lib_srcs_globalprotect)
 if OPENCONNECT_LIBPCSCLITE
 library_srcs += $(lib_srcs_yubikey)
 endif
