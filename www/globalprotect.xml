@@ -37,7 +37,10 @@ tunnel configuration information (<tt>POST /ssl-vpn/getconfig.esp</tt>).</p>
       ESP</a> tunnel.</li>
 </ol>
 
-<p>This version of OpenConnect supports <b>only</b> the HTTPS tunnel.</p>
+<p>Since <a href="http://sites.inka.de/~W1011/devel/tcp-tcp.html">TCP over
+TCP is very suboptimal</a>, OpenConnect tries to always use ESP-over-UDP,
+and will only fall over to the HTTPS tunnel if that fails, or if disabled
+via the <tt>--no-dtls</tt> argument.</p>
 
 <h2>Quirks and issues</h2>
 
@@ -51,14 +54,22 @@ encapsulating each packets within ESP, UDP, and IP.</p>
 <p>There is currently no IPv6 support.  <a
 href="https://live.paloaltonetworks.com/t5/Learning-Articles/IPv6-Support-on-the-Palo-Alto-Networks-Firewall/ta-p/52994">PAN's
 documentation</a> suggests that recent versions of GlobalProtect may support
-IPv6 over the ESP tunnel, though not the HTTPS tunnel.</p>
+IPv6 over the ESP tunnel, though not the SSL tunnel.</p>
+
+<p>The ESP and HTTPS tunnels cannot be connected simultaneously.  The ESP
+tunnel becomes unresponsive as soon as the HTTPS tunnel is started, and
+remains so unless/until the tunnel is closed and the configuration is
+re-fetched.</p>
 
 <p>Compared to the AnyConnect or Juniper protocols, the GlobalProtect
 protocol appears to have very little in the way of <a
 href="https://en.wikipedia.org/wiki/In-band_signaling">in-band
 signaling</a>.  The HTTPS tunnel can only send or receive IPv4 packets and a
 simple DPD/keepalive packet (always sent by the client and echoed by the
-server).</p>
+server).  The ESP tunnel does not have any special DPD/keepalive packet, but
+uses an <a
+href="https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol">ICMP</a>
+("ping") request to the server with a magic payload for this purpose</p>
 
 	<INCLUDE file="inc/footer.tmpl" />
 </PAGE>
