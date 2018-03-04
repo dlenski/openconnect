@@ -31,6 +31,18 @@
 #include <lz4.h>
 #endif
 
+#ifdef __FreeBSD__
+#include <sys/types.h>
+#include <netinet/in.h>
+#endif
+
+#ifdef _WIN32
+#include "win32-ipicmp.h"
+#else
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
+#endif
+
 #if defined(__linux__)
 /* For TCP_INFO */
 # include <linux/tcp.h>
@@ -290,20 +302,26 @@ out:
 	return result;
 }
 
-#define ESP_OVERHEAD (4 /* SPI */ + 4 /* sequence number */ + \
-         20 /* biggest supported MAC (SHA1) */ + 32 /* biggest supported IV (AES-256) */ + \
-	 1 /* pad length */ + 1 /* next header */ + \
-         16 /* max padding */ )
+
+#define ESP_HEADER_SIZE (4 /* SPI */ + 4 /* sequence number */)
+#define ESP_FOOTER_SIZE (1 /* pad length */ + 1 /* next header */)
 #define UDP_HEADER_SIZE 8
+#define TCP_HEADER_SIZE 20 /* with no options */
 #define IPV4_HEADER_SIZE 20
 #define IPV6_HEADER_SIZE 40
 
-static int calculate_mtu(struct openconnect_info *vpninfo)
+/* Based on cstp.c's calculate_mtu().
+ *
+ * With HTTPS tunnel, there are 21 bytes of overhead beyond the
+ * TCP MSS: 5 bytes for TLS and 16 for GPST.
+ */
+static int calculate_mtu(struct openconnect_info *vpninfo, int can_use_esp)
 {
 	int mtu = vpninfo->reqmtu, base_mtu = vpninfo->basemtu;
+	int mss = 0;
 
 #if defined(__linux__) && defined(TCP_INFO)
-	if (!mtu || !base_mtu) {
+	if (!mtu) {
 		struct tcp_info ti;
 		socklen_t ti_size = sizeof(ti);
 
@@ -317,23 +335,19 @@ static int calculate_mtu(struct openconnect_info *vpninfo)
 				base_mtu = ti.tcpi_pmtu;
 			}
 
-			if (!base_mtu) {
-				if (ti.tcpi_rcv_mss < ti.tcpi_snd_mss)
-					base_mtu = ti.tcpi_rcv_mss - 13;
-				else
-					base_mtu = ti.tcpi_snd_mss - 13;
-			}
+			/* XXX: GlobalProtect has no mechanism to inform the server about the
+			 * desired MTU, so could just ignore the "incoming" MSS (tcpi_rcv_mss).
+			 */
+			mss = MIN(ti.tcpi_rcv_mss, ti.tcpi_snd_mss);
 		}
 	}
 #endif
 #ifdef TCP_MAXSEG
-	if (!base_mtu) {
-		int mss;
+	if (!mtu && !mss) {
 		socklen_t mss_size = sizeof(mss);
 		if (!getsockopt(vpninfo->ssl_fd, IPPROTO_TCP, TCP_MAXSEG,
 				&mss, &mss_size)) {
 			vpn_progress(vpninfo, PRG_DEBUG, _("TCP_MAXSEG %d\n"), mss);
-			base_mtu = mss - 13;
 		}
 	}
 #endif
@@ -345,16 +359,74 @@ static int calculate_mtu(struct openconnect_info *vpninfo)
 	if (base_mtu < 1280)
 		base_mtu = 1280;
 
-	if (!mtu) {
-		/* remove IP/UDP and ESP overhead from base MTU to calculate tunnel MTU */
-		mtu = base_mtu - ESP_OVERHEAD - UDP_HEADER_SIZE;
+#ifdef HAVE_ESP
+	/* If we can use the ESP tunnel then we should pick the optimal MTU for ESP. */
+	if (!mtu && can_use_esp) {
+		/* remove ESP, UDP, IP headers from base (wire) MTU */
+		mtu = ( base_mtu - UDP_HEADER_SIZE - ESP_HEADER_SIZE
+		        - 12 /* both supported algos (SHA1 and MD5) have 96-bit MAC lengths (RFC2403 and RFC2404) */
+		        - (vpninfo->enc_key_len ? : 32) /* biggest supported IV (AES-256) */ );
 		if (vpninfo->peer_addr->sa_family == AF_INET6)
 			mtu -= IPV6_HEADER_SIZE;
 		else
 			mtu -= IPV4_HEADER_SIZE;
+		/* round down to a multiple of blocksize */
+		mtu -= mtu % (vpninfo->enc_key_len ? : 32);
+		/* subtract ESP footer, which is included in the payload before padding to the blocksize */
+		mtu -= ESP_FOOTER_SIZE;
+
+	} else
+#endif
+
+    /* We are definitely using the TLS tunnel, so we should base our MTU on the TCP MSS. */
+	if (!mtu) {
+		if (mss)
+			mtu = mss - 21;
+		else {
+			mtu = base_mtu - TCP_HEADER_SIZE - 21;
+			if (vpninfo->peer_addr->sa_family == AF_INET6)
+				mtu -= IPV6_HEADER_SIZE;
+			else
+				mtu -= IPV4_HEADER_SIZE;
+		}
 	}
 	return mtu;
 }
+
+#ifdef HAVE_ESP
+static int set_esp_algo(struct openconnect_info *vpninfo, const char *s, int hmac)
+{
+	if (hmac) {
+		if (!strcmp(s, "sha1"))		{ vpninfo->esp_hmac = HMAC_SHA1; vpninfo->hmac_key_len = 20; return 0; }
+		if (!strcmp(s, "md5"))		{ vpninfo->esp_hmac = HMAC_MD5;  vpninfo->hmac_key_len = 16; return 0; }
+	} else {
+		if (!strcmp(s, "aes128") || !strcmp(s, "aes-128-cbc"))
+		                                { vpninfo->esp_enc = ENC_AES_128_CBC; vpninfo->enc_key_len = 16; return 0; }
+		if (!strcmp(s, "aes-256-cbc"))	{ vpninfo->esp_enc = ENC_AES_256_CBC; vpninfo->enc_key_len = 32; return 0; }
+	}
+	vpn_progress(vpninfo, PRG_ERR, _("Unknown ESP %s algorithm: %s"), hmac ? "MAC" : "encryption", s);
+	return -ENOENT;
+}
+
+static int get_key_bits(xmlNode *xml_node, unsigned char *dest)
+{
+	int bits = -1;
+	xmlNode *child;
+	char *s, *p;
+
+	for (child = xml_node->children; child; child=child->next) {
+		if (xmlnode_get_text(child, "bits", &s) == 0) {
+			bits = atoi(s);
+			free(s);
+		} else if (xmlnode_get_text(child, "val", &s) == 0) {
+			for (p=s; *p && *(p+1) && (bits-=8)>=0; p+=2)
+				*dest++ = unhex(p);
+			free(s);
+		}
+	}
+	return (bits == 0) ? 0 : -EINVAL;
+}
+#endif
 
 /* Return value:
  *  < 0, on error
@@ -374,6 +446,8 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 	vpninfo->ip_info.addr6 = vpninfo->ip_info.netmask6 = NULL;
 	vpninfo->ip_info.domain = NULL;
 	vpninfo->ip_info.mtu = 0;
+	vpninfo->esp_magic = inet_addr(vpninfo->ip_info.gateway_addr);
+	vpninfo->esp_replay_protect = 1;
 	vpninfo->ssl_times.rekey_method = REKEY_NONE;
 	vpninfo->cstp_options = NULL;
 
@@ -404,11 +478,13 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 			free(s);
 		} else if (!xmlnode_get_text(xml_node, "gw-address", &s)) {
 			/* As remarked in oncp.c, "this is a tunnel; having a
-			 * gateway is meaningless."
+			 * gateway is meaningless." See esp_send_probes_gp for the
+			 * gory details of what this field actually means.
 			 */
 			if (strcmp(s, vpninfo->ip_info.gateway_addr))
 				vpn_progress(vpninfo, PRG_DEBUG,
 							 _("Gateway address in config XML (%s) differs from external gateway address (%s).\n"), s, vpninfo->ip_info.gateway_addr);
+			vpninfo->esp_magic = inet_addr(s);
 			free(s);
 		} else if (xmlnode_is_named(xml_node, "dns")) {
 			for (ii=0, member = xml_node->children; member && ii<3; member=member->next)
@@ -436,7 +512,34 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 				}
 			}
 		} else if (xmlnode_is_named(xml_node, "ipsec")) {
+#ifdef HAVE_ESP
+			if (vpninfo->dtls_state != DTLS_DISABLED) {
+				int c = (vpninfo->current_esp_in ^= 1);
+				vpninfo->old_esp_maxseq = vpninfo->esp_in[c^1].seq + 32;
+				for (member = xml_node->children; member; member=member->next) {
+					s = NULL;
+					if (!xmlnode_get_text(member, "udp-port", &s))		udp_sockaddr(vpninfo, atoi(s));
+					else if (!xmlnode_get_text(member, "enc-algo", &s)) 	set_esp_algo(vpninfo, s, 0);
+					else if (!xmlnode_get_text(member, "hmac-algo", &s))	set_esp_algo(vpninfo, s, 1);
+					else if (!xmlnode_get_text(member, "c2s-spi", &s))	vpninfo->esp_out.spi = htonl(strtoul(s, NULL, 16));
+					else if (!xmlnode_get_text(member, "s2c-spi", &s))	vpninfo->esp_in[c].spi = htonl(strtoul(s, NULL, 16));
+					else if (xmlnode_is_named(member, "ekey-c2s"))		get_key_bits(member, vpninfo->esp_out.enc_key);
+					else if (xmlnode_is_named(member, "ekey-s2c"))		get_key_bits(member, vpninfo->esp_in[c].enc_key);
+					else if (xmlnode_is_named(member, "akey-c2s"))		get_key_bits(member, vpninfo->esp_out.hmac_key);
+					else if (xmlnode_is_named(member, "akey-s2c"))		get_key_bits(member, vpninfo->esp_in[c].hmac_key);
+					else if (!xmlnode_get_text(member, "ipsec-mode", &s) && strcmp(s, "esp-tunnel"))
+						vpn_progress(vpninfo, PRG_ERR, _("GlobalProtect config sent ipsec-mode=%s (expected esp-tunnel)\n"), s);
+					free(s);
+				}
+				if (setup_esp_keys(vpninfo, 0))
+					vpn_progress(vpninfo, PRG_ERR, "Failed to setup ESP keys.\n");
+				else
+					/* prevent race condition between esp_mainloop() and gpst_mainloop() timers */
+					vpninfo->dtls_times.last_rekey = time(&vpninfo->new_dtls_started);
+			}
+#else
 			vpn_progress(vpninfo, PRG_DEBUG, _("Ignoring ESP keys since ESP support not available in this build\n"));
+#endif
 		}
 	}
 
@@ -448,7 +551,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 	 * overridden with --force-dpd */
 	if (!vpninfo->ssl_times.dpd)
 		vpninfo->ssl_times.dpd = 10;
-	vpninfo->ssl_times.keepalive = vpninfo->ssl_times.dpd;
+	vpninfo->ssl_times.keepalive = vpninfo->esp_ssl_fallback = vpninfo->ssl_times.dpd;
 
 	return 0;
 }
@@ -498,9 +601,19 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 
 	if (!vpninfo->ip_info.mtu) {
 		/* FIXME: GP gateway config always seems to be <mtu>0</mtu> */
-		vpninfo->ip_info.mtu = calculate_mtu(vpninfo);
+		char *no_esp_reason = NULL;
+#ifdef HAVE_ESP
+		if (vpninfo->dtls_state == DTLS_DISABLED)
+			no_esp_reason = _("ESP disabled");
+		else if (vpninfo->dtls_state == DTLS_NOSECRET)
+			no_esp_reason = _("No ESP keys received");
+#else
+		no_esp_reason = _("ESP support not available in this build");
+#endif
+		vpninfo->ip_info.mtu = calculate_mtu(vpninfo, !no_esp_reason);
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("No MTU received. Calculated %d\n"), vpninfo->ip_info.mtu);
+			     _("No MTU received. Calculated %d for %s%s\n"), vpninfo->ip_info.mtu,
+			     no_esp_reason ? "TLS tunnel. " : "ESP tunnel", no_esp_reason ? : "");
 		/* return -EINVAL; */
 	}
 	if (!vpninfo->ip_info.addr) {
@@ -594,7 +707,9 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 		monitor_fd_new(vpninfo, ssl);
 		monitor_read_fd(vpninfo, ssl);
 		monitor_except_fd(vpninfo, ssl);
-		vpninfo->ssl_times.last_rekey = vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
+		vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
+		if (vpninfo->proto->udp_close)
+			vpninfo->proto->udp_close(vpninfo);
 	}
 
 out:
@@ -606,12 +721,22 @@ int gpst_setup(struct openconnect_info *vpninfo)
 {
 	int ret;
 
+	/* ESP tunnel is unusable as soon as we (re-)fetch the configuration */
+	if (vpninfo->proto->udp_close)
+		vpninfo->proto->udp_close(vpninfo);
+
 	/* Get configuration */
 	ret = gpst_get_config(vpninfo);
 	if (ret)
 		return ret;
 
-	ret = gpst_connect(vpninfo);
+	/* We do NOT actually start the HTTPS tunnel yet if we want to
+	 * use ESP, because the ESP tunnel won't work if the HTTPS tunnel
+	 * is connected! >:-(
+	 */
+	if (vpninfo->dtls_state == DTLS_DISABLED || vpninfo->dtls_state == DTLS_NOSECRET)
+		ret = gpst_connect(vpninfo);
+
 	return ret;
 }
 
@@ -621,6 +746,43 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	int work_done = 0;
 	uint16_t ethertype;
 	uint32_t one, zero, magic;
+
+	/* Starting the HTTPS tunnel kills ESP, so we avoid starting
+	 * it if the ESP tunnel is connected or connecting.
+	 */
+	switch (vpninfo->dtls_state) {
+	case DTLS_CONNECTING:
+		openconnect_close_https(vpninfo, 0); /* don't keep stale HTTPS socket */
+		vpn_progress(vpninfo, PRG_INFO,
+			     _("ESP tunnel connected; exiting HTTPS mainloop.\n"));
+		vpninfo->dtls_state = DTLS_CONNECTED;
+		/* fall through */
+	case DTLS_CONNECTED:
+		/* Rekey if needed */
+		if (keepalive_action(&vpninfo->ssl_times, timeout) == KA_REKEY)
+			goto do_rekey;
+		return 0;
+	case DTLS_SECRET:
+	case DTLS_SLEEPING:
+		if (!ka_check_deadline(timeout, time(NULL), vpninfo->new_dtls_started + 5)) {
+			/* Allow 5 seconds after configuration for ESP to start */
+			return 0;
+		} else {
+			/* ... before we switch to HTTPS instead */
+			vpn_progress(vpninfo, PRG_ERR,
+				     _("Failed to connect ESP tunnel; using HTTPS instead.\n"));
+			if (gpst_connect(vpninfo)) {
+				vpninfo->quit_reason = "GPST connect failed";
+				return 1;
+			}
+		}
+		break;
+	case DTLS_NOSECRET:
+		/* HTTPS tunnel already started, or getconfig.esp did not provide any ESP keys */
+	case DTLS_DISABLED:
+		/* ESP is disabled */
+		;
+	}
 
 	if (vpninfo->ssl_fd == -1)
 		goto do_reconnect;
@@ -760,6 +922,8 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			vpninfo->quit_reason = "GPST reconnect failed";
 			return ret;
 		}
+		if (vpninfo->proto->udp_setup)
+			vpninfo->proto->udp_setup(vpninfo, vpninfo->dtls_attempt_period);
 		return 1;
 
 	case KA_KEEPALIVE:
@@ -799,3 +963,103 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	/* Work is not done if we just got rid of packets off the queue */
 	return work_done;
 }
+
+#ifdef HAVE_ESP
+static uint16_t csum(uint16_t *buf, int nwords)
+{
+	uint32_t sum = 0;
+	for(sum=0; nwords>0; nwords--)
+		sum += ntohs(*buf++);
+	sum = (sum >> 16) + (sum &0xffff);
+	sum += (sum >> 16);
+	return htons((uint16_t)(~sum));
+}
+
+int gpst_esp_send_probes(struct openconnect_info *vpninfo)
+{
+	/* The GlobalProtect VPN initiates and maintains the ESP connection
+	 * using specially-crafted ICMP ("ping") packets.
+	 *
+	 * 1) These ping packets have a special magic payload. It must
+	 *    include at least the 16 bytes below. The Windows client actually
+	 *    sends this 56-byte version, but the remaining bytes don't
+	 *    seem to matter:
+	 *
+	 *    "monitor\x00\x00pan ha 0123456789:;<=>? !\"#$%&\'()*+,-./\x10\x11\x12\x13\x14\x15\x16\x18";
+	 *
+	 * 2) The ping packets are addressed to the IP supplied in the
+	 *    config XML as as <gw-address>. In most cases, this is the
+	 *    same as the *external* IP address of the VPN gateway
+	 *    (vpninfo->ip_info.gateway_addr), but in some cases it is a
+	 *    separate address.
+	 *
+	 *    Don't blame me. I didn't design this.
+	 */
+	static char magic[16] = "monitor\x00\x00pan ha ";
+
+	int pktlen, seq;
+	struct pkt *pkt = malloc(sizeof(*pkt) + sizeof(struct ip) + ICMP_MINLEN + sizeof(magic) + vpninfo->pkt_trailer);
+	struct ip *iph = (void *)pkt->data;
+	struct icmp *icmph = (void *)(pkt->data + sizeof(*iph));
+	char *pmagic = (void *)(pkt->data + sizeof(*iph) + ICMP_MINLEN);
+	if (!pkt)
+		return -ENOMEM;
+
+	if (vpninfo->dtls_fd == -1) {
+		int fd = udp_connect(vpninfo);
+		if (fd < 0)
+			return fd;
+
+		/* We are not connected until we get an ESP packet back */
+		vpninfo->dtls_state = DTLS_SLEEPING;
+		vpninfo->dtls_fd = fd;
+		monitor_fd_new(vpninfo, dtls);
+		monitor_read_fd(vpninfo, dtls);
+		monitor_except_fd(vpninfo, dtls);
+	}
+
+	for (seq=1; seq <= (vpninfo->dtls_state==DTLS_CONNECTED ? 1 : 3); seq++) {
+		memset(pkt, 0, sizeof(*pkt) + sizeof(*iph) + ICMP_MINLEN + sizeof(magic));
+		pkt->len = sizeof(struct ip) + ICMP_MINLEN + sizeof(magic);
+
+		/* IP Header */
+		iph->ip_hl = 5;
+		iph->ip_v = 4;
+		iph->ip_len = htons(sizeof(*iph) + ICMP_MINLEN + sizeof(magic));
+		iph->ip_id = htons(0x4747); /* what the Windows client uses */
+		iph->ip_off = htons(IP_DF); /* don't fragment, frag offset = 0 */
+		iph->ip_ttl = 64; /* hops */
+		iph->ip_p = 1; /* ICMP */
+		iph->ip_src.s_addr = inet_addr(vpninfo->ip_info.addr);
+		iph->ip_dst.s_addr = vpninfo->esp_magic;
+		iph->ip_sum = csum((uint16_t *)iph, sizeof(*iph)/2);
+
+		/* ICMP echo request */
+		icmph->icmp_type = ICMP_ECHO;
+		icmph->icmp_hun.ih_idseq.icd_id = htons(0x4747);
+		icmph->icmp_hun.ih_idseq.icd_seq = htons(seq);
+		memcpy(pmagic, magic, sizeof(magic)); /* required to get gateway to respond */
+		icmph->icmp_cksum = csum((uint16_t *)icmph, (ICMP_MINLEN+sizeof(magic))/2);
+
+		pktlen = encrypt_esp_packet(vpninfo, pkt);
+		if (pktlen >= 0)
+			send(vpninfo->dtls_fd, (void *)&pkt->esp, pktlen, 0);
+	}
+
+	free(pkt);
+
+	vpninfo->dtls_times.last_tx = time(&vpninfo->new_dtls_started);
+
+	return 0;
+}
+
+int gpst_esp_catch_probe(struct openconnect_info *vpninfo, struct pkt *pkt)
+{
+	struct ip *iph = (void *)(pkt->data);
+	return ( pkt->len >= 21
+		 && iph->ip_p==1 /* IPv4 protocol field == ICMP */
+		 && iph->ip_src.s_addr == vpninfo->esp_magic /* source == magic address */
+		 && pkt->len >= (iph->ip_hl<<2)+1 /* No short-packet segfaults */
+		 && pkt->data[iph->ip_hl<<2]==0 /* ICMP reply */ );
+}
+#endif /* HAVE_ESP */
