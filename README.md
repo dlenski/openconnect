@@ -70,7 +70,7 @@ $ make install
 [Homebrew](https://brew.sh) is required. To build and install into `/usr/local`:
 
 ```sh
-$ brew install pkg-config gettext gnutls lz4
+$ brew install pkg-config gettext gnutls lz4 automake
 $ export LIBTOOLIZE=glibtoolize
 $ ./autogen.sh
 $ ./configure --prefix=/usr/local --with-vpnc-script=/usr/local/etc/vpnc-script --disable-nls
