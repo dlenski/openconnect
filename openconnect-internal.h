@@ -146,6 +146,10 @@ struct pkt {
 			unsigned char pad[16];
 			unsigned char hdr[8];
 		} cstp;
+		struct {
+			unsigned char pad[8];
+			unsigned char hdr[16];
+		} gpst;
 	};
 	unsigned char data[];
 };
@@ -860,6 +864,18 @@ void oncp_esp_close(struct openconnect_info *vpninfo);
 int oncp_esp_send_probes(struct openconnect_info *vpninfo);
 int oncp_esp_catch_probe(struct openconnect_info *vpninfo, struct pkt *pkt);
 
+/* auth-globalprotect.c */
+int gpst_obtain_cookie(struct openconnect_info *vpninfo);
+void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf);
+int gpst_bye(struct openconnect_info *vpninfo, const char *reason);
+
+/* gpst.c */
+int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *response,
+					  int (*xml_cb)(struct openconnect_info *, xmlNode *xml_node),
+					  char **prompt, char **inputStr);
+int gpst_setup(struct openconnect_info *vpninfo);
+int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout);
+
 /* lzs.c */
 int lzs_decompress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
 int lzs_compress(unsigned char *dst, int dstlen, const unsigned char *src, int srclen);
@@ -1017,6 +1033,7 @@ int get_utf8char(const char **utf8);
 void buf_append_from_utf16le(struct oc_text_buf *buf, const void *utf16);
 void buf_truncate(struct oc_text_buf *buf);
 void buf_append_urlencoded(struct oc_text_buf *buf, const char *str);
+void buf_append_xmlescaped(struct oc_text_buf *buf, const char *str);
 int buf_error(struct oc_text_buf *buf);
 int buf_free(struct oc_text_buf *buf);
 char *openconnect_create_useragent(const char *base);
