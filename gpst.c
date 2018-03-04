@@ -814,14 +814,11 @@ out:
 
 static int run_hip_script(struct openconnect_info *vpninfo)
 {
-#if defined(_WIN32) || defined(__native_client__)
-	vpn_progress(vpninfo, PRG_ERR,
-		     _("Error: Running the 'HIP Report' script on this platform is not yet implemented.\n"));
-	return -EPERM;
-#else
+#if !defined(_WIN32) && !defined(__native_client__)
 	int pipefd[2];
 	int ret;
 	pid_t child;
+#endif
 
 	if (!vpninfo->csd_wrapper) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -833,6 +830,11 @@ static int run_hip_script(struct openconnect_info *vpninfo)
 		return 0;
 	}
 
+#if defined(_WIN32) || defined(__native_client__)
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Error: Running the 'HIP Report' script on this platform is not yet implemented.\n"));
+	return -EPERM;
+#else
 	if (pipe(pipefd) == -1)
 		goto out;
 	child = fork();
