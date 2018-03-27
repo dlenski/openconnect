@@ -106,6 +106,7 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	struct esp *esp = &vpninfo->esp_in[vpninfo->current_esp_in];
 	struct esp *old_esp = &vpninfo->esp_in[vpninfo->current_esp_in ^ 1];
 	struct pkt *this;
+	int receive_mtu = MAX(2048, vpninfo->ip_info.mtu + 256);
 	int work_done = 0;
 	int ret;
 
@@ -121,7 +122,7 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		return 0;
 
 	while (1) {
-		int len = vpninfo->ip_info.mtu + vpninfo->pkt_trailer;
+		int len = receive_mtu + vpninfo->pkt_trailer;
 		int i;
 		struct pkt *pkt;
 
@@ -202,8 +203,8 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			}
 		}
 		if (pkt->data[len - 1] == 0x05) {
-			struct pkt *newpkt = malloc(sizeof(*pkt) + vpninfo->ip_info.mtu + vpninfo->pkt_trailer);
-			int newlen = vpninfo->ip_info.mtu;
+			struct pkt *newpkt = malloc(sizeof(*pkt) + receive_mtu + vpninfo->pkt_trailer);
+			int newlen = receive_mtu;
 			if (!newpkt) {
 				vpn_progress(vpninfo, PRG_ERR,
 					     _("Failed to allocate memory to decrypt ESP packet\n"));
@@ -216,7 +217,7 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				free(newpkt);
 				continue;
 			}
-			newpkt->len = vpninfo->ip_info.mtu - newlen;
+			newpkt->len = receive_mtu - newlen;
 			vpn_progress(vpninfo, PRG_TRACE,
 				     _("LZO decompressed %d bytes into %d\n"),
 				     len - 2 - pkt->data[len-2], newpkt->len);
