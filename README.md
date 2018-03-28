@@ -107,10 +107,10 @@ OpenConnect:
 
 [![GlobalProtect Windows client](https://i.stack.imgur.com/2JC9T.png)]
 
-You can also use [`get-globalprotect-config.py`](get-globalprotect-config.py) to list the available gateway servers:
+You can also use [`test-globalprotect-login.py`](test-globalprotect-login.py) to list the available gateway servers:
 
 ```sh
-$ ./get-globalprotect-config.py [--cert client_cert_with_privkey.pem] portal.company.com
+$ ./test-globalprotect-login.py [--cert client_cert_with_privkey.pem] portal.company.com
         ...
         <gateways>
                 <cutoff-time>5</cutoff-time>
