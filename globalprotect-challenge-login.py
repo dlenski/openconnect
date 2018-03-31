@@ -19,8 +19,9 @@ p = argparse.ArgumentParser()
 p.add_argument('-v','--verbose', default=0, action='count')
 p.add_argument('gateway', help='Hostname of GlobalProtect gateway')
 g = p.add_argument_group('Login credentials')
+g.add_argument('-l', '--preloginCookie', help='Prelogin cookie (replaces password)')
 g.add_argument('-u', '--user', help='Username (will prompt if unspecified)')
-g.add_argument('-p', '--password', help='Password (will prompt if unspecified)')
+g.add_argument('-p', '--password', help='Password (will prompt if unspecified, unless using a prelogin cookie)')
 g.add_argument('--cert', help='PEM file containing client certificate (and optionally private key)')
 g.add_argument('--key', help='PEM file containing client private key (if not included in same file as certificate)')
 g.add_argument('--no-verify', dest='verify', action='store_false', default=True, help='Ignore invalid server certificate')
@@ -46,7 +47,7 @@ s.cert = cert
 if args.verbose:
     http_client.HTTPConnection.debuglevel = 1
 
-user, password, inputStr = args.user, args.password, ''
+user, password, preloginCookie, inputStr = args.user, args.password, args.preloginCookie, ''
 login = 'https://{}/ssl-vpn/login.esp'.format(args.gateway)
 hostname = os.uname()[1]
 jnlp = None
@@ -54,7 +55,7 @@ jnlp = None
 while True:
     if not user:
         user = input('Username: ')
-    if not password:
+    if not password and not preloginCookie:
         password = getpass.getpass('Password: ')
 
     print("Posting login request to: %s" % login)
@@ -62,6 +63,8 @@ while True:
                 jnlpReady='jnlpReady', ok='Login', direct='yes', # required
                 clientVer=4100, server=args.gateway, prot='https:', computer=hostname # optional but might affect behavior
     )
+    if preloginCookie:
+        form['prelogin-cookie'] = preloginCookie
     res = s.post(login, form, verify=args.verify)
 
     unknown = False
