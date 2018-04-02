@@ -187,6 +187,7 @@ enum {
 	OPT_HTTP_AUTH,
 	OPT_LOCAL_HOSTNAME,
 	OPT_PROTOCOL,
+	OPT_SERVER,
 	OPT_PASSTOS,
 	OPT_REQUEST_IP,
 };
@@ -271,6 +272,7 @@ static const struct option long_options[] = {
 	OPTION("no-system-trust", 0, OPT_NO_SYSTEM_TRUST),
 	OPTION("protocol", 1, OPT_PROTOCOL),
 	OPTION("request-ip", 1, OPT_REQUEST_IP),
+	OPTION("server", 1, OPT_SERVER),
 #ifdef OPENCONNECT_GNUTLS
 	OPTION("gnutls-debug", 1, OPT_GNUTLS_DEBUG),
 #endif
@@ -1166,6 +1168,10 @@ int main(int argc, char **argv)
 			if (openconnect_set_protocol(vpninfo, config_arg))
 				exit(1);
 			break;
+		case OPT_SERVER:
+			if (openconnect_parse_url(vpninfo, config_arg))
+				exit(1);
+			break;
 		case OPT_JUNIPER:
 			fprintf(stderr, "WARNING: Juniper Network Connect support is experimental.\n");
 			fprintf(stderr, "It will probably be superseded by Junos Pulse support.\n");
@@ -1461,7 +1467,7 @@ int main(int argc, char **argv)
 	if (optind < argc - 1) {
 		fprintf(stderr, _("Too many arguments on command line\n"));
 		usage();
-	} else if (optind > argc - 1) {
+	} else if (optind > argc - 1 && !vpninfo->hostname) {
 		fprintf(stderr, _("No server specified\n"));
 		usage();
 	}
@@ -1517,7 +1523,10 @@ int main(int argc, char **argv)
 	if (config_lookup_host(vpninfo, argv[optind]))
 		exit(1);
 
-	if (!vpninfo->hostname) {
+	/* The last argument without a corresponding --option is taken
+	 * to be the server URL and overrides any --server option on the
+	 * command line or from a --config */
+	if (!vpninfo->hostname || optind < argc) {
 		char *url = strdup(argv[optind]);
 
 		if (openconnect_parse_url(vpninfo, url))
