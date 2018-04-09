@@ -642,6 +642,7 @@ struct openconnect_info {
 
 	int is_dyndns; /* Attempt to redo DNS lookup on each CSTP reconnect */
 	char *useragent;
+	char *portal_userauthcookie;
 
 	const char *quit_reason;
 
