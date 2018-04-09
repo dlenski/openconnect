@@ -62,7 +62,8 @@ $ git checkout globalprotect
 $ ./autogen.sh
 $ ./configure
 $ make
-$ make install
+$ sudo make install
+$ sudo ldconfig
 ```
 
 ### Building on the Mac
