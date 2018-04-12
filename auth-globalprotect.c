@@ -27,7 +27,15 @@ void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 	http_common_headers(vpninfo, buf);
 }
 
-/* our "auth form" always has a username and password or challenge */
+/* The GlobalProtect auth form always has two visible fields:
+ *   1) username
+ *   2) one secret value:
+ *       - normal account password
+ *       - "challenge" (2FA) password, along with form name in auth_id
+ *
+ * This function steals the value of auth_id and prompt for
+ * use in the auth form.
+ */
 static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *prompt, char *auth_id)
 {
 	static struct oc_auth_form *form;
@@ -37,8 +45,8 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *pr
 
 	if (!form)
 		return NULL;
-	if (prompt) form->message = strdup(prompt);
-	form->auth_id = strdup(auth_id ? : "_gateway");
+	form->message = prompt ? : strdup(_("Please enter your username and password"));
+	form->auth_id = auth_id ? : strdup("_gateway");
 
 	opt = form->opts = calloc(1, sizeof(*opt));
 	if (!opt)
@@ -288,7 +296,7 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
 	char *xml_buf=NULL, *orig_path;
-	char *prompt=_("Please enter your username and password"), *auth_id=NULL;
+	char *prompt=NULL, *auth_id=NULL;
 
 #ifdef HAVE_LIBSTOKEN
 	/* Step 1: Unlock software token (if applicable) */
