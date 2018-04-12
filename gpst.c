@@ -94,7 +94,7 @@ static const char *add_option(struct openconnect_info *vpninfo, const char *opt,
 		free(new);
 		return NULL;
 	}
-	new->value = strdup(val);
+	new->value = val;
 	new->next = vpninfo->cstp_options;
 	vpninfo->cstp_options = new;
 
@@ -501,7 +501,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 					struct oc_split_include *inc = malloc(sizeof(*inc));
 					if (!inc)
 						continue;
-					inc->route = s;
+					inc->route = add_option(vpninfo, "split-include", s);
 					inc->next = vpninfo->ip_info.split_includes;
 					vpninfo->ip_info.split_includes = inc;
 				}
