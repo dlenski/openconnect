@@ -305,7 +305,7 @@ out:
  * With HTTPS tunnel, there are 21 bytes of overhead beyond the
  * TCP MSS: 5 bytes for TLS and 16 for GPST.
  */
-static int calculate_mtu(struct openconnect_info *vpninfo)
+static int calculate_mtu(struct openconnect_info *vpninfo, int can_use_esp)
 {
 	int mtu = vpninfo->reqmtu, base_mtu = vpninfo->basemtu;
 	int mss = 0;
@@ -350,10 +350,8 @@ static int calculate_mtu(struct openconnect_info *vpninfo)
 		base_mtu = 1280;
 
 #ifdef HAVE_ESP
-	/* If we can use the ESP tunnel (got secrets in config),
-	 * then we should pick the optimal MTU for ESP.
-	 */
-	if (!mtu && vpninfo->dtls_state == DTLS_SECRET) {
+	/* If we can use the ESP tunnel then we should pick the optimal MTU for ESP. */
+	if (!mtu && can_use_esp) {
 		/* remove ESP, UDP, IP headers from base (wire) MTU */
 		mtu = ( base_mtu - UDP_HEADER_SIZE - ESP_HEADER_SIZE
 		        - 12 /* both supported algos (SHA1 and MD5) have 96-bit MAC lengths (RFC2403 and RFC2404) */
@@ -370,9 +368,7 @@ static int calculate_mtu(struct openconnect_info *vpninfo)
 	} else
 #endif
 
-    /* We are definitely using the TLS tunnel (no ESP secrets)
-	 * so we should base our MTU on the TCP MSS.
-	 */
+    /* We are definitely using the TLS tunnel, so we should base our MTU on the TCP MSS. */
 	if (!mtu) {
 		if (mss)
 			mtu = mss - 21;
@@ -595,9 +591,19 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 
 	if (!vpninfo->ip_info.mtu) {
 		/* FIXME: GP gateway config always seems to be <mtu>0</mtu> */
-		vpninfo->ip_info.mtu = calculate_mtu(vpninfo);
+		char *no_esp_reason = NULL;
+#ifdef HAVE_ESP
+		if (vpninfo->dtls_state == DTLS_DISABLED)
+			no_esp_reason = _("ESP disabled");
+		else if (vpninfo->dtls_state == DTLS_NOSECRET)
+			no_esp_reason = _("No ESP keys received");
+#else
+		no_esp_reason = _("ESP support not available in this build");
+#endif
+		vpninfo->ip_info.mtu = calculate_mtu(vpninfo, !!no_esp_reason);
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("No MTU received. Calculated %d\n"), vpninfo->ip_info.mtu);
+			     _("No MTU received. Calculated %d for %s%s\n"), vpninfo->ip_info.mtu,
+			     no_esp_reason ? "TLS tunnel. " : "ESP tunnel", no_esp_reason ? : "");
 		/* return -EINVAL; */
 	}
 	if (!vpninfo->ip_info.addr) {
