@@ -343,6 +343,7 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 		if (form->auth_id && form->auth_id[0]!='_')
 			append_opt(request_body, "inputStr", form->auth_id);
 		append_form_opts(vpninfo, form, request_body);
+		append_opt(request_body, "portal-userauthcookie", vpninfo->portal_userauthcookie);
 		if ((result = buf_error(request_body)))
 			goto out;
 

@@ -189,6 +189,7 @@ enum {
 	OPT_PROTOCOL,
 	OPT_PASSTOS,
 	OPT_REQUEST_IP,
+	OPT_PORTAL_USERAUTHCOOKIE,
 };
 
 #ifdef __sun__
@@ -271,6 +272,7 @@ static const struct option long_options[] = {
 	OPTION("no-system-trust", 0, OPT_NO_SYSTEM_TRUST),
 	OPTION("protocol", 1, OPT_PROTOCOL),
 	OPTION("request-ip", 1, OPT_REQUEST_IP),
+	OPTION("userauthcookie", 1, OPT_PORTAL_USERAUTHCOOKIE),
 #ifdef OPENCONNECT_GNUTLS
 	OPTION("gnutls-debug", 1, OPT_GNUTLS_DEBUG),
 #endif
@@ -863,6 +865,7 @@ static void usage(void)
 	printf("      --os=STRING                 %s\n", _("OS type (linux,linux-64,win,...) to report"));
 	printf("      --dtls-local-port=PORT      %s\n", _("Set local port for DTLS datagrams"));
 	printf("      --request-ip=IP             %s\n", _("Request a specific IPv4 address"));
+	printf("      --userauthcookie=STRING     %s\n", _("Use portal user authentication cookie"));
 	print_supported_protocols_usage();
 
 	printf("\n");
@@ -1275,6 +1278,9 @@ int main(int argc, char **argv)
 			break;
 		case OPT_REQUEST_IP:
 			vpninfo->ip_info.addr = keep_config_arg();
+			break;
+		case OPT_PORTAL_USERAUTHCOOKIE:
+			vpninfo->portal_userauthcookie = dup_config_arg();
 			break;
 		case 'C':
 			vpninfo->cookie = dup_config_arg();
@@ -1992,7 +1998,9 @@ static int process_auth_form_cb(void *_vpninfo,
 			empty = 0;
 
 		} else if (opt->type == OC_FORM_OPT_PASSWORD) {
-			if (password &&
+			if (vpninfo->portal_userauthcookie) {
+				opt->_value = strdup("");
+			} else if (password &&
 			    (!strcmp(opt->name, "password") || opt->flags & OC_FORM_OPT_FILL_PASSWORD)) {
 				opt->_value = password;
 				password = NULL;
