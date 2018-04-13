@@ -905,6 +905,10 @@ int gpst_setup(struct openconnect_info *vpninfo)
 {
 	int ret;
 
+	/* ESP tunnel is unusable as soon as we (re-)fetch the configuration */
+	if (vpninfo->proto->udp_close)
+		vpninfo->proto->udp_close(vpninfo);
+
 	/* Get configuration */
 	ret = gpst_get_config(vpninfo);
 	if (ret)
