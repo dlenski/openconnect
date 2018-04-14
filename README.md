@@ -11,6 +11,7 @@
          * [Building on the Mac](#building-on-the-mac)
       * [Connecting](#connecting)
         * [Portal vs. gateway servers](#portal-vs-gateway-servers)
+        * [HIP report submission](#hip-report-submission)
       * [TODO](#todo)
 
 # What is this?
@@ -99,6 +100,41 @@ It currently supports the following authentication mechanisms:
 * TLS/SSL client certificate (include `--certificate cert_with_privkey.pem` if your VPN requires a _client_ certificate and private key)
 
 I'd welcome feedback on how to support other authentication methods in use with GlobalProtect.
+
+### HIP report submission
+
+The HIP ("Host Integrity Protection") mechanism is a security scanner
+for PAN GlobalProtect VPNs, in the same vein as Cisco's CSD and
+Juniper's Host Checker.
+
+The server requests a "HIP report" upon client connection, then the
+client generates a "HIP report" XML file, and then the client uploads
+it to the server.
+
+If all goes well, the client should have the expected level of access
+to resources on the network after these steps are complete. At least
+two things can go wrong:
+
+* Many GlobalProtect servers report that they require HIP reports, but
+  don't actually enforce this requirement. (For this reason,
+  OpenConnect _does not currently fail_ if a HIP report is required
+  but no HIP report script is provided.)
+* Many GlobalProtect servers will claim that the HIP report was
+  accepted successfully but silently fail to enable the expected
+  network access, presumably because some aspect of the HIP report
+  contents were not approved.
+
+OpenConnect supports HIP report generation and submission by passing
+the `--csd-wrapper=SCRIPT` argument with a shell script to generate a
+HIP report in the format expected by the server. This shell script
+must output the HIP report to standard output and exit successfully
+(status code 0).
+
+An example [`hipreport.sh`](hipreport.sh) script is included in the
+repository.  Depending on how picky your GlobalProtect VPN is, it may
+be necessary to spoof or alter some of the parameters of the HIP
+report to match your GlobalProtect VPN's expectations as to its
+contents.
 
 ### Portal vs. gateway servers
 
