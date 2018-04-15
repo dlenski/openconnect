@@ -1296,6 +1296,7 @@ int oncp_bye(struct openconnect_info *vpninfo, const char *reason)
 	orig_path = vpninfo->urlpath;
 	vpninfo->urlpath = strdup("dana-na/auth/logout.cgi"); /* redirect segfaults without strdup */
 	ret = do_https_request(vpninfo, "GET", NULL, NULL, &res_buf, 0);
+	free(vpninfo->urlpath);
 	vpninfo->urlpath = orig_path;
 
 	if (ret < 0)
