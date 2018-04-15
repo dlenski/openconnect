@@ -17,8 +17,8 @@ CentOS7/GnuTLS:
   - ./autogen.sh
   - ./configure --with-java CFLAGS=-g
   - make -j4
-  # XFAIL the auth-pkcs11 test because GnuTLS 3.3.8 doesn't support pin-value
-  - make VERBOSE=1 -j4 check
+# UTF-8 support is not available
+  - make VERBOSE=1 XFAIL_TESTS="auth-nonascii" -j4 check
   tags:
   - shared
   except:
@@ -46,7 +46,8 @@ CentOS7/OpenSSL:
   - ./autogen.sh
   - ./configure --without-gnutls --with-openssl --with-java --without-openssl-version-check --enable-dtls-xfail --disable-dsa-tests CFLAGS=-g
   - make -j4
-  - make VERBOSE=1 -j4 check
+# UTF-8 support is not available
+  - make VERBOSE=1 XFAIL_TESTS="auth-nonascii" -j4 check
   tags:
   - shared
   except:
@@ -74,7 +75,8 @@ CentOS6/OpenSSL:
   - ./autogen.sh
   - ./configure --with-java --without-openssl-version-check --enable-dtls-xfail CFLAGS=-g
   - make -j4
-  - make VERBOSE=1 -j4 check
+# UTF-8 support is not available
+  - make VERBOSE=1 XFAIL_TESTS="bad_dtls_test auth-nonascii" -j4 check
   tags:
   - shared
   except:
