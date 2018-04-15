@@ -136,7 +136,7 @@ const struct vpn_proto openconnect_protos[] = {
 #ifdef HAVE_ESP
 		.udp_setup = esp_setup,
 		.udp_mainloop = esp_mainloop,
-		.udp_close = esp_close,
+		.udp_close = oncp_esp_close,
 		.udp_shutdown = esp_shutdown,
 		.udp_send_probes = oncp_esp_send_probes,
 		.udp_catch_probe = oncp_esp_catch_probe,

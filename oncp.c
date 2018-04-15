@@ -452,7 +452,7 @@ static const struct pkt esp_enable_pkt = {
 	.len = 13
 };
 
-int queue_esp_control(struct openconnect_info *vpninfo, int enable)
+static int queue_esp_control(struct openconnect_info *vpninfo, int enable)
 {
 	struct pkt *new = malloc(sizeof(*new) + 13);
 	if (!new)
@@ -1163,19 +1163,15 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		/* Don't free the 'special' packets */
 		if (vpninfo->current_ssl_pkt == vpninfo->deflate_pkt) {
 			free(vpninfo->pending_deflated_pkt);
-		} else {
+		} else if (vpninfo->current_ssl_pkt == &esp_enable_pkt) {
 			/* Only set the ESP state to connected and actually start
 			   sending packets on it once the enable message has been
 			   *sent* over the TCP channel. */
-			if (vpninfo->dtls_state == DTLS_CONNECTING &&
-			    vpninfo->current_ssl_pkt->len == 13 &&
-			    load_be16(&vpninfo->current_ssl_pkt->oncp.kmp[6]) == 0x12f &&
-			    vpninfo->current_ssl_pkt->data[12]) {
-				vpn_progress(vpninfo, PRG_TRACE,
-					     _("Sent ESP enable control packet\n"));
-				vpninfo->dtls_state = DTLS_CONNECTED;
-				work_done = 1;
-			}
+			vpn_progress(vpninfo, PRG_TRACE,
+				     _("Sent ESP enable control packet\n"));
+			vpninfo->dtls_state = DTLS_CONNECTED;
+			work_done = 1;
+		} else {
 			free(vpninfo->current_ssl_pkt);
 		}
 		vpninfo->current_ssl_pkt = NULL;
@@ -1251,6 +1247,15 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		;
 	}
 #endif
+	/* Queue the ESP enable message. We will start sending packets
+	 * via ESP once the enable message has been *sent* over the
+	 * TCP channel. Assign it directly to current_ssl_pkt so that
+	 * we can use it in-place and match against it above. */
+	if (vpninfo->dtls_state == DTLS_CONNECTING) {
+		vpninfo->current_ssl_pkt = (struct pkt *)&esp_enable_pkt;
+		goto handle_outgoing;
+	}
+
 	vpninfo->current_ssl_pkt = dequeue_packet(&vpninfo->oncp_control_queue);
 	if (vpninfo->current_ssl_pkt)
 		goto handle_outgoing;
@@ -1303,6 +1308,13 @@ int oncp_bye(struct openconnect_info *vpninfo, const char *reason)
 }
 
 #ifdef HAVE_ESP
+void oncp_esp_close(struct openconnect_info *vpninfo)
+{
+	/* Tell server to stop sending on ESP channel */
+	queue_esp_control(vpninfo, 0);
+	esp_close(vpninfo);
+}
+
 int oncp_esp_send_probes(struct openconnect_info *vpninfo)
 {
 	struct pkt *pkt;

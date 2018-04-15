@@ -192,7 +192,6 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 				if (vpninfo->dtls_state == DTLS_SLEEPING) {
 					vpn_progress(vpninfo, PRG_INFO,
 						     _("ESP session established with server\n"));
-					queue_esp_control(vpninfo, 1);
 					vpninfo->dtls_state = DTLS_CONNECTING;
 				}
 				continue;
@@ -234,8 +233,8 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 
 	case KA_DPD_DEAD:
 		vpn_progress(vpninfo, PRG_ERR, _("ESP detected dead peer\n"));
-		queue_esp_control(vpninfo, 0);
-		esp_close(vpninfo);
+		if (vpninfo->proto->udp_close)
+			vpninfo->proto->udp_close(vpninfo);
 		if (vpninfo->proto->udp_send_probes)
 			vpninfo->proto->udp_send_probes(vpninfo);
 		return 1;
@@ -310,5 +309,6 @@ void esp_shutdown(struct openconnect_info *vpninfo)
 	destroy_esp_ciphers(&vpninfo->esp_in[0]);
 	destroy_esp_ciphers(&vpninfo->esp_in[1]);
 	destroy_esp_ciphers(&vpninfo->esp_out);
-	esp_close(vpninfo);
+	if (vpninfo->proto->udp_close)
+		vpninfo->proto->udp_close(vpninfo);
 }
