@@ -706,8 +706,10 @@ static int gpst_connect(struct openconnect_info *vpninfo)
 		monitor_read_fd(vpninfo, ssl);
 		monitor_except_fd(vpninfo, ssl);
 		vpninfo->ssl_times.last_rx = vpninfo->ssl_times.last_tx = time(NULL);
-		if (vpninfo->proto->udp_close)
-			vpninfo->proto->udp_close(vpninfo);
+		/* connecting the HTTPS tunnel totally invalidates the ESP keys,
+		   hence shutdown */
+		if (vpninfo->proto->udp_shutdown)
+			vpninfo->proto->udp_shutdown(vpninfo);
 	}
 
 out:
@@ -913,9 +915,9 @@ int gpst_setup(struct openconnect_info *vpninfo)
 {
 	int ret;
 
-	/* ESP tunnel is unusable as soon as we (re-)fetch the configuration */
-	if (vpninfo->proto->udp_close)
-		vpninfo->proto->udp_close(vpninfo);
+	/* ESP keys are invalid as soon as we (re-)fetch the configuration, hence shutdown */
+	if (vpninfo->proto->udp_shutdown)
+		vpninfo->proto->udp_shutdown(vpninfo);
 
 	/* Get configuration */
 	ret = gpst_get_config(vpninfo);
