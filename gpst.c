@@ -582,7 +582,7 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	vpninfo->urlpath = orig_path;
 
 	if (result < 0)
-		goto out;
+		goto pre_opt_out;
 
 	/* parse getconfig result */
 	result = gpst_xml_or_error(vpninfo, result, xml_buf, gpst_parse_config_xml, NULL, NULL);
@@ -641,8 +641,9 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	}
 
 out:
-	buf_free(request_body);
 	free_optlist(old_cstp_opts);
+pre_opt_out:
+	buf_free(request_body);
 	free(xml_buf);
 	return result;
 }
