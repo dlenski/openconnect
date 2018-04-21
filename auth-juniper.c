@@ -77,7 +77,7 @@ static int oncp_can_gen_tokencode(struct openconnect_info *vpninfo,
 
 	if (strcmp(form->auth_id, "frmDefender") &&
 	    strcmp(form->auth_id, "frmNextToken") &&
-	    strcmp(form->auth_id, "ftmTotpToken"))
+	    strcmp(form->auth_id, "frmTotpToken"))
 		return -EINVAL;
 
 	return can_gen_tokencode(vpninfo, form, opt);
