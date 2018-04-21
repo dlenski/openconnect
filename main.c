@@ -661,7 +661,7 @@ static void print_supported_protocols_usage(void)
 	struct oc_vpn_proto *protos, *p;
 
 	if (openconnect_get_supported_protocols(&protos)>=0) {
-		printf(_("\n    Set VPN protocol:\n"));
+		printf("\n%s:\n", _("Set VPN protocol"));
 		for (p=protos; p->name; p++)
 			printf("      --protocol=%-16s %s%s\n",
 				   p->name, p->description, p==protos ? _(" (default)") : "");
@@ -787,7 +787,10 @@ static void usage(void)
 	printf("      --config=CONFIGFILE         %s\n", _("Read options from config file"));
 	printf("  -V, --version                   %s\n", _("Report version number"));
 	printf("  -h, --help                      %s\n", _("Display help text"));
+
 	print_supported_protocols_usage();
+
+	printf("\n%s:\n", _("Authentication"));
 	printf("  -u, --user=NAME                 %s\n", _("Set login username"));
 	printf("      --no-passwd                 %s\n", _("Disable password/SecurID authentication"));
 	printf("      --non-inter                 %s\n", _("Do not expect user input; exit if it is required"));
@@ -807,10 +810,14 @@ static void usage(void)
 #ifndef HAVE_LIBPCSCLITE
 	printf("                                  %s\n", _("(NOTE: Yubikey OATH disabled in this build)"));
 #endif
+
+	printf("\n%s:\n", _("Server validation"));
 	printf("      --servercert=FINGERPRINT    %s\n", _("Server's certificate SHA1 fingerprint"));
 	printf("      --no-cert-check             %s\n", _("Do not require server SSL cert to be valid"));
 	printf("      --no-system-trust           %s\n", _("Disable default system certificate authorities"));
 	printf("      --cafile=FILE               %s\n", _("Cert file for server verification"));
+
+	printf("\n%s:\n", _("Internet connectivity"));
 	printf("  -P, --proxy=URL                 %s\n", _("Set proxy server"));
 	printf("      --proxy-auth=METHODS        %s\n", _("Set proxy authentication methods"));
 	printf("      --no-proxy                  %s\n", _("Disable proxy"));
@@ -822,16 +829,22 @@ static void usage(void)
 	printf("      --resolve=HOST:IP           %s\n", _("Use IP when connecting to HOST"));
 	printf("      --passtos                   %s\n", _("copy TOS / TCLASS when using DTLS"));
 	printf("      --dtls-local-port=PORT      %s\n", _("Set local port for DTLS datagrams"));
+
+	printf("\n%s:\n", _("Authentication (two-phase)"));
 	printf("  -C, --cookie=COOKIE             %s\n", _("Use WebVPN cookie COOKIE"));
 	printf("      --cookie-on-stdin           %s\n", _("Read cookie from standard input"));
 	printf("      --authenticate              %s\n", _("Authenticate only and print login info"));
 	printf("      --cookieonly                %s\n", _("Fetch webvpn cookie only; don't connect"));
 	printf("      --printcookie               %s\n", _("Print webvpn cookie before connecting"));
+
 #ifndef _WIN32
+	printf("\n%s:\n", _("Process control"));
 	printf("  -b, --background                %s\n", _("Continue in background after startup"));
 	printf("      --pid-file=PIDFILE          %s\n", _("Write the daemon's PID to this file"));
 	printf("  -U, --setuid=USER               %s\n", _("Drop privileges after connecting"));
 #endif
+
+	printf("\n%s:\n", _("Logging (two-phase)"));
 #ifndef _WIN32
 	printf("  -l, --syslog                    %s\n", _("Use syslog for progress messages"));
 #endif
@@ -839,12 +852,16 @@ static void usage(void)
 	printf("  -q, --quiet                     %s\n", _("Less output"));
 	printf("      --dump-http-traffic         %s\n", _("Dump HTTP authentication traffic (implies --verbose"));
 	printf("      --timestamp                 %s\n", _("Prepend timestamp to progress messages"));
+
+	printf("\n%s:\n", _("VPN configuration script"));
 	printf("  -i, --interface=IFNAME          %s\n", _("Use IFNAME for tunnel interface"));
 	printf("  -s, --script=SCRIPT             %s\n", _("Shell command line for using a vpnc-compatible config script"));
 	printf("                                  %s: \"%s\"\n", _("default"), default_vpncscript);
 #ifndef _WIN32
 	printf("  -S, --script-tun                %s\n", _("Pass traffic to 'script' program, not tun"));
 #endif
+
+	printf("\n%s:\n", _("Tunnel control"));
 	printf("      --disable-ipv6              %s\n", _("Do not ask for IPv6 connectivity"));
 	printf("  -x, --xmlconfig=CONFIG          %s\n", _("XML config file"));
 	printf("  -m, --mtu=MTU                   %s\n", _("Request MTU from server (legacy servers only)"));
@@ -857,13 +874,19 @@ static void usage(void)
 	printf("      --dtls-ciphers=LIST         %s\n", _("OpenSSL ciphers to support for DTLS"));
 	printf("  -Q, --queue-len=LEN             %s\n", _("Set packet queue limit to LEN pkts"));
 	printf("      --request-ip=IP             %s\n", _("Request a specific IPv4 address"));
+
+	printf("\n%s:\n", _("Local system information"));
 	printf("      --useragent=STRING          %s\n", _("HTTP header User-Agent: field"));
 	printf("      --local-hostname=STRING     %s\n", _("Local hostname to advertise to server"));
 	printf("      --os=STRING                 %s\n", _("OS type (linux,linux-64,win,...) to report"));
+
 #ifndef _WIN32
+	printf("\n%s:\n", _("CSD execution"));
 	printf("      --csd-user=USER             %s\n", _("Drop privileges during CSD execution"));
 	printf("      --csd-wrapper=SCRIPT        %s\n", _("Run SCRIPT instead of CSD binary"));
 #endif
+
+	printf("\n%s:\n", _("Server bugs"));
 	printf("      --no-http-keepalive         %s\n", _("Disable HTTP connection re-use"));
 	printf("      --no-xmlpost                %s\n", _("Do not attempt XML POST authentication"));
 
