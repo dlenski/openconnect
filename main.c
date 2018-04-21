@@ -781,7 +781,7 @@ static int gai_override_cb(void *cbdata, const char *node,
 
 static void usage(void)
 {
-	printf(_("Usage:  openconnect [options] <server>\n"));
+	printf(_("Usage:  openconnect [options] [--server=]<server>\n"));
 	printf(_("Open client for multiple VPN protocols, version %s\n\n"), openconnect_version_str);
 	print_build_opts();
 	printf("      --config=CONFIGFILE         %s\n", _("Read options from config file"));
