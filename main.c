@@ -825,14 +825,15 @@ static void usage(void)
 	printf("      --reconnect-timeout         %s\n", _("Connection retry timeout in seconds"));
 	printf("      --resolve=HOST:IP           %s\n", _("Use IP when connecting to HOST"));
 	printf("      --passtos                   %s\n", _("copy TOS / TCLASS when using DTLS"));
-	printf("      --dtls-local-port=PORT      %s\n", _("Set local port for DTLS datagrams"));
+	printf("      --dtls-local-port=PORT      %s\n", _("Set local port for DTLS and ESP datagrams"));
 
 	printf("\n%s:\n", _("Authentication (two-phase)"));
-	printf("  -C, --cookie=COOKIE             %s\n", _("Use WebVPN cookie COOKIE"));
+	printf("  -C, --cookie=COOKIE             %s\n", _("Use authentication cookie COOKIE"));
 	printf("      --cookie-on-stdin           %s\n", _("Read cookie from standard input"));
 	printf("      --authenticate              %s\n", _("Authenticate only and print login info"));
-	printf("      --cookieonly                %s\n", _("Fetch webvpn cookie only; don't connect"));
-	printf("      --printcookie               %s\n", _("Print webvpn cookie before connecting"));
+	printf("      --cookieonly                %s\n", _("Fetch and print cookie only; don't connect"));
+	printf("      --printcookie               %s\n", _("Print cookie before connecting"));
+
 #ifndef _WIN32
 	printf("\n%s:\n", _("Process control"));
 	printf("  -b, --background                %s\n", _("Continue in background after startup"));
@@ -866,7 +867,7 @@ static void usage(void)
 	printf("  -D, --no-deflate                %s\n", _("Disable compression"));
 	printf("      --force-dpd=INTERVAL        %s\n", _("Set minimum Dead Peer Detection interval"));
 	printf("      --pfs                       %s\n", _("Require perfect forward secrecy"));
-	printf("      --no-dtls                   %s\n", _("Disable DTLS"));
+	printf("      --no-dtls                   %s\n", _("Disable DTLS and ESP"));
 	printf("      --dtls-ciphers=LIST         %s\n", _("OpenSSL ciphers to support for DTLS"));
 	printf("  -Q, --queue-len=LEN             %s\n", _("Set packet queue limit to LEN pkts"));
 
@@ -877,8 +878,8 @@ static void usage(void)
 
 #ifndef _WIN32
 	printf("\n%s:\n", _("Trojan binary (CSD) execution"));
-	printf("      --csd-user=USER             %s\n", _("Drop privileges during CSD execution"));
-	printf("      --csd-wrapper=SCRIPT        %s\n", _("Run SCRIPT instead of CSD binary"));
+	printf("      --csd-user=USER             %s\n", _("Drop privileges during trojan execution"));
+	printf("      --csd-wrapper=SCRIPT        %s\n", _("Run SCRIPT instead of trojan binary"));
 #endif
 
 	printf("\n%s:\n", _("Server bugs"));
