@@ -33,10 +33,10 @@ void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
  *       - normal account password
  *       - "challenge" (2FA) password, along with form name in auth_id
  *
- * This function steals the value of auth_id and prompt for
+ * This function steals the value of auth_id and prompt and username for
  * use in the auth form.
  */
-static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *prompt, char *auth_id)
+static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *prompt, char *auth_id, char *username)
 {
 	static struct oc_auth_form *form;
 	static struct oc_form_opt *opt, *opt2;
@@ -53,8 +53,13 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *pr
 		return NULL;
 	opt->name=strdup("user");
 	opt->label=strdup(_("Username: "));
-	opt->type = OC_FORM_OPT_TEXT;
-	opt->flags = OC_FORM_OPT_FILL_USERNAME;
+	if (username) {
+		opt->type = OC_FORM_OPT_HIDDEN;
+		opt->_value = username;
+	} else {
+		opt->type = OC_FORM_OPT_TEXT;
+		opt->flags = OC_FORM_OPT_FILL_USERNAME;
+	}
 
 	opt2 = opt->next = calloc(1, sizeof(*opt));
 	if (!opt2)
@@ -307,7 +312,7 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 	}
 #endif
 
-	form = auth_form(vpninfo, prompt, auth_id);
+	form = auth_form(vpninfo, prompt, auth_id, NULL);
 	if (!form)
 		return -ENOMEM;
 
@@ -357,17 +362,21 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 		result = gpst_xml_or_error(vpninfo, result, xml_buf,
 		                           portal ? parse_portal_xml : parse_login_xml, &prompt, &auth_id);
 		if (result == -EAGAIN) {
+			/* Steal and reuse username from first form */
+			char *username = form->opts ? form->opts->_value : NULL;
+			form->opts->_value = NULL;
 			free_auth_form(form);
-			form = auth_form(vpninfo, prompt, auth_id);
+			form = auth_form(vpninfo, prompt, auth_id, username);
 			if (!form)
 				return -ENOMEM;
-			continue;
 		} else if (portal && result == 0) {
+			/* Portal login succeeded; reuse same credentials to login to gateway */
 			portal = 0;
 			goto redo_gateway;
-		} else if (result == -EACCES) /* Invalid username/password */
-			continue;
-		else
+		} else if (result == -EACCES) {
+			/* Invalid username/password; reuse same form, but blank */
+			nuke_opt_values(form->opts);
+		} else
 			break;
 	}
 
