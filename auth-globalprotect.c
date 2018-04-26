@@ -34,8 +34,8 @@ void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
  *       - "challenge" (2FA) password, along with form name in auth_id
  *       - cookie from external authentication flow (INSTEAD OF password)
  *
- * This function steals the value of auth_id, prompt, and pw_or_cookie_field for
- * use in the auth form.
+ * This function steals the value of auth_id and prompt for
+ * use in the auth form; pw_or_cookie_field is NOT stolen.
  */
 static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *prompt, char *auth_id, char *pw_or_cookie_field)
 {
@@ -60,7 +60,7 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *pr
 	opt2 = opt->next = calloc(1, sizeof(*opt));
 	if (!opt2)
 		return NULL;
-	opt2->name = pw_or_cookie_field ? : strdup("passwd");
+	opt2->name = strdup(pw_or_cookie_field ? : "passwd");
 	asprintf(&opt2->label, "%s: ", auth_id ? _("Challenge") : (pw_or_cookie_field ? : _("Password")));
 	opt2->type = vpninfo->token_mode!=OC_TOKEN_MODE_NONE ? OC_FORM_OPT_TOKEN : OC_FORM_OPT_PASSWORD;
 	opt2->flags = OC_FORM_OPT_FILL_PASSWORD;
