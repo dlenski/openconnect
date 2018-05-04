@@ -208,3 +208,4 @@ GATEWAY: [NorthAmerica|Europe|Asia]:
 # TODO
 
 * Support web-based/SAML-based authentication flows (see [pull #98](//github.com/dlenski/openconnect/issues/98) for preliminary work)
+* Configure multi-stage build into the Dockerfile, to get a smaller Docker image
