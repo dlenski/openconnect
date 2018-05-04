@@ -1,4 +1,4 @@
-FROM debian:8-slim
+FROM debian:9-slim as builder
 WORKDIR /openconnect
 RUN apt update \
     && apt install -y  \
@@ -12,10 +12,16 @@ RUN apt update \
 	vpnc-scripts \
 	pkg-config \
 	libgnutls28-dev \
-	git
+	git \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 ADD . .
 RUN ./autogen.sh
 RUN ./configure
 RUN make
-RUN make install
-RUN ldconfig
+
+#FROM debian:9-slim
+#WORKDIR /openconnect
+#COPY --from=builder /openconnect .
+#RUN make install
+#RUN ldconfig
