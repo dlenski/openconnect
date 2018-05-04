@@ -92,7 +92,7 @@ static const char *add_option(struct openconnect_info *vpninfo, const char *opt,
 		free(new);
 		return NULL;
 	}
-	new->value = strdup(val);
+	new->value = val;
 	new->next = vpninfo->cstp_options;
 	vpninfo->cstp_options = new;
 
@@ -305,7 +305,7 @@ out:
  * With HTTPS tunnel, there are 21 bytes of overhead beyond the
  * TCP MSS: 5 bytes for TLS and 16 for GPST.
  */
-static int calculate_mtu(struct openconnect_info *vpninfo)
+static int calculate_mtu(struct openconnect_info *vpninfo, int can_use_esp)
 {
 	int mtu = vpninfo->reqmtu, base_mtu = vpninfo->basemtu;
 	int mss = 0;
@@ -350,10 +350,8 @@ static int calculate_mtu(struct openconnect_info *vpninfo)
 		base_mtu = 1280;
 
 #ifdef HAVE_ESP
-	/* If we can use the ESP tunnel (got secrets in config),
-	 * then we should pick the optimal MTU for ESP.
-	 */
-	if (!mtu && vpninfo->dtls_state == DTLS_SECRET) {
+	/* If we can use the ESP tunnel then we should pick the optimal MTU for ESP. */
+	if (!mtu && can_use_esp) {
 		/* remove ESP, UDP, IP headers from base (wire) MTU */
 		mtu = ( base_mtu - UDP_HEADER_SIZE - ESP_HEADER_SIZE
 		        - 12 /* both supported algos (SHA1 and MD5) have 96-bit MAC lengths (RFC2403 and RFC2404) */
@@ -370,9 +368,7 @@ static int calculate_mtu(struct openconnect_info *vpninfo)
 	} else
 #endif
 
-    /* We are definitely using the TLS tunnel (no ESP secrets)
-	 * so we should base our MTU on the TCP MSS.
-	 */
+    /* We are definitely using the TLS tunnel, so we should base our MTU on the TCP MSS. */
 	if (!mtu) {
 		if (mss)
 			mtu = mss - 21;
@@ -500,7 +496,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 					struct oc_split_include *inc = malloc(sizeof(*inc));
 					if (!inc)
 						continue;
-					inc->route = s;
+					inc->route = add_option(vpninfo, "split-include", s);
 					inc->next = vpninfo->ip_info.split_includes;
 					vpninfo->ip_info.split_includes = inc;
 				}
@@ -586,7 +582,7 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	vpninfo->urlpath = orig_path;
 
 	if (result < 0)
-		goto out;
+		goto pre_opt_out;
 
 	/* parse getconfig result */
 	result = gpst_xml_or_error(vpninfo, result, xml_buf, gpst_parse_config_xml, NULL, NULL);
@@ -595,9 +591,19 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 
 	if (!vpninfo->ip_info.mtu) {
 		/* FIXME: GP gateway config always seems to be <mtu>0</mtu> */
-		vpninfo->ip_info.mtu = calculate_mtu(vpninfo);
+		char *no_esp_reason = NULL;
+#ifdef HAVE_ESP
+		if (vpninfo->dtls_state == DTLS_DISABLED)
+			no_esp_reason = _("ESP disabled");
+		else if (vpninfo->dtls_state == DTLS_NOSECRET)
+			no_esp_reason = _("No ESP keys received");
+#else
+		no_esp_reason = _("ESP support not available in this build");
+#endif
+		vpninfo->ip_info.mtu = calculate_mtu(vpninfo, !no_esp_reason);
 		vpn_progress(vpninfo, PRG_ERR,
-			     _("No MTU received. Calculated %d\n"), vpninfo->ip_info.mtu);
+			     _("No MTU received. Calculated %d for %s%s\n"), vpninfo->ip_info.mtu,
+			     no_esp_reason ? "TLS tunnel. " : "ESP tunnel", no_esp_reason ? : "");
 		/* return -EINVAL; */
 	}
 	if (!vpninfo->ip_info.addr) {
@@ -635,8 +641,9 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	}
 
 out:
-	buf_free(request_body);
 	free_optlist(old_cstp_opts);
+pre_opt_out:
+	buf_free(request_body);
 	free(xml_buf);
 	return result;
 }
@@ -822,14 +829,11 @@ out:
 
 static int run_hip_script(struct openconnect_info *vpninfo)
 {
-#if defined(_WIN32) || defined(__native_client__)
-	vpn_progress(vpninfo, PRG_ERR,
-		     _("Error: Running the 'HIP Report' script on this platform is not yet implemented.\n"));
-	return -EPERM;
-#else
+#if !defined(_WIN32) && !defined(__native_client__)
 	int pipefd[2];
 	int ret;
 	pid_t child;
+#endif
 
 	if (!vpninfo->csd_wrapper) {
 		vpn_progress(vpninfo, PRG_ERR,
@@ -841,6 +845,11 @@ static int run_hip_script(struct openconnect_info *vpninfo)
 		return 0;
 	}
 
+#if defined(_WIN32) || defined(__native_client__)
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Error: Running the 'HIP Report' script on this platform is not yet implemented.\n"));
+	return -EPERM;
+#else
 	if (pipe(pipefd) == -1)
 		goto out;
 	child = fork();
@@ -904,6 +913,10 @@ static int run_hip_script(struct openconnect_info *vpninfo)
 int gpst_setup(struct openconnect_info *vpninfo)
 {
 	int ret;
+
+	/* ESP tunnel is unusable as soon as we (re-)fetch the configuration */
+	if (vpninfo->proto->udp_close)
+		vpninfo->proto->udp_close(vpninfo);
 
 	/* Get configuration */
 	ret = gpst_get_config(vpninfo);
