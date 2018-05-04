@@ -10,6 +10,7 @@
          * [Building from source on Linux](#building-from-source-on-linux)
          * [Building on the Mac](#building-on-the-mac)
       * [Connecting](#connecting)
+      * [Docker] (#docker)
       * [Portal vs. gateway servers](#portal-vs-gateway-servers)
 
 # What is this?
