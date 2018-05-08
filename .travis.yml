@@ -34,4 +34,6 @@ jobs:
       before_script:
         - docker build -t openconnect .
       script:
-        - docker run openconnect "/openconnect/openconnect" "-V"| grep notfound
+        - docker run openconnect "/openconnect/openconnect" "-V"| grep gp
+        # This last grep should be changed if this goes upstream, as it
+        # only checks for GlobalProtect support availability.
