@@ -3,34 +3,35 @@ notifications:
     false
 
 dist: trusty
-sudo: false
+sudo: required
 
 language: c
 compiler:
   - gcc
 
+services:
+  - docker
+
 env:
   global:
     - MAKEFLAGS="-j 2"
 
-before_script:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq build-essential autoconf automake libtool pkg-config
-                 vpnc-scripts
-                 gettext libproxy-dev libxml2-dev liblz4-1 liblz4-dev libstoken-dev liboath-dev
-                 libgnutls28-dev # actually GnuTLS 3.2.11 ¯\_(ツ)_/¯
-
-
-script: ./autogen.sh &&
-        ./configure &&
-        make VERBOSE=1 version.c &&
-        make &&
-        make VERBOSE=1 -j4 check
-
 jobs:
   include:
+    - stage: app build
+      before_script:
+        - sudo apt-get update -qq
+        - sudo apt-get install -qq build-essential autoconf automake libtool pkg-config
+                       vpnc-scripts
+                       gettext libproxy-dev libxml2-dev liblz4-1 liblz4-dev libstoken-dev liboath-dev
+                       libgnutls28-dev # actually GnuTLS 3.2.11 ¯\_(ツ)_/¯
+      script: 
+        - ./autogen.sh
+        - ./configure
+        - make VERBOSE=1 version.c
+        - make
+        - make VERBOSE=1 -j4 check
     - stage: docker build
-      sudo: required
       services:
         - docker
       before_install:
