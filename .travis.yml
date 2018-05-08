@@ -12,13 +12,10 @@ compiler:
 services:
   - docker
 
-env:
-  global:
-    - MAKEFLAGS="-j 2"
-
 jobs:
   include:
     - stage: app build
+      env: MAKEFLAGS="-j 2"
       before_script:
         - sudo apt-get update -qq
         - sudo apt-get install -qq build-essential autoconf automake libtool pkg-config
@@ -34,7 +31,7 @@ jobs:
     - stage: docker build
       services:
         - docker
-      before_install:
+      before_script:
         - docker build -t openconnect .
       script:
-        - docker run openconnect "/openconnect/openconnect" "-V"
+        - docker run openconnect "/openconnect/openconnect" "-V"| grep notfound
