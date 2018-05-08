@@ -26,3 +26,14 @@ script: ./autogen.sh &&
         make VERBOSE=1 version.c &&
         make &&
         make VERBOSE=1 -j4 check
+
+jobs:
+  include:
+    - stage: docker build
+      sudo: required
+      services:
+        - docker
+      before_install:
+        - docker built -t openconnect .
+      script:
+        - docker run openconnect "/openconnect/openconnect" "-V"
