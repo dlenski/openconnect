@@ -32,11 +32,12 @@ void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
  *   2) one secret value:
  *       - normal account password
  *       - "challenge" (2FA) password, along with form name in auth_id
+ *       - cookie from external authentication flow (INSTEAD OF password)
  *
  * This function steals the value of auth_id and prompt and username for
- * use in the auth form.
+ * use in the auth form; pw_or_cookie_field is NOT stolen.
  */
-static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *prompt, char *auth_id, char *username)
+static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *prompt, char *auth_id, char *username, char *pw_or_cookie_field)
 {
 	static struct oc_auth_form *form;
 	static struct oc_form_opt *opt, *opt2;
@@ -64,8 +65,8 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *pr
 	opt2 = opt->next = calloc(1, sizeof(*opt));
 	if (!opt2)
 		return NULL;
-	opt2->name = strdup("passwd");
-	opt2->label = auth_id ? strdup(_("Challenge: ")) : strdup(_("Password: "));
+	opt2->name = strdup(pw_or_cookie_field ? : "passwd");
+	asprintf(&opt2->label, "%s: ", auth_id ? _("Challenge") : (pw_or_cookie_field ? : _("Password")));
 	opt2->type = vpninfo->token_mode!=OC_TOKEN_MODE_NONE ? OC_FORM_OPT_TOKEN : OC_FORM_OPT_PASSWORD;
 	opt2->flags = OC_FORM_OPT_FILL_PASSWORD;
 
@@ -292,7 +293,7 @@ out:
 	return result;
 }
 
-static int gpst_login(struct openconnect_info *vpninfo, int portal)
+static int gpst_login(struct openconnect_info *vpninfo, int portal, const char *pw_or_cookie_field)
 {
 	int result;
 
@@ -312,7 +313,7 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 	}
 #endif
 
-	form = auth_form(vpninfo, prompt, auth_id, NULL);
+	form = auth_form(vpninfo, prompt, auth_id, NULL, pw_or_cookie_field);
 	if (!form)
 		return -ENOMEM;
 
@@ -366,7 +367,7 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal)
 			char *username = form->opts ? form->opts->_value : NULL;
 			form->opts->_value = NULL;
 			free_auth_form(form);
-			form = auth_form(vpninfo, prompt, auth_id, username);
+			form = auth_form(vpninfo, prompt, auth_id, username, pw_or_cookie_field);
 			if (!form)
 				return -ENOMEM;
 		} else if (portal && result == 0) {
@@ -389,19 +390,30 @@ out:
 
 int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 {
+	char *pw_or_cookie_field = NULL;
 	int result;
+
+	/* An alternate password/secret field may be specified in the "URL path". Known possibilities:
+	 *     /portal:portal-userauthcookie
+	 *     /gateway:prelogin-cookie
+	 */
+	if (vpninfo->urlpath
+	    && (pw_or_cookie_field = strrchr(vpninfo->urlpath, ':'))!=NULL) {
+		*pw_or_cookie_field = '\0';
+		pw_or_cookie_field++;
+	}
 
 	if (vpninfo->urlpath && (!strcmp(vpninfo->urlpath, "portal") || !strncmp(vpninfo->urlpath, "global-protect", 14))) {
 		/* assume the server is a portal */
-		return gpst_login(vpninfo, 1);
+		return gpst_login(vpninfo, 1, pw_or_cookie_field);
 	} else if (vpninfo->urlpath && (!strcmp(vpninfo->urlpath, "gateway") || !strncmp(vpninfo->urlpath, "ssl-vpn", 7))) {
 		/* assume the server is a gateway */
-		return gpst_login(vpninfo, 0);
+		return gpst_login(vpninfo, 0, pw_or_cookie_field);
 	} else {
 		/* first try handling it as a gateway, then a portal */
-		result = gpst_login(vpninfo, 0);
+		result = gpst_login(vpninfo, 0, pw_or_cookie_field);
 		if (result == -EEXIST) {
-			result = gpst_login(vpninfo, 1);
+			result = gpst_login(vpninfo, 1, pw_or_cookie_field);
 			if (result == -EEXIST)
 				vpn_progress(vpninfo, PRG_ERR, _("Server is neither a GlobalProtect portal nor a gateway.\n"));
 		}
