@@ -10,6 +10,7 @@
          * [Building from source on Linux](#building-from-source-on-linux)
          * [Building on the Mac](#building-on-the-mac)
       * [Connecting](#connecting)
+        * [Docker](#docker)
         * [Portal vs. gateway servers](#portal-vs-gateway-servers)
         * [HIP report submission](#hip-report-submission)
       * [TODO](#todo)
@@ -101,6 +102,32 @@ It currently supports the following authentication mechanisms:
 
 I'd welcome feedback on how to support other authentication methods in use with GlobalProtect.
 
+### Docker
+
+Building an openconnect Docker image is as easy as:
+
+```sh
+$ docker build -t openconnect .
+```
+
+Then, you can run that docker image as a container:
+
+```sh
+$ docker run -ti openconnect
+/openconnect# ./openconnect --protocol=gp server.company.com 
+```
+
+But that'll restrict the use of the tunnel to *inside* the container,
+and maybe you want to use it system-wide. For that, you'll need a
+privileged container making use of the host (you computer) network:
+
+```sh
+$ docker run -ti --rm --privileged --net=host openconnect
+/openconnect# ./openconnect --protocol=gp server.company.com
+```
+Leave that container running, open another terminal, and you'll see a
+newly created tun connection for your whole system to use.
+
 ### HIP report submission
 
 The HIP ("Host Integrity Protection") mechanism is a security scanner
@@ -181,3 +208,4 @@ GATEWAY: [NorthAmerica|Europe|Asia]:
 # TODO
 
 * Support web-based/SAML-based authentication flows (see [pull #98](//github.com/dlenski/openconnect/issues/98) for preliminary work)
+* Configure multi-stage build into the Dockerfile, to get a smaller Docker image
