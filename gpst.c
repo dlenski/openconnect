@@ -261,6 +261,20 @@ int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *respon
 		goto bad_xml;
 	}
 
+	/* is it <challenge><user>user.name</user><inputstr>...</inputstr><respmsg>...</respmsg></challenge> */
+	if (xmlnode_is_named(xml_node, "challenge")) {
+		for (xml_node=xml_node->children; xml_node; xml_node=xml_node->next) {
+			if (inputStr && xmlnode_is_named(xml_node, "inputstr"))
+				xmlnode_get_text(xml_node, "inputstr", (const char **)inputStr);
+			else if (prompt && xmlnode_is_named(xml_node, "respmsg"))
+				xmlnode_get_text(xml_node, "respmsg", (const char **)prompt);
+			else if (xmlnode_is_named(xml_node, "user"))
+				; /* XXX: override the username passed to the next form? */
+		}
+		result = -EAGAIN;
+		goto out;
+	}
+
 	if (xml_cb)
 		result = xml_cb(vpninfo, xml_node);
 
