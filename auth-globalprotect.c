@@ -326,7 +326,7 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal, char *pw_or_
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	char *xml_buf = NULL, *orig_path;
-	char *prompt = NULL, *auth_id = NULL;
+	char *prompt = NULL, *auth_id = NULL, *username = NULL;
 
 #ifdef HAVE_LIBSTOKEN
 	/* Step 1: Unlock software token (if applicable) */
@@ -337,7 +337,7 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal, char *pw_or_
 	}
 #endif
 
-	form = auth_form(vpninfo, prompt, NULL, NULL, pw_or_cookie_field);
+	form = auth_form(vpninfo, prompt, auth_id, username, pw_or_cookie_field);
 	if (!form)
 		return -ENOMEM;
 
@@ -348,7 +348,7 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal, char *pw_or_
 		if (result)
 			goto out;
 
-	redo_gateway:
+	reuse_whole_form:
 		buf_truncate(request_body);
 
 		/* generate token code if specified */
@@ -387,17 +387,25 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal, char *pw_or_
 		result = gpst_xml_or_error(vpninfo, result, xml_buf,
 		                           portal ? parse_portal_xml : parse_login_xml, &prompt, &auth_id);
 		if (result == -EAGAIN) {
+		reuse_username:
 			/* Steal and reuse username from first form */
-			char *username = form->opts ? form->opts->_value : NULL;
+			username = form->opts ? form->opts->_value : NULL;
 			form->opts->_value = NULL;
 			free_auth_form(form);
 			form = auth_form(vpninfo, prompt, auth_id, username, pw_or_cookie_field);
+			prompt = auth_id = username = NULL;
 			if (!form)
 				return -ENOMEM;
 		} else if (portal && result == 0) {
-			/* Portal login succeeded; reuse same credentials to login to gateway */
+			/* Portal login succeeded; reuse same credentials to login to gateway,
+			 * unless it was a challenge auth form, in which case we only
+			 * reuse the username.
+			 */
 			portal = 0;
-			goto redo_gateway;
+			if (form->auth_id && form->auth_id[0] != '_')
+				goto reuse_username;
+			else
+				goto reuse_whole_form;
 		} else if (result == -EACCES) {
 			/* Invalid username/password; reuse same form, but blank */
 			nuke_opt_values(form->opts);
