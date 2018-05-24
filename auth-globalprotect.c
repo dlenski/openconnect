@@ -302,7 +302,7 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal, const char *
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	const char *method = "POST";
 	char *xml_buf=NULL, *orig_path;
-	char *prompt=NULL, *auth_id=NULL;
+	char *prompt=NULL, *auth_id=NULL, *username=NULL;
 
 #ifdef HAVE_LIBSTOKEN
 	/* Step 1: Unlock software token (if applicable) */
@@ -313,7 +313,7 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal, const char *
 	}
 #endif
 
-	form = auth_form(vpninfo, prompt, auth_id, NULL, pw_or_cookie_field);
+	form = auth_form(vpninfo, prompt, auth_id, username, pw_or_cookie_field);
 	if (!form)
 		return -ENOMEM;
 
@@ -363,13 +363,13 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal, const char *
 		result = gpst_xml_or_error(vpninfo, result, xml_buf,
 		                           portal ? parse_portal_xml : parse_login_xml, &prompt, &auth_id);
 		if (result == -EAGAIN) {
-			char *username;
 		reuse_username:
 			/* Steal and reuse username from first form */
 			username = form->opts ? form->opts->_value : NULL;
 			form->opts->_value = NULL;
 			free_auth_form(form);
 			form = auth_form(vpninfo, prompt, auth_id, username, pw_or_cookie_field);
+			prompt = auth_id = username = NULL;
 			if (!form)
 				return -ENOMEM;
 		} else if (portal && result == 0) {
