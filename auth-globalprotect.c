@@ -47,7 +47,7 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo, char *pr
 	if (!form)
 		return NULL;
 	form->message = prompt ? : strdup(_("Please enter your username and password"));
-	form->auth_id = auth_id ? : strdup("_gateway");
+	form->auth_id = auth_id ? : strdup("_default");
 
 	opt = form->opts = calloc(1, sizeof(*opt));
 	if (!opt)
