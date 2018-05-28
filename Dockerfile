@@ -1,27 +1,33 @@
-FROM debian:9-slim as builder
-WORKDIR /openconnect
-RUN apt update \
-    && apt install -y  \
-	build-essential \
-	gettext \
-	autoconf \
-	automake \
-	libproxy-dev \
-	libxml2-dev \
-	libtool \
-	vpnc-scripts \
-	pkg-config \
-	libgnutls28-dev \
-	git \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-ADD . .
-RUN ./autogen.sh
-RUN ./configure
-RUN make
+FROM alpine:3.7
 
-#FROM debian:9-slim
-#WORKDIR /openconnect
-#COPY --from=builder /openconnect .
-#RUN make install
-#RUN ldconfig
+RUN echo "http://dl-4.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories \
+  && apk add --update --no-cache --virtual=build-dependencies \
+    automake \
+    autoconf \
+    gcc \
+    g++ \
+    gettext \
+    git \
+    linux-headers \
+    libtool \
+    libxml2-dev \
+    make \
+    openssl-dev \
+    pkgconfig \
+    vpnc \
+  && git clone https://github.com/dlenski/openconnect.git /tmp/openconnect \
+  && cd /tmp/openconnect \
+  && git checkout bfaba1b2ba2777f2495251e3870e5e88b5275fcc \
+  && ./autogen.sh \
+  && ./configure --with-vpnc-script=/etc/vpnc/vpnc-script --without-openssl-version-check \
+  && make install \
+  && apk del --purge build-dependencies \
+  && rm -rf /tmp/* \
+  && apk add --no-cache \
+    openssl \
+    libxml2 \
+    vpnc \
+  && mkdir /var/run/vpnc
+
+ENTRYPOINT ["/usr/local/sbin/openconnect"]
+CMD ["--help"]

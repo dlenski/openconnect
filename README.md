@@ -113,20 +113,21 @@ $ docker build -t openconnect .
 Then, you can run that docker image as a container:
 
 ```sh
-$ docker run -ti openconnect
-/openconnect# ./openconnect --protocol=gp server.company.com 
+docker run \
+    --rm \
+    --name openconnect \
+    --net host \
+    --cap-add=NET_ADMIN \
+    --device /dev/net/tun \
+    -v /etc/resolv.conf:/etc/resolv.conf \
+    --security-opt="no-new-privileges:true" \
+    --interactive \
+    --tty \
+    openconnect --protocol=gp server.company.com
 ```
+Using `--cap-add=NET_ADMIN` with `--device /dev/net/tun` will expose the minimum set of privileges needed share the connection with the host.
 
-But that'll restrict the use of the tunnel to *inside* the container,
-and maybe you want to use it system-wide. For that, you'll need a
-privileged container making use of the host (you computer) network:
-
-```sh
-$ docker run -ti --rm --privileged --net=host openconnect
-/openconnect# ./openconnect --protocol=gp server.company.com
-```
-Leave that container running, open another terminal, and you'll see a
-newly created tun connection for your whole system to use.
+Use `ip addr` or `ifconfig` to see your `tun0` vpn connection. 
 
 ### HIP report submission
 
