@@ -41,6 +41,13 @@ transcript](PAN_GlobalProtect_protocol_doc.md)
 and include information about relevant differences in your issue
 report.
 
+**Bonus points:** If your VPN uses a weird authentication flow, please
+check out the Gist where I wrote a [quick-and-dirty "GlobalProtect server
+simulator"](https://gist.github.com/dlenski/08359391270337f7894b1e2a97d0d9a9) in
+Python. It's fairly straightforward to understand, and if you can
+modify it to reproduce the authentication flow used by your VPN, it'll
+make it a whole lot easier to add support.
+
 ## Installation
 
 Please refer to the [build requirements for the official releases of OpenConnect](https://www.infradead.org/openconnect/building.html). **This version has the exact same build dependencies as OpenConnect v7.06**; modern versions of `autoconf`, `automake`, `gcc`, `libxml`, etc.
@@ -114,7 +121,7 @@ Then, you can run that docker image as a container:
 
 ```sh
 $ docker run -ti openconnect
-/openconnect# ./openconnect --protocol=gp server.company.com 
+/openconnect# ./openconnect --protocol=gp server.company.com
 ```
 
 But that'll restrict the use of the tunnel to *inside* the container,
