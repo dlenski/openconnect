@@ -4,9 +4,6 @@ CentOS7/GnuTLS:
   image: centos:7
   script:
   - yum install -y epel-release
-  - yum -y reinstall glibc-common
-  - localedef -i cs_CZ -f UTF-8 cs_CZ.UTF-8
-  - localedef -i cs_CZ -f ISO-8859-2 cs_CZ.ISO8859-2
   - yum install -y git autoconf automake libtool python gettext
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
     'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
@@ -33,9 +30,6 @@ CentOS7/OpenSSL:
   image: centos:7
   script:
   - yum install -y epel-release
-  - yum -y reinstall glibc-common
-  - localedef -i cs_CZ -f UTF-8 cs_CZ.UTF-8
-  - localedef -i cs_CZ -f ISO-8859-2 cs_CZ.ISO8859-2
   - yum install -y git autoconf automake libtool python gettext
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
     'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
@@ -89,7 +83,7 @@ CentOS6/OpenSSL:
 
 Fedora/GnuTLS:
   script:
-  - dnf install -y git autoconf automake libtool python gettext
+  - dnf install -y git autoconf automake libtool python gettext make
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
     'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
     'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
@@ -97,7 +91,7 @@ Fedora/GnuTLS:
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
     java-devel-openjdk glibc-langpack-cs
   - ./autogen.sh
-  - ./configure --with-java CFLAGS=-g
+  - ./configure --with-java --disable-dsa-tests CFLAGS=-g
   - make -j4
   - make VERBOSE=1 -j4 check
   tags:
@@ -112,7 +106,7 @@ Fedora/GnuTLS:
 
 Fedora/GnuTLS/clang:
   script:
-  - dnf install -y git autoconf automake libtool python gettext
+  - dnf install -y git autoconf automake libtool python gettext make
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
     'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
     'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
@@ -120,7 +114,7 @@ Fedora/GnuTLS/clang:
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
     java-devel-openjdk clang glibc-langpack-cs
   - ./autogen.sh
-  - ./configure --with-java CC=clang CFLAGS=-g
+  - ./configure --with-java --disable-dsa-tests CC=clang CFLAGS=-g
   - make -j4
   - make VERBOSE=1 -j4 check
   tags:
@@ -135,14 +129,15 @@ Fedora/GnuTLS/clang:
 
 Fedora/OpenSSL:
   script:
-  - dnf install -y git autoconf automake libtool python gettext
+  - dnf install -y git autoconf automake libtool python gettext make
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
     'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
     'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
     ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
-    java-devel-openjdk 'pkgconfig(libp11)' glibc-langpack-cs
-  - dnf --enablerepo=updates-testing update -y libp11\* gnutls
+    java-devel-openjdk glibc-langpack-cs
+# Re-enable DSA since we test it
+  - update-crypto-policies --set LEGACY
   - ./autogen.sh
   - ./configure --without-gnutls --with-openssl --without-openssl-version-check --disable-dsa-tests CFLAGS=-g
   - make -j4
@@ -159,14 +154,15 @@ Fedora/OpenSSL:
 
 Fedora/OpenSSL/clang:
   script:
-  - dnf install -y git autoconf automake libtool python gettext
+  - dnf install -y git autoconf automake libtool python gettext make
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
     'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
     'pkgconfig(libproxy-1.0)' 'pkgconfig(liboath)' 'pkgconfig(stoken)'
     ocserv softhsm 'pkgconfig(uid_wrapper)' 'pkgconfig(socket_wrapper)'
     vpnc-script 'pkgconfig(libpskc)' 'pkgconfig(libpcsclite)'
-    java-devel-openjdk 'pkgconfig(libp11)' clang glibc-langpack-cs
-  - dnf --enablerepo=updates-testing update -y libp11\* gnutls
+    java-devel-openjdk clang glibc-langpack-cs
+# Re-enable DSA since we test it
+  - update-crypto-policies --set LEGACY
   - ./autogen.sh
   - ./configure CC=clang --without-gnutls --with-openssl --without-openssl-version-check --disable-dsa-tests CFLAGS=-g
   - make -j4
@@ -183,7 +179,7 @@ Fedora/OpenSSL/clang:
 
 MinGW32/GnuTLS:
   script:
-  - dnf install -y git autoconf automake libtool python gettext
+  - dnf install -y git autoconf automake libtool python gettext make
     mingw32-gnutls mingw32-openssl mingw32-libxml2 mingw32-zlib
     mingw32-gcc wine.i686 make
   - mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
@@ -204,7 +200,7 @@ MinGW32/GnuTLS:
 
 MinGW32/OpenSSL:
   script:
-  - dnf install -y git autoconf automake libtool python gettext
+  - dnf install -y git autoconf automake libtool python gettext make
     mingw32-gnutls mingw32-openssl mingw32-libxml2 mingw32-zlib
     mingw32-gcc wine.i686 make
   - mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
@@ -225,7 +221,7 @@ MinGW32/OpenSSL:
 
 MinGW64/GnuTLS:
   script:
-  - dnf install -y git autoconf automake libtool python gettext
+  - dnf install -y git autoconf automake libtool python gettext make
     mingw64-gnutls mingw64-openssl mingw64-libxml2 mingw64-zlib
     mingw64-gcc wine.i686 make
   - mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
@@ -246,7 +242,7 @@ MinGW64/GnuTLS:
 
 MinGW64/OpenSSL:
   script:
-  - dnf install -y git autoconf automake libtool python gettext
+  - dnf install -y git autoconf automake libtool python gettext make
     mingw64-gnutls mingw64-openssl mingw64-libxml2 mingw64-zlib
     mingw64-gcc wine.x86_64 make
   - mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc
