@@ -379,11 +379,7 @@ struct openconnect_info {
 	struct esp esp_out;
 	int enc_key_len;
 	int hmac_key_len;
-#ifdef _WIN32
 	uint32_t esp_magic;  /* GlobalProtect magic ping address (network-endian) */
-#else
-	in_addr_t esp_magic; /* GlobalProtect magic ping address (network-endian) */
-#endif
 
 	int tncc_fd; /* For Juniper TNCC */
 	const char *csd_xmltag;
