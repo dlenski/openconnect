@@ -7,6 +7,8 @@
 #   - use -url argument
 #   - kill cstub after timeout
 #   - fix small typos:
+# [31 May 2018] Updated by Daniel Lenski <dlenski@gmail.com>:
+#   - use curl with --pinnedpubkey to rely on sha256 hash of peer cert passed by openconnect
 
 TIMEOUT=30
 URL="https://${CSD_HOSTNAME}/CACHE"
@@ -25,6 +27,7 @@ STUB=
 GROUP=
 CERTHASH=
 LANGSELEN=
+PINNEDPUBKEY=
 
 while [ "$1" ]; do
     if [ "$1" == "-ticket" ];   then shift; TICKET=$1; fi
@@ -33,6 +36,7 @@ while [ "$1" ]; do
     if [ "$1" == "-certhash" ]; then shift; CERTHASH=$1; fi
     if [ "$1" == "-url" ];      then shift; URL=$(echo $1|tr -d '"'); fi # strip quotes
     if [ "$1" == "-langselen" ];then shift; LANGSELEN=$1; fi
+    if [ "$1" == "-scert_sha256" ]; then shift; PINNEDPUBKEY="--pinnedpubkey sha256//$1"; fi
     shift
 done
 
@@ -54,7 +58,7 @@ for dir in $HOSTSCAN_DIR $LIB_DIR $BIN_DIR ; do
 done
 
 # getting manifest, and checking binaries
-wget --no-check-certificate -c "${URL}/sdesktop/hostscan/$ARCH/manifest" -O "$HOSTSCAN_DIR/manifest"
+curl $PINNEDPUBKEY "${URL}/sdesktop/hostscan/$ARCH/manifest" -o "$HOSTSCAN_DIR/manifest"
 
 # generating md5.sum with full paths from manifest
 export HOSTSCAN_DIR=$HOSTSCAN_DIR
@@ -78,7 +82,7 @@ then
         FILE="$(basename "$i")"
 
         echo "Downloading: $FILE to $TMP_DIR"
-        wget --no-check-certificate -c "${URL}/sdesktop/hostscan/$ARCH/$FILE" -O $FILE
+        curl $PINNEDPUBKEY "${URL}/sdesktop/hostscan/$ARCH/$FILE" -o $FILE
 
         # some files are in gz (don't understand logic here)
         if [[ ! -f $FILE || ! -s $FILE ]]
@@ -90,7 +94,7 @@ then
 
             echo "Failure on $FILE, trying gz"
             FILE_GZ=$FILE.gz
-            wget --no-check-certificate -c "${URL}/sdesktop/hostscan/$ARCH/$FILE_GZ" -O $FILE_GZ
+            curl $PINNEDPUBKEY -c "${URL}/sdesktop/hostscan/$ARCH/$FILE_GZ" -O $FILE_GZ
             gunzip --verbose --decompress $FILE_GZ
         fi
 
