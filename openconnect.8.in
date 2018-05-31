@@ -139,7 +139,7 @@ which may be either a file name or, if OpenConnect has been built with an approp
 version of GnuTLS, a PKCS#11 URL.
 .TP
 .B \-C,\-\-cookie=COOKIE
-Use WebVPN cookie.
+Use authentication cookie COOKIE.
 .I COOKIE
 .TP
 .B \-\-cookie\-on\-stdin
@@ -210,12 +210,12 @@ Drop privileges after connecting, to become user
 .I USER
 .TP
 .B \-\-csd\-user=USER
-Drop privileges during CSD (Cisco Secure Desktop) script execution.
+Drop privileges during execution of trojan binary or script (CSD, TNCC, or HIP).
 .TP
 .B \-\-csd\-wrapper=SCRIPT
 Run
 .I SCRIPT
-instead of the CSD (Cisco Secure Desktop) script.
+instead of the trojan binary or script.
 .TP
 .B \-m,\-\-mtu=MTU
 Request
@@ -339,10 +339,10 @@ connection as root:
 .fi
 .TP
 .B \-\-cookieonly
-Fetch webvpn cookie only; don't connect
+Fetch and print cookie only; don't connect
 .TP
 .B \-\-printcookie
-Print webvpn cookie before connecting
+Print cookie before connecting
 .TP
 .B \-\-cafile=FILE
 Cert file for server verification
@@ -356,7 +356,7 @@ Set OpenSSL ciphers to support for DTLS
 .B \-\-dtls\-local\-port=PORT
 Use
 .I PORT
-as the local port for DTLS datagrams
+as the local port for DTLS and UDP datagrams
 .TP
 .B \-\-dump\-http\-traffic
 Enable verbose output of all HTTP requests and the bodies of all responses
