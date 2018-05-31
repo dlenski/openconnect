@@ -94,7 +94,7 @@ then
 
             echo "Failure on $FILE, trying gz"
             FILE_GZ=$FILE.gz
-            curl $PINNEDPUBKEY -c "${URL}/sdesktop/hostscan/$ARCH/$FILE_GZ" -O $FILE_GZ
+            curl $PINNEDPUBKEY "${URL}/sdesktop/hostscan/$ARCH/$FILE_GZ" -O $FILE_GZ
             gunzip --verbose --decompress $FILE_GZ
         fi
 
