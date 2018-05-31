@@ -26,7 +26,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
+#ifndef _WIN32
 #include <sys/wait.h>
+#endif
 #include <stdarg.h>
 #ifdef HAVE_LZ4
 #include <lz4.h>
@@ -36,8 +38,13 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #endif
+
+#ifdef _WIN32
+#include "win32-ipicmp.h"
+#else
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
+#endif
 
 #if defined(__linux__)
 /* For TCP_INFO */

@@ -16,6 +16,9 @@
 #ifndef __OPENCONNECT_WIN32_IPICMP_H__
 #define __OPENCONNECT_WIN32_IPICMP_H__
 
+#include <stdint.h>
+#include <ws2tcpip.h>
+
 /* IPv4 header and flags used in esp.c */
 
 #define	IP_DF 0x4000			/* dont fragment flag */
