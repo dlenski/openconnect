@@ -15,6 +15,7 @@ URL="https://${CSD_HOSTNAME}/CACHE"
 HOSTSCAN_DIR="$HOME/.cisco/hostscan"
 LIB_DIR="$HOSTSCAN_DIR/lib"
 BIN_DIR="$HOSTSCAN_DIR/bin"
+PINNEDPUBKEY=${CSD_SHA256:+"--pinnedpubkey sha256//$CSD_SHA256"}
 
 BINS=("cscan" "cstub" "cnotify")
 
@@ -27,7 +28,6 @@ STUB=
 GROUP=
 CERTHASH=
 LANGSELEN=
-PINNEDPUBKEY=
 
 while [ "$1" ]; do
     if [ "$1" == "-ticket" ];   then shift; TICKET=$1; fi
@@ -36,7 +36,6 @@ while [ "$1" ]; do
     if [ "$1" == "-certhash" ]; then shift; CERTHASH=$1; fi
     if [ "$1" == "-url" ];      then shift; URL=$(echo $1|tr -d '"'); fi # strip quotes
     if [ "$1" == "-langselen" ];then shift; LANGSELEN=$1; fi
-    if [ "$1" == "-scert_sha256" ]; then shift; PINNEDPUBKEY="--pinnedpubkey sha256//$1"; fi
     shift
 done
 

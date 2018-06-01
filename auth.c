@@ -1142,8 +1142,6 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 			if (asprintf(&csd_argv[i++], "\"%s:%s\"", scertbuf, ccertbuf) == -1)
 				goto out;
 
-			csd_argv[i++] = (char *)"-scert_sha256";
-			csd_argv[i++] = openconnect_get_peer_cert_hash(vpninfo) + 11; /* remove initial 'pin-sha256:' */
 
 			csd_argv[i++] = (char *)"-url";
 			if (asprintf(&csd_argv[i++], "\"https://%s%s\"", vpninfo->hostname, vpninfo->csd_starturl) == -1)
@@ -1152,6 +1150,8 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 			csd_argv[i++] = (char *)"-langselen";
 			csd_argv[i++] = NULL;
 
+			if (setenv("CSD_SHA256", openconnect_get_peer_cert_hash(vpninfo)+11, 1))  /* remove initial 'pin-sha256:' */
+				goto out;
 			if (setenv("CSD_TOKEN", vpninfo->csd_token, 1))
 				goto out;
 			if (setenv("CSD_HOSTNAME", vpninfo->hostname, 1))
