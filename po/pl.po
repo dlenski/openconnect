@@ -20,53 +20,53 @@ msgstr ""
 
 #: auth-globalprotect.c:57
 msgid "Please enter your username and password"
-msgstr ""
+msgstr "Proszę podać nazwę użytkownika i hasło"
 
 #: auth-globalprotect.c:67
 msgid "Username: "
-msgstr ""
+msgstr "Nazwa użytkownika: "
 
 #: auth-globalprotect.c:75
 msgid "Challenge"
-msgstr ""
+msgstr "Wyzwanie"
 
 #: auth-globalprotect.c:75
 msgid "Password"
-msgstr ""
+msgstr "Hasło"
 
 #: auth-globalprotect.c:155
 #, c-format
 msgid "GlobalProtect login returned %s=%s (expected %s)\n"
-msgstr ""
+msgstr "Logowanie GlobalProtect zwróciło %s=%s (oczekiwano %s)\n"
 
 #: auth-globalprotect.c:161
 #, c-format
 msgid "GlobalProtect login returned empty or missing %s\n"
-msgstr ""
+msgstr "Logowanie GlobalProtect zwróciło puste lub brakujące %s\n"
 
 #: auth-globalprotect.c:167
 #, c-format
 msgid "GlobalProtect login returned %s=%s\n"
-msgstr ""
+msgstr "Logowanie GlobalProtect zwróciło %s=%s\n"
 
 #: auth-globalprotect.c:202
 msgid "Please select GlobalProtect gateway."
-msgstr ""
+msgstr "Proszę wybrać bramę GlobalProtect."
 
 #: auth-globalprotect.c:212
 msgid "GATEWAY:"
-msgstr ""
+msgstr "BRAMA:"
 
 #. each entry looks like <entry name="host[:443]"><description>Label</description></entry>
 #: auth-globalprotect.c:266
 #, c-format
 msgid "%d gateway servers available:\n"
-msgstr ""
+msgstr "Dostępne serwery bramy (%d):\n"
 
 #: auth-globalprotect.c:288
 #, c-format
 msgid "  %s (%s)\n"
-msgstr ""
+msgstr "  %s (%s)\n"
 
 #: auth-globalprotect.c:357 auth-juniper.c:707 auth.c:661
 msgid "Failed to generate OTP tokencode; disabling token\n"
@@ -74,7 +74,7 @@ msgstr "Utworzenie kodu tokena OTP się nie powiodło. Wyłączanie tokena\n"
 
 #: auth-globalprotect.c:452
 msgid "Server is neither a GlobalProtect portal nor a gateway.\n"
-msgstr ""
+msgstr "Serwer nie jest portalem ani bramą GlobalProtect.\n"
 
 #: auth-globalprotect.c:500 oncp.c:1303
 msgid "Logout failed.\n"
@@ -82,7 +82,7 @@ msgstr "Wylogowanie się nie powiodło.\n"
 
 #: auth-globalprotect.c:502
 msgid "Logout successful\n"
-msgstr ""
+msgstr "Pomyślnie wylogowano\n"
 
 #: auth-juniper.c:143
 #, c-format
@@ -1709,32 +1709,32 @@ msgstr "Ustawienie kodu PIN klucza się nie powiodło: %s\n"
 
 #: gpst.c:227
 msgid "Invalid username or password.\n"
-msgstr ""
+msgstr "Nieprawidłowa nazwa użytkownika lub hasło.\n"
 
 #: gpst.c:247
 #, c-format
 msgid "%s\n"
-msgstr ""
+msgstr "%s\n"
 
 #: gpst.c:250
 #, c-format
 msgid "Challenge: %s\n"
-msgstr ""
+msgstr "Wyzwanie: %s\n"
 
 #: gpst.c:424
 #, c-format
 msgid "Unknown ESP %s algorithm: %s"
-msgstr ""
+msgstr "Nieznany algorytm ESP %s: %s"
 
 #: gpst.c:488
 #, c-format
 msgid "Non-standard SSL tunnel path: %s\n"
-msgstr ""
+msgstr "Niestandardowa ścieżka do tunelu SSL: %s\n"
 
 #: gpst.c:491
 #, c-format
 msgid "Tunnel timeout (rekey interval) is %d minutes.\n"
-msgstr ""
+msgstr "Czas oczekiwania tunelu (czas między „rekey”) wynosi %d min.\n"
 
 #: gpst.c:503
 #, c-format
@@ -1742,11 +1742,14 @@ msgid ""
 "Gateway address in config XML (%s) differs from external gateway address "
 "(%s).\n"
 msgstr ""
+"Adres bramy w XML konfiguracji (%s) różni się od adresu zewnętrznej bramy "
+"(%s).\n"
 
 #: gpst.c:548
 #, c-format
 msgid "GlobalProtect config sent ipsec-mode=%s (expected esp-tunnel)\n"
 msgstr ""
+"Konfiguracja GlobalProtect wysłała ipsec-mode=%s (oczekiwano esp-tunnel)\n"
 
 #: gpst.c:558 oncp.c:872
 msgid "Ignoring ESP keys since ESP support not available in this build\n"
@@ -1754,37 +1757,37 @@ msgstr "Ignorowanie kluczy ESP, ponieważ obsługa ESP jest niedostępna\n"
 
 #: gpst.c:624
 msgid "ESP disabled"
-msgstr ""
+msgstr "ESP jest wyłączone"
 
 #: gpst.c:626
 msgid "No ESP keys received"
-msgstr ""
+msgstr "Nie otrzymano kluczy ESP"
 
 #: gpst.c:628
 msgid "ESP support not available in this build"
-msgstr ""
+msgstr "Obsługa ESP została wyłączona podczas budowania"
 
 #: gpst.c:632
 #, c-format
 msgid "No MTU received. Calculated %d for %s%s\n"
-msgstr ""
+msgstr "Nie otrzymano MTU. Obliczono %d dla %s%s\n"
 
 #: gpst.c:678
 msgid "Connecting to HTTPS tunnel endpoint ...\n"
-msgstr ""
+msgstr "Łączenie z punktem końcowym tunelu HTTPS…\n"
 
 #: gpst.c:700
 msgid "Error fetching GET-tunnel HTTPS response.\n"
-msgstr ""
+msgstr "Błąd podczas pobierania odpowiedzi „GET-tunnel” HTTPS.\n"
 
 #: gpst.c:709
 msgid "Gateway disconnected immediately after GET-tunnel request.\n"
-msgstr ""
+msgstr "Brama rozłączyła się od razu po żądaniu „GET-tunnel”.\n"
 
 #: gpst.c:717
 #, c-format
 msgid "Got inappropriate HTTP GET-tunnel response: %.*s\n"
-msgstr ""
+msgstr "Otrzymano nieodpowiednią odpowiedź „GET-tunnel” HTTPS: %.*s\n"
 
 #: gpst.c:860
 #, c-format
@@ -1794,51 +1797,58 @@ msgid ""
 "You need to provide a --csd-wrapper argument with the HIP report submission "
 "script.\n"
 msgstr ""
+"OSTRZEŻENIE: serwer poprosił o wysłanie zgłoszenia HIP o sumie kontrolnej "
+"MD5 %s.\n"
+"Łączność z VPN może być wyłączona lub ograniczona bez wysłania zgłoszenia "
+"HIP.\n"
+"Należy podać parametr --csd-wrapper ze skryptem wysyłania zgłoszenia HIP.\n"
 
 #: gpst.c:870
 msgid ""
 "Error: Running the 'HIP Report' script on this platform is not yet "
 "implemented.\n"
 msgstr ""
+"Błąd: uruchamianie skryptu „HIP Report” na tej platformie nie jest jeszcze "
+"zaimplementowane.\n"
 
 #: gpst.c:892
 #, c-format
 msgid "HIP script returned non-zero status: %d\n"
-msgstr ""
+msgstr "Skrypt HIP zwrócił niezerowy stan: %d\n"
 
 #: gpst.c:897
 msgid "HIP report submission failed.\n"
-msgstr ""
+msgstr "Wysłanie zgłoszenia HIP się nie powiodło.\n"
 
 #: gpst.c:899
 msgid "HIP report submitted successfully.\n"
-msgstr ""
+msgstr "Pomyślnie wysłano zgłoszenie HIP.\n"
 
 #: gpst.c:926
 #, c-format
 msgid "Failed to exec HIP script %s\n"
-msgstr ""
+msgstr "Wykonanie skryptu HIP %s się nie powiodło\n"
 
 #: gpst.c:950
 msgid "Gateway says HIP report submission is needed.\n"
-msgstr ""
+msgstr "Brama mówi, że wymagane jest wysłanie zgłoszenia HIP.\n"
 
 #: gpst.c:956
 msgid "Gateway says no HIP report submission is needed.\n"
-msgstr ""
+msgstr "Brama mówi, że wysłanie zgłoszenia HIP nie jest wymagane.\n"
 
 #: gpst.c:983
 msgid "ESP tunnel connected; exiting HTTPS mainloop.\n"
-msgstr ""
+msgstr "Wykryto tunel ESP. Wychodzenie z głównej pętli HTTPS.\n"
 
 #: gpst.c:999
 msgid "Failed to connect ESP tunnel; using HTTPS instead.\n"
-msgstr ""
+msgstr "Połączenie tunelu ESP się nie powiodło. Używanie HTTPS zamiast tego.\n"
 
 #: gpst.c:1032
 #, c-format
 msgid "Packet receive error: %s\n"
-msgstr ""
+msgstr "Błąd odbioru pakietu: %s\n"
 
 #: gpst.c:1053
 #, c-format
@@ -1846,47 +1856,53 @@ msgid ""
 "Unexpected packet length. SSL_read returned %d (includes 16 header bytes) "
 "but header payload_len is %d\n"
 msgstr ""
+"Nieoczekiwana długość pakietu. „SSL_read” zwróciło %d (w tym 16 bajtów "
+"nagłówka), ale „payload_len” nagłówka wynosi %d\n"
 
 #: gpst.c:1063
 msgid "Got GPST DPD/keepalive response\n"
-msgstr ""
+msgstr "Otrzymano odpowiedź „DPD/keepalive” GPST\n"
 
 #: gpst.c:1067
 msgid ""
 "Expected 0000000000000000 as last 8 bytes of DPD/keepalive packet header, "
 "but got:\n"
 msgstr ""
+"Oczekiwano 0000000000000000 jako ostatnie 8 bajtów nagłówka pakietu „DPD/"
+"keepalive”, ale otrzymano:\n"
 
 #: gpst.c:1073
 #, c-format
 msgid "Received data packet of %d bytes\n"
-msgstr ""
+msgstr "Otrzymano pakiet danych o rozmiarze %d B\n"
 
 #: gpst.c:1082
 msgid ""
 "Expected 0100000000000000 as last 8 bytes of data packet header, but got:\n"
 msgstr ""
+"Oczekiwano 0100000000000000 jako ostatnie 8 bajtów nagłówka pakietu danych, "
+"ale otrzymano:\n"
 
 #: gpst.c:1090
 msgid "Unknown packet. Header dump follows:\n"
-msgstr ""
+msgstr "Nieznany pakiet. Zrzut nagłówka:\n"
 
 #: gpst.c:1138
 msgid "GlobalProtect rekey due\n"
-msgstr ""
+msgstr "„rekey” GlobalProtect do\n"
 
 #: gpst.c:1143
 msgid "GPST Dead Peer Detection detected dead peer!\n"
-msgstr ""
+msgstr "Wykrywanie martwych partnerów GPST wykryło martwego partnera.\n"
 
 #: gpst.c:1163
 msgid "Send GPST DPD/keepalive request\n"
-msgstr ""
+msgstr "Wysłanie żądania „DPD/keepalive” GPST\n"
 
 #: gpst.c:1183
 #, c-format
 msgid "Sending data packet of %d bytes\n"
-msgstr ""
+msgstr "Wysyłanie pakietu danych o rozmiarze %d B\n"
 
 #: gssapi.c:75
 msgid "Error importing GSSAPI name for authentication:\n"
@@ -2277,11 +2293,11 @@ msgstr "Zgodny z VPN SSL Juniper Network Connect/Pulse Secure"
 
 #: library.c:146
 msgid "Palo Alto Networks GlobalProtect"
-msgstr ""
+msgstr "Palo Alto Networks GlobalProtect"
 
 #: library.c:147
 msgid "Compatible with Palo Alto Networks (PAN) GlobalProtect SSL VPN"
-msgstr ""
+msgstr "Zgodny z VPN Palo Alto Networks (PAN) GlobalProtect SSL"
 
 #: library.c:203
 #, c-format
@@ -2390,7 +2406,7 @@ msgstr " (domyślny)"
 
 #: main.c:661
 msgid "Set VPN protocol"
-msgstr ""
+msgstr "Ustawienie protokołu VPN"
 
 #: main.c:702
 msgid "fgets (stdin)"
@@ -2439,7 +2455,7 @@ msgstr "Wyświetla tekst pomocy"
 
 #: main.c:790
 msgid "Authentication"
-msgstr ""
+msgstr "Uwierzytelnienie"
 
 #: main.c:791
 msgid "Set login username"
@@ -2506,7 +2522,7 @@ msgstr "(UWAGA: obsługa „OATH” Yubikey została wyłączona podczas budowan
 
 #: main.c:811
 msgid "Server validation"
-msgstr ""
+msgstr "Sprawdzanie poprawności serwera"
 
 #: main.c:812
 msgid "Server's certificate SHA1 fingerprint"
@@ -2526,7 +2542,7 @@ msgstr "Plik certyfikatu do sprawdzania poprawności serwera"
 
 #: main.c:817
 msgid "Internet connectivity"
-msgstr ""
+msgstr "Łączność z Internetem"
 
 #: main.c:818
 msgid "Set proxy server"
@@ -2563,15 +2579,15 @@ msgstr "kopiuje TOS/TCLASS podczas używania DTLS"
 
 #: main.c:828
 msgid "Set local port for DTLS and ESP datagrams"
-msgstr ""
+msgstr "Ustawia lokalny port dla datagramów DTLS i ESP"
 
 #: main.c:830
 msgid "Authentication (two-phase)"
-msgstr ""
+msgstr "Uwierzytelnienie (dwuetapowe)"
 
 #: main.c:831
 msgid "Use authentication cookie COOKIE"
-msgstr ""
+msgstr "Używa CIASTECZKA uwierzytelnienia"
 
 #: main.c:832
 msgid "Read cookie from standard input"
@@ -2583,15 +2599,15 @@ msgstr "Tylko uwierzytelnia i wyświetla informacje logowania"
 
 #: main.c:834
 msgid "Fetch and print cookie only; don't connect"
-msgstr ""
+msgstr "Tylko pobiera i wyświetla ciasteczko. Bez łączenia"
 
 #: main.c:835
 msgid "Print cookie before connecting"
-msgstr ""
+msgstr "Wyświetla ciasteczko przed łączeniem"
 
 #: main.c:838
 msgid "Process control"
-msgstr ""
+msgstr "Sterowanie procesem"
 
 #: main.c:839
 msgid "Continue in background after startup"
@@ -2607,7 +2623,7 @@ msgstr "Traci uprawnienia po połączeniu"
 
 #: main.c:844
 msgid "Logging (two-phase)"
-msgstr ""
+msgstr "Logowanie (dwuetapowe)"
 
 #: main.c:846
 msgid "Use syslog for progress messages"
@@ -2631,7 +2647,7 @@ msgstr "Poprzedza komunikaty postępu czasem"
 
 #: main.c:853
 msgid "VPN configuration script"
-msgstr ""
+msgstr "Skrypt konfiguracji VPN"
 
 #: main.c:854
 msgid "Use IFNAME for tunnel interface"
@@ -2652,7 +2668,7 @@ msgstr "Przekazuje ruch do programu „script”, nie tun"
 
 #: main.c:861
 msgid "Tunnel control"
-msgstr ""
+msgstr "Sterowanie tunelem"
 
 #: main.c:862
 msgid "Do not ask for IPv6 connectivity"
@@ -2688,7 +2704,7 @@ msgstr "Wymaga PFS (Perfect Forward Secrecy)"
 
 #: main.c:870
 msgid "Disable DTLS and ESP"
-msgstr ""
+msgstr "Wyłącza DTLS i ESP"
 
 #: main.c:871
 msgid "OpenSSL ciphers to support for DTLS"
@@ -2700,7 +2716,7 @@ msgstr "Ustawia ograniczenie kolejki pakietów na LEN pkts"
 
 #: main.c:874
 msgid "Local system information"
-msgstr ""
+msgstr "Informacje o lokalnym systemie"
 
 #: main.c:875
 msgid "HTTP header User-Agent: field"
@@ -2716,19 +2732,19 @@ msgstr "Typ zgłaszanego systemu operacyjnego (linux,linux-64,win…)"
 
 #: main.c:880
 msgid "Trojan binary (CSD) execution"
-msgstr ""
+msgstr "Wykonywanie pliku binarnego konia trojańskiego (CSD)"
 
 #: main.c:881
 msgid "Drop privileges during trojan execution"
-msgstr ""
+msgstr "Traci uprawnienia podczas wykonywania konia trojańskiego"
 
 #: main.c:882
 msgid "Run SCRIPT instead of trojan binary"
-msgstr ""
+msgstr "Wykonuje SKRYPT zamiast pliku binarnego konia trojańskiego"
 
 #: main.c:885
 msgid "Server bugs"
-msgstr ""
+msgstr "Błędy serwera"
 
 #: main.c:886
 msgid "Disable HTTP connection re-use"
@@ -4652,12 +4668,43 @@ msgstr "polecenie obliczania"
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr "Nierozpoznana odpowiedź z Yubikey podczas tworzenia kodu tokena\n"
 
-#~ msgid ""
-#~ "Open client for Cisco AnyConnect VPN, version %s\n"
-#~ "\n"
+#~ msgid "Consider SPI 0x%x, seq %u against outgoing ESP setup\n"
+#~ msgstr "Rozważenie SPI 0x%x, sekwencja %u z wychodzącymi ustawieniami ESP\n"
+
+#~ msgid "Failed to SHA1 input data for signing: %s\n"
 #~ msgstr ""
-#~ "Otwarty klient dla Cisco AnyConnect VPN, wersja %s\n"
+#~ "Użycie SHA1 na danych wyjściowych do podpisania się nie powiodło: %s\n"
+
+#~ msgid "Failed to open CONIN$: %s\n"
+#~ msgstr "Otwarcie CONIN$ się nie powiodło: %s\n"
+
+#~ msgid ""
 #~ "\n"
+#~ "    Set VPN protocol:\n"
+#~ msgstr ""
+#~ "\n"
+#~ "    Ustawienie protokołu VPN:\n"
+
+#~ msgid "Use WebVPN cookie COOKIE"
+#~ msgstr "Używa CIASTECZKA WebVPN"
+
+#~ msgid "Drop privileges during CSD execution"
+#~ msgstr "Traci uprawnienia podczas wykonywania CSD"
+
+#~ msgid "Run SCRIPT instead of CSD binary"
+#~ msgstr "Wykonuje SKRYPT zamiast pliku binarnego CSD"
+
+#~ msgid "Fetch webvpn cookie only; don't connect"
+#~ msgstr "Tylko pobiera ciasteczko WebVPN. Bez łączenia"
+
+#~ msgid "Print webvpn cookie before connecting"
+#~ msgstr "Wyświetla ciasteczko WebVPN przed łączeniem"
+
+#~ msgid "Disable DTLS"
+#~ msgstr "Wyłącza DTLS"
+
+#~ msgid "Set local port for DTLS datagrams"
+#~ msgstr "Ustawia lokalny port dla datagramów DTLS"
 
 #~ msgid ""
 #~ "\n"
@@ -4667,40 +4714,9 @@ msgstr "Nierozpoznana odpowiedź z Yubikey podczas tworzenia kodu tokena\n"
 #~ "OSTRZEŻENIE: ten plik binarny nie obsługuje DTLS. Wydajność będzie "
 #~ "zmniejszona.\n"
 
-#~ msgid "Set local port for DTLS datagrams"
-#~ msgstr "Ustawia lokalny port dla datagramów DTLS"
-
-#~ msgid "Disable DTLS"
-#~ msgstr "Wyłącza DTLS"
-
-#~ msgid "Print webvpn cookie before connecting"
-#~ msgstr "Wyświetla ciasteczko WebVPN przed łączeniem"
-
-#~ msgid "Fetch webvpn cookie only; don't connect"
-#~ msgstr "Tylko pobiera ciasteczko WebVPN. Bez łączenia"
-
-#~ msgid "Run SCRIPT instead of CSD binary"
-#~ msgstr "Wykonuje SKRYPT zamiast pliku binarnego CSD"
-
-#~ msgid "Drop privileges during CSD execution"
-#~ msgstr "Traci uprawnienia podczas wykonywania CSD"
-
-#~ msgid "Use WebVPN cookie COOKIE"
-#~ msgstr "Używa CIASTECZKA WebVPN"
-
 #~ msgid ""
+#~ "Open client for Cisco AnyConnect VPN, version %s\n"
 #~ "\n"
-#~ "    Set VPN protocol:\n"
 #~ msgstr ""
+#~ "Otwarty klient dla Cisco AnyConnect VPN, wersja %s\n"
 #~ "\n"
-#~ "    Ustawienie protokołu VPN:\n"
-
-#~ msgid "Failed to open CONIN$: %s\n"
-#~ msgstr "Otwarcie CONIN$ się nie powiodło: %s\n"
-
-#~ msgid "Failed to SHA1 input data for signing: %s\n"
-#~ msgstr ""
-#~ "Użycie SHA1 na danych wyjściowych do podpisania się nie powiodło: %s\n"
-
-#~ msgid "Consider SPI 0x%x, seq %u against outgoing ESP setup\n"
-#~ msgstr "Rozważenie SPI 0x%x, sekwencja %u z wychodzącymi ustawieniami ESP\n"
