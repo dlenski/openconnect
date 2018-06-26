@@ -551,6 +551,8 @@ to configure the network. The standard
 shipped with vpnc 0.5.3 is not capable of setting up IPv6 routes; the one from
 .B git://git.infradead.org/users/dwmw2/vpnc\-scripts.git
 will be required.
+.SH SEE ALSO
+.BR ocserv (8)
 
 .SH AUTHORS
 David Woodhouse <dwmw2@infradead.org>
