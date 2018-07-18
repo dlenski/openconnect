@@ -893,7 +893,8 @@ static int cstp_can_gen_tokencode(struct openconnect_info *vpninfo,
 	}
 #endif
 	/* Otherwise it's an OATH token of some kind. */
-	if (strcmp(opt->name, "secondary_password"))
+	if (strcmp(opt->name, "secondary_password") &&
+        (!form->auth_id || strcmp(form->auth_id, "challenge")))
 		return -EINVAL;
 
 	return can_gen_tokencode(vpninfo, form, opt);
