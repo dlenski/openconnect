@@ -1014,7 +1014,10 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		goto do_reconnect;
 
 	while (1) {
-		int receive_mtu = MAX(2048, vpninfo->ip_info.mtu + 256);
+		/* Some servers send us packets that are larger than
+		   negotiated MTU. We reserve some extra space to
+		   handle that */
+		int receive_mtu = MAX(16384, vpninfo->ip_info.mtu);
 		int len, payload_len;
 
 		if (!vpninfo->cstp_pkt) {
