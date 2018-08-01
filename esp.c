@@ -256,9 +256,13 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	struct esp *esp = &vpninfo->esp_in[vpninfo->current_esp_in];
 	struct esp *old_esp = &vpninfo->esp_in[vpninfo->current_esp_in ^ 1];
 	struct pkt *this;
-	int receive_mtu = MAX(2048, vpninfo->ip_info.mtu + 256);
 	int work_done = 0;
 	int ret;
+
+	/* Some servers send us packets that are larger than negotiated
+	   MTU, or lack the ability to negotiate MTU (see gpst.c). We
+	   reserve some extra space to handle that */
+	int receive_mtu = MAX(2048, vpninfo->ip_info.mtu + 256);
 
 	if (vpninfo->dtls_state == DTLS_SLEEPING) {
 		if (ka_check_deadline(timeout, time(NULL), vpninfo->new_dtls_started + vpninfo->dtls_attempt_period)
