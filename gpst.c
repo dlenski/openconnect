@@ -630,7 +630,7 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 		vpninfo->ip_info.mtu = calculate_mtu(vpninfo, !no_esp_reason);
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("No MTU received. Calculated %d for %s%s\n"), vpninfo->ip_info.mtu,
-			     no_esp_reason ? "TLS tunnel. " : "ESP tunnel", no_esp_reason ? : "");
+			     no_esp_reason ? "SSL tunnel. " : "ESP tunnel", no_esp_reason ? : "");
 		/* return -EINVAL; */
 	}
 	if (!vpninfo->ip_info.addr) {
