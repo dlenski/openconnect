@@ -905,7 +905,8 @@ int openconnect_setup_tun_device(struct openconnect_info *vpninfo,
 static const char *compr_name_map[] = {
 	[COMPR_DEFLATE] = "Deflate",
 	[COMPR_LZS] = "LZS",
-	[COMPR_LZ4] = "LZ4"
+	[COMPR_LZ4] = "LZ4",
+	[COMPR_LZO] = "LZO",
 };
 
 const char *openconnect_get_cstp_compression(struct openconnect_info * vpninfo)

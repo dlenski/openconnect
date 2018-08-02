@@ -323,6 +323,7 @@ static int process_attr(struct openconnect_info *vpninfo, int group, int attr,
 		if (attrlen != 1)
 			goto badlen;
 		vpninfo->esp_compr = data[0];
+		vpninfo->dtls_compr = data[0] ? COMPR_LZO : 0;
 		vpn_progress(vpninfo, PRG_DEBUG, _("ESP compression: %d\n"), data[0]);
 		break;
 

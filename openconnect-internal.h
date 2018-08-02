@@ -174,10 +174,11 @@ struct pkt {
 #define COMPR_DEFLATE	(1<<0)
 #define COMPR_LZS	(1<<1)
 #define COMPR_LZ4	(1<<2)
-#define COMPR_MAX	COMPR_LZ4
+#define COMPR_LZO	(1<<3)
+#define COMPR_MAX	COMPR_LZO
 
 #ifdef HAVE_LZ4
-#define COMPR_STATELESS	(COMPR_LZS | COMPR_LZ4)
+#define COMPR_STATELESS	(COMPR_LZS | COMPR_LZ4 | COMPR_LZO)
 #else
 #define COMPR_STATELESS	(COMPR_LZS)
 #endif

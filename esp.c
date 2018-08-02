@@ -296,6 +296,7 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			     len);
 		work_done = 1;
 
+		/* both supported algos (SHA1 and MD5) have 12-byte MAC lengths (RFC2403 and RFC2404) */
 		if (len <= sizeof(pkt->esp) + 12)
 			continue;
 
@@ -319,6 +320,11 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			continue;
 		}
 
+		/* Possible values of the Next Header field are:
+		   0x04: IP[v4]-in-IP
+		   0x05: supposed to mean Internet Stream Protocol
+		         (XXX: but used for LZO compressed packets by Juniper)
+		   0x29: IPv6 encapsulation */
 		if (pkt->data[len - 1] != 0x04 && pkt->data[len - 1] != 0x29 &&
 		    pkt->data[len - 1] != 0x05) {
 			vpn_progress(vpninfo, PRG_ERR,
