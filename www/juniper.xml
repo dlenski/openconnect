@@ -16,10 +16,10 @@ experimental, and is quite likely to be deprecated in favour of the newer
 <a href="http://www.juniper.net/techpubs/en_US/junos-pulse4.0/topics/reference/a-c-c-nc-comparing.html">Junos
 Pulse</a> protocol.</p>
 
-<p>For the time being, Juniper mode is requested by adding <tt>--juniper</tt>
+<p>Juniper mode is requested by adding <tt>--protocol=nc</tt>
 to the command line:
 <pre>
-  openconnect --juniper vpn.example.com
+  openconnect --protocol=nc vpn.example.com
 </pre></p>
 
 <p>Network Connect works very similarly to
@@ -65,7 +65,7 @@ pass the cookie to OpenConnect with its <tt>-C</tt> option, for example:
 </pre>
 </p>
 
-<h3>Host Checker (tncc.jar)</h3>
+<a name="tncc"><h3>Host Checker (tncc.jar)</h3></a>
 
 <p>Many sites require a Java applet to run certain tests as a precondition
 of authentication. This works by sending a <tt>DSPREAUTH</tt> cookie
@@ -80,7 +80,7 @@ along with the <tt>tncc-preload.so</tt> from
 <a href="https://github.com/russdill/ncsvc-socks-wrapper">this repository</a>.
 It may also be necessary to pass a Mozilla-compatible user agent string:
 <pre>
-  ./openconnect --juniper --useragent  'Mozilla/5.0 (Linux) Firefox' --csd-wrapper=./tncc-wrapper.py vpn.example.com
+  ./openconnect --protocol=nc --useragent 'Mozilla/5.0 (Linux) Firefox' --csd-wrapper=./tncc-wrapper.py vpn.example.com
 </pre>
 </p>
 
