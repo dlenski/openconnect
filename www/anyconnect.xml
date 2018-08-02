@@ -59,7 +59,7 @@ The username/password for OpenSSL RT is 'guest/guest'
 
 <h3>GnuTLS</h3>
 
-<p>Support for Cisco's version of DTLS was included in GnuTLS from 3.0.21 onwards.</p>
+<p>Support for Cisco's version of DTLS was included in GnuTLS from 3.0.21 onwards (<a href="https://gitlab.com/nmav/gnutls/commit/fd5ca1afb7b223f1ce0c5330f2611996491c6aae">commited in <tt>fd5ca1af</tt></a>).</p>
 
 	<INCLUDE file="inc/footer.tmpl" />
 </PAGE>

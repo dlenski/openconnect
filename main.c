@@ -863,8 +863,8 @@ static void usage(void)
 	printf("  -x, --xmlconfig=CONFIG          %s\n", _("XML config file"));
 	printf("  -m, --mtu=MTU                   %s\n", _("Request MTU from server (legacy servers only)"));
 	printf("      --base-mtu=MTU              %s\n", _("Indicate path MTU to/from server"));
-	printf("  -d, --deflate                   %s\n", _("Enable compression (default)"));
-	printf("  -D, --no-deflate                %s\n", _("Disable compression"));
+	printf("  -d, --deflate                   %s\n", _("Enable stateful compression (default is stateless only)"));
+	printf("  -D, --no-deflate                %s\n", _("Disable all compression"));
 	printf("      --force-dpd=INTERVAL        %s\n", _("Set minimum Dead Peer Detection interval"));
 	printf("      --pfs                       %s\n", _("Require perfect forward secrecy"));
 	printf("      --no-dtls                   %s\n", _("Disable DTLS and ESP"));

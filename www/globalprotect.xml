@@ -16,6 +16,12 @@
 href="https://tools.ietf.org/html/rfc3948">ESP</a>, with routing and
 configuration information distributed in XML format.</p>
 
+<p>GlobalProtect mode is requested by adding <tt>--protocol=gp</tt>
+to the command line:
+<pre>
+  openconnect --protocol=gp vpn.example.com
+</pre></p>
+
 <h3>Authentication</h3>
 
 <p>To authenticate, you connect to the secure web server (<tt>POST
