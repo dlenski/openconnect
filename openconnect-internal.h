@@ -264,6 +264,7 @@ struct vpn_proto {
 	const char *name;
 	const char *pretty_name;
 	const char *description;
+	const char *udp_protocol;
 	const char *override_useragent;
 	unsigned int flags;
 	int (*vpn_close_session)(struct openconnect_info *vpninfo, const char *reason);

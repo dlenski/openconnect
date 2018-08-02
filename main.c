@@ -1087,7 +1087,7 @@ int main(int argc, char **argv)
 	char *urlpath = NULL;
 	struct oc_vpn_option *gai;
 	char *ip;
-	const char *compr = "";
+	const char *ssl_compr, *udp_compr;
 	char *proxy = getenv("https_proxy");
 	char *vpnc_script = NULL;
 	const struct oc_ip_info *ip_info;
@@ -1609,33 +1609,21 @@ int main(int argc, char **argv)
 		 * reconnects end up in infinite loop trying to connect
 		 * to non existing DTLS */
 		vpninfo->dtls_state = DTLS_DISABLED;
-		fprintf(stderr, _("Set up DTLS failed; using SSL instead\n"));
+		fprintf(stderr, _("Set up UDP failed; using SSL instead\n"));
 	}
 
 	openconnect_get_ip_info(vpninfo, &ip_info, NULL, NULL);
 
-	if (vpninfo->dtls_state != DTLS_CONNECTED) {
-		if (vpninfo->cstp_compr == COMPR_DEFLATE)
-			compr = " + deflate";
-		else if (vpninfo->cstp_compr == COMPR_LZS)
-			compr = " + lzs";
-		else if (vpninfo->cstp_compr == COMPR_LZ4)
-			compr = " + lz4";
-	} else {
-		if (vpninfo->dtls_compr == COMPR_DEFLATE)
-			compr = " + deflate";
-		else if (vpninfo->dtls_compr == COMPR_LZS)
-			compr = " + lzs";
-		else if (vpninfo->dtls_compr == COMPR_LZ4)
-			compr = " + lz4";
-	}
+	ssl_compr = openconnect_get_cstp_compression(vpninfo);
+	udp_compr = openconnect_get_dtls_compression(vpninfo);
 	vpn_progress(vpninfo, PRG_INFO,
-		     _("Connected as %s%s%s, using %s%s\n"),
+		     _("Connected as %s%s%s, using SSL%s%s, with %s%s%s %s\n"),
 		     ip_info->addr?:"",
 		     (ip_info->netmask6 && ip_info->addr) ? " + " : "",
 		     ip_info->netmask6 ? : "",
-		     (vpninfo->dtls_state != DTLS_CONNECTED) ? "SSL"
-		     : "DTLS", compr);
+		     ssl_compr ? " + " : "", ssl_compr ? : "",
+		     vpninfo->proto->udp_protocol ? : "UDP", udp_compr ? " + " : "", udp_compr ? : "",
+		     (vpninfo->dtls_state == DTLS_DISABLED || vpninfo->dtls_state == DTLS_NOSECRET ? _("disabled") : _("in progress")));
 
 	if (!vpninfo->vpnc_script) {
 		vpn_progress(vpninfo, PRG_INFO,
