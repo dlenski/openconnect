@@ -560,57 +560,6 @@ int oncp_connect(struct openconnect_info *vpninfo)
 
 	reqbuf = buf_alloc();
 
- 	buf_append(reqbuf, "POST /dana/js?prot=1&svc=1 HTTP/1.1\r\n");
-	/* Seems unnecessary because we always ignore the response body,
-	   and close the connection anyway, but retained in case any
-	   server depends on it. (See comments on second negotiation
-	   request below. */
-	buf_append(reqbuf, "Connection: close\r\n");
-	oncp_common_headers(vpninfo, reqbuf);
-	buf_append(reqbuf, "Content-Length: 256\r\n");
-	buf_append(reqbuf, "\r\n");
-
-	if (buf_error(reqbuf)) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Error creating oNCP negotiation request\n"));
-		ret = buf_error(reqbuf);
-		goto out;
-	}
-
-	vpn_progress(vpninfo, PRG_TRACE, _("Sending oNCP negotiation request #1\n"));
-	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
-	if (ret < 0)
-		goto out;
-
-	/* The server is fairly weird. It sends Connection: close which would
-	 * indicate an HTTP 1.0-style body, but doesn't seem to actually close
-	 * the connection. So tell process_http_response() it was a CONNECT
-	 * request, since we don't care about the body anyway, and then close
-	 * the connection for ourselves. */
-	ret = process_http_response(vpninfo, 1, NULL, reqbuf);
-	openconnect_close_https(vpninfo, 0);
-	if (ret < 0) {
-		/* We'll already have complained about whatever offended us */
-		goto out;
-	}
-	if (ret != 200) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Unexpected %d result from server\n"),
-			     ret);
-		ret = -EINVAL;
-		goto out;
-	}
-
-	/* Now the second request. We should reduce the duplication
-	   here but let's not overthink it for now; we should see what
-	   the authentication requests are going to look like, and make
-	   do_https_request() or a new helper function work for those
-	   too. */
-	ret = openconnect_open_https(vpninfo);
-	if (ret)
-		goto out;
-
-	buf_truncate(reqbuf);
 	buf_append(reqbuf, "POST /dana/js?prot=1&svc=4 HTTP/1.1\r\n");
 	/* The TLS socket actually remains open for use by the oNCP
 	   tunnel, but the "Connection: close" header is nevertheless
@@ -629,7 +578,6 @@ int oncp_connect(struct openconnect_info *vpninfo)
 		ret = buf_error(reqbuf);
 		goto out;
 	}
-	vpn_progress(vpninfo, PRG_TRACE, _("Sending oNCP negotiation request #2\n"));
 	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
 	if (ret < 0)
 		goto out;
