@@ -561,6 +561,11 @@ int oncp_connect(struct openconnect_info *vpninfo)
 	reqbuf = buf_alloc();
 
  	buf_append(reqbuf, "POST /dana/js?prot=1&svc=1 HTTP/1.1\r\n");
+	/* Seems unnecessary because we always ignore the response body,
+	   and close the connection anyway, but retained in case any
+	   server depends on it. (See comments on second negotiation
+	   request below. */
+	buf_append(reqbuf, "Connection: close\r\n");
 	oncp_common_headers(vpninfo, reqbuf);
 	buf_append(reqbuf, "Content-Length: 256\r\n");
 	buf_append(reqbuf, "\r\n");
@@ -572,6 +577,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 		goto out;
 	}
 
+	vpn_progress(vpninfo, PRG_TRACE, _("Sending oNCP negotiation request #1\n"));
 	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
 	if (ret < 0)
 		goto out;
@@ -606,6 +612,13 @@ int oncp_connect(struct openconnect_info *vpninfo)
 
 	buf_truncate(reqbuf);
 	buf_append(reqbuf, "POST /dana/js?prot=1&svc=4 HTTP/1.1\r\n");
+	/* The TLS socket actually remains open for use by the oNCP
+	   tunnel, but the "Connection: close" header is nevertheless
+	   required here. It appears to signal to the server to stop
+	   treating this as an HTTP connection and to start treating
+	   it as an oNCP connection.
+	   */
+	buf_append(reqbuf, "Connection: close\r\n");
 	oncp_common_headers(vpninfo, reqbuf);
 	buf_append(reqbuf, "Content-Length: 256\r\n");
 	buf_append(reqbuf, "\r\n");
@@ -616,6 +629,7 @@ int oncp_connect(struct openconnect_info *vpninfo)
 		ret = buf_error(reqbuf);
 		goto out;
 	}
+	vpn_progress(vpninfo, PRG_TRACE, _("Sending oNCP negotiation request #2\n"));
 	ret = vpninfo->ssl_write(vpninfo, reqbuf->data, reqbuf->pos);
 	if (ret < 0)
 		goto out;

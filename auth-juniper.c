@@ -47,7 +47,6 @@ void oncp_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 {
 	http_common_headers(vpninfo, buf);
 
-	buf_append(buf, "Connection: close\r\n");
 //	buf_append(buf, "Content-Length: 256\r\n");
 	buf_append(buf, "NCP-Version: 3\r\n");
 //	buf_append(buf, "Accept-Encoding: gzip\r\n");
