@@ -204,12 +204,30 @@ public final class LibTest {
 		System.out.println("");
 	}
 
+	private static void describeProtocol(LibOpenConnect.VPNProto vp) {
+		ArrayList<String> flags = new ArrayList<String>();
+		if ((vp.flags & LibOpenConnect.OC_PROTO_PROXY) != 0) flags.add("proxy");
+		if ((vp.flags & LibOpenConnect.OC_PROTO_CSD) != 0) flags.add("CSD");
+		if ((vp.flags & LibOpenConnect.OC_PROTO_AUTH_CERT) != 0) flags.add("auth-cert");
+		if ((vp.flags & LibOpenConnect.OC_PROTO_AUTH_OTP) != 0) flags.add("auth-otp");
+		if ((vp.flags & LibOpenConnect.OC_PROTO_AUTH_OTP) != 0) flags.add("auth-stoken");
+
+		System.out.println("  " + vp.name +
+				   ") PRETTY_NAME=" + vp.prettyName +
+				   ", DESCRIPTION=" + vp.description +
+				   ", FLAGS=" + String.join("+", flags));
+	}
+
 	public static void main(String argv[]) {
 		System.loadLibrary("openconnect-wrapper");
 		LibOpenConnect lib = new TestLib();
+		String server_name, protocol;
 
-		if (argv.length != 1)
-			die("usage: LibTest <server_name>");
+		if (argv.length != 1 && argv.length != 2)
+			die("usage: LibTest <server_name> [protocol]");
+
+		server_name = argv[0];
+		protocol = argv.length == 2 ? argv[1] : null;
 
 		System.out.println("OpenConnect version: " + lib.getVersion());
 		System.out.println("  PKCS=" + lib.hasPKCS11Support() +
@@ -217,13 +235,29 @@ public final class LibTest {
 				   ", STOKEN=" + lib.hasStokenSupport() +
 				   ", OATH=" + lib.hasOATHSupport() +
 				   ", YUBIOATH=" + lib.hasYubiOATHSupport());
+
+		System.out.println("Supported protocols:");
+		for (LibOpenConnect.VPNProto vp : lib.getSupportedProtocols())
+		    describeProtocol(vp);
+		if (protocol == null) {
+			System.out.println("Using default VPN protocol of " + lib.getProtocol());
+		} else {
+			System.out.println("Setting VPN protocol to " + protocol);
+			if (lib.setProtocol(protocol) != 0)
+				die("Error setting VPN protocol");
+		}
+
 		lib.setReportedOS("win");
 		lib.setLogLevel(lib.PRG_DEBUG);
 		//lib.setTokenMode(LibOpenConnect.OC_TOKEN_MODE_STOKEN, null);
-		if (new File("csd.sh").exists()) {
-			lib.setCSDWrapper("csd.sh", null, null);
+		String csd_wrapper = "./csd-" + lib.getProtocol() + ".sh";
+		if (new File(csd_wrapper).exists()) {
+			System.out.println("Using CSD wrapper script " + csd_wrapper);
+			lib.setCSDWrapper(csd_wrapper, null, null);
+		} else {
+			System.out.println("Skipping CSD wrapper (script " + csd_wrapper + " doesn't exist)");
 		}
-		lib.parseURL(argv[0]);
+		lib.parseURL(server_name);
 		lib.setSystemTrust(true);
 		int ret = lib.obtainCookie();
 		if (ret < 0)
