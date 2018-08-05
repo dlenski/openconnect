@@ -1197,6 +1197,14 @@ JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getCS
 	RETURN_STRING_END
 }
 
+JNIEXPORT jstring JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getProtocol(
+	JNIEnv *jenv, jobject jobj)
+{
+	RETURN_STRING_START
+	buf = openconnect_get_protocol(ctx->vpninfo);
+	RETURN_STRING_END
+}
+
 #define SET_STRING_START(ret) \
 	struct libctx *ctx = getctx(jenv, jobj); \
 	const char *arg = NULL;			 \
@@ -1243,6 +1251,16 @@ JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setHTTPP
 	int ret;
 	SET_STRING_START(-ENOMEM)
 	ret = openconnect_set_http_proxy(ctx->vpninfo, arg);
+	SET_STRING_END();
+	return ret;
+}
+
+JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setProtocol(
+	JNIEnv *jenv, jobject jobj, jstring jarg)
+{
+	int ret;
+	SET_STRING_START(-ENOMEM)
+	ret = openconnect_set_protocol(ctx->vpninfo, arg);
 	SET_STRING_END();
 	return ret;
 }
@@ -1380,4 +1398,54 @@ JNIEXPORT jobject JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getIP
 			return NULL;
 
 	return jobj;
+}
+
+JNIEXPORT jobjectArray JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getSupportedProtocols(
+	JNIEnv *jenv, jclass jcls)
+{
+	jmethodID mid;
+	jobjectArray result;
+	struct libctx ctx = { .jenv = jenv, .jobj = NULL, .async_lock = NULL, vpninfo = -1, loglevel = -1 };
+
+	/* call C library */
+	struct oc_vpn_proto *protos;
+	int np, ii;
+	np = openconnect_get_supported_protocols(&protos);
+	if (np < 0)
+		return NULL;
+
+	/* get VPNProto class, its init method, and create array  */
+	jcls = (*jenv)->FindClass(jenv,
+				       "org/infradead/libopenconnect/LibOpenConnect$VPNProto");
+	if (jcls == NULL)
+		goto err;
+	mid = (*jenv)->GetMethodID(jenv, jcls, "<init>", "()V");
+	if (!mid)
+		goto err;
+	result = (*jenv)->NewObjectArray(jenv, np, jcls, NULL);
+	if (result == NULL)
+		goto nomem;
+
+	for (ii=0; ii<np; ii++) {
+		jobject jobj = (*jenv)->NewObject(jenv, jcls, mid);
+		if (!jobj)
+			goto nomem;
+
+		if (set_string(&ctx, jobj, "name",        protos[ii].name) ||
+		    set_string(&ctx, jobj, "prettyName",  protos[ii].pretty_name) ||
+		    set_string(&ctx, jobj, "description", protos[ii].description) ||
+		    set_int   (&ctx, jobj, "flags",       protos[ii].flags))
+			goto nomem;
+
+		(*jenv)->SetObjectArrayElement(jenv, result, ii, jobj);
+	}
+
+	openconnect_free_supported_protocols(protos);
+	return result;
+
+nomem:
+	OOM(jenv);
+err:
+	openconnect_free_supported_protocols(protos);
+	return NULL;
 }
