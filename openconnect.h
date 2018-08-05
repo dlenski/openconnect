@@ -39,6 +39,7 @@ extern "C" {
  * API version 5.5:
  *  - Add openconnect_get_supported_protocols()
  *  - Add openconnect_free_supported_protocols()
+ *  - Add openconnect_get_protocol()
  *
  * API version 5.4 (v7.08; 2016-12-13):
  *  - Add openconnect_set_pass_tos()
@@ -664,6 +665,7 @@ int openconnect_has_system_key_support(void);
 /* Query and select from among supported protocols */
 int openconnect_get_supported_protocols(struct oc_vpn_proto **protos);
 void openconnect_free_supported_protocols(struct oc_vpn_proto *protos);
+const char *openconnect_get_protocol(struct openconnect_info *vpninfo);
 int openconnect_set_protocol(struct openconnect_info *vpninfo, const char *protocol);
 
 struct addrinfo;

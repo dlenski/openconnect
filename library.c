@@ -189,6 +189,11 @@ void openconnect_free_supported_protocols(struct oc_vpn_proto *protos)
 	free((void *)protos);
 }
 
+const char *openconnect_get_protocol(struct openconnect_info *vpninfo)
+{
+	return vpninfo->proto->name;
+}
+
 int openconnect_set_protocol(struct openconnect_info *vpninfo, const char *protocol)
 {
 	const struct vpn_proto *p;
