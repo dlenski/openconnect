@@ -885,9 +885,15 @@ static int run_hip_script(struct openconnect_info *vpninfo)
 			buf_append_bytes(report_buf, b, i);
 
 		waitpid(child, &status, 0);
-		if (status != 0) {
+		if (!WIFEXITED(status)) {
 			vpn_progress(vpninfo, PRG_ERR,
-						 _("HIP script returned non-zero status: %d\n"), status);
+						 _("HIP script '%s' exited abnormally\n"),
+						 vpninfo->csd_wrapper);
+			ret = -EINVAL;
+		} else if (WEXITSTATUS(status) != 0) {
+			vpn_progress(vpninfo, PRG_ERR,
+						 _("HIP script '%s' returned non-zero status: %d\n"),
+						 vpninfo->csd_wrapper, WEXITSTATUS(status));
 			ret = -EINVAL;
 		} else {
 			ret = check_or_submit_hip_report(vpninfo, report_buf->data);
