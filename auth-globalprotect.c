@@ -295,7 +295,7 @@ gateways:
 		buf_append(buf, "  </ServerList>\n</GPPortal>\n");
 		if ((result = buf_error(buf)))
 			goto out;
-		if ((result = vpninfo->write_new_config(vpninfo, buf->data, buf->pos)))
+		if ((result = vpninfo->write_new_config(vpninfo->cbdata, buf->data, buf->pos)))
 			goto out;
 	}
 
