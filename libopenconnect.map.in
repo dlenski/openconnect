@@ -94,6 +94,7 @@ OPENCONNECT_5_4 {
 
 OPENCONNECT_5_5 {
  global:
+	openconnect_get_idle_timeout;
 	openconnect_get_protocol;
 	openconnect_get_supported_protocols;
 	openconnect_free_supported_protocols;

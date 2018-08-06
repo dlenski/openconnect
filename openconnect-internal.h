@@ -586,6 +586,7 @@ struct openconnect_info {
 
 	struct oc_ip_info ip_info;
 	int cstp_basemtu; /* Returned by server */
+	int idle_timeout; /* Returned by server */
 
 #ifdef _WIN32
 	long dtls_monitored, ssl_monitored, cmd_monitored, tun_monitored;

@@ -462,6 +462,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
 		if (!strcmp(buf + 7, "Keepalive")) {
 			vpninfo->ssl_times.keepalive = atol(colon);
+		} else if (!strcmp(buf + 7, "Idle-Timeout")) {
+			vpninfo->idle_timeout = atol(colon);
 		} else if (!strcmp(buf + 7, "DPD")) {
 			int j = atol(colon);
 			if (j && (!vpninfo->ssl_times.dpd || j < vpninfo->ssl_times.dpd))

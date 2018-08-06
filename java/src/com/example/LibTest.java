@@ -275,6 +275,8 @@ public final class LibTest {
 		if (lib.makeCSTPConnection() != 0)
 			die("Error establishing VPN link");
 
+		int idleTimeout = lib.getIdleTimeout();
+		System.out.println("Idle Timeout: " + idleTimeout + " seconds");
 		printIPInfo(lib.getIPInfo());
 
 		if (lib.setupDTLS(60) != 0)

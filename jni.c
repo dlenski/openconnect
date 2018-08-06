@@ -1108,6 +1108,16 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setXMLPo
 	openconnect_set_xmlpost(ctx->vpninfo, arg);
 }
 
+JNIEXPORT jint JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_getIdleTimeout(
+	JNIEnv *jenv, jobject jobj)
+{
+	struct libctx *ctx = getctx(jenv, jobj);
+
+	if (!ctx)
+		return -EINVAL;
+	return openconnect_get_idle_timeout(ctx->vpninfo);
+}
+
 /* simple cases: return a const string (no need to free it) */
 
 #define RETURN_STRING_START \

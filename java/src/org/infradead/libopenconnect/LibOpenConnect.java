@@ -157,6 +157,7 @@ public abstract class LibOpenConnect {
 	public synchronized native String getCSTPCompression();
 	public synchronized native String getDTLSCompression();
 	public synchronized native String getProtocol();
+	public synchronized native int getIdleTimeout();
 
 	/* certificate info */
 
@@ -247,6 +248,7 @@ public abstract class LibOpenConnect {
 		public String proxyPac;
 		public String gatewayAddr;
 		public int MTU;
+		public int idleTimeoutSec;
 
 		public ArrayList<String> splitDNS = new ArrayList<String>();
 		public ArrayList<String> splitIncludes = new ArrayList<String>();

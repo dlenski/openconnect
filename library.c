@@ -538,6 +538,11 @@ void openconnect_set_dpd(struct openconnect_info *vpninfo, int min_seconds)
 		vpninfo->dtls_times.dpd = vpninfo->ssl_times.dpd = 2;
 }
 
+int openconnect_get_idle_timeout(struct openconnect_info *vpninfo)
+{
+	return vpninfo->idle_timeout;
+}
+
 int openconnect_get_ip_info(struct openconnect_info *vpninfo,
 			    const struct oc_ip_info **info,
 			    const struct oc_vpn_option **cstp_options,

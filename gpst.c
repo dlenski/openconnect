@@ -481,6 +481,11 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 		else if (!xmlnode_get_text(xml_node, "mtu", &s)) {
 			vpninfo->ip_info.mtu = atoi(s);
 			free(s);
+		} else if (!xmlnode_get_text(xml_node, "disconnect-on-idle", &s)) {
+			int sec = atoi(s);
+			vpn_progress(vpninfo, PRG_INFO, _("Idle timeout is %d minutes.\n"), sec/60);
+			vpninfo->idle_timeout = sec;
+			free(s);
 		} else if (!xmlnode_get_text(xml_node, "ssl-tunnel-url", &s)) {
 			free(vpninfo->urlpath);
 			vpninfo->urlpath = s;
