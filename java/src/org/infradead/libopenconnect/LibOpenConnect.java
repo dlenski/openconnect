@@ -77,6 +77,10 @@ public abstract class LibOpenConnect {
 		libctx = init("OpenConnect VPN Agent (Java)");
 	}
 
+	public LibOpenConnect(String userAgent) {
+		libctx = init(userAgent);
+	}
+
 	public synchronized void destroy() {
 		if (libctx != 0) {
 			free();
