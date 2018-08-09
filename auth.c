@@ -1144,7 +1144,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 
 
 			csd_argv[i++] = (char *)"-url";
-			if (asprintf(&csd_argv[i++], "\"https://%s%s\"", vpninfo->hostname, vpninfo->csd_starturl) == -1)
+			if (asprintf(&csd_argv[i++], "\"https://%s%s\"", openconnect_get_hostname(vpninfo), vpninfo->csd_starturl) == -1)
 				goto out;
 
 			csd_argv[i++] = (char *)"-langselen";
@@ -1154,7 +1154,7 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 				goto out;
 			if (setenv("CSD_TOKEN", vpninfo->csd_token, 1))
 				goto out;
-			if (setenv("CSD_HOSTNAME", vpninfo->hostname, 1))
+			if (setenv("CSD_HOSTNAME", openconnect_get_hostname(vpninfo), 1))
 				goto out;
 
 			apply_script_env(vpninfo->csd_env);
