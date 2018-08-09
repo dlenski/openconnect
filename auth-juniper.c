@@ -188,8 +188,6 @@ static int parse_select_node(struct openconnect_info *vpninfo, struct oc_auth_fo
 	xmlnode_get_prop(node, "name", &opt->form.name);
 	opt->form.label = strdup(opt->form.name);
 	opt->form.type = OC_FORM_OPT_SELECT;
-	if (!strcmp(opt->form.name, "realm"))
-		form->authgroup_opt = opt;
 
 	for (child = node->children; child; child = child->next) {
 		struct oc_choice **new_choices;
