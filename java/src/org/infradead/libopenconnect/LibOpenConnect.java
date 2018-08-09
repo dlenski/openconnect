@@ -22,6 +22,12 @@ public abstract class LibOpenConnect {
 
 	/* constants */
 
+	public static final int OC_PROTO_PROXY = 1;
+	public static final int OC_PROTO_CSD = 2;
+	public static final int OC_PROTO_AUTH_CERT = 4;
+	public static final int OC_PROTO_AUTH_OTP = 8;
+	public static final int OC_PROTO_AUTH_STOKEN = 16;
+
 	public static final int OC_FORM_OPT_TEXT = 1;
 	public static final int OC_FORM_OPT_PASSWORD = 2;
 	public static final int OC_FORM_OPT_SELECT = 3;
@@ -135,6 +141,7 @@ public abstract class LibOpenConnect {
 	public synchronized native void setReqMTU(int mtu);
 	public synchronized native void setPFS(boolean isEnabled);
 	public synchronized native void setSystemTrust(boolean isEnabled);
+	public synchronized native int setProtocol(String protocol);
 
 	/* connection info */
 
@@ -149,6 +156,8 @@ public abstract class LibOpenConnect {
 	public synchronized native String getDTLSCipher();
 	public synchronized native String getCSTPCompression();
 	public synchronized native String getDTLSCompression();
+	public synchronized native String getProtocol();
+	public synchronized native int getIdleTimeout();
 
 	/* certificate info */
 
@@ -166,6 +175,7 @@ public abstract class LibOpenConnect {
 	public static native boolean hasStokenSupport();
 	public static native boolean hasOATHSupport();
 	public static native boolean hasYubiOATHSupport();
+	public static native VPNProto[] getSupportedProtocols();
 
 	/* public data structures */
 
@@ -238,6 +248,7 @@ public abstract class LibOpenConnect {
 		public String proxyPac;
 		public String gatewayAddr;
 		public int MTU;
+		public int idleTimeoutSec;
 
 		public ArrayList<String> splitDNS = new ArrayList<String>();
 		public ArrayList<String> splitIncludes = new ArrayList<String>();
@@ -263,6 +274,13 @@ public abstract class LibOpenConnect {
 		public long rxPkts;
 		public long rxBytes;
 		public Object userData;
+	};
+
+	public static class VPNProto {
+		public String name;
+		public String prettyName;
+		public String description;
+		public int flags;
 	};
 
 	/* Optional storage for caller's data */

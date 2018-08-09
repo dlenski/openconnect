@@ -21,6 +21,12 @@
        <li>Fix portability of shell scripts in test suite.</li>
        <li>Add Google Authenticator TOTP support for Juniper.</li>
        <li>Add RFC7469 key PIN support for cert hashes.</li>
+       <li>Add protocol method to securely log out the Juniper session.</li>
+       <li>Relax requirements for Juniper hostname packet response to support old gateways.</li>
+       <li>Add API functions to query the supported protocols.</li>
+       <li>Verify ESP sequence numbers and warn even if replay protection is disabled.</li>
+       <li>Add support for PAN GlobalProtect VPN protocol (<tt>--protocol=gp</tt>).</li>
+       <li>Reorganize listing of command-line options, and include information on supported protocols.</li>
      </ul><br/>
   </li>
   <li><b><a href="ftp://ftp.infradead.org/pub/openconnect/openconnect-7.08.tar.gz">OpenConnect v7.08</a></b>
@@ -628,4 +634,3 @@
 </ul>
 	<INCLUDE file="inc/footer.tmpl" />
 </PAGE>
-

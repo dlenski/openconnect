@@ -39,6 +39,8 @@ extern "C" {
  * API version 5.5:
  *  - Add openconnect_get_supported_protocols()
  *  - Add openconnect_free_supported_protocols()
+ *  - Add openconnect_get_protocol()
+ *  - Add openconnect_get_idle_timeout()
  *
  * API version 5.4 (v7.08; 2016-12-13):
  *  - Add openconnect_set_pass_tos()
@@ -513,6 +515,7 @@ int openconnect_set_client_cert(struct openconnect_info *, const char *cert,
 const char *openconnect_get_ifname(struct openconnect_info *);
 void openconnect_set_reqmtu(struct openconnect_info *, int reqmtu);
 void openconnect_set_dpd(struct openconnect_info *, int min_seconds);
+int openconnect_get_idle_timeout(struct openconnect_info *);
 
 /* The returned structures are owned by the library and may be freed/replaced
    due to rekey or reconnect. Assume that once the mainloop starts, the
@@ -664,6 +667,7 @@ int openconnect_has_system_key_support(void);
 /* Query and select from among supported protocols */
 int openconnect_get_supported_protocols(struct oc_vpn_proto **protos);
 void openconnect_free_supported_protocols(struct oc_vpn_proto *protos);
+const char *openconnect_get_protocol(struct openconnect_info *vpninfo);
 int openconnect_set_protocol(struct openconnect_info *vpninfo, const char *protocol);
 
 struct addrinfo;

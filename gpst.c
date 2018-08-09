@@ -481,6 +481,11 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 		else if (!xmlnode_get_text(xml_node, "mtu", &s)) {
 			vpninfo->ip_info.mtu = atoi(s);
 			free(s);
+		} else if (!xmlnode_get_text(xml_node, "disconnect-on-idle", &s)) {
+			int sec = atoi(s);
+			vpn_progress(vpninfo, PRG_INFO, _("Idle timeout is %d minutes.\n"), sec/60);
+			vpninfo->idle_timeout = sec;
+			free(s);
 		} else if (!xmlnode_get_text(xml_node, "ssl-tunnel-url", &s)) {
 			free(vpninfo->urlpath);
 			vpninfo->urlpath = s;
@@ -630,7 +635,7 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 		vpninfo->ip_info.mtu = calculate_mtu(vpninfo, !no_esp_reason);
 		vpn_progress(vpninfo, PRG_ERR,
 			     _("No MTU received. Calculated %d for %s%s\n"), vpninfo->ip_info.mtu,
-			     no_esp_reason ? "TLS tunnel. " : "ESP tunnel", no_esp_reason ? : "");
+			     no_esp_reason ? "SSL tunnel. " : "ESP tunnel", no_esp_reason ? : "");
 		/* return -EINVAL; */
 	}
 	if (!vpninfo->ip_info.addr) {
@@ -789,9 +794,8 @@ static int build_csd_token(struct openconnect_info *vpninfo)
 	if (!vpninfo->csd_token)
 		return -ENOMEM;
 
-	/* use localname and cookie (excluding volatile authcookie and preferred-ip) to build md5sum */
+	/* use cookie (excluding volatile authcookie and preferred-ip) to build md5sum */
 	buf = buf_alloc();
-	append_opt(buf, "computer", vpninfo->localname);
 	filter_opts(buf, vpninfo->cookie, "authcookie,preferred-ip", 0);
 	if (buf_error(buf))
 		goto out;
@@ -815,9 +819,8 @@ static int check_or_submit_hip_report(struct openconnect_info *vpninfo, const ch
 	const char *method = "POST";
 	char *xml_buf=NULL, *orig_path;
 
-	/* cookie gives us these fields: authcookie, portal, user, domain, and (maybe the unnecessary) preferred-ip */
+	/* cookie gives us these fields: authcookie, portal, user, domain, computer, and (maybe the unnecessary) preferred-ip */
 	buf_append(request_body, "client-role=global-protect-full&%s", vpninfo->cookie);
-	append_opt(request_body, "computer", vpninfo->localname);
 	append_opt(request_body, "client-ip", vpninfo->ip_info.addr);
 	if (report) {
 		/* XML report contains many characters requiring URL-encoding (%xx) */
@@ -887,9 +890,15 @@ static int run_hip_script(struct openconnect_info *vpninfo)
 			buf_append_bytes(report_buf, b, i);
 
 		waitpid(child, &status, 0);
-		if (status != 0) {
+		if (!WIFEXITED(status)) {
 			vpn_progress(vpninfo, PRG_ERR,
-						 _("HIP script returned non-zero status: %d\n"), status);
+						 _("HIP script '%s' exited abnormally\n"),
+						 vpninfo->csd_wrapper);
+			ret = -EINVAL;
+		} else if (WEXITSTATUS(status) != 0) {
+			vpn_progress(vpninfo, PRG_ERR,
+						 _("HIP script '%s' returned non-zero status: %d\n"),
+						 vpninfo->csd_wrapper, WEXITSTATUS(status));
 			ret = -EINVAL;
 		} else {
 			ret = check_or_submit_hip_report(vpninfo, report_buf->data);
@@ -912,8 +921,6 @@ static int run_hip_script(struct openconnect_info *vpninfo)
 		hip_argv[i++] = openconnect_utf8_to_legacy(vpninfo, vpninfo->csd_wrapper);
 		hip_argv[i++] = (char *)"--cookie";
 		hip_argv[i++] = vpninfo->cookie;
-		hip_argv[i++] = (char *)"--computer";
-		hip_argv[i++] = vpninfo->localname;
 		hip_argv[i++] = (char *)"--client-ip";
 		hip_argv[i++] = (char *)vpninfo->ip_info.addr;
 		hip_argv[i++] = (char *)"--md5";
@@ -1014,7 +1021,10 @@ int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout)
 		goto do_reconnect;
 
 	while (1) {
-		int receive_mtu = MAX(2048, vpninfo->ip_info.mtu + 256);
+		/* Some servers send us packets that are larger than
+		   negotiated MTU. We reserve some extra space to
+		   handle that */
+		int receive_mtu = MAX(16384, vpninfo->ip_info.mtu);
 		int len, payload_len;
 
 		if (!vpninfo->cstp_pkt) {

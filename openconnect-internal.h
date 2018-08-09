@@ -174,10 +174,11 @@ struct pkt {
 #define COMPR_DEFLATE	(1<<0)
 #define COMPR_LZS	(1<<1)
 #define COMPR_LZ4	(1<<2)
-#define COMPR_MAX	COMPR_LZ4
+#define COMPR_LZO	(1<<3)
+#define COMPR_MAX	COMPR_LZO
 
 #ifdef HAVE_LZ4
-#define COMPR_STATELESS	(COMPR_LZS | COMPR_LZ4)
+#define COMPR_STATELESS	(COMPR_LZS | COMPR_LZ4 | COMPR_LZO)
 #else
 #define COMPR_STATELESS	(COMPR_LZS)
 #endif
@@ -263,6 +264,7 @@ struct vpn_proto {
 	const char *name;
 	const char *pretty_name;
 	const char *description;
+	const char *udp_protocol;
 	unsigned int flags;
 	int (*vpn_close_session)(struct openconnect_info *vpninfo, const char *reason);
 
@@ -584,6 +586,7 @@ struct openconnect_info {
 
 	struct oc_ip_info ip_info;
 	int cstp_basemtu; /* Returned by server */
+	int idle_timeout; /* Returned by server */
 
 #ifdef _WIN32
 	long dtls_monitored, ssl_monitored, cmd_monitored, tun_monitored;

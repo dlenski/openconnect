@@ -462,6 +462,8 @@ static int start_cstp_connection(struct openconnect_info *vpninfo)
 
 		if (!strcmp(buf + 7, "Keepalive")) {
 			vpninfo->ssl_times.keepalive = atol(colon);
+		} else if (!strcmp(buf + 7, "Idle-Timeout")) {
+			vpninfo->idle_timeout = atol(colon);
 		} else if (!strcmp(buf + 7, "DPD")) {
 			int j = atol(colon);
 			if (j && (!vpninfo->ssl_times.dpd || j < vpninfo->ssl_times.dpd))
@@ -729,7 +731,11 @@ static int cstp_reconnect(struct openconnect_info *vpninfo)
 int decompress_and_queue_packet(struct openconnect_info *vpninfo, int compr_type,
 				unsigned char *buf, int len)
 {
-	struct pkt *new = malloc(sizeof(struct pkt) + vpninfo->ip_info.mtu);
+	/* Some servers send us packets that are larger than
+	   negotiated MTU after decompression. We reserve some extra
+	   space to handle that */
+	int receive_mtu = MAX(16384, vpninfo->ip_info.mtu);
+	struct pkt *new = malloc(sizeof(struct pkt) + receive_mtu);
 	const char *comprname = "";
 
 	if (!new)
@@ -746,7 +752,7 @@ int decompress_and_queue_packet(struct openconnect_info *vpninfo, int compr_type
 		vpninfo->inflate_strm.avail_in = len - 4;
 
 		vpninfo->inflate_strm.next_out = new->data;
-		vpninfo->inflate_strm.avail_out = vpninfo->ip_info.mtu;
+		vpninfo->inflate_strm.avail_out = receive_mtu;
 		vpninfo->inflate_strm.total_out = 0;
 
 		if (inflate(&vpninfo->inflate_strm, Z_SYNC_FLUSH)) {
@@ -768,7 +774,7 @@ int decompress_and_queue_packet(struct openconnect_info *vpninfo, int compr_type
 	} else if (compr_type == COMPR_LZS) {
 		comprname = "LZS";
 
-		new->len = lzs_decompress(new->data, vpninfo->ip_info.mtu, buf, len);
+		new->len = lzs_decompress(new->data, receive_mtu, buf, len);
 		if (new->len < 0) {
 			len = new->len;
 			if (len == 0)
@@ -781,7 +787,7 @@ int decompress_and_queue_packet(struct openconnect_info *vpninfo, int compr_type
 #ifdef HAVE_LZ4
 	} else if (compr_type == COMPR_LZ4) {
 		comprname = "LZ4";
-		new->len = LZ4_decompress_safe((void *)buf, (void *)new->data, len, vpninfo->ip_info.mtu);
+		new->len = LZ4_decompress_safe((void *)buf, (void *)new->data, len, receive_mtu);
 		if (new->len <= 0) {
 			len = new->len;
 			if (len == 0)
@@ -882,18 +888,21 @@ int cstp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	   and add POLLOUT. As it is, though, it'll just chew CPU time in that
 	   fairly unlikely situation, until the write backlog clears. */
 	while (1) {
-		int len = MAX(16384, vpninfo->deflate_pkt_size ? : vpninfo->ip_info.mtu);
-		int payload_len;
+		/* Some servers send us packets that are larger than
+		   negotiated MTU. We reserve some extra space to
+		   handle that */
+		int receive_mtu = MAX(16384, vpninfo->deflate_pkt_size ? : vpninfo->ip_info.mtu);
+		int len, payload_len;
 
 		if (!vpninfo->cstp_pkt) {
-			vpninfo->cstp_pkt = malloc(sizeof(struct pkt) + len);
+			vpninfo->cstp_pkt = malloc(sizeof(struct pkt) + receive_mtu);
 			if (!vpninfo->cstp_pkt) {
 				vpn_progress(vpninfo, PRG_ERR, _("Allocation failed\n"));
 				break;
 			}
 		}
 
-		len = ssl_nonblock_read(vpninfo, vpninfo->cstp_pkt->cstp.hdr, len + 8);
+		len = ssl_nonblock_read(vpninfo, vpninfo->cstp_pkt->cstp.hdr, receive_mtu + 8);
 		if (!len)
 			break;
 		if (len < 0)

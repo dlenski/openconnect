@@ -24,7 +24,7 @@
   <li>Automatic update of VPN server list / configuration.</li>
   <li>Roaming support, allowing reconnection when the local IP address changes.</li>
   <li>Run without root privileges <i>(see <a href="nonroot.html">here</a>)</i>.</li>
-  <li>Support for "Cisco Secure Desktop" <i>(see <a href="csd.html">here</a>)</i> and "GlobalProtect HIP report" <i>(see <a href="hip.html">here</a>)</i>.</li>
+  <li>Support for "Cisco Secure Desktop" <i>(see <a href="csd.html">here</a>)</i>, Juniper TNCC <i>(see <a href="juniper.html#tncc">here</a>)</i>, and "GlobalProtect HIP report" <i>(see <a href="hip.html">here</a>)</i>.</li>
   <li>Graphical connection tools for various environments <i>(see <a href="gui.html">here</a>)</i>.</li>
 </ul>
 

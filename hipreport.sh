@@ -6,10 +6,7 @@
 #
 #   --cookie: a URL-encoded string, as output by openconnect
 #             --authenticate --protocol=gp, which includes parameters
-#             --from the /ssl-vpn/login.esp response
-#
-#   --computer: local hostname, which can be overriden with
-#               --openconnect local-hostname=HOSTNAME
+#             from the /ssl-vpn/login.esp response
 #
 #   --client-ip: IPv4 address allocated by the GlobalProtect VPN for
 #                this client (included in /ssl-vpn/getconfig.esp
@@ -22,26 +19,25 @@
 
 # Read command line arguments into variables
 COOKIE=
-COMPUTER=
 IP=
 MD5=
 
 while [ "$1" ]; do
     if [ "$1" = "--cookie" ];    then shift; COOKIE="$1"; fi
-    if [ "$1" = "--computer" ];  then shift; COMPUTER="$1"; fi
     if [ "$1" = "--client-ip" ]; then shift; IP="$1"; fi
     if [ "$1" = "--md5" ];       then shift; MD5="$1"; fi
     shift
 done
 
-if [ -z "$COOKIE" -o -z "$COMPUTER" -o -z "$IP" -o -z "$MD5" ]; then
+if [ -z "$COOKIE" -o -z "$IP" -o -z "$MD5" ]; then
     echo "Parameters --cookie, --computer, --client-ip, and --md5 are required" >&2
     exit 1;
 fi
 
-# Extract username and domain from cookie
+# Extract username and domain and computer from cookie
 USER=$(echo "$COOKIE" | sed -rn 's/(.+&|^)user=([^&]+)(&.+|$)/\2/p')
 DOMAIN=$(echo "$COOKIE" | sed -rn 's/(.+&|^)domain=([^&]+)(&.+|$)/\2/p')
+COMPUTER=$(echo "$COOKIE" | sed -rn 's/(.+&|^)computer=([^&]+)(&.+|$)/\2/p')
 
 # Timestamp in the format expected by GlobalProtect server
 NOW=$(date +'%m/%d/%Y %H:%M:%S')

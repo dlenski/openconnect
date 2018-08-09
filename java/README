@@ -11,7 +11,7 @@ From the top level, run:
     make
     cd java
     ant
-    sudo java -Djava.library.path=../.libs -jar dist/example.jar <server_ip>
+    sudo java -Djava.library.path=../.libs -jar dist/example.jar <server_name> [protocol]
 
 If ocproxy[1] is installed somewhere in your $PATH, this can be run as a
 non-root user and it should be pingable from across the VPN.

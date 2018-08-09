@@ -106,9 +106,13 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 	struct esp *esp = &vpninfo->esp_in[vpninfo->current_esp_in];
 	struct esp *old_esp = &vpninfo->esp_in[vpninfo->current_esp_in ^ 1];
 	struct pkt *this;
-	int receive_mtu = MAX(2048, vpninfo->ip_info.mtu + 256);
 	int work_done = 0;
 	int ret;
+
+	/* Some servers send us packets that are larger than negotiated
+	   MTU, or lack the ability to negotiate MTU (see gpst.c). We
+	   reserve some extra space to handle that */
+	int receive_mtu = MAX(2048, vpninfo->ip_info.mtu + 256);
 
 	if (vpninfo->dtls_state == DTLS_SLEEPING) {
 		if (ka_check_deadline(timeout, time(NULL), vpninfo->new_dtls_started + vpninfo->dtls_attempt_period)
@@ -142,6 +146,7 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			     len);
 		work_done = 1;
 
+		/* both supported algos (SHA1 and MD5) have 12-byte MAC lengths (RFC2403 and RFC2404) */
 		if (len <= sizeof(pkt->esp) + 12)
 			continue;
 
@@ -165,6 +170,11 @@ int esp_mainloop(struct openconnect_info *vpninfo, int *timeout)
 			continue;
 		}
 
+		/* Possible values of the Next Header field are:
+		   0x04: IP[v4]-in-IP
+		   0x05: supposed to mean Internet Stream Protocol
+		         (XXX: but used for LZO compressed packets by Juniper)
+		   0x29: IPv6 encapsulation */
 		if (pkt->data[len - 1] != 0x04 && pkt->data[len - 1] != 0x29 &&
 		    pkt->data[len - 1] != 0x05) {
 			vpn_progress(vpninfo, PRG_ERR,

@@ -117,6 +117,7 @@ const struct vpn_proto openconnect_protos[] = {
 		.tcp_mainloop = cstp_mainloop,
 		.add_http_headers = cstp_common_headers,
 		.obtain_cookie = cstp_obtain_cookie,
+		.udp_protocol = "DTLS",
 #ifdef HAVE_DTLS
 		.udp_setup = dtls_setup,
 		.udp_mainloop = dtls_mainloop,
@@ -133,6 +134,7 @@ const struct vpn_proto openconnect_protos[] = {
 		.tcp_mainloop = oncp_mainloop,
 		.add_http_headers = oncp_common_headers,
 		.obtain_cookie = oncp_obtain_cookie,
+		.udp_protocol = "ESP",
 #ifdef HAVE_ESP
 		.udp_setup = esp_setup,
 		.udp_mainloop = esp_mainloop,
@@ -145,12 +147,13 @@ const struct vpn_proto openconnect_protos[] = {
 		.name = "gp",
 		.pretty_name = N_("Palo Alto Networks GlobalProtect"),
 		.description = N_("Compatible with Palo Alto Networks (PAN) GlobalProtect SSL VPN"),
-		.flags = OC_PROTO_PROXY | OC_PROTO_AUTH_CERT | OC_PROTO_AUTH_OTP | OC_PROTO_AUTH_STOKEN,
+		.flags = OC_PROTO_PROXY | OC_PROTO_CSD | OC_PROTO_AUTH_CERT | OC_PROTO_AUTH_OTP | OC_PROTO_AUTH_STOKEN,
 		.vpn_close_session = gpst_bye,
 		.tcp_connect = gpst_setup,
 		.tcp_mainloop = gpst_mainloop,
 		.add_http_headers = gpst_common_headers,
 		.obtain_cookie = gpst_obtain_cookie,
+		.udp_protocol = "ESP",
 #ifdef HAVE_ESP
 		.udp_setup = esp_setup,
 		.udp_mainloop = esp_mainloop,
@@ -184,6 +187,11 @@ int openconnect_get_supported_protocols(struct oc_vpn_proto **protos)
 void openconnect_free_supported_protocols(struct oc_vpn_proto *protos)
 {
 	free((void *)protos);
+}
+
+const char *openconnect_get_protocol(struct openconnect_info *vpninfo)
+{
+	return vpninfo->proto->name;
 }
 
 int openconnect_set_protocol(struct openconnect_info *vpninfo, const char *protocol)
@@ -528,6 +536,11 @@ void openconnect_set_dpd(struct openconnect_info *vpninfo, int min_seconds)
 		vpninfo->dtls_times.dpd = vpninfo->ssl_times.dpd = min_seconds;
 	else if (min_seconds == 1)
 		vpninfo->dtls_times.dpd = vpninfo->ssl_times.dpd = 2;
+}
+
+int openconnect_get_idle_timeout(struct openconnect_info *vpninfo)
+{
+	return vpninfo->idle_timeout;
 }
 
 int openconnect_get_ip_info(struct openconnect_info *vpninfo,
@@ -904,7 +917,8 @@ int openconnect_setup_tun_device(struct openconnect_info *vpninfo,
 static const char *compr_name_map[] = {
 	[COMPR_DEFLATE] = "Deflate",
 	[COMPR_LZS] = "LZS",
-	[COMPR_LZ4] = "LZ4"
+	[COMPR_LZ4] = "LZ4",
+	[COMPR_LZO] = "LZO",
 };
 
 const char *openconnect_get_cstp_compression(struct openconnect_info * vpninfo)

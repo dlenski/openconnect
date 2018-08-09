@@ -173,6 +173,7 @@ static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 		free(value);
 		value = NULL;
 	}
+	append_opt(cookie, "computer", vpninfo->localname);
 
 	if (!buf_error(cookie)) {
 		vpninfo->cookie = cookie->data;
@@ -294,7 +295,7 @@ gateways:
 		buf_append(buf, "  </ServerList>\n</GPPortal>\n");
 		if ((result = buf_error(buf)))
 			goto out;
-		if ((result = vpninfo->write_new_config(vpninfo, buf->data, buf->pos)))
+		if ((result = vpninfo->write_new_config(vpninfo->cbdata, buf->data, buf->pos)))
 			goto out;
 	}
 
@@ -475,8 +476,7 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 	 *
 	 * Don't blame me. I didn't design this.
 	 */
-	append_opt(request_body, "computer", vpninfo->localname);
-	buf_append(request_body, "&%s", vpninfo->cookie);
+	buf_append(request_body, "%s", vpninfo->cookie);
 	if ((result = buf_error(request_body)))
 		goto out;
 
