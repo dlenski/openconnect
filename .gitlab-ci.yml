@@ -3,6 +3,7 @@ image: fedora:latest
 CentOS7/GnuTLS:
   image: centos:7
   script:
+  - yum update -y
   - yum install -y epel-release
   - yum install -y git autoconf automake libtool python gettext
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
@@ -29,6 +30,7 @@ CentOS7/GnuTLS:
 CentOS7/OpenSSL:
   image: centos:7
   script:
+  - yum update -y
   - yum install -y epel-release
   - yum install -y git autoconf automake libtool python gettext
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
@@ -55,6 +57,7 @@ CentOS7/OpenSSL:
 CentOS6/OpenSSL:
   image: centos:6
   script:
+  - yum update -y
   - yum install -y epel-release
   - yum -y reinstall glibc-common
   - localedef -i cs_CZ -f UTF-8 cs_CZ.UTF-8
@@ -83,6 +86,7 @@ CentOS6/OpenSSL:
 
 Fedora/GnuTLS:
   script:
+  - dnf update -y
   - dnf install -y git autoconf automake libtool python gettext make
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
     'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
@@ -106,6 +110,7 @@ Fedora/GnuTLS:
 
 Fedora/GnuTLS/clang:
   script:
+  - dnf update -y
   - dnf install -y git autoconf automake libtool python gettext make
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
     'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
@@ -129,6 +134,7 @@ Fedora/GnuTLS/clang:
 
 Fedora/OpenSSL:
   script:
+  - dnf update -y
   - dnf install -y git autoconf automake libtool python gettext make
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
     'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
@@ -154,6 +160,7 @@ Fedora/OpenSSL:
 
 Fedora/OpenSSL/clang:
   script:
+  - dnf update -y
   - dnf install -y git autoconf automake libtool python gettext make
     'pkgconfig(openssl)' 'pkgconfig(libxml-2.0)' 'pkgconfig(liblz4)'
     'pkgconfig(gnutls)' trousers-devel 'pkgconfig(libpcsclite)'
@@ -179,6 +186,7 @@ Fedora/OpenSSL/clang:
 
 MinGW32/GnuTLS:
   script:
+  - dnf update -y
   - dnf install -y git autoconf automake libtool python gettext make
     mingw32-gnutls mingw32-openssl mingw32-libxml2 mingw32-zlib
     mingw32-gcc wine.i686 make
@@ -200,6 +208,7 @@ MinGW32/GnuTLS:
 
 MinGW32/OpenSSL:
   script:
+  - dnf update -y
   - dnf install -y git autoconf automake libtool python gettext make
     mingw32-gnutls mingw32-openssl mingw32-libxml2 mingw32-zlib
     mingw32-gcc wine.i686 make
@@ -221,6 +230,7 @@ MinGW32/OpenSSL:
 
 MinGW64/GnuTLS:
   script:
+  - dnf update -y
   - dnf install -y git autoconf automake libtool python gettext make
     mingw64-gnutls mingw64-openssl mingw64-libxml2 mingw64-zlib
     mingw64-gcc wine.i686 make
@@ -242,6 +252,7 @@ MinGW64/GnuTLS:
 
 MinGW64/OpenSSL:
   script:
+  - dnf update -y
   - dnf install -y git autoconf automake libtool python gettext make
     mingw64-gnutls mingw64-openssl mingw64-libxml2 mingw64-zlib
     mingw64-gcc wine.x86_64 make
