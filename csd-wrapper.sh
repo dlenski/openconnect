@@ -15,7 +15,7 @@ URL="https://${CSD_HOSTNAME}/CACHE"
 HOSTSCAN_DIR="$HOME/.cisco/hostscan"
 LIB_DIR="$HOSTSCAN_DIR/lib"
 BIN_DIR="$HOSTSCAN_DIR/bin"
-PINNEDPUBKEY=${CSD_SHA256:+"--pinnedpubkey sha256//$CSD_SHA256"}
+PINNEDPUBKEY="-s ${CSD_SHA256:+"-k --pinnedpubkey sha256//$CSD_SHA256"}"
 
 BINS=("cscan" "cstub" "cnotify")
 
@@ -61,63 +61,65 @@ curl $PINNEDPUBKEY "${URL}/sdesktop/hostscan/$ARCH/manifest" -o "$HOSTSCAN_DIR/m
 
 # generating md5.sum with full paths from manifest
 export HOSTSCAN_DIR=$HOSTSCAN_DIR
-cat $HOSTSCAN_DIR/manifest | sed -r 's/\(|\)//g' | awk '{ cmd = "find $HOSTSCAN_DIR -iname " $2; while (cmd | getline line) { print $4, line; } }' > $HOSTSCAN_DIR/md5.sum
+while read HASHTYPE FILE EQU HASHVAL; do
+    FILE="${FILE%*)}"
+    FILE="${FILE#(}"
+    if grep --extended-regexp --quiet --invert-match ".so|tables.dat" <<< "$FILE"; then
+	PATHNAME="${BIN_DIR}/$FILE"
+	IS_BIN=yes
+    else
+	PATHNAME="${LIB_DIR}/$FILE"
+	IS_BIN=no
+    fi
+    DOWNLOAD=yes
+    case $HASHTYPE in
+	MD5)
+	    if [ -r "$PATHNAME" ] && md5sum --status -c <<< "$HASHVAL $PATHNAME"; then
+		DOWNLOAD=no
+	    fi
+	    ;;
+	SHA1)
+	    if [ -r "$PATHNAME" ] && sha1sum --status -c <<< "$HASHVAL $PATHNAME"; then
+		DOWNLOAD=no
+	    fi
+	    ;;
+	SHA256)
+	    if [ -r "$PATHNAME" ] && sha256sum --status -c <<< "$HASHVAL $PATHNAME"; then
+		DOWNLOAD=no
+	    fi
+	    ;;
+	*)
+	    echo "Unsupported hash type $HASHTYPE"
+	    ;;
+    esac
+    if [ "$DOWNLOAD" = "yes" ]; then
+	echo "Downloading: $FILE"
+	TMPFILE="${PATHNAME}.tmp"
 
-# check number of files either
-MD5_LINES=`wc --lines $HOSTSCAN_DIR/md5.sum | awk '{ print $1; }'`
-MANIFEST_LINES=`wc --lines $HOSTSCAN_DIR/manifest | awk '{ print $1; }'`
-echo "Got $MANIFEST_LINES files in manifest, locally found $MD5_LINES"
-
-# check md5
-md5sum -c $HOSTSCAN_DIR/md5.sum
-if [[ "$?" -ne "0" || "$MD5_LINES" -ne "$MANIFEST_LINES" ]]
-then
-    echo "Corrupted files, or whatever wrong with md5 sums, or missing some file"
-    # just download every file mentioned in manifest (not ideal, but hopefully should be enough)
-    FILES=( $(cat $HOSTSCAN_DIR/manifest | sed -r 's/\(|\)//g' | awk '{ print $2; }') )
-    WORK_DIR=`pwd`
-    TMP_DIR=`mktemp -d` && cd $TMP_DIR
-    for i in ${FILES[@]} ; do
-        FILE="$(basename "$i")"
-
-        echo "Downloading: $FILE to $TMP_DIR"
-        curl $PINNEDPUBKEY "${URL}/sdesktop/hostscan/$ARCH/$FILE" -o $FILE
+        curl $PINNEDPUBKEY "${URL}/sdesktop/hostscan/$ARCH/$FILE" -o "${TMPFILE}"
 
         # some files are in gz (don't understand logic here)
-        if [[ ! -f $FILE || ! -s $FILE ]]
+        if [[ ! -f "${TMPFILE}" || ! -s "${TMPFILE}" ]]
         then
             # remove 0 size files
-            if [[ ! -s $FILE ]]; then
-                rm $FILE
+            if [[ ! -s ${TMPFILE} ]]; then
+                rm ${TMPFILE}
             fi
 
             echo "Failure on $FILE, trying gz"
-            FILE_GZ=$FILE.gz
-            curl $PINNEDPUBKEY "${URL}/sdesktop/hostscan/$ARCH/$FILE_GZ" -O $FILE_GZ
-            gunzip --verbose --decompress $FILE_GZ
+            FILE_GZ="${TMPFILE}.gz"
+            curl $PINNEDPUBKEY "${URL}/sdesktop/hostscan/$ARCH/$FILE_GZ" -o "${FILE_GZ}" &&
+		gunzip --verbose --decompress "${FILE_GZ}"
         fi
 
-        # don't know why, but my version of hostscan requires tables to be stored in libs
-        echo $FILE | grep --extended-regexp --quiet --invert-match ".so|tables.dat"
-        IS_LIB=$?
-        if [[ "$IS_LIB" -eq "1" ]]
-        then
-            cp --verbose $FILE $LIB_DIR
-        else
-            cp --verbose $FILE $BIN_DIR
-        fi
-
-    done
-
-    for i in ${BINS[@]} ; do
-        echo "Setting excecution bit on: $BIN_DIR/$i"
-        chmod u+x $BIN_DIR/$i
-    done
-
-    cd $WORK_DIR
-    rm -rf $TMP_DIR
-
-fi
+	if [ -r "${TMPFILE}" ]; then
+	    if [ "$IS_BIN" = "yes" ]; then
+		chmod +x "${TMPFILE}"
+	    fi
+	    mv "${TMPFILE}" "${PATHNAME}"
+	fi
+    fi
+done < $HOSTSCAN_DIR/manifest
 
 # cstub doesn't care about logging options, sic!
 #ARGS="-log debug -ticket $TICKET -stub $STUB -group $GROUP -host "$URL" -certhash $CERTHASH"
