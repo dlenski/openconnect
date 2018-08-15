@@ -1,0 +1,43 @@
+notifications:
+  email:
+    false
+
+dist: trusty
+sudo: required
+
+language: c
+compiler:
+  - gcc
+
+services:
+  - docker
+
+jobs:
+  include:
+
+    # Build binaries from source
+    - stage: app build
+      env: MAKEFLAGS="-j 2"
+      before_script:
+        - sudo apt-get update -qq
+        - sudo apt-get install -qq build-essential autoconf automake libtool pkg-config
+                       vpnc-scripts
+                       gettext libproxy-dev libxml2-dev liblz4-1 liblz4-dev libstoken-dev liboath-dev
+                       libgnutls28-dev # actually GnuTLS 3.2.11 ¯\_(ツ)_/¯
+      script:
+        - ./autogen.sh
+        - ./configure
+        - make VERBOSE=1 version.c
+        - make
+        - make VERBOSE=1 -j4 check
+
+    # Build a dockerfile
+    - stage: docker build
+      services:
+        - docker
+      before_script:
+        - docker build -t openconnect .
+      script:
+        - docker run openconnect "/openconnect/openconnect" "-V"| grep gp
+        # This last grep should be changed if this goes upstream, as it
+        # only checks for GlobalProtect support availability.
