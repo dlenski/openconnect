@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2018-05-31 19:26+0100\n"
+"POT-Creation-Date: 2018-08-15 21:16+0100\n"
 "PO-Revision-Date: 2013-01-18 22:04+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Portuguese (Brazil) <l10n-pt-br@meego.org.br>\n"
@@ -19,129 +19,129 @@ msgstr ""
 
 #: auth-globalprotect.c:57
 msgid "Please enter your username and password"
-msgstr ""
+msgstr "Por favor, insira seu nome de usuário e senha"
 
 #: auth-globalprotect.c:67
 msgid "Username: "
-msgstr ""
+msgstr "Nome de usuário: "
 
 #: auth-globalprotect.c:75
 msgid "Challenge"
-msgstr ""
+msgstr "Desafio"
 
 #: auth-globalprotect.c:75
 msgid "Password"
-msgstr ""
+msgstr "Senha"
 
 #: auth-globalprotect.c:155
 #, c-format
 msgid "GlobalProtect login returned %s=%s (expected %s)\n"
-msgstr ""
+msgstr "Login GlobalProtect retornou %s=%s (esperava %s)\n"
 
 #: auth-globalprotect.c:161
 #, c-format
 msgid "GlobalProtect login returned empty or missing %s\n"
-msgstr ""
+msgstr "Login GlobalProtect retornou %s vazio ou faltando\n"
 
 #: auth-globalprotect.c:167
 #, c-format
 msgid "GlobalProtect login returned %s=%s\n"
-msgstr ""
+msgstr "Login GlobalProtect retornou %s=%s\n"
 
-#: auth-globalprotect.c:202
+#: auth-globalprotect.c:203
 msgid "Please select GlobalProtect gateway."
-msgstr ""
+msgstr "Por favor, selecione o gateway GlobalProtect."
 
-#: auth-globalprotect.c:212
+#: auth-globalprotect.c:213
 msgid "GATEWAY:"
-msgstr ""
+msgstr "GATEWAY:"
 
 #. each entry looks like <entry name="host[:443]"><description>Label</description></entry>
-#: auth-globalprotect.c:266
+#: auth-globalprotect.c:267
 #, c-format
 msgid "%d gateway servers available:\n"
-msgstr ""
+msgstr "%d servidores gateway disponíveis:\n"
 
-#: auth-globalprotect.c:288
+#: auth-globalprotect.c:289
 #, c-format
 msgid "  %s (%s)\n"
-msgstr ""
+msgstr "  %s (%s)\n"
 
-#: auth-globalprotect.c:357 auth-juniper.c:707 auth.c:661
+#: auth-globalprotect.c:358 auth-juniper.c:706 auth.c:661
 msgid "Failed to generate OTP tokencode; disabling token\n"
 msgstr "Falhou ao gerar código de token OTP; desabilitando token\n"
 
-#: auth-globalprotect.c:452
+#: auth-globalprotect.c:453
 msgid "Server is neither a GlobalProtect portal nor a gateway.\n"
-msgstr ""
+msgstr "O servidor não é um portal nem gateway GlobalProtect.\n"
 
-#: auth-globalprotect.c:500 oncp.c:1303
+#: auth-globalprotect.c:500 oncp.c:1266
 msgid "Logout failed.\n"
 msgstr "Desconexão falhou\n"
 
 #: auth-globalprotect.c:502
 msgid "Logout successful\n"
-msgstr ""
+msgstr "Desconexão feita com sucesso\n"
 
-#: auth-juniper.c:143
+#: auth-juniper.c:142
 #, c-format
 msgid "Ignoring unknown form submit item '%s'\n"
 msgstr "Ignorando item submetido de formulário desconhecido \"%s\"\n"
 
-#: auth-juniper.c:154
+#: auth-juniper.c:153
 #, c-format
 msgid "Ignoring unknown form input type '%s'\n"
 msgstr "Ignorando item de entrada de formulário desconhecido \"%s\"\n"
 
-#: auth-juniper.c:164
+#: auth-juniper.c:163
 #, c-format
 msgid "Discarding duplicate option '%s'\n"
 msgstr "Descartando opção duplicada \"%s\"\n"
 
-#: auth-juniper.c:237 auth.c:408
+#: auth-juniper.c:236 auth.c:408
 #, c-format
 msgid "Cannot handle form method='%s', action='%s'\n"
 msgstr "Não foi possível lidar com method=\"%s\" e action=\"%s\" da forma\n"
 
-#: auth-juniper.c:268
+#: auth-juniper.c:267
 #, c-format
 msgid "Unknown textarea field: '%s'\n"
 msgstr "Campo de área de texto desconhecida: \"%s\"\n"
 
-#: auth-juniper.c:336
+#: auth-juniper.c:335
 msgid "TNCC support not implemented yet on Windows\n"
 msgstr "Suporte a TNCC não foi implementado ainda no Windows\n"
 
-#: auth-juniper.c:358
+#: auth-juniper.c:357
 msgid "No DSPREAUTH cookie; not attempting TNCC\n"
 msgstr "Nenhum cookie DSPREAUTH; não tentar TNCC\n"
 
-#: auth-juniper.c:369
+#: auth-juniper.c:368
 msgid "Failed to allocate memory for communication with TNCC\n"
 msgstr "Falha ao alocar memória para comunicação com TNCC\n"
 
-#: auth-juniper.c:404
+#: auth-juniper.c:403
 #, c-format
 msgid "Failed to exec TNCC script %s: %s\n"
 msgstr "Falha ao executar script TNCC %s: %s\n"
 
-#: auth-juniper.c:413
+#: auth-juniper.c:412
 msgid "Failed to send start command to TNCC\n"
 msgstr "Falha ao enviar comando de início para TNCC\n"
 
-#: auth-juniper.c:420
+#: auth-juniper.c:419
 msgid "Sent start; waiting for response from TNCC\n"
 msgstr "Início enviado; esperando por uma resposta do TNCC\n"
 
-#: auth-juniper.c:425
+#: auth-juniper.c:424
 msgid "Failed to read response from TNCC\n"
 msgstr "Falha ao ler resposta de TNCC\n"
 
-#: auth-juniper.c:436
+#: auth-juniper.c:435
 msgid "Received invalid response from TNCC\n"
 msgstr "Recebida resposta inválida de TNCC\n"
 
-#: auth-juniper.c:438
+#: auth-juniper.c:437
 #, c-format
 msgid ""
 "TNCC response: -->\n"
@@ -152,34 +152,34 @@ msgstr ""
 "%s\n"
 "<--\n"
 
-#: auth-juniper.c:446
+#: auth-juniper.c:445
 #, c-format
 msgid "Received unsuccessful %s response from TNCC\n"
 msgstr "Recebida resposta de %s malsucedida de TNCC\n"
 
-#: auth-juniper.c:459
+#: auth-juniper.c:458
 #, c-format
 msgid "Got new DSPREAUTH cookie from TNCC: %s\n"
 msgstr "Obteve novo cookie DSPREAUTH do TNCC: %s\n"
 
-#: auth-juniper.c:627
+#: auth-juniper.c:626
 msgid "Failed to parse HTML document\n"
 msgstr "Falha ao analisar documento HTTP\n"
 
-#: auth-juniper.c:644
+#: auth-juniper.c:643
 msgid "Failed to find or parse web form in login page\n"
 msgstr "Falha ao localizar ou analisar formulário web na página de login\n"
 
-#: auth-juniper.c:652
+#: auth-juniper.c:651
 msgid "Encountered form with no ID\n"
 msgstr "Encontrada formulário com nenhum ID\n"
 
-#: auth-juniper.c:690
+#: auth-juniper.c:689
 #, c-format
 msgid "Unknown form ID '%s'\n"
 msgstr "ID de formulário desconhecido \"%s\"\n"
 
-#: auth-juniper.c:693
+#: auth-juniper.c:692
 #, c-format
 msgid "Dumping unknown HTML form:\n"
 msgstr "Despejando formulário HTML desconhecido:\n"
@@ -333,31 +333,31 @@ msgstr ""
 "root\n"
 "\t Use a opção de linha de comando \"--csd-user\"\n"
 
-#: auth.c:1163
+#: auth.c:1166
 #, c-format
 msgid "Failed to exec CSD script %s\n"
 msgstr "Falhou ao executar script CSD %s\n"
 
-#: auth.c:1195
+#: auth.c:1198
 msgid "Unknown response from server\n"
 msgstr "Resposta desconhecida do servidor\n"
 
-#: auth.c:1325
+#: auth.c:1328
 msgid "Server requested SSL client certificate after one was provided\n"
 msgstr ""
 "Servidor requisitou certificado de cliente SSL após um ter sido fornecido\n"
 
-#: auth.c:1329
+#: auth.c:1332
 msgid "Server requested SSL client certificate; none was configured\n"
 msgstr ""
 "O servidor requisitou um certificado de cliente SSL, mas nenhum foi "
 "configurado\n"
 
-#: auth.c:1345
+#: auth.c:1348
 msgid "XML POST enabled\n"
 msgstr "XML POST habilitado\n"
 
-#: auth.c:1388
+#: auth.c:1391
 #, c-format
 msgid "Refreshing %s after 1 second...\n"
 msgstr "Renovando %s após 1 segundo...\n"
@@ -439,187 +439,187 @@ msgstr "X-DTLS-Session-ID é inválido; tem: “%s”\n"
 msgid "Unknown DTLS-Content-Encoding %s\n"
 msgstr "DTLS-Content-Encoding desconhecido %s\n"
 
-#: cstp.c:487
+#: cstp.c:489
 #, c-format
 msgid "Unknown CSTP-Content-Encoding %s\n"
 msgstr "CSTP-Content-Encoding desconhecido %s\n"
 
-#: cstp.c:562
+#: cstp.c:564
 msgid "No MTU received. Aborting\n"
 msgstr "Nenhum MTU foi recebido. Abortando\n"
 
-#: cstp.c:570 gpst.c:638
+#: cstp.c:572 gpst.c:643
 msgid "No IP address received. Aborting\n"
 msgstr "Nenhum endereço IP recebido. Abortando\n"
 
-#: cstp.c:576
+#: cstp.c:578
 #, c-format
 msgid "IPv6 configuration received but MTU %d is too small.\n"
 msgstr "Configuração IPv6 recebido, mas MTU %d é muito pequeno.\n"
 
-#: cstp.c:582 gpst.c:645
+#: cstp.c:584 gpst.c:650
 #, c-format
 msgid "Reconnect gave different Legacy IP address (%s != %s)\n"
 msgstr "Reconexão deu um endereço IP legado diferente (%s != %s)\n"
 
-#: cstp.c:590 gpst.c:654
+#: cstp.c:592 gpst.c:659
 #, c-format
 msgid "Reconnect gave different Legacy IP netmask (%s != %s)\n"
 msgstr "Reconexão deu uma máscara de rede IP legado diferente (%s != %s)\n"
 
-#: cstp.c:598
+#: cstp.c:600
 #, c-format
 msgid "Reconnect gave different IPv6 address (%s != %s)\n"
 msgstr "Reconexão deu uma máscara de rede IPv6 diferente (%s != %s)\n"
 
-#: cstp.c:606
+#: cstp.c:608
 #, c-format
 msgid "Reconnect gave different IPv6 netmask (%s != %s)\n"
 msgstr "Reconexão deu um endereço IPv6 diferente (%s != %s)\n"
 
-#: cstp.c:614
+#: cstp.c:616
 #, c-format
 msgid "CSTP connected. DPD %d, Keepalive %d\n"
 msgstr "CSTP conectado. DPD %d, Keepalive %d\n"
 
-#: cstp.c:616
+#: cstp.c:618
 #, c-format
 msgid "CSTP Ciphersuite: %s\n"
 msgstr "Ciphersuite CTSP: %s\n"
 
-#: cstp.c:678
+#: cstp.c:680
 msgid "Compression setup failed\n"
 msgstr "Configuração da compressão falhou\n"
 
-#: cstp.c:695
+#: cstp.c:697
 msgid "Allocation of deflate buffer failed\n"
 msgstr "Alocação da buffer de deflate falhou\n"
 
-#: cstp.c:753
+#: cstp.c:759
 msgid "inflate failed\n"
 msgstr "falhou ao inflar\n"
 
-#: cstp.c:776
+#: cstp.c:782
 #, c-format
 msgid "LZS decompression failed: %s\n"
 msgstr "Descompressão LZS falhou: %s\n"
 
-#: cstp.c:789
+#: cstp.c:795
 msgid "LZ4 decompression failed\n"
 msgstr "Descompressão LZ4 falhou\n"
 
-#: cstp.c:796
+#: cstp.c:802
 #, c-format
 msgid "Unknown compression type %d\n"
 msgstr "Tipo de compressão desconhecida %d\n"
 
-#: cstp.c:801
+#: cstp.c:807
 #, c-format
 msgid "Received %s compressed data packet of %d bytes (was %d)\n"
 msgstr "Recebeu o pacote de dados comprimido %s de %d bytes (era %d)\n"
 
-#: cstp.c:821
+#: cstp.c:827
 #, c-format
 msgid "deflate failed %d\n"
 msgstr "deflate falhou %d\n"
 
-#: cstp.c:891 dtls.c:283 dtls.c:742 esp.c:132 gpst.c:1023 mainloop.c:69
-#: oncp.c:951
+#: cstp.c:900 dtls.c:283 dtls.c:742 esp.c:136 gpst.c:1033 mainloop.c:69
+#: oncp.c:914
 msgid "Allocation failed\n"
 msgstr "Alocação falhou\n"
 
-#: cstp.c:902 gpst.c:1036
+#: cstp.c:911 gpst.c:1046
 #, c-format
 msgid "Short packet received (%d bytes)\n"
 msgstr "Pacote curto recebido (%d bytes)\n"
 
-#: cstp.c:915
+#: cstp.c:924
 #, c-format
 msgid "Unexpected packet length. SSL_read returned %d but packet is\n"
 msgstr "Tamanho de pacote inesperado. SSL_read retornou %d, mas o pacote é\n"
 
-#: cstp.c:929
+#: cstp.c:938
 msgid "Got CSTP DPD request\n"
 msgstr "Obtendo requisição DPD de CSTP\n"
 
-#: cstp.c:935
+#: cstp.c:944
 msgid "Got CSTP DPD response\n"
 msgstr "Obteve resposta DPD CSTP\n"
 
-#: cstp.c:940
+#: cstp.c:949
 msgid "Got CSTP Keepalive\n"
 msgstr "Obteve keepalive CSTP\n"
 
-#: cstp.c:945 oncp.c:1040
+#: cstp.c:954 oncp.c:1003
 #, c-format
 msgid "Received uncompressed data packet of %d bytes\n"
 msgstr "Recebeu pacote de dados sem compressão de %d bytes\n"
 
-#: cstp.c:962
+#: cstp.c:971
 #, c-format
 msgid "Received server disconnect: %02x '%s'\n"
 msgstr "Recebeu desconexão do servidor: %02x \"%s\"\n"
 
-#: cstp.c:965
+#: cstp.c:974
 msgid "Received server disconnect\n"
 msgstr "Recebeu desconexão do servidor\n"
 
-#: cstp.c:973
+#: cstp.c:982
 msgid "Compressed packet received in !deflate mode\n"
 msgstr "Pacote comprimido recebido em modo !deflate\n"
 
-#: cstp.c:982
+#: cstp.c:991
 msgid "received server terminate packet\n"
 msgstr "recebeu pacote de terminação do servidor\n"
 
-#: cstp.c:989
+#: cstp.c:998
 #, c-format
 msgid "Unknown packet %02x %02x %02x %02x %02x %02x %02x %02x\n"
 msgstr "Pacote desconhecido %02x %02x %02x %02x %02x %02x %02x %02x\n"
 
-#: cstp.c:1032 gpst.c:1123 oncp.c:1158
+#: cstp.c:1041 gpst.c:1133 oncp.c:1121
 #, c-format
 msgid "SSL wrote too few bytes! Asked for %d, sent %d\n"
 msgstr "SSL não escreveu bytes suficiente! Perguntou por %d, enviou %d\n"
 
 #. Not that this will ever happen; we don't even process
 #. the setting when we're asked for it.
-#: cstp.c:1060 oncp.c:1192
+#: cstp.c:1069 oncp.c:1155
 msgid "CSTP rekey due\n"
 msgstr "Renovação da chave CSTP falhou\n"
 
 #. if we failed rehandshake try establishing a new-tunnel instead of failing
-#: cstp.c:1067 oncp.c:1199
+#: cstp.c:1076 oncp.c:1162
 msgid "Rehandshake failed; attempting new-tunnel\n"
 msgstr "Re-negociação falhou; tentando novo túnel\n"
 
-#: cstp.c:1078 oncp.c:1210
+#: cstp.c:1087 oncp.c:1173
 msgid "CSTP Dead Peer Detection detected dead peer!\n"
 msgstr "Dead Peer Detection CSTP detectou par morto!\n"
 
-#: cstp.c:1082 gpst.c:1147 oncp.c:1128 oncp.c:1214
+#: cstp.c:1091 gpst.c:1157 oncp.c:1091 oncp.c:1177
 msgid "Reconnect failed\n"
 msgstr "Reconexão falhou\n"
 
-#: cstp.c:1098 oncp.c:1230
+#: cstp.c:1107 oncp.c:1193
 msgid "Send CSTP DPD\n"
 msgstr "Enviar DPD CSTP\n"
 
-#: cstp.c:1110 oncp.c:1241
+#: cstp.c:1119 oncp.c:1204
 msgid "Send CSTP Keepalive\n"
 msgstr "Enviar keepalive CSTP\n"
 
-#: cstp.c:1135
+#: cstp.c:1144
 #, c-format
 msgid "Sending compressed data packet of %d bytes (was %d)\n"
 msgstr "Enviando pacote de dados comprimido de %d bytes (era %d)\n"
 
-#: cstp.c:1146 oncp.c:1275
+#: cstp.c:1155 oncp.c:1238
 #, c-format
 msgid "Sending uncompressed data packet of %d bytes\n"
 msgstr "Enviando pacote de %d bytes comm dados não comprimidos\n"
 
-#: cstp.c:1185
+#: cstp.c:1194
 #, c-format
 msgid "Send BYE packet: %s\n"
 msgstr "Enviar pacote BYE: %s\n"
@@ -892,78 +892,78 @@ msgstr "entrada"
 msgid "outgoing"
 msgstr "saída"
 
-#: esp.c:97 esp.c:116
+#: esp.c:97 esp.c:120
 msgid "Send ESP probes\n"
 msgstr "Enviar sondas ESP\n"
 
-#: esp.c:141
+#: esp.c:145
 #, c-format
 msgid "Received ESP packet of %d bytes\n"
 msgstr "Recebido pacote ESP de %d bytes\n"
 
-#: esp.c:157
+#: esp.c:162
 #, c-format
 msgid "Received ESP packet from old SPI 0x%x, seq %u\n"
 msgstr "Recebido pacote ESP de SPI antigo 0x%x, seq %u\n"
 
-#: esp.c:163
+#: esp.c:168
 #, c-format
 msgid "Received ESP packet with invalid SPI 0x%08x\n"
 msgstr "Recebido pacote ESP com SPI 0x%08x inválido\n"
 
-#: esp.c:171
+#: esp.c:181
 #, c-format
 msgid "Received ESP packet with unrecognised payload type %02x\n"
 msgstr "Recebido pacote ESP com tipo de carga não reconhecida %02x\n"
 
-#: esp.c:178
+#: esp.c:188
 #, c-format
 msgid "Invalid padding length %02x in ESP\n"
 msgstr "Comprimento de preenchimento %02x inválido no ESP\n"
 
-#: esp.c:190
+#: esp.c:200
 msgid "Invalid padding bytes in ESP\n"
 msgstr "Bytes de preenchimento inválidos em ESP\n"
 
-#: esp.c:199
+#: esp.c:209
 msgid "ESP session established with server\n"
 msgstr "Sessão ESP estabelecida com o servidor\n"
 
-#: esp.c:210
+#: esp.c:220
 msgid "Failed to allocate memory to decrypt ESP packet\n"
 msgstr "Falha ao alocar memória para descriptografar pacote ESP\n"
 
-#: esp.c:216
+#: esp.c:226
 msgid "LZO decompression of ESP packet failed\n"
 msgstr "Descompressão LZO de pacote ESP falhou\n"
 
-#: esp.c:222
+#: esp.c:232
 #, c-format
 msgid "LZO decompressed %d bytes into %d\n"
 msgstr "LZO descomprimiu %d bytes em %d\n"
 
-#: esp.c:236
+#: esp.c:246
 msgid "Rekey not implemented for ESP\n"
 msgstr "Renovação de chave não implementada para ESP\n"
 
-#: esp.c:240
+#: esp.c:250
 msgid "ESP detected dead peer\n"
 msgstr "ESP detectou par morto\n"
 
-#: esp.c:248
+#: esp.c:258
 msgid "Send ESP probes for DPD\n"
 msgstr "Enviar sondas ESP para DPD\n"
 
-#: esp.c:255
+#: esp.c:265
 msgid "Keepalive not implemented for ESP\n"
 msgstr "Keepalive não implementado para ESP\n"
 
-#: esp.c:278
+#: esp.c:288
 #, c-format
 msgid "Failed to send ESP packet: %s\n"
 msgstr "Falha ao enviar pacote ESP: %s\n"
 
-#: esp.c:284
+#: esp.c:294
 #, c-format
 msgid "Sent ESP packet of %d bytes\n"
 msgstr "Enviado pacote ESP de %d bytes\n"
@@ -1472,7 +1472,7 @@ msgstr "Erro na inicialização da estrutura de certificado X509\n"
 msgid "Error importing server's cert\n"
 msgstr "Erro na importação do certificado do servidor\n"
 
-#: gnutls.c:1951 main.c:1780
+#: gnutls.c:1951 main.c:1768
 msgid "Could not calculate hash of server's certificate\n"
 msgstr "Não foi possível calcular hash do certificado do servidor\n"
 
@@ -1686,86 +1686,94 @@ msgstr "Falhou ao definir o PIN de chave: %s\n"
 
 #: gpst.c:227
 msgid "Invalid username or password.\n"
-msgstr ""
+msgstr "Nome de usuário ou senha inválidos.\n"
 
 #: gpst.c:247
 #, c-format
 msgid "%s\n"
-msgstr ""
+msgstr "%s\n"
 
 #: gpst.c:250
 #, c-format
 msgid "Challenge: %s\n"
-msgstr ""
+msgstr "Desafio: %s\n"
 
 #: gpst.c:424
 #, c-format
 msgid "Unknown ESP %s algorithm: %s"
+msgstr "Algoritmo ESP %s desconhecido: %s"
+
+#: gpst.c:486
+#, c-format
+msgid "Idle timeout is %d minutes.\n"
 msgstr ""
 
-#: gpst.c:488
+#: gpst.c:493
 #, c-format
 msgid "Non-standard SSL tunnel path: %s\n"
-msgstr ""
+msgstr "Caminho de túnel SSL não-padrão: %s\n"
 
-#: gpst.c:491
+#: gpst.c:496
 #, c-format
 msgid "Tunnel timeout (rekey interval) is %d minutes.\n"
 msgstr ""
+"Tempo limite do túnel (intervalo de renovação de chave) é %d minutos.\n"
 
-#: gpst.c:503
+#: gpst.c:508
 #, c-format
 msgid ""
 "Gateway address in config XML (%s) differs from external gateway address "
 "(%s).\n"
 msgstr ""
+"Endereço do gateway no XML de config (%s) difere do endereço externo do "
+"gateway (%s).\n"
 
-#: gpst.c:548
+#: gpst.c:553
 #, c-format
 msgid "GlobalProtect config sent ipsec-mode=%s (expected esp-tunnel)\n"
-msgstr ""
+msgstr "Config GlobalProtect enviou ipsec-mode=%s (esperava esp-tunnel)\n"
 
-#: gpst.c:558 oncp.c:872
+#: gpst.c:563 oncp.c:835
 msgid "Ignoring ESP keys since ESP support not available in this build\n"
 msgstr ""
 "Ignorando chaves ESP já que suporte a ESP não está disponível nesta "
 "compilação\n"
 
-#: gpst.c:624
+#: gpst.c:629
 msgid "ESP disabled"
-msgstr ""
+msgstr "ESP desabilitado"
 
-#: gpst.c:626
+#: gpst.c:631
 msgid "No ESP keys received"
-msgstr ""
+msgstr "Nenhuma chave ESP recebida"
 
-#: gpst.c:628
+#: gpst.c:633
 msgid "ESP support not available in this build"
-msgstr ""
+msgstr "Suporte ESP não está disponível nesta compilação"
 
-#: gpst.c:632
+#: gpst.c:637
 #, c-format
 msgid "No MTU received. Calculated %d for %s%s\n"
-msgstr ""
+msgstr "Nenhum MTU foi recebido. Calculado %d para %s%s\n"
 
-#: gpst.c:678
+#: gpst.c:683
 msgid "Connecting to HTTPS tunnel endpoint ...\n"
-msgstr ""
+msgstr "Conectado ao ponto de extremidade do túnel HTTPS ...\n"
 
-#: gpst.c:700
+#: gpst.c:705
 msgid "Error fetching GET-tunnel HTTPS response.\n"
-msgstr ""
+msgstr "Erro ao obter resposta HTTPS GET-tunnel.\n"
 
-#: gpst.c:709
+#: gpst.c:714
 msgid "Gateway disconnected immediately after GET-tunnel request.\n"
-msgstr ""
+msgstr "Gateway desconectado imediatamente após requisição GET-tunnel.\n"
 
-#: gpst.c:717
+#: gpst.c:722
 #, c-format
 msgid "Got inappropriate HTTP GET-tunnel response: %.*s\n"
-msgstr ""
+msgstr "Obteve resposta GET-tunnel HTTP inapropriável: %.*s\n"
 
-#: gpst.c:860
+#: gpst.c:863
 #, c-format
 msgid ""
 "WARNING: Server asked us to submit HIP report with md5sum %s.\n"
@@ -1773,99 +1781,118 @@ msgid ""
 "You need to provide a --csd-wrapper argument with the HIP report submission "
 "script.\n"
 msgstr ""
+"AVISO: O servidor nos pediu para enviar o relatório HIP com a soma de "
+"verificação %s.\n"
+"A conectividade VPN pode ser desativada ou limitada sem envio de relatório "
+"HIP.\n"
+"Você precisa fornecer um argumento --csd-wrapper com o script de envio do "
+"relatório HIP.\n"
 
-#: gpst.c:870
+#: gpst.c:873
 msgid ""
 "Error: Running the 'HIP Report' script on this platform is not yet "
 "implemented.\n"
 msgstr ""
+"Erro: A execução do script “HIP report” nesta plataforma não está "
+"implementada ainda.\n"
 
-#: gpst.c:892
+#: gpst.c:895
 #, c-format
-msgid "HIP script returned non-zero status: %d\n"
+msgid "HIP script '%s' exited abnormally\n"
 msgstr ""
 
-#: gpst.c:897
+#: gpst.c:900
+#, c-format
+msgid "HIP script '%s' returned non-zero status: %d\n"
+msgstr ""
+
+#: gpst.c:906
 msgid "HIP report submission failed.\n"
-msgstr ""
+msgstr "Envio de relatório HIP falhou.\n"
 
-#: gpst.c:899
+#: gpst.c:908
 msgid "HIP report submitted successfully.\n"
-msgstr ""
+msgstr "Relatório HIP enviado com sucesso.\n"
 
-#: gpst.c:926
+#: gpst.c:933
 #, c-format
 msgid "Failed to exec HIP script %s\n"
-msgstr ""
+msgstr "Falha ao executar script HIP %s\n"
 
-#: gpst.c:950
+#: gpst.c:957
 msgid "Gateway says HIP report submission is needed.\n"
-msgstr ""
+msgstr "O gateway diz que envio de relatório HIP é necessário.\n"
 
-#: gpst.c:956
+#: gpst.c:963
 msgid "Gateway says no HIP report submission is needed.\n"
-msgstr ""
+msgstr "O gateway diz que envio de relatório HIP não é necessário.\n"
 
-#: gpst.c:983
+#: gpst.c:990
 msgid "ESP tunnel connected; exiting HTTPS mainloop.\n"
-msgstr ""
+msgstr "Túnel ESP conectado; saindo do loop principal de HTTPS.\n"
 
-#: gpst.c:999
+#: gpst.c:1006
 msgid "Failed to connect ESP tunnel; using HTTPS instead.\n"
-msgstr ""
+msgstr "Falha ao conectar a túnel ESP; usando HTTPS.\n"
 
-#: gpst.c:1032
+#: gpst.c:1042
 #, c-format
 msgid "Packet receive error: %s\n"
-msgstr ""
+msgstr "Erro de recebimento de pacote: %s\n"
 
-#: gpst.c:1053
+#: gpst.c:1063
 #, c-format
 msgid ""
 "Unexpected packet length. SSL_read returned %d (includes 16 header bytes) "
 "but header payload_len is %d\n"
 msgstr ""
+"Tamanho de pacote inesperado. SSL_read retornou %d (inclui 16 bytes de "
+"cabeçalho), mas payload_len do cabeçalho é %d\n"
 
-#: gpst.c:1063
+#: gpst.c:1073
 msgid "Got GPST DPD/keepalive response\n"
-msgstr ""
+msgstr "Obteve resposta GPST DPD/keepalive\n"
 
-#: gpst.c:1067
+#: gpst.c:1077
 msgid ""
 "Expected 0000000000000000 as last 8 bytes of DPD/keepalive packet header, "
 "but got:\n"
 msgstr ""
+"Esperava 0000000000000000 como últimos 8 bytes de cabeçalho de pacote DPD/"
+"keepalive, mas obteve:\n"
 
-#: gpst.c:1073
+#: gpst.c:1083
 #, c-format
 msgid "Received data packet of %d bytes\n"
-msgstr ""
+msgstr "Recebido pacote de dados de %d bytes\n"
 
-#: gpst.c:1082
+#: gpst.c:1092
 msgid ""
 "Expected 0100000000000000 as last 8 bytes of data packet header, but got:\n"
 msgstr ""
+"Esperava 0100000000000000 como últimos 8 bytes de cabeçalho de pacote de "
+"dados, mas obteve:\n"
 
-#: gpst.c:1090
+#: gpst.c:1100
 msgid "Unknown packet. Header dump follows:\n"
-msgstr ""
+msgstr "Pacote desconhecido. Despejo de cabeçalho segue:\n"
 
-#: gpst.c:1138
+#: gpst.c:1148
 msgid "GlobalProtect rekey due\n"
-msgstr ""
+msgstr "Renovação da chave GlobalProtect por causa de\n"
 
-#: gpst.c:1143
+#: gpst.c:1153
 msgid "GPST Dead Peer Detection detected dead peer!\n"
-msgstr ""
+msgstr "Dead Peer Detection GPST detectou par morto!\n"
 
-#: gpst.c:1163
+#: gpst.c:1173
 msgid "Send GPST DPD/keepalive request\n"
-msgstr ""
+msgstr "Enviar requisição GPST DPD/keepalive\n"
 
-#: gpst.c:1183
+#: gpst.c:1193
 #, c-format
 msgid "Sending data packet of %d bytes\n"
-msgstr ""
+msgstr "Enviando pacote de dados de %d bytes\n"
 
 #: gssapi.c:75
 msgid "Error importing GSSAPI name for authentication:\n"
@@ -2077,7 +2104,7 @@ msgstr "Não foi possível seguir o redirecionamento para URL não https \"%s\"\
 msgid "Allocating new path for relative redirect failed: %s\n"
 msgstr "A alocação de novo caminho para redirecionamento relativo falhou: %s\n"
 
-#: http.c:972 oncp.c:591 oncp.c:628
+#: http.c:972 oncp.c:591
 #, c-format
 msgid "Unexpected %d result from server\n"
 msgstr "Resultado inesperado %d do servidor\n"
@@ -2235,46 +2262,46 @@ msgstr "Cisco AnyConnect ou openconnect"
 msgid "Compatible with Cisco AnyConnect SSL VPN, as well as ocserv"
 msgstr "Compatível com Cisco AnyConnect SSL VPN, bem como ocserv"
 
-#: library.c:128
+#: library.c:129
 msgid "Juniper Network Connect"
 msgstr "Juniper Network Connect"
 
-#: library.c:129
+#: library.c:130
 msgid "Compatible with Juniper Network Connect / Pulse Secure SSL VPN"
 msgstr "Compatível com Juniper Network Connect / Pulse Secure SSL VPN"
 
-#: library.c:146
+#: library.c:148
 msgid "Palo Alto Networks GlobalProtect"
-msgstr ""
+msgstr "Palo Alto Networks GlobalProtect"
 
-#: library.c:147
+#: library.c:149
 msgid "Compatible with Palo Alto Networks (PAN) GlobalProtect SSL VPN"
-msgstr ""
+msgstr "Compatível com Palo Alto Networks (PAN) GlobalProtect SSL VPN"
 
-#: library.c:203
+#: library.c:211
 #, c-format
 msgid "Unknown VPN protocol '%s'\n"
 msgstr "Protocolo VPN desconhecido \"%s\"\n"
 
-#: library.c:225
+#: library.c:233
 msgid "Built against SSL library with no Cisco DTLS support\n"
 msgstr "Compilado com biblioteca SSL sem suporte a DTLS da Cisco\n"
 
-#: library.c:631
+#: library.c:644
 #, c-format
 msgid "Failed to parse server URL '%s'\n"
 msgstr "Falhou ao analisar URL do servidor \"%s\"\n"
 
-#: library.c:637
+#: library.c:650
 msgid "Only https:// permitted for server URL\n"
 msgstr "Somente https:// é permitido como URL de servidor\n"
 
-#: library.c:1005
+#: library.c:1019
 #, c-format
 msgid "Unknown certificate hash: %s.\n"
 msgstr "Hash de certificado desconhecido: %s.\n"
 
-#: library.c:1034
+#: library.c:1048
 #, c-format
 msgid ""
 "The size of the provided fingerprint is less than the minimum required "
@@ -2283,7 +2310,7 @@ msgstr ""
 "O tamanho da impressão digital fornecida é menor do que o mínimo exigido "
 "(%u).\n"
 
-#: library.c:1095
+#: library.c:1109
 msgid "No form handler; cannot authenticate.\n"
 msgstr "nenhum manipulador de forma - não foi possível autenticar.\n"
 
@@ -2361,7 +2388,7 @@ msgstr " (padrão)"
 
 #: main.c:661
 msgid "Set VPN protocol"
-msgstr ""
+msgstr "Definir protocolo VPN"
 
 #: main.c:702
 msgid "fgets (stdin)"
@@ -2410,7 +2437,7 @@ msgstr "Exibe o texto de ajuda"
 
 #: main.c:790
 msgid "Authentication"
-msgstr ""
+msgstr "Autenticação"
 
 #: main.c:791
 msgid "Set login username"
@@ -2474,7 +2501,7 @@ msgstr "(NOTA: Yubikey OATH desabilitado nesta compilação)"
 
 #: main.c:811
 msgid "Server validation"
-msgstr ""
+msgstr "Validação de servidor"
 
 #: main.c:812
 msgid "Server's certificate SHA1 fingerprint"
@@ -2494,7 +2521,7 @@ msgstr "Arquivo de certificado para verificação do servidor"
 
 #: main.c:817
 msgid "Internet connectivity"
-msgstr ""
+msgstr "Conectividade de internet"
 
 #: main.c:818
 msgid "Set proxy server"
@@ -2530,15 +2557,15 @@ msgstr "Copia TOS / TCLASS ao usar DTLS"
 
 #: main.c:828
 msgid "Set local port for DTLS and ESP datagrams"
-msgstr ""
+msgstr "Define a porta local para datagramas DTLS e ESP"
 
 #: main.c:830
 msgid "Authentication (two-phase)"
-msgstr ""
+msgstr "Autenticação (duas fases)"
 
 #: main.c:831
 msgid "Use authentication cookie COOKIE"
-msgstr ""
+msgstr "Usa o cookie de autenticação COOKIE"
 
 #: main.c:832
 msgid "Read cookie from standard input"
@@ -2550,15 +2577,15 @@ msgstr "Só autentica e imprime informação de login"
 
 #: main.c:834
 msgid "Fetch and print cookie only; don't connect"
-msgstr ""
+msgstr "Obtém e imprime cookie apenas; não conecta"
 
 #: main.c:835
 msgid "Print cookie before connecting"
-msgstr ""
+msgstr "Imprime o cookie antes de conectar"
 
 #: main.c:838
 msgid "Process control"
-msgstr ""
+msgstr "Controle de processo"
 
 #: main.c:839
 msgid "Continue in background after startup"
@@ -2574,7 +2601,7 @@ msgstr "Descarta privilégios após conexão"
 
 #: main.c:844
 msgid "Logging (two-phase)"
-msgstr ""
+msgstr "Registro de log (duas fases)"
 
 #: main.c:846
 msgid "Use syslog for progress messages"
@@ -2598,7 +2625,7 @@ msgstr "Prefixa marca de tempo nas mensagens de progresso"
 
 #: main.c:853
 msgid "VPN configuration script"
-msgstr ""
+msgstr "Script de configuração de VPN"
 
 #: main.c:854
 msgid "Use IFNAME for tunnel interface"
@@ -2620,7 +2647,7 @@ msgstr "Passa tráfego para o programa \"script\", ao invés do tun"
 
 #: main.c:861
 msgid "Tunnel control"
-msgstr ""
+msgstr "Controle de túnel"
 
 #: main.c:862
 msgid "Do not ask for IPv6 connectivity"
@@ -2639,12 +2666,12 @@ msgid "Indicate path MTU to/from server"
 msgstr "Indica MTU do caminho de/para o servidor"
 
 #: main.c:866
-msgid "Enable compression (default)"
-msgstr "Habilita compressão (padrão)"
+msgid "Enable stateful compression (default is stateless only)"
+msgstr ""
 
 #: main.c:867
-msgid "Disable compression"
-msgstr "Desabilita compressão"
+msgid "Disable all compression"
+msgstr ""
 
 #: main.c:868
 msgid "Set minimum Dead Peer Detection interval"
@@ -2656,7 +2683,7 @@ msgstr "Exige perfect forward secrecy (PFS)"
 
 #: main.c:870
 msgid "Disable DTLS and ESP"
-msgstr ""
+msgstr "Desabilita DTLS e ESP"
 
 #: main.c:871
 msgid "OpenSSL ciphers to support for DTLS"
@@ -2668,7 +2695,7 @@ msgstr "Define limite da fila de pacotes para LEN pkts"
 
 #: main.c:874
 msgid "Local system information"
-msgstr ""
+msgstr "Informações do sistema local"
 
 #: main.c:875
 msgid "HTTP header User-Agent: field"
@@ -2684,19 +2711,19 @@ msgstr "Tipo de SO (linux,linux-64,mac,win,...) para informar"
 
 #: main.c:880
 msgid "Trojan binary (CSD) execution"
-msgstr ""
+msgstr "Execução do binário de trojan (CSD)"
 
 #: main.c:881
 msgid "Drop privileges during trojan execution"
-msgstr ""
+msgstr "Descarta privilégios durante execução de trojan"
 
 #: main.c:882
 msgid "Run SCRIPT instead of trojan binary"
-msgstr ""
+msgstr "Executa SCRIPT ao invés do binário do trojan"
 
 #: main.c:885
 msgid "Server bugs"
-msgstr ""
+msgstr "Bugs do servidor"
 
 #: main.c:886
 msgid "Disable HTTP connection re-use"
@@ -2873,74 +2900,82 @@ msgstr "A criação da conexão SSL falhou\n"
 
 #: main.c:1599
 #, c-format
-msgid "Set up DTLS failed; using SSL instead\n"
-msgstr "A configuração de DTLS falhou - usando SSL em vez disso\n"
+msgid "Set up UDP failed; using SSL instead\n"
+msgstr ""
 
-#: main.c:1620
+#: main.c:1607
 #, c-format
-msgid "Connected as %s%s%s, using %s%s\n"
-msgstr "Conectado como %s%s%s, usando %s%s\n"
+msgid "Connected as %s%s%s, using SSL%s%s, with %s%s%s %s\n"
+msgstr ""
 
-#: main.c:1629
+#: main.c:1613
+msgid "disabled"
+msgstr ""
+
+#: main.c:1613
+msgid "in progress"
+msgstr ""
+
+#: main.c:1617
 msgid "No --script argument provided; DNS and routing are not configured\n"
 msgstr ""
 "Nenhum argumento --script fornecido - DNS e roteamento não estão "
 "configurados\n"
 
-#: main.c:1631
+#: main.c:1619
 msgid "See http://www.infradead.org/openconnect/vpnc-script.html\n"
 msgstr "Veja http://www.infradead.org/openconnect/vpnc-script.html\n"
 
-#: main.c:1644
+#: main.c:1632
 #, c-format
 msgid "Failed to open '%s' for write: %s\n"
 msgstr "Falha ao abrir \"%s\" para escrita: %s\n"
 
-#: main.c:1656
+#: main.c:1644
 #, c-format
 msgid "Continuing in background; pid %d\n"
 msgstr "Continuando em plano de fundo - pid %d\n"
 
-#: main.c:1673
+#: main.c:1661
 msgid "User requested reconnect\n"
 msgstr "Usuário requisitou reconexão\n"
 
-#: main.c:1681
+#: main.c:1669
 msgid "Cookie was rejected on reconnection; exiting.\n"
 msgstr "Cookie rejeitado na reconexão; saindo.\n"
 
-#: main.c:1685
+#: main.c:1673
 msgid "Session terminated by server; exiting.\n"
 msgstr "Sessão terminada pelo servidor; saindo.\n"
 
-#: main.c:1689
+#: main.c:1677
 msgid "User cancelled (SIGINT); exiting.\n"
 msgstr "Usuário cancelado (SIGINT); saindo.\n"
 
-#: main.c:1693
+#: main.c:1681
 msgid "User detached from session (SIGHUP); exiting.\n"
 msgstr "Usuário desanexado da sessão (SIGHUP); saindo.\n"
 
-#: main.c:1697
+#: main.c:1685
 msgid "Unknown error; exiting.\n"
 msgstr "Erro desconhecido; saída.\n"
 
-#: main.c:1716
+#: main.c:1704
 #, c-format
 msgid "Failed to open %s for write: %s\n"
 msgstr "Falha ao abrir %s para escrita: %s\n"
 
-#: main.c:1724
+#: main.c:1712
 #, c-format
 msgid "Failed to write config to %s: %s\n"
 msgstr "Falha ao escrever a configuração para %s: %s\n"
 
-#: main.c:1783
+#: main.c:1771
 #, c-format
 msgid "Server SSL certificate didn't match: %s\n"
 msgstr "Certificado SSL do servidor não correspondem: %s\n"
 
-#: main.c:1802
+#: main.c:1790
 #, c-format
 msgid ""
 "\n"
@@ -2951,7 +2986,7 @@ msgstr ""
 "Certificado do servidor VPN \"%s\" falhou na verificação.\n"
 "Motivo: %s\n"
 
-#: main.c:1805
+#: main.c:1793
 #, c-format
 msgid ""
 "To trust this server in future, perhaps add this to your command line:\n"
@@ -2959,96 +2994,96 @@ msgstr ""
 "Para confiar neste servidor no futuro, você pode adicionar isso a sua linha "
 "de comando:\n"
 
-#: main.c:1806
+#: main.c:1794
 #, c-format
 msgid "    --servercert %s\n"
 msgstr "    --servercert %s\n"
 
-#: main.c:1811
+#: main.c:1799
 #, c-format
 msgid "Enter '%s' to accept, '%s' to abort; anything else to view: "
 msgstr ""
 "Digite \"%s\" para aceitar, \"%s\" para abortar ou qualquer outra coisa para "
 "visualizar: "
 
-#: main.c:1812 main.c:1830
+#: main.c:1800 main.c:1818
 msgid "no"
 msgstr "não"
 
-#: main.c:1812 main.c:1818
+#: main.c:1800 main.c:1806
 msgid "yes"
 msgstr "sim"
 
-#: main.c:1839
+#: main.c:1827
 #, c-format
 msgid "Server key hash: %s\n"
 msgstr "Hash da chave do servidor: %s\n"
 
-#: main.c:1873
+#: main.c:1861
 #, c-format
 msgid "Auth choice \"%s\" matches multiple options\n"
 msgstr "Escolha de autenticação \"%s\" corresponde a múltiplas opções\n"
 
-#: main.c:1876
+#: main.c:1864
 #, c-format
 msgid "Auth choice \"%s\" not available\n"
 msgstr "Escolha de autenticação \"%s\" não disponível\n"
 
-#: main.c:1897
+#: main.c:1885
 msgid "User input required in non-interactive mode\n"
 msgstr "Entrada do usuário requisitada em modo não interativo\n"
 
-#: main.c:2074
+#: main.c:2062
 #, c-format
 msgid "Failed to open token file for write: %s\n"
 msgstr "Falhou ao abrir arquivo de token para escrita: %s\n"
 
-#: main.c:2082
+#: main.c:2070
 #, c-format
 msgid "Failed to write token: %s\n"
 msgstr "Falhou ao escrever token: %s\n"
 
-#: main.c:2128 main.c:2149
+#: main.c:2116 main.c:2137
 #, c-format
 msgid "Soft token string is invalid\n"
 msgstr "String de token de software é inválida\n"
 
-#: main.c:2131
+#: main.c:2119
 #, c-format
 msgid "Can't open ~/.stokenrc file\n"
 msgstr "Não foi possível abrir o arquivo ~/.stokenrc\n"
 
-#: main.c:2134
+#: main.c:2122
 #, c-format
 msgid "OpenConnect was not built with libstoken support\n"
 msgstr "OpenConnect não foi compilado com suporte a libstoken\n"
 
-#: main.c:2137
+#: main.c:2125
 #, c-format
 msgid "General failure in libstoken\n"
 msgstr "Falha geral no libstoken\n"
 
-#: main.c:2152
+#: main.c:2140
 #, c-format
 msgid "OpenConnect was not built with liboath support\n"
 msgstr "OpenConnect não foi compilado com suporte a libauth\n"
 
-#: main.c:2155
+#: main.c:2143
 #, c-format
 msgid "General failure in liboath\n"
 msgstr "Falha geral no libauth\n"
 
-#: main.c:2166
+#: main.c:2154
 #, c-format
 msgid "Yubikey token not found\n"
 msgstr "Token Yubikey não encontrado\n"
 
-#: main.c:2169
+#: main.c:2157
 #, c-format
 msgid "OpenConnect was not built with Yubikey support\n"
 msgstr "OpenConnect não foi compilado com suporte a Yubikey\n"
 
-#: main.c:2172
+#: main.c:2160
 #, c-format
 msgid "General Yubikey failure: %s\n"
 msgstr "Falha geral no Yubikey: %s\n"
@@ -3209,201 +3244,201 @@ msgstr "Criptografia ESP: 0x%02x (%s)\n"
 msgid "ESP HMAC: 0x%02x (%s)\n"
 msgstr "HMAC ESP: 0x%02x (%s)\n"
 
-#: oncp.c:326
+#: oncp.c:327
 #, c-format
 msgid "ESP compression: %d\n"
 msgstr "Compressão ESP: %d\n"
 
-#: oncp.c:334
+#: oncp.c:335
 #, c-format
 msgid "ESP port: %d\n"
 msgstr "Porta ESP: %d\n"
 
-#: oncp.c:341
+#: oncp.c:342
 #, c-format
 msgid "ESP key lifetime: %u bytes\n"
 msgstr "Tempo de vida de chave ESP: %u bytes\n"
 
-#: oncp.c:349
+#: oncp.c:350
 #, c-format
 msgid "ESP key lifetime: %u seconds\n"
 msgstr "Tempo de vida de chave ESP: %u segundos\n"
 
-#: oncp.c:357
+#: oncp.c:358
 #, c-format
 msgid "ESP to SSL fallback: %u seconds\n"
 msgstr "Fallback ESP para SSL: %u segundos\n"
 
-#: oncp.c:365
+#: oncp.c:366
 #, c-format
 msgid "ESP replay protection: %d\n"
 msgstr "Proteção de replay ESP: %d\n"
 
-#: oncp.c:373
+#: oncp.c:374
 #, c-format
 msgid "ESP SPI (outbound): %x\n"
 msgstr "SPI de ESP (saída): %x\n"
 
-#: oncp.c:382
+#: oncp.c:383
 #, c-format
 msgid "%d bytes of ESP secrets\n"
 msgstr "%d bytes de segredos ESP\n"
 
-#: oncp.c:394
+#: oncp.c:395
 #, c-format
 msgid "Unknown TLV group %d attr %d len %d:%s\n"
 msgstr "TLV desconhecido com grupo %d, atributo %d, tamanho %d:%s\n"
 
-#: oncp.c:472
+#: oncp.c:473
 msgid "Failed to parse KMP header\n"
 msgstr "Falha ao analisar cabeçalho KMP\n"
 
-#: oncp.c:489
+#: oncp.c:490
 msgid "Failed to parse KMP message\n"
 msgstr "Falha ao analisar mensagem KMP\n"
 
-#: oncp.c:495
+#: oncp.c:496
 #, c-format
 msgid "Got KMP message %d of size %d\n"
 msgstr "Obteve mensagem KMP %d de tamanho %d\n"
 
-#: oncp.c:511
+#: oncp.c:512
 #, c-format
 msgid "Received non-ESP TLVs (group %d) in ESP negotiation KMP\n"
 msgstr "Recebido TLVs (grupo %d) não-ESP em KMP de negociação ESP\n"
 
-#: oncp.c:569 oncp.c:614 oncp.c:646 oncp.c:784
+#: oncp.c:577 oncp.c:609 oncp.c:747
 msgid "Error creating oNCP negotiation request\n"
 msgstr "Erro ao criar requisição de negociação oNCP\n"
 
-#: oncp.c:655 oncp.c:820
+#: oncp.c:618 oncp.c:783
 msgid "Short write in oNCP negotiation\n"
 msgstr "Escrita curta em negociação oNCP\n"
 
-#: oncp.c:668 oncp.c:703
+#: oncp.c:631 oncp.c:666
 #, c-format
 msgid "Read %d bytes of SSL record\n"
 msgstr "Lidos %d bytes de registro SSL\n"
 
-#: oncp.c:673
+#: oncp.c:636
 #, c-format
 msgid "Unexpected response of size %d after hostname packet\n"
 msgstr "Resposta inesperada de tamanho %d após pacote de hostname\n"
 
-#: oncp.c:680
+#: oncp.c:643
 #, c-format
 msgid "Server response to hostname packet is error 0x%02x\n"
 msgstr "Resposta do servidor ao pacote do hostname é erro 0x%02x\n"
 
-#: oncp.c:707
+#: oncp.c:670
 msgid "Invalid packet waiting for KMP 301\n"
 msgstr "Pacote inválido, esperando por KMP 301\n"
 
-#: oncp.c:720
+#: oncp.c:683
 #, c-format
 msgid "Expected KMP message 301 from server but got %d\n"
 msgstr "Esperava mensagem KMP 301 do servidor, mas obteve %d\n"
 
-#: oncp.c:729
+#: oncp.c:692
 #, c-format
 msgid "KMP message 301 from server too large (%d bytes)\n"
 msgstr "Mensagem KMP 301 do servidor muito grande (%d bytes)\n"
 
-#: oncp.c:735
+#: oncp.c:698
 #, c-format
 msgid "Got KMP message 301 of length %d\n"
 msgstr "Obteve mensagem KMP 301 de comprimento %d\n"
 
-#: oncp.c:742
+#: oncp.c:705
 msgid "Failed to read continuation record length\n"
 msgstr "Falha ao ler tamanho de registro de continuação\n"
 
-#: oncp.c:748
+#: oncp.c:711
 #, c-format
 msgid "Record of additional %d bytes too large; would make %d\n"
 msgstr "Registro de %d bytes adicionais muito grande; resultaria em %d\n"
 
-#: oncp.c:757
+#: oncp.c:720
 #, c-format
 msgid "Failed to read continuation record of length %d\n"
 msgstr "Falha ao ler registro de continuação de tamanho %d\n"
 
-#: oncp.c:763
+#: oncp.c:726
 #, c-format
 msgid "Read additional %d bytes of KMP 301 message\n"
 msgstr "Lidos %d bytes adicionais de mensagem KMP 301\n"
 
-#: oncp.c:804
+#: oncp.c:767
 msgid "Error negotiating ESP keys\n"
 msgstr "Erro ao negociar chaves ESP\n"
 
-#: oncp.c:813
+#: oncp.c:776
 msgid "oNCP negotiation request outgoing:\n"
 msgstr "Saída da requisição de negociação oNCP:\n"
 
-#: oncp.c:866
+#: oncp.c:829
 msgid "new incoming"
 msgstr "nova entrada"
 
-#: oncp.c:867
+#: oncp.c:830
 msgid "new outgoing"
 msgstr "nova saída"
 
-#: oncp.c:892
+#: oncp.c:855
 msgid "Read only 1 byte of oNCP length field\n"
 msgstr "Lido apenas 1 byte de campo de comprimento oNCP\n"
 
-#: oncp.c:901
+#: oncp.c:864
 msgid "Server terminated connection (session expired)\n"
 msgstr "Servidor terminou a conexão (sessão expirou)\n"
 
-#: oncp.c:905
+#: oncp.c:868
 #, c-format
 msgid "Server terminated connection (reason: %d)\n"
 msgstr "Servidor terminou a conexão (motivo: %d)\n"
 
-#: oncp.c:911
+#: oncp.c:874
 msgid "Server sent zero-length oNCP record\n"
 msgstr "Servidor enviou registro oNCP de comprimento zero\n"
 
-#: oncp.c:1006
+#: oncp.c:969
 #, c-format
 msgid "Incoming KMP message %d of size %d (got %d)\n"
 msgstr "Recebendo mensagem KMP %d de tamanho %d (obteve %d)\n"
 
-#: oncp.c:1009
+#: oncp.c:972
 #, c-format
 msgid "Continuing to process KMP message %d now size %d (got %d)\n"
 msgstr ""
 "Continuando a processar mensagem KMP %d agora com tamanho %d (obteve %d)\n"
 
-#: oncp.c:1028
+#: oncp.c:991
 msgid "Unrecognised data packet\n"
 msgstr "Pacote de dados não reconhecido\n"
 
-#: oncp.c:1090
+#: oncp.c:1053
 #, c-format
 msgid "Unknown KMP message %d of size %d:\n"
 msgstr "Mensagem KMP desconhecida %d de tamanho %d:\n"
 
-#: oncp.c:1095
+#: oncp.c:1058
 #, c-format
 msgid ".... + %d more bytes unreceived\n"
 msgstr ".... + mais %d bytes não recebidos\n"
 
-#: oncp.c:1110
+#: oncp.c:1073
 msgid "Packet outgoing:\n"
 msgstr "Pacote de saída:\n"
 
-#: oncp.c:1171
+#: oncp.c:1134
 msgid "Sent ESP enable control packet\n"
 msgstr "Enviado pacote de controle com capacidade de ESP\n"
 
-#: oncp.c:1305
+#: oncp.c:1268
 msgid "Logout successful.\n"
 msgstr "Desconexão feita com sucesso.\n"
 
-#: openconnect-internal.h:1109 openconnect-internal.h:1117
+#: openconnect-internal.h:1112 openconnect-internal.h:1120
 #, c-format
 msgid "ERROR: %s() called with invalid UTF-8 for '%s' argument\n"
 msgstr "ERRO: %s() chamado com UTF-8 inválido para \"%s\" argumento\n"
@@ -4599,21 +4634,33 @@ msgstr "comando calculate"
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr "Resposta não reconhecida do Yubikey ao gerar código de token\n"
 
-#~ msgid "Consider SPI 0x%x, seq %u against outgoing ESP setup\n"
-#~ msgstr "Considerar SPI 0x%x, seq %u contra configuração ESP de saída\n"
-
-#~ msgid "Failed to SHA1 input data for signing: %s\n"
-#~ msgstr "Falhou em executar SHA1 nos dados de entrada para assinatura: %s\n"
-
-#~ msgid "Failed to open CONIN$: %s\n"
-#~ msgstr "Falha ao abrir CONIN$: %s\n"
-
 #~ msgid ""
-#~ "Open client for Cisco AnyConnect VPN, version %s\n"
 #~ "\n"
+#~ "    Set VPN protocol:\n"
 #~ msgstr ""
-#~ "Cliente aberto para Cisco AnyConnect VPN, versão %s\n"
 #~ "\n"
+#~ "    Define protocolo VPN:\n"
+
+#~ msgid "Use WebVPN cookie COOKIE"
+#~ msgstr "Usa o cookie COOKIE de WebVPN"
+
+#~ msgid "Drop privileges during CSD execution"
+#~ msgstr "Descarta privilégios durante execução de CSD"
+
+#~ msgid "Run SCRIPT instead of CSD binary"
+#~ msgstr "Executa SCRIPT ao invés do binário do CSD"
+
+#~ msgid "Fetch webvpn cookie only; don't connect"
+#~ msgstr "Só obtém cookie de webvpn - não conecta"
+
+#~ msgid "Print webvpn cookie before connecting"
+#~ msgstr "Imprime o cookie de webvpn antes de conectar."
+
+#~ msgid "Disable DTLS"
+#~ msgstr "Desabilita DTLS"
+
+#~ msgid "Set local port for DTLS datagrams"
+#~ msgstr "Define a porta local para datagramas DTLS"
 
 #~ msgid ""
 #~ "\n"
@@ -4623,30 +4670,30 @@ msgstr "Resposta não reconhecida do Yubikey ao gerar código de token\n"
 #~ "AVISO: nenhum suporte a DTLS neste binário. A performance será "
 #~ "prejudicada.\n"
 
-#~ msgid "Set local port for DTLS datagrams"
-#~ msgstr "Define a porta local para datagramas DTLS"
-
-#~ msgid "Disable DTLS"
-#~ msgstr "Desabilita DTLS"
-
-#~ msgid "Print webvpn cookie before connecting"
-#~ msgstr "Imprime o cookie de webvpn antes de conectar."
-
-#~ msgid "Fetch webvpn cookie only; don't connect"
-#~ msgstr "Só obtém cookie de webvpn - não conecta"
-
-#~ msgid "Run SCRIPT instead of CSD binary"
-#~ msgstr "Executa SCRIPT ao invés do binário do CSD"
-
-#~ msgid "Drop privileges during CSD execution"
-#~ msgstr "Descarta privilégios durante execução de CSD"
-
-#~ msgid "Use WebVPN cookie COOKIE"
-#~ msgstr "Usa o cookie COOKIE de WebVPN"
-
 #~ msgid ""
+#~ "Open client for Cisco AnyConnect VPN, version %s\n"
 #~ "\n"
-#~ "    Set VPN protocol:\n"
 #~ msgstr ""
+#~ "Cliente aberto para Cisco AnyConnect VPN, versão %s\n"
 #~ "\n"
-#~ "    Define protocolo VPN:\n"
+
+#~ msgid "Failed to open CONIN$: %s\n"
+#~ msgstr "Falha ao abrir CONIN$: %s\n"
+
+#~ msgid "Failed to SHA1 input data for signing: %s\n"
+#~ msgstr "Falhou em executar SHA1 nos dados de entrada para assinatura: %s\n"
+
+#~ msgid "Consider SPI 0x%x, seq %u against outgoing ESP setup\n"
+#~ msgstr "Considerar SPI 0x%x, seq %u contra configuração ESP de saída\n"
+
+#~ msgid "Connected as %s%s%s, using %s%s\n"
+#~ msgstr "Conectado como %s%s%s, usando %s%s\n"
+
+#~ msgid "Set up DTLS failed; using SSL instead\n"
+#~ msgstr "A configuração de DTLS falhou - usando SSL em vez disso\n"
+
+#~ msgid "Disable compression"
+#~ msgstr "Desabilita compressão"
+
+#~ msgid "Enable compression (default)"
+#~ msgstr "Habilita compressão (padrão)"
