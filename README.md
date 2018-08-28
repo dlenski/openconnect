@@ -226,5 +226,5 @@ GATEWAY: [NorthAmerica|Europe|Asia]:
 
 # TODO
 
-* Support web-based/SAML-based authentication flows (see [pull #98](//github.com/dlenski/openconnect/issues/98) for preliminary work)
+* Support web-based/SAML-based authentication flows (see [pull #98](//github.com/dlenski/openconnect/issues/98) for preliminary work, and [issue #116](//github.com/dlenski/openconnect/issues/116) for more discussion regarding Okta)
 * Configure multi-stage build into the Dockerfile, to get a smaller Docker image
