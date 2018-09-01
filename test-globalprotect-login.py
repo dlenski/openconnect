@@ -32,7 +32,7 @@ if not endpoint.path:
 if args.cert and args.key:
     cert = (args.cert, args.key)
 elif args.cert:
-    cert = (args.cert)
+    cert = (args.cert, None)
 elif args.key:
     p.error('--key specified without --cert')
 else:
@@ -75,10 +75,13 @@ if xml.tag == 'jnlp':
     arguments = [(t.text or '') for t in xml.iter('argument')]
     cookie = urlencode({'authcookie': arguments[1], 'portal': arguments[3], 'user': arguments[4], 'domain': arguments[7],
                         'computer': args.computer, 'preferred-ip': arguments[15] if len(arguments)>=16 else ''})
+    if cert:
+        cert_and_key = ' \\\n        ' + ' '.join('%s "%s"' % (opt, fn) for opt, fn in zip(('-c','-k'), cert) if fn)
+
     print('''
 
 Extracted connection cookie from <jnlp>. Use this to connect:
 
     openconnect --protocol=gp --usergroup=gateway %s \\
-        --cookie "%s"
-''' % (endpoint.netloc, cookie))
+        --cookie "%s"%s
+''' % (endpoint.netloc, cookie, cert_and_key))
