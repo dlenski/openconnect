@@ -284,6 +284,7 @@ static intptr_t open_tun(struct openconnect_info *vpninfo, char *guid, char *nam
 		free(errstr);
 		return -1;
 	}
+
 	if (!vpninfo->ifname)
 		vpninfo->ifname = strdup(name);
 
@@ -390,6 +391,24 @@ void os_shutdown_tun(struct openconnect_info *vpninfo)
 
 int openconnect_setup_tun_fd(struct openconnect_info *vpninfo, intptr_t tun_fd)
 {
+	ULONG data;
+	DWORD len;
+
+	/* Toggle media status so that network location awareness picks up all the configuration
+	   that occurred and properly assigns the network so the user can adjust firewall
+	   settings. */
+	for (data = 0; data <= 1; data++) {
+		if (!DeviceIoControl((HANDLE)tun_fd, TAP_IOCTL_SET_MEDIA_STATUS,
+					&data, sizeof(data), &data, sizeof(data), &len, NULL)) {
+			char *errstr = openconnect__win32_strerror(GetLastError());
+
+			vpn_progress(vpninfo, PRG_ERR,
+					_("Failed to set TAP media status: %s\n"), errstr);
+			free(errstr);
+			return -1;
+		}
+	}
+
 	vpninfo->tun_fh = (HANDLE)tun_fd;
 	vpninfo->tun_rd_overlap.hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 	monitor_read_fd(vpninfo, tun);
