@@ -590,12 +590,8 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	char *xml_buf=NULL;
 
 	/* submit getconfig request */
-	buf_append(request_body, "client-type=1&protocol-version=p1&app-version=3.0.1-10");
+	buf_append(request_body, "client-type=1&protocol-version=p1&app-version=3.0.1-10&clientos=Windows");
 	append_opt(request_body, "os-version", vpninfo->platname);
-	if (!strcmp(vpninfo->platname, "win"))
-		append_opt(request_body, "clientos", "Windows");
-	else
-		append_opt(request_body, "clientos", vpninfo->platname);
 	append_opt(request_body, "hmac-algo", "sha1,md5");
 	append_opt(request_body, "enc-algo", "aes-128-cbc,aes-256-cbc");
 	if (old_addr) {
