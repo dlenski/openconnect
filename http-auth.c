@@ -68,7 +68,7 @@ void *openconnect_base64_decode(int *ret_len, const char *in)
 	while (*in) {
 		if (!in[1] || !in[2] || !in[3])
 			goto err;
-	        b[0] = b64_char(in[0]);
+		b[0] = b64_char(in[0]);
 		b[1] = b64_char(in[1]);
 		if (b[0] < 0 || b[1] < 0)
 			goto err;
@@ -99,7 +99,7 @@ void *openconnect_base64_decode(int *ret_len, const char *in)
 
  err:
 	free(buf);
-	*ret_len = EINVAL;
+	*ret_len = -EINVAL;
 	return NULL;
 }
 
