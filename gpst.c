@@ -73,31 +73,13 @@ static const struct pkt dpd_pkt = {
 	{ .gpst.hdr = { 0x1a, 0x2b, 0x3c, 0x4d } }
 };
 
-/* similar to auth.c's xmlnode_get_text, including that *var should be freed by the caller,
-   but without the hackish param / %s handling that Cisco needs. And without freeing up
-   the old contents of *var, which is likely to lead to bugs? */
-static int xmlnode_get_text(xmlNode *xml_node, const char *name, char **var)
-{
-	char *str;
-
-	if (name && !xmlnode_is_named(xml_node, name))
-		return -EINVAL;
-
-	str = (char *)xmlNodeGetContent(xml_node);
-	if (!str)
-		return -ENOENT;
-
-	*var = str;
-	return 0;
-}
-
 /* We behave like CSTP — create a linked list in vpninfo->cstp_options
  * with the strings containing the information we got from the server,
  * and oc_ip_info contains const copies of those pointers.
  *
  * (unlike version in oncp.c, val is stolen rather than strdup'ed) */
 
-static const char *add_option(struct openconnect_info *vpninfo, const char *opt, char *val)
+static const char *add_option(struct openconnect_info *vpninfo, const char *opt, char **val)
 {
 	struct oc_vpn_option *new = malloc(sizeof(*new));
 	if (!new)
@@ -108,7 +90,8 @@ static const char *add_option(struct openconnect_info *vpninfo, const char *opt,
 		free(new);
 		return NULL;
 	}
-	new->value = val;
+	new->value = *val;
+	*val = NULL;
 	new->next = vpninfo->cstp_options;
 	vpninfo->cstp_options = new;
 
@@ -214,23 +197,19 @@ err:
 	return -EINVAL;
 }
 
-int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *response,
-					  int (*xml_cb)(struct openconnect_info *, xmlNode *xml_node),
-					  char **prompt, char **inputStr)
+int gpst_xml_or_error(struct openconnect_info *vpninfo, char *response,
+					  int (*xml_cb)(struct openconnect_info *, xmlNode *xml_node, void *cb_data),
+					  int (*challenge_cb)(struct openconnect_info *, char *prompt, char *inputStr, void *cb_data),
+					  void *cb_data)
 {
 	xmlDocPtr xml_doc;
 	xmlNode *xml_node;
 	char *err = NULL;
-
-	/* custom error code returned by /ssl-vpn/login.esp and maybe others */
-	if (result == -EACCES)
-		vpn_progress(vpninfo, PRG_ERR, _("Invalid username or password.\n"));
-
-	if (result < 0)
-		return result;
+	char *prompt = NULL, *inputStr = NULL;
+	int result = -EINVAL;
 
 	if (!response) {
-		vpn_progress(vpninfo, PRG_DEBUG,
+		vpn_progress(vpninfo, PRG_ERR,
 			     _("Empty response from server\n"));
 		return -EINVAL;
 	}
@@ -240,26 +219,21 @@ int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *respon
 				XML_PARSE_NOERROR);
 	if (!xml_doc) {
 		/* is it Javascript? */
-		char *p, *i;
-		result = parse_javascript(response, &p, &i);
+		result = parse_javascript(response, &prompt, &inputStr);
 		switch (result) {
 		case 1:
-			vpn_progress(vpninfo, PRG_ERR, _("%s\n"), p);
+			vpn_progress(vpninfo, PRG_ERR, _("%s\n"), prompt);
 			break;
 		case 0:
-			vpn_progress(vpninfo, PRG_INFO, _("Challenge: %s\n"), p);
-			if (prompt && inputStr) {
-				*prompt=p;
-				*inputStr=i;
-				return -EAGAIN;
-			}
+			vpn_progress(vpninfo, PRG_INFO, _("Challenge: %s\n"), prompt);
+			result = challenge_cb ? challenge_cb(vpninfo, prompt, inputStr, cb_data) : -EINVAL;
 			break;
 		default:
 			goto bad_xml;
 		}
-		free((char *)p);
-		free((char *)i);
-		goto out;
+		free(prompt);
+		free(inputStr);
+		goto bad_xml;
 	}
 
 	xml_node = xmlDocGetRootElement(xml_doc);
@@ -268,7 +242,7 @@ int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *respon
 	if (xmlnode_is_named(xml_node, "response")
 	    && !xmlnode_match_prop(xml_node, "status", "error")) {
 		for (xml_node=xml_node->children; xml_node; xml_node=xml_node->next) {
-			if (!xmlnode_get_text(xml_node, "error", &err))
+			if (!xmlnode_get_val(xml_node, "error", &err))
 				goto out;
 		}
 		goto bad_xml;
@@ -277,22 +251,21 @@ int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *respon
 	/* is it <challenge><user>user.name</user><inputstr>...</inputstr><respmsg>...</respmsg></challenge> */
 	if (xmlnode_is_named(xml_node, "challenge")) {
 		for (xml_node=xml_node->children; xml_node; xml_node=xml_node->next) {
-			if (inputStr && xmlnode_is_named(xml_node, "inputstr"))
-				xmlnode_get_text(xml_node, "inputstr", inputStr);
-			else if (prompt && xmlnode_is_named(xml_node, "respmsg"))
-				xmlnode_get_text(xml_node, "respmsg", prompt);
-			else if (xmlnode_is_named(xml_node, "user"))
-				{} /* XXX: override the username passed to the next form? */
+			xmlnode_get_val(xml_node, "inputstr", &inputStr);
+			xmlnode_get_val(xml_node, "respmsg", &prompt);
+			/* XXX: override the username passed to the next form from <user> ? */
 		}
-		result = -EAGAIN;
-		goto out;
+		result = challenge_cb ? challenge_cb(vpninfo, prompt, inputStr, cb_data) : -EINVAL;
+		free(prompt);
+		free(inputStr);
+		goto bad_xml;
 	}
 
-	if (xml_cb)
-		result = xml_cb(vpninfo, xml_node);
+	/* if it's XML, invoke callback (or default to success) */
+	result = xml_cb ? xml_cb(vpninfo, xml_node, cb_data) : 0;
 
+bad_xml:
 	if (result == -EINVAL) {
-	bad_xml:
 		vpn_progress(vpninfo, PRG_ERR,
 					 _("Failed to parse server response\n"));
 		vpn_progress(vpninfo, PRG_DEBUG,
@@ -430,18 +403,17 @@ static int get_key_bits(xmlNode *xml_node, unsigned char *dest)
 {
 	int bits = -1;
 	xmlNode *child;
-	char *s, *p;
+	char *p, *s = NULL;
 
 	for (child = xml_node->children; child; child=child->next) {
-		if (xmlnode_get_text(child, "bits", &s) == 0) {
+		if (xmlnode_get_val(child, "bits", &s) == 0) {
 			bits = atoi(s);
-			free(s);
-		} else if (xmlnode_get_text(child, "val", &s) == 0) {
+		} else if (xmlnode_get_val(child, "val", &s) == 0) {
 			for (p=s; *p && *(p+1) && (bits-=8)>=0; p+=2)
 				*dest++ = unhex(p);
-			free(s);
 		}
 	}
+	free(s);
 	return (bits == 0) ? 0 : -EINVAL;
 }
 #endif
@@ -450,10 +422,10 @@ static int get_key_bits(xmlNode *xml_node, unsigned char *dest)
  *  < 0, on error
  *  = 0, on success; *form is populated
  */
-static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
+static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_node, void *cb_data)
 {
 	xmlNode *member;
-	char *s;
+	char *s = NULL;
 	int ii;
 
 	if (!xml_node || !xmlnode_is_named(xml_node, "response"))
@@ -475,31 +447,29 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 
 	/* Parse config */
 	for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
-		if (!xmlnode_get_text(xml_node, "ip-address", &s))
-			vpninfo->ip_info.addr = add_option(vpninfo, "ipaddr", s);
-		else if (!xmlnode_get_text(xml_node, "netmask", &s))
-			vpninfo->ip_info.netmask = add_option(vpninfo, "netmask", s);
-		else if (!xmlnode_get_text(xml_node, "mtu", &s)) {
+		if (!xmlnode_get_val(xml_node, "ip-address", &s))
+			vpninfo->ip_info.addr = add_option(vpninfo, "ipaddr", &s);
+		else if (!xmlnode_get_val(xml_node, "netmask", &s))
+			vpninfo->ip_info.netmask = add_option(vpninfo, "netmask", &s);
+		else if (!xmlnode_get_val(xml_node, "mtu", &s))
 			vpninfo->ip_info.mtu = atoi(s);
-			free(s);
-		} else if (!xmlnode_get_text(xml_node, "disconnect-on-idle", &s)) {
+		else if (!xmlnode_get_val(xml_node, "disconnect-on-idle", &s)) {
 			int sec = atoi(s);
 			vpn_progress(vpninfo, PRG_INFO, _("Idle timeout is %d minutes.\n"), sec/60);
 			vpninfo->idle_timeout = sec;
-			free(s);
-		} else if (!xmlnode_get_text(xml_node, "ssl-tunnel-url", &s)) {
+		} else if (!xmlnode_get_val(xml_node, "ssl-tunnel-url", &s)) {
 			free(vpninfo->urlpath);
 			vpninfo->urlpath = s;
 			if (strcmp(s, "/ssl-tunnel-connect.sslvpn"))
 				vpn_progress(vpninfo, PRG_INFO, _("Non-standard SSL tunnel path: %s\n"), s);
-		} else if (!xmlnode_get_text(xml_node, "timeout", &s)) {
+			s = NULL;
+		} else if (!xmlnode_get_val(xml_node, "timeout", &s)) {
 			int sec = atoi(s);
 			vpn_progress(vpninfo, PRG_INFO, _("Tunnel timeout (rekey interval) is %d minutes.\n"), sec/60);
 			vpninfo->ssl_times.last_rekey = time(NULL);
 			vpninfo->ssl_times.rekey = sec - 60;
 			vpninfo->ssl_times.rekey_method = REKEY_TUNNEL;
-			free(s);
-		} else if (!xmlnode_get_text(xml_node, "gw-address", &s)) {
+		} else if (!xmlnode_get_val(xml_node, "gw-address", &s)) {
 			/* As remarked in oncp.c, "this is a tunnel; having a
 			 * gateway is meaningless." See esp_send_probes_gp for the
 			 * gory details of what this field actually means.
@@ -508,33 +478,31 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 				vpn_progress(vpninfo, PRG_DEBUG,
 							 _("Gateway address in config XML (%s) differs from external gateway address (%s).\n"), s, vpninfo->ip_info.gateway_addr);
 			vpninfo->esp_magic = inet_addr(s);
-			free(s);
 		} else if (xmlnode_is_named(xml_node, "dns")) {
 			for (ii=0, member = xml_node->children; member && ii<3; member=member->next)
-				if (!xmlnode_get_text(member, "member", &s))
-					vpninfo->ip_info.dns[ii++] = add_option(vpninfo, "DNS", s);
+				if (!xmlnode_get_val(member, "member", &s))
+					vpninfo->ip_info.dns[ii++] = add_option(vpninfo, "DNS", &s);
 		} else if (xmlnode_is_named(xml_node, "wins")) {
 			for (ii=0, member = xml_node->children; member && ii<3; member=member->next)
-				if (!xmlnode_get_text(member, "member", &s))
-					vpninfo->ip_info.nbns[ii++] = add_option(vpninfo, "WINS", s);
+				if (!xmlnode_get_val(member, "member", &s))
+					vpninfo->ip_info.nbns[ii++] = add_option(vpninfo, "WINS", &s);
 		} else if (xmlnode_is_named(xml_node, "dns-suffix")) {
 			struct oc_text_buf *domains = buf_alloc();
 			for (member = xml_node->children; member; member=member->next)
-				if (!xmlnode_get_text(member, "member", &s))
+				if (!xmlnode_get_val(member, "member", &s))
 					buf_append(domains, "%s ", s);
 			if (buf_error(domains) == 0) {
 				domains->data[domains->pos-1] = '\0';
-				vpninfo->ip_info.domain = add_option(vpninfo, "search", domains->data);
-				domains->data = NULL;
+				vpninfo->ip_info.domain = add_option(vpninfo, "search", &domains->data);
 			}
 			buf_free(domains);
 		} else if (xmlnode_is_named(xml_node, "access-routes")) {
 			for (member = xml_node->children; member; member=member->next) {
-				if (!xmlnode_get_text(member, "member", &s)) {
+				if (!xmlnode_get_val(member, "member", &s)) {
 					struct oc_split_include *inc = malloc(sizeof(*inc));
 					if (!inc)
 						continue;
-					inc->route = add_option(vpninfo, "split-include", s);
+					inc->route = add_option(vpninfo, "split-include", &s);
 					inc->next = vpninfo->ip_info.split_includes;
 					vpninfo->ip_info.split_includes = inc;
 				}
@@ -545,19 +513,17 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 				int c = (vpninfo->current_esp_in ^= 1);
 				vpninfo->old_esp_maxseq = vpninfo->esp_in[c^1].seq + 32;
 				for (member = xml_node->children; member; member=member->next) {
-					s = NULL;
-					if (!xmlnode_get_text(member, "udp-port", &s))		udp_sockaddr(vpninfo, atoi(s));
-					else if (!xmlnode_get_text(member, "enc-algo", &s)) 	set_esp_algo(vpninfo, s, 0);
-					else if (!xmlnode_get_text(member, "hmac-algo", &s))	set_esp_algo(vpninfo, s, 1);
-					else if (!xmlnode_get_text(member, "c2s-spi", &s))	vpninfo->esp_out.spi = htonl(strtoul(s, NULL, 16));
-					else if (!xmlnode_get_text(member, "s2c-spi", &s))	vpninfo->esp_in[c].spi = htonl(strtoul(s, NULL, 16));
+					if (!xmlnode_get_val(member, "udp-port", &s))		udp_sockaddr(vpninfo, atoi(s));
+					else if (!xmlnode_get_val(member, "enc-algo", &s)) 	set_esp_algo(vpninfo, s, 0);
+					else if (!xmlnode_get_val(member, "hmac-algo", &s))	set_esp_algo(vpninfo, s, 1);
+					else if (!xmlnode_get_val(member, "c2s-spi", &s))	vpninfo->esp_out.spi = htonl(strtoul(s, NULL, 16));
+					else if (!xmlnode_get_val(member, "s2c-spi", &s))	vpninfo->esp_in[c].spi = htonl(strtoul(s, NULL, 16));
 					else if (xmlnode_is_named(member, "ekey-c2s"))		get_key_bits(member, vpninfo->esp_out.enc_key);
 					else if (xmlnode_is_named(member, "ekey-s2c"))		get_key_bits(member, vpninfo->esp_in[c].enc_key);
 					else if (xmlnode_is_named(member, "akey-c2s"))		get_key_bits(member, vpninfo->esp_out.hmac_key);
 					else if (xmlnode_is_named(member, "akey-s2c"))		get_key_bits(member, vpninfo->esp_in[c].hmac_key);
-					else if (!xmlnode_get_text(member, "ipsec-mode", &s) && strcmp(s, "esp-tunnel"))
+					else if (!xmlnode_get_val(member, "ipsec-mode", &s) && strcmp(s, "esp-tunnel"))
 						vpn_progress(vpninfo, PRG_ERR, _("GlobalProtect config sent ipsec-mode=%s (expected esp-tunnel)\n"), s);
-					free(s);
 				}
 				if (setup_esp_keys(vpninfo, 0))
 					vpn_progress(vpninfo, PRG_ERR, "Failed to setup ESP keys.\n");
@@ -581,6 +547,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 		vpninfo->ssl_times.dpd = 10;
 	vpninfo->ssl_times.keepalive = vpninfo->esp_ssl_fallback = vpninfo->ssl_times.dpd;
 
+	free(s);
 	return 0;
 }
 
@@ -615,13 +582,11 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	free(vpninfo->urlpath);
 	vpninfo->urlpath = orig_path;
 
-	if (result < 0)
-		goto pre_opt_out;
-
 	/* parse getconfig result */
-	result = gpst_xml_or_error(vpninfo, result, xml_buf, gpst_parse_config_xml, NULL, NULL);
+	if (result >= 0)
+		result = gpst_xml_or_error(vpninfo, xml_buf, gpst_parse_config_xml, NULL, NULL);
 	if (result)
-		return result;
+		goto out;
 
 	if (!vpninfo->ip_info.mtu) {
 		/* FIXME: GP gateway config always seems to be <mtu>0</mtu> */
@@ -667,7 +632,6 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 
 out:
 	free_optlist(old_cstp_opts);
-pre_opt_out:
 	buf_free(request_body);
 	free(xml_buf);
 	return result;
@@ -743,28 +707,28 @@ out:
 	return ret;
 }
 
-static int parse_hip_report_check(struct openconnect_info *vpninfo, xmlNode *xml_node)
+static int parse_hip_report_check(struct openconnect_info *vpninfo, xmlNode *xml_node, void *cb_data)
 {
-	char *s;
+	char *s = NULL;
 	int result = -EINVAL;
 
 	if (!xml_node || !xmlnode_is_named(xml_node, "response"))
 		goto out;
 
 	for (xml_node = xml_node->children; xml_node; xml_node=xml_node->next) {
-		if (!xmlnode_get_text(xml_node, "hip-report-needed", &s)) {
+		if (!xmlnode_get_val(xml_node, "hip-report-needed", &s)) {
 			if (!strcmp(s, "no"))
 				result = 0;
 			else if (!strcmp(s, "yes"))
 				result = -EAGAIN;
 			else
 				result = -EINVAL;
-			free(s);
 			goto out;
 		}
 	}
 
 out:
+	free(s);
 	return result;
 }
 
@@ -844,7 +808,8 @@ static int check_or_submit_hip_report(struct openconnect_info *vpninfo, const ch
 	free(vpninfo->urlpath);
 	vpninfo->urlpath = orig_path;
 
-	result = gpst_xml_or_error(vpninfo, result, xml_buf, report ? NULL : parse_hip_report_check, NULL, NULL);
+	if (result >= 0)
+		result = gpst_xml_or_error(vpninfo, xml_buf, report ? NULL : parse_hip_report_check, NULL, NULL);
 
 out:
 	buf_free(request_body);

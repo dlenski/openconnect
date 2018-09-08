@@ -42,11 +42,11 @@ void gpst_common_headers(struct openconnect_info *vpninfo,
  *       - "challenge" (2FA) password, along with form name in auth_id
  *       - cookie from external authentication flow (INSTEAD OF password)
  *
- * This function steals the value of auth_id and prompt and username for
+ * This function steals the value of username for
  * use in the auth form; pw_or_cookie_field is NOT stolen.
  */
-static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo,
-                                      char *prompt, char *auth_id, char *username, char *pw_or_cookie_field)
+static struct oc_auth_form *new_auth_form(struct openconnect_info *vpninfo,
+                                          char *prompt, char *auth_id, char *username, char *pw_or_cookie_field)
 {
 	struct oc_auth_form *form;
 	struct oc_form_opt *opt, *opt2;
@@ -54,8 +54,8 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo,
 	form = calloc(1, sizeof(*form));
 	if (!form)
 		return NULL;
-	form->message = prompt ? : strdup(_("Please enter your username and password"));
-	form->auth_id = auth_id ? : strdup("_gateway");
+	form->message = strdup(prompt ? : _("Please enter your username and password"));
+	form->auth_id = strdup(auth_id ? : "_login");
 
 	opt = form->opts = calloc(1, sizeof(*opt));
 	if (!opt) {
@@ -86,9 +86,32 @@ static struct oc_auth_form *auth_form(struct openconnect_info *vpninfo,
 	return form;
 }
 
-/* Return value:
- *  < 0, on error
- *  = 0, on success; *form is populated
+/* Callback function to create a new form from a challenge
+ *
+ */
+static int challenge_cb(struct openconnect_info *vpninfo, char *prompt, char *inputStr, void *cb_data)
+{
+	struct oc_auth_form **out_form = cb_data;
+	struct oc_auth_form *form = *out_form;
+	char *username;
+
+	/* Steal and reuse username from existing form */
+	username = form->opts ? form->opts->_value : NULL;
+	form->opts->_value = NULL;
+	free_auth_form(form);
+	form = *out_form = new_auth_form(vpninfo, prompt, inputStr, username, NULL);
+	if (!form)
+		return -ENOMEM;
+
+	return -EAGAIN;
+}
+
+/* Parse gateway login response (POST /ssl-vpn/login.esp)
+ *
+ * Extracts the relevant arguments from the XML (<jnlp><application-desc><argument>...</argument></application-desc></jnlp>)
+ * and uses them to build a query string fragment which is usable for subsequent requests.
+ * This query string fragement is saved as vpninfo->cookie.
+ *
  */
 struct gp_login_arg {
 	const char *opt;
@@ -118,7 +141,7 @@ static const struct gp_login_arg gp_login_args[] = {
 	{ .opt=NULL },
 };
 
-static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
+static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node, void *cb_data)
 {
 	struct oc_text_buf *cookie = buf_alloc();
 	char *value = NULL;
@@ -139,16 +162,14 @@ static int parse_login_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 		while (xml_node && xml_node->type != XML_ELEMENT_NODE)
 			xml_node = xml_node->next;
 
-		if (xml_node && !xmlnode_is_named(xml_node, "argument"))
-			goto err_out;
-		else if (xml_node) {
-			value = (char *)xmlNodeGetContent(xml_node);
+		if (xml_node && !xmlnode_get_val(xml_node, "argument", &value)) {
 			if (value && (!value[0] || !strcmp(value, "(null)") || !strcmp(value, "-1"))) {
 				free(value);
 				value = NULL;
 			}
 			xml_node = xml_node->next;
-		}
+		} else if (xml_node)
+			goto err_out;
 
 		if (arg->check && (!value || strcmp(value, arg->check))) {
 			vpn_progress(vpninfo, arg->err_missing ? PRG_ERR : PRG_DEBUG,
@@ -187,7 +208,14 @@ err_out:
 	return -EINVAL;
 }
 
-static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
+/* Parse portal login/config response (POST /ssl-vpn/getconfig.esp)
+ *
+ * Extracts the list of gateways from the XML, writes them to the XML config,
+ * presents the user with a form to choose the gateway, and redirects
+ * to that gateway.
+ *
+ */
+static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node, void *cb_data)
 {
 	struct oc_auth_form *form;
 	xmlNode *x = NULL;
@@ -221,10 +249,10 @@ static int parse_portal_xml(struct openconnect_info *vpninfo, xmlNode *xml_node)
 	 */
 	if (xmlnode_is_named(xml_node, "policy")) {
 		for (x = xml_node->children, xml_node = NULL; x; x = x->next) {
-			if (xmlnode_is_named(x, "portal-name"))
-				portal = (char *)xmlNodeGetContent(x);
-			else if (xmlnode_is_named(x, "gateways"))
+			if (xmlnode_is_named(x, "gateways"))
 				xml_node = x;
+			else
+				xmlnode_get_val(x, "portal-name", &portal);
 		}
 	}
 
@@ -275,8 +303,7 @@ gateways:
 
 			xmlnode_get_prop(xml_node, "name", &choice->name);
 			for (x = xml_node->children; x; x=x->next)
-				if (xmlnode_is_named(x, "description")) {
-					choice->label = (char *)xmlNodeGetContent(x);
+				if (!xmlnode_get_val(x, "description", &choice->label)) {
 					if (vpninfo->write_new_config) {
 						buf_append(buf, "      <HostEntry><HostName>");
 						buf_append_xmlescaped(buf, choice->label);
@@ -319,6 +346,12 @@ out:
 	return result;
 }
 
+/* Main login entry point
+ *
+ * portal: 0 for gateway login, 1 for portal login
+ * pw_or_cookie_field: "alternate secret" field (see new_auth_form)
+ *
+ */
 static int gpst_login(struct openconnect_info *vpninfo, int portal, char *pw_or_cookie_field)
 {
 	int result;
@@ -327,7 +360,6 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal, char *pw_or_
 	struct oc_text_buf *request_body = buf_alloc();
 	const char *request_body_type = "application/x-www-form-urlencoded";
 	char *xml_buf = NULL, *orig_path;
-	char *prompt = NULL, *auth_id = NULL, *username = NULL;
 
 #ifdef HAVE_LIBSTOKEN
 	/* Step 1: Unlock software token (if applicable) */
@@ -338,19 +370,18 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal, char *pw_or_
 	}
 #endif
 
-	form = auth_form(vpninfo, prompt, auth_id, username, pw_or_cookie_field);
-	if (!form)
-		return -ENOMEM;
 
 	/* Ask the user to fill in the auth form; repeat as necessary */
 	for (;;) {
-		/* process auth form (username and password or challenge) */
+		if (!form)
+			form = new_auth_form(vpninfo, NULL, NULL, NULL, pw_or_cookie_field);
+		if (!form)
+			return -ENOMEM;
+
+		/* process auth form */
 		result = process_auth_form(vpninfo, form);
 		if (result)
 			goto out;
-
-	reuse_whole_form:
-		buf_truncate(request_body);
 
 		/* generate token code if specified */
 		result = do_gen_tokencode(vpninfo, form);
@@ -382,31 +413,20 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal, char *pw_or_
 		vpninfo->urlpath = orig_path;
 
 		/* Result could be either a JavaScript challenge or XML */
-		result = gpst_xml_or_error(vpninfo, result, xml_buf,
-		                           portal ? parse_portal_xml : parse_login_xml, &prompt, &auth_id);
+		if (result >= 0)
+			result = gpst_xml_or_error(vpninfo, xml_buf, portal ? parse_portal_xml : parse_login_xml,
+									   challenge_cb, &form);
 		if (result == -EAGAIN) {
-		reuse_username:
-			/* Steal and reuse username from first form */
-			username = form->opts ? form->opts->_value : NULL;
-			form->opts->_value = NULL;
-			free_auth_form(form);
-			form = auth_form(vpninfo, prompt, auth_id, username, pw_or_cookie_field);
-			prompt = auth_id = username = NULL;
-			if (!form)
-				return -ENOMEM;
-		} else if (portal && result == 0) {
-			/* Portal login succeeded; reuse same credentials to login to gateway,
-			 * unless it was a challenge auth form, in which case we only
-			 * reuse the username.
-			 */
-			portal = 0;
-			if (form->auth_id && form->auth_id[0] != '_')
-				goto reuse_username;
-			else
-				goto reuse_whole_form;
+			/* New form is already populated from the challenge */
+			continue;
 		} else if (result == -EACCES) {
 			/* Invalid username/password; reuse same form, but blank */
 			nuke_opt_values(form->opts);
+		} else if (portal && result == 0) {
+			/* Portal login succeeded; now login to gateway */
+			portal = 0;
+			free_auth_form(form);
+			form = NULL;
 		} else
 			break;
 	}
@@ -423,7 +443,8 @@ int gpst_obtain_cookie(struct openconnect_info *vpninfo)
 	char *pw_or_cookie_field = NULL;
 	int result;
 
-	/* An alternate password/secret field may be specified in the "URL path". Known possibilities:
+	/* An alternate password/secret field may be specified in the "URL path" (or --usergroup).
+        * Known possibilities are:
 	 *     /portal:portal-userauthcookie
 	 *     /gateway:prelogin-cookie
 	 */
@@ -492,7 +513,9 @@ int gpst_bye(struct openconnect_info *vpninfo, const char *reason)
 	/* logout.esp returns HTTP status 200 and <response status="success"> when
 	 * successful, and all manner of malformed junk when unsuccessful.
 	 */
-	result = gpst_xml_or_error(vpninfo, result, xml_buf, NULL, NULL, NULL);
+	if (result >= 0)
+		result = gpst_xml_or_error(vpninfo, xml_buf, NULL, NULL, NULL);
+
 	if (result < 0)
 		vpn_progress(vpninfo, PRG_ERR, _("Logout failed.\n"));
 	else

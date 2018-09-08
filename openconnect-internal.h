@@ -874,9 +874,10 @@ void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *b
 int gpst_bye(struct openconnect_info *vpninfo, const char *reason);
 
 /* gpst.c */
-int gpst_xml_or_error(struct openconnect_info *vpninfo, int result, char *response,
-					  int (*xml_cb)(struct openconnect_info *, xmlNode *xml_node),
-					  char **prompt, char **inputStr);
+int gpst_xml_or_error(struct openconnect_info *vpninfo, char *response,
+					  int (*xml_cb)(struct openconnect_info *, xmlNode *xml_node, void *cb_data),
+					  int (*challenge_cb)(struct openconnect_info *, char *prompt, char *inputStr, void *cb_data),
+					  void *cb_data);
 int gpst_setup(struct openconnect_info *vpninfo);
 int gpst_mainloop(struct openconnect_info *vpninfo, int *timeout);
 int gpst_esp_send_probes(struct openconnect_info *vpninfo);
@@ -1014,6 +1015,7 @@ int set_csd_user(struct openconnect_info *vpninfo);
 
 /* auth-common.c */
 int xmlnode_is_named(xmlNode *xml_node, const char *name);
+int xmlnode_get_val(xmlNode *xml_node, const char *name, char **var);
 int xmlnode_get_prop(xmlNode *xml_node, const char *name, char **var);
 int xmlnode_match_prop(xmlNode *xml_node, const char *name, const char *match);
 int append_opt(struct oc_text_buf *body, const char *opt, const char *name);
