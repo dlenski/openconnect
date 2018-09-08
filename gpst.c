@@ -305,7 +305,8 @@ out:
 		    || !strcmp(err, "GlobalProtect portal does not exist")) {
 			vpn_progress(vpninfo, PRG_DEBUG, "%s\n", err);
 			result = -EEXIST;
-		} else if (!strcmp(err, "Invalid authentication cookie")) {
+		} else if (!strcmp(err, "Invalid authentication cookie")
+		           || !strcmp(err, "Valid client certificate is required")) {
 			vpn_progress(vpninfo, PRG_ERR, "%s\n", err);
 			result = -EPERM;
 		} else {
