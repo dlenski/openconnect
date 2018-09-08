@@ -248,6 +248,24 @@ int gpst_xml_or_error(struct openconnect_info *vpninfo, char *response,
 		goto bad_xml;
 	}
 
+	/* Is it <prelogin-response><status>Error</status><msg>..</msg></prelogin-response> ? */
+	if (xmlnode_is_named(xml_node, "prelogin-response")) {
+		char *s = NULL;
+		int has_err = 0;
+		xmlNode *x;
+		for (x=xml_node->children; x; x=x->next) {
+			if (!xmlnode_get_val(x, "status", &s))
+				has_err = strcmp(s, "Success");
+			else
+				xmlnode_get_val(x, "msg", &err);
+		}
+		free(s);
+		if (has_err)
+			goto out;
+		free(err);
+		err = NULL;
+	}
+
 	/* is it <challenge><user>user.name</user><inputstr>...</inputstr><respmsg>...</respmsg></challenge> */
 	if (xmlnode_is_named(xml_node, "challenge")) {
 		for (xml_node=xml_node->children; xml_node; xml_node=xml_node->next) {
