@@ -1,14 +1,17 @@
 #!/usr/bin/python
 
 from __future__ import print_function
-from urlparse import urlparse
-from urllib import urlencode
+from sys import stderr, version_info
+if (version_info > (3, 0)):
+    from urllib.parse import urlparse, urlencode
+else:
+    from urlparse import urlparse
+    from urllib import urlencode
 import requests
 import argparse
 import getpass
 import os
 import xml.etree.ElementTree as ET
-from sys import stderr
 
 p = argparse.ArgumentParser()
 p.add_argument('-v','--verbose', default=0, action='count')
@@ -58,7 +61,10 @@ res = s.post(endpoint.geturl(), verify=args.verify,
                        **extra))
 
 if args.verbose:
-    print("Request body:\n", res.request.content, file=stderr)
+    if (version_info > (3, 0)):
+        print("Request body:\n", res.request.body, file=stderr)
+    else:
+        print("Request body:\n", res.request.content, file=stderr)
 
 res.raise_for_status()
 print(res.headers)
