@@ -74,7 +74,7 @@ try:
 except Exception:
     xml = None
 
-if xml.tag == 'jnlp':
+if xml is not None and xml.tag == 'jnlp':
     arguments = [(t.text or '') for t in xml.iter('argument')]
     cookie = urlencode({'authcookie': arguments[1], 'portal': arguments[3], 'user': arguments[4], 'domain': arguments[7],
                         'computer': args.computer, 'preferred-ip': arguments[15] if len(arguments)>=16 else ''})
