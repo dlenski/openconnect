@@ -77,6 +77,8 @@ if xml.tag == 'jnlp':
                         'computer': args.computer, 'preferred-ip': arguments[15] if len(arguments)>=16 else ''})
     if cert:
         cert_and_key = ' \\\n        ' + ' '.join('%s "%s"' % (opt, fn) for opt, fn in zip(('-c','-k'), cert) if fn)
+    else:
+        cert_and_key = ''
 
     print('''
 
