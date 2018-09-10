@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 from sys import stderr, version_info
-if (version_info > (3, 0)):
+if (version_info >= (3, 0)):
     from urllib.parse import urlparse, urlencode
 else:
     from urlparse import urlparse
