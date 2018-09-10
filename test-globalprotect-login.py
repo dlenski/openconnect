@@ -61,10 +61,7 @@ res = s.post(endpoint.geturl(), verify=args.verify,
                        **extra))
 
 if args.verbose:
-    if (version_info > (3, 0)):
-        print("Request body:\n", res.request.body, file=stderr)
-    else:
-        print("Request body:\n", res.request.content, file=stderr)
+    print("Request body:\n", res.request.body, file=stderr)
 
 res.raise_for_status()
 print(res.headers)
