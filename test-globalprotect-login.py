@@ -64,7 +64,8 @@ if args.verbose:
     print("Request body:\n", res.request.body, file=stderr)
 
 res.raise_for_status()
-print(res.headers)
+if args.verbose:
+    print(res.headers, file=stderr)
 print(res.text)
 
 # build openconnect "cookie" if the result is a <jnlp>
@@ -89,4 +90,4 @@ Extracted connection cookie from <jnlp>. Use this to connect:
 
     openconnect --protocol=gp --usergroup=gateway %s \\
         --cookie "%s"%s
-''' % (endpoint.netloc, cookie, cert_and_key))
+''' % (endpoint.netloc, cookie, cert_and_key), file=stderr)
