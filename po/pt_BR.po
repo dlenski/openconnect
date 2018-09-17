@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openconnect\n"
 "Report-Msgid-Bugs-To: openconnect-devel@lists.infradead.org\n"
-"POT-Creation-Date: 2018-08-15 21:16+0100\n"
+"POT-Creation-Date: 2018-09-17 19:47+0100\n"
 "PO-Revision-Date: 2013-01-18 22:04+0000\n"
 "Last-Translator: David Woodhouse <dwmw2@infradead.org>\n"
 "Language-Team: Portuguese (Brazil) <l10n-pt-br@meego.org.br>\n"
@@ -1706,7 +1706,7 @@ msgstr "Algoritmo ESP %s desconhecido: %s"
 #: gpst.c:486
 #, c-format
 msgid "Idle timeout is %d minutes.\n"
-msgstr ""
+msgstr "Tempo limite de ociosidade é %d minutos.\n"
 
 #: gpst.c:493
 #, c-format
@@ -1799,12 +1799,12 @@ msgstr ""
 #: gpst.c:895
 #, c-format
 msgid "HIP script '%s' exited abnormally\n"
-msgstr ""
+msgstr "O script HIP “%s” saiu anormalmente\n"
 
 #: gpst.c:900
 #, c-format
 msgid "HIP script '%s' returned non-zero status: %d\n"
-msgstr ""
+msgstr "O script HIP “%s” retornou status não-zero: %d\n"
 
 #: gpst.c:906
 msgid "HIP report submission failed.\n"
@@ -2667,11 +2667,11 @@ msgstr "Indica MTU do caminho de/para o servidor"
 
 #: main.c:866
 msgid "Enable stateful compression (default is stateless only)"
-msgstr ""
+msgstr "Habilita compressão stateful (padrão é apenas stateful)"
 
 #: main.c:867
 msgid "Disable all compression"
-msgstr ""
+msgstr "Desabilita toda compressão"
 
 #: main.c:868
 msgid "Set minimum Dead Peer Detection interval"
@@ -2901,20 +2901,20 @@ msgstr "A criação da conexão SSL falhou\n"
 #: main.c:1599
 #, c-format
 msgid "Set up UDP failed; using SSL instead\n"
-msgstr ""
+msgstr "A configuração de UDP falhou; usando SSL em vez disso\n"
 
 #: main.c:1607
 #, c-format
 msgid "Connected as %s%s%s, using SSL%s%s, with %s%s%s %s\n"
-msgstr ""
+msgstr "Conectado como %s%s%s, usando SSL%s%s, com %s%s%s %s\n"
 
 #: main.c:1613
 msgid "disabled"
-msgstr ""
+msgstr "desabilitado"
 
 #: main.c:1613
 msgid "in progress"
-msgstr ""
+msgstr "em progresso"
 
 #: main.c:1617
 msgid "No --script argument provided; DNS and routing are not configured\n"
@@ -4634,33 +4634,33 @@ msgstr "comando calculate"
 msgid "Unrecognised response from Yubikey when generating tokencode\n"
 msgstr "Resposta não reconhecida do Yubikey ao gerar código de token\n"
 
+#~ msgid "Enable compression (default)"
+#~ msgstr "Habilita compressão (padrão)"
+
+#~ msgid "Disable compression"
+#~ msgstr "Desabilita compressão"
+
+#~ msgid "Set up DTLS failed; using SSL instead\n"
+#~ msgstr "A configuração de DTLS falhou - usando SSL em vez disso\n"
+
+#~ msgid "Connected as %s%s%s, using %s%s\n"
+#~ msgstr "Conectado como %s%s%s, usando %s%s\n"
+
+#~ msgid "Consider SPI 0x%x, seq %u against outgoing ESP setup\n"
+#~ msgstr "Considerar SPI 0x%x, seq %u contra configuração ESP de saída\n"
+
+#~ msgid "Failed to SHA1 input data for signing: %s\n"
+#~ msgstr "Falhou em executar SHA1 nos dados de entrada para assinatura: %s\n"
+
+#~ msgid "Failed to open CONIN$: %s\n"
+#~ msgstr "Falha ao abrir CONIN$: %s\n"
+
 #~ msgid ""
+#~ "Open client for Cisco AnyConnect VPN, version %s\n"
 #~ "\n"
-#~ "    Set VPN protocol:\n"
 #~ msgstr ""
+#~ "Cliente aberto para Cisco AnyConnect VPN, versão %s\n"
 #~ "\n"
-#~ "    Define protocolo VPN:\n"
-
-#~ msgid "Use WebVPN cookie COOKIE"
-#~ msgstr "Usa o cookie COOKIE de WebVPN"
-
-#~ msgid "Drop privileges during CSD execution"
-#~ msgstr "Descarta privilégios durante execução de CSD"
-
-#~ msgid "Run SCRIPT instead of CSD binary"
-#~ msgstr "Executa SCRIPT ao invés do binário do CSD"
-
-#~ msgid "Fetch webvpn cookie only; don't connect"
-#~ msgstr "Só obtém cookie de webvpn - não conecta"
-
-#~ msgid "Print webvpn cookie before connecting"
-#~ msgstr "Imprime o cookie de webvpn antes de conectar."
-
-#~ msgid "Disable DTLS"
-#~ msgstr "Desabilita DTLS"
-
-#~ msgid "Set local port for DTLS datagrams"
-#~ msgstr "Define a porta local para datagramas DTLS"
 
 #~ msgid ""
 #~ "\n"
@@ -4670,30 +4670,30 @@ msgstr "Resposta não reconhecida do Yubikey ao gerar código de token\n"
 #~ "AVISO: nenhum suporte a DTLS neste binário. A performance será "
 #~ "prejudicada.\n"
 
+#~ msgid "Set local port for DTLS datagrams"
+#~ msgstr "Define a porta local para datagramas DTLS"
+
+#~ msgid "Disable DTLS"
+#~ msgstr "Desabilita DTLS"
+
+#~ msgid "Print webvpn cookie before connecting"
+#~ msgstr "Imprime o cookie de webvpn antes de conectar."
+
+#~ msgid "Fetch webvpn cookie only; don't connect"
+#~ msgstr "Só obtém cookie de webvpn - não conecta"
+
+#~ msgid "Run SCRIPT instead of CSD binary"
+#~ msgstr "Executa SCRIPT ao invés do binário do CSD"
+
+#~ msgid "Drop privileges during CSD execution"
+#~ msgstr "Descarta privilégios durante execução de CSD"
+
+#~ msgid "Use WebVPN cookie COOKIE"
+#~ msgstr "Usa o cookie COOKIE de WebVPN"
+
 #~ msgid ""
-#~ "Open client for Cisco AnyConnect VPN, version %s\n"
 #~ "\n"
+#~ "    Set VPN protocol:\n"
 #~ msgstr ""
-#~ "Cliente aberto para Cisco AnyConnect VPN, versão %s\n"
 #~ "\n"
-
-#~ msgid "Failed to open CONIN$: %s\n"
-#~ msgstr "Falha ao abrir CONIN$: %s\n"
-
-#~ msgid "Failed to SHA1 input data for signing: %s\n"
-#~ msgstr "Falhou em executar SHA1 nos dados de entrada para assinatura: %s\n"
-
-#~ msgid "Consider SPI 0x%x, seq %u against outgoing ESP setup\n"
-#~ msgstr "Considerar SPI 0x%x, seq %u contra configuração ESP de saída\n"
-
-#~ msgid "Connected as %s%s%s, using %s%s\n"
-#~ msgstr "Conectado como %s%s%s, usando %s%s\n"
-
-#~ msgid "Set up DTLS failed; using SSL instead\n"
-#~ msgstr "A configuração de DTLS falhou - usando SSL em vez disso\n"
-
-#~ msgid "Disable compression"
-#~ msgstr "Desabilita compressão"
-
-#~ msgid "Enable compression (default)"
-#~ msgstr "Habilita compressão (padrão)"
+#~ "    Define protocolo VPN:\n"
