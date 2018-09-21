@@ -1010,6 +1010,7 @@ int do_gen_yubikey_code(struct openconnect_info *vpninfo,
 
 /* auth.c */
 int cstp_obtain_cookie(struct openconnect_info *vpninfo);
+int set_csd_user(struct openconnect_info *vpninfo);
 
 /* auth-common.c */
 int xmlnode_is_named(xmlNode *xml_node, const char *name);

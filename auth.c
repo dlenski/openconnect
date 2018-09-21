@@ -975,6 +975,58 @@ static int fetch_config(struct openconnect_info *vpninfo)
 	return result;
 }
 
+int set_csd_user(struct openconnect_info *vpninfo)
+{
+#if defined(_WIN32) || defined(__native_client__)
+	vpn_progress(vpninfo, PRG_ERR,
+		     _("Error: Running the 'Cisco Secure Desktop' trojan on this platform is not yet implemented.\n"));
+	return -EPERM;
+#else
+	setsid();
+
+	if (vpninfo->uid_csd_given && vpninfo->uid_csd != getuid()) {
+		struct passwd *pw;
+		int e;
+
+		if (setgid(vpninfo->gid_csd)) {
+			e = errno;
+			fprintf(stderr, _("Failed to set gid %ld: %s\n"),
+				(long)vpninfo->uid_csd, strerror(e));
+			return -e;
+		}
+
+		if (setgroups(1, &vpninfo->gid_csd)) {
+			e = errno;
+			fprintf(stderr, _("Failed to set groups to %ld: %s\n"),
+				(long)vpninfo->uid_csd, strerror(e));
+			return -e;
+		}
+
+		if (setuid(vpninfo->uid_csd)) {
+			e = errno;
+			fprintf(stderr, _("Failed to set uid %ld: %s\n"),
+				(long)vpninfo->uid_csd, strerror(e));
+			return -e;
+		}
+
+		if (!(pw = getpwuid(vpninfo->uid_csd))) {
+			e = errno;
+			fprintf(stderr, _("Invalid user uid=%ld: %s\n"),
+				(long)vpninfo->uid_csd, strerror(e));
+			return -e;
+		}
+		setenv("HOME", pw->pw_dir, 1);
+		if (chdir(pw->pw_dir)) {
+			e = errno;
+			fprintf(stderr, _("Failed to change to CSD home directory '%s': %s\n"),
+				pw->pw_dir, strerror(e));
+			return -e;
+		}
+	}
+	return 0;
+#endif
+}
+
 static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int buflen)
 {
 #if defined(_WIN32) || defined(__native_client__)
@@ -1073,47 +1125,8 @@ static int run_csd_script(struct openconnect_info *vpninfo, char *buf, int bufle
 			char *csd_argv[32];
 			int i = 0;
 
-			setsid();
-
-			if (vpninfo->uid_csd_given && vpninfo->uid_csd != getuid()) {
-				struct passwd *pw;
-				int e;
-
-				if (setgid(vpninfo->gid_csd)) {
-					e = errno;
-					fprintf(stderr, _("Failed to set gid %ld: %s\n"),
-						(long)vpninfo->uid_csd, strerror(e));
-					exit(1);
-				}
-
-				if (setgroups(1, &vpninfo->gid_csd)) {
-					e = errno;
-					fprintf(stderr, _("Failed to set groups to %ld: %s\n"),
-						(long)vpninfo->uid_csd, strerror(e));
-					exit(1);
-				}
-
-				if (setuid(vpninfo->uid_csd)) {
-					e = errno;
-					fprintf(stderr, _("Failed to set uid %ld: %s\n"),
-						(long)vpninfo->uid_csd, strerror(e));
-					exit(1);
-				}
-
-				if (!(pw = getpwuid(vpninfo->uid_csd))) {
-					e = errno;
-					fprintf(stderr, _("Invalid user uid=%ld: %s\n"),
-						(long)vpninfo->uid_csd, strerror(e));
-					exit(1);
-				}
-				setenv("HOME", pw->pw_dir, 1);
-				if (chdir(pw->pw_dir)) {
-					e = errno;
-					fprintf(stderr, _("Failed to change to CSD home directory '%s': %s\n"),
-						pw->pw_dir, strerror(e));
-					exit(1);
-				}
-			}
+			if (set_csd_user(vpninfo) < 0)
+				exit(1);
 			if (getuid() == 0 && !vpninfo->csd_wrapper) {
 				fprintf(stderr, _("Warning: you are running insecure "
 						  "CSD code with root privileges\n"

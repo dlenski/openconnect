@@ -914,6 +914,9 @@ static int run_hip_script(struct openconnect_info *vpninfo)
 		close(pipefd[0]);
 		dup2(pipefd[1], 1);
 
+		if (set_csd_user(vpninfo) < 0)
+			exit(1);
+
 		hip_argv[i++] = openconnect_utf8_to_legacy(vpninfo, vpninfo->csd_wrapper);
 		hip_argv[i++] = (char *)"--cookie";
 		hip_argv[i++] = vpninfo->cookie;
