@@ -615,7 +615,8 @@ static int load_pkcs12_certificate(struct openconnect_info *vpninfo, PKCS12 *p12
 }
 
 #ifdef HAVE_ENGINE
-static int load_tpm_certificate(struct openconnect_info *vpninfo)
+static int load_tpm_certificate(struct openconnect_info *vpninfo,
+				const char *engine)
 {
 	ENGINE *e;
 	EVP_PKEY *key;
@@ -624,7 +625,7 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 
 	ENGINE_load_builtin_engines();
 
-	e = ENGINE_by_id("tpm");
+	e = ENGINE_by_id(engine);
 	if (!e) {
 		vpn_progress(vpninfo, PRG_ERR, _("Can't load TPM engine.\n"));
 		openconnect_report_ssl_errors(vpninfo);
@@ -673,7 +674,8 @@ static int load_tpm_certificate(struct openconnect_info *vpninfo)
 	return ret;
 }
 #else
-static int load_tpm_certificate(struct openconnect_info *vpninfo)
+static int load_tpm_certificate(struct openconnect_info *vpninfo,
+				const char *engine)
 {
 	vpn_progress(vpninfo, PRG_ERR,
 		     _("This version of OpenConnect was built without TPM support\n"));
@@ -946,7 +948,10 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	while (fgets(buf, 255, f)) {
 		if (!strcmp(buf, "-----BEGIN TSS KEY BLOB-----\n")) {
 			fclose(f);
-			return load_tpm_certificate(vpninfo);
+			return load_tpm_certificate(vpninfo, "tpm");
+		} else if (!strcmp(buf, "-----BEGIN TSS2 KEY BLOB-----\n")) {
+			fclose(f);
+			return load_tpm_certificate(vpninfo, "tpm2");
 		} else if (!strcmp(buf, "-----BEGIN RSA PRIVATE KEY-----\n") ||
 			   !strcmp(buf, "-----BEGIN DSA PRIVATE KEY-----\n") ||
 			   !strcmp(buf, "-----BEGIN EC PRIVATE KEY-----\n") ||
