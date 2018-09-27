@@ -346,6 +346,7 @@ struct esp {
 
 struct oc_pcsc_ctx;
 struct oc_tpm1_ctx;
+struct oc_tpm2_ctx;
 
 struct openconnect_info {
 	const struct vpn_proto *proto;
@@ -502,6 +503,9 @@ struct openconnect_info {
 	char gnutls_prio[256];
 #ifdef HAVE_TROUSERS
 	struct oc_tpm1_ctx *tpm1;
+#endif
+#ifdef HAVE_TSS2
+	struct oc_tpm2_ctx *tpm2;
 #endif
 #endif /* OPENCONNECT_GNUTLS */
 	struct pin_cache *pin_cache;

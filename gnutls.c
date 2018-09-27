@@ -561,7 +561,7 @@ static int get_cert_name(gnutls_x509_crt_t cert, char *name, size_t namelen)
 	return 0;
 }
 
-#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined (HAVE_GNUTLS_SYSTEM_KEYS)
+#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined(HAVE_TSS2) || defined (HAVE_GNUTLS_SYSTEM_KEYS)
 /* We have to convert the array of X509 certificates to gnutls_pcert_st
    for ourselves. There's no function that takes a gnutls_privkey_t as
    the key and gnutls_x509_crt_t certificates. */
@@ -611,7 +611,7 @@ static int verify_signed_data(gnutls_pubkey_t pubkey, gnutls_privkey_t privkey,
 
 	return gnutls_pubkey_verify_data2(pubkey, algo, 0, data, sig);
 }
-#endif /* (P11KIT || TROUSERS || SYSTEM_KEYS) */
+#endif /* (P11KIT || TROUSERS || TSS2 || SYSTEM_KEYS) */
 
 static int openssl_hash_password(struct openconnect_info *vpninfo, char *pass,
 				 gnutls_datum_t *key, gnutls_datum_t *salt)
@@ -901,7 +901,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 {
 	gnutls_datum_t fdata;
 	gnutls_x509_privkey_t key = NULL;
-#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
+#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined(HAVE_TSS2) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
 	gnutls_privkey_t pkey = NULL;
 	gnutls_datum_t pkey_sig = {NULL, 0};
 	void *dummy_hash_data = &load_certificate;
@@ -1319,6 +1319,21 @@ static int load_certificate(struct openconnect_info *vpninfo)
 #endif
 	}
 
+	/* Is it a PEM file with a TPM key blob? */
+	if (strstr((char *)fdata.data, "-----BEGIN TSS2 KEY BLOB-----")) {
+#ifndef HAVE_TSS2
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("This version of OpenConnect was built without TPM2 support\n"));
+		return -EINVAL;
+#else
+		ret = load_tpm2_key(vpninfo, &fdata, &pkey, &pkey_sig);
+		if (ret)
+			goto out;
+
+		goto match_cert;
+#endif
+	}
+
 	/* OK, try other PEM files... */
 	gnutls_x509_privkey_init(&key);
 	if ((pem_header = strstr((char *)fdata.data, "-----BEGIN RSA PRIVATE KEY-----")) ||
@@ -1462,7 +1477,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	   enabled we'll fall straight through the bit at match_cert: below, and go
 	   directly to the bit where it prints the 'no match found' error and exits. */
 
-#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
+#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined(HAVE_TSS2) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
  match_cert:
 	/* If we have a privkey from PKCS#11 or TPM, we can't do the simple comparison
 	   of key ID that we do for software keys to find which certificate is a
@@ -1516,7 +1531,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		}
 		gnutls_free(pkey_sig.data);
 	}
-#endif /* P11KIT || TROUSERS || SYSTEM_KEYS */
+#endif /* P11KIT || TROUSERS || TSS2 || SYSTEM_KEYS */
 
 	/* We shouldn't reach this. It means that we didn't find *any* matching cert */
 	vpn_progress(vpninfo, PRG_ERR,
@@ -1693,7 +1708,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	   key and certs. GnuTLS makes us do this differently for X509 privkeys
 	   vs. TPM/PKCS#11 "generic" privkeys, and the latter is particularly
 	   'fun' for GnuTLS 2.12... */
-#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
+#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined(HAVE_TSS2) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
 	if (pkey) {
 		err = assign_privkey(vpninfo, pkey,
 				     supporting_certs,
@@ -1704,7 +1719,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 					of extra_certs[] may have been zeroed. */
 		}
 	} else
-#endif /* P11KIT || TROUSERS */
+#endif /* P11KIT || TROUSERS || TSS2 || SYSTEM_KEYS  */
 		err = gnutls_certificate_set_x509_key(vpninfo->https_cred,
 						      supporting_certs,
 						      nr_supporting_certs, key);
@@ -1741,7 +1756,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 	}
 	gnutls_free(extra_certs);
 
-#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
+#if defined(HAVE_P11KIT) || defined(HAVE_TROUSERS) || defined(HAVE_TSS2) || defined(HAVE_GNUTLS_SYSTEM_KEYS)
 	if (pkey)
 		gnutls_privkey_deinit(pkey);
 	/* If we support arbitrary privkeys, we might have abused fdata.data
@@ -2315,6 +2330,9 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 		vpninfo->https_cred = NULL;
 #ifdef HAVE_TROUSERS
 		release_tpm1_ctx(vpninfo);
+#endif
+#ifdef HAVE_TSS2
+		release_tpm2_ctx(vpninfo);
 #endif
 	}
 }
