@@ -517,11 +517,16 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 				if (!xmlnode_get_text(member, "member", &s))
 					vpninfo->ip_info.nbns[ii++] = add_option(vpninfo, "WINS", s);
 		} else if (xmlnode_is_named(xml_node, "dns-suffix")) {
-			for (ii=0, member = xml_node->children; member && ii<1; member=member->next)
-				if (!xmlnode_get_text(member, "member", &s)) {
-					vpninfo->ip_info.domain = add_option(vpninfo, "search", s);
-					ii++;
-				}
+			struct oc_text_buf *domains = buf_alloc();
+			for (member = xml_node->children; member; member=member->next)
+				if (!xmlnode_get_text(member, "member", &s))
+					buf_append(domains, "%s ", s);
+			if (buf_error(domains) == 0) {
+				domains->data[domains->pos-1] = '\0';
+				vpninfo->ip_info.domain = add_option(vpninfo, "search", domains->data);
+				domains->data = NULL;
+			}
+			buf_free(domains);
 		} else if (xmlnode_is_named(xml_node, "access-routes")) {
 			for (member = xml_node->children; member; member=member->next) {
 				if (!xmlnode_get_text(member, "member", &s)) {
