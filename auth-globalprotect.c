@@ -454,9 +454,18 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal, struct login
 
 	/* Ask the user to fill in the auth form; repeat as necessary */
 	for (;;) {
+		const char *clientos;
+		if (!strcmp(vpninfo->platname, "mac-intel") || !strcmp(vpninfo->platname, "apple-ios"))
+			clientos = "Mac";
+		else if (!strcmp(vpninfo->platname, "linux-64") || !strcmp(vpninfo->platname, "android"))
+			clientos = "Linux";
+		else
+			clientos = "Windows";
+
 		/* submit prelogin request to get form */
 		orig_path = vpninfo->urlpath;
-		vpninfo->urlpath = strdup(portal ? "global-protect/prelogin.esp?tmp=tmp&clientVer=4100&clientos=Windows" : "ssl-vpn/prelogin.esp");
+		asprintf(&vpninfo->urlpath, "%s/prelogin.esp?tmp=tmp&clientVer=4100&clientos=%s",
+				 portal ? "global-protect" : "ssl-vpn", clientos);
 		result = do_https_request(vpninfo, "POST", NULL, NULL, &xml_buf, 0);
 		free(vpninfo->urlpath);
 		vpninfo->urlpath = orig_path;
@@ -483,7 +492,13 @@ static int gpst_login(struct openconnect_info *vpninfo, int portal, struct login
 
 		/* submit gateway login (ssl-vpn/login.esp) or portal config (global-protect/getconfig.esp) request */
 		buf_truncate(request_body);
-		buf_append(request_body, "jnlpReady=jnlpReady&ok=Login&direct=yes&clientVer=4100&prot=https:&clientos=Windows");
+		buf_append(request_body, "jnlpReady=jnlpReady&ok=Login&direct=yes&clientVer=4100&prot=https:");
+		if (!strcmp(vpninfo->platname, "mac-intel") || !strcmp(vpninfo->platname, "apple-ios"))
+			append_opt(request_body, "clientos", "Mac");
+		else if (!strcmp(vpninfo->platname, "linux-64") || !strcmp(vpninfo->platname, "android"))
+			append_opt(request_body, "clientos", "Linux");
+		else
+			append_opt(request_body, "clientos", "Windows");
 		append_opt(request_body, "os-version", vpninfo->platname);
 		append_opt(request_body, "server", vpninfo->hostname);
 		append_opt(request_body, "computer", vpninfo->localname);

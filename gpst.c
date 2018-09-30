@@ -581,7 +581,13 @@ static int gpst_get_config(struct openconnect_info *vpninfo)
 	char *xml_buf=NULL;
 
 	/* submit getconfig request */
-	buf_append(request_body, "client-type=1&protocol-version=p1&app-version=3.0.1-10&clientos=Windows");
+	buf_append(request_body, "client-type=1&protocol-version=p1&app-version=3.0.1-10");
+	if (!strcmp(vpninfo->platname, "mac-intel") || !strcmp(vpninfo->platname, "apple-ios"))
+		append_opt(request_body, "clientos", "Mac");
+	else if (!strcmp(vpninfo->platname, "linux-64") || !strcmp(vpninfo->platname, "android"))
+		append_opt(request_body, "clientos", "Linux");
+	else
+		append_opt(request_body, "clientos", "Windows");
 	append_opt(request_body, "os-version", vpninfo->platname);
 	append_opt(request_body, "hmac-algo", "sha1,md5");
 	append_opt(request_body, "enc-algo", "aes-128-cbc,aes-256-cbc");
