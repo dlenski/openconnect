@@ -33,11 +33,6 @@
 #include <gnutls/pkcs12.h>
 #include <gnutls/abstract.h>
 
-#ifdef HAVE_TROUSERS
-#include <trousers/tss.h>
-#include <trousers/trousers.h>
-#endif
-
 #ifdef HAVE_P11KIT
 #include <p11-kit/p11-kit.h>
 #include <p11-kit/pkcs11.h>
@@ -1316,7 +1311,7 @@ static int load_certificate(struct openconnect_info *vpninfo)
 			     _("This version of OpenConnect was built without TPM support\n"));
 		return -EINVAL;
 #else
-		ret = load_tpm_key(vpninfo, &fdata, &pkey, &pkey_sig);
+		ret = load_tpm1_key(vpninfo, &fdata, &pkey, &pkey_sig);
 		if (ret)
 			goto out;
 
@@ -2319,26 +2314,7 @@ void openconnect_close_https(struct openconnect_info *vpninfo, int final)
 		gnutls_certificate_free_credentials(vpninfo->https_cred);
 		vpninfo->https_cred = NULL;
 #ifdef HAVE_TROUSERS
-		if (vpninfo->tpm_key_policy) {
-			Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->tpm_key_policy);
-			vpninfo->tpm_key = 0;
-		}
-		if (vpninfo->tpm_key) {
-			Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->tpm_key);
-			vpninfo->tpm_key = 0;
-		}
-		if (vpninfo->srk_policy) {
-			Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->srk_policy);
-			vpninfo->srk_policy = 0;
-		}
-		if (vpninfo->srk) {
-			Tspi_Context_CloseObject(vpninfo->tpm_context, vpninfo->srk);
-			vpninfo->srk = 0;
-		}
-		if (vpninfo->tpm_context) {
-			Tspi_Context_Close(vpninfo->tpm_context);
-			vpninfo->tpm_context = 0;
-		}
+		release_tpm1_ctx(vpninfo);
 #endif
 	}
 }

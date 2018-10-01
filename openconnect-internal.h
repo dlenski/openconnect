@@ -57,10 +57,6 @@
 #include <gnutls/abstract.h>
 #include <gnutls/x509.h>
 #include <gnutls/crypto.h>
-#ifdef HAVE_TROUSERS
-#include <trousers/tss.h>
-#include <trousers/trousers.h>
-#endif
 #endif
 
 #ifdef HAVE_ICONV
@@ -349,6 +345,7 @@ struct esp {
 };
 
 struct oc_pcsc_ctx;
+struct oc_tpm1_ctx;
 
 struct openconnect_info {
 	const struct vpn_proto *proto;
@@ -504,11 +501,7 @@ struct openconnect_info {
 	char local_cert_md5[MD5_SIZE * 2 + 1]; /* For CSD */
 	char gnutls_prio[256];
 #ifdef HAVE_TROUSERS
-	TSS_HCONTEXT tpm_context;
-	TSS_HKEY srk;
-	TSS_HPOLICY srk_policy;
-	TSS_HKEY tpm_key;
-	TSS_HPOLICY tpm_key_policy;
+	struct oc_tpm1_ctx *tpm1;
 #endif
 #endif /* OPENCONNECT_GNUTLS */
 	struct pin_cache *pin_cache;
