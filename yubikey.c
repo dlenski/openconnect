@@ -58,6 +58,22 @@ static const unsigned char send_remaining[] = { 0x00, SEND_REMAINING_INS, 0x00, 
 #define free_scard_error(str) do { ; } while (0)
 
 #endif
+
+#ifdef __APPLE__
+#include <PCSC/wintypes.h>
+#include <PCSC/winscard.h>
+#else
+#include <winscard.h>
+#endif
+
+
+struct oc_pcsc_ctx {
+	SCARDHANDLE pcsc_ctx, pcsc_card;
+	char *yubikey_objname;
+	int yubikey_pw_set;
+	int yubikey_mode;
+};
+
 static int yubikey_cmd(struct openconnect_info *vpninfo, SCARDHANDLE card, int errlvl,
 		       const char *desc,
 		       const unsigned char *out, size_t outlen, struct oc_text_buf *buf)
@@ -68,10 +84,10 @@ static int yubikey_cmd(struct openconnect_info *vpninfo, SCARDHANDLE card, int e
 
 	do {
 		DWORD respsize = 258;
-		
+
 		if (buf_ensure_space(buf, 258))
 			return -ENOMEM;
-	
+
 		status = SCardTransmit (card, SCARD_PCI_T1, out, outlen,
 					NULL, (unsigned char *)&buf->data[buf->pos], &respsize);
 		if (status != SCARD_S_SUCCESS) {
@@ -181,7 +197,7 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 	tlvpos += tlvlen;
 
 	/* Only print this during the first discovery loop */
-	if (!vpninfo->pcsc_card)
+	if (!vpninfo->pcsc)
 		vpn_progress(vpninfo, PRG_INFO,  _("Found ykneo-oath applet v%d.%d.%d.\n"),
 			     applet_ver[0], applet_ver[1], applet_ver[2]);
 
@@ -195,11 +211,14 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 		memcpy(challenge, &buf->data[tlvpos], tlvlen);
 		chall_len = tlvlen;
 
-	retry:
-		if (!vpninfo->yubikey_pw_set) {
+		/* On later invocations, we know there must have been a
+		 * successfui authentication in the past. So try the same
+		 * hash first, and only retry in the loop on failure. */
+		if (!vpninfo->pcsc) {
 			struct oc_auth_form f;
 			struct oc_form_opt o;
 
+		retry_pass:
 			memset(&f, 0, sizeof(f));
 			f.auth_id = (char *)"yubikey_oath_pin";
 			f.opts = &o;
@@ -230,9 +249,8 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 								applet_id, id_len);
 			if (ret)
 				goto out;
-
-			vpninfo->yubikey_pw_set = 1;
 		}
+	retry_hash:
 		if (openconnect_yubikey_chalresp(vpninfo, &challenge, chall_len,
 						  chalresp + 7)) {
 			vpn_progress(vpninfo, PRG_ERR,
@@ -257,7 +275,6 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 				  chalresp, sizeof(chalresp), buf);
 		if (ret == -EINVAL) {
 			memset(vpninfo->yubikey_pwhash, 0, sizeof(vpninfo->yubikey_pwhash));
-			vpninfo->yubikey_pw_set = 0;
 			if (pin) {
 				/* Try working around pre-KitKat PBKDF2 bug discussed at
 				 * http://forum.yubico.com/viewtopic.php?f=26&t=1601#p6807 and
@@ -287,10 +304,10 @@ static int select_yubioath_applet(struct openconnect_info *vpninfo,
 					 * encoding failed. So use PRG_ERR here too. */
 					vpn_progress(vpninfo, PRG_ERR,
 						     _("Trying truncated-char PBKBF2 variant of Yubikey PIN\n"));
-					vpninfo->yubikey_pw_set = 1;
+					goto retry_hash;
 				}
 			}
-			goto retry;
+			goto retry_pass;
 		}
 	}
  out:
@@ -390,7 +407,7 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 			free_scard_error(pcsc_err);
 			goto disconnect;
 		}
-		
+
 		ret = select_yubioath_applet(vpninfo, pcsc_card, buf);
 		if (ret)
 			goto end_trans;
@@ -419,8 +436,8 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 
 			if (!token_str ||
 			    ((tlvlen - 1 == strlen(token_str)) && !memcmp(token_str, &buf->data[tlvpos+1], tlvlen-1))) {
-				vpninfo->yubikey_objname = strndup(&buf->data[tlvpos+1], tlvlen-1);
-				if (!vpninfo->yubikey_objname) {
+				char *objname = strndup(&buf->data[tlvpos+1], tlvlen-1);
+				if (!objname) {
 					ret = -ENOMEM;
 					SCardEndTransaction(pcsc_card, SCARD_LEAVE_CARD);
 					SCardDisconnect(pcsc_card, SCARD_LEAVE_CARD);
@@ -431,11 +448,17 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
 				vpn_progress(vpninfo, PRG_INFO, _("Found %s/%s key '%s' on '%s'\n"),
 					     (mode == 0x20) ? "TOTP" : "HOTP",
 					     (hash == 0x2) ? "SHA256" : "SHA1",
-					     vpninfo->yubikey_objname, reader_utf8);
+					     objname, reader_utf8);
 
-				vpninfo->yubikey_mode = mode;
-				vpninfo->pcsc_ctx = pcsc_ctx;
-				vpninfo->pcsc_card = pcsc_card;
+				vpninfo->pcsc = calloc(1, sizeof(*vpninfo->pcsc));
+				if (!vpninfo->pcsc) {
+					free(objname);
+					goto out_ctx;
+				}
+				vpninfo->pcsc->yubikey_objname = objname;
+				vpninfo->pcsc->yubikey_mode = mode;
+				vpninfo->pcsc->pcsc_ctx = pcsc_ctx;
+				vpninfo->pcsc->pcsc_card = pcsc_card;
 				vpninfo->token_mode = OC_TOKEN_MODE_YUBIOATH;
 				SCardEndTransaction(pcsc_card, SCARD_LEAVE_CARD);
 
@@ -468,7 +491,7 @@ int set_yubikey_mode(struct openconnect_info *vpninfo, const char *token_str)
  success:
 	free(readers);
 	buf_free(buf);
-	
+
 	return ret;
 }
 
@@ -536,20 +559,20 @@ int do_gen_yubikey_code(struct openconnect_info *vpninfo,
 {
 	struct oc_text_buf *respbuf = NULL;
 	DWORD status;
-	int name_len = strlen(vpninfo->yubikey_objname);
+	int name_len = strlen(vpninfo->pcsc->yubikey_objname);
 	int name_tlvlen;
 	int calc_tlvlen;
 	unsigned char *reqbuf = NULL;
 	int tokval;
 	int i = 0;
 	int ret;
-	
+
 	if (!vpninfo->token_time)
 		vpninfo->token_time = time(NULL);
 
 	vpn_progress(vpninfo, PRG_INFO, _("Generating Yubikey token code\n"));
 
-	status = SCardBeginTransaction(vpninfo->pcsc_card);
+	status = SCardBeginTransaction(vpninfo->pcsc->pcsc_card);
 	if (status != SCARD_S_SUCCESS) {
 		char *pcsc_err = scard_error(status);
 		vpn_progress(vpninfo, PRG_ERR, _("Failed to obtain exclusive access to Yubikey: %s\n"),
@@ -559,20 +582,20 @@ int do_gen_yubikey_code(struct openconnect_info *vpninfo,
 	}
 
 	respbuf = buf_alloc();
-	ret = select_yubioath_applet(vpninfo, vpninfo->pcsc_card, respbuf);
+	ret = select_yubioath_applet(vpninfo, vpninfo->pcsc->pcsc_card, respbuf);
 	if (ret)
 		goto out;
 
-	name_tlvlen = tlvlen_len(strlen(vpninfo->yubikey_objname));
+	name_tlvlen = tlvlen_len(strlen(vpninfo->pcsc->yubikey_objname));
 	calc_tlvlen = 1 /* NAME_TAG */ + name_tlvlen + name_len +
 		1 /* CHALLENGE_TAG */ + 1 /* Challenge TLV len */;
-	if (vpninfo->yubikey_mode == 0x20)
+	if (vpninfo->pcsc->yubikey_mode == 0x20)
 		calc_tlvlen += 8; /* TOTP needs the time as challenge */
 
 	reqbuf = malloc(4 + tlvlen_len(calc_tlvlen) + calc_tlvlen);
 	if (!reqbuf)
 		goto out;
-	
+
 	reqbuf[i++] = 0;
 	reqbuf[i++] = CALCULATE_INS;
 	reqbuf[i++] = 0;
@@ -580,10 +603,10 @@ int do_gen_yubikey_code(struct openconnect_info *vpninfo,
 	i += append_tlvlen(reqbuf + i, calc_tlvlen);
 	reqbuf[i++] = NAME_TAG;
 	i += append_tlvlen(reqbuf + i, name_len);
-	memcpy(reqbuf + i, vpninfo->yubikey_objname, name_len);
+	memcpy(reqbuf + i, vpninfo->pcsc->yubikey_objname, name_len);
 	i += name_len;
 	reqbuf[i++] = CHALLENGE_TAG;
-	if (vpninfo->yubikey_mode == 0x20) {
+	if (vpninfo->pcsc->yubikey_mode == 0x20) {
 		long token_steps = vpninfo->token_time / 30;
 		reqbuf[i++] = 8;
 		reqbuf[i++] = 0;
@@ -596,7 +619,7 @@ int do_gen_yubikey_code(struct openconnect_info *vpninfo,
 		reqbuf[i++] = 0; /* HOTP mode, zero-length challenge */
 	}
 
-	ret = yubikey_cmd(vpninfo, vpninfo->pcsc_card, PRG_ERR, _("calculate command"),
+	ret = yubikey_cmd(vpninfo, vpninfo->pcsc->pcsc_card, PRG_ERR, _("calculate command"),
 			  reqbuf, i, respbuf);
 	if (ret)
 		goto out;
@@ -625,9 +648,25 @@ int do_gen_yubikey_code(struct openconnect_info *vpninfo,
 	vpninfo->token_tries++;
 
  out:
-	SCardEndTransaction(vpninfo->pcsc_card, SCARD_LEAVE_CARD);
+	SCardEndTransaction(vpninfo->pcsc->pcsc_card, SCARD_LEAVE_CARD);
 	buf_free(respbuf);
 	free(reqbuf);
 
 	return ret;
+}
+
+
+void release_pcsc_ctx(struct openconnect_info *vpninfo)
+{
+	if (!vpninfo->pcsc)
+		return;
+
+	if (vpninfo->token_mode == OC_TOKEN_MODE_YUBIOATH) {
+		SCardDisconnect(vpninfo->pcsc->pcsc_card, SCARD_LEAVE_CARD);
+		SCardReleaseContext(vpninfo->pcsc->pcsc_ctx);
+	}
+	memset(vpninfo->yubikey_pwhash, 0, sizeof(vpninfo->yubikey_pwhash));
+	free(vpninfo->pcsc->yubikey_objname);
+	free(vpninfo->pcsc);
+	vpninfo->pcsc = NULL;
 }

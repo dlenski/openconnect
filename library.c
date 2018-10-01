@@ -414,12 +414,7 @@ void openconnect_vpninfo_free(struct openconnect_info *vpninfo)
 		free(vpninfo->oath_secret);
 	}
 #ifdef HAVE_LIBPCSCLITE
-	if (vpninfo->token_mode == OC_TOKEN_MODE_YUBIOATH) {
-		SCardDisconnect(vpninfo->pcsc_card, SCARD_LEAVE_CARD);
-		SCardReleaseContext(vpninfo->pcsc_ctx);
-	}
-	memset(vpninfo->yubikey_pwhash, 0, sizeof(vpninfo->yubikey_pwhash));
-	free(vpninfo->yubikey_objname);
+	release_pcsc_ctx(vpninfo);
 #endif
 #ifdef HAVE_LIBP11
 	if (vpninfo->pkcs11_ctx) {

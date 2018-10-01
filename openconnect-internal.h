@@ -95,15 +95,6 @@
 #include <libp11.h>
 #endif
 
-#ifdef HAVE_LIBPCSCLITE
-#ifdef __APPLE__
-#include <PCSC/wintypes.h>
-#include <PCSC/winscard.h>
-#else
-#include <winscard.h>
-#endif
-#endif
-
 #ifdef ENABLE_NLS
 #include <libintl.h>
 #define _(s) dgettext("openconnect", s)
@@ -357,6 +348,8 @@ struct esp {
 	unsigned char hmac_key[0x40]; /* HMAC key */
 };
 
+struct oc_pcsc_ctx;
+
 struct openconnect_info {
 	const struct vpn_proto *proto;
 
@@ -465,12 +458,10 @@ struct openconnect_info {
 		HOTP_SECRET_HEX,
 		HOTP_SECRET_PSKC,
 	} hotp_secret_format; /* We need to give it back in the same form */
+
 #ifdef HAVE_LIBPCSCLITE
-	SCARDHANDLE pcsc_ctx, pcsc_card;
-	char *yubikey_objname;
+	struct oc_pcsc_ctx *pcsc;
 	unsigned char yubikey_pwhash[16];
-	int yubikey_pw_set;
-	int yubikey_mode;
 #endif
 	openconnect_lock_token_vfn lock_token;
 	openconnect_unlock_token_vfn unlock_token;
@@ -1008,6 +999,7 @@ int can_gen_yubikey_code(struct openconnect_info *vpninfo,
 int do_gen_yubikey_code(struct openconnect_info *vpninfo,
 			struct oc_auth_form *form,
 			struct oc_form_opt *opt);
+void release_pcsc_ctx(struct openconnect_info *info);
 
 /* auth.c */
 int cstp_obtain_cookie(struct openconnect_info *vpninfo);
