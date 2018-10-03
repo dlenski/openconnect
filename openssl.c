@@ -952,6 +952,9 @@ static int load_certificate(struct openconnect_info *vpninfo)
 		} else if (!strcmp(buf, "-----BEGIN TSS2 KEY BLOB-----\n")) {
 			fclose(f);
 			return load_tpm_certificate(vpninfo, "tpm2");
+		} else if (!strcmp(buf, "-----BEGIN TSS2 PRIVKEY BLOB v1-----\n")) {
+			fclose(f);
+			return load_tpm_certificate(vpninfo, "tpm2tss");
 		} else if (!strcmp(buf, "-----BEGIN RSA PRIVATE KEY-----\n") ||
 			   !strcmp(buf, "-----BEGIN DSA PRIVATE KEY-----\n") ||
 			   !strcmp(buf, "-----BEGIN EC PRIVATE KEY-----\n") ||
