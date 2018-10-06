@@ -509,7 +509,7 @@ static int gpst_parse_config_xml(struct openconnect_info *vpninfo, xmlNode *xml_
 			for (member = xml_node->children; member; member=member->next)
 				if (!xmlnode_get_val(member, "member", &s))
 					buf_append(domains, "%s ", s);
-			if (buf_error(domains) == 0) {
+			if (buf_error(domains) == 0 && domains->pos > 0) {
 				domains->data[domains->pos-1] = '\0';
 				vpninfo->ip_info.domain = add_option(vpninfo, "search", &domains->data);
 			}
