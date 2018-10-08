@@ -401,6 +401,8 @@ gateways:
 				     choice->label, choice->name);
 		}
 	}
+	if (!vpninfo->authgroup && opt->nr_choices)
+		vpninfo->authgroup = strdup(opt->choices[0]->name);
 
 	if (vpninfo->write_new_config) {
 		buf_append(buf, "  </ServerList>\n</GPPortal>\n");
@@ -412,7 +414,7 @@ gateways:
 
 	/* process auth form to select gateway */
 	result = process_auth_form(vpninfo, form);
-	if (result != OC_FORM_RESULT_NEWGROUP)
+	if (result == OC_FORM_RESULT_CANCELLED || result < 0)
 		goto out;
 
 	/* redirect to the gateway (no-op if it's the same host) */
