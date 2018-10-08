@@ -1107,9 +1107,9 @@ int process_auth_form(struct openconnect_info *vpninfo, struct oc_auth_form *for
 
 retry:
 	auth_choice = NULL;
-	if (grp && grp->nr_choices && !vpninfo->xmlpost) {
+	if (grp && grp->nr_choices) {
+		/* Set group selection from authgroup */
 		if (vpninfo->authgroup) {
-			/* For non-XML-POST, the server doesn't tell us which group is selected */
 			int i;
 			for (i = 0; i < grp->nr_choices; i++)
 				if (!strcmp(grp->choices[i]->name, vpninfo->authgroup))
