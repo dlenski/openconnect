@@ -126,6 +126,28 @@ $ docker run -ti --rm --privileged --net=host openconnect
 Leave that container running, open another terminal, and you'll see a
 newly created tun connection for your whole system to use.
 
+### Nix
+
+Installation via nix is a one-liner, and the binary will most likely be
+cached (i.e. no build from source will be necessary).
+
+On non-NixOS machines:
+```sh
+$ nix-env -iA nixpkgs.openconnect_pa
+```
+
+On NixOS:
+```sh
+$ nix-env -iA nixos.openconnect_pa
+```
+
+One can also drop into a shell with `openconnect` available:
+```sh
+$ nix-shell -p openconnect_pa
+```
+When you exit this shell, `openconnect` will no longer be available.
+This is useful if you wish to avoid a global install.
+
 ## Connecting to a GlobalProtect VPN
 
 Run openconnect like this to test it with your GlobalProtect VPN
