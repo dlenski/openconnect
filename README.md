@@ -75,7 +75,7 @@ $ sudo apt-get install \
 Once you have all the build dependencies installed, checkout and build from this repository.
 
 ```sh
-$ git clone //github.com/dlenski/openconnect.git
+$ git clone https://github.com/dlenski/openconnect.git
 $ cd openconnect
 $ ./autogen.sh
 $ ./configure
