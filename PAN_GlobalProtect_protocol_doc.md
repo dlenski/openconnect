@@ -221,6 +221,40 @@ Here's where it gets interesting:
 </response>
 ```
 
+## Response #2 (getconfig) - failed
+
+On some servers you may receive a failure response from the `getconfig` call. It can be originated from the portal or from the gateway. There is no documented standard for those errors or their causes, below are some examples found by users:
+
+### getconfig errors from the Portal (`/global-protect/getconfig.esp`):
+
+```
+<?xml version="1.0" encoding="UTF-8" ?>
+ <policy>
+ <has-config>no</has-config>
+ <user-group-loaded>yes</user-group-loaded>
+ <portal-userauthcookie>empty</portal-userauthcookie>
+ <portal-prelogonuserauthcookie>empty</portal-prelogonuserauthcookie>
+</policy>
+```
+
+Possible causes:
+* The server did not accept the Client OS that openconnect has sent in the request. Try to test with different values for the `--os` parameter
+
+
+### getconfig errors from the Gateway (`/ssl-vpn/getconfig.esp`):
+
+```
+<response status="error">
+	<portal>GW_VPN_EXTERNAL-N</portal>
+	<user>xxXXXXX</user>
+	<error>Assign private IP address failed</error>
+</response>
+```
+
+Possible causes:
+* The server did not accept the Client OS that openconnect has sent in the request. Try to test with different values for the `--os` parameter
+
+
 Data transfer over the tunnel
 =============================
 
