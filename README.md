@@ -1,5 +1,12 @@
 # OpenConnect with PAN GlobalProtect support
 
+**Attention: [OpenConnect v8.00](http://lists.infradead.org/pipermail/openconnect-devel/2019-January/005178.html) has
+now been released.** It includes GlobalProtect support, as developed in this repository, out-of-the-box. If you just
+want to run OpenConnect and connect to a GlobalProtect VPN, use the official v8.00 source release or bother your
+distribution's packagers to release a v8.00 package.
+
+---
+
 [![Build Status](https://api.travis-ci.org/dlenski/openconnect.png)](//travis-ci.org/dlenski/openconnect)
 
 # Table of Contents
