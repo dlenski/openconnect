@@ -223,9 +223,11 @@ Here's where it gets interesting:
 
 ## Response #2 (getconfig) - failed
 
-On some servers you may receive a failure response from the `getconfig` call. It can be originated from the portal or from the gateway. There is no documented standard for those errors or their causes, below are some examples found by users:
+On some servers you may receive a failure response from the `getconfig` call. It can
+originate from the portal _or_ from the gateway. There is no known documentation explaining these errors
+or their causes. Below are some examples found by users:
 
-### getconfig errors from the Portal (`/global-protect/getconfig.esp`):
+### Portal errors (`/global-protect/getconfig.esp`):
 
 ```
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -238,10 +240,10 @@ On some servers you may receive a failure response from the `getconfig` call. It
 ```
 
 Possible causes:
-* The server did not accept the Client OS that openconnect has sent in the request. Try to test with different values for the `--os` parameter
+* The server did not accept the client OS that openconnect sent in the request.
+  Try to test with different values for the `--os` parameter.
 
-
-### getconfig errors from the Gateway (`/ssl-vpn/getconfig.esp`):
+### Gateway errors (`/ssl-vpn/getconfig.esp`):
 
 ```
 <response status="error">
@@ -252,7 +254,8 @@ Possible causes:
 ```
 
 Possible causes:
-* The server did not accept the Client OS that openconnect has sent in the request. Try to test with different values for the `--os` parameter
+* The server did not accept the client OS that openconnect sent in the request.
+  Try to test with different values for the `--os` parameter.
 
 
 Data transfer over the tunnel
