@@ -2,9 +2,37 @@ This is an anonymized log of the authentication, configuration, tunnel data tran
 [PAN](http://www.paloaltonetworks.com) GlobalProtect VPN server and client. The logs below are based on the official Windows
 client, v3.0.1-10, with some updates from v4.0.5-8.
 
+   * [Updates](#updates)
+   * [Common features across requests](#common-features-across-requests)
+   * [Login request](#login-request)
+   * [Successful login response](#successful-login-response)
+   * [getconfig request](#getconfig-request)
+   * [Response #2 (getconfig)](#response-2-getconfig)
+      * [Response #2 (getconfig) - failed](#response-2-getconfig---failed)
+         * [Portal errors (/global-protect/getconfig.esp):](#portal-errors-global-protectgetconfigesp)
+         * [Gateway errors (/ssl-vpn/getconfig.esp):](#gateway-errors-ssl-vpngetconfigesp)
+   * [Data transfer over the tunnel](#data-transfer-over-the-tunnel)
+         * [ESP-over-UDP](#esp-over-udp)
+         * [SSL vpn tunnel](#ssl-vpn-tunnel)
+         * [ESP and SSL tunnels are mutually exclusive](#esp-and-ssl-tunnels-are-mutually-exclusive)
+   * [Logout request](#logout-request)
+   * [Successful logout response](#successful-logout-response)
+
+-------
+
+Updates
+=======
+
 Client version 4.0 [adds IPv6 support](https://live.paloaltonetworks.com/t5/Colossal-Event-Blog/New-GlobalProtect-4-0-announced-with-IPv6-support/ba-p/141593) and SAML authentication support.
 
-The correct user-agent (`User-Agent: PAN Globalprotect`) is **required** for all HTTP interactions with the GlobalProtect VPN. It treats any other user-agent as a web browser, not a VPN client.
+PanOS 8.0 [adds server-side IPv6 support and split-excludes](https://www.paloaltonetworks.com/documentation/80/pan-os/newfeaturesguide/globalprotect-features).
+
+Common features across requests
+===============================
+
+The header `User-Agent: PAN GlobalProtect` is **required** for all HTTP(S) requests with the GlobalProtect VPN servers.
+They treat any other user-agent as a web browser, not a VPN client, and usually redirect to a client software download
+page, or something similar.
 
 Login request
 =============
@@ -193,7 +221,14 @@ Here's where it gets interesting:
   <access-routes>
     <member>10.0.0.0/8</member>
     <member>192.168.0.0/16</member>
+    <!-- Normally, the DNS servers are explicitly listed here as /32 routes.
+         0.0.0.0/0 is often included as the first member -->
   </access-routes>
+  <exclude-access-routes>
+    <!-- this was added in PanOS 8.0 -->
+    <member>10.0.0.47/24</member>
+    <member>10.0.0.48/24</member>
+  </exclude-access-routes>
   <ipsec>
     <udp-port>4501</udp-port>
     <ipsec-mode>esp-tunnel</ipsec-mode>
@@ -265,7 +300,12 @@ In the back-and-forth flows shown below, `<` means sent by the gateway, `>` mean
 
 ### ESP-over-UDP
 
-Uses the keying information obtained in response to the `getconfig` request. In order to initiate the connection, the client sends 3 ICMP request ("ping") packets to the gateway.
+Uses the ciphersuite and keying information obtained in response to the `getconfig` request.
+Recent official clients state support for `sha1` hash and `aes-256-gcm,aes-128-gcm,aes-128-cbc` encryption in their
+`getconfig` request; the _only_ combinations I've ever seen a server return are `aes-128-cbc` with `sha1`. Some
+servers return `aes128` as the encryption algorithm, but mean `aes-128-cbc`.
+
+In order to initiate the connection, the client sends 3 ICMP request ("ping") packets to the gateway.
 
 * These packets are ESP-encapsulated
 * These packets are sent _from_ **the client's in-VPN IP address** _to_ **the IP address specified by the `<gw-address>` from
@@ -315,10 +355,24 @@ If/when the SSL tunnel is connected, the ESP tunnel _cannot_ be used any longer.
 
 This means that a client that prefers to use ESP **must not** try to connect the SSL tunnel until after an ESP connection has failed. (The official Windows client waits 10 seconds for ICMP reply packets over ESP, before failing over to the SSL tunnel.)
 
+### Rekeying
+
+The `getconfig` response returns a `<timeout>` value, which is the lifetime (in seconds) of both the SSL tunnel
+and the ESP keys.
+
+Before the expiration of this key lifetime, the client must re-issue the `getconfig` request with the same authcookie
+(this necessarily implies a new SSL/HTTPS connection).  It can then re-open the SSL tunnel or the ESP tunnel, with new
+keys, and continue sending traffic as above.
+
+(The `<timeout>` value should not be confused with the `<disconnect-on-idle>` value, which is the period after which
+the server will disconnect the client (and invalidate its authcookie) if it doesn't receive any traffic besides
+keepalives.)
+
 Logout request
 ==============
 
-The client **must** send the exact domain, computer name, portal, and OS version from the login request or response… otherwise the logout request will _fail_ and the tunnel can be reconnected using the same authcookie.
+The client **must** send the exact domain, computer name, portal, and OS version from the login request or response…
+otherwise the logout request will _fail open_ and the tunnel can be reconnected using the same authcookie.
 
 ```
 POST https://gateway.company.com/ssl-vpn/logout.esp
