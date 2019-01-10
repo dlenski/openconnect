@@ -9,12 +9,12 @@ client, v3.0.1-10, with some updates from v4.0.5-8.
    * [getconfig request](#getconfig-request)
    * [Response #2 (getconfig)](#response-2-getconfig)
       * [Response #2 (getconfig) - failed](#response-2-getconfig---failed)
-         * [Portal errors (/global-protect/getconfig.esp):](#portal-errors-global-protectgetconfigesp)
-         * [Gateway errors (/ssl-vpn/getconfig.esp):](#gateway-errors-ssl-vpngetconfigesp)
+         * [Portal errors (/global-protect/getconfig.esp)](#portal-errors-global-protectgetconfigesp)
+         * [Gateway errors (/ssl-vpn/getconfig.esp)](#gateway-errors-ssl-vpngetconfigesp)
    * [Data transfer over the tunnel](#data-transfer-over-the-tunnel)
-         * [ESP-over-UDP](#esp-over-udp)
-         * [SSL vpn tunnel](#ssl-vpn-tunnel)
-         * [ESP and SSL tunnels are mutually exclusive](#esp-and-ssl-tunnels-are-mutually-exclusive)
+      * [ESP-over-UDP](#esp-over-udp)
+      * [SSL vpn tunnel](#ssl-vpn-tunnel)
+      * [ESP and SSL tunnels are mutually exclusive](#esp-and-ssl-tunnels-are-mutually-exclusive)
    * [Logout request](#logout-request)
    * [Successful logout response](#successful-logout-response)
 
@@ -262,7 +262,7 @@ On some servers you may receive a failure response from the `getconfig` call. It
 originate from the portal _or_ from the gateway. There is no known documentation explaining these errors
 or their causes. Below are some examples found by users:
 
-### Portal errors (`/global-protect/getconfig.esp`):
+### Portal errors (`/global-protect/getconfig.esp`)
 
 ```
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -278,7 +278,7 @@ Possible causes:
 * The server did not accept the client OS that openconnect sent in the request.
   Try to test with different values for the `--os` parameter.
 
-### Gateway errors (`/ssl-vpn/getconfig.esp`):
+### Gateway errors (`/ssl-vpn/getconfig.esp`)
 
 ```
 <response status="error">
