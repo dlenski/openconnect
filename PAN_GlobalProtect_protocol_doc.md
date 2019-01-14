@@ -4,7 +4,8 @@ client, v3.0.1-10, with some updates from v4.0.5-8.
 
    * [Updates](#updates)
    * [Common features across requests](#common-features-across-requests)
-   * [[Pre-login request](#pre-login-request)
+   * [Pre-login request](#pre-login-request)
+   * [Pre-login response](#pre-login-response)
    * [Login request](#login-request)
    * [Successful login response](#successful-login-response)
    * [getconfig request](#getconfig-request)
