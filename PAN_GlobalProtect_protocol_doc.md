@@ -4,6 +4,7 @@ client, v3.0.1-10, with some updates from v4.0.5-8.
 
    * [Updates](#updates)
    * [Common features across requests](#common-features-across-requests)
+   * [[Pre-login request](#pre-login-request)
    * [Login request](#login-request)
    * [Successful login response](#successful-login-response)
    * [getconfig request](#getconfig-request)
@@ -34,15 +35,62 @@ The header `User-Agent: PAN GlobalProtect` is **required** for all HTTP(S) reque
 They treat any other user-agent as a web browser, not a VPN client, and usually redirect to a client software download
 page, or something similar.
 
+Pre-login request
+=================
+
+This request is submitted as a `POST`, but has `GET`-style URL parameters and no body:
+
+```
+POST https://gateway.company.com/ssl-vpn/?prelogin.esptmp=tmp&clientVer=4100&clientos=Windows
+
+Connection:      Keep-Alive
+Content-Type:    application/x-www-form-urlencoded
+User-Agent:      PAN GlobalProtect
+Host:            gateway.company.com
+```
+
+Pre-login response
+==================
+
+Useful things we learn from this response:
+
+* Whether this server is running a "gateway" (`/ssl-vpn/*`) or only a "portal" (`/global-protect/*`) — 
+  official clients begin their login process only via portal
+* What labels to use in the login form
+* Whether [SAML](https://en.wikipedia.org/wiki/Security_Assertion_Markup_Language) is being used, or
+  whether we should do a "normal" login using username, password, and (perhaps) client certificate.
+
+```xml
+<?xml version='1.0' encoding='utf-8'?>
+<prelogin-response>
+  <status>Success</status>      <!-- or "Error", when this is a portal-only server -->
+  <ccusername/>                 <!-- Subject name from just-submitted client cert, in some cases -->
+  <autosubmit>false</autosubmit>
+  <msg/>                        <!-- Only for errors, e.g. "GlobalProtect gateway does not exist" -->
+  <newmsg/>
+  <license>yes</license>        <!-- Not always present -->
+  <license-v6>yes</license-v6>  <!-- Only recent versions -->
+  <authentication-message>Enter login credentials</authentication-message>
+  <username-label>Username</username-label>
+  <password-label>Password</password-label>
+  <panos-version>1</panos-version>
+	
+  <!-- These are only when SAML is used; known methods are REDIRECT and POST,
+       and the request is a b64-encoded URL -->
+  <saml-auth-status>0</saml-auth-status>
+  <saml-auth-method>REDIRECT</saml-auth-method>
+  <saml-request>aHR0cHM6Ly9zYW1sLm9rdGEuY29tL2xvZ2luL3Zwbg==</saml-request>
+
+  <region>US</region>
+</prelogin-response>
+```
+
 Login request
 =============
 
 Some of the form fields are required (user and password
 obviously, `ok=Login` inexplicably) while others can apparently be
 omitted.
-
-`*`: Required and meaningful
-`F`: Fixed
 
 ```
 POST https://gateway.company.com/ssl-vpn/login.esp
