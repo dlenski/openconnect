@@ -7,8 +7,8 @@ client, v3.0.1-10, with some updates from v4.0.5-8.
    * [Login request](#login-request)
    * [Successful login response](#successful-login-response)
    * [getconfig request](#getconfig-request)
-   * [Response #2 (getconfig)](#response-2-getconfig)
-      * [Response #2 (getconfig) - failed](#response-2-getconfig---failed)
+   * [getconfig response](#getconfig-response)
+      * [getconfig response failures](#getconfig-response-failures)
          * [Portal errors (/global-protect/getconfig.esp)](#portal-errors-global-protectgetconfigesp)
          * [Gateway errors (/ssl-vpn/getconfig.esp)](#gateway-errors-ssl-vpngetconfigesp)
    * [Data transfer over the tunnel](#data-transfer-over-the-tunnel)
@@ -40,6 +40,9 @@ Login request
 Some of the form fields are required (user and password
 obviously, `ok=Login` inexplicably) while others can apparently be
 omitted.
+
+`*`: Required and meaningful
+`F`: Fixed
 
 ```
 POST https://gateway.company.com/ssl-vpn/login.esp
@@ -174,8 +177,8 @@ hmac-algo:         sha1,.
 ```
 
 
-Response #2 (getconfig)
-=======================
+getconfig response
+==================
 
 Here's where it gets interesting:
 
@@ -186,6 +189,9 @@ Here's where it gets interesting:
   keys and SPIs do **not** match; this is intentional.
 * SSL tunnel URL (`<ssl-tunnel-url>/ssl-tunnel-connect.sslvpn</ssl-tunnel-url>`) is the same on all servers I've seen
 * MTU is sent as zero (`<mtu>0</mtu>`) on all servers I've seen. This seems broken and useless.
+
+**Currently unknown:** what tags are included in the response to specify IPv6 configuration info, for a VPN which
+hands out IPv6 internal addresses?
 
 ```xml
 <?xml version='1.0' encoding='UTF-8'?>
@@ -256,7 +262,7 @@ Here's where it gets interesting:
 </response>
 ```
 
-## Response #2 (getconfig) - failed
+## getconfig response failures
 
 On some servers you may receive a failure response from the `getconfig` call. It can
 originate from the portal _or_ from the gateway. There is no known documentation explaining these errors
