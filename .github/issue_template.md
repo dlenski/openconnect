@@ -2,13 +2,24 @@
 
   Hold on a sec right there...
 
-  Are you asking for help *building* this version of OpenConnect?
+  => Are you having a problem with functionality of a *released* version of OpenConnect? <=
+  
+  If so, this isn't the place for it. Use the official OpenConnect mailing list instead:
+  
+    http://www.infradead.org/openconnect/mail.html
+  
+  => Are you asking for help *building* the under-development version of OpenConnect in
+     this repository? <=
 
-  If so, please refer to what I wrote in the README:
+  THERE SHOULD BE NO REASON FOR YOU TO BUILD THIS VERSION UNLESS YOU NEED SOME FUNCTIONALITY
+  THAT'S NOT IN A RELEASED VERSION, OR ARE WORKING ON DEVELOPING NEW FEATURES.
+  
+  If you really *do* want to build from this repository, please refer to what I wrote in the
+  README:
 
     https://github.com/dlenski/openconnect/HEAD/globalprotect/README.md#installation
 
-  This version has the exact same build dependencies as the official OpenConnect v7.08;
+  This version has the exact same build dependencies as the official OpenConnect;
   modern versions of autoconf, automake, gcc, libxml, etc. Follow the
   official build instructions, or ask for help on the official mailing list:
 
