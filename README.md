@@ -76,7 +76,7 @@ Under Debian-based or Ubuntu-based distributions, this should install the requir
 $ sudo apt-get install \
     build-essential gettext autoconf automake libproxy-dev \
     libxml2-dev libtool vpnc-scripts pkg-config zlib1g-dev \
-    libgnutls-dev # may be named libgnutls28-dev on some recent Debian/Ubuntu-based distros
+    zlib1g-dev libgnutls-dev # may be named libgnutls28-dev on some recent Debian/Ubuntu-based distros
 ```
 
 Once you have all the build dependencies installed, checkout and build from this repository.
