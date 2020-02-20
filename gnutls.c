@@ -2162,7 +2162,7 @@ int openconnect_open_https(struct openconnect_info *vpninfo)
 			}
 		}
 	}
-	gnutls_init(&vpninfo->https_sess, GNUTLS_CLIENT);
+	gnutls_init(&vpninfo->https_sess, GNUTLS_CLIENT|GNUTLS_FORCE_CLIENT_CERT);
 	gnutls_session_set_ptr(vpninfo->https_sess, (void *) vpninfo);
 	/*
 	 * For versions of GnuTLS older than 3.2.9, we try to avoid long
