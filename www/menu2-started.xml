@@ -1,8 +1,0 @@
-<PAGE>
-	<STARTMENU level="2"/>
-        <MENU topic="Building" link="building.html" mode="VAR_SEL_BUILDING" />
-        <MENU topic="vpnc-script" link="vpnc-script.html" mode="VAR_SEL_VPNCSCRIPT" />
-	<MENU topic="Connecting" link="connecting.html" mode="VAR_SEL_CONNECTING" />
-	<MENU topic="Manual" link="manual.html" mode="VAR_SEL_MANUAL" />
-	<ENDMENU />
-</PAGE>

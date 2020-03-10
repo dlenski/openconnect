@@ -1,4 +1,0 @@
-directories.tokendir = @top_srcdir@/tests/softhsm
-objectstore.backend = file
-
-loglevel = INFO

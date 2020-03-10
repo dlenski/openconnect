@@ -1,9 +1,0 @@
-<PAGE>
-	<STARTMENU level="2"/>
-        <MENU topic="About" link="index.html" mode="VAR_SEL_ABOUT" />
-        <MENU topic="Supported Platforms" link="platforms.html" mode="VAR_SEL_PLATFORMS" />
-        <MENU topic="Download" link="download.html" mode="VAR_SEL_DOWNLOAD" />
-        <MENU topic="Packages" link="packages.html" mode="VAR_SEL_PACKAGES" />
-	<MENU topic="Changelog" link="changelog.html" mode="VAR_SEL_CHANGELOG" />
-	<ENDMENU />
-</PAGE>
