@@ -32,9 +32,9 @@ PanOS 8.0 [adds server-side IPv6 support and split-excludes](https://www.paloalt
 Common features across requests
 ===============================
 
-The header `User-Agent: PAN GlobalProtect` is **required** for all HTTP(S) requests with the GlobalProtect VPN servers.
-They treat any other user-agent as a web browser, not a VPN client, and usually redirect to a client software download
-page, or something similar.
+Some older GlobalProtect servers may **require** the header `User-Agent: PAN GlobalProtect` to be set for all HTTP(S)
+requests. These servers treat any other user-agent as a web browser, not a VPN client, and usually redirect to a client
+software download page, or something similar.
 
 Pre-login request
 =================
@@ -148,6 +148,12 @@ In order to handle the getconfig, tunnel-connect, and logon requests properly (d
 * authentication type is something like `LDAP-auth` or `AUTH-RADIUS_RSA_OTP`, and appears to reflect the mechanism by which the user was authenticated
 * preferred IP address is set by some VPN gateways _even if_ it was omitted from the login request; if it is not empty or `(null)`, its value should be used in the subsequent getconfig request
 * `4100` appears to identify the VPN protocol version. I've never seen another value.
+
+The value `(null)` can be treated identically to a missing value.
+
+The domain name is sometimes observed to be URL-escaped (`(empty_domain)` represented literally as `%28empty_domain%29`); 
+this value needs to be unescaped in order for the [Logout Request](#logout-request) to succeed. I've never seen another
+value containing `%` or `+`, but it's probably safe to assume that all values should be URL-unescaped.
 
 ```xml
 <?xml version='1.0' encoding='utf-8'?>
