@@ -1,9 +1,0 @@
-The included test suite depends on the following programs and libraries
-being available:
- * ocserv
- * socket_wrapper
- * uid_wrapper
-
-It can be run as ```make check```.
-
-

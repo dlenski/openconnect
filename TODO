@@ -1,7 +1,0 @@
-
-openconnect:
-	Port to/test on Windows, Symbian, etc.
-
-nm-auth-dialog:
-	Store cookie in GNOME keyring and reuse it instead of logging in again
-	      (which means you keep your IP address)
