@@ -42,7 +42,7 @@ Pre-login request
 This request is submitted as a `POST`, but has `GET`-style URL parameters and no body:
 
 ```
-POST https://gateway.company.com/ssl-vpn/?prelogin.esptmp=tmp&clientVer=4100&clientos=Windows
+POST https://gateway.company.com/ssl-vpn/?prelogin.esp?tmp=tmp&clientVer=4100&clientos=Windows
 
 Connection:      Keep-Alive
 Content-Type:    application/x-www-form-urlencoded
