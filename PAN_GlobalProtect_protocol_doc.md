@@ -39,7 +39,7 @@ software download page, or something similar.
 Pre-login request
 =================
 
-This request is submitted as a `POST`, but has `GET`-style URL parameters and no body:
+This request is submitted as a `POST`, but has `GET`-style URL parameters:
 
 ```
 POST https://gateway.company.com/ssl-vpn/?prelogin.esp?tmp=tmp&clientVer=4100&clientos=Windows
@@ -49,6 +49,10 @@ Content-Type:    application/x-www-form-urlencoded
 User-Agent:      PAN GlobalProtect
 Host:            gateway.company.com
 ```
+
+Very recent GlobalProtect clients send `cas-support=yes` in the `POST` body
+(see [OpenConnect issue #651](https://gitlab.com/openconnect/openconnect/-/issues/651)), but
+older clients send nothing in the body.
 
 Pre-login response
 ==================
