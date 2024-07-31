@@ -143,7 +143,9 @@ refer to the expected/desired addresses within the VPN.
 Successful login response
 =========================
 
-This response contains a delicious 32-digit cookie. The second hexadecimal blob is a persistent identifier associated with the combination of user account and gateway (probably the `sha1` hash of something, since it's 40 digits long).
+This response contains a delicious 32-digit cookie.
+
+The second 40-digit hexadecimal blob is a persistent identifier associated with the combination of user account and gateway. Users have reported to me that this blob functions as an anti-MITM measure: the official clients will disconnect from a server if it's being MITM'ed, but setting it to a blank/empty value seems to bypass this. Quite likely the official clients are using it as a [trust on first use (TOFU)](https://en.wikipedia.org/wiki/Trust_on_first_use) persistent identifier for the server.
 
 In order to handle the getconfig, tunnel-connect, and logon requests properly (described below), the client needs to save some other parts of this response besides the cookie:
 
@@ -165,7 +167,7 @@ value containing `%` or `+`, but it's probably safe to assume that all values sh
   <application-desc>
     <argument>(null)</argument>
     <argument>delicious 32 digits hex cookie</argument>
-    <argument>another 40 mysterious hexadecimal digits</argument>
+    <argument>another 40 mysterious hexadecimal digits, remove it to bypass anti-MITM measures</argument>
     <argument>Gateway-Name</argument>
     <argument>username provided above</argument>
     <argument>authentication type</argument>
